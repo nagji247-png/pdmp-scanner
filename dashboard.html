@@ -5,26 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PDMP Scanner</title>
 <style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, sans-serif; background: #0f1220; color: #e6e9f2; }
-  header { padding: 14px 16px; font-size: 18px; font-weight: 600; }
-  #status { font-size: 12px; color: #8a90a8; padding: 0 16px 10px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 0 12px 20px; }
+  header { padding: 14px 16px 4px; font-size: 18px; font-weight: 600; }
+  #status { font-size: 12px; color: #8a90a8; padding: 0 16px 12px; }
+  h2 { font-size: 15px; margin: 22px 16px 8px; color: #cfd4e6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 0 12px; }
   .card { background: #1a1f35; border-radius: 10px; padding: 12px; border-left: 4px solid #555; }
   .name { font-size: 12px; color: #8a90a8; letter-spacing: 0.5px; }
   .chg { font-size: 22px; font-weight: 700; margin: 4px 0; }
   .score { font-size: 13px; }
-  .label { font-size: 11px; margin-top: 4px; }
+  .label { font-size: 11px; margin-top: 4px; font-weight: 600; }
   .bull { color: #2ecc71; border-color: #2ecc71; }
   .bear { color: #e74c3c; border-color: #e74c3c; }
   .neu  { color: #f1c40f; border-color: #f1c40f; }
-  details { font-size: 11px; color: #aab; margin-top: 6px; }
-  details li { margin-bottom: 3px; }
+  details { font-size: 12px; color: #aab; margin-top: 8px; }
+  summary { cursor: pointer; padding: 4px 0; }
+  .hl { border-top: 1px solid #252b45; padding: 6px 0; }
+  .hl-title { color: #dfe3ef; line-height: 1.35; }
+  .hl-meta { font-size: 11px; color: #7b82a0; margin-top: 2px; }
+  .hl-score { font-weight: 700; margin-right: 4px; }
+  .pos { color: #2ecc71; } .neg { color: #e74c3c; } .zero { color: #8a90a8; }
+  .box { background: #1a1f35; border-radius: 10px; margin: 0 12px 16px; padding: 14px; }
+  .big { font-size: 26px; font-weight: 700; color: #4fc3f7; }
+  .sub { font-size: 12px; color: #aab; margin-top: 2px; }
+  .warn { color: #f5a623; font-size: 13px; margin-bottom: 10px; line-height: 1.4; }
+  .ev { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid #252b45; font-size: 13px; }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .t-rev { background: #3b2a1a; color: #f5a623; }
+  .t-cont { background: #1d3a2a; color: #2ecc71; }
+  .t-pend { background: #2a2f47; color: #8a90a8; }
+  .rq { display: inline-block; font-size: 12px; background: #2a2f47; color: #dfe3ef; padding: 4px 8px; border-radius: 6px; margin: 3px 4px 3px 0; }
+  .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 </style>
 </head>
 <body>
 <header>PDMP Scanner</header>
 <div id="status">लोड हो रहा है...</div>
-<div class="grid" id="grid"></div>
+
+<h2>📊 इंडेक्स और कमोडिटी</h2>
+<div class="grid" id="indexes"></div>
+
+<h2>🏢 स्टॉक</h2>
+<div class="grid" id="stocks"></div>
+
+<h2>🔍 What People Are Searching (Google Trends)</h2>
+<div class="box" id="trends"></div>
+
+<h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
+<div class="box" id="contrarian"></div>
+
+<div class="footer">
+  सभी जानकारी केवल शैक्षिक उद्देश्य के लिए है। यह निवेश सलाह नहीं है।
+</div>
 
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
@@ -33,6 +67,111 @@ function classify(score) {
   if (score >= 2) return ["bull", "BULLISH"];
   if (score <= -2) return ["bear", "BEARISH"];
   return ["neu", "NEUTRAL"];
+}
+
+function scoreClass(s) {
+  return s > 0 ? "pos" : s < 0 ? "neg" : "zero";
+}
+
+function ageText(h) {
+  if (h == null) return "";
+  if (h < 1) return "अभी";
+  if (h < 24) return Math.round(h) + " घंटे पहले";
+  return Math.round(h / 24) + " दिन पहले";
+}
+
+function card(name, d) {
+  const [cls, label] = classify(d.score);
+  const sign = d.change_pct >= 0 ? "+" : "";
+  const heads = (d.headlines || []).map(h => `
+    <div class="hl">
+      <div class="hl-title"><span class="hl-score ${scoreClass(h.score)}">${h.score > 0 ? "+" : ""}${h.score}</span>${h.title}</div>
+      <div class="hl-meta">${h.source || "स्रोत अज्ञात"}${h.age_h != null ? " · " + ageText(h.age_h) : ""}</div>
+    </div>`).join("");
+
+  const el = document.createElement("div");
+  el.className = "card " + cls;
+  el.innerHTML = `
+    <div class="name">${name}</div>
+    <div class="chg">${sign}${d.change_pct}%</div>
+    <div class="score">स्कोर: ${d.score > 0 ? "+" : ""}${d.score}</div>
+    <div class="label">${label}</div>
+    <details>
+      <summary>हेडलाइन (${(d.headlines || []).length})</summary>
+      ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
+    </details>`;
+  return el;
+}
+
+function renderInstruments(instruments) {
+  const idx = document.getElementById("indexes");
+  const stk = document.getElementById("stocks");
+  idx.innerHTML = "";
+  stk.innerHTML = "";
+
+  for (const [name, d] of Object.entries(instruments)) {
+    const target = d.type === "stock" ? stk : idx;
+    target.appendChild(card(name, d));
+  }
+}
+
+function renderTrends(t) {
+  const box = document.getElementById("trends");
+  if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
+  if (!t.ok) {
+    box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
+      <div class="sub">${t.error || ""}</div>`;
+    return;
+  }
+
+  const v = t.fear_vs_avg;
+  const vText = (v > 0 ? "+" : "") + v + "%";
+  const vCls = v > 0 ? "neg" : "pos";
+  const mood = v > 0 ? "डर अपने सामान्य स्तर से ऊपर है" : "डर अपने सामान्य स्तर से नीचे है";
+
+  const terms = (t.per_term || []).map(p => {
+    const s = p.vs_avg > 0 ? "+" : "";
+    return `<div class="ev"><div>${p.term}</div>
+      <div class="${p.vs_avg > 0 ? "neg" : "pos"}">${s}${p.vs_avg}%</div></div>`;
+  }).join("");
+
+  const spikes = (t.spikes || []).map(s => {
+    const tag = s.stock ? ` <span class="tag t-rev">${s.stock}</span>` : "";
+    return `<span class="rq">${s.query}${tag} <span style="color:#7b82a0">${s.value}</span></span>`;
+  }).join("");
+
+  box.innerHTML = `
+    <div class="big ${vCls}">${vText}</div>
+    <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत</div>
+    <div style="margin-top:10px">${terms}</div>
+    <div class="sub" style="margin-top:14px">अचानक तेज़ी से बढ़ती खोजें (Nifty/Sensex के आसपास)</div>
+    <div style="margin-top:6px">${spikes || '<span class="sub">कोई नई खोज नहीं मिली</span>'}</div>`;
+}
+
+function renderContrarian(c) {
+  const box = document.getElementById("contrarian");
+  if (!c) { box.innerHTML = '<div class="sub">अभी कोई डेटा नहीं</div>'; return; }
+
+  const rate = c.tracked ? Math.round((c.reversed / c.tracked) * 100) + "%" : "—";
+  const small = c.tracked < 10
+    ? '<div class="warn">नमूना अभी छोटा है। इसे अंतिम नतीजा न मानें।</div>' : "";
+
+  const rows = (c.events || []).slice().reverse().map(e => {
+    let tag = '<span class="tag t-pend">अगला दिन बाकी</span>';
+    if (e.outcome === "reversed") tag = '<span class="tag t-rev">पलटा</span>';
+    if (e.outcome === "continued") tag = '<span class="tag t-cont">जारी रहा</span>';
+    const sign = e.score > 0 ? "+" : "";
+    return `<div class="ev">
+      <div>${e.date} — <b>${e.instrument}</b> <span class="${scoreClass(e.score)}">${sign}${e.score}</span></div>
+      <div>${tag}</div>
+    </div>`;
+  }).join("");
+
+  box.innerHTML = `
+    ${small}
+    <div class="big">${rate}</div>
+    <div class="sub">पलटने की दर · ${c.reversed} पलटे · ${c.continued} जारी · ${c.tracked} कुल ट्रैक</div>
+    <div style="margin-top:12px">${rows || '<div class="sub">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>`;
 }
 
 async function load() {
@@ -44,23 +183,9 @@ async function load() {
     document.getElementById("status").textContent =
       "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
 
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
-    for (const [name, d] of Object.entries(data.instruments)) {
-      const [cls, label] = classify(d.score);
-      const sign = d.change_pct >= 0 ? "+" : "";
-      const card = document.createElement("div");
-      card.className = "card " + cls;
-      card.innerHTML = `
-        <div class="name">${name}</div>
-        <div class="chg">${sign}${d.change_pct}%</div>
-        <div class="score">स्कोर: ${d.score > 0 ? "+" : ""}${d.score}</div>
-        <div class="label">${label}</div>
-        <details><summary>हेडलाइन</summary>
-          <ul>${d.headlines.map(h => `<li>${h}</li>`).join("")}</ul>
-        </details>`;
-      grid.appendChild(card);
-    }
+    renderInstruments(data.instruments);
+    renderTrends(data.trends);
+    renderContrarian(data.contrarian);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
   }
