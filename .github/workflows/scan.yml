@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install yfinance feedparser requests
+      - run: pip install yfinance feedparser requests pytrends
       - run: python fetch_and_score.py
       - name: Commit results
         run: |
