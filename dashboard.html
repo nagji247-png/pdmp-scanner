@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDMP Scanner</title>
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; background: #0f1220; color: #e6e9f2; }
+  header { padding: 14px 16px; font-size: 18px; font-weight: 600; }
+  #status { font-size: 12px; color: #8a90a8; padding: 0 16px 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 0 12px 20px; }
+  .card { background: #1a1f35; border-radius: 10px; padding: 12px; border-left: 4px solid #555; }
+  .name { font-size: 12px; color: #8a90a8; letter-spacing: 0.5px; }
+  .chg { font-size: 22px; font-weight: 700; margin: 4px 0; }
+  .score { font-size: 13px; }
+  .label { font-size: 11px; margin-top: 4px; }
+  .bull { color: #2ecc71; border-color: #2ecc71; }
+  .bear { color: #e74c3c; border-color: #e74c3c; }
+  .neu  { color: #f1c40f; border-color: #f1c40f; }
+  details { font-size: 11px; color: #aab; margin-top: 6px; }
+  details li { margin-bottom: 3px; }
+</style>
+</head>
+<body>
+<header>PDMP Scanner</header>
+<div id="status">लोड हो रहा है...</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const REFRESH_MS = 5 * 60 * 1000;
+
+function classify(score) {
+  if (score >= 2) return ["bull", "BULLISH"];
+  if (score <= -2) return ["bear", "BEARISH"];
+  return ["neu", "NEUTRAL"];
+}
+
+async function load() {
+  try {
+    const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+
+    document.getElementById("status").textContent =
+      "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    for (const [name, d] of Object.entries(data.instruments)) {
+      const [cls, label] = classify(d.score);
+      const sign = d.change_pct >= 0 ? "+" : "";
+      const card = document.createElement("div");
+      card.className = "card " + cls;
+      card.innerHTML = `
+        <div class="name">${name}</div>
+        <div class="chg">${sign}${d.change_pct}%</div>
+        <div class="score">स्कोर: ${d.score > 0 ? "+" : ""}${d.score}</div>
+        <div class="label">${label}</div>
+        <details><summary>हेडलाइन</summary>
+          <ul>${d.headlines.map(h => `<li>${h}</li>`).join("")}</ul>
+        </details>`;
+      grid.appendChild(card);
+    }
+  } catch (err) {
+    document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
+  }
+}
+
+load();
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>
