@@ -2,7 +2,7 @@ name: PDMP Scan
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # हर 15 मिनट (Private रिपॉज़िटरी के कोटे के लिए)
+    - cron: "*/30 * * * *"   # हर 30 मिनट (Private रिपॉज़िटरी के कोटे के लिए)
   workflow_dispatch:          # मैन्युअल चलाने के लिए
 
 permissions:
