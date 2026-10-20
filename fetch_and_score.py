@@ -1,6 +1,7 @@
 import json, csv, os, time, math, datetime as dt
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
+import requests
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -148,6 +149,60 @@ def process(name, sym, query, kind, events, today_str, instruments):
     update_contrarian(events, name, score, today_str, returns)
 
 
+def nifty_range():
+    """India VIX से अगले सत्र का 68% संभावना वाला दायरा।
+    सूत्र: दैनिक σ = VIX/100 ÷ √252, फिर अंतिम बंद × σ।"""
+    try:
+        vix_s = yf.Ticker("^INDIAVIX").history(period="5d")["Close"].dropna()
+        nifty_s = yf.Ticker("^NSEI").history(period="5d")["Close"].dropna()
+        if vix_s.empty or nifty_s.empty:
+            raise ValueError("VIX या निफ़्टी का डेटा खाली है")
+        vix = float(vix_s.iloc[-1])
+        last = float(nifty_s.iloc[-1])
+        pct = vix / 100 / math.sqrt(252)
+        pts = last * pct
+        return {"ok": True, "vix": round(vix, 2), "last_close": round(last, 2),
+                "move_pts": round(pts, 1), "move_pct": round(pct * 100, 2),
+                "low": round(last - pts, 1), "high": round(last + pts, 1)}
+    except Exception as e:
+        return {"ok": False, "error": f"रेंज नहीं निकली: {e}"}
+
+
+def fetch_fii_dii():
+    """NSE से FII/DII नेट फ़्लो। NSE अक्सर क्लाउड सर्वर को ब्लॉक करता है,
+    इसलिए फ़ेल होने पर {"ok": False} लौटता है।"""
+    try:
+        s = requests.Session()
+        s.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.nseindia.com/",
+        })
+        s.get("https://www.nseindia.com", timeout=15)
+        r = s.get("https://www.nseindia.com/api/fiidiiTradeReact", timeout=15)
+        r.raise_for_status()
+        rows = r.json()
+
+        fii = dii = None
+        date = None
+        for row in rows:
+            cat = str(row.get("category", "")).upper()
+            net_raw = str(row.get("netValue", "0")).replace(",", "").strip()
+            net = float(net_raw) if net_raw not in ("", "-") else 0.0
+            date = row.get("date") or date
+            if "FII" in cat or "FPI" in cat:
+                fii = net
+            elif "DII" in cat:
+                dii = net
+
+        if fii is None or dii is None:
+            raise ValueError("FII या DII की संख्या नहीं मिली")
+        return {"ok": True, "as_of": date, "fii": fii, "dii": dii}
+    except Exception as e:
+        return {"ok": False, "error": f"FII/DII नहीं मिला: {e}"}
+
+
 def _trends_once():
     """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।"""
     from pytrends.request import TrendReq
@@ -171,7 +226,6 @@ def _trends_once():
         r = float(df[t].tail(24).mean())
         per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
 
-    # उभरती खोजें: अलग अनुरोध, इसलिए थोड़ा रुकते हैं (छोटा विराम ताकि देरी कम रहे)
     spikes = []
     try:
         time.sleep(5)
@@ -211,6 +265,20 @@ def fetch_trends():
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
+def pick_with_fallback(fresh, prev):
+    """ताज़ा सफल हो तो वही; वरना पिछला सफल डेटा 'stale' चिह्न के साथ।"""
+    if fresh.get("ok"):
+        fresh["stale"] = False
+        return fresh
+    if prev.get("ok"):
+        stale = dict(prev)
+        stale["stale"] = True
+        stale["error"] = fresh.get("error", "")
+        return stale
+    fresh["stale"] = False
+    return fresh
+
+
 def main():
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
@@ -233,21 +301,20 @@ def main():
         "continued": len([e for e in events if e["outcome"] == "continued"]),
     }
 
-    # Google Trends: ताज़ा मिले तो वही, वरना पिछला सफल डेटा "पुराना" चिह्न के साथ
-    fresh = fetch_trends()
-    prev_trends = previous.get("trends") or {}
-    if fresh.get("ok"):
-        fresh["as_of"] = updated
-        fresh["stale"] = False
-        result["trends"] = fresh
-    elif prev_trends.get("ok"):
-        stale = dict(prev_trends)
-        stale["stale"] = True
-        stale["error"] = fresh.get("error", "")
-        result["trends"] = stale
-    else:
-        fresh["stale"] = False
-        result["trends"] = fresh
+    # Nifty रेंज (VIX से) हर रन पर ताज़ा
+    result["range"] = nifty_range()
+
+    # FII/DII: ताज़ा मिले तो वही, वरना पिछला सफल डेटा
+    fii = pick_with_fallback(fetch_fii_dii(), previous.get("fii_dii") or {})
+    if fii.get("ok") and not fii.get("stale"):
+        fii["as_of_run"] = updated
+    result["fii_dii"] = fii
+
+    # Google Trends: ताज़ा मिले तो वही, वरना पिछला सफल डेटा
+    trends = pick_with_fallback(fetch_trends(), previous.get("trends") or {})
+    if trends.get("ok") and not trends.get("stale"):
+        trends["as_of"] = updated
+    result["trends"] = trends
 
     result = clean(result)
     events = clean(events)
