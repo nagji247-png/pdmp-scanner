@@ -40,7 +40,7 @@ NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
        "lower": 1, "losses": 1, "sell-off": 2, "selloff": 2, "downgrade": 2,
        "misses": 1, "sell": 1}
 
-# Google Trends: डर-संबंधी खोजें (हर खोज अपने 7-दिन के औसत से तुलना होती है)
+# Google Trends: डर-संबंधी खोजें (हर खोज का अंतर अपने 7-दिन के औसत से अंकों में)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 TRENDS_RETRIES = 2
 
@@ -204,7 +204,8 @@ def fetch_fii_dii():
 
 
 def _trends_once():
-    """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।"""
+    """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
+    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं, ताकि छोटे आधार पर बड़ी संख्या न आए।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
@@ -214,17 +215,18 @@ def _trends_once():
         raise ValueError("Google से खाली डेटा मिला")
     df = df[FEAR_TERMS].fillna(0)
 
+    if float(df.values.max()) == 0:
+        raise ValueError("सभी खोजों का डेटा शून्य है")
+
     base = float(df.mean(axis=1).mean())
     recent = float(df.tail(24).mean(axis=1).mean())
-    if base <= 0:
-        raise ValueError("बेसलाइन शून्य है")
-    fear_vs_avg = round((recent / base - 1) * 100)
+    fear_pts = round(recent - base, 1)
 
     per_term = []
     for t in FEAR_TERMS:
         b = float(df[t].mean())
         r = float(df[t].tail(24).mean())
-        per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
+        per_term.append({"term": t, "pts": round(r - b, 1), "now": round(r, 1), "avg": round(b, 1)})
 
     spikes = []
     try:
@@ -241,7 +243,7 @@ def _trends_once():
     except Exception as e:
         print(f"rising queries skipped: {e}")
 
-    return {"ok": True, "fear_vs_avg": fear_vs_avg,
+    return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
             "per_term": per_term, "spikes": spikes[:10]}
 
 
@@ -301,16 +303,13 @@ def main():
         "continued": len([e for e in events if e["outcome"] == "continued"]),
     }
 
-    # Nifty रेंज (VIX से) हर रन पर ताज़ा
     result["range"] = nifty_range()
 
-    # FII/DII: ताज़ा मिले तो वही, वरना पिछला सफल डेटा
     fii = pick_with_fallback(fetch_fii_dii(), previous.get("fii_dii") or {})
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
 
-    # Google Trends: ताज़ा मिले तो वही, वरना पिछला सफल डेटा
     trends = pick_with_fallback(fetch_trends(), previous.get("trends") or {})
     if trends.get("ok") and not trends.get("stale"):
         trends["as_of"] = updated
