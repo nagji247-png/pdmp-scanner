@@ -85,10 +85,15 @@ CROWD_LOW = 30
 # Nifty के वॉच-स्तर (आप यहाँ अपने लेवल जोड़ सकते हैं)
 NIFTY_WATCH_LEVELS = [21000, 22000, 23000]
 
+# ⚡ संकेत: स्कोर और कीमत की दिशा अलग हो, इन सीमाओं के साथ
+DIV_SCORE_MIN = 1.0
+DIV_CHANGE_MIN = 0.2
+
 CONTRARIAN_LIMIT = 6.0
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
 CROWD_FILE = "crowd_events.json"
+DIV_FILE = "divergence_events.json"
 HISTORY_FILE = "history.csv"
 
 
@@ -181,7 +186,34 @@ def update_contrarian(events, name, score, today_str, returns):
             e["outcome"] = "continued" if same_sign else "reversed"
 
 
-def process(name, sym, query, kind, events, today_str, instruments):
+def update_divergence(events, name, score, change, today_str, returns):
+    """⚡ संकेत दर्ज करें: स्कोर और कीमत की दिशा अलग हो।
+    अगले सत्र में देखा जाता है कि कौन-सी दिशा सही निकली:
+    'sentiment' = खबर की दिशा में चाल, 'price' = कीमत की दिशा में चाल।
+    यह इतिहास का मिलान है, भविष्य की गारंटी नहीं।"""
+    diverging = (abs(score) >= DIV_SCORE_MIN and abs(change) >= DIV_CHANGE_MIN
+                 and (score > 0) != (change > 0))
+    key = f"{today_str}|{name}|div"
+    if diverging and not any(e["key"] == key for e in events):
+        events.append({
+            "key": key, "date": today_str, "instrument": name,
+            "score": score, "price_change": change,
+            "sentiment_up": score > 0, "outcome": None, "next_change": None,
+        })
+
+    for e in events:
+        if e.get("outcome") is not None or e["instrument"] != name:
+            continue
+        later = sorted(d for d in returns if d > e["date"])
+        if not later:
+            continue
+        nxt = returns[later[0]]
+        e["next_change"] = nxt
+        move_up = nxt >= 0
+        e["outcome"] = "sentiment" if move_up == e["sentiment_up"] else "price"
+
+
+def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
     returns = {}
     change = 0.0
     try:
@@ -190,6 +222,7 @@ def process(name, sym, query, kind, events, today_str, instruments):
             change = returns[max(returns)]
     except Exception as e:
         print(f"price error {name}: {e}")
+    all_returns[name] = returns
 
     try:
         heads = fetch_news(query)
@@ -209,6 +242,7 @@ def process(name, sym, query, kind, events, today_str, instruments):
         "neg_n": sum(1 for h in heads if h["score"] < 0),
     }
     update_contrarian(events, name, score, today_str, returns)
+    update_divergence(div_events, name, score, change, today_str, returns)
 
 
 def is_market_news(title):
@@ -471,21 +505,34 @@ def main():
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
     events = load_json(EVENTS_FILE, [])
     crowd_events = load_json(CROWD_FILE, [])
+    div_events = load_json(DIV_FILE, [])
     previous = load_json(DATA_FILE, {})
 
     result = {"updated": updated, "instruments": {}}
+    all_returns = {}
 
     for name, (sym, query) in INDEXES.items():
-        process(name, sym, query, "index", events, today_str, result["instruments"])
+        process(name, sym, query, "index", events, today_str, result["instruments"],
+                div_events, all_returns)
 
     for name, (sym, query) in STOCKS.items():
-        process(name, sym, query, "stock", events, today_str, result["instruments"])
+        process(name, sym, query, "stock", events, today_str, result["instruments"],
+                div_events, all_returns)
 
     result["contrarian"] = {
         "events": events[-30:],
         "tracked": len([e for e in events if e["outcome"]]),
         "reversed": len([e for e in events if e["outcome"] == "reversed"]),
         "continued": len([e for e in events if e["outcome"] == "continued"]),
+    }
+
+    # ⚡ संकेत का इतिहास: कौन-सी दिशा अगले सत्र में सही निकली
+    div_done = [e for e in div_events if e.get("outcome")]
+    result["divergence"] = {
+        "tracked": len(div_done),
+        "sentiment": len([e for e in div_done if e["outcome"] == "sentiment"]),
+        "price": len([e for e in div_done if e["outcome"] == "price"]),
+        "events": div_events[-12:],
     }
 
     result["range"] = nifty_range()
@@ -514,11 +561,7 @@ def main():
     # भीड़ का इतिहास: सिर्फ़ ताज़ा ट्रेंड्स डेटा से दर्ज होता है, पुराने से नहीं
     fresh_trends = trends.get("ok") and not trends.get("stale")
     crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
-    nifty_ret = {}
-    try:
-        nifty_ret = daily_returns("^NSEI")
-    except Exception as e:
-        print(f"crowd nifty returns error: {e}")
+    nifty_ret = all_returns.get("NIFTY") or {}
     update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
     done = [e for e in crowd_events if e.get("outcome")]
     result["crowd_stats"] = {
@@ -531,6 +574,7 @@ def main():
     result = clean(result)
     events = clean(events)
     crowd_events = clean(crowd_events)
+    div_events = clean(div_events)
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
@@ -538,6 +582,8 @@ def main():
         json.dump(events, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(CROWD_FILE, "w", encoding="utf-8") as f:
         json.dump(crowd_events, f, ensure_ascii=False, indent=2, allow_nan=False)
+    with open(DIV_FILE, "w", encoding="utf-8") as f:
+        json.dump(div_events, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     write_header = not os.path.exists(HISTORY_FILE)
     with open(HISTORY_FILE, "a", newline="", encoding="utf-8") as f:
