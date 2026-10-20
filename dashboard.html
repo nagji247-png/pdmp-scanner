@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
@@ -99,6 +99,9 @@ DOCTYPE html>
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
 <div class="box" id="contrarian"></div>
 
+<h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2>
+<div class="box" id="divergence"></div>
+
 <h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
 <div class="box" id="news"></div>
 
@@ -110,6 +113,7 @@ DOCTYPE html>
 const REFRESH_MS = 5 * 60 * 1000;
 
 let scoreHistory = {};
+let loading = false;
 
 // HTML में डाले जाने वाले टेक्स्ट को सुरक्षित करता है
 function esc(s) {
@@ -355,45 +359,6 @@ function renderInstruments(instruments) {
   }
 }
 
-function renderNews(m) {
-  const box = document.getElementById("news");
-  if (!m) { box.innerHTML = '<div class="sub">अभी कोई खबर डेटा नहीं</div>'; return; }
-  if (!m.ok) {
-    box.innerHTML = `<div class="warn">बाज़ार से जुड़ी खबरें इस बार नहीं मिलीं।</div>
-      <div class="sub">${esc(m.error || "")}</div>`;
-    return;
-  }
-
-  const stale = m.stale
-    ? `<div class="warn">यह पुरानी खबरें हैं (आख़िरी सफल रन)।</div>`
-    : "";
-
-  const items = (m.items || []).map(n => {
-    let tagCls = "t-neu";
-    let tagText = "तटस्थ";
-    let scoreCls = "zero";
-    if (n.score >= 2) { tagCls = "t-cont"; tagText = "सकारात्मक"; scoreCls = "pos"; }
-    if (n.score <= -2) { tagCls = "t-rev"; tagText = "नकारात्मक"; scoreCls = "neg"; }
-    const link = n.link
-      ? `<a href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">${esc(n.title)}</a>`
-      : esc(n.title);
-    return `
-      <div class="news-item">
-        <div class="news-head">
-          <span class="news-topic">${esc(n.topic)}</span>
-          <span class="tag ${tagCls}">${tagText}</span>
-        </div>
-        <div class="hl-title"><span class="hl-score ${scoreCls}">${n.score > 0 ? "+" : ""}${n.score}</span>${link}</div>
-        <div class="hl-meta">${esc(n.source) || "स्रोत अज्ञात"}${n.age_h != null ? " · " + ageText(n.age_h) : ""}</div>
-      </div>`;
-  }).join("");
-
-  box.innerHTML = `
-    ${stale}
-    <div class="sub" style="margin-bottom:8px">Nifty, कच्चा तेल, Fed, RBI, टैरिफ, सोना और डॉलर से जुड़ी ताज़ा खबरें। असर का अंदाज़ा शब्दों से है, इसलिए इसे पक्का न मानें।</div>
-    ${items || '<div class="sub">कोई खबर नहीं मिली</div>'}`;
-}
-
 function renderTrends(t) {
   const box = document.getElementById("trends");
   if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
@@ -490,7 +455,88 @@ function renderContrarian(c) {
     <div>${rows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>`;
 }
 
+function renderDivergence(dv) {
+  const box = document.getElementById("divergence");
+  if (!dv) { box.innerHTML = '<div class="sub">अभी कोई ⚡ डेटा नहीं</div>'; return; }
+
+  const tracked = dv.tracked || 0;
+  const sentPct = tracked ? Math.round((dv.sentiment / tracked) * 100) : null;
+  const pricePct = tracked ? 100 - sentPct : null;
+  const small = tracked < 20
+    ? '<div class="warn">नमूना अभी छोटा है। इस पर फ़ैसला न करें।</div>' : "";
+
+  const summary = tracked
+    ? `<div class="mood-bar"><div class="mood-bull" style="width:${sentPct}%"></div><div class="mood-bear" style="width:${pricePct}%"></div></div>
+       <div class="mood-split"><span class="pos">खबर की दिशा सही: ${dv.sentiment} (${sentPct}%)</span><span class="neg">कीमत की दिशा सही: ${dv.price} (${pricePct}%)</span></div>`
+    : '<div class="sub">अभी कोई ⚡ संकेत अगले सत्र से मिलान नहीं हुआ</div>';
+
+  const rows = (dv.events || []).slice().reverse().map(e => {
+    let tag = '<span class="tag t-pend">अगला सत्र बाकी</span>';
+    if (e.outcome === "sentiment") tag = '<span class="tag t-cont">खबर सही निकली</span>';
+    if (e.outcome === "price") tag = '<span class="tag t-rev">कीमत सही निकली</span>';
+    const sSign = e.score > 0 ? "+" : "";
+    const pSign = e.price_change > 0 ? "+" : "";
+    return `<div class="ev">
+      <div>${esc(e.date)} — <b>${esc(e.instrument)}</b>
+        <div class="sub">खबर ${sSign}${e.score} · कीमत ${pSign}${e.price_change}%</div></div>
+      <div>${tag}</div>
+    </div>`;
+  }).join("");
+
+  box.innerHTML = `
+    ${small}
+    <div class="sub">
+      जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। अगले सत्र में देखा जाता है कि कौन-सी दिशा सही निकली।
+    </div>
+    <div style="margin-top:12px">${summary}</div>
+    <div style="margin-top:10px">${rows || '<div class="sub">अभी कोई ⚡ संकेत दर्ज नहीं हुआ</div>'}</div>
+    <div class="sub" style="margin-top:12px;line-height:1.5">
+      यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।
+    </div>`;
+}
+
+function renderNews(m) {
+  const box = document.getElementById("news");
+  if (!m) { box.innerHTML = '<div class="sub">अभी कोई खबर डेटा नहीं</div>'; return; }
+  if (!m.ok) {
+    box.innerHTML = `<div class="warn">बाज़ार से जुड़ी खबरें इस बार नहीं मिलीं।</div>
+      <div class="sub">${esc(m.error || "")}</div>`;
+    return;
+  }
+
+  const stale = m.stale
+    ? `<div class="warn">यह पुरानी खबरें हैं (आख़िरी सफल रन)।</div>`
+    : "";
+
+  const items = (m.items || []).map(n => {
+    let tagCls = "t-neu";
+    let tagText = "तटस्थ";
+    let scoreCls = "zero";
+    if (n.score >= 2) { tagCls = "t-cont"; tagText = "सकारात्मक"; scoreCls = "pos"; }
+    if (n.score <= -2) { tagCls = "t-rev"; tagText = "नकारात्मक"; scoreCls = "neg"; }
+    const link = n.link
+      ? `<a href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">${esc(n.title)}</a>`
+      : esc(n.title);
+    return `
+      <div class="news-item">
+        <div class="news-head">
+          <span class="news-topic">${esc(n.topic)}</span>
+          <span class="tag ${tagCls}">${tagText}</span>
+        </div>
+        <div class="hl-title"><span class="hl-score ${scoreCls}">${n.score > 0 ? "+" : ""}${n.score}</span>${link}</div>
+        <div class="hl-meta">${esc(n.source) || "स्रोत अज्ञात"}${n.age_h != null ? " · " + ageText(n.age_h) : ""}</div>
+      </div>`;
+  }).join("");
+
+  box.innerHTML = `
+    ${stale}
+    <div class="sub" style="margin-bottom:8px">Nifty, कच्चा तेल, Fed, RBI, टैरिफ, सोना और डॉलर से जुड़ी ताज़ा खबरें। असर का अंदाज़ा शब्दों से है, इसलिए इसे पक्का न मानें।</div>
+    ${items || '<div class="sub">कोई खबर नहीं मिली</div>'}`;
+}
+
 async function load() {
+  if (loading) return;
+  loading = true;
   try {
     const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -506,14 +552,24 @@ async function load() {
     renderInstruments(data.instruments);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
+    renderDivergence(data.divergence);
     renderNews(data.market_news);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
+  } finally {
+    loading = false;
   }
 }
 
 load();
 setInterval(load, REFRESH_MS);
+
+// फ़ोन पर ऐप या टैब वापस खोलने पर तुरंत ताज़ा करें
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) load();
+});
+window.addEventListener("focus", load);
+window.addEventListener("pageshow", load);
 </script>
 </body>
 </html>
