@@ -46,13 +46,14 @@ STOCK_ALIASES = {
 }
 
 # शब्द-सूची: वज़न 1 या 2। जितनी बढ़ाएँगे, स्कोर उतना बेहतर होगा।
+# मिलान हमेशा पूरे शब्द के रूप में होता है (जैसे "again" में "gain" नहीं गिना जाता)।
 POS = {"rally": 2, "surge": 2, "record high": 2, "bullish": 2, "gain": 1,
        "jump": 1, "rise": 1, "climb": 1, "rebound": 1, "higher": 1, "profit": 1,
        "beats": 1, "upgrade": 2, "buy": 1}
 NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
        "drag": 1, "loss": 1, "drop": 1, "decline": 1, "weigh": 1,
        "lower": 1, "losses": 1, "sell-off": 2, "selloff": 2, "downgrade": 2,
-       "misses": 1, "sell": 1}
+       "misses": 1}
 
 # Google Trends: डर-संबंधी खोजें (बियरिश सोच) और बुलिश खोजें (एक ही अनुरोध में, ताकि पैमाना एक हो)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
@@ -101,9 +102,20 @@ def clean(obj):
     return obj
 
 
+def _word_hits(text, words):
+    """शब्दों की गिनती, पूरे शब्द या वाक्यांश के रूप में ही।"""
+    hits = 0
+    for k, v in words.items():
+        if re.search(r"(?<![a-z])" + re.escape(k) + r"(?![a-z])", text):
+            hits += v
+    return hits
+
+
 def headline_score(text):
+    """खबर का स्कोर: सकारात्मक शब्दों का वज़न घटाकर नकारात्मक शब्दों का वज़न।
+    सिर्फ़ पूरे शब्द मिलते हैं, इसलिए 'again' में 'gain' नहीं गिना जाता।"""
     t = text.lower()
-    return sum(v for k, v in POS.items() if k in t) - sum(v for k, v in NEG.items() if k in t)
+    return _word_hits(t, POS) - _word_hits(t, NEG)
 
 
 def fetch_news(query):
