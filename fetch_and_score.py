@@ -46,14 +46,15 @@ STOCK_ALIASES = {
 }
 
 # शब्द-सूची: वज़न 1 या 2। जितनी बढ़ाएँगे, स्कोर उतना बेहतर होगा।
-# मिलान हमेशा पूरे शब्द के रूप में होता है (जैसे "again" में "gain" नहीं गिना जाता)।
-POS = {"rally": 2, "surge": 2, "record high": 2, "bullish": 2, "gain": 1,
-       "jump": 1, "rise": 1, "climb": 1, "rebound": 1, "higher": 1, "profit": 1,
-       "beats": 1, "upgrade": 2, "buy": 1}
-NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
-       "drag": 1, "loss": 1, "drop": 1, "decline": 1, "weigh": 1,
-       "lower": 1, "losses": 1, "sell-off": 2, "selloff": 2, "downgrade": 2,
-       "misses": 1}
+# मिलान शब्द की शुरुआत से होता है: "crash" → crashes, crashed; "fall" → falls।
+# लेकिन "again" में "gain" नहीं गिना जाता, क्योंकि वह शब्द के बीच में है।
+# एक ही असर वाले शब्द दोबारा नहीं रखे गए, ताकि कोई शब्द दो बार न गिना जाए।
+POS = {"rally": 2, "rallies": 2, "surge": 2, "record high": 2, "bullish": 2, "gain": 1,
+       "jump": 1, "rise": 1, "rose": 1, "climb": 1, "rebound": 1, "higher": 1, "profit": 1,
+       "beat": 1, "upgrade": 2, "buy": 1}
+NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "tumble": 2, "fall": 1, "fell": 1,
+       "slid": 1, "slip": 1, "dip": 1, "drag": 1, "loss": 1, "drop": 1, "decline": 1,
+       "weigh": 1, "lower": 1, "sell-off": 2, "selloff": 2, "downgrade": 2, "miss": 1}
 
 # Google Trends: डर-संबंधी खोजें (बियरिश सोच) और बुलिश खोजें (एक ही अनुरोध में, ताकि पैमाना एक हो)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
@@ -103,17 +104,17 @@ def clean(obj):
 
 
 def _word_hits(text, words):
-    """शब्दों की गिनती, पूरे शब्द या वाक्यांश के रूप में ही।"""
+    """शब्दों की गिनती। हर शब्द सिर्फ़ शब्द की शुरुआत से मिलता है।
+    'again' में 'gain' नहीं मिलता, पर 'crashes' में 'crash' मिल जाता है।"""
     hits = 0
     for k, v in words.items():
-        if re.search(r"(?<![a-z])" + re.escape(k) + r"(?![a-z])", text):
+        if re.search(r"(?<![a-z])" + re.escape(k), text):
             hits += v
     return hits
 
 
 def headline_score(text):
-    """खबर का स्कोर: सकारात्मक शब्दों का वज़न घटाकर नकारात्मक शब्दों का वज़न।
-    सिर्फ़ पूरे शब्द मिलते हैं, इसलिए 'again' में 'gain' नहीं गिना जाता।"""
+    """खबर का स्कोर: सकारात्मक शब्दों का वज़न घटाकर नकारात्मक शब्दों का वज़न।"""
     t = text.lower()
     return _word_hits(t, POS) - _word_hits(t, NEG)
 
