@@ -12,23 +12,28 @@
   #status { font-size: 12px; color: #8a90a8; padding: 0 16px 12px; }
   h2 { font-size: 15px; margin: 22px 16px 8px; color: #cfd4e6; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 0 12px; }
-  .card { background: #1a1f35; border-radius: 10px; padding: 12px; border-left: 4px solid #555; }
+
+  .card { background: #1a1f35; border-radius: 12px; padding: 12px 12px 10px; border-left: 4px solid #555; }
+  .card.bull { border-left-color: #2ecc71; }
+  .card.bear { border-left-color: #e74c3c; }
+  .card.neu  { border-left-color: #f1c40f; }
   .name { font-size: 12px; color: #8a90a8; letter-spacing: 0.5px; }
-  .chg { font-size: 22px; font-weight: 700; margin: 4px 0; }
-  .score { font-size: 13px; }
-  .label { font-size: 11px; margin-top: 4px; font-weight: 600; }
-  .bull { color: #2ecc71; border-color: #2ecc71; }
-  .bear { color: #e74c3c; border-color: #e74c3c; }
-  .neu  { color: #f1c40f; border-color: #f1c40f; }
-  details { font-size: 12px; color: #aab; margin-top: 8px; }
+  .big { font-size: 26px; font-weight: 700; margin: 2px 0; }
+  .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
+  .div { font-size: 11px; margin-top: 4px; color: #f5a623; }
+  .chg { font-size: 11px; color: #8a90a8; margin-top: 2px; }
+  .spark { margin-top: 8px; }
+  .more { font-size: 11px; color: #6b7290; margin-top: 6px; }
+  details { font-size: 12px; color: #aab; margin-top: 6px; }
   summary { cursor: pointer; padding: 4px 0; }
   .hl { border-top: 1px solid #252b45; padding: 6px 0; }
   .hl-title { color: #dfe3ef; line-height: 1.35; }
   .hl-meta { font-size: 11px; color: #7b82a0; margin-top: 2px; }
   .hl-score { font-weight: 700; margin-right: 4px; }
+
   .pos { color: #2ecc71; } .neg { color: #e74c3c; } .zero { color: #8a90a8; }
   .box { background: #1a1f35; border-radius: 10px; margin: 0 12px 16px; padding: 14px; }
-  .big { font-size: 26px; font-weight: 700; color: #4fc3f7; }
+  .bigm { font-size: 26px; font-weight: 700; color: #4fc3f7; }
   .sub { font-size: 12px; color: #aab; margin-top: 2px; }
   .warn { color: #f5a623; font-size: 13px; margin-bottom: 10px; line-height: 1.4; }
   .ev { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid #252b45; font-size: 13px; }
@@ -63,6 +68,8 @@
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
 
+let scoreHistory = {};
+
 function classify(score) {
   if (score >= 2) return ["bull", "BULLISH"];
   if (score <= -2) return ["bear", "BEARISH"];
@@ -80,9 +87,52 @@ function ageText(h) {
   return Math.round(h / 24) + " दिन पहले";
 }
 
+// history.csv से हर इंस्ट्रूमेंट के पिछले स्कोर निकालता है
+async function loadHistory() {
+  try {
+    const res = await fetch("history.csv?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return {};
+    const text = await res.text();
+    const map = {};
+    for (const line of text.split("\n").slice(1)) {
+      const p = line.trim().split(",");
+      if (p.length < 4) continue;
+      const score = parseFloat(p[3]);
+      if (isNaN(score)) continue;
+      (map[p[1]] = map[p[1]] || []).push(score);
+    }
+    for (const k in map) map[k] = map[k].slice(-24);
+    return map;
+  } catch (e) {
+    return {};
+  }
+}
+
+function spark(values, color) {
+  if (!values || values.length < 2) return '<div class="more">ग्राफ़ के लिए डेटा जमा हो रहा है</div>';
+  const w = 120, h = 28;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max - min) || 1;
+  const n = values.length;
+  const pts = values.map((y, i) =>
+    `${((i / (n - 1)) * w).toFixed(1)},${(h - ((y - min) / range) * h).toFixed(1)}`
+  ).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="100%" height="28" preserveAspectRatio="none">
+    <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg>`;
+}
+
+function divergence(score, change) {
+  if (Math.abs(score) < 1 || Math.abs(change) < 0.2) return "";
+  if (Math.sign(score) === Math.sign(change)) return "";
+  return `<div class="div">⚡ सेंटिमेंट और कीमत उलटे हैं</div>`;
+}
+
 function card(name, d) {
   const [cls, label] = classify(d.score);
+  const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const sign = d.change_pct >= 0 ? "+" : "";
+  const sScore = (d.score > 0 ? "+" : "") + d.score;
+
   const heads = (d.headlines || []).map(h => `
     <div class="hl">
       <div class="hl-title"><span class="hl-score ${scoreClass(h.score)}">${h.score > 0 ? "+" : ""}${h.score}</span>${h.title}</div>
@@ -93,9 +143,11 @@ function card(name, d) {
   el.className = "card " + cls;
   el.innerHTML = `
     <div class="name">${name}</div>
-    <div class="chg">${sign}${d.change_pct}%</div>
-    <div class="score">स्कोर: ${d.score > 0 ? "+" : ""}${d.score}</div>
-    <div class="label">${label}</div>
+    <div class="big" style="color:${color}">${sScore}</div>
+    <div class="lbl" style="color:${color}">${label}</div>
+    ${divergence(d.score, d.change_pct)}
+    <div class="chg">कीमत: ${sign}${d.change_pct}%</div>
+    ${spark(scoreHistory[name], color)}
     <details>
       <summary>हेडलाइन (${(d.headlines || []).length})</summary>
       ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
@@ -146,7 +198,7 @@ function renderTrends(t) {
 
   box.innerHTML = `
     ${stale}
-    <div class="big ${vCls}">${vText}</div>
+    <div class="bigm ${vCls}">${vText}</div>
     <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत</div>
     <div style="margin-top:10px">${terms}</div>
     <div class="sub" style="margin-top:14px">अचानक तेज़ी से बढ़ती खोजें (Nifty/Sensex के आसपास)</div>
@@ -174,7 +226,7 @@ function renderContrarian(c) {
 
   box.innerHTML = `
     ${small}
-    <div class="big">${rate}</div>
+    <div class="bigm">${rate}</div>
     <div class="sub">पलटने की दर · ${c.reversed} पलटे · ${c.continued} जारी · ${c.tracked} कुल ट्रैक</div>
     <div style="margin-top:12px">${rows || '<div class="sub">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>`;
 }
@@ -188,6 +240,7 @@ async function load() {
     document.getElementById("status").textContent =
       "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
 
+    scoreHistory = await loadHistory();
     renderInstruments(data.instruments);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
