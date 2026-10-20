@@ -22,7 +22,7 @@
   .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
   .div { font-size: 11px; margin-top: 4px; color: #f5a623; }
   .chg { font-size: 11px; color: #8a90a8; margin-top: 2px; }
-  .spark { margin-top: 8px; }
+  .spark { margin-top: 8px; display: block; }
   .more { font-size: 11px; color: #6b7290; margin-top: 6px; }
   details { font-size: 12px; color: #aab; margin-top: 6px; }
   summary { cursor: pointer; padding: 4px 0; }
@@ -42,12 +42,33 @@
   .t-cont { background: #1d3a2a; color: #2ecc71; }
   .t-pend { background: #2a2f47; color: #8a90a8; }
   .rq { display: inline-block; font-size: 12px; background: #2a2f47; color: #dfe3ef; padding: 4px 8px; border-radius: 6px; margin: 3px 4px 3px 0; }
+
+  .range-val { font-size: 22px; font-weight: 700; color: #4fc3f7; }
+  .range-bar { height: 10px; border-radius: 5px; margin: 14px 0 6px;
+    background: linear-gradient(90deg, #3d6fd6, #6b8fa0 50%, #f1c40f); position: relative; }
+  .range-mark { position: absolute; left: 50%; top: -5px; width: 3px; height: 20px; background: #fff; border-radius: 2px; transform: translateX(-50%); }
+  .range-nums { display: flex; justify-content: space-between; font-size: 12px; color: #aab; }
+
+  .flow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .flow-card { border-radius: 10px; padding: 12px; }
+  .flow-card.fii { background: #2a1d24; }
+  .flow-card.dii { background: #1d2a24; }
+  .flow-lbl { font-size: 11px; letter-spacing: 0.5px; color: #aab; }
+  .flow-val { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .flow-foot { font-size: 11px; color: #7b82a0; margin-top: 10px; line-height: 1.4; }
+
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 </style>
 </head>
 <body>
 <header>PDMP Scanner</header>
 <div id="status">लोड हो रहा है...</div>
+
+<h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2>
+<div class="box" id="range"></div>
+
+<h2>🏦 संस्थागत प्रवाह (FII / DII)</h2>
+<div class="box" id="flow"></div>
 
 <h2>📊 इंडेक्स और कमोडिटी</h2>
 <div class="grid" id="indexes"></div>
@@ -85,6 +106,11 @@ function ageText(h) {
   if (h < 1) return "अभी";
   if (h < 24) return Math.round(h) + " घंटे पहले";
   return Math.round(h / 24) + " दिन पहले";
+}
+
+function fmtCr(n) {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  return sign + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + " Cr";
 }
 
 // history.csv से हर इंस्ट्रूमेंट के पिछले स्कोर निकालता है
@@ -153,6 +179,63 @@ function card(name, d) {
       ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
     </details>`;
   return el;
+}
+
+function renderRange(r) {
+  const box = document.getElementById("range");
+  if (!r || !r.ok) {
+    box.innerHTML = `<div class="warn">रेंज इस बार नहीं निकली।</div>
+      <div class="sub">${(r && r.error) || ""}</div>`;
+    return;
+  }
+  box.innerHTML = `
+    <div class="sub">India VIX ${r.vix} से · 68% संभावना</div>
+    <div class="range-val" style="margin-top:4px">± ${r.move_pts} अंक <span style="font-size:13px;color:#aab">(±${r.move_pct}%)</span></div>
+    <div class="range-bar"><div class="range-mark"></div></div>
+    <div class="range-nums">
+      <span>${r.low.toLocaleString("en-IN")}</span>
+      <span>अंतिम बंद: <b style="color:#e6e9f2">${r.last_close.toLocaleString("en-IN")}</b></span>
+      <span>${r.high.toLocaleString("en-IN")}</span>
+    </div>
+    <div class="sub" style="margin-top:10px">यह संभावना है, गारंटी नहीं।</div>`;
+}
+
+function renderFlow(f) {
+  const box = document.getElementById("flow");
+  if (!f) { box.innerHTML = '<div class="sub">अभी कोई FII/DII डेटा नहीं</div>'; return; }
+
+  const stale = f.stale
+    ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)। NSE ने इस बार डेटा नहीं दिया।</div>`
+    : "";
+
+  if (!f.ok && !f.fii && !f.dii) {
+    box.innerHTML = `<div class="warn">FII/DII डेटा इस बार नहीं मिला।</div>
+      <div class="sub">${f.error || ""}</div>`;
+    return;
+  }
+
+  const fiiCls = f.fii < 0 ? "neg" : "pos";
+  const diiCls = f.dii < 0 ? "neg" : "pos";
+  const opposite = (f.fii < 0) !== (f.dii < 0);
+  const note = opposite
+    ? "FII और DII अलग दिशा में हैं, इसे ध्यान से देखें।"
+    : "FII और DII एक ही दिशा में हैं।";
+
+  box.innerHTML = `
+    ${stale}
+    <div class="flow">
+      <div class="flow-card fii">
+        <div class="flow-lbl">FII नेट फ़्लो</div>
+        <div class="flow-val ${fiiCls}">${fmtCr(f.fii)}</div>
+      </div>
+      <div class="flow-card dii">
+        <div class="flow-lbl">DII नेट फ़्लो</div>
+        <div class="flow-val ${diiCls}">${fmtCr(f.dii)}</div>
+      </div>
+    </div>
+    <div class="flow-foot">
+      तारीख: ${f.as_of || "—"} · ${note}
+    </div>`;
 }
 
 function renderInstruments(instruments) {
@@ -241,6 +324,8 @@ async function load() {
       "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
 
     scoreHistory = await loadHistory();
+    renderRange(data.range);
+    renderFlow(data.fii_dii);
     renderInstruments(data.instruments);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
