@@ -93,8 +93,12 @@ def load_json(path, default):
 
 
 def daily_returns(sym):
-    """तारीख -> उस दिन का % बदलाव (लगभग 1 महीने का डेटा). खाली दिन छोड़े जाते हैं।"""
+    """तारीख -> उस दिन का % बदलाव।
+    आज का अधूरा बार छोड़ा जाता है, ताकि सुबह के रन में गलत बदलाव न आए।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
+    today_utc = dt.datetime.now(dt.timezone.utc).date()
+    keep = [d.date() < today_utc for d in closes.index]
+    closes = closes[keep]
     out = {}
     for i in range(1, len(closes)):
         prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
@@ -103,6 +107,14 @@ def daily_returns(sym):
         d = closes.index[i].strftime("%Y-%m-%d")
         out[d] = round((cur / prev - 1) * 100, 2)
     return out
+
+
+def latest_change(sym):
+    """सबसे ताज़ा पूरा सत्र का बदलाव (आज का अधूरा बार नहीं)।"""
+    r = daily_returns(sym)
+    if not r:
+        return 0.0
+    return r[max(r)]
 
 
 def update_contrarian(events, name, score, today_str, returns):
@@ -124,11 +136,12 @@ def update_contrarian(events, name, score, today_str, returns):
 
 
 def process(name, sym, query, kind, events, today_str, instruments):
-    change, returns = 0.0, {}
+    returns = {}
+    change = 0.0
     try:
         returns = daily_returns(sym)
         if returns:
-            change = list(returns.values())[-1]
+            change = returns[max(returns)]
     except Exception as e:
         print(f"price error {name}: {e}")
 
@@ -205,7 +218,7 @@ def fetch_fii_dii():
 
 def _trends_once():
     """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
-    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं, ताकि छोटे आधार पर बड़ी संख्या न आए।"""
+    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
