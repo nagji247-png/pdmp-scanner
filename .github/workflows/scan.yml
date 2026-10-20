@@ -1,18 +1,14 @@
 name: PDMP Scan
-
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
-
 permissions:
   contents: write
-
 # एक समय में एक ही रन चले, ताकि दो रन एक साथ push न करें
 concurrency:
   group: pdmp-scan
   cancel-in-progress: false
-
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -23,11 +19,6 @@ jobs:
           python-version: "3.11"
       - run: pip install yfinance feedparser requests pytrends
       - run: python fetch_and_score.py
-      - name: Telegram alerts
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python alert.py
       - name: Commit results
         run: |
           git config user.name "pdmp-bot"
