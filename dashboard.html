@@ -124,6 +124,10 @@ function renderTrends(t) {
     return;
   }
 
+  const stale = t.stale
+    ? `<div class="warn">यह पुराना डेटा है (${t.as_of ? "आख़िरी सफल रन" : "पहले का"})। Google ने इस बार अनुरोध सीमित किया।</div>`
+    : "";
+
   const v = t.fear_vs_avg;
   const vText = (v > 0 ? "+" : "") + v + "%";
   const vCls = v > 0 ? "neg" : "pos";
@@ -141,6 +145,7 @@ function renderTrends(t) {
   }).join("");
 
   box.innerHTML = `
+    ${stale}
     <div class="big ${vCls}">${vText}</div>
     <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत</div>
     <div style="margin-top:10px">${terms}</div>
