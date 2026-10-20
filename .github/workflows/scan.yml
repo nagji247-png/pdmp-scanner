@@ -2,8 +2,8 @@ name: PDMP Scan
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # हर 30 मिनट (Private रिपॉज़िटरी के कोटे के लिए)
-  workflow_dispatch:          # मैन्युअल चलाने के लिए
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,16 +12,16 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install yfinance feedparser requests
+      - run: pip install yfinance feedparser requests pytrends
       - run: python fetch_and_score.py
       - name: Commit results
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data.json history.csv
+          git add data.json history.csv contrarian.json
           git diff --cached --quiet || git commit -m "scan $(date -u +%Y-%m-%dT%H:%MZ)"
           git push
