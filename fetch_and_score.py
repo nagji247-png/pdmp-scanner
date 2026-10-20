@@ -41,6 +41,7 @@ NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
 
 # Google Trends: डर-संबंधी खोजें (हर खोज अपने 7-दिन के औसत से तुलना होती है)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
+TRENDS_RETRIES = 3
 
 CONTRARIAN_LIMIT = 6.0
 DATA_FILE = "data.json"
@@ -147,38 +148,35 @@ def process(name, sym, query, kind, events, today_str, instruments):
     update_contrarian(events, name, score, today_str, returns)
 
 
-def fetch_trends():
-    """डर-संबंधी खोजें अपने 7-दिन के औसत से कितनी ऊपर/नीचे हैं, और अचानक उभरती खोजें।
-    कुछ भी फेल हो तो {"ok": False} लौटता है, बाक़ी पाइपलाइन नहीं रुकती।"""
+def _trends_once():
+    """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।"""
+    from pytrends.request import TrendReq
+
+    py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+    py.build_payload(FEAR_TERMS, timeframe="now 7-d", geo="IN")
+    df = py.interest_over_time()
+    if df is None or df.empty:
+        raise ValueError("Google से खाली डेटा मिला")
+    df = df[FEAR_TERMS].fillna(0)
+
+    base = float(df.mean(axis=1).mean())
+    recent = float(df.tail(24).mean(axis=1).mean())
+    if base <= 0:
+        raise ValueError("बेसलाइन शून्य है")
+    fear_vs_avg = round((recent / base - 1) * 100)
+
+    per_term = []
+    for t in FEAR_TERMS:
+        b = float(df[t].mean())
+        r = float(df[t].tail(24).mean())
+        per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
+
+    # उभरती खोजें: अलग अनुरोध, इसलिए 429 की संभावना कम करने के लिए थोड़ा रुकते हैं
+    spikes = []
     try:
-        from pytrends.request import TrendReq
-    except Exception as e:
-        return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
-
-    try:
-        py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-        py.build_payload(FEAR_TERMS, timeframe="now 7-d", geo="IN")
-        df = py.interest_over_time()
-        if df is None or df.empty:
-            return {"ok": False, "error": "Google से खाली डेटा मिला"}
-        df = df[FEAR_TERMS].fillna(0)
-
-        base = float(df.mean(axis=1).mean())
-        recent = float(df.tail(24).mean(axis=1).mean())
-        if base <= 0:
-            return {"ok": False, "error": "बेसलाइन शून्य है"}
-        fear_vs_avg = round((recent / base - 1) * 100)
-
-        per_term = []
-        for t in FEAR_TERMS:
-            b = float(df[t].mean())
-            r = float(df[t].tail(24).mean())
-            per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
-
-        time.sleep(5)
+        time.sleep(30)
         py.build_payload(["nifty", "sensex"], timeframe="now 7-d", geo="IN")
         rq = py.related_queries()
-        spikes = []
         for kw in ("nifty", "sensex"):
             r = rq.get(kw, {}).get("rising")
             if r is not None and not r.empty:
@@ -186,20 +184,41 @@ def fetch_trends():
                     q = row["query"]
                     stock = next((s for s in STOCKS if s.lower() in q.lower()), None)
                     spikes.append({"query": q, "value": str(row["value"]), "stock": stock})
-
-        return {"ok": True, "fear_vs_avg": fear_vs_avg,
-                "per_term": per_term, "spikes": spikes[:10]}
     except Exception as e:
-        return {"ok": False, "error": f"Google Trends फेल: {e}"}
+        print(f"rising queries skipped: {e}")
+
+    return {"ok": True, "fear_vs_avg": fear_vs_avg,
+            "per_term": per_term, "spikes": spikes[:10]}
+
+
+def fetch_trends():
+    """Google 429 देने पर कुछ देर रुककर दोबारा कोशिश करता है।
+    सब फेल हो तो {"ok": False, "error": ...} लौटता है।"""
+    try:
+        import pytrends  # noqa: F401
+    except Exception as e:
+        return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
+
+    last_err = ""
+    for attempt in range(TRENDS_RETRIES):
+        try:
+            return _trends_once()
+        except Exception as e:
+            last_err = str(e)
+            print(f"trends attempt {attempt + 1} failed: {last_err}")
+            if attempt < TRENDS_RETRIES - 1:
+                time.sleep(60 * (attempt + 1))
+    return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
 def main():
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
+    updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
     events = load_json(EVENTS_FILE, [])
+    previous = load_json(DATA_FILE, {})
 
-    result = {"updated": now_utc.isoformat(timespec="minutes").replace("+00:00", "Z"),
-              "instruments": {}}
+    result = {"updated": updated, "instruments": {}}
 
     for name, (sym, query) in INDEXES.items():
         process(name, sym, query, "index", events, today_str, result["instruments"])
@@ -214,9 +233,22 @@ def main():
         "continued": len([e for e in events if e["outcome"] == "continued"]),
     }
 
-    result["trends"] = fetch_trends()
+    # Google Trends: ताज़ा मिले तो वही, वरना पिछला सफल डेटा "पुराना" चिह्न के साथ
+    fresh = fetch_trends()
+    prev_trends = previous.get("trends") or {}
+    if fresh.get("ok"):
+        fresh["as_of"] = updated
+        fresh["stale"] = False
+        result["trends"] = fresh
+    elif prev_trends.get("ok"):
+        stale = dict(prev_trends)
+        stale["stale"] = True
+        stale["error"] = fresh.get("error", "")
+        result["trends"] = stale
+    else:
+        fresh["stale"] = False
+        result["trends"] = fresh
 
-    # आख़िरी सुरक्षा: सभी NaN/infinity साफ़ करें
     result = clean(result)
     events = clean(events)
 
