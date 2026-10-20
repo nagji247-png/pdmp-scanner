@@ -1,4 +1,4 @@
-import json, csv, os, time, datetime as dt
+import json, csv, os, time, math, datetime as dt
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 
@@ -48,6 +48,17 @@ EVENTS_FILE = "contrarian.json"
 HISTORY_FILE = "history.csv"
 
 
+def clean(obj):
+    """NaN या infinity को 0 से बदलता है, ताकि JSON फ़ाइल सही बने।"""
+    if isinstance(obj, float):
+        return 0.0 if (math.isnan(obj) or math.isinf(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: clean(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [clean(v) for v in obj]
+    return obj
+
+
 def headline_score(text):
     t = text.lower()
     return sum(v for k, v in POS.items() if k in t) - sum(v for k, v in NEG.items() if k in t)
@@ -80,12 +91,15 @@ def load_json(path, default):
 
 
 def daily_returns(sym):
-    """तारीख -> उस दिन का % बदलाव (लगभग 1 महीने का डेटा)"""
+    """तारीख -> उस दिन का % बदलाव (लगभग 1 महीने का डेटा). खाली दिन छोड़े जाते हैं।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
     out = {}
     for i in range(1, len(closes)):
+        prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
+        if math.isnan(prev) or math.isnan(cur) or prev == 0:
+            continue
         d = closes.index[i].strftime("%Y-%m-%d")
-        out[d] = round((closes.iloc[i] / closes.iloc[i - 1] - 1) * 100, 2)
+        out[d] = round((cur / prev - 1) * 100, 2)
     return out
 
 
@@ -147,18 +161,18 @@ def fetch_trends():
         df = py.interest_over_time()
         if df is None or df.empty:
             return {"ok": False, "error": "Google से खाली डेटा मिला"}
-        df = df[FEAR_TERMS]
+        df = df[FEAR_TERMS].fillna(0)
 
-        base = df.mean(axis=1).mean()
-        recent = df.tail(24).mean(axis=1).mean()
+        base = float(df.mean(axis=1).mean())
+        recent = float(df.tail(24).mean(axis=1).mean())
         if base <= 0:
             return {"ok": False, "error": "बेसलाइन शून्य है"}
         fear_vs_avg = round((recent / base - 1) * 100)
 
         per_term = []
         for t in FEAR_TERMS:
-            b = df[t].mean()
-            r = df[t].tail(24).mean()
+            b = float(df[t].mean())
+            r = float(df[t].tail(24).mean())
             per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
 
         time.sleep(5)
@@ -202,10 +216,14 @@ def main():
 
     result["trends"] = fetch_trends()
 
+    # आख़िरी सुरक्षा: सभी NaN/infinity साफ़ करें
+    result = clean(result)
+    events = clean(events)
+
     with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+        json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(EVENTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(events, f, ensure_ascii=False, indent=2)
+        json.dump(events, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     write_header = not os.path.exists(HISTORY_FILE)
     with open(HISTORY_FILE, "a", newline="", encoding="utf-8") as f:
