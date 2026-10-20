@@ -264,14 +264,16 @@ function renderTrends(t) {
     : "";
 
   const v = t.fear_vs_avg;
-  const vText = (v > 0 ? "+" : "") + v + "%";
+  const vText = (v > 0 ? "+" : "") + v + " अंक";
   const vCls = v > 0 ? "neg" : "pos";
   const mood = v > 0 ? "डर अपने सामान्य स्तर से ऊपर है" : "डर अपने सामान्य स्तर से नीचे है";
 
   const terms = (t.per_term || []).map(p => {
-    const s = p.vs_avg > 0 ? "+" : "";
-    return `<div class="ev"><div>${p.term}</div>
-      <div class="${p.vs_avg > 0 ? "neg" : "pos"}">${s}${p.vs_avg}%</div></div>`;
+    const s = p.pts > 0 ? "+" : "";
+    return `<div class="ev">
+      <div>${p.term}<div class="sub">अभी ${p.now} · औसत ${p.avg}</div></div>
+      <div class="${p.pts > 0 ? "neg" : "pos"}">${s}${p.pts} अंक</div>
+    </div>`;
   }).join("");
 
   const spikes = (t.spikes || []).map(s => {
@@ -282,7 +284,7 @@ function renderTrends(t) {
   box.innerHTML = `
     ${stale}
     <div class="bigm ${vCls}">${vText}</div>
-    <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत</div>
+    <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत (0–100 स्केल पर)</div>
     <div style="margin-top:10px">${terms}</div>
     <div class="sub" style="margin-top:14px">अचानक तेज़ी से बढ़ती खोजें (Nifty/Sensex के आसपास)</div>
     <div style="margin-top:6px">${spikes || '<span class="sub">कोई नई खोज नहीं मिली</span>'}</div>`;
