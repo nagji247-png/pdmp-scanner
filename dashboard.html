@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
@@ -93,14 +93,14 @@
 <h2>🏢 स्टॉक</h2>
 <div class="grid" id="stocks"></div>
 
-<h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
-<div class="box" id="news"></div>
-
 <h2>🔍 What People Are Searching (Google Trends)</h2>
 <div class="box" id="trends"></div>
 
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
 <div class="box" id="contrarian"></div>
+
+<h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
+<div class="box" id="news"></div>
 
 <div class="footer">
   सभी जानकारी केवल शैक्षिक उद्देश्य के लिए है। यह निवेश सलाह नहीं है।
@@ -504,9 +504,9 @@ async function load() {
     renderCrowd(data);
     renderFlow(data.fii_dii);
     renderInstruments(data.instruments);
-    renderNews(data.market_news);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
+    renderNews(data.market_news);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
   }
