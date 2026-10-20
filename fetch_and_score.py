@@ -1,4 +1,4 @@
-import json, csv, os, time, math, datetime as dt
+import json, csv, os, re, time, math, datetime as dt
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 import requests
@@ -31,6 +31,20 @@ STOCKS = {
     "SBIN": ("SBIN.NS", "SBI share"),
 }
 
+# Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
+# नया स्टॉक जोड़ें तो यहाँ भी एक लाइन जोड़ें।
+STOCK_ALIASES = {
+    "RELIANCE": ["reliance"],
+    "HDFCBANK": ["hdfc bank", "hdfcbank", "hdfc"],
+    "TATAMOTORS": ["tata motors", "tatamotors"],
+    "HINDALCO": ["hindalco"],
+    "ADANIPORTS": ["adani ports", "adaniports"],
+    "COALINDIA": ["coal india", "coalindia"],
+    "EICHERMOT": ["eicher", "eichermot"],
+    "APOLLOHOSP": ["apollo hospital", "apollohosp", "apollo"],
+    "SBIN": ["sbi", "sbin", "state bank"],
+}
+
 # शब्द-सूची: वज़न 1 या 2। जितनी बढ़ाएँगे, स्कोर उतना बेहतर होगा।
 POS = {"rally": 2, "surge": 2, "record high": 2, "bullish": 2, "gain": 1,
        "jump": 1, "rise": 1, "climb": 1, "rebound": 1, "higher": 1, "profit": 1,
@@ -40,13 +54,39 @@ NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
        "lower": 1, "losses": 1, "sell-off": 2, "selloff": 2, "downgrade": 2,
        "misses": 1, "sell": 1}
 
-# Google Trends: डर-संबंधी खोजें (हर खोज का अंतर अपने 7-दिन के औसत से अंकों में)
+# Google Trends: डर-संबंधी खोजें (बियरिश सोच) और बुलिश खोजें (एक ही अनुरोध में, ताकि पैमाना एक हो)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
+BULL_TERMS = ["nifty rally", "nifty buy"]
 TRENDS_RETRIES = 2
+
+# बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
+MARKET_NEWS_TOPICS = [
+    ("भारतीय बाज़ार", "India stock market Nifty Sensex today"),
+    ("कच्चा तेल", "crude oil prices today"),
+    ("अमेरिकी Fed और ब्याज दर", "Federal Reserve interest rate decision"),
+    ("RBI नीति", "RBI monetary policy India rates"),
+    ("व्यापार और टैरिफ", "global trade tariffs stock markets"),
+    ("सोना, डॉलर और रुपया", "gold price dollar rupee today"),
+]
+# खबर को बाज़ार से जुड़ा मानने के शब्द (पूरे शब्द या वाक्यांश के रूप में मिलने चाहिए)
+MARKET_IMPACT_WORDS = [
+    "market", "markets", "stock", "stocks", "shares", "sensex", "nifty", "crude", "oil",
+    "interest rate", "interest rates", "rate cut", "rate hike", "repo rate", "fed", "rbi",
+    "inflation", "tariff", "tariffs", "war", "gdp", "bond", "bonds", "dollar", "rupee",
+    "earnings", "budget", "gold", "bitcoin", "recession", "sanctions", "opec", "fii", "fpi",
+    "yield", "yields",
+]
+
+# भीड़ की सोच: इस सीमा से ऊपर/नीचे का मतलब "सोच एकतरफ़ा" है
+CROWD_EXTREME = 70
+CROWD_LOW = 30
+# Nifty के वॉच-स्तर (आप यहाँ अपने लेवल जोड़ सकते हैं)
+NIFTY_WATCH_LEVELS = [21000, 22000, 23000]
 
 CONTRARIAN_LIMIT = 6.0
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
+CROWD_FILE = "crowd_events.json"
 HISTORY_FILE = "history.csv"
 
 
@@ -80,6 +120,7 @@ def fetch_news(query):
         if " - " in title:
             title, source = title.rsplit(" - ", 1)
         items.append({"title": title, "source": source,
+                      "link": getattr(e, "link", "") or "",
                       "score": headline_score(title), "age_h": age_h})
     items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
     return items
@@ -107,14 +148,6 @@ def daily_returns(sym):
         d = closes.index[i].strftime("%Y-%m-%d")
         out[d] = round((cur / prev - 1) * 100, 2)
     return out
-
-
-def latest_change(sym):
-    """सबसे ताज़ा पूरा सत्र का बदलाव (आज का अधूरा बार नहीं)।"""
-    r = daily_returns(sym)
-    if not r:
-        return 0.0
-    return r[max(r)]
 
 
 def update_contrarian(events, name, score, today_str, returns):
@@ -158,8 +191,56 @@ def process(name, sym, query, kind, events, today_str, instruments):
         "change_pct": change,
         "score": score,
         "headlines": heads[:8],
+        # पूरी खबरों का बुलिश/बियरिश बँटवारा (सिर्फ़ 8 नहीं)
+        "pos_n": sum(1 for h in heads if h["score"] > 0),
+        "neg_n": sum(1 for h in heads if h["score"] < 0),
     }
     update_contrarian(events, name, score, today_str, returns)
+
+
+def is_market_news(title):
+    """खबर बाज़ार से जुड़ी है या नहीं, यह पूरे शब्द या वाक्यांश मिलाकर तय होता है।"""
+    t = title.lower()
+    return any(re.search(r"\b" + re.escape(w) + r"\b", t) for w in MARKET_IMPACT_WORDS)
+
+
+def impact_label(score):
+    if score >= 2:
+        return "सकारात्मक असर"
+    if score <= -2:
+        return "नकारात्मक असर"
+    return "तटस्थ"
+
+
+def fetch_market_news():
+    """बाज़ार पर असर डालने वाली ताज़ा खबरें, कई विषयों से।
+    कोई खबर बाज़ार से न जुड़ी हो तो छोड़ दी जाती है। दोहराव भी हटाया जाता है।"""
+    seen = set()
+    items = []
+    for topic, query in MARKET_NEWS_TOPICS:
+        try:
+            heads = fetch_news(query)
+        except Exception as e:
+            print(f"market news error {topic}: {e}")
+            continue
+        for h in heads[:8]:
+            key = h["title"].lower()[:80]
+            if key in seen or not is_market_news(h["title"]):
+                continue
+            seen.add(key)
+            items.append({
+                "topic": topic,
+                "title": h["title"],
+                "source": h["source"],
+                "link": h["link"],
+                "score": h["score"],
+                "impact": impact_label(h["score"]),
+                "age_h": h["age_h"],
+            })
+    if not items:
+        return {"ok": False, "error": "बाज़ार से जुड़ी खबरें इस बार नहीं मिलीं"}
+    items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
+    return {"ok": True, "items": items[:12]}
 
 
 def nifty_range():
@@ -179,6 +260,17 @@ def nifty_range():
                 "low": round(last - pts, 1), "high": round(last + pts, 1)}
     except Exception as e:
         return {"ok": False, "error": f"रेंज नहीं निकली: {e}"}
+
+
+def build_levels(range_info):
+    """Nifty के वॉच-स्तर और अंतिम बंद से उनकी दूरी (%)।"""
+    if not range_info or not range_info.get("ok"):
+        return []
+    last = range_info["last_close"]
+    out = []
+    for lvl in NIFTY_WATCH_LEVELS:
+        out.append({"level": lvl, "dist_pct": round((lvl / last - 1) * 100, 2)})
+    return out
 
 
 def fetch_fii_dii():
@@ -216,23 +308,46 @@ def fetch_fii_dii():
         return {"ok": False, "error": f"FII/DII नहीं मिला: {e}"}
 
 
+def match_relevant(query):
+    """उभरती खोज को तभी स्वीकार करता है जब वह Nifty/Sensex से जुड़ी हो
+    या हमारी वॉचलिस्ट के किसी स्टॉक से।
+    लौटता है: (संबंधित है या नहीं, स्टॉक का नाम या None)।"""
+    q = query.lower()
+    for stock, aliases in STOCK_ALIASES.items():
+        if any(a in q for a in aliases):
+            return True, stock
+    if "nifty" in q or "sensex" in q:
+        return True, None
+    return False, None
+
+
+def crowd_label(pct):
+    if pct >= CROWD_EXTREME:
+        return "ज़्यादातर बुलिश सोच"
+    if pct <= CROWD_LOW:
+        return "ज़्यादातर बियरिश सोच"
+    return "सोच बँटी हुई"
+
+
 def _trends_once():
     """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
-    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं।"""
+    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं।
+    एक ही अनुरोध में बियरिश और बुलिश खोजें हैं, इसलिए उनका पैमाना एक ही रहता है।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-    py.build_payload(FEAR_TERMS, timeframe="now 7-d", geo="IN")
+    keywords = FEAR_TERMS + BULL_TERMS
+    py.build_payload(keywords, timeframe="now 7-d", geo="IN")
     df = py.interest_over_time()
     if df is None or df.empty:
         raise ValueError("Google से खाली डेटा मिला")
-    df = df[FEAR_TERMS].fillna(0)
+    df = df[keywords].fillna(0)
 
     if float(df.values.max()) == 0:
         raise ValueError("सभी खोजों का डेटा शून्य है")
 
-    base = float(df.mean(axis=1).mean())
-    recent = float(df.tail(24).mean(axis=1).mean())
+    base = float(df[FEAR_TERMS].mean(axis=1).mean())
+    recent = float(df[FEAR_TERMS].tail(24).mean(axis=1).mean())
     fear_pts = round(recent - base, 1)
 
     per_term = []
@@ -241,23 +356,40 @@ def _trends_once():
         r = float(df[t].tail(24).mean())
         per_term.append({"term": t, "pts": round(r - b, 1), "now": round(r, 1), "avg": round(b, 1)})
 
+    # भीड़ की सोच: पिछले 24 घंटे में बुलिश खोजें बनाम बियरिश खोजें
+    bull_recent = float(df[BULL_TERMS].tail(24).mean(axis=1).mean())
+    total = bull_recent + recent
+    crowd_bull_pct = round(bull_recent / total * 100) if total > 0 else 50
+    crowd_terms = [{"term": t, "now": round(float(df[t].tail(24).mean()), 1),
+                    "avg": round(float(df[t].mean()), 1)} for t in BULL_TERMS]
+
+    # उभरती खोजें: सिर्फ़ Nifty, Sensex या वॉचलिस्ट से जुड़ी
     spikes = []
     try:
         time.sleep(5)
         py.build_payload(["nifty", "sensex"], timeframe="now 7-d", geo="IN")
         rq = py.related_queries()
+        seen = set()
         for kw in ("nifty", "sensex"):
             r = rq.get(kw, {}).get("rising")
-            if r is not None and not r.empty:
-                for _, row in r.head(6).iterrows():
-                    q = row["query"]
-                    stock = next((s for s in STOCKS if s.lower() in q.lower()), None)
-                    spikes.append({"query": q, "value": str(row["value"]), "stock": stock})
+            if r is None or r.empty:
+                continue
+            for _, row in r.head(15).iterrows():
+                q = str(row["query"])
+                if q in seen:
+                    continue
+                ok, stock = match_relevant(q)
+                if not ok:
+                    continue
+                seen.add(q)
+                spikes.append({"query": q, "value": str(row["value"]), "stock": stock})
     except Exception as e:
         print(f"rising queries skipped: {e}")
 
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
-            "per_term": per_term, "spikes": spikes[:10]}
+            "per_term": per_term, "spikes": spikes[:10],
+            "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label(crowd_bull_pct),
+            "crowd_terms": crowd_terms}
 
 
 def fetch_trends():
@@ -280,6 +412,32 @@ def fetch_trends():
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
+def update_crowd(events, crowd_pct, today_str, nifty_ret):
+    """भीड़ एकतरफ़ा हो तो उस दिन दर्ज करें। अगले सत्र की Nifty चाल से नतीजा भरें।
+    'trap' = भीड़ की दिशा उल्टी गई। 'followed' = भीड़ की दिशा सही निकली।
+    यह इतिहास का मिलान है, भविष्य की गारंटी नहीं।"""
+    if crowd_pct is not None and (crowd_pct >= CROWD_EXTREME or crowd_pct <= CROWD_LOW):
+        key = f"{today_str}|crowd"
+        if not any(e["key"] == key for e in events):
+            events.append({
+                "key": key, "date": today_str,
+                "direction": "bull" if crowd_pct >= CROWD_EXTREME else "bear",
+                "crowd_pct": crowd_pct, "next_change": None, "outcome": None,
+            })
+
+    for e in events:
+        if e.get("outcome") is not None:
+            continue
+        later = sorted(d for d in nifty_ret if d > e["date"])
+        if not later:
+            continue
+        nxt = nifty_ret[later[0]]
+        e["next_change"] = nxt
+        crowd_up = e["direction"] == "bull"
+        price_up = nxt >= 0
+        e["outcome"] = "followed" if crowd_up == price_up else "trap"
+
+
 def pick_with_fallback(fresh, prev):
     """ताज़ा सफल हो तो वही; वरना पिछला सफल डेटा 'stale' चिह्न के साथ।"""
     if fresh.get("ok"):
@@ -299,6 +457,7 @@ def main():
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
     events = load_json(EVENTS_FILE, [])
+    crowd_events = load_json(CROWD_FILE, [])
     previous = load_json(DATA_FILE, {})
 
     result = {"updated": updated, "instruments": {}}
@@ -317,24 +476,55 @@ def main():
     }
 
     result["range"] = nifty_range()
+    result["levels"] = build_levels(result["range"])
+
+    # शीर्षक का बुलिश/बियरिश बँटवारा (NIFTY और SENSEX की सभी खबरें)
+    idx_pos = sum(result["instruments"][k].get("pos_n", 0) for k in ("NIFTY", "SENSEX"))
+    idx_neg = sum(result["instruments"][k].get("neg_n", 0) for k in ("NIFTY", "SENSEX"))
+    result["headline_split"] = {"pos": idx_pos, "neg": idx_neg}
 
     fii = pick_with_fallback(fetch_fii_dii(), previous.get("fii_dii") or {})
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
 
+    market_news = pick_with_fallback(fetch_market_news(), previous.get("market_news") or {})
+    if market_news.get("ok") and not market_news.get("stale"):
+        market_news["as_of"] = updated
+    result["market_news"] = market_news
+
     trends = pick_with_fallback(fetch_trends(), previous.get("trends") or {})
     if trends.get("ok") and not trends.get("stale"):
         trends["as_of"] = updated
     result["trends"] = trends
 
+    # भीड़ का इतिहास: सिर्फ़ ताज़ा ट्रेंड्स डेटा से दर्ज होता है, पुराने से नहीं
+    fresh_trends = trends.get("ok") and not trends.get("stale")
+    crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
+    nifty_ret = {}
+    try:
+        nifty_ret = daily_returns("^NSEI")
+    except Exception as e:
+        print(f"crowd nifty returns error: {e}")
+    update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
+    done = [e for e in crowd_events if e.get("outcome")]
+    result["crowd_stats"] = {
+        "tracked": len(done),
+        "trap": len([e for e in done if e["outcome"] == "trap"]),
+        "followed": len([e for e in done if e["outcome"] == "followed"]),
+        "events": crowd_events[-10:],
+    }
+
     result = clean(result)
     events = clean(events)
+    crowd_events = clean(crowd_events)
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(EVENTS_FILE, "w", encoding="utf-8") as f:
         json.dump(events, f, ensure_ascii=False, indent=2, allow_nan=False)
+    with open(CROWD_FILE, "w", encoding="utf-8") as f:
+        json.dump(crowd_events, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     write_header = not os.path.exists(HISTORY_FILE)
     with open(HISTORY_FILE, "a", newline="", encoding="utf-8") as f:
