@@ -41,7 +41,7 @@ NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "fall": 1,
 
 # Google Trends: डर-संबंधी खोजें (हर खोज अपने 7-दिन के औसत से तुलना होती है)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
-TRENDS_RETRIES = 3
+TRENDS_RETRIES = 2
 
 CONTRARIAN_LIMIT = 6.0
 DATA_FILE = "data.json"
@@ -171,10 +171,10 @@ def _trends_once():
         r = float(df[t].tail(24).mean())
         per_term.append({"term": t, "vs_avg": round((r / b - 1) * 100) if b > 0 else 0})
 
-    # उभरती खोजें: अलग अनुरोध, इसलिए 429 की संभावना कम करने के लिए थोड़ा रुकते हैं
+    # उभरती खोजें: अलग अनुरोध, इसलिए थोड़ा रुकते हैं (छोटा विराम ताकि देरी कम रहे)
     spikes = []
     try:
-        time.sleep(30)
+        time.sleep(5)
         py.build_payload(["nifty", "sensex"], timeframe="now 7-d", geo="IN")
         rq = py.related_queries()
         for kw in ("nifty", "sensex"):
@@ -192,7 +192,7 @@ def _trends_once():
 
 
 def fetch_trends():
-    """Google 429 देने पर कुछ देर रुककर दोबारा कोशिश करता है।
+    """Google 429 देने पर थोड़ी देर रुककर दोबारा कोशिश करता है।
     सब फेल हो तो {"ok": False, "error": ...} लौटता है।"""
     try:
         import pytrends  # noqa: F401
@@ -207,7 +207,7 @@ def fetch_trends():
             last_err = str(e)
             print(f"trends attempt {attempt + 1} failed: {last_err}")
             if attempt < TRENDS_RETRIES - 1:
-                time.sleep(60 * (attempt + 1))
+                time.sleep(20)
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
