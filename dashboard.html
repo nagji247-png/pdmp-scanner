@@ -79,12 +79,6 @@
   .flow-val { font-size: 20px; font-weight: 700; margin-top: 4px; }
   .flow-foot { font-size: 11px; color: #7b82a0; margin-top: 10px; line-height: 1.4; }
 
-
-  .radar-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:11px 10px; margin-top:8px; border-radius:8px; background:#20263f; border-left:4px solid #f5a623; }
-  .radar-row.down { border-left-color:#e74c3c; } .radar-row.up { border-left-color:#2ecc71; }
-  .radar-name { font-weight:800; font-size:14px; } .radar-meta { color:#aab; font-size:12px; margin-top:4px; line-height:1.45; }
-  .radar-side { text-align:right; white-space:nowrap; } .radar-price { font-size:16px; font-weight:800; }
-
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 </style>
 </head>
@@ -98,9 +92,6 @@
 
 <h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2>
 <div class="box" id="crowd"></div>
-
-<h2>🎯 Contrarian Radar — भावना बनाम कीमत</h2>
-<div class="box" id="radar"></div>
 
 <h2>🏦 संस्थागत प्रवाह (FII / DII)</h2>
 <div class="box" id="flow"></div>
@@ -385,49 +376,6 @@ function renderFlow(f) {
 
 const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 
-function renderRadar(instruments, data) {
-  const box = document.getElementById("radar");
-  if (!box) return;
-
-  // Keep bullish/bearish instruments visible while their sentiment remains directional.
-  // Opposite price movement gets an additional contrarian warning, not a BUY/SELL signal.
-  const items = Object.entries(instruments || {}).map(([name, d]) => ({
-    name, score: Number(d.score), change: Number(d.change_pct), type: d.type
-  })).filter(x => Number.isFinite(x.score) && Number.isFinite(x.change) &&
-    Math.abs(x.score) >= 2)
-    .sort((a, b) => (Math.abs(b.score) + Math.abs(b.change)) - (Math.abs(a.score) + Math.abs(a.change)));
-
-  const stale = (() => {
-    const t = data && data.trends;
-    const updated = data && data.updated ? new Date(data.updated) : null;
-    const age = updated && Number.isFinite(updated.getTime()) ? (Date.now() - updated.getTime()) / 60000 : Infinity;
-    return age > 45 || !t || t.stale === true;
-  })();
-  const warning = '<div class="warn">यह sentiment watchlist है, BUY/SELL सिग्नल नहीं। ट्रेड से पहले बंद 30-मिनट कैंडल, VWAP, वॉल्यूम और प्राइस एक्शन की पुष्टि करें।</div>';
-  const freshness = stale
-    ? '<div class="warn">⚠️ डेटा/Google Trends पुराना या अधूरा हो सकता है। इसे भीड़ का ताज़ा मूड न मानें।</div>'
-    : '<div class="sub">डेटा टाइमस्टैम्प ठीक है; फिर भी Google Trends अलग स्रोत है और कैश हो सकता है।</div>';
-  const rows = items.map(x => {
-    const opposite = Math.abs(x.change) >= 0.5 && Math.sign(x.score) !== Math.sign(x.change);
-    const bullish = x.score >= 2;
-    const sentiment = bullish ? 'BULLISH' : 'BEARISH';
-    const label = opposite
-      ? (bullish ? '⚡ सेंटिमेंट और कीमत उलटे हैं — संभावित bearish watch' : '⚡ सेंटिमेंट और कीमत उलटे हैं — संभावित bullish watch')
-      : (bullish ? 'रुझान BULLISH है — कीमत साथ चले या उलटी, स्कोर bullish रहने तक सूची में रहेगा' : 'रुझान BEARISH है — स्कोर bearish रहने तक सूची में रहेगा');
-    const sign = x.change > 0 ? '+' : '';
-    return '<div class="radar-row ' + (opposite ? (bullish ? 'down' : 'up') : (bullish ? 'up' : 'down')) + '">' +
-      '<div><div class="radar-name">' + esc(x.name) + '</div>' +
-      '<div class="radar-meta">' + esc(sentiment) + ' · स्कोर ' + (x.score > 0 ? '+' : '') + x.score +
-      '<br>' + esc(label) + '</div></div>' +
-      '<div class="radar-side"><div class="radar-price ' + (x.change < 0 ? 'neg' : 'pos') + '">' + sign + x.change.toFixed(2) + '%</div>' +
-      '<div class="radar-meta">कीमत में बदलाव</div></div></div>';
-  }).join('');
-  box.innerHTML = warning + freshness +
-    '<div class="sub" style="margin-top:8px">नियम: स्कोर +2 या अधिक = BULLISH watch; स्कोर −2 या कम = BEARISH watch। कीमत उलटी दिशा में कम-से-कम 0.5% चले तो ⚡ चेतावनी लगेगी। सूची स्कोर के bullish/bearish रहने तक दिखाई देगी।</div>' +
-    (rows || '<div class="sub" style="margin-top:10px">अभी कोई BULLISH/BEARISH स्कोर तय सीमा पर नहीं है।</div>') +
-    '<div class="sub" style="margin-top:10px">ध्यान दें: कार्ड का +/− स्कोर समाचार/हेडलाइन sentiment है। Google Trends crowd mood ऊपर अलग सेक्शन में है; दोनों एक ही डेटा नहीं हैं।</div>';
-}
-
 function renderInstruments(instruments) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
@@ -703,7 +651,6 @@ async function load() {
     scoreHistory = await loadHistory();
     renderRange(data.range);
     renderCrowd(data);
-    renderRadar(data.instruments, data);
     renderFlow(data.fii_dii);
     renderInstruments(data.instruments);
     renderTrends(data.trends);
