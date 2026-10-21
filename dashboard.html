@@ -299,7 +299,10 @@ function renderCrowd(data) {
     const bull = t.crowd_bull_pct;
     const bear = 100 - bull;
     const stale = t.stale
-      ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>` : "";
+      ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>`
+      : (t.cached
+        ? `<div class="sub">Google Trends कैश · स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम 6 घंटे</div>`
+        : "");
     moodHtml = `
       ${stale}
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div></div>
@@ -402,7 +405,10 @@ function renderTrends(t) {
   }
 
   const stale = t.stale
-    ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>` : "";
+    ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>`
+    : (t.cached
+      ? `<div class="sub">कैश की गई Google Trends रीडिंग · असली स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम कैश अवधि 6 घंटे</div>`
+      : "");
 
   const v = t.fear_vs_avg;
   const vText = (v > 0 ? "+" : "") + v + " अंक";
