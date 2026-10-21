@@ -703,6 +703,14 @@ def _trends_once():
                     "now": round(r_now * 100, 2), "avg": round(r_avg * 100, 2),
                 })
 
+    # सभी शब्दों में now और average शून्य हों तो इसे सफल रीडिंग न मानें।
+    # Google Trends कभी-कभी खाली/अधूरा जवाब देता है; उसे वैध डेटा बनाकर नहीं दिखाना चाहिए।
+    if not crowd_terms or (
+        all(float(p.get("now", 0) or 0) == 0 and float(p.get("avg", 0) or 0) == 0 for p in crowd_terms)
+        or (bull_pct_sum == 0 and bear_pct_sum == 0)
+    ):
+        raise ValueError("Google Trends ने सभी crowd terms के लिए शून्य/खाली डेटा दिया")
+
     crowd_bull_pct, crowd_label = crowd_decision(bull_pct_sum, bear_pct_sum)
 
     # 3) Rising/related_queries अनुरोध जानबूझकर छोड़ा गया है:
@@ -879,7 +887,17 @@ def main():
     except Exception:
         pass
 
-    if previous_trends.get("ok") and trends_age_hours is not None and 0 <= trends_age_hours < 6:
+    previous_crowd_terms = previous_trends.get("crowd_terms") or []
+    previous_trends_all_zero = (
+        not previous_crowd_terms
+        or all(float(p.get("now", 0) or 0) == 0 and float(p.get("avg", 0) or 0) == 0
+               for p in previous_crowd_terms)
+        or (float(previous_trends.get("bull_sum_pct", 0) or 0) == 0
+            and float(previous_trends.get("bear_sum_pct", 0) or 0) == 0)
+    )
+
+    if (previous_trends.get("ok") and not previous_trends_all_zero
+            and trends_age_hours is not None and 0 <= trends_age_hours < 6):
         trends = dict(previous_trends)
         trends["stale"] = False
         trends["cached"] = True
@@ -887,7 +905,9 @@ def main():
         trends.pop("error", None)
         print(f"Using cached Google Trends snapshot ({trends_age_hours:.1f}h old; refresh window 6h)")
     else:
-        trends = pick_with_fallback(fetch_trends(), previous_trends)
+        # अमान्य zero-cache को fallback के रूप में भी वापस न दिखाएँ।
+        fallback_trends = {} if previous_trends_all_zero else previous_trends
+        trends = pick_with_fallback(fetch_trends(), fallback_trends)
         if trends.get("ok") and not trends.get("stale"):
             trends["as_of"] = updated
             trends["cached"] = False
