@@ -10,6 +10,13 @@
   body { margin: 0; font-family: system-ui, sans-serif; background: #0f1220; color: #e6e9f2; }
   header { padding: 14px 16px 4px; font-size: 18px; font-weight: 600; }
   #status { font-size: 12px; color: #8a90a8; padding: 0 16px 12px; }
+
+  #trade-guard { margin: 8px 12px 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid #454b65; background: #1a1f35; font-size: 13px; line-height: 1.45; }
+  #trade-guard.safe { border-color: #397454; }
+  #trade-guard.block { border-color: #a34a4a; background: #2a1d24; }
+  #trade-guard .guard-title { font-weight: 800; margin-bottom: 4px; }
+  #trade-guard .guard-meta { color: #aab; font-size: 12px; margin-top: 4px; }
+
   h2 { font-size: 15px; margin: 22px 16px 8px; color: #cfd4e6; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 0 12px; }
 
@@ -78,6 +85,7 @@
 <body>
 <header>PDMP Scanner</header>
 <div id="status">लोड हो रहा है...</div>
+<div id="trade-guard" role="status"><div class="guard-title">डेटा जाँचा जा रहा है…</div>अभी ट्रेड की अनुमति तय नहीं हुई है।</div>
 
 <h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2>
 <div class="box" id="range"></div>
@@ -130,6 +138,32 @@ function esc(s) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+
+function updateTradeGuard(data) {
+  const box = document.getElementById("trade-guard");
+  if (!box) return;
+  const updated = data && data.updated ? new Date(data.updated) : null;
+  const validTime = updated && Number.isFinite(updated.getTime());
+  const ageMin = validTime ? Math.max(0, (Date.now() - updated.getTime()) / 60000) : Infinity;
+  const reasons = [];
+  if (!validTime) reasons.push("डेटा अपडेट का सही टाइमस्टैम्प नहीं मिला");
+  else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है (सीमा 45 मिनट)");
+  // किसी भी nested source (Trends/news/FII-DII आदि) का fallback flag खोजें।
+  function hasStaleFlag(value) {
+    if (!value || typeof value !== "object") return false;
+    if (value.stale === true) return true;
+    return Object.keys(value).some(key => hasStaleFlag(value[key]));
+  }
+  if (hasStaleFlag(data)) reasons.push("कम-से-कम एक डेटा स्रोत पुराना/fallback डेटा दिखा रहा है");
+  const blocked = reasons.length > 0;
+  box.className = blocked ? "block" : "safe";
+  box.innerHTML = '<div class="guard-title">' +
+    (blocked ? '⛔ NO TRADE — डेटा भरोसेमंद नहीं' : '🟡 डेटा टाइमस्टैम्प ठीक — बाकी पुष्टि ज़रूरी') +
+    '</div>' +
+    (blocked ? reasons.map(esc).join(" • ") : 'केवल फ़ाइल का अपडेट समय ताज़ा दिख रहा है। एंट्री से पहले बंद 30-मिनट कैंडल, कीमत/वॉल्यूम, VWAP और दिशा की पुष्टि अलग से ज़रूरी है।') +
+    '<div class="guard-meta">यह सुरक्षा जाँच ट्रेड सिग्नल नहीं है; डेटा ताज़ा होना अकेले खरीदने का संकेत नहीं।</div>';
 }
 
 function classify(score) {
@@ -603,6 +637,7 @@ async function load() {
     const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
+    updateTradeGuard(data);
 
     document.getElementById("status").textContent =
       "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
@@ -619,6 +654,8 @@ async function load() {
     renderNews(data.market_news);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
+    const guard = document.getElementById("trade-guard");
+    if (guard) { guard.className = "block"; guard.innerHTML = '<div class="guard-title">⛔ NO TRADE — डेटा लोड विफल</div>पुराना डेटा देखकर ट्रेड न करें। पेज रीफ्रेश करें और डेटा स्रोत की जाँच करें।'; }
   } finally {
     loading = false;
   }
