@@ -61,8 +61,8 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 # Google Trends हर अनुरोध में अधिकतम 5 शब्द लेता है, इसलिए शब्द 4-4 के समूहों में जाते हैं,
 # और हर समूह के साथ ANCHOR शब्द जोड़ा जाता है, ताकि अलग अनुरोधों के नंबर तुलनीय बनें।
 ANCHOR = "nifty"
-BULL_TERMS = ["nifty buy", "nifty rally", "निफ़्टी ऊपर भागेगा", "निफ़्टी बुलिश", "निफ़्टी में उछाल"]
-BEAR_TERMS = ["nifty sell", "nifty गिरेगा", "निफ़्टी नीचे जाएगा", "nifty crash"]
+BULL_TERMS = ["nifty target", "share market rise", "sensex rise", "nifty rally", "निफ़्टी टारगेट"]
+BEAR_TERMS = ["nifty fall", "share market crash", "nifty crash", "निफ़्टी गिरावट"]
 TERM_CHUNK = 4
 
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
