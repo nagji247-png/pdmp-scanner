@@ -362,52 +362,54 @@ function renderTrends(t) {
   const box = document.getElementById("trends");
   if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
   if (!t.ok) {
-  box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
+    box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
       <div class="sub">${esc(t.error || "")}</div>`;
     return;
   }
 
   const stale = t.stale
-    ? `<div class="warn">यह पुराना डेटा है (${t.as_of ? "आख़िरी सफल रन" : "पहले का"})। Google ने इस बार अनुरोध सीमित किया।</div>`
-    : "";
+    ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>` : "";
 
   const v = t.fear_vs_avg;
   const vText = (v > 0 ? "+" : "") + v + " अंक";
   const vCls = v > 0 ? "neg" : "pos";
-  const mood = v > 0 ? "डर अपने सामान्य स्तर से ऊपर है" : "डर अपने सामान्य स्तर से नीचे है";
+  const mood = v > 0 ? "डर सामान्य से ऊपर" : "डर सामान्य से नीचे";
 
-  const terms = (t.per_term || []).map(p => {
-    const s = p.pts > 0 ? "+" : "";
-    return `<div class="ev">
-      <div>${esc(p.term)}<div class="sub">अभी ${p.now} · औसत ${p.avg}</div></div>
-      <div class="${p.pts > 0 ? "neg" : "pos"}">${s}${p.pts} अंक</div>
-    </div>`;
+  const ct = t.crowd_terms || [];
+  const topOf = (dir) => {
+    const xs = ct.filter(p => p.dir === dir);
+    if (!xs.length) return null;
+    return xs.reduce((a, b) => (b.now > a.now || (b.now === a.now && b.avg > a.avg)) ? b : a);
+  };
+  const rowFor = (p) => {
+    if (!p) return "";
+    const isBull = p.dir === "bull";
+    const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
+    return `<div class="ev"><div>${esc(p.term)} ${tag}</div><div class="${isBull ? "pos" : "neg"}">${p.now}%</div></div>`;
+  };
+  const topRows = rowFor(topOf("bull")) + rowFor(topOf("bear"));
+
+  const allRows = ct.map(p => {
+    const isBull = p.dir === "bull";
+    const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
+    return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div><div class="${isBull ? "pos" : "neg"}">${p.now}%</div></div>`;
   }).join("");
 
-  const spikes = (t.spikes || []).map(s => {
+  const spikes = (t.spikes || []).slice(0, 3).map(s => {
     const tag = s.stock ? ` <span class="tag t-rev">${esc(s.stock)}</span>` : "";
-    return `<span class="rq">${esc(s.query)}${tag} <span style="color:#7b82a0">${esc(s.value)}</span></span>`;
+    return `<span class="rq">${esc(s.query)}${tag}</span>`;
   }).join("");
-
-  const crowdRows = (t.crowd_terms || []).map(p => {
-      const isBull = p.dir === "bull";
-      const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
-      const cls = isBull ? "pos" : "neg";
-      return `<div class="ev">
-        <div>${esc(p.term)} ${tag}<div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div>
-        <div class="${cls}">${p.now}%</div>
-      </div>`;
-    }).join("");
 
   box.innerHTML = `
     ${stale}
     <div class="bigm ${vCls}">${vText}</div>
-    <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत (0–100 स्केल पर)</div>
-    <div style="margin-top:10px">${terms}</div>
-    <div class="sub" style="margin-top:14px">बुलिश और बियरिश खोजें (निफ़्टी की खोज के सापेक्ष)</div>
-    <div style="margin-top:4px">${crowdRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
-    <div class="sub" style="margin-top:14px">अचानक तेज़ी से बढ़ती खोजें (Nifty/Sensex और वॉचलिस्ट के आसपास)</div>
-    <div style="margin-top:6px">${spikes || '<span class="sub">कोई नई खोज नहीं मिली</span>'}</div>`;
+    <div class="sub">${mood} · पिछले 24 घंटे (0–100 स्केल)</div>
+    <div style="margin-top:10px">${topRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
+    <div class="sub" style="margin-top:10px">उभरती खोजें: ${spikes || 'कोई नई खोज नहीं मिली'}</div>
+    <details style="margin-top:10px">
+      <summary>सभी शब्द देखें</summary>
+      <div style="margin-top:6px">${allRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
+    </details>`;
 }
 
 function renderContrarian(c) {
