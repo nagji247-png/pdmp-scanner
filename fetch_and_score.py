@@ -350,6 +350,21 @@ def intraday_snapshot(sym):
         h = yf.Ticker(sym).history(period="5d", interval="30m")
         if h is None or h.empty:
             return None
+
+        # अधूरी चलती 30-मिनट कैंडल को संकेत में शामिल न करें।
+        # Yahoo candle index आम तौर पर bar-start होता है; केवल वही bar लें
+        # जिसका 30-मिनट समय पूरा हो चुका है।
+        idx_utc = h.index
+        if getattr(idx_utc, "tz", None) is None:
+            idx_utc = idx_utc.tz_localize("UTC")
+        else:
+            idx_utc = idx_utc.tz_convert("UTC")
+        now_utc = dt.datetime.now(dt.timezone.utc)
+        completed = idx_utc + dt.timedelta(minutes=30) <= now_utc
+        h = h.loc[completed]
+        if h.empty:
+            return None
+
         last = h.iloc[-1]
         price = float(last["Close"])
         vol_total = float(h["Volume"].sum())
