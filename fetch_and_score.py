@@ -68,7 +68,7 @@ TERM_CHUNK = 4
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 1.0
-TRENDS_RETRIES = 2
+TRENDS_RETRIES = 2  # केवल गैर-429 त्रुटियों पर दोबारा प्रयास
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -690,7 +690,7 @@ def _trends_once():
     crowd_terms = []
     for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
-            time.sleep(5)
+            time.sleep(8)
             df = _trends_request(py, chunk)
             for t in chunk:
                 r_now, r_avg = _ratio(df, t)
@@ -705,28 +705,10 @@ def _trends_once():
 
     crowd_bull_pct, crowd_label = crowd_decision(bull_pct_sum, bear_pct_sum)
 
-    # 3) उभरती खोजें: सिर्फ़ Nifty, Sensex या वॉचलिस्ट से जुड़ी
+    # 3) Rising/related_queries अनुरोध जानबूझकर छोड़ा गया है:
+    # यह एक अतिरिक्त Google Trends कॉल करता था और 429 की संभावना बढ़ाता था।
+    # Crowd/Fear डेटा के बिना rising खोजों का खाली होना कोई सकारात्मक संकेत नहीं है।
     spikes = []
-    try:
-        time.sleep(5)
-        py.build_payload(["nifty", "sensex"], timeframe="now 7-d", geo="IN")
-        rq = py.related_queries()
-        seen = set()
-        for kw in ("nifty", "sensex"):
-            r = rq.get(kw, {}).get("rising")
-            if r is None or r.empty:
-                continue
-            for _, row in r.head(15).iterrows():
-                q = str(row["query"])
-                if q in seen:
-                    continue
-                ok, stock = match_relevant(q)
-                if not ok:
-                    continue
-                seen.add(q)
-                spikes.append({"query": q, "value": str(row["value"]), "stock": stock})
-    except Exception as e:
-        print(f"rising queries skipped: {e}")
 
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
             "per_term": per_term, "spikes": spikes[:10],
@@ -751,8 +733,12 @@ def fetch_trends():
         except Exception as e:
             last_err = str(e)
             print(f"trends attempt {attempt + 1} failed: {last_err}")
+            # Google 429 = rate limit. उसी रन में पूरा Trends sequence दोहराने से
+            # कई और अनुरोध होते हैं; तुरंत retry न करें, stale fallback/NO TRADE लागू होगा।
+            if "429" in last_err or "too many requests" in last_err.lower():
+                break
             if attempt < TRENDS_RETRIES - 1:
-                time.sleep(20)
+                time.sleep(60)
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
