@@ -864,9 +864,34 @@ def main():
         market_news["as_of"] = updated
     result["market_news"] = market_news
 
-    trends = pick_with_fallback(fetch_trends(), previous.get("trends") or {})
-    if trends.get("ok") and not trends.get("stale"):
-        trends["as_of"] = updated
+    # Google Trends is rate-limited on frequent GitHub Actions runs.
+    # Reuse a successful snapshot for up to 6 hours; preserve its real as_of timestamp.
+    # Once older than 6 hours, attempt a refresh and keep stale=true if refresh fails.
+    previous_trends = previous.get("trends") or {}
+    trends_age_hours = None
+    try:
+        trends_as_of = dt.datetime.fromisoformat(
+            str(previous_trends.get("as_of", "")).replace("Z", "+00:00")
+        )
+        if trends_as_of.tzinfo is None:
+            trends_as_of = trends_as_of.replace(tzinfo=dt.timezone.utc)
+        trends_age_hours = (now_utc - trends_as_of.astimezone(dt.timezone.utc)).total_seconds() / 3600
+    except Exception:
+        pass
+
+    if previous_trends.get("ok") and trends_age_hours is not None and 0 <= trends_age_hours < 6:
+        trends = dict(previous_trends)
+        trends["stale"] = False
+        trends["cached"] = True
+        trends["refresh_policy_hours"] = 6
+        trends.pop("error", None)
+        print(f"Using cached Google Trends snapshot ({trends_age_hours:.1f}h old; refresh window 6h)")
+    else:
+        trends = pick_with_fallback(fetch_trends(), previous_trends)
+        if trends.get("ok") and not trends.get("stale"):
+            trends["as_of"] = updated
+            trends["cached"] = False
+            trends["refresh_policy_hours"] = 6
     result["trends"] = trends
 
     fresh_trends = trends.get("ok") and not trends.get("stale")
