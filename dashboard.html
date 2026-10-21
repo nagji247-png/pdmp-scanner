@@ -256,9 +256,10 @@ function renderCrowd(data) {
   const box = document.getElementById("crowd");
   const t = data.trends || {};
   const hs = data.headline_split || { pos: 0, neg: 0 };
-  const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0, events: [] };
+  const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0 };
   const levels = data.levels || [];
 
+  // सिर्फ़ मूड: बार और लेबल (शब्द-वार विवरण डैशबोर्ड पर नहीं दिखता)
   let moodHtml;
   if (t.ok && t.crowd_bull_pct != null) {
     const bull = t.crowd_bull_pct;
@@ -267,51 +268,22 @@ function renderCrowd(data) {
       ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>` : "";
     moodHtml = `
       ${stale}
-      <div class="sub">Google खोज में अभी (पिछले 24 घंटे, "निफ़्टी" की खोज के सापेक्ष):</div>
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div></div>
-      <div class="mood-split"><span class="pos">बुलिश खोजें ${bull}%</span><span class="neg">बियरिश खोजें ${bear}%</span></div>
+      <div class="mood-split"><span class="pos">बुलिश ${bull}%</span><span class="neg">बियरिश ${bear}%</span></div>
       <div style="margin-top:8px;font-size:15px;font-weight:700;color:#4fc3f7">${esc(t.crowd_label || "")}</div>`;
   } else if (t.ok) {
-    moodHtml = `
-      <div class="warn">पर्याप्त खोज डेटा नहीं। बुलिश या बियरिश शब्दों में इतनी खोज नहीं हुई कि मूड भरोसे से बने।</div>
-      <div class="sub">बुलिश शब्दों का कुल: ${t.bull_sum_pct ?? "—"}% · बियरिश शब्दों का कुल: ${t.bear_sum_pct ?? "—"}% (निफ़्टी की खोज के सापेक्ष, न्यूनतम ${t.min_side_pct ?? "—"}% दोनों तरफ़ चाहिए)</div>`;
+    moodHtml = `<div class="warn">पर्याप्त खोज डेटा नहीं</div>`;
   } else {
-    moodHtml = `<div class="warn">Google खोज वाला मूड इस बार नहीं मिला।</div>
-      <div class="sub">${esc(t.error || "")}</div>`;
+    moodHtml = `<div class="warn">Google खोज का मूड इस बार नहीं मिला।</div>`;
   }
-
-  const termRows = (t.crowd_terms || []).map(p => {
-    const dirTxt = p.dir === "bull" ? "बुलिश" : "बियरिश";
-    const cls = p.dir === "bull" ? "pos" : "neg";
-    return `<div class="ev"><div>${esc(p.term)} <span class="tag t-neu">${dirTxt}</span>
-      <div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div>
-      <div class="${cls}">${p.now}%</div></div>`;
-  }).join("");
 
   const hTotal = hs.pos + hs.neg;
   const hBull = hTotal ? Math.round((hs.pos / hTotal) * 100) : 50;
   const headHtml = `
-    <div style="margin-top:14px" class="sub">Nifty और Sensex की ताज़ा खबरें (सकारात्मक बनाम नकारात्मक शब्द):</div>
-    <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100 - hBull}%"></div></div>
-    <div class="mood-split"><span class="pos">सकारात्मक ${hs.pos}</span><span class="neg">नकारात्मक ${hs.neg}</span></div>`;
+    <div style="margin-top:14px" class="sub">Nifty/Sensex खबरें: सकारात्मक ${hs.pos} · नकारात्मक ${hs.neg}</div>
+    <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100 - hBull}%"></div></div>`;
 
-  const doneRows = (cs.events || []).slice().reverse().map(e => {
-    let tag = '<span class="tag t-pend">अगला सत्र बाकी</span>';
-    if (e.outcome === "trap") tag = '<span class="tag t-rev">भीड़ उलटी गई</span>';
-    if (e.outcome === "followed") tag = '<span class="tag t-cont">भीड़ सही निकली</span>';
-    const dir = e.direction === "bull" ? "बुलिश" : "बियरिश";
-    return `<div class="ev"><div>${esc(e.date)} — ${dir} भीड़ (${e.crowd_pct}%)</div><div>${tag}</div></div>`;
-  }).join("");
-
-  const trapHtml = `
-    <div style="margin-top:14px" class="sub">भीड़ की एकतरफ़ा सोच बनाम अगला सत्र (NIFTY):</div>
-    <div style="margin-top:6px;font-size:13px;color:#dfe3ef">
-      <b>${cs.trap}</b> बार भीड़ उलटी गई · <b>${cs.followed}</b> बार सही निकली · <b>${cs.tracked}</b> कुल
-    </div>
-    <div style="margin-top:6px">${doneRows || '<div class="sub">अभी कोई एकतरफ़ा दिन दर्ज नहीं हुआ</div>'}</div>
-    <div class="warn" style="margin-top:10px">
-      भीड़ एक तरफ़ हो तो इतिहास में अक्सर उल्टी चाल देखी गई है, पर यह पक्का नियम नहीं है। नमूना छोटा है।
-    </div>`;
+  const trapLine = `<div class="sub" style="margin-top:12px">भीड़ एकतरफ़ा दिन: उलटी गई ${cs.trap} · सही निकली ${cs.followed} · कुल ${cs.tracked}</div>`;
 
   const levelHtml = levels.map(l => {
     const sign = l.dist_pct >= 0 ? "+" : "";
@@ -322,14 +294,9 @@ function renderCrowd(data) {
 
   box.innerHTML = `
     ${moodHtml}
-    <div style="margin-top:12px" class="sub">शब्द-वार खोज (English और हिन्दी):</div>
-    <div style="margin-top:4px">${termRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
     ${headHtml}
-    ${trapHtml}
-    ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}
-    <div class="sub" style="margin-top:14px;line-height:1.5">
-      नोट: सोशल मीडिया (X, YouTube, Reddit) का सीधा डेटा इस सेटअप में नहीं है। यह मूड Google खोज और समाचार शीर्षकों से लगाया गया अनुमान है।
-    </div>`;
+    ${trapLine}
+    ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
 }
 
 function renderFlow(f) {
@@ -395,7 +362,17 @@ function renderTrends(t) {
   const box = document.getElementById("trends");
   if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
   if (!t.ok) {
-    box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
+      const crowdRows = (t.crowd_terms || []).map(p => {
+      const isBull = p.dir === "bull";
+      const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
+      const cls = isBull ? "pos" : "neg";
+      return `<div class="ev">
+        <div>${esc(p.term)} ${tag}<div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div>
+        <div class="${cls}">${p.now}%</div>
+      </div>`;
+    }).join("");
+
+  box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
       <div class="sub">${esc(t.error || "")}</div>`;
     return;
   }
@@ -427,6 +404,8 @@ function renderTrends(t) {
     <div class="bigm ${vCls}">${vText}</div>
     <div class="sub">${mood} · पिछले 24 घंटे बनाम 7-दिन का औसत (0–100 स्केल पर)</div>
     <div style="margin-top:10px">${terms}</div>
+    <div class="sub" style="margin-top:14px">बुलिश और बियरिश खोजें (निफ़्टी की खोज के सापेक्ष)</div>
+    <div style="margin-top:4px">${crowdRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
     <div class="sub" style="margin-top:14px">अचानक तेज़ी से बढ़ती खोजें (Nifty/Sensex और वॉचलिस्ट के आसपास)</div>
     <div style="margin-top:6px">${spikes || '<span class="sub">कोई नई खोज नहीं मिली</span>'}</div>`;
 }
