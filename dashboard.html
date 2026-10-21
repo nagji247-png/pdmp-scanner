@@ -157,6 +157,7 @@ function updateTradeGuard(data) {
     return Object.keys(value).some(key => hasStaleFlag(value[key]));
   }
   if (hasStaleFlag(data)) reasons.push("कम-से-कम एक डेटा स्रोत पुराना/fallback डेटा दिखा रहा है");
+  if (data && data.trends && data.trends.ok === false) reasons.push("Google Trends डेटा उपलब्ध नहीं है या अमान्य है");
   const blocked = reasons.length > 0;
   box.className = blocked ? "block" : "safe";
   box.innerHTML = '<div class="guard-title">' +
