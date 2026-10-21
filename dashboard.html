@@ -44,6 +44,7 @@
   .t-cont { background: #1d3a2a; color: #2ecc71; }
   .t-pend { background: #2a2f47; color: #8a90a8; }
   .t-neu { background: #2a2f47; color: #aab; }
+  .t-chg { background: #20324a; color: #4fc3f7; margin-right: 4px; }
   .rq { display: inline-block; font-size: 12px; background: #2a2f47; color: #dfe3ef; padding: 4px 8px; border-radius: 6px; margin: 3px 4px 3px 0; }
 
   .news-item { border-top: 1px solid #252b45; padding: 9px 0; }
@@ -87,11 +88,14 @@
 <h2>🏦 संस्थागत प्रवाह (FII / DII)</h2>
 <div class="box" id="flow"></div>
 
-<h2>📊 इंडेक्स और कमोडिटी</h2>
+<h2>📊 भारतीय इंडेक्स</h2>
 <div class="grid" id="indexes"></div>
 
 <h2>🏢 स्टॉक</h2>
 <div class="grid" id="stocks"></div>
+
+<h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2>
+<div class="grid" id="global"></div>
 
 <h2>🔍 What People Are Searching (Google Trends)</h2>
 <div class="box" id="trends"></div>
@@ -101,6 +105,9 @@
 
 <h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2>
 <div class="box" id="divergence"></div>
+
+<h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2>
+<div class="box" id="signals"></div>
 
 <h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
 <div class="box" id="news"></div>
@@ -145,6 +152,17 @@ function ageText(h) {
 function fmtCr(n) {
   const sign = n > 0 ? "+" : n < 0 ? "−" : "";
   return sign + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + " Cr";
+}
+
+function istTime(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function heldText(m) {
+  if (m == null) return "—";
+  if (m < 60) return m + " मिनट";
+  return Math.floor(m / 60) + " घंटे " + (m % 60) + " मिनट";
 }
 
 // history.csv से हर इंस्ट्रूमेंट के पिछले स्कोर निकालता है
@@ -241,30 +259,35 @@ function renderCrowd(data) {
   const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0, events: [] };
   const levels = data.levels || [];
 
-  // खोज-भीड़ का मूड
   let moodHtml;
   if (t.ok && t.crowd_bull_pct != null) {
     const bull = t.crowd_bull_pct;
     const bear = 100 - bull;
-    const label = t.crowd_label || "";
     const stale = t.stale
       ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>` : "";
-    const terms = (t.crowd_terms || []).map(p =>
-      `<div class="ev"><div>${esc(p.term)}<div class="sub">अभी ${p.now} · औसत ${p.avg}</div></div></div>`
-    ).join("");
     moodHtml = `
       ${stale}
-      <div class="sub">Google खोज में अभी (पिछले 24 घंटे):</div>
+      <div class="sub">Google खोज में अभी (पिछले 24 घंटे, "निफ़्टी" की खोज के सापेक्ष):</div>
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div></div>
       <div class="mood-split"><span class="pos">बुलिश खोजें ${bull}%</span><span class="neg">बियरिश खोजें ${bear}%</span></div>
-      <div style="margin-top:8px;font-size:15px;font-weight:700;color:#4fc3f7">${esc(label)}</div>
-      <div style="margin-top:8px">${terms}</div>`;
+      <div style="margin-top:8px;font-size:15px;font-weight:700;color:#4fc3f7">${esc(t.crowd_label || "")}</div>`;
+  } else if (t.ok) {
+    moodHtml = `
+      <div class="warn">पर्याप्त खोज डेटा नहीं। बुलिश या बियरिश शब्दों में इतनी खोज नहीं हुई कि मूड भरोसे से बने।</div>
+      <div class="sub">बुलिश शब्दों का कुल: ${t.bull_sum_pct ?? "—"}% · बियरिश शब्दों का कुल: ${t.bear_sum_pct ?? "—"}% (निफ़्टी की खोज के सापेक्ष, न्यूनतम ${t.min_side_pct ?? "—"}% दोनों तरफ़ चाहिए)</div>`;
   } else {
     moodHtml = `<div class="warn">Google खोज वाला मूड इस बार नहीं मिला।</div>
       <div class="sub">${esc(t.error || "")}</div>`;
   }
 
-  // खबरों का बुलिश/बियरिश बँटवारा
+  const termRows = (t.crowd_terms || []).map(p => {
+    const dirTxt = p.dir === "bull" ? "बुलिश" : "बियरिश";
+    const cls = p.dir === "bull" ? "pos" : "neg";
+    return `<div class="ev"><div>${esc(p.term)} <span class="tag t-neu">${dirTxt}</span>
+      <div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div>
+      <div class="${cls}">${p.now}%</div></div>`;
+  }).join("");
+
   const hTotal = hs.pos + hs.neg;
   const hBull = hTotal ? Math.round((hs.pos / hTotal) * 100) : 50;
   const headHtml = `
@@ -272,7 +295,6 @@ function renderCrowd(data) {
     <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100 - hBull}%"></div></div>
     <div class="mood-split"><span class="pos">सकारात्मक ${hs.pos}</span><span class="neg">नकारात्मक ${hs.neg}</span></div>`;
 
-  // भीड़ बनाम अगला सत्र (इतिहास का मिलान)
   const doneRows = (cs.events || []).slice().reverse().map(e => {
     let tag = '<span class="tag t-pend">अगला सत्र बाकी</span>';
     if (e.outcome === "trap") tag = '<span class="tag t-rev">भीड़ उलटी गई</span>';
@@ -291,7 +313,6 @@ function renderCrowd(data) {
       भीड़ एक तरफ़ हो तो इतिहास में अक्सर उल्टी चाल देखी गई है, पर यह पक्का नियम नहीं है। नमूना छोटा है।
     </div>`;
 
-  // वॉच-स्तर
   const levelHtml = levels.map(l => {
     const sign = l.dist_pct >= 0 ? "+" : "";
     const near = Math.abs(l.dist_pct) <= 1 ? ' <span class="tag t-rev">करीब</span>' : "";
@@ -301,6 +322,8 @@ function renderCrowd(data) {
 
   box.innerHTML = `
     ${moodHtml}
+    <div style="margin-top:12px" class="sub">शब्द-वार खोज (English और हिन्दी):</div>
+    <div style="margin-top:4px">${termRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
     ${headHtml}
     ${trapHtml}
     ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}
@@ -347,15 +370,24 @@ function renderFlow(f) {
     </div>`;
 }
 
+const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
+
 function renderInstruments(instruments) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
+  const glb = document.getElementById("global");
   idx.innerHTML = "";
   stk.innerHTML = "";
+  glb.innerHTML = "";
 
   for (const [name, d] of Object.entries(instruments)) {
-    const target = d.type === "stock" ? stk : idx;
-    target.appendChild(card(name, d));
+    if (d.type === "stock") {
+      stk.appendChild(card(name, d));
+    } else if (INDIAN_INDEXES.includes(name)) {
+      idx.appendChild(card(name, d));
+    } else {
+      glb.appendChild(card(name, d));
+    }
   }
 }
 
@@ -486,12 +518,61 @@ function renderDivergence(dv) {
   box.innerHTML = `
     ${small}
     <div class="sub">
-      जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। अगले सत्र में देखा जाता है कि कौन-सी दिशा सही निकली।
+      जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। उसी दिन के सत्र में देखा जाता है कि कौन-सी दिशा सही निकली।
     </div>
     <div style="margin-top:12px">${summary}</div>
     <div style="margin-top:10px">${rows || '<div class="sub">अभी कोई ⚡ संकेत दर्ज नहीं हुआ</div>'}</div>
     <div class="sub" style="margin-top:12px;line-height:1.5">
       यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।
+    </div>`;
+}
+
+function renderSignals(sg) {
+  const box = document.getElementById("signals");
+  if (!sg) { box.innerHTML = '<div class="sub">अभी कोई संकेत डेटा नहीं</div>'; return; }
+
+  const st = sg.state || {};
+  const names = sg.watch || Object.keys(st);
+
+  const stateRows = names.map(n => {
+    const s = st[n];
+    if (!s) return `<div class="ev"><div><b>${esc(n)}</b></div><div class="sub">डेटा नहीं</div></div>`;
+    const sentTxt = s.sent > 0 ? "सकारात्मक" : s.sent < 0 ? "नकारात्मक" : "तटस्थ";
+    const priceTxt = s.price_dir > 0 ? "ऊपर" : s.price_dir < 0 ? "नीचे" : "स्थिर";
+    let vwapTxt = "उपलब्ध नहीं";
+    if (s.vwap_side === 1) vwapTxt = "VWAP के ऊपर";
+    if (s.vwap_side === -1) vwapTxt = "VWAP के नीचे";
+    let volTxt = s.vol_ok ? "सामान्य" : "उपलब्ध नहीं";
+    if (s.vol_ok && s.vol_hi === true) volTxt = "ऊँचा";
+    return `<div class="ev">
+      <div><b>${esc(n)}</b> <span class="sub">स्कोर ${s.score > 0 ? "+" : ""}${s.score}</span>
+        <div class="sub">भावना: ${sentTxt} · कीमत: ${priceTxt} · ${vwapTxt} · वॉल्यूम: ${volTxt}</div>
+        <div class="sub">इसी स्थिति में since: ${istTime(s.since)}</div></div>
+    </div>`;
+  }).join("");
+
+  const evRows = (sg.events || []).slice().reverse().map(e => {
+    const changed = (e.changed || []).map(c => `<span class="tag t-chg">${esc(c)}</span>`).join("");
+    const pDir = e.direction ? `${e.direction} (${e.move_pct > 0 ? "+" : ""}${e.move_pct}%)` : "बाद का डेटा बाकी";
+    const pAfter = e.after_minutes != null ? ` · ${heldText(e.after_minutes)} बाद` : "";
+    const volNote = e.vol_data ? "" : ' <span class="sub">(वॉल्यूम/VWAP डेटा नहीं)</span>';
+    return `<div class="ev" style="display:block">
+      <div><b>${esc(e.instrument)}</b> · ${istTime(e.time)} · स्कोर ${e.prev_score > 0 ? "+" : ""}${e.prev_score} → ${e.new_score > 0 ? "+" : ""}${e.new_score}</div>
+      <div style="margin-top:4px">${changed}${volNote}</div>
+      <div class="sub">पिछली स्थिति कितनी देर रही: ${heldText(e.held_minutes)}</div>
+      <div class="sub">बदलाव पर कीमत: ${e.price_at_change != null ? e.price_at_change : "—"} · बाद में: ${pDir}${pAfter}</div>
+    </div>`;
+  }).join("");
+
+  box.innerHTML = `
+    <div class="sub">
+      हर 30 मिनट के रन पर संकेत की स्थिति देखी जाती है। बदलाव का समय ±30 मिनट का अंदाज़ा है। इंडेक्स (NIFTY, BANKNIFTY) का वॉल्यूम और VWAP Yahoo पर नहीं मिलते, इसलिए वहाँ वे खाली रहेंगे।
+    </div>
+    <div style="margin-top:10px">${stateRows}</div>
+    <div class="sub" style="margin-top:14px">हाल के बदलाव:</div>
+    <div style="margin-top:6px">${evRows || '<div class="sub">अभी कोई बदलाव दर्ज नहीं हुआ</div>'}</div>
+    <div class="sub" style="margin-top:12px;line-height:1.5">
+      इससे पता चलेगा कि संकेत बदलने से पहले कीमत चल चुकी थी या नहीं। यह इतिहास का मिलान है, खरीद या बिक्री का संकेत नहीं।
     </div>`;
 }
 
@@ -553,6 +634,7 @@ async function load() {
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
     renderDivergence(data.divergence);
+    renderSignals(data.signals);
     renderNews(data.market_news);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
