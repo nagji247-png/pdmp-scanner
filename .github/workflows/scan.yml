@@ -1,14 +1,18 @@
 name: PDMP Scan
+
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
+
 permissions:
   contents: write
+
 # एक समय में एक ही रन चले, ताकि दो रन एक साथ push न करें
 concurrency:
   group: pdmp-scan
   cancel-in-progress: false
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -23,7 +27,7 @@ jobs:
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
-          for f in data.json history.csv contrarian.json crowd_events.json divergence_events.json sent_alerts.json; do
+          for f in data.json history.csv contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if git diff --cached --quiet; then
