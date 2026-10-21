@@ -45,10 +45,8 @@ STOCK_ALIASES = {
     "SBIN": ["sbi", "sbin", "state bank"],
 }
 
-# शब्द-सूची: वज़न 1 या 2। जितनी बढ़ाएँगे, स्कोर उतना बेहतर होगा।
-# मिलान शब्द की शुरुआत से होता है: "crash" → crashes, crashed; "fall" → falls।
-# लेकिन "again" में "gain" नहीं गिना जाता, क्योंकि वह शब्द के बीच में है।
-# एक ही असर वाले शब्द दोबारा नहीं रखे गए, ताकि कोई शब्द दो बार न गिना जाए।
+# शब्द-सूची: वज़न 1 या 2। मिलान शब्द की शुरुआत से होता है।
+# "again" में "gain" नहीं गिना जाता, क्योंकि वह शब्द के बीच में है।
 POS = {"rally": 2, "rallies": 2, "surge": 2, "record high": 2, "bullish": 2, "gain": 1,
        "jump": 1, "rise": 1, "rose": 1, "climb": 1, "rebound": 1, "higher": 1, "profit": 1,
        "beat": 1, "upgrade": 2, "buy": 1}
@@ -56,9 +54,20 @@ NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "tumble": 2, "fall": 1
        "slid": 1, "slip": 1, "dip": 1, "drag": 1, "loss": 1, "drop": 1, "decline": 1,
        "weigh": 1, "lower": 1, "sell-off": 2, "selloff": 2, "downgrade": 2, "miss": 1}
 
-# Google Trends: डर-संबंधी खोजें (बियरिश सोच) और बुलिश खोजें (एक ही अनुरोध में, ताकि पैमाना एक हो)
+# Google Trends: डर-संबंधी खोजें (फ़ियर मेट्रिक के लिए, एक ही अनुरोध)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
-BULL_TERMS = ["nifty rally", "nifty buy"]
+
+# भीड़ के मूड के लिए शब्द: आम लोग जैसे बोलते हैं, English और हिन्दी दोनों।
+# Google Trends हर अनुरोध में अधिकतम 5 शब्द लेता है, इसलिए शब्द 4-4 के समूहों में जाते हैं,
+# और हर समूह के साथ ANCHOR शब्द जोड़ा जाता है, ताकि अलग अनुरोधों के नंबर तुलनीय बनें।
+ANCHOR = "nifty"
+BULL_TERMS = ["nifty buy", "nifty rally", "निफ़्टी ऊपर भागेगा", "निफ़्टी बुलिश", "निफ़्टी में उछाल"]
+BEAR_TERMS = ["nifty sell", "nifty गिरेगा", "निफ़्टी नीचे जाएगा", "nifty crash"]
+TERM_CHUNK = 4
+
+# भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
+# यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
+MIN_SIDE_PCT = 1.0
 TRENDS_RETRIES = 2
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
@@ -89,11 +98,33 @@ NIFTY_WATCH_LEVELS = [21000, 22000, 23000]
 DIV_SCORE_MIN = 1.0
 DIV_CHANGE_MIN = 0.2
 
+# ---- संकेत-बदलाव लॉग ----
+# भारतीय बाज़ार पर ज़ोर: इन इंस्ट्रूमेंट के संकेत में बदलाव दर्ज होता है।
+# इंडेक्स (NIFTY, BANKNIFTY) का वॉल्यूम और VWAP yfinance पर नहीं मिलते, इसलिए वहाँ खाली रहेंगे।
+# स्टॉक (RELIANCE, HDFCBANK) पर वॉल्यूम और VWAP मिलते हैं।
+SIGNAL_WATCH = {
+    "NIFTY": "^NSEI",
+    "BANKNIFTY": "^NSEBANK",
+    "RELIANCE": "RELIANCE.NS",
+    "HDFCBANK": "HDFCBANK.NS",
+}
+SIG_SCORE_BAND = 1.0      # स्कोर इतने से ज़्यादा बदले, तो भावना बदली मानी जाए
+SIG_PRICE_BAND = 0.2      # कीमत इतने % से ज़्यादा हो, तो उसकी दिशा मानी जाए
+SIG_MOVE_BAND = 0.1       # बाद की चाल इतने % से कम हो तो "लगभग स्थिर"
+SIG_VOL_HIGH = 2.0        # औसत से दोगुना वॉल्यूम "ऊँचा" माना जाए
+SIG_LOG_KEEP = 200
+
 CONTRARIAN_LIMIT = 6.0
+# बाज़ार बंद/छुट्टी होने पर नए इवेंट नहीं बनते (main में सेट होता है)
+SKIP_EVENTS = False
+# NSE की आधिकारिक छुट्टियाँ "YYYY-MM-DD" में यहाँ भरें (Google/आधिकारिक सूची से)
+NSE_HOLIDAYS = set()
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
 CROWD_FILE = "crowd_events.json"
 DIV_FILE = "divergence_events.json"
+SIG_STATE_FILE = "signal_state.json"
+SIG_LOG_FILE = "signal_log.json"
 HISTORY_FILE = "history.csv"
 
 
@@ -109,8 +140,7 @@ def clean(obj):
 
 
 def _word_hits(text, words):
-    """शब्दों की गिनती। हर शब्द सिर्फ़ शब्द की शुरुआत से मिलता है।
-    'again' में 'gain' नहीं मिलता, पर 'crashes' में 'crash' मिल जाता है।"""
+    """शब्दों की गिनती। हर शब्द सिर्फ़ शब्द की शुरुआत से मिलता है।"""
     hits = 0
     for k, v in words.items():
         if re.search(r"(?<![a-z])" + re.escape(k), text):
@@ -118,11 +148,77 @@ def _word_hits(text, words):
     return hits
 
 
-def headline_score(text):
-    """खबर का स्कोर: सकारात्मक शब्दों का वज़न घटाकर नकारात्मक शब्दों का वज़न।"""
-    t = text.lower()
-    return _word_hits(t, POS) - _word_hits(t, NEG)
+NEG_WORD_RE = r"(?:\bnot|\bno|\bnever|\bfails?\s+to|\bunlikely\s+to)\s+(?:\w+\s+)?$"
+SOURCE_WEIGHTS = {
+    "reuters": 1.5, "bloomberg": 1.5, "economic times": 1.4, "moneycontrol": 1.3,
+    "livemint": 1.3, "business standard": 1.3, "ndtv profit": 1.3, "cnbc tv18": 1.3,
+    "the hindu": 1.2, "business today": 1.2, "the times of india": 1.2, "hindustan times": 1.2,
+    "ad-hoc-news": 0.6, "univest": 0.6, "marketsmojo": 0.6, "scanx": 0.6,
+    "goodreturns": 0.7, "simply wall street": 0.7, "tradingview": 0.8,
+}
 
+
+def source_weight(src):
+    s = (src or "").lower()
+    for k, v in SOURCE_WEIGHTS.items():
+        if k in s:
+            return v
+    return 1.0
+
+
+def recency_weight(age_h):
+    if age_h is None:
+        return 0.5
+    if age_h <= 12:
+        return 1.0
+    if age_h <= 48:
+        return 0.6
+    return 0.3
+
+
+def headline_score(text):
+    """खबर का स्कोर। 'not/no/fails to' के बाद का शब्द उल्टा गिना जाता है।
+    'again' में 'gain' नहीं गिना जाता; शब्द की शुरुआत से मिलान होता है।"""
+    t = text.lower()
+    total = 0
+    for words, sign in ((POS, 1), (NEG, -1)):
+        for k, v in words.items():
+            for m in re.finditer(r"(?<![a-z])" + re.escape(k), t):
+                negated = re.search(NEG_WORD_RE, t[:m.start()])
+                total += -sign * v if negated else sign * v
+    return total
+
+
+def _title_tokens(t):
+    return set(re.findall(r"[a-z]{3,}", t.lower()))
+
+
+def dedupe_heads(heads):
+    """एक ही खबर कई वेबसाइट पर आती है। मिलते-जुलते शीर्षक (60%+ शब्द समान) एक बार गिने जाते हैं।"""
+    kept = []
+    for h in heads:
+        tk = _title_tokens(h["title"])
+        if not tk:
+            continue
+        dup = False
+        for kt, _ in kept:
+            if len(tk & kt) / max(1, len(tk | kt)) >= 0.6:
+                dup = True
+                break
+        if not dup:
+            kept.append((tk, h))
+    return [h for _, h in kept]
+
+
+def weighted_score(heads):
+    """हर खबर का वज़न = स्रोत-वज़न × ताज़गी-वज़न। पूरे इंस्ट्रूमेंट का स्कोर औसत × 5।"""
+    num = 0.0
+    den = 0.0
+    for h in heads:
+        w = source_weight(h.get("source")) * recency_weight(h.get("age_h"))
+        num += h["score"] * w
+        den += w
+    return round(num / den * 5, 1) if den > 0 else 0.0
 
 def fetch_news(query):
     url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=en-IN&gl=IN&ceid=IN:en"
@@ -171,7 +267,7 @@ def daily_returns(sym):
 def update_contrarian(events, name, score, today_str, returns):
     """±6 से ज़्यादा स्कोर दर्ज करें और पुराने इवेंट का नतीजा भरें"""
     key = f"{today_str}|{name}"
-    if abs(score) >= CONTRARIAN_LIMIT and not any(e["key"] == key for e in events):
+    if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and not any(e["key"] == key for e in events):
         events.append({"key": key, "date": today_str, "instrument": name,
                        "score": score, "outcome": None, "next_change": None})
 
@@ -188,11 +284,11 @@ def update_contrarian(events, name, score, today_str, returns):
 
 def update_divergence(events, name, score, change, today_str, returns):
     """⚡ संकेत दर्ज करें: स्कोर और कीमत की दिशा अलग हो।
-    अगले सत्र में देखा जाता है कि कौन-सी दिशा सही निकली:
+    नतीजा उसी दिन के सत्र से भरता है जिस दिन संकेत बना।
     'sentiment' = खबर की दिशा में चाल, 'price' = कीमत की दिशा में चाल।
     यह इतिहास का मिलान है, भविष्य की गारंटी नहीं।"""
     diverging = (abs(score) >= DIV_SCORE_MIN and abs(change) >= DIV_CHANGE_MIN
-                 and (score > 0) != (change > 0))
+                 and (score > 0) != (change > 0) and not SKIP_EVENTS)
     key = f"{today_str}|{name}|div"
     if diverging and not any(e["key"] == key for e in events):
         events.append({
@@ -204,10 +300,10 @@ def update_divergence(events, name, score, change, today_str, returns):
     for e in events:
         if e.get("outcome") is not None or e["instrument"] != name:
             continue
-        later = sorted(d for d in returns if d > e["date"])
-        if not later:
+        same_or_later = sorted(d for d in returns if d >= e["date"])
+        if not same_or_later:
             continue
-        nxt = returns[later[0]]
+        nxt = returns[same_or_later[0]]
         e["next_change"] = nxt
         move_up = nxt >= 0
         e["outcome"] = "sentiment" if move_up == e["sentiment_up"] else "price"
@@ -230,20 +326,167 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         print(f"news error {name}: {e}")
         heads = []
 
-    score = round(sum(h["score"] for h in heads) / len(heads) * 5, 1) if heads else 0.0
+    heads = dedupe_heads(heads)
+    score = weighted_score(heads)
 
     instruments[name] = {
         "type": kind,
         "change_pct": change,
         "score": score,
         "headlines": heads[:8],
-        # पूरी खबरों का बुलिश/बियरिश बँटवारा (सिर्फ़ 8 नहीं)
         "pos_n": sum(1 for h in heads if h["score"] > 0),
         "neg_n": sum(1 for h in heads if h["score"] < 0),
     }
     update_contrarian(events, name, score, today_str, returns)
     update_divergence(div_events, name, score, change, today_str, returns)
 
+
+# ---- संकेत-बदलाव लॉग ----
+
+def intraday_snapshot(sym):
+    """30-मिनट के बार से ताज़ा कीमत, आज का VWAP और वॉल्यूम का अनुपात।
+    डेटा न मिले तो None लौटता है।"""
+    try:
+        h = yf.Ticker(sym).history(period="5d", interval="30m")
+        if h is None or h.empty:
+            return None
+        last = h.iloc[-1]
+        price = float(last["Close"])
+        vol_total = float(h["Volume"].sum())
+        snap = {"price": price, "vwap": None, "vol_ratio": None, "vol_ok": vol_total > 0}
+        if snap["vol_ok"]:
+            today = h.index[-1].date()
+            td = h[[d.date() == today for d in h.index]]
+            tv = float(td["Volume"].sum())
+            if tv > 0:
+                tp = (td["High"] + td["Low"] + td["Close"]) / 3
+                snap["vwap"] = float((tp * td["Volume"]).sum() / tv)
+            avg = float(h["Volume"].mean())
+            if avg > 0:
+                snap["vol_ratio"] = float(last["Volume"]) / avg
+        return snap
+    except Exception as e:
+        print(f"intraday error {sym}: {e}")
+        return None
+
+
+def _band(x, band):
+    if x >= band:
+        return 1
+    if x <= -band:
+        return -1
+    return 0
+
+
+def update_signals(instruments, state, log, now_iso):
+    """हर देखे जाने वाले इंस्ट्रूमेंट का संकेत-स्नैपशॉट बनाता है।
+    अगर भावना, कीमत-दिशा, VWAP-पक्ष या वॉल्यूम बदले, तो लॉग में दर्ज होता है।
+    पिछले बदलाव के बाद की कीमत अगले रन पर भर जाती है।"""
+    now = dt.datetime.fromisoformat(now_iso.replace("Z", "+00:00"))
+
+    for name, sym in SIGNAL_WATCH.items():
+        d = instruments.get(name)
+        if not d:
+            continue
+        snap = intraday_snapshot(sym)
+        price_now = snap["price"] if snap else None
+
+        # 1) पिछले बदलावों की बाद की कीमत भरें (नए इवेंट से पहले, ताकि नया इवेंट उसी रन में न भरे)
+        if price_now is not None:
+            for ev in log:
+                if ev["instrument"] != name or ev.get("price_after") is not None:
+                    continue
+                if not ev.get("price_at_change"):
+                    continue
+                mv = (price_now / ev["price_at_change"] - 1) * 100
+                ev["price_after"] = round(price_now, 4)
+                ev["move_pct"] = round(mv, 2)
+                ev["after_minutes"] = round(
+                    (now - dt.datetime.fromisoformat(ev["time"].replace("Z", "+00:00"))).total_seconds() / 60)
+                if mv >= SIG_MOVE_BAND:
+                    ev["direction"] = "ऊपर"
+                elif mv <= -SIG_MOVE_BAND:
+                    ev["direction"] = "नीचे"
+                else:
+                    ev["direction"] = "लगभग स्थिर"
+
+        vwap_side = None
+        vol_hi = None
+        if snap:
+            if snap["vwap"] is not None:
+                vwap_side = 1 if snap["price"] > snap["vwap"] else -1
+            if snap["vol_ratio"] is not None:
+                vol_hi = snap["vol_ratio"] >= SIG_VOL_HIGH
+
+        cur = {
+            "score": d["score"],
+            "sent": _band(d["score"], SIG_SCORE_BAND),
+            "price_dir": _band(d["change_pct"], SIG_PRICE_BAND),
+            "vwap_side": vwap_side,
+            "vol_hi": vol_hi,
+            "vol_ok": bool(snap and snap["vol_ok"]),
+            "price_now": price_now,
+            "time": now_iso,
+        }
+
+        prev = state.get(name)
+        if prev is None:
+            cur["since"] = now_iso
+            state[name] = cur
+            continue
+
+        changed = []
+        if cur["sent"] != prev["sent"] or abs(cur["score"] - prev["score"]) >= SIG_SCORE_BAND:
+            changed.append("भावना")
+        if cur["price_dir"] != prev["price_dir"]:
+            changed.append("कीमत")
+        if cur["vwap_side"] is not None and prev.get("vwap_side") is not None \
+                and cur["vwap_side"] != prev["vwap_side"]:
+            changed.append("VWAP")
+        if cur["vol_hi"] is not None and prev.get("vol_hi") is not None \
+                and cur["vol_hi"] != prev["vol_hi"]:
+            changed.append("वॉल्यूम")
+
+        if changed:
+            since = dt.datetime.fromisoformat(prev["since"].replace("Z", "+00:00"))
+            log.append({
+                "time": now_iso,
+                "instrument": name,
+                "prev_score": prev["score"],
+                "new_score": cur["score"],
+                "changed": changed,
+                "vol_data": cur["vol_ok"],
+                "held_minutes": round((now - since).total_seconds() / 60),
+                "price_at_change": price_now,
+                "price_after": None,
+                "move_pct": None,
+                "after_minutes": None,
+                "direction": None,
+            })
+            if len(log) > SIG_LOG_KEEP:
+                del log[:len(log) - SIG_LOG_KEEP]
+            cur["since"] = now_iso
+        else:
+            cur["since"] = prev["since"]
+        state[name] = cur
+
+
+def signal_summary(state):
+    out = {}
+    for name, s in state.items():
+        out[name] = {
+            "score": s.get("score"),
+            "sent": s.get("sent"),
+            "price_dir": s.get("price_dir"),
+            "vwap_side": s.get("vwap_side"),
+            "vol_hi": s.get("vol_hi"),
+            "vol_ok": s.get("vol_ok"),
+            "since": s.get("since"),
+        }
+    return out
+
+
+# ---- बाकी हिस्से ----
 
 def is_market_news(title):
     """खबर बाज़ार से जुड़ी है या नहीं, यह पूरे शब्द या वाक्यांश मिलाकर तय होता है।"""
@@ -260,8 +503,7 @@ def impact_label(score):
 
 
 def fetch_market_news():
-    """बाज़ार पर असर डालने वाली ताज़ा खबरें, कई विषयों से।
-    कोई खबर बाज़ार से न जुड़ी हो तो छोड़ दी जाती है। दोहराव भी हटाया जाता है।"""
+    """बाज़ार पर असर डालने वाली ताज़ा खबरें, कई विषयों से।"""
     seen = set()
     items = []
     for topic, query in MARKET_NEWS_TOPICS:
@@ -357,60 +599,98 @@ def fetch_fii_dii():
 
 def match_relevant(query):
     """उभरती खोज को तभी स्वीकार करता है जब वह Nifty/Sensex से जुड़ी हो
-    या हमारी वॉचलिस्ट के किसी स्टॉक से।
-    लौटता है: (संबंधित है या नहीं, स्टॉक का नाम या None)।"""
+    या हमारी वॉचलिस्ट के किसी स्टॉक से।"""
     q = query.lower()
     for stock, aliases in STOCK_ALIASES.items():
         if any(a in q for a in aliases):
             return True, stock
-    if "nifty" in q or "sensex" in q:
+    if "nifty" in q or "sensex" in q or "निफ़्टी" in q or "सेंसेक्स" in q:
         return True, None
     return False, None
 
 
-def crowd_label(pct):
+def crowd_decision(bull_pct_sum, bear_pct_sum):
+    """भीड़ का मूड तय करता है। दोनों तरफ़ पर्याप्त खोज हो तभी प्रतिशत दिखता है।
+    लौटता है: (बुलिश प्रतिशत या None, लेबल)।"""
+    if bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT:
+        return None, "पर्याप्त खोज डेटा नहीं"
+    total = bull_pct_sum + bear_pct_sum
+    pct = round(bull_pct_sum / total * 100)
     if pct >= CROWD_EXTREME:
-        return "ज़्यादातर बुलिश सोच"
+        return pct, "ज़्यादातर बुलिश सोच"
     if pct <= CROWD_LOW:
-        return "ज़्यादातर बियरिश सोच"
-    return "सोच बँटी हुई"
+        return pct, "ज़्यादातर बियरिश सोच"
+    return pct, "सोच बँटी हुई"
+
+
+def _chunks(items, size):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+
+def _trends_request(py, terms):
+    """एक Google Trends अनुरोध: ANCHOR + ज़्यादा से ज़्यादा 4 शब्द।"""
+    py.build_payload([ANCHOR] + terms, timeframe="now 7-d", geo="IN")
+    df = py.interest_over_time()
+    if df is None or df.empty:
+        raise ValueError("Google से खाली डेटा मिला")
+    return df[[ANCHOR] + terms].fillna(0)
+
+
+def _ratio(df, term):
+    """शब्द की खोज 'nifty' की खोज के अनुपात में (अभी और औसत)। एक ही अनुरोध के अंदर।"""
+    a_recent = float(df[ANCHOR].tail(24).mean())
+    a_avg = float(df[ANCHOR].mean())
+    if a_recent <= 0 or a_avg <= 0:
+        return 0.0, 0.0
+    t_recent = float(df[term].tail(24).mean())
+    t_avg = float(df[term].mean())
+    return t_recent / a_recent, t_avg / a_avg
 
 
 def _trends_once():
     """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
-    सारे नतीजे अंकों (points) में हैं, प्रतिशत में नहीं।
-    एक ही अनुरोध में बियरिश और बुलिश खोजें हैं, इसलिए उनका पैमाना एक ही रहता है।"""
+    फ़ियर के नंबर अंकों (points) में हैं; भीड़ के नंबर 'nifty' की खोज के प्रतिशत में हैं।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-    keywords = FEAR_TERMS + BULL_TERMS
-    py.build_payload(keywords, timeframe="now 7-d", geo="IN")
-    df = py.interest_over_time()
-    if df is None or df.empty:
-        raise ValueError("Google से खाली डेटा मिला")
-    df = df[keywords].fillna(0)
 
-    if float(df.values.max()) == 0:
+    # 1) फ़ियर मेट्रिक (एक अनुरोध)
+    df_f = _trends_request(py, FEAR_TERMS)
+    fear_df = df_f[FEAR_TERMS]
+    if float(fear_df.values.max()) == 0:
         raise ValueError("सभी खोजों का डेटा शून्य है")
-
-    base = float(df[FEAR_TERMS].mean(axis=1).mean())
-    recent = float(df[FEAR_TERMS].tail(24).mean(axis=1).mean())
+    base = float(fear_df.mean(axis=1).mean())
+    recent = float(fear_df.tail(24).mean(axis=1).mean())
     fear_pts = round(recent - base, 1)
-
     per_term = []
     for t in FEAR_TERMS:
-        b = float(df[t].mean())
-        r = float(df[t].tail(24).mean())
+        b = float(fear_df[t].mean())
+        r = float(fear_df[t].tail(24).mean())
         per_term.append({"term": t, "pts": round(r - b, 1), "now": round(r, 1), "avg": round(b, 1)})
 
-    # भीड़ की सोच: पिछले 24 घंटे में बुलिश खोजें बनाम बियरिश खोजें
-    bull_recent = float(df[BULL_TERMS].tail(24).mean(axis=1).mean())
-    total = bull_recent + recent
-    crowd_bull_pct = round(bull_recent / total * 100) if total > 0 else 50
-    crowd_terms = [{"term": t, "now": round(float(df[t].tail(24).mean()), 1),
-                    "avg": round(float(df[t].mean()), 1)} for t in BULL_TERMS]
+    # 2) भीड़ का मूड: बुलिश और बियरिश शब्द, 4-4 के समूहों में, हर समूह के साथ ANCHOR
+    bull_pct_sum = 0.0
+    bear_pct_sum = 0.0
+    crowd_terms = []
+    for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
+        for chunk in _chunks(terms, TERM_CHUNK):
+            time.sleep(5)
+            df = _trends_request(py, chunk)
+            for t in chunk:
+                r_now, r_avg = _ratio(df, t)
+                if side == "bull":
+                    bull_pct_sum += r_now * 100
+                else:
+                    bear_pct_sum += r_now * 100
+                crowd_terms.append({
+                    "term": t, "dir": side,
+                    "now": round(r_now * 100, 2), "avg": round(r_avg * 100, 2),
+                })
 
-    # उभरती खोजें: सिर्फ़ Nifty, Sensex या वॉचलिस्ट से जुड़ी
+    crowd_bull_pct, crowd_label = crowd_decision(bull_pct_sum, bear_pct_sum)
+
+    # 3) उभरती खोजें: सिर्फ़ Nifty, Sensex या वॉचलिस्ट से जुड़ी
     spikes = []
     try:
         time.sleep(5)
@@ -435,7 +715,9 @@ def _trends_once():
 
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
             "per_term": per_term, "spikes": spikes[:10],
-            "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label(crowd_bull_pct),
+            "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label,
+            "bull_sum_pct": round(bull_pct_sum, 2), "bear_sum_pct": round(bear_pct_sum, 2),
+            "min_side_pct": MIN_SIDE_PCT,
             "crowd_terms": crowd_terms}
 
 
@@ -461,9 +743,8 @@ def fetch_trends():
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
     """भीड़ एकतरफ़ा हो तो उस दिन दर्ज करें। अगले सत्र की Nifty चाल से नतीजा भरें।
-    'trap' = भीड़ की दिशा उल्टी गई। 'followed' = भीड़ की दिशा सही निकली।
-    यह इतिहास का मिलान है, भविष्य की गारंटी नहीं।"""
-    if crowd_pct is not None and (crowd_pct >= CROWD_EXTREME or crowd_pct <= CROWD_LOW):
+    crowd_pct None हो (पर्याप्त डेटा नहीं) तो कुछ दर्ज नहीं होता।"""
+    if crowd_pct is not None and (crowd_pct >= CROWD_EXTREME or crowd_pct <= CROWD_LOW) and not SKIP_EVENTS:
         key = f"{today_str}|crowd"
         if not any(e["key"] == key for e in events):
             events.append({
@@ -499,17 +780,39 @@ def pick_with_fallback(fresh, prev):
     return fresh
 
 
+def market_closed_today():
+    """भारतीय बाज़ार आज बंद है? (सप्ताहांत, सूची में दी गई छुट्टी, या शाम 4 बजे के बाद
+    भी आज का NIFTY बार न होना)। सुबह की छुट्टी सूची के बिना नहीं पकड़ी जा सकती।"""
+    ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+    today = ist.date().isoformat()
+    if today in NSE_HOLIDAYS or ist.weekday() >= 5:
+        return True
+    if ist.hour < 16:
+        return False
+    try:
+        h = yf.Ticker("^NSEI").history(period="5d", interval="1d")
+        dates = {d.date().isoformat() for d in h.index}
+        return today not in dates
+    except Exception as e:
+        print(f"market status check failed: {e}")
+        return False
+
+
 def main():
+    global SKIP_EVENTS
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
     events = load_json(EVENTS_FILE, [])
     crowd_events = load_json(CROWD_FILE, [])
     div_events = load_json(DIV_FILE, [])
+    sig_state = load_json(SIG_STATE_FILE, {})
+    sig_log = load_json(SIG_LOG_FILE, [])
     previous = load_json(DATA_FILE, {})
 
-    result = {"updated": updated, "instruments": {}}
+    result = {"updated": updated, "instruments": {}, "market_closed": SKIP_EVENTS}
     all_returns = {}
+    SKIP_EVENTS = market_closed_today()
 
     for name, (sym, query) in INDEXES.items():
         process(name, sym, query, "index", events, today_str, result["instruments"],
@@ -519,6 +822,15 @@ def main():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
 
+    # संकेत-बदलाव: CRUDEOIL और DJI के लिए
+    update_signals(result["instruments"], sig_state, sig_log, updated)
+
+    result["signals"] = {
+        "state": signal_summary(sig_state),
+        "events": sig_log[-15:],
+        "watch": list(SIGNAL_WATCH.keys()),
+    }
+
     result["contrarian"] = {
         "events": events[-30:],
         "tracked": len([e for e in events if e["outcome"]]),
@@ -526,7 +838,6 @@ def main():
         "continued": len([e for e in events if e["outcome"] == "continued"]),
     }
 
-    # ⚡ संकेत का इतिहास: कौन-सी दिशा अगले सत्र में सही निकली
     div_done = [e for e in div_events if e.get("outcome")]
     result["divergence"] = {
         "tracked": len(div_done),
@@ -538,7 +849,6 @@ def main():
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
-    # शीर्षक का बुलिश/बियरिश बँटवारा (NIFTY और SENSEX की सभी खबरें)
     idx_pos = sum(result["instruments"][k].get("pos_n", 0) for k in ("NIFTY", "SENSEX"))
     idx_neg = sum(result["instruments"][k].get("neg_n", 0) for k in ("NIFTY", "SENSEX"))
     result["headline_split"] = {"pos": idx_pos, "neg": idx_neg}
@@ -558,7 +868,6 @@ def main():
         trends["as_of"] = updated
     result["trends"] = trends
 
-    # भीड़ का इतिहास: सिर्फ़ ताज़ा ट्रेंड्स डेटा से दर्ज होता है, पुराने से नहीं
     fresh_trends = trends.get("ok") and not trends.get("stale")
     crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
     nifty_ret = all_returns.get("NIFTY") or {}
@@ -575,6 +884,8 @@ def main():
     events = clean(events)
     crowd_events = clean(crowd_events)
     div_events = clean(div_events)
+    sig_state = clean(sig_state)
+    sig_log = clean(sig_log)
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
@@ -584,6 +895,10 @@ def main():
         json.dump(crowd_events, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(DIV_FILE, "w", encoding="utf-8") as f:
         json.dump(div_events, f, ensure_ascii=False, indent=2, allow_nan=False)
+    with open(SIG_STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(sig_state, f, ensure_ascii=False, indent=2, allow_nan=False)
+    with open(SIG_LOG_FILE, "w", encoding="utf-8") as f:
+        json.dump(sig_log, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     write_header = not os.path.exists(HISTORY_FILE)
     with open(HISTORY_FILE, "a", newline="", encoding="utf-8") as f:
