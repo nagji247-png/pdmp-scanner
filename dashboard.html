@@ -150,7 +150,13 @@ function updateTradeGuard(data) {
   const reasons = [];
   if (!validTime) reasons.push("डेटा अपडेट का सही टाइमस्टैम्प नहीं मिला");
   else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है (सीमा 45 मिनट)");
-  if (data && data.stale === true) reasons.push("डेटा स्रोत ने पुराने/fallback डेटा की सूचना दी है");
+  // किसी भी nested source (Trends/news/FII-DII आदि) का fallback flag खोजें।
+  function hasStaleFlag(value) {
+    if (!value || typeof value !== "object") return false;
+    if (value.stale === true) return true;
+    return Object.keys(value).some(key => hasStaleFlag(value[key]));
+  }
+  if (hasStaleFlag(data)) reasons.push("कम-से-कम एक डेटा स्रोत पुराना/fallback डेटा दिखा रहा है");
   const blocked = reasons.length > 0;
   box.className = blocked ? "block" : "safe";
   box.innerHTML = '<div class="guard-title">' +
