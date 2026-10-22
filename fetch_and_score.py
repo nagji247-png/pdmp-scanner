@@ -638,17 +638,17 @@ def match_relevant(query):
 
 
 def crowd_decision(bull_pct_sum, bear_pct_sum):
-    """भीड़ का मूड तय करता है। दोनों तरफ़ पर्याप्त खोज हो तभी प्रतिशत दिखता है।
-    लौटता है: (बुलिश प्रतिशत या None, लेबल)।"""
+    """भीड़ की सोच: EXTREMELY BULLISH / EXTREMELY BEARISH / NEUTRAL।
+    Google Trends सापेक्ष खोज रुचि है, वास्तविक search count नहीं।"""
     if bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT:
-        return None, "पर्याप्त खोज डेटा नहीं"
+        return None, "डेटा अपर्याप्त — NO TRADE"
     total = bull_pct_sum + bear_pct_sum
     pct = round(bull_pct_sum / total * 100)
     if pct >= CROWD_EXTREME:
-        return pct, "ज़्यादातर बुलिश सोच"
+        return pct, "EXTREMELY BULLISH"
     if pct <= CROWD_LOW:
-        return pct, "ज़्यादातर बियरिश सोच"
-    return pct, "सोच बँटी हुई"
+        return pct, "EXTREMELY BEARISH"
+    return pct, "NEUTRAL"
 
 
 def _chunks(items, size):
