@@ -294,35 +294,33 @@ function renderCrowd(data) {
   const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0 };
   const levels = data.levels || [];
 
-  // सिर्फ़ मूड: बार और लेबल (शब्द-वार विवरण डैशबोर्ड पर नहीं दिखता)
   let moodHtml;
-  if (t.ok && t.crowd_bull_pct != null) {
-    const bull = t.crowd_bull_pct;
+  if (t.ok && t.crowd_bull_pct != null && !t.stale) {
+    const bull = Number(t.crowd_bull_pct);
     const bear = 100 - bull;
-    const stale = t.stale
-      ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>`
-      : (t.cached
-        ? `<div class="sub">Google Trends कैश · स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम 6 घंटे</div>`
-        : "");
+    let state = "NEUTRAL", color = "#aab4c4";
+    if (bull >= 70) { state = "EXTREMELY BULLISH"; color = "#35d07f"; }
+    else if (bull <= 30) { state = "EXTREMELY BEARISH"; color = "#ff5d68"; }
     moodHtml = `
-      ${stale}
+      ${t.cached ? `<div class="sub">Google Trends कैश · स्रोत समय: ${esc(istTime(t.as_of))}</div>` : ""}
+      <div style="margin:12px 0 8px;font-size:25px;font-weight:900;letter-spacing:.2px;color:${color}">${state}</div>
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div></div>
-      <div class="mood-split"><span class="pos">बुलिश ${bull}%</span><span class="neg">बियरिश ${bear}%</span></div>
-      <div style="margin-top:8px;font-size:15px;font-weight:700;color:#4fc3f7">${esc(t.crowd_label || "")}</div>`;
-  } else if (t.ok) {
-    moodHtml = `<div class="warn">पर्याप्त खोज डेटा नहीं</div>`;
+      <div class="mood-split"><span class="pos">बुलिश ${bull}%</span><span class="neg">बियरिश ${bear.toFixed(1)}%</span></div>
+      <div class="sub" style="margin-top:8px">यह Google Trends पर सापेक्ष खोज रुचि है, वास्तविक खोजों की संख्या नहीं।</div>`;
   } else {
-    moodHtml = `<div class="warn">Google खोज का मूड इस बार नहीं मिला।</div>`;
+    const why = !t.ok ? (t.error || "Google Trends डेटा उपलब्ध नहीं") :
+      t.stale ? "Google Trends का डेटा पुराना/fallback है" : "दोनों दिशाओं का पर्याप्त डेटा नहीं";
+    moodHtml = `<div class="warn" style="font-size:20px;font-weight:900">NO TRADE — DATA UNAVAILABLE</div><div class="sub">${esc(why)}</div>`;
   }
 
   const hTotal = hs.pos + hs.neg;
-  const hBull = hTotal ? Math.round((hs.pos / hTotal) * 100) : 50;
-  const headHtml = `
-    <div style="margin-top:14px" class="sub">Nifty/Sensex खबरें: सकारात्मक ${hs.pos} · नकारात्मक ${hs.neg}</div>
-    <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100 - hBull}%"></div></div>`;
+  const hBull = hTotal ? Math.round((hs.pos / hTotal) * 100) : null;
+  const headHtml = hTotal ? `
+    <div style="margin-top:14px" class="sub">Nifty/Sensex समाचार: सकारात्मक ${hs.pos} · नकारात्मक ${hs.neg}</div>
+    <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100-hBull}%"></div></div>` :
+    `<div class="sub" style="margin-top:14px">समाचार भावना: डेटा उपलब्ध नहीं</div>`;
 
   const trapLine = `<div class="sub" style="margin-top:12px">भीड़ एकतरफ़ा दिन: उलटी गई ${cs.trap} · सही निकली ${cs.followed} · कुल ${cs.tracked}</div>`;
-
   const levelHtml = levels.map(l => {
     const sign = l.dist_pct >= 0 ? "+" : "";
     const near = Math.abs(l.dist_pct) <= 1 ? ' <span class="tag t-rev">करीब</span>' : "";
@@ -330,10 +328,7 @@ function renderCrowd(data) {
       <div class="${l.dist_pct > 0 ? "pos" : "neg"}">${sign}${l.dist_pct}% दूर</div></div>`;
   }).join("");
 
-  box.innerHTML = `
-    ${moodHtml}
-    ${headHtml}
-    ${trapLine}
+  box.innerHTML = `${moodHtml}${headHtml}${trapLine}
     ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
 }
 
