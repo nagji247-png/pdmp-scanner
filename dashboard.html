@@ -109,6 +109,30 @@
   @media (min-width:1000px) { .grid { grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); } }
   @media (max-width:520px) { .brandbar { padding:14px 12px 8px; gap:10px; } .brand-mark { width:52px;height:52px;flex-basis:52px; } .brand-hi { font-size:16px; } .topnav { gap:4px;padding:8px; } .topnav a { padding:7px 8px;font-size:11px; } h2 { margin-left:12px; } .box { margin-left:10px;margin-right:10px; } .grid { padding:0 10px; } }
 
+
+  #trade-guard.brand-status { display:flex; align-items:center; gap:10px; margin:8px 12px 12px; padding:8px 12px; border:1px solid #17395f; border-radius:12px; background:rgba(7,18,39,.76); box-shadow:none; font-size:11px; line-height:1.35; }
+  .mini-brand-mark { width:42px; height:42px; flex:0 0 42px; filter:drop-shadow(0 0 7px rgba(31,220,255,.4)); }
+  .mini-brand-mark svg { width:100%; height:100%; }
+  .brand-status-copy { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand-status-copy strong { font-size:13px; letter-spacing:1.4px; background:linear-gradient(90deg,#20eaff,#9b59ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand-status-copy span { color:#9bb2d2; }
+  #trade-guard.status-warn { border-color:#6c3a50; }
+  #trade-guard.status-warn .brand-status-copy span { color:#ffb2b9; }
+  @media (max-width:520px) {
+    .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:0 10px; }
+    .card { padding:9px 9px 8px; border-left-width:3px; border-radius:11px; min-width:0; }
+    .name { font-size:10px; letter-spacing:.25px; overflow-wrap:anywhere; }
+    .big { font-size:22px; margin:2px 0; }
+    .lbl { font-size:10px; letter-spacing:.2px; }
+    .div,.chg,.more { font-size:10px; }
+    .spark { width:100%; height:26px; margin-top:5px; }
+    details { font-size:10px; }
+    h2 { font-size:14px; margin-top:17px; }
+    .box { padding:11px; margin-bottom:12px; }
+    #trade-guard.brand-status { margin:6px 10px 10px; padding:7px 9px; }
+    .mini-brand-mark { width:34px; height:34px; flex-basis:34px; }
+  }
+
 </style>
 </head>
 <body>
@@ -193,22 +217,21 @@ function updateTradeGuard(data) {
   const ageMin = validTime ? Math.max(0, (Date.now() - updated.getTime()) / 60000) : Infinity;
   const reasons = [];
   if (!validTime) reasons.push("डेटा अपडेट का सही टाइमस्टैम्प नहीं मिला");
-  else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है (सीमा 45 मिनट)");
-  // किसी भी nested source (Trends/news/FII-DII आदि) का fallback flag खोजें।
+  else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है");
   function hasStaleFlag(value) {
     if (!value || typeof value !== "object") return false;
     if (value.stale === true) return true;
     return Object.keys(value).some(key => hasStaleFlag(value[key]));
   }
-  if (hasStaleFlag(data)) reasons.push("कम-से-कम एक डेटा स्रोत पुराना/fallback डेटा दिखा रहा है");
-  if (data && data.trends && data.trends.ok === false) reasons.push("Google Trends डेटा उपलब्ध नहीं है या अमान्य है");
+  if (hasStaleFlag(data)) reasons.push("एक या अधिक स्रोत stale/fallback हैं");
+  if (data && data.trends && data.trends.ok === false) reasons.push("Google Trends डेटा अमान्य/अनुपलब्ध है");
   const blocked = reasons.length > 0;
-  box.className = blocked ? "block" : "safe";
-  box.innerHTML = '<div class="guard-title">' +
-    (blocked ? '⛔ NO TRADE — डेटा भरोसेमंद नहीं' : '🟡 डेटा टाइमस्टैम्प ठीक — बाकी पुष्टि ज़रूरी') +
-    '</div>' +
-    (blocked ? reasons.map(esc).join(" • ") : 'केवल फ़ाइल का अपडेट समय ताज़ा दिख रहा है। एंट्री से पहले बंद 30-मिनट कैंडल, कीमत/वॉल्यूम, VWAP और दिशा की पुष्टि अलग से ज़रूरी है।') +
-    '<div class="guard-meta">यह सुरक्षा जाँच ट्रेड सिग्नल नहीं है; डेटा ताज़ा होना अकेले खरीदने का संकेत नहीं।</div>';
+  box.className = "brand-status" + (blocked ? " status-warn" : " status-ok");
+  box.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">' +
+    '<svg viewBox="0 0 100 100"><defs><linearGradient id="ng2" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng2)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng2)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+    '<div class="brand-status-copy"><strong>TRINETRA</strong><span>' +
+    (blocked ? 'डेटा जाँच में समस्या: ' + reasons.map(esc).join(" • ") : 'डेटा समय ठीक है; ट्रेड से पहले कीमत, बंद कैंडल, वॉल्यूम और VWAP की पुष्टि करें।') +
+    '</span></div>';
 }
 
 function classify(score) {
