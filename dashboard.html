@@ -401,7 +401,8 @@ function renderTrends(t) {
   if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
   if (!t.ok) {
     box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
-      <div class="sub">${esc(t.error || "")}</div>`;
+      <div class="sub">${esc(t.error || "")}</div>
+      <div class="sub">डेटा नहीं मिला तो उसे 0% खोज या कोई दिशा नहीं माना जाएगा।</div>`;
     return;
   }
 
@@ -410,30 +411,36 @@ function renderTrends(t) {
     : (t.cached
       ? `<div class="sub">कैश की गई Google Trends रीडिंग · असली स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम कैश अवधि 6 घंटे</div>`
       : "");
-
   const v = t.fear_vs_avg;
   const vText = (v > 0 ? "+" : "") + v + " अंक";
   const vCls = v > 0 ? "neg" : "pos";
   const mood = v > 0 ? "डर सामान्य से ऊपर" : "डर सामान्य से नीचे";
+  const pctText = value => value == null || !Number.isFinite(Number(value)) ? "डेटा नहीं" : Number(value).toFixed(2) + "%";
 
   const ct = t.crowd_terms || [];
   const topOf = (dir) => {
-    const xs = ct.filter(p => p.dir === dir);
+    const xs = ct.filter(p => p.dir === dir && p.today_pct != null);
     if (!xs.length) return null;
-    return xs.reduce((a, b) => (b.now > a.now || (b.now === a.now && b.avg > a.avg)) ? b : a);
+    return xs.reduce((a, b) => (b.today_pct > a.today_pct) ? b : a);
   };
   const rowFor = (p) => {
     if (!p) return "";
     const isBull = p.dir === "bull";
     const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
-    return `<div class="ev"><div>${esc(p.term)} ${tag}</div><div class="${isBull ? "pos" : "neg"}">${p.now}%</div></div>`;
+    return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">आज ${pctText(p.today_pct)} · कल ${pctText(p.yesterday_pct)}</div></div><div class="${isBull ? "pos" : "neg"}">${pctText(p.today_pct)}</div></div>`;
   };
   const topRows = rowFor(topOf("bull")) + rowFor(topOf("bear"));
+
+  const todayBull = t.today_bull_pct;
+  const yesterdayBull = t.yesterday_bull_pct;
+  const daySummary = `
+    <div class="sub" style="margin-top:12px">आज (${esc(t.today_date_ist || "IST")}) की दिशा: <b>${todayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + todayBull + "% · बियरिश " + (100 - todayBull).toFixed(1) + "%"}</b> — ${esc(t.today_label || "")}</div>
+    <div class="sub" style="margin-top:6px">कल (${esc(t.yesterday_date_ist || "IST")}) की दिशा: <b>${yesterdayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + yesterdayBull + "% · बियरिश " + (100 - yesterdayBull).toFixed(1) + "%"}</b> — ${esc(t.yesterday_label || "")}</div>`;
 
   const allRows = ct.map(p => {
     const isBull = p.dir === "bull";
     const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
-    return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">अभी ${p.now}% · औसत ${p.avg}% (निफ़्टी के सापेक्ष)</div></div><div class="${isBull ? "pos" : "neg"}">${p.now}%</div></div>`;
+    return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">आज ${pctText(p.today_pct)} · कल ${pctText(p.yesterday_pct)} · पिछले 24 घंटे ${pctText(p.now)} · 7-दिन औसत ${pctText(p.avg)} (Nifty खोज के सापेक्ष)</div></div></div>`;
   }).join("");
 
   const spikes = (t.spikes || []).slice(0, 3).map(s => {
@@ -444,13 +451,16 @@ function renderTrends(t) {
   box.innerHTML = `
     ${stale}
     <div class="bigm ${vCls}">${vText}</div>
-    <div class="sub">${mood} · पिछले 24 घंटे (0–100 स्केल)</div>
-    <div style="margin-top:10px">${topRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
-    <div class="sub" style="margin-top:10px">उभरती खोजें: ${spikes || 'कोई नई खोज नहीं मिली'}</div>
+    <div class="sub">${mood} · पिछले 24 घंटे (Google Trends का सापेक्ष इंडेक्स)</div>
+    ${daySummary}
+    <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
+    <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
+    <div class="sub" style="margin-top:10px">उभरती खोजें: ${spikes || 'कोई अलग rising-query सूची उपलब्ध नहीं'}</div>
     <details style="margin-top:10px">
-      <summary>सभी शब्द देखें</summary>
+      <summary>आज और कल के सभी Nifty/Sensex शब्द देखें</summary>
       <div style="margin-top:6px">${allRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
-    </details>`;
+    </details>
+    <div class="sub" style="margin-top:12px">महत्वपूर्ण: ये Google Trends के सापेक्ष रुचि-अनुपात हैं, वास्तविक लोगों की संख्या या सटीक search count नहीं। 0/डेटा नहीं कम खोज, नमूना सीमा या अनुपलब्ध डेटा की वजह से हो सकता है। यह retail search interest है; analyst/media sentiment अलग से समाचार शीर्षकों से मापा जाता है।</div>`;
 }
 
 function renderContrarian(c) {
