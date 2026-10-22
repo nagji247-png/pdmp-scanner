@@ -169,13 +169,13 @@
   .app-main { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); align-content:start; gap:0 12px; padding:0 14px 22px; }
   .app-main > .brandbar,.app-main > .topnav { grid-column:1/-1; margin-left:-14px;margin-right:-14px; }
   .app-main > #status,.app-main > #trade-guard { grid-column:1/-1; }
-  .range-panel { grid-column:span 4; }
-  .crowd-panel { grid-column:span 4; }
-  .trends-panel { grid-column:span 4; }
-  .flow-panel { grid-column:span 4; }
-  .indexes-panel { grid-column:span 4; }
-  .stocks-panel { grid-column:span 4; }
-  .global-panel { grid-column:span 8; }
+  .range-panel { grid-column:span 4; order:1; }
+  .flow-panel { grid-column:span 4; order:2; }
+  .indexes-panel { grid-column:span 4; order:3; }
+  .stocks-panel { grid-column:span 4; order:4; }
+  .global-panel { grid-column:span 8; order:5; }
+  .crowd-panel { grid-column:span 4; order:6; }
+  .trends-panel { grid-column:span 4; order:7; }
   .panel .card { padding:9px; border-radius:10px; }
   .panel .big { font-size:22px; }
   #trends .sub { font-size:10px; }
@@ -185,7 +185,7 @@
     .sidebar { display:none; }
     .app-main { grid-column:1; grid-template-columns:repeat(6,minmax(0,1fr)); padding:0 10px 20px; }
     .app-main > .brandbar,.app-main > .topnav { margin-left:-10px;margin-right:-10px; }
-    .range-panel,.crowd-panel,.trends-panel,.flow-panel,.indexes-panel,.stocks-panel { grid-column:span 3; }
+    .range-panel,.flow-panel,.indexes-panel,.stocks-panel,.crowd-panel,.trends-panel { grid-column:span 3; }
     .global-panel { grid-column:span 6; }
     .global-panel .grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   }
