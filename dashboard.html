@@ -142,9 +142,78 @@
   #trade-guard .brand-hi { color:#6cecff; font-size:15px; letter-spacing:4px; text-shadow:0 0 12px #704dff; }
   @media(max-width:520px) { #trade-guard.brand-logo-only { margin:7px 10px 10px; padding:7px 10px; gap:9px; } #trade-guard .mini-brand-mark { width:46px;height:46px;flex-basis:46px; } #trade-guard .brand-hi { font-size:13px; } }
 
+
+  body { display:grid; grid-template-columns:250px minmax(0,1fr); background:#050b1c; color:#e7f2ff; }
+  .sidebar { grid-column:1; grid-row:1 / span 3; min-height:100vh; padding:18px 16px; background:linear-gradient(180deg,#040a19,#07142d); border-right:1px solid #14345e; position:sticky; top:0; height:100vh; }
+  .side-logo { display:flex; flex-direction:column; align-items:center; text-align:center; padding:8px 0 26px; color:#29e8ff; }
+  .side-eye { font-size:56px; line-height:1.1; font-weight:900; color:#36eaff; text-shadow:0 0 12px #17baff,0 0 26px #8b48ff; transform:scaleX(1.2); }
+  .side-logo strong { font-size:25px; letter-spacing:1px; background:linear-gradient(90deg,#16eaff,#7e62ff,#d45bff); -webkit-background-clip:text; color:transparent; }
+  .side-logo small { color:#d5e6ff; font-size:10px; letter-spacing:2px; }
+  .side-logo b { font-size:24px; text-shadow:0 0 10px #8b48ff; }
+  .side-nav { display:flex; flex-direction:column; gap:7px; }
+  .side-nav a { color:#d6e6ff; text-decoration:none; padding:12px 10px; border-radius:9px; font-size:13px; font-weight:650; border:1px solid transparent; }
+  .side-nav a.active,.side-nav a:hover { color:#20eaff; border-color:#2450b7; background:linear-gradient(100deg,#082c61,#221a66); }
+  .app-main { min-width:0; grid-column:2; padding-bottom:24px; }
+  .brandbar { padding:14px 20px 8px; gap:12px; background:linear-gradient(90deg,#061127,#081a39); border:0; }
+  .brand-mark { width:52px;height:52px;flex-basis:52px; }
+  .brand-title { font-size:clamp(20px,2.2vw,34px); }
+  .brand-hi { font-size:17px; }
+  .topnav { padding:7px 16px; gap:5px; background:#061027; }
+  .topnav a { padding:7px 10px; font-size:12px; }
+  #trade-guard.brand-logo-only { display:none; }
+  #status { display:none!important; }
+  .panel { min-width:0; margin:10px 0 0; }
+  .panel h2 { margin:0 0 6px; font-size:14px; }
+  .panel .box,.panel .grid { margin:0; padding:11px; }
+  .panel .grid { grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:8px; }
+  .app-main { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); align-content:start; gap:0 12px; padding:0 14px 22px; }
+  .app-main > .brandbar,.app-main > .topnav { grid-column:1/-1; margin-left:-14px;margin-right:-14px; }
+  .app-main > #status,.app-main > #trade-guard { grid-column:1/-1; }
+  .range-panel { grid-column:span 4; }
+  .crowd-panel { grid-column:span 4; }
+  .trends-panel { grid-column:span 4; }
+  .flow-panel { grid-column:span 4; }
+  .indexes-panel { grid-column:span 4; }
+  .stocks-panel { grid-column:span 4; }
+  .global-panel { grid-column:span 8; }
+  .panel .card { padding:9px; border-radius:10px; }
+  .panel .big { font-size:22px; }
+  #trends .sub { font-size:10px; }
+  .footer { grid-column:1/-1; }
+  @media(max-width:900px) {
+    body { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .app-main { grid-column:1; grid-template-columns:repeat(6,minmax(0,1fr)); padding:0 10px 20px; }
+    .app-main > .brandbar,.app-main > .topnav { margin-left:-10px;margin-right:-10px; }
+    .range-panel,.crowd-panel,.trends-panel,.flow-panel,.indexes-panel,.stocks-panel { grid-column:span 3; }
+    .global-panel { grid-column:span 6; }
+    .global-panel .grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  }
+  @media(max-width:560px) {
+    .brandbar { padding:10px 12px 6px; }
+    .brand-mark { width:42px;height:42px;flex-basis:42px; }
+    .brand-title { font-size:20px; }
+    .brand-title i { font-size:12px; }
+    .brand-hi { font-size:13px; }
+    .topnav { overflow-x:auto; flex-wrap:nowrap; }
+    .topnav a { white-space:nowrap; font-size:10px; padding:7px 8px; }
+    .app-main { display:block; padding:0 10px 18px; }
+    .app-main > .brandbar,.app-main > .topnav { margin-left:-10px;margin-right:-10px; }
+    .panel { margin-top:12px; }
+    .panel h2 { font-size:14px; }
+    .panel .box,.panel .grid { padding:10px; }
+    .panel .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+    .global-panel .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+
 </style>
 </head>
 <body>
+<aside class="sidebar">
+  <div class="side-logo"><div class="side-eye">◉↗</div><strong>TRINETRA</strong><small>THE MARKET SEER</small><b>त्रिनेत्र</b></div>
+  <nav class="side-nav"><a class="active" href="#range">⌂　Dashboard</a><a href="#stocks">⌕　Screener</a><a href="#stocks">☆　Watchlist</a><a href="#signals">♧　Alerts</a><a href="#flow">⚙　Settings</a></nav>
+</aside>
+<div class="app-main">
 <header class="brandbar">
   <div class="brand-mark" aria-label="Trinetra logo">
     <svg viewBox="0 0 100 100" role="img" aria-label="Eye with rising market arrow">
@@ -164,26 +233,19 @@
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
 
-<h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2>
-<div class="box" id="range"></div>
+<section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
 
-<h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2>
-<div class="box" id="crowd"></div>
+<section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
 
-<h2>🏦 संस्थागत प्रवाह (FII / DII)</h2>
-<div class="box" id="flow"></div>
+<section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII)</h2><div class="box" id="flow"></div></section>
 
-<h2>📊 भारतीय इंडेक्स</h2>
-<div class="grid" id="indexes"></div>
+<section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स</h2><div class="grid" id="indexes"></div></section>
 
-<h2>🏢 स्टॉक</h2>
-<div class="grid" id="stocks"></div>
+<section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
-<h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2>
-<div class="grid" id="global"></div>
+<section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
-<h2>🔍 What People Are Searching (Google Trends)</h2>
-<div class="box" id="trends"></div>
+<section class="panel trends-panel"><h2>🔍 What People Are Searching (Google Trends)</h2><div class="box" id="trends"></div></section>
 
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
 <div class="box" id="contrarian"></div>
@@ -199,6 +261,7 @@
 
 <div class="footer">
   सभी जानकारी केवल शैक्षिक उद्देश्य के लिए है। यह निवेश सलाह नहीं है।
+</div>
 </div>
 
 <script>
