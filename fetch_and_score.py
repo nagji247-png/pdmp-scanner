@@ -61,8 +61,19 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 # Google Trends हर अनुरोध में अधिकतम 5 शब्द लेता है, इसलिए शब्द 4-4 के समूहों में जाते हैं,
 # और हर समूह के साथ ANCHOR शब्द जोड़ा जाता है, ताकि अलग अनुरोधों के नंबर तुलनीय बनें।
 ANCHOR = "nifty"
-BULL_TERMS = ["nifty target", "share market rise", "sensex rise", "nifty rally", "निफ़्टी टारगेट"]
-BEAR_TERMS = ["nifty fall", "share market crash", "nifty crash", "निफ़्टी गिरावट"]
+# Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
+BULL_TERMS = [
+    "nifty target", "sensex target", "nifty rally", "sensex rally",
+    "nifty rise", "sensex rise", "nifty bullish", "sensex bullish",
+    "nifty surge", "sensex gain", "nifty तेज़ी", "sensex तेज़ी",
+    "nifty उछाल", "sensex उछाल", "nifty टारगेट", "sensex खरीद",
+]
+BEAR_TERMS = [
+    "nifty fall", "sensex fall", "nifty crash", "sensex crash",
+    "nifty down", "sensex down", "nifty bearish", "sensex bearish",
+    "nifty decline", "sensex slump", "nifty गिरावट", "sensex गिरावट",
+    "nifty मंदी", "sensex बिकवाली", "nifty नीचे", "sensex गिरेगा",
+]
 TERM_CHUNK = 4
 
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
@@ -663,6 +674,27 @@ def _ratio(df, term):
     return t_recent / a_recent, t_avg / a_avg
 
 
+def _period_ratio(df, term, day_str):
+    """IST कैलेंडर दिन में शब्द की औसत रुचि / anchor की औसत रुचि (%); raw search count नहीं।"""
+    idx = df.index
+    try:
+        if getattr(idx, "tz", None) is None:
+            idx = idx.tz_localize("Asia/Kolkata")
+        else:
+            idx = idx.tz_convert("Asia/Kolkata")
+        mask = idx.strftime("%Y-%m-%d") == day_str
+        part = df.loc[mask]
+        if part.empty:
+            return None
+        anchor_mean = float(part[ANCHOR].mean())
+        if anchor_mean <= 0:
+            return None
+        return round(float(part[term].mean()) / anchor_mean * 100, 2)
+    except Exception as e:
+        print(f"daily Trends ratio error for {term}: {e}")
+        return None
+
+
 def _trends_once():
     """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
     फ़ियर के नंबर अंकों (points) में हैं; भीड़ के नंबर 'nifty' की खोज के प्रतिशत में हैं।"""
@@ -687,20 +719,39 @@ def _trends_once():
     # 2) भीड़ का मूड: बुलिश और बियरिश शब्द, 4-4 के समूहों में, हर समूह के साथ ANCHOR
     bull_pct_sum = 0.0
     bear_pct_sum = 0.0
+    bull_today_sum = 0.0
+    bear_today_sum = 0.0
+    bull_yesterday_sum = 0.0
+    bear_yesterday_sum = 0.0
     crowd_terms = []
+    ist_now = dt.datetime.now(dt.timezone.utc).astimezone(
+        dt.timezone(dt.timedelta(hours=5, minutes=30)))
+    today_ist = ist_now.strftime("%Y-%m-%d")
+    yesterday_ist = (ist_now.date() - dt.timedelta(days=1)).isoformat()
     for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
             time.sleep(8)
             df = _trends_request(py, chunk)
             for t in chunk:
                 r_now, r_avg = _ratio(df, t)
+                today_pct = _period_ratio(df, t, today_ist)
+                yesterday_pct = _period_ratio(df, t, yesterday_ist)
                 if side == "bull":
                     bull_pct_sum += r_now * 100
+                    if today_pct is not None:
+                        bull_today_sum += today_pct
+                    if yesterday_pct is not None:
+                        bull_yesterday_sum += yesterday_pct
                 else:
                     bear_pct_sum += r_now * 100
+                    if today_pct is not None:
+                        bear_today_sum += today_pct
+                    if yesterday_pct is not None:
+                        bear_yesterday_sum += yesterday_pct
                 crowd_terms.append({
                     "term": t, "dir": side,
                     "now": round(r_now * 100, 2), "avg": round(r_avg * 100, 2),
+                    "today_pct": today_pct, "yesterday_pct": yesterday_pct,
                 })
 
     # सभी शब्दों में now और average शून्य हों तो इसे सफल रीडिंग न मानें।
@@ -718,9 +769,19 @@ def _trends_once():
     # Crowd/Fear डेटा के बिना rising खोजों का खाली होना कोई सकारात्मक संकेत नहीं है।
     spikes = []
 
+    today_total = bull_today_sum + bear_today_sum
+    yesterday_total = bull_yesterday_sum + bear_yesterday_sum
+    today_bull_pct = round(bull_today_sum / today_total * 100, 1) if today_total > 0 else None
+    yesterday_bull_pct = round(bull_yesterday_sum / yesterday_total * 100, 1) if yesterday_total > 0 else None
+    today_label = crowd_decision(bull_today_sum, bear_today_sum)[1] if today_total > 0 else "आज का डेटा उपलब्ध नहीं"
+    yesterday_label = crowd_decision(bull_yesterday_sum, bear_yesterday_sum)[1] if yesterday_total > 0 else "कल का डेटा उपलब्ध नहीं"
+
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
             "per_term": per_term, "spikes": spikes[:10],
             "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label,
+            "today_bull_pct": today_bull_pct, "today_label": today_label,
+            "yesterday_bull_pct": yesterday_bull_pct, "yesterday_label": yesterday_label,
+            "today_date_ist": today_ist, "yesterday_date_ist": yesterday_ist,
             "bull_sum_pct": round(bull_pct_sum, 2), "bear_sum_pct": round(bear_pct_sum, 2),
             "min_side_pct": MIN_SIDE_PCT,
             "crowd_terms": crowd_terms}
