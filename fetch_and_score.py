@@ -758,13 +758,30 @@ def _trends_once():
 
     # सभी शब्दों में now और average शून्य हों तो इसे सफल रीडिंग न मानें।
     # Google Trends कभी-कभी खाली/अधूरा जवाब देता है; उसे वैध डेटा बनाकर नहीं दिखाना चाहिए।
-    if not crowd_terms or (
-        all(float(p.get("now", 0) or 0) == 0 and float(p.get("avg", 0) or 0) == 0 for p in crowd_terms)
-        or (bull_pct_sum == 0 and bear_pct_sum == 0)
-    ):
-        raise ValueError("Google Trends ने सभी crowd terms के लिए शून्य/खाली डेटा दिया")
+    active_bull = sum(1 for p in crowd_terms if p["dir"] == "bull" and (p["now"] > 0 or p["avg"] > 0))
+    active_bear = sum(1 for p in crowd_terms if p["dir"] == "bear" and (p["now"] > 0 or p["avg"] > 0))
+    # केवल एक तरफ़ का बहुत छोटा/शून्य डेटा देखकर झूठा 100% मूड न बनाएं।
+    if (not crowd_terms
+            or active_bull == 0 or active_bear == 0
+            or active_bull + active_bear < 3
+            or bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT):
+        raise ValueError(
+            f"Google Trends crowd data अपर्याप्त: सक्रिय बुलिश शब्द {active_bull}, "
+            f"बियरिश शब्द {active_bear}; दोनों तरफ़ पर्याप्त खोज नहीं"
+        )
 
     crowd_bull_pct, crowd_label = crowd_decision(bull_pct_sum, bear_pct_sum)
+    crowd_total = bull_pct_sum + bear_pct_sum
+    # तीन स्कोर 100% बनाते हैं: एक तरफ़ का शुद्ध अंतर directional score है,
+    # और बचा हिस्सा mixed/neutral खोज भावना है।
+    bull_score_pct = round(max(0.0, bull_pct_sum - bear_pct_sum) / crowd_total * 100, 1)
+    bear_score_pct = round(max(0.0, bear_pct_sum - bull_pct_sum) / crowd_total * 100, 1)
+    neutral_score_pct = round(max(0.0, 100.0 - bull_score_pct - bear_score_pct), 1)
+    sentiment_label = (
+        "BULLISH" if bull_score_pct > max(bear_score_pct, neutral_score_pct)
+        else "BEARISH" if bear_score_pct > max(bull_score_pct, neutral_score_pct)
+        else "NEUTRAL"
+    )
 
     # 3) Rising/related_queries अनुरोध जानबूझकर छोड़ा गया है:
     # यह एक अतिरिक्त Google Trends कॉल करता था और 429 की संभावना बढ़ाता था।
@@ -781,6 +798,8 @@ def _trends_once():
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
             "per_term": per_term, "spikes": spikes[:10],
             "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label,
+            "bull_score_pct": bull_score_pct, "bear_score_pct": bear_score_pct,
+            "neutral_score_pct": neutral_score_pct, "sentiment_label": sentiment_label,
             "today_bull_pct": today_bull_pct, "today_label": today_label,
             "yesterday_bull_pct": yesterday_bull_pct, "yesterday_label": yesterday_label,
             "today_date_ist": today_ist, "yesterday_date_ist": yesterday_ist,
