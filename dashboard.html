@@ -406,11 +406,19 @@ function renderTrends(t) {
     : (t.cached
       ? `<div class="sub">कैश की गई Google Trends रीडिंग · असली स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम कैश अवधि 6 घंटे</div>`
       : "");
-  const v = t.fear_vs_avg;
-  const vText = (v > 0 ? "+" : "") + v + " अंक";
-  const vCls = v > 0 ? "neg" : "pos";
-  const mood = v > 0 ? "डर सामान्य से ऊपर" : "डर सामान्य से नीचे";
-  const pctText = value => value == null || !Number.isFinite(Number(value)) ? "डेटा नहीं" : Number(value).toFixed(2) + "%";
+  const pctText = value => value == null || !Number.isFinite(Number(value)) ? "डेटा नहीं" : Number(value).toFixed(1) + "%";
+  const bullScore = Number(t.bull_score_pct);
+  const bearScore = Number(t.bear_score_pct);
+  const neutralScore = Number(t.neutral_score_pct);
+  const hasScores = [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
+    .every(value => value != null && Number.isFinite(Number(value)));
+  const scoreBlock = hasScores ? `
+    <div style="margin:10px 0 4px;font-size:18px;font-weight:800" class="pos">BULLISH - ${pctText(bullScore)}</div>
+    <div style="margin:4px 0;font-size:18px;font-weight:800" class="neg">BEARISH - ${pctText(bearScore)}</div>
+    <div style="margin:4px 0;font-size:18px;font-weight:800;color:#f1c40f">NEUTRAL - ${pctText(neutralScore)}</div>
+    <div class="sub" style="margin-top:6px">तीनों स्कोर का कुल 100% है। यह Google Trends की सापेक्ष खोज-रुचि से निकला संकेत है, वास्तविक लोगों की गिनती नहीं।</div>` :
+    `<div class="warn">BULLISH — डेटा उपलब्ध नहीं · BEARISH — डेटा उपलब्ध नहीं · NEUTRAL — डेटा उपलब्ध नहीं</div>
+     <div class="sub">दोनों तरफ़ पर्याप्त Google Trends डेटा नहीं मिला; इसे 0% या NEUTRAL नहीं माना गया।</div>`;
 
   const ct = t.crowd_terms || [];
   const topOf = (dir) => {
@@ -445,8 +453,8 @@ function renderTrends(t) {
 
   box.innerHTML = `
     ${stale}
-    <div class="bigm ${vCls}">${vText}</div>
-    <div class="sub">${mood} · पिछले 24 घंटे (Google Trends का सापेक्ष इंडेक्स)</div>
+    ${scoreBlock}
+    <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि (पिछले 7 दिन के डेटा से)</div>
     ${daySummary}
     <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
     <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
