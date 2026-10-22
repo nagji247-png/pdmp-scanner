@@ -742,7 +742,7 @@ async function load() {
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
     const guard = document.getElementById("trade-guard");
-    if (guard) { guard.className = "block"; guard.innerHTML = '<div class="guard-title">⛔ NO TRADE — डेटा लोड विफल</div>पुराना डेटा देखकर ट्रेड न करें। पेज रीफ्रेश करें और डेटा स्रोत की जाँच करें।'; }
+    if (guard) { guard.className = "brand-status status-warn"; guard.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">👁️</div><div class="brand-status-copy"><strong>TRINETRA</strong><span>डेटा लोड नहीं हुआ। पुराना डेटा देखकर ट्रेड न करें; पेज रीफ्रेश करके स्रोत जाँचें।</span></div>'; }
   } finally {
     loading = false;
   }
