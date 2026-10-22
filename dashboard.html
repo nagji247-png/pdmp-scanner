@@ -454,7 +454,7 @@ function renderTrends(t) {
   box.innerHTML = `
     ${stale}
     ${scoreBlock}
-    <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि (पिछले 7 दिन के डेटा से)</div>
+    <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि (पिछले 7 दिन के डेटा से)${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
     ${daySummary}
     <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
     <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
