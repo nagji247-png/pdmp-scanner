@@ -80,10 +80,54 @@
   .flow-foot { font-size: 11px; color: #7b82a0; margin-top: 10px; line-height: 1.4; }
 
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
+
+  :root { color-scheme: dark; --bg:#050916; --panel:#0b1730; --line:#143967; --cyan:#24e5ff; --violet:#9b59ff; }
+  body { background: radial-gradient(ellipse at 70% -15%, #152c59 0, transparent 42%), linear-gradient(135deg,#050916,#071229 65%,#09091b); color:#e8f5ff; min-height:100vh; }
+  .brandbar { display:flex; align-items:center; gap:14px; padding:18px 20px 10px; background:linear-gradient(90deg,rgba(4,11,29,.96),rgba(8,22,50,.82)); border-bottom:1px solid #15355f; }
+  .brand-mark { width:70px; height:70px; flex:0 0 70px; filter:drop-shadow(0 0 12px rgba(31,220,255,.35)); }
+  .brand-mark svg { width:100%; height:100%; }
+  .brand-title { font-size:clamp(21px,4vw,34px); line-height:1.1; font-weight:900; letter-spacing:.5px; background:linear-gradient(90deg,#20eaff,#6488ff,#bb62ff,#39f0d2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand-title i { font-style:normal; font-size:.67em; }
+  .brand-hi { color:#6cecff; font-size:20px; letter-spacing:5px; text-shadow:0 0 12px #704dff; }
+  .topnav { display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; background:rgba(5,12,29,.92); border-bottom:1px solid #132d52; position:relative; }
+  .topnav a { color:#b9c9e8; text-decoration:none; font-size:12px; font-weight:700; padding:8px 11px; border-radius:7px; border:1px solid transparent; }
+  .topnav a:hover { color:#30eaff; border-color:#175a87; background:#0c2343; }
+  #status { padding:10px 18px; color:#7ea9d8; }
+  #trade-guard { margin:8px 14px 16px; border-radius:12px; background:linear-gradient(110deg,#0d1d39,#111b32); border-color:#21486f; box-shadow:0 8px 24px rgba(0,0,0,.15); }
+  h2 { color:#d9edff; margin:20px 16px 9px; font-size:15px; letter-spacing:.1px; }
+  .grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:12px; padding:0 14px; }
+  .card,.box { background:linear-gradient(145deg,rgba(13,29,57,.98),rgba(8,20,42,.98)); border:1px solid #153861; box-shadow:0 8px 22px rgba(0,0,0,.16),inset 0 1px rgba(130,200,255,.035); }
+  .card { border-left:3px solid #62789e; border-radius:12px; transition:transform .15s ease,border-color .15s ease; }
+  .card:hover { transform:translateY(-2px); border-color:#2671a2; }
+  .card.bull { border-left-color:#20e6ac; } .card.bear { border-left-color:#ff526b; } .card.neu { border-left-color:#8495b8; }
+  .box { border-radius:12px; margin:0 14px 16px; padding:15px; }
+  .bigm,.range-val { color:#36e7ff; text-shadow:0 0 18px rgba(54,231,255,.14); }
+  .mood-bar { background:#172d4c; } .mood-bull { background:linear-gradient(90deg,#00c994,#20e8b3); } .mood-bear { background:linear-gradient(90deg,#ff7b62,#ff405f); }
+  .rq { background:#10294a; border:1px solid #1b426a; color:#d7efff; border-radius:20px; }
+  .hl,.news-item,.ev,.lvl { border-color:#183252; }
+  .footer { margin-top:20px; border-top:1px solid #142d50; background:#050a17; padding:16px 18px 28px; }
+  @media (min-width:1000px) { .grid { grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); } }
+  @media (max-width:520px) { .brandbar { padding:14px 12px 8px; gap:10px; } .brand-mark { width:52px;height:52px;flex-basis:52px; } .brand-hi { font-size:16px; } .topnav { gap:4px;padding:8px; } .topnav a { padding:7px 8px;font-size:11px; } h2 { margin-left:12px; } .box { margin-left:10px;margin-right:10px; } .grid { padding:0 10px; } }
+
 </style>
 </head>
 <body>
-<header>PDMP Scanner</header>
+<header class="brandbar">
+  <div class="brand-mark" aria-label="Trinetra logo">
+    <svg viewBox="0 0 100 100" role="img" aria-label="Eye with rising market arrow">
+      <defs><linearGradient id="ng" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs>
+      <path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng)" stroke-width="4"/>
+      <path d="M25 51 Q50 22 72 43" fill="none" stroke="#45eaff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng)" stroke-width="4"/><circle cx="48" cy="50" r="6" fill="#dffcff"/>
+      <path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M38 14 L44 4 L50 14 M34 18 L54 18" fill="none" stroke="#a9eaff" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div>
+</header>
+<nav class="topnav" aria-label="Dashboard sections">
+  <a href="#trade-guard">Sentiment</a><a href="#crowd">Retail Mood</a><a href="#range">Range</a><a href="#flow">FII/DII</a><a href="#indexes">Indices</a><a href="#stocks">Movers</a><a href="#global">Global</a><a href="#trends">Google Trends</a><a href="#news">News</a>
+</nav>
 <div id="status">लोड हो रहा है...</div>
 <div id="trade-guard" role="status"><div class="guard-title">डेटा जाँचा जा रहा है…</div>अभी ट्रेड की अनुमति तय नहीं हुई है।</div>
 
