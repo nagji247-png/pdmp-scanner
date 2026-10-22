@@ -214,6 +214,9 @@
   <nav class="side-nav"><a class="active" href="#range">⌂　Dashboard</a><a href="#stocks">⌕　Screener</a><a href="#stocks">☆　Watchlist</a><a href="#signals">♧　Alerts</a><a href="#flow">⚙　Settings</a></nav>
 </aside>
 <div class="app-main">
+<nav class="topnav" aria-label="Dashboard sections">
+  <a href="#trade-guard"><strong>Sentiment</strong></a><a href="#crowd"><strong>Retail Mood</strong></a><a href="#range"><strong>Range</strong></a><a href="#flow"><strong>FII/DII</strong></a><a href="#indexes"><strong>Indices</strong></a><a href="#stocks"><strong>Movers</strong></a><a href="#global"><strong>Global</strong></a><a href="#trends"><strong>Google Trends</strong></a>
+</nav>
 <header class="brandbar">
   <div class="brand-mark" aria-label="Trinetra logo">
     <svg viewBox="0 0 100 100" role="img" aria-label="Eye with rising market arrow">
@@ -227,15 +230,10 @@
   </div>
   <div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div>
 </header>
-<nav class="topnav" aria-label="Dashboard sections">
-  <a href="#trade-guard">Sentiment</a><a href="#crowd">Retail Mood</a><a href="#range">Range</a><a href="#flow">FII/DII</a><a href="#indexes">Indices</a><a href="#stocks">Movers</a><a href="#global">Global</a><a href="#trends">Google Trends</a><a href="#news">News</a>
-</nav>
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
 
 <section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
-
-<section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
 
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII)</h2><div class="box" id="flow"></div></section>
 
@@ -244,6 +242,8 @@
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
+
+<section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
 
 <section class="panel trends-panel"><h2>🔍 What People Are Searching (Google Trends)</h2><div class="box" id="trends"></div></section>
 
