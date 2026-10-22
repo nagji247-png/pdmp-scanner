@@ -63,16 +63,20 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
 BULL_TERMS = [
+    # English: all requested bullish keywords, paired with Nifty/Sensex context
     "nifty target", "sensex rally", "nifty rise", "sensex up",
     "nifty high", "sensex record", "nifty buy", "sensex bull",
     "nifty bullish", "sensex jump", "nifty surge", "sensex gain",
+    # Hindi: all requested bullish keywords
     "nifty टारगेट", "sensex रैली", "nifty तेज़ी", "sensex उछाल",
     "nifty ऊपर", "sensex बुलिश", "nifty खरीद",
 ]
 BEAR_TERMS = [
+    # English: all requested bearish keywords, paired with Nifty/Sensex context
     "nifty fall", "sensex crash", "nifty down", "sensex drop",
     "nifty low", "sensex sell", "nifty bear", "sensex bearish",
     "nifty slump", "sensex decline", "nifty sell-off",
+    # Hindi: all requested bearish keywords
     "sensex गिरावट", "nifty गिरेगा", "sensex नीचे",
     "nifty मंदी", "sensex बेयरिश", "nifty बिकवाली",
 ]
