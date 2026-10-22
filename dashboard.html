@@ -206,6 +206,22 @@
     .global-panel .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
 
+
+  .trends-score-layout { display:flex; align-items:center; justify-content:center; gap:clamp(14px,3vw,30px); padding:8px 0 4px; min-width:0; }
+  .trends-donut { width:clamp(104px,12vw,148px); aspect-ratio:1; flex:0 0 auto; border-radius:50%; display:grid; place-items:center; background:conic-gradient(#00d6a0 0 var(--bull),#f34f5d var(--bull) calc(var(--bull) + var(--bear)),#9ba9c4 calc(var(--bull) + var(--bear)) 100%); box-shadow:0 0 18px #1478c533; }
+  .trends-donut-hole { width:70%; aspect-ratio:1; border-radius:50%; background:#071631; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; }
+  .trends-donut-hole strong { font-size:clamp(10px,1.1vw,14px); }
+  .trends-donut-hole b { font-size:clamp(18px,2vw,25px); color:#eaf4ff; }
+  .trends-score-legend { display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .trends-score-legend div { display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:6px; }
+  .trends-score-legend small { font-size:11px; color:#9eacc7; font-weight:800; }
+  .trends-score-legend strong { grid-column:2; font-size:clamp(16px,1.7vw,23px); line-height:1.1; }
+  .legend-dot { width:8px;height:8px;border-radius:50%;grid-row:span 2; }
+  .bearish-dot { background:#f34f5d; } .neutral-dot { background:#9ba9c4; }
+  .neutral-score { color:#aebbd4; }
+  .trends-donut.unavailable { background:conic-gradient(#294365 0 100%); }
+  @media(max-width:560px) { .trends-score-layout { gap:18px; justify-content:flex-start; } .trends-donut { width:112px; } .trends-score-legend strong { font-size:18px; } }
+
 </style>
 </head>
 <body>
@@ -535,12 +551,20 @@ function renderTrends(t) {
   const hasScores = [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
     .every(value => value != null && Number.isFinite(Number(value)));
   const scoreBlock = hasScores ? `
-    <div style="margin:10px 0 4px;font-size:18px;font-weight:800" class="pos">BULLISH - ${pctText(bullScore)}</div>
-    <div style="margin:4px 0;font-size:18px;font-weight:800" class="neg">BEARISH - ${pctText(bearScore)}</div>
-    <div style="margin:4px 0;font-size:18px;font-weight:800;color:#f1c40f">NEUTRAL - ${pctText(neutralScore)}</div>
-    <div class="sub" style="margin-top:6px">तीनों स्कोर का कुल 100% है। यह Google Trends की सापेक्ष खोज-रुचि से निकला संकेत है, वास्तविक लोगों की गिनती नहीं।</div>` :
-    `<div class="warn">BULLISH — डेटा उपलब्ध नहीं · BEARISH — डेटा उपलब्ध नहीं · NEUTRAL — डेटा उपलब्ध नहीं</div>
-     <div class="sub">दोनों तरफ़ पर्याप्त Google Trends डेटा नहीं मिला; इसे 0% या NEUTRAL नहीं माना गया।</div>`;
+    <div class="trends-score-layout">
+      <div class="trends-donut" style="--bull:${bullScore}%;--bear:${bearScore}%;--neutral:${neutralScore}%" role="img" aria-label="Bullish ${pctText(bullScore)}, Bearish ${pctText(bearScore)}, Neutral ${pctText(neutralScore)}">
+        <div class="trends-donut-hole"><strong class="pos">BULLISH</strong><b>${pctText(bullScore)}</b></div>
+      </div>
+      <div class="trends-score-legend">
+        <div><span class="legend-dot bearish-dot"></span><small>BEARISH</small><strong class="neg">${pctText(bearScore)}</strong></div>
+        <div><span class="legend-dot neutral-dot"></span><small>NEUTRAL</small><strong class="neutral-score">${pctText(neutralScore)}</strong></div>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि; वास्तविक लोगों की गिनती नहीं। ${t.as_of ? "स्रोत समय: "+esc(istTime(t.as_of))+" IST" : ""}</div>` :
+    `<div class="trends-score-layout">
+       <div class="trends-donut unavailable"><div class="trends-donut-hole"><strong>डेटा</strong><b>—</b></div></div>
+       <div class="trends-score-legend"><div><small>BULLISH</small><strong>उपलब्ध नहीं</strong></div><div><small>BEARISH</small><strong>उपलब्ध नहीं</strong></div><div><small>NEUTRAL</small><strong>उपलब्ध नहीं</strong></div></div>
+     </div><div class="sub">अगली सफल Google Trends गणना में तीनों प्रतिशत दिखाई देंगे। अभी अनुमानित प्रतिशत नहीं दिखाए जा रहे।</div>`;
 
   const ct = t.crowd_terms || [];
   const topOf = (dir) => {
