@@ -6,8 +6,8 @@
     "score": 2.3,
     "price_change": -0.76,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.58
   },
   {
     "key": "2026-10-20|COALINDIA|div",
@@ -16,8 +16,8 @@
     "score": 3.7,
     "price_change": -1.32,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.02
   },
   {
     "key": "2026-10-20|GOLD|div",
@@ -56,8 +56,8 @@
     "score": 2.7,
     "price_change": -0.76,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.58
   },
   {
     "key": "2026-10-21|COALINDIA|div",
@@ -66,8 +66,8 @@
     "score": 3.0,
     "price_change": -1.32,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.02
   },
   {
     "key": "2026-10-21|APOLLOHOSP|div",
@@ -126,8 +126,8 @@
     "score": -1.7,
     "price_change": 1.28,
     "sentiment_up": false,
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.17
   },
   {
     "key": "2026-10-21|HDFCBANK|div",
@@ -136,8 +136,8 @@
     "score": 1.1,
     "price_change": -2.31,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.71
   },
   {
     "key": "2026-10-21|CRUDEOIL|div",
@@ -146,8 +146,8 @@
     "score": 1.1,
     "price_change": -1.8,
     "sentiment_up": true,
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -3.68
   },
   {
     "key": "2026-10-21|ADANIPORTS|div",
@@ -156,6 +156,56 @@
     "score": -3.6,
     "price_change": 0.87,
     "sentiment_up": false,
+    "outcome": "sentiment",
+    "next_change": -0.97
+  },
+  {
+    "key": "2026-10-22|CRUDEOIL|div",
+    "date": "2026-10-22",
+    "instrument": "CRUDEOIL",
+    "score": 1.6,
+    "price_change": -3.68,
+    "sentiment_up": true,
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-22|ADANIPORTS|div",
+    "date": "2026-10-22",
+    "instrument": "ADANIPORTS",
+    "score": 3.7,
+    "price_change": -0.97,
+    "sentiment_up": true,
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-22|COALINDIA|div",
+    "date": "2026-10-22",
+    "instrument": "COALINDIA",
+    "score": 3.5,
+    "price_change": -1.02,
+    "sentiment_up": true,
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-22|EICHERMOT|div",
+    "date": "2026-10-22",
+    "instrument": "EICHERMOT",
+    "score": 1.2,
+    "price_change": -2.43,
+    "sentiment_up": true,
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-22|SBIN|div",
+    "date": "2026-10-22",
+    "instrument": "SBIN",
+    "score": 1.2,
+    "price_change": -1.1,
+    "sentiment_up": true,
     "outcome": null,
     "next_change": null
   }
