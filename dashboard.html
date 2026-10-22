@@ -133,6 +133,15 @@
     .mini-brand-mark { width:34px; height:34px; flex-basis:34px; }
   }
 
+
+  #trade-guard.brand-logo-only { display:flex; align-items:center; justify-content:center; gap:12px; margin:10px 12px 14px; padding:10px 12px; border:1px solid #17395f; border-radius:14px; background:radial-gradient(ellipse at 25% 50%,rgba(22,111,190,.18),transparent 55%),linear-gradient(100deg,#050b19,#0a1730); box-shadow:0 0 18px rgba(32,217,255,.08); }
+  #trade-guard .mini-brand-mark { width:58px; height:58px; flex:0 0 58px; filter:drop-shadow(0 0 10px rgba(31,220,255,.45)); }
+  #trade-guard .mini-brand-mark svg { width:100%; height:100%; }
+  #trade-guard .brand-title { font-size:clamp(19px,4vw,28px); line-height:1.12; font-weight:900; letter-spacing:.4px; background:linear-gradient(90deg,#20eaff,#6488ff,#bb62ff,#39f0d2); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #trade-guard .brand-title i { font-style:normal; font-size:.63em; }
+  #trade-guard .brand-hi { color:#6cecff; font-size:15px; letter-spacing:4px; text-shadow:0 0 12px #704dff; }
+  @media(max-width:520px) { #trade-guard.brand-logo-only { margin:7px 10px 10px; padding:7px 10px; gap:9px; } #trade-guard .mini-brand-mark { width:46px;height:46px;flex-basis:46px; } #trade-guard .brand-hi { font-size:13px; } }
+
 </style>
 </head>
 <body>
@@ -152,8 +161,8 @@
 <nav class="topnav" aria-label="Dashboard sections">
   <a href="#trade-guard">Sentiment</a><a href="#crowd">Retail Mood</a><a href="#range">Range</a><a href="#flow">FII/DII</a><a href="#indexes">Indices</a><a href="#stocks">Movers</a><a href="#global">Global</a><a href="#trends">Google Trends</a><a href="#news">News</a>
 </nav>
-<div id="status">लोड हो रहा है...</div>
-<div id="trade-guard" role="status"><div class="guard-title">डेटा जाँचा जा रहा है…</div>अभी ट्रेड की अनुमति तय नहीं हुई है।</div>
+<div id="status" aria-live="polite" style="display:none"></div>
+<div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
 
 <h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2>
 <div class="box" id="range"></div>
@@ -212,26 +221,9 @@ function esc(s) {
 function updateTradeGuard(data) {
   const box = document.getElementById("trade-guard");
   if (!box) return;
-  const updated = data && data.updated ? new Date(data.updated) : null;
-  const validTime = updated && Number.isFinite(updated.getTime());
-  const ageMin = validTime ? Math.max(0, (Date.now() - updated.getTime()) / 60000) : Infinity;
-  const reasons = [];
-  if (!validTime) reasons.push("डेटा अपडेट का सही टाइमस्टैम्प नहीं मिला");
-  else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है");
-  function hasStaleFlag(value) {
-    if (!value || typeof value !== "object") return false;
-    if (value.stale === true) return true;
-    return Object.keys(value).some(key => hasStaleFlag(value[key]));
-  }
-  if (hasStaleFlag(data)) reasons.push("एक या अधिक स्रोत stale/fallback हैं");
-  if (data && data.trends && data.trends.ok === false) reasons.push("Google Trends डेटा अमान्य/अनुपलब्ध है");
-  const blocked = reasons.length > 0;
-  box.className = "brand-status" + (blocked ? " status-warn" : " status-ok");
-  box.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">' +
-    '<svg viewBox="0 0 100 100"><defs><linearGradient id="ng2" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng2)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng2)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-    '<div class="brand-status-copy"><strong>TRINETRA</strong><span>' +
-    (blocked ? 'डेटा जाँच में समस्या: ' + reasons.map(esc).join(" • ") : 'डेटा समय ठीक है; ट्रेड से पहले कीमत, बंद कैंडल, वॉल्यूम और VWAP की पुष्टि करें।') +
-    '</span></div>';
+  box.className = "brand-logo-only";
+  box.setAttribute("aria-label", "TRINETRA");
+  box.innerHTML = '<div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng4" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng4)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng4)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng4)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div>';
 }
 
 function classify(score) {
@@ -742,7 +734,7 @@ async function load() {
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
     const guard = document.getElementById("trade-guard");
-    if (guard) { guard.className = "brand-status status-warn"; guard.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">👁️</div><div class="brand-status-copy"><strong>TRINETRA</strong><span>डेटा लोड नहीं हुआ। पुराना डेटा देखकर ट्रेड न करें; पेज रीफ्रेश करके स्रोत जाँचें।</span></div>'; }
+    if (guard) { guard.className = "brand-logo-only"; guard.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">👁️</div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div>'; }
   } finally {
     loading = false;
   }
