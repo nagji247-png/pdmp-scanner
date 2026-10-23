@@ -403,6 +403,76 @@ def update_divergence(events, name, score, change, today_str, returns, headlines
         e["outcome"] = "sentiment" if move_up == e["sentiment_up"] else "price"
 
 
+def derive_card_indicator(name, sym, score, change):
+    """
+    Card labels must be evidence-based:
+    - SILVER "still building" only when Yahoo returns same-contract open-interest
+      rising alongside falling price; otherwise unavailable.
+    - BITCOIN bullish divergence only when completed 30m candles show price lower-low
+      while RSI makes a higher-low. This is a technical pattern, not a prediction.
+    """
+    if name == "SILVER":
+        try:
+            h = yf.Ticker(sym).history(period="5d", interval="30m")
+            if h is None or len(h) < 4 or "Open Interest" not in h.columns:
+                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                        "indicator_reason": "एक ही कॉन्ट्रैक्ट का भरोसेमंद Open Interest डेटा उपलब्ध नहीं"}
+            oi = h["Open Interest"].dropna()
+            close = h["Close"].dropna()
+            if len(oi) < 3 or len(close) < 3:
+                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                        "indicator_reason": "Open Interest/कीमत के पर्याप्त पूरे बार नहीं"}
+            oi_delta = float(oi.iloc[-1] - oi.iloc[-2])
+            price_delta = float(close.iloc[-1] / close.iloc[-2] - 1)
+            if oi_delta > 0 and price_delta < 0:
+                return {"indicator_label": "BEARISH BUILDUP",
+                        "indicator_reason": "पूरे हुए 30-मिनट बार में कीमत नीचे और Open Interest ऊपर"}
+            if oi_delta > 0 and price_delta > 0:
+                return {"indicator_label": "BULLISH BUILDUP",
+                        "indicator_reason": "पूरे हुए 30-मिनट बार में कीमत और Open Interest दोनों ऊपर"}
+            return {"indicator_label": "NO CLEAR BUILDUP",
+                    "indicator_reason": "कीमत और Open Interest से स्पष्ट नया buildup नहीं मिला"}
+        except Exception as exc:
+            return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                    "indicator_reason": str(exc)[:120]}
+
+    if name == "BITCOIN":
+        try:
+            h = yf.Ticker(sym).history(period="5d", interval="30m")
+            if h is None or len(h) < 20 or "Close" not in h.columns:
+                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                        "indicator_reason": "पर्याप्त पूरी हुई 30-मिनट कैंडल उपलब्ध नहीं"}
+            # Drop the last bar if it may still be forming.
+            now = dt.datetime.now(dt.timezone.utc)
+            idx = h.index
+            last_time = idx[-1].to_pydatetime()
+            if last_time.tzinfo is None:
+                last_time = last_time.replace(tzinfo=dt.timezone.utc)
+            if (now - last_time.astimezone(dt.timezone.utc)).total_seconds() < 30 * 60:
+                h = h.iloc[:-1]
+            close = h["Close"].dropna()
+            if len(close) < 20:
+                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                        "indicator_reason": "पूरी हुई कैंडलें कम हैं"}
+            delta = close.diff()
+            gain = delta.clip(lower=0).rolling(14).mean()
+            loss = (-delta.clip(upper=0)).rolling(14).mean()
+            rs = gain / loss.replace(0, float("nan"))
+            rsi = 100 - (100 / (1 + rs))
+            # Compare the most recent 6-bar window with the preceding 6-bar window.
+            p1, p2 = close.iloc[-6:], close.iloc[-12:-6]
+            r1, r2 = rsi.iloc[-6:].dropna(), rsi.iloc[-12:-6].dropna()
+            if len(r1) >= 3 and len(r2) >= 3 and float(p1.min()) < float(p2.min()) and float(r1.min()) > float(r2.min()):
+                return {"indicator_label": "⚡ Bullish divergence",
+                        "indicator_reason": "30-मिनट कीमत ने lower low बनाया, RSI ने higher low"}
+            return {"indicator_label": "NO CONFIRMED BULLISH DIVERGENCE",
+                    "indicator_reason": "पूरी हुई 30-मिनट कैंडल में कीमत/RSI divergence की शर्त पूरी नहीं हुई"}
+        except Exception as exc:
+            return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
+                    "indicator_reason": str(exc)[:120]}
+    return {}
+
+
 def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
     returns = {}
     change = 0.0
@@ -430,6 +500,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
         "neg_n": sum(1 for h in heads if h["score"] < 0),
+        **derive_card_indicator(name, sym, score, change),
     }
     update_contrarian(events, name, score, today_str, returns)
     update_divergence(div_events, name, score, change, today_str, returns, heads)
