@@ -401,9 +401,17 @@ function card(name, d) {
   const sign = d.change_pct >= 0 ? "+" : "";
   const sScore = (d.score > 0 ? "+" : "") + d.score;
 
-  const heads = (d.headlines || []).map(h => `
+  const allHeads = d.headlines || [];
+  const heads = allHeads.map(h => `
     <div class="hl">
-      <div class="hl-title"><span class="hl-score ${scoreClass(h.score)}">${h.score > 0 ? "+" : ""}${h.score}</span>${esc(h.title)}</div>
+      <div class="hl-title"><span class="hl-score ${scoreClass(h.score)}">${h.score > 0 ? "+" : ""}${h.score}</span>${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">${esc(h.title)}</a>` : esc(h.title)}</div>
+      <div class="hl-meta">${esc(h.source) || "स्रोत अज्ञात"}${h.age_h != null ? " · " + ageText(h.age_h) : ""}</div>
+    </div>`).join("");
+  const positiveHeads = allHeads.filter(h => Number(h.score) > 0);
+  const negativeHeads = allHeads.filter(h => Number(h.score) < 0);
+  const listHeads = list => list.map(h => `
+    <div class="hl">
+      <div class="hl-title"><span class="hl-score ${scoreClass(h.score)}">${h.score > 0 ? "+" : ""}${h.score}</span>${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">${esc(h.title)}</a>` : esc(h.title)}</div>
       <div class="hl-meta">${esc(h.source) || "स्रोत अज्ञात"}${h.age_h != null ? " · " + ageText(h.age_h) : ""}</div>
     </div>`).join("");
 
@@ -425,7 +433,16 @@ function card(name, d) {
         <summary>पूरा इंडेक्स विवरण देखें</summary>
         <div class="hl">
           <div class="hl-title">समाचार भावना</div>
-          <div class="hl-meta">सकारात्मक हेडलाइन: ${posN} · नकारात्मक हेडलाइन: ${negN}${hTotal ? " · कुल वर्गीकृत: " + hTotal : ""}</div>
+          <div class="hl-meta">कुल वर्गीकृत: ${hTotal}</div>
+          <details>
+            <summary>🟢 सकारात्मक हेडलाइन देखें (${positiveHeads.length})</summary>
+            ${listHeads(positiveHeads) || '<div class="hl-meta">कोई सकारात्मक हेडलाइन नहीं मिली।</div>'}
+          </details>
+          <details>
+            <summary>🔴 नकारात्मक हेडलाइन देखें (${negativeHeads.length})</summary>
+            ${listHeads(negativeHeads) || '<div class="hl-meta">कोई नकारात्मक हेडलाइन नहीं मिली।</div>'}
+          </details>
+          <div class="hl-meta">शीर्षक पर टैप करके मूल खबर खोलें।
         </div>
         <div class="hl">
           <div class="hl-title">स्कोर का मतलब</div>
