@@ -63,29 +63,19 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
 BULL_TERMS = [
-    # English: all requested bullish keywords, paired with Nifty/Sensex context
-    "nifty target", "sensex rally", "nifty rise", "sensex up",
-    "nifty high", "sensex record", "nifty buy", "sensex bull",
-    "nifty bullish", "sensex jump", "nifty surge", "sensex gain",
-    # Hindi: all requested bullish keywords
-    "nifty टारगेट", "sensex रैली", "nifty तेज़ी", "sensex उछाल",
-    "nifty ऊपर", "sensex बुलिश", "nifty खरीद",
+    # कम अनुरोधों में English + Hindi खोजों का संतुलित नमूना
+    "nifty target", "sensex rally", "nifty rise", "nifty तेज़ी",
 ]
 BEAR_TERMS = [
-    # English: all requested bearish keywords, paired with Nifty/Sensex context
-    "nifty fall", "sensex crash", "nifty down", "sensex drop",
-    "nifty low", "sensex sell", "nifty bear", "sensex bearish",
-    "nifty slump", "sensex decline", "nifty sell-off",
-    # Hindi: all requested bearish keywords
-    "sensex गिरावट", "nifty गिरेगा", "sensex नीचे",
-    "nifty मंदी", "sensex बेयरिश", "nifty बिकवाली",
+    # कम अनुरोधों में English + Hindi खोजों का संतुलित नमूना
+    "nifty fall", "sensex crash", "nifty down", "निफ़्टी गिरावट",
 ]
 TERM_CHUNK = 4
 
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
-MIN_SIDE_PCT = 1.0
-TRENDS_RETRIES = 2  # केवल गैर-429 त्रुटियों पर दोबारा प्रयास
+MIN_SIDE_PCT = 0.01
+TRENDS_RETRIES = 1  # तेज़ स्कैन: rate-limit पर लंबे retry loop से बचें
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -736,7 +726,7 @@ def _trends_once():
     yesterday_ist = (ist_now.date() - dt.timedelta(days=1)).isoformat()
     for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
-            time.sleep(8)
+            time.sleep(2)
             df = _trends_request(py, chunk)
             for t in chunk:
                 r_now, r_avg = _ratio(df, t)
@@ -767,7 +757,7 @@ def _trends_once():
     # केवल एक तरफ़ का बहुत छोटा/शून्य डेटा देखकर झूठा 100% मूड न बनाएं।
     if (not crowd_terms
             or active_bull == 0 or active_bear == 0
-            or active_bull + active_bear < 3
+            or active_bull + active_bear < 2
             or bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT):
         raise ValueError(
             f"Google Trends crowd data अपर्याप्त: सक्रिय बुलिश शब्द {active_bull}, "
