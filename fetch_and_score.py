@@ -437,39 +437,62 @@ def derive_card_indicator(name, sym, score, change):
                     "indicator_reason": str(exc)[:120]}
 
     if name == "BITCOIN":
+        # Primary: Yahoo Finance; fallback: Binance public spot klines (no API key).
+        # Both sources use completed 30-minute candles only.
+        closes = []
         try:
             h = yf.Ticker(sym).history(period="5d", interval="30m")
-            if h is None or len(h) < 20 or "Close" not in h.columns:
-                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
-                        "indicator_reason": "पर्याप्त पूरी हुई 30-मिनट कैंडल उपलब्ध नहीं"}
-            # Drop the last bar if it may still be forming.
-            now = dt.datetime.now(dt.timezone.utc)
-            idx = h.index
-            last_time = idx[-1].to_pydatetime()
-            if last_time.tzinfo is None:
-                last_time = last_time.replace(tzinfo=dt.timezone.utc)
-            if (now - last_time.astimezone(dt.timezone.utc)).total_seconds() < 30 * 60:
-                h = h.iloc[:-1]
-            close = h["Close"].dropna()
-            if len(close) < 20:
-                return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
-                        "indicator_reason": "पूरी हुई कैंडलें कम हैं"}
-            delta = close.diff()
-            gain = delta.clip(lower=0).rolling(14).mean()
-            loss = (-delta.clip(upper=0)).rolling(14).mean()
-            rs = gain / loss.replace(0, float("nan"))
-            rsi = 100 - (100 / (1 + rs))
-            # Compare the most recent 6-bar window with the preceding 6-bar window.
-            p1, p2 = close.iloc[-6:], close.iloc[-12:-6]
-            r1, r2 = rsi.iloc[-6:].dropna(), rsi.iloc[-12:-6].dropna()
-            if len(r1) >= 3 and len(r2) >= 3 and float(p1.min()) < float(p2.min()) and float(r1.min()) > float(r2.min()):
-                return {"indicator_label": "⚡ Bullish divergence",
-                        "indicator_reason": "30-मिनट कीमत ने lower low बनाया, RSI ने higher low"}
-            return {"indicator_label": "NO CONFIRMED BULLISH DIVERGENCE",
-                    "indicator_reason": "पूरी हुई 30-मिनट कैंडल में कीमत/RSI divergence की शर्त पूरी नहीं हुई"}
-        except Exception as exc:
-            return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
-                    "indicator_reason": str(exc)[:120]}
+            if h is not None and len(h) >= 20 and "Close" in h.columns:
+                now = dt.datetime.now(dt.timezone.utc)
+                idx = h.index
+                last_time = idx[-1].to_pydatetime()
+                if last_time.tzinfo is None:
+                    last_time = last_time.replace(tzinfo=dt.timezone.utc)
+                if (now - last_time.astimezone(dt.timezone.utc)).total_seconds() < 30 * 60:
+                    h = h.iloc[:-1]
+                closes = [float(v) for v in h["Close"].dropna().tolist()]
+        except Exception:
+            closes = []
+
+        source = "Yahoo Finance"
+        if len(closes) < 20:
+            try:
+                url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=30m&limit=100"
+                response = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+                response.raise_for_status()
+                rows = response.json()
+                now_ms = int(time.time() * 1000)
+                # Kline index 6 is close-time in milliseconds; discard any unfinished candle.
+                closes = [float(row[4]) for row in rows if len(row) > 6 and int(row[6]) < now_ms]
+                source = "Binance public spot candles"
+            except Exception as exc:
+                return {"indicator_label": "DATA FEED ERROR",
+                        "indicator_reason": "Yahoo और Binance दोनों से Bitcoin कैंडल नहीं मिली: " + str(exc)[:100]}
+
+        if len(closes) < 20:
+            return {"indicator_label": "INSUFFICIENT CANDLE DATA",
+                    "indicator_reason": "स्रोत से पर्याप्त पूरी हुई 30-मिनट Bitcoin कैंडल नहीं मिली"}
+        # Wilder-style RSI approximation using rolling 14-bar average gains/losses.
+        rsi = [None] * len(closes)
+        deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
+        for i in range(14, len(closes)):
+            window = deltas[i-14:i]
+            avg_gain = sum(max(x, 0.0) for x in window) / 14
+            avg_loss = sum(max(-x, 0.0) for x in window) / 14
+            if avg_loss == 0:
+                rsi[i] = 100.0 if avg_gain > 0 else 50.0
+            else:
+                rs = avg_gain / avg_loss
+                rsi[i] = 100.0 - (100.0 / (1.0 + rs))
+        # Compare last six completed candles to the six before them.
+        p1, p2 = closes[-6:], closes[-12:-6]
+        r1 = [x for x in rsi[-6:] if x is not None]
+        r2 = [x for x in rsi[-12:-6] if x is not None]
+        if len(r1) >= 3 and len(r2) >= 3 and min(p1) < min(p2) and min(r1) > min(r2):
+            return {"indicator_label": "⚡ Bullish divergence",
+                    "indicator_reason": "30-मिनट कीमत lower low, RSI higher low · स्रोत: " + source}
+        return {"indicator_label": "NO CONFIRMED BULLISH DIVERGENCE",
+                "indicator_reason": "पूरी हुई 30-मिनट कैंडल में divergence की शर्त पूरी नहीं · स्रोत: " + source}
     return {}
 
 
