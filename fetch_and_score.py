@@ -981,8 +981,13 @@ def main():
         or (float(previous_trends.get("bull_sum_pct", 0) or 0) == 0
             and float(previous_trends.get("bear_sum_pct", 0) or 0) == 0)
     )
+    # पुराने snapshot में score fields न हों तो उसे 6 घंटे तक valid cache न मानें।
+    previous_trends_has_scores = all(
+        previous_trends.get(k) is not None
+        for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
+    )
 
-    if (previous_trends.get("ok") and not previous_trends_all_zero
+    if (previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero
             and trends_age_hours is not None and 0 <= trends_age_hours < 6):
         trends = dict(previous_trends)
         trends["stale"] = False
@@ -992,7 +997,7 @@ def main():
         print(f"Using cached Google Trends snapshot ({trends_age_hours:.1f}h old; refresh window 6h)")
     else:
         # अमान्य zero-cache को fallback के रूप में भी वापस न दिखाएँ।
-        fallback_trends = {} if previous_trends_all_zero else previous_trends
+        fallback_trends = {} if previous_trends_all_zero or not previous_trends_has_scores else previous_trends
         trends = pick_with_fallback(fetch_trends(), fallback_trends)
         if trends.get("ok") and not trends.get("stale"):
             trends["as_of"] = updated
