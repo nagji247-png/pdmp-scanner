@@ -6,9 +6,9 @@ import requests
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
 INDEXES = {
-    "NIFTY": ("^NSEI", "Nifty 50 stock market"),
-    "SENSEX": ("^BSESN", "Sensex stock market"),
-    "BANKNIFTY": ("^NSEBANK", "Bank Nifty"),
+    "NIFTY": ("^NSEI", '"Nifty 50" OR Nifty index OR Nifty 50 stocks India'),
+    "SENSEX": ("^BSESN", '"BSE Sensex" OR Sensex index India'),
+    "BANKNIFTY": ("^NSEBANK", '"Bank Nifty" OR Nifty Bank index OR banking index India'),
     "GOLD": ("GC=F", "gold price"),
     "SILVER": ("SI=F", "silver price"),
     "CRUDEOIL": ("CL=F", "crude oil price"),
@@ -934,9 +934,19 @@ def main():
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
-    idx_pos = sum(result["instruments"][k].get("pos_n", 0) for k in ("NIFTY", "SENSEX"))
-    idx_neg = sum(result["instruments"][k].get("neg_n", 0) for k in ("NIFTY", "SENSEX"))
-    result["headline_split"] = {"pos": idx_pos, "neg": idx_neg}
+    # संयुक्त इंडेक्स समाचार में समान/मिलते-जुलते शीर्षक को एक ही बार गिनें।
+    # हर कार्ड का अपना समाचार और स्कोर अलग रहता है; यह केवल कुल भावना सारांश है।
+    index_heads = []
+    for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
+        index_heads.extend(result["instruments"].get(index_name, {}).get("headlines", []))
+    unique_index_heads = dedupe_heads(index_heads)
+    idx_pos = sum(1 for h in unique_index_heads if h.get("score", 0) > 0)
+    idx_neg = sum(1 for h in unique_index_heads if h.get("score", 0) < 0)
+    result["headline_split"] = {
+        "pos": idx_pos, "neg": idx_neg,
+        "unique_headlines": len(unique_index_heads),
+        "scope": "NIFTY+SENSEX+BANKNIFTY; duplicate titles removed",
+    }
 
     fii = pick_with_fallback(fetch_fii_dii(), previous.get("fii_dii") or {})
     if fii.get("ok") and not fii.get("stale"):
