@@ -791,9 +791,11 @@ function renderDivergence(dv, instruments = {}) {
       ? "अगले सत्र का मिलान अभी उपलब्ध नहीं है।"
       : `अगले सत्र में दर्ज बदलाव: ${Number(e.next_change) > 0 ? "+" : ""}${e.next_change}%`;
     const inst = instruments[e.instrument];
-    const headlines = (inst && Array.isArray(inst.headlines)) ? inst.headlines.slice(0, 3) : [];
+    const savedHeadlines = Array.isArray(e.headlines) ? e.headlines : [];
+    const currentHeadlines = (inst && Array.isArray(inst.headlines)) ? inst.headlines.slice(0, 3) : [];
+    const headlines = savedHeadlines.length ? savedHeadlines : currentHeadlines;
     const newsHtml = headlines.length
-      ? `<div class="sub" style="margin:8px 0 4px">इस स्टॉक/इंस्ट्रूमेंट की अभी उपलब्ध खबरें (ये उस ऐतिहासिक तारीख की खबरें हों, इसकी पुष्टि नहीं है):</div>${headlines.map(h => `<div class="hl"><div class="hl-title">${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">${esc(h.title || "शीर्षक उपलब्ध नहीं")} ↗</a>` : esc(h.title || "शीर्षक उपलब्ध नहीं")}</div><div class="hl-meta">${esc(h.source || "स्रोत उपलब्ध नहीं")}${h.age_h != null ? " · लगभग " + esc(h.age_h) + " घंटे पुरानी" : ""}</div></div>`).join("")}`
+      ? `<div class="sub" style="margin:8px 0 4px">${savedHeadlines.length ? "इस रिकॉर्ड के साथ सेव की गई खबरें (स्कोर बनाते समय उपलब्ध):" : "पुराने रिकॉर्ड में उस तारीख की खबरें सेव नहीं थीं; ये वर्तमान फ़ीड की खबरें हैं, ऐतिहासिक खबरें नहीं:"}</div>${headlines.map(h => `<div class="hl"><div class="hl-title">${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">${esc(h.title || "शीर्षक उपलब्ध नहीं")} ↗</a>` : esc(h.title || "शीर्षक उपलब्ध नहीं")}</div><div class="hl-meta">${esc(h.source || "स्रोत उपलब्ध नहीं")}${h.age_h != null ? " · लगभग " + esc(h.age_h) + " घंटे पुरानी" : ""}</div></div>`).join("")}`
       : '<div class="sub" style="margin-top:8px">इस इंस्ट्रूमेंट की खबरें अभी उपलब्ध नहीं हैं।</div>';
     return `<details class="divergence-item">
       <summary>
@@ -809,7 +811,8 @@ function renderDivergence(dv, instruments = {}) {
           <div class="detail-stat"><span>अगले सत्र का नतीजा</span><b>${e.outcome === "sentiment" ? "खबर की दिशा के पक्ष में" : e.outcome === "price" ? "कीमत की दिशा के पक्ष में" : "अभी तय नहीं"}</b></div>
         </div>
         <div class="sub" style="margin-top:8px">${esc(nextText)}</div>
-        <div class="warn" style="margin-top:8px">ऐतिहासिक खबर का मूल शीर्षक इस रिकॉर्ड में सेव नहीं है। नीचे दी गई खबरें वर्तमान उपलब्ध फ़ीड से हैं; इन्हें उस दिन की खबर न मानें।</div>
+        <div class="detail-stat" style="margin-top:8px"><span>नतीजा कैसे तय हुआ?</span><b>${e.outcome === "sentiment" ? "अगले सत्र की कीमत खबर के स्कोर वाली दिशा में गई, इसलिए ‘खबर सही निकली’." : e.outcome === "price" ? "अगले सत्र की कीमत खबर के स्कोर वाली दिशा के उलट गई, इसलिए ‘कीमत सही निकली’." : "अगले सत्र की कीमत आने पर ही मिलान होगा."}</b></div>
+        <div class="warn" style="margin-top:8px">${savedHeadlines.length ? "नीचे रिकॉर्ड के साथ सेव शीर्षक दिखाए गए हैं।" : "ऐतिहासिक शीर्षक उपलब्ध नहीं है; वर्तमान फ़ीड को उस तारीख की खबर न समझें।"}</div>
         ${newsHtml}
       </div>
     </details>`;
