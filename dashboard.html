@@ -156,10 +156,9 @@
   .app-main { min-width:0; grid-column:2; padding-bottom:24px; }
   .brandbar { padding:14px 20px 8px; gap:12px; background:linear-gradient(90deg,#061127,#081a39); border:0; }
   .brand-name { flex:1; min-width:0; }
-  .updated-strip { display:flex; justify-content:flex-end; padding:4px 20px 8px; background:#081a39; }
-  .last-updated { flex-shrink:0; text-align:right; white-space:nowrap; color:#6cecff; font-size:12px; font-weight:700; letter-spacing:.2px; padding:6px 10px; border:1px solid #16466a; border-radius:8px; background:rgba(8,28,55,.75); }
-  @media(max-width:560px) { .updated-strip { padding:3px 12px 7px; } .last-updated { font-size:11px; padding:5px 8px; } .brand-name .brand-title { font-size:clamp(15px,4vw,22px); } .brand-name .brand-title i { font-size:.62em; } .brand-name .brand-hi { font-size:13px; letter-spacing:3px; } }
-  .brand-mark { width:52px;height:52px;flex-basis:52px; }
+  .last-updated { display:inline-block; vertical-align:middle; white-space:nowrap; color:#6cecff; font-size:10px; font-weight:600; letter-spacing:0; margin-left:8px; }
+  @media(max-width:560px) { .last-updated { font-size:9px; margin-left:5px; } .brand-name .brand-title { font-size:clamp(15px,4vw,22px); } .brand-name .brand-title i { font-size:.62em; } .brand-name .brand-hi { font-size:13px; letter-spacing:3px; } }
+  .brand-mark { width:70px;height:70px;flex-basis:70px; }
   .brand-title { font-size:clamp(20px,2.2vw,34px); }
   .brand-hi { font-size:17px; }
   .topnav { padding:7px 16px; gap:5px; background:#061027; }
@@ -195,7 +194,7 @@
   }
   @media(max-width:560px) {
     .brandbar { padding:10px 12px 6px; }
-    .brand-mark { width:42px;height:42px;flex-basis:42px; }
+    .brand-mark { width:58px;height:58px;flex-basis:58px; }
     .brand-title { font-size:20px; }
     .brand-title i { font-size:12px; }
     .brand-hi { font-size:13px; }
@@ -250,13 +249,13 @@
   </div>
   <div class="brand-name"><div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div></div>
 </header>
-<div class="updated-strip"><div id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</div></div>
+
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
 
 <section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
 
-<section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII)</h2><div class="box" id="flow"></div></section>
+<section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
 
 <section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स</h2><div class="grid" id="indexes"></div></section>
 
