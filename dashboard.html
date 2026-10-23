@@ -389,7 +389,7 @@ function spark(values, color) {
     <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg>`;
 }
 
-function divergence(score, change, isIndianIndex, headlineHtml) {
+function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml) {
   if (Math.abs(score) < 1 || Math.abs(change) < 0.2) return "";
   if (Math.sign(score) === Math.sign(change)) return "";
   const sentiment = score > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : "BEARISH (खबरों का रुख नकारात्मक)";
@@ -405,10 +405,40 @@ function divergence(score, change, isIndianIndex, headlineHtml) {
     <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
     <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
     <details><summary>📰 इस स्टॉक की हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
+    <details><summary>👥 वास्तविक F&O पोज़िशन देखें — DII / PRO / RETAIL</summary>${participantOIHtml}</details>
   </details>`;
 }
 
-function card(name, d) {
+function oiNum(v) { return v == null || !Number.isFinite(Number(v)) ? "—" : Number(v).toLocaleString("en-IN"); }
+
+function renderParticipantOI(oi) {
+  if (!oi || !oi.ok || !oi.participants) {
+    return '<div class="hl-meta">NSE का वास्तविक participant-wise OI अभी उपलब्ध नहीं है। कोई अनुमानित आँकड़ा नहीं दिखाया गया।</div>';
+  }
+  const p = oi.participants;
+  const rows = [
+    ["DII", "घरेलू संस्थान", p.DII],
+    ["PRO", "प्रोप्राइटरी ट्रेडर", p.PRO],
+    ["CLIENT", "Retail + HNI/अन्य क्लाइंट", p.CLIENT],
+    ["FII", "विदेशी संस्थान", p.FII]
+  ].map(([key, label, x]) => {
+    if (!x) return "";
+    return '<div class="hl" style="margin-top:8px"><b>' + label + ' (' + key + ')</b>' +
+      '<div class="hl-meta">Index Futures Long/Short: ' + oiNum(x.future_index_long) + ' / ' + oiNum(x.future_index_short) +
+      ' · Net: ' + oiNum(x.future_index_net) + '</div>' +
+      '<div class="hl-meta">Index CE Long/Short: ' + oiNum(x.index_call_long) + ' / ' + oiNum(x.index_call_short) +
+      ' · Net: ' + oiNum(x.index_call_net) + '</div>' +
+      '<div class="hl-meta">Index PE Long/Short: ' + oiNum(x.index_put_long) + ' / ' + oiNum(x.index_put_short) +
+      ' · Net: ' + oiNum(x.index_put_net) + '</div>' +
+      '<div class="hl-meta">Stock Futures Long/Short: ' + oiNum(x.future_stock_long) + ' / ' + oiNum(x.future_stock_short) +
+      ' · Net: ' + oiNum(x.future_stock_net) + '</div></div>';
+  }).join("");
+  return '<div class="hl-meta">स्रोत: NSE Participant-wise Open Interest · तारीख: ' + esc(oi.date || "—") +
+    ' · EOD डेटा (लाइव नहीं)</div><div class="hl-meta"><b>ध्यान दें:</b> यह पूरे F&O बाज़ार का aggregate है, RELIANCE जैसे किसी एक स्टॉक की अलग पोज़िशन नहीं। CLIENT में retail के साथ HNI/अन्य क्लाइंट भी हो सकते हैं। Net = Long − Short; CE/PE का net अकेले bullish/bearish का पक्का संकेत नहीं।</div>' +
+    (rows || '<div class="hl-meta">NSE participant rows नहीं मिले।</div>');
+}
+
+function card(name, d, participantOI) {
   const [cls, label] = classify(d.score);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const sign = d.change_pct >= 0 ? "+" : "";
@@ -438,7 +468,7 @@ function card(name, d) {
     <div class="name">${esc(name)}</div>
     <div class="big" style="color:${color}">${sScore}</div>
     <div class="lbl" style="color:${color}">${label}</div>
-    ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads})}
+    ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
 
     ${spark(scoreHistory[name], color)}
@@ -614,7 +644,7 @@ function renderFlow(f) {
 
 const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 
-function renderInstruments(instruments) {
+function renderInstruments(instruments, participantOI) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
   const glb = document.getElementById("global");
@@ -624,11 +654,11 @@ function renderInstruments(instruments) {
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
-      stk.appendChild(card(name, d));
+      stk.appendChild(card(name, d, participantOI));
     } else if (INDIAN_INDEXES.includes(name)) {
-      idx.appendChild(card(name, d));
+      idx.appendChild(card(name, d, participantOI));
     } else {
-      glb.appendChild(card(name, d));
+      glb.appendChild(card(name, d, participantOI));
     }
   }
 }
@@ -935,7 +965,7 @@ async function load() {
     renderCrowd(data);
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
-    renderInstruments(data.instruments);
+    renderInstruments(data.instruments, data.participant_oi);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
     renderDivergence(data.divergence, data.instruments);
