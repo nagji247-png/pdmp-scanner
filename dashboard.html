@@ -276,6 +276,8 @@
 
 <section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
 
+<section class="panel crowd-panel"><h2>⚠️ CROWD TRAP DETECTOR — भीड़ बनाम कीमत</h2><div class="box" id="trap-detector"></div></section>
+
 <section class="panel trends-panel"><h2>🔍 What People Are Searching (Google Trends)</h2><div class="box" id="trends"></div></section>
 
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
@@ -483,6 +485,42 @@ function renderCrowd(data) {
 
   box.innerHTML = `${moodHtml}${headHtml}${trapLine}
     ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
+}
+
+function renderTrapDetector(data) {
+  const box = document.getElementById("trap-detector");
+  const t = data.trends || {};
+  const n = (((data.signals || {}).state || {}).NIFTY) || {};
+  const dir = Number(n.price_dir);
+  const freshMood = t.ok && !t.stale && t.crowd_bull_pct != null;
+  const pct = freshMood ? Number(t.crowd_bull_pct) : null;
+
+  if (!freshMood) {
+    box.innerHTML = '<div class="warn">DATA INSUFFICIENT — भीड़ की दिशा तय नहीं</div><div class="sub">Google Trends का ताज़ा और मान्य डेटा नहीं है। समाचार स्कोर को रिटेल की असली पोज़िशन नहीं माना जाएगा।</div>';
+    return;
+  }
+  if (pct > 30 && pct < 70) {
+    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:#aab4c4">भीड़ का मूड स्पष्ट नहीं</div><div class="sub">Google Trends अनुपात ' + pct.toFixed(1) + '% bullish है। यह खोज-रुचि है, CE/PE की वास्तविक खरीदारी नहीं। एकतरफ़ा भीड़ का प्रमाण नहीं मिला।</div>';
+    return;
+  }
+  if (dir !== 1 && dir !== -1) {
+    box.innerHTML = '<div class="warn">TRAP WATCH — कीमत की दिशा उपलब्ध नहीं</div><div class="sub">भीड़ का झुकाव दिख रहा है, लेकिन NIFTY की पूरी हुई 30-मिनट चाल से उलटाव की पुष्टि करने योग्य दिशा उपलब्ध नहीं।</div>';
+    return;
+  }
+
+  const crowdBull = pct >= 70;
+  const marketUp = dir === 1;
+  const opposite = crowdBull !== marketUp;
+  if (opposite) {
+    const title = crowdBull ? 'BULL TRAP RISK — भीड़ तेजी में, कीमत कमजोर' : 'BEAR TRAP RISK — भीड़ मंदी में, कीमत मजबूत';
+    const color = '#ffb84d';
+    const note = crowdBull
+      ? 'तेजी की खोज-रुचि ऊँची है, लेकिन NIFTY की आख़िरी पूरी हुई 30-मिनट चाल नीचे की है। CE में देर से एंट्री का जोखिम देखें।'
+      : 'मंदी की खोज-रुचि ऊँची है, लेकिन NIFTY की आख़िरी पूरी हुई 30-मिनट चाल ऊपर की है। PE में देर से एंट्री का जोखिम देखें।';
+    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:'+color+'">'+title+'</div><div class="mood-split"><span class="pos">बुलिश खोज-रुचि '+pct.toFixed(1)+'%</span><span class="neg">बियरिश खोज-रुचि '+(100-pct).toFixed(1)+'%</span></div><div class="sub" style="margin-top:8px">'+note+'</div><div class="sub" style="margin-top:8px">यह शुरुआती विरोधाभास है, ट्रैप की गारंटी नहीं। विकल्प प्रीमियम/ऑर्डर फ्लो उपलब्ध न हो तो उसे अनुमान से नहीं भरा जाएगा।</div>';
+  } else {
+    box.innerHTML = '<div style="font-size:18px;font-weight:900;color:#aab4c4">भीड़ और कीमत एक दिशा में</div><div class="sub">अभी Google Trends का झुकाव और NIFTY की आख़िरी पूरी हुई 30-मिनट चाल विपरीत नहीं हैं। इससे ट्रैप खारिज नहीं होता; केवल विरोधाभास का संकेत नहीं मिला।</div>';
+  }
 }
 
 function renderFlow(f) {
@@ -847,6 +885,7 @@ async function load() {
     scoreHistory = await loadHistory();
     renderRange(data.range);
     renderCrowd(data);
+  renderTrapDetector(data);
     renderFlow(data.fii_dii);
     renderInstruments(data.instruments);
     renderTrends(data.trends);
