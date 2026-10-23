@@ -389,10 +389,23 @@ function spark(values, color) {
     <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg>`;
 }
 
-function divergence(score, change) {
+function divergence(score, change, isIndianIndex, headlineHtml) {
   if (Math.abs(score) < 1 || Math.abs(change) < 0.2) return "";
   if (Math.sign(score) === Math.sign(change)) return "";
-  return `<div class="div">⚡ सेंटिमेंट और कीमत उलटे हैं</div>`;
+  const sentiment = score > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : "BEARISH (खबरों का रुख नकारात्मक)";
+  const priceDirection = change > 0 ? "कीमत बढ़ी है" : "कीमत गिरी है";
+  const reason = (score > 0 && change < 0)
+    ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
+    : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।";
+  if (isIndianIndex) return `<div class="div">⚡ सेंटिमेंट और कीमत उलटे हैं</div>`;
+  return `<details class="div"><summary>⚡ सेंटिमेंट और कीमत उलटे हैं — समझें</summary>
+    <div class="hl-meta" style="margin-top:8px"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
+    <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${score > 0 ? "+" : ""}${score})</div>
+    <div class="hl-meta"><b>कीमत:</b> ${change > 0 ? "+" : ""}${change}% — ${priceDirection}</div>
+    <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
+    <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
+    <details><summary>📰 इस स्टॉक की हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
+  </details>`;
 }
 
 function card(name, d) {
@@ -425,7 +438,7 @@ function card(name, d) {
     <div class="name">${esc(name)}</div>
     <div class="big" style="color:${color}">${sScore}</div>
     <div class="lbl" style="color:${color}">${label}</div>
-    ${divergence(d.score, d.change_pct)}
+    ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads})}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
 
     ${spark(scoreHistory[name], color)}
