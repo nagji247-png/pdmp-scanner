@@ -546,14 +546,8 @@ function renderInstruments(instruments) {
 
 function renderTrends(t) {
   const box = document.getElementById("trends");
-  if (!t) { box.innerHTML = '<div class="sub">अभी कोई Trends डेटा नहीं</div>'; return; }
-  if (!t.ok) {
-    box.innerHTML = `<div class="warn">Google Trends का डेटा इस बार नहीं मिला।</div>
-      <div class="sub">${esc(t.error || "")}</div>
-      <div class="sub">डेटा नहीं मिला तो उसे 0% खोज या कोई दिशा नहीं माना जाएगा।</div>`;
-    return;
-  }
-
+  if (!t) t = { ok: false, error: "अभी कोई Trends डेटा नहीं" };
+  const failed = !t.ok;
   const stale = t.stale
     ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>`
     : (t.cached
@@ -565,7 +559,7 @@ function renderTrends(t) {
   const neutralScore = Number(t.neutral_score_pct);
   const hasScores = [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
     .every(value => value != null && Number.isFinite(Number(value)));
-  const scoreBlock = hasScores ? `
+  const scoreBlock = hasScores && !failed ? `
     <div class="trends-score-layout">
       <div class="trends-donut" style="--bull:${bullScore}%;--bear:${bearScore}%;--neutral:${neutralScore}%" role="img" aria-label="Bullish ${pctText(bullScore)}, Bearish ${pctText(bearScore)}, Neutral ${pctText(neutralScore)}">
         <div class="trends-donut-hole"><strong class="pos">BULLISH</strong><b>${pctText(bullScore)}</b></div>
@@ -579,7 +573,7 @@ function renderTrends(t) {
     `<div class="trends-score-layout">
        <div class="trends-donut unavailable"><div class="trends-donut-hole"><strong>डेटा</strong><b>—</b></div></div>
        <div class="trends-score-legend"><div><small>BULLISH</small><strong>उपलब्ध नहीं</strong></div><div><small>BEARISH</small><strong>उपलब्ध नहीं</strong></div><div><small>NEUTRAL</small><strong>उपलब्ध नहीं</strong></div></div>
-     </div><div class="sub">अगली सफल Google Trends गणना में तीनों प्रतिशत दिखाई देंगे। अभी अनुमानित प्रतिशत नहीं दिखाए जा रहे।</div>`;
+     </div><div class="sub">${failed ? "Google Trends डेटा नहीं मिला: " + esc(t.error || "अज्ञात त्रुटि") + ". " : ""}अगली सफल Google Trends गणना में तीनों प्रतिशत दिखाई देंगे। अभी अनुमानित प्रतिशत नहीं दिखाए जा रहे।</div>`;
 
   const ct = t.crowd_terms || [];
   const topOf = (dir) => {
