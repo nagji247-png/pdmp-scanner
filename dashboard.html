@@ -705,34 +705,43 @@ function renderContrarian(c) {
     ? '<div class="warn">Small sample size so far — इसे अभी शुरुआती संकेत मानें, पक्का नतीजा नहीं।</div>'
     : "";
 
-  const rows = (c.events || []).slice().reverse().map(e => {
-    const isBull = e.score > 0;
-    const badge = isBull
-      ? '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#1d3a2a;color:#2ecc71">BULLISH</span>'
-      : '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#3b1d22;color:#e74c3c">BEARISH</span>';
+  const events = (c.events || []).slice().reverse();
+  const instruments = [...new Set(events.map(e => e.instrument || "अन्य"))];
+  const groupedRows = instruments.map(instrument => {
+    const instrumentEvents = events.filter(e => (e.instrument || "अन्य") === instrument);
+    const rows = instrumentEvents.map(e => {
+      const isBull = e.score > 0;
+      const badge = isBull
+        ? '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#1d3a2a;color:#2ecc71">BULLISH</span>'
+        : '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#3b1d22;color:#e74c3c">BEARISH</span>';
 
-    let status;
-    if (e.outcome === "reversed") {
-      status = '<span style="font-size:12px;color:#f5a623">पलटा</span>';
-    } else if (e.outcome === "continued") {
-      status = '<span style="font-size:12px;color:#2ecc71">जारी रहा</span>';
-    } else {
-      status = '<span style="font-size:12px;color:#7b82a0">next-day data not available yet</span>';
-    }
+      let status;
+      if (e.outcome === "reversed") {
+        status = '<span style="font-size:12px;color:#f5a623">पलटा</span>';
+      } else if (e.outcome === "continued") {
+        status = '<span style="font-size:12px;color:#2ecc71">जारी रहा</span>';
+      } else {
+        status = '<span style="font-size:12px;color:#7b82a0">अगले दिन का डेटा अभी उपलब्ध नहीं</span>';
+      }
 
-    const sign = e.score > 0 ? "+" : "";
+      const sign = e.score > 0 ? "+" : "";
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
+          <div style="font-size:13px;color:#e6e9f2">
+            ${esc(e.date)} <span style="color:#7b82a0;font-size:11px">(±6 सीमा पार)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;white-space:nowrap">
+            <span style="font-size:13px;font-weight:700;color:${isBull ? "#2ecc71" : "#e74c3c"}">${sign}${e.score}</span>
+            ${badge}
+          </div>
+        </div>
+        <div style="text-align:right;margin:-4px 12px 2px 0">${status}</div>`;
+    }).join("");
     return `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
-        <div style="font-size:13px;color:#e6e9f2">
-          ${esc(e.date)} <span style="color:#7b82a0;font-size:11px">(आज की ±6 सीमा पार)</span>
-          — <b>${esc(e.instrument)}</b>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;white-space:nowrap">
-          <span style="font-size:13px;font-weight:700;color:${isBull ? "#2ecc71" : "#e74c3c"}">${sign}${e.score}</span>
-          ${badge}
-        </div>
-      </div>
-      <div style="text-align:right;margin:-4px 12px 2px 0">${status}</div>`;
+      <details style="margin-top:8px;background:#1e2540;border-radius:8px;padding:10px 12px">
+        <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">${esc(instrument)} — तारीख़ के अनुसार ${instrumentEvents.length} रिकॉर्ड</summary>
+        <div style="margin-top:6px">${rows}</div>
+      </details>`;
   }).join("");
 
   box.innerHTML = `
@@ -750,8 +759,8 @@ function renderContrarian(c) {
       </div>
     </div>
     <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
-      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 सभी Extreme Sentiment रिकॉर्ड खोलें (${(c.events || []).length})</summary>
-      <div style="margin-top:8px">${rows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
+      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 इंस्ट्रूमेंट के अनुसार रिकॉर्ड खोलें (${(c.events || []).length})</summary>
+      <div style="margin-top:8px">${groupedRows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
     </details>`;
 }
 
