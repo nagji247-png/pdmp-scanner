@@ -286,17 +286,24 @@ def fetch_participant_oi():
             if response.status_code != 200 or not response.text.strip():
                 last_error = f"NSE returned HTTP {response.status_code}"
                 continue
-            reader = csv.DictReader(response.text.lstrip("\ufeff").splitlines())
+            # NSE archive files can include a title/preamble before the actual CSV header.
+            raw_lines = [line for line in response.text.lstrip("\ufeff").splitlines() if line.strip()]
+            header_at = next((i for i, line in enumerate(raw_lines)
+                              if "client type" in line.lower() or "client_type" in line.lower()), None)
+            if header_at is None:
+                last_error = "NSE CSV header row not found"
+                continue
+            reader = csv.DictReader(raw_lines[header_at:])
             rows = list(reader)
             if not rows or not reader.fieldnames:
-                last_error = "NSE CSV has no rows"
+                last_error = "NSE CSV has no data rows"
                 continue
             def norm(value):
-                return re.sub(r"[^a-z0-9]", "", str(value).lower())
+                return re.sub(r"[^a-z0-9]", "", str(value).replace("\ufeff", "").lower()).strip()
             fields = {norm(k): k for k in reader.fieldnames if k}
             type_key = next((fields[k] for k in ("clienttype", "participant", "participanttype") if k in fields), None)
             if not type_key:
-                last_error = "NSE CSV participant column not recognized"
+                last_error = "NSE CSV participant column not recognized after header row"
                 continue
             wanted = {
                 "future_index_long": ("futureindexlong",),
