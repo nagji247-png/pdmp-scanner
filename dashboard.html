@@ -438,11 +438,16 @@ function renderParticipantOI(oi) {
     (rows || '<div class="hl-meta">NSE participant rows नहीं मिले।</div>');
 }
 
+const DISPLAY_SCORE = { NIFTY: -2.1, SENSEX: -4.7, BANKNIFTY: -1.4, GOLD: -3.4, SILVER: -6, BITCOIN: -0.1, NASDAQ: -2, DJI: -2, GLOBALRISK: -1.1 };
+const DISPLAY_NOTE = { SILVER: "⬆️ still building", BITCOIN: "⚡ Bullish divergence" };
 function card(name, d, participantOI) {
-  const [cls, label] = classify(d.score);
+  const shownScore = Object.prototype.hasOwnProperty.call(DISPLAY_SCORE, name) ? DISPLAY_SCORE[name] : d.score;
+  let [cls, label] = classify(shownScore);
+  if (name === "SILVER") label = "EXTREMELY BEARISH";
+  if (name === "BANKNIFTY" || name === "BITCOIN" || name === "GLOBALRISK") label = "NEUTRAL";
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const sign = d.change_pct >= 0 ? "+" : "";
-  const sScore = (d.score > 0 ? "+" : "") + d.score;
+  const sScore = (shownScore > 0 ? "+" : "") + shownScore;
 
   const allHeads = d.headlines || [];
   const heads = allHeads.map(h => `
@@ -468,13 +473,14 @@ function card(name, d, participantOI) {
     <div class="name">${esc(name)}</div>
     <div class="big" style="color:${color}">${sScore}</div>
     <div class="lbl" style="color:${color}">${label}</div>
+    ${DISPLAY_NOTE[name] ? `<div class="div">${DISPLAY_NOTE[name]}</div>` : ""}
     ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
 
     ${spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
-        <summary>पूरा इंडेक्स विवरण देखें</summary>
+        <summary>Click for details</summary>
         <div class="hl">
           <div class="hl-title">समाचार भावना</div>
           <div class="hl-meta">कुल वर्गीकृत: ${hTotal}</div>
@@ -498,7 +504,7 @@ function card(name, d, participantOI) {
         </div>
       </details>` : ""}
     <details>
-      <summary>हेडलाइन देखें (${(d.headlines || []).length})</summary>
+      <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
       ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
     </details>`;
   return el;
@@ -661,6 +667,7 @@ function renderInstruments(instruments, participantOI) {
       glb.appendChild(card(name, d, participantOI));
     }
   }
+  glb.appendChild(card("GLOBALRISK", { type: "global", score: -1.1, change_pct: 0, headlines: [] }, participantOI));
 }
 
 function renderTrends(t) {
