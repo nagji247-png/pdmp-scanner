@@ -155,6 +155,9 @@
   .side-nav a.active,.side-nav a:hover { color:#20eaff; border-color:#2450b7; background:linear-gradient(100deg,#082c61,#221a66); }
   .app-main { min-width:0; grid-column:2; padding-bottom:24px; }
   .brandbar { padding:14px 20px 8px; gap:12px; background:linear-gradient(90deg,#061127,#081a39); border:0; }
+  .brand-name { flex:1; min-width:0; }
+  .last-updated { margin-left:auto; flex-shrink:0; text-align:right; white-space:nowrap; color:#6cecff; font-size:12px; font-weight:700; letter-spacing:.2px; padding:7px 10px; border:1px solid #16466a; border-radius:8px; background:rgba(8,28,55,.75); }
+  @media(max-width:560px) { .last-updated { font-size:10px; padding:6px 7px; } .brand-name .brand-title { font-size:clamp(15px,4vw,22px); } .brand-name .brand-title i { font-size:.62em; } .brand-name .brand-hi { font-size:13px; letter-spacing:3px; } }
   .brand-mark { width:52px;height:52px;flex-basis:52px; }
   .brand-title { font-size:clamp(20px,2.2vw,34px); }
   .brand-hi { font-size:17px; }
@@ -244,7 +247,8 @@
       <path d="M38 14 L44 4 L50 14 M34 18 L54 18" fill="none" stroke="#a9eaff" stroke-width="3" stroke-linecap="round"/>
     </svg>
   </div>
-  <div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div>
+  <div class="brand-name"><div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div></div>
+  <div id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</div>
 </header>
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
@@ -805,8 +809,17 @@ async function load() {
     const data = await res.json();
     updateTradeGuard(data);
 
-    document.getElementById("status").textContent =
-      "अपडेट: " + new Date(data.updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+    const updatedEl = document.getElementById("last-updated");
+    const updatedDate = new Date(data.updated);
+    if (updatedEl && Number.isFinite(updatedDate.getTime())) {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit", hour12: true
+      }).formatToParts(updatedDate);
+      const part = type => parts.find(p => p.type === type)?.value || "";
+      const time = part("hour") + ":" + part("minute") + " " + part("dayPeriod").toUpperCase();
+      updatedEl.textContent = part("day") + " " + part("month") + " " + part("year") + " · " + time + " IST";
+    }
 
     scoreHistory = await loadHistory();
     renderRange(data.range);
