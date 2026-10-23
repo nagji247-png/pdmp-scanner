@@ -271,6 +271,80 @@ def daily_returns(sym):
     return out
 
 
+def fetch_participant_oi():
+    """NSE official participant-wise OI: daily EOD, not a live feed."""
+    headers = {"User-Agent": "Mozilla/5.0", "Accept": "text/csv,text/plain,*/*",
+               "Referer": "https://www.nseindia.com/"}
+    last_error = "NSE participant OI CSV unavailable"
+    for offset in range(0, 8):
+        day = dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=offset)
+        if day.weekday() >= 5:
+            continue
+        url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
+        try:
+            response = requests.get(url, headers=headers, timeout=12)
+            if response.status_code != 200 or not response.text.strip():
+                last_error = f"NSE returned HTTP {response.status_code}"
+                continue
+            reader = csv.DictReader(response.text.lstrip("\ufeff").splitlines())
+            rows = list(reader)
+            if not rows or not reader.fieldnames:
+                last_error = "NSE CSV has no rows"
+                continue
+            def norm(value):
+                return re.sub(r"[^a-z0-9]", "", str(value).lower())
+            fields = {norm(k): k for k in reader.fieldnames if k}
+            type_key = next((fields[k] for k in ("clienttype", "participant", "participanttype") if k in fields), None)
+            if not type_key:
+                last_error = "NSE CSV participant column not recognized"
+                continue
+            wanted = {
+                "future_index_long": ("futureindexlong",),
+                "future_index_short": ("futureindexshort",),
+                "index_call_long": ("optionindexcalllong", "indexcalllong"),
+                "index_call_short": ("optionindexcallshort", "indexcallshort"),
+                "index_put_long": ("optionindexputlong", "indexputlong"),
+                "index_put_short": ("optionindexputshort", "indexputshort"),
+                "future_stock_long": ("futurestocklong",),
+                "future_stock_short": ("futurestockshort",),
+                "stock_call_long": ("optionstockcalllong", "stockcalllong"),
+                "stock_call_short": ("optionstockcallshort", "stockcallshort"),
+                "stock_put_long": ("optionstockputlong", "stockputlong"),
+                "stock_put_short": ("optionstockputshort", "stockputshort"),
+            }
+            colmap = {out: next((fields[k] for k in aliases if k in fields), None)
+                      for out, aliases in wanted.items()}
+            if not any(colmap.values()):
+                last_error = "NSE CSV position columns not recognized"
+                continue
+            participants = {}
+            for row in rows:
+                label = str(row.get(type_key, "")).strip().lower()
+                if label not in ("client", "dii", "fii", "pro"):
+                    continue
+                item = {}
+                for out, col in colmap.items():
+                    try:
+                        item[out] = int(float(str(row.get(col, "0")).replace(",", ""))) if col else None
+                    except (ValueError, TypeError):
+                        item[out] = None
+                for prefix in ("future_index", "index_call", "index_put", "future_stock"):
+                    item[prefix + "_net"] = (item.get(prefix + "_long") or 0) - (item.get(prefix + "_short") or 0)
+                participants[label.upper()] = item
+            if len(participants) < 4:
+                last_error = "NSE CSV missing participant rows"
+                continue
+            return {"ok": True, "stale": False, "date": day.isoformat(),
+                    "source": "NSE official participant-wise OI",
+                    "scope": "F&O participant totals; stock F&O is aggregate, not per individual stock",
+                    "participants": participants}
+        except Exception as exc:
+            last_error = str(exc)[:180]
+    return {"ok": False, "stale": True, "date": None,
+            "source": "NSE official participant-wise OI", "error": last_error,
+            "participants": {}}
+
+
 def update_contrarian(events, name, score, today_str, returns):
     """±6 से ज़्यादा स्कोर दर्ज करें और पुराने इवेंट का नतीजा भरें"""
     key = f"{today_str}|{name}"
@@ -958,6 +1032,7 @@ def main():
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
+    result["participant_oi"] = fetch_participant_oi()
 
     market_news = pick_with_fallback(fetch_market_news(), previous.get("market_news") or {})
     if market_news.get("ok") and not market_news.get("stale"):
