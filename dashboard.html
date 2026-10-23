@@ -427,7 +427,7 @@ function card(name, d) {
     <div class="lbl" style="color:${color}">${label}</div>
     ${divergence(d.score, d.change_pct)}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
-    <div class="hl-meta">कीमत: पिछले पूरे ट्रेडिंग सत्र का बंद भाव बनाम उससे पिछले सत्र का बंद भाव (Close-to-Close)। Sentiment: उपलब्ध खबरों की भावना का स्कोर; वास्तविक CE/PE पोज़िशन नहीं।</div>
+
     ${spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
