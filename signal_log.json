@@ -989,10 +989,10 @@
     "vol_data": false,
     "held_minutes": 103,
     "price_at_change": 22411.44921875,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 22600.0,
+    "move_pct": 0.84,
+    "after_minutes": 233,
+    "direction": "ऊपर"
   },
   {
     "time": "2026-10-23T08:03Z",
@@ -1005,6 +1005,55 @@
     "vol_data": true,
     "held_minutes": 1296,
     "price_at_change": 692.5999755859375,
+    "price_after": 692.8,
+    "move_pct": 0.03,
+    "after_minutes": 233,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-10-23T11:56Z",
+    "instrument": "NIFTY",
+    "prev_score": -4.9,
+    "new_score": -2.9,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 233,
+    "price_at_change": 22600.0,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-10-23T11:56Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": -2.4,
+    "new_score": -4.2,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 632,
+    "price_at_change": 54287.3515625,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-10-23T11:56Z",
+    "instrument": "RELIANCE",
+    "prev_score": 3.5,
+    "new_score": 3.4,
+    "changed": [
+      "VWAP",
+      "वॉल्यूम"
+    ],
+    "vol_data": true,
+    "held_minutes": 632,
+    "price_at_change": 1190.0,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
