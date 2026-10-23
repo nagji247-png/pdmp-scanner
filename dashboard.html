@@ -407,6 +407,10 @@ function card(name, d) {
       <div class="hl-meta">${esc(h.source) || "स्रोत अज्ञात"}${h.age_h != null ? " · " + ageText(h.age_h) : ""}</div>
     </div>`).join("");
 
+  const isIndianIndex = INDIAN_INDEXES.includes(name);
+  const posN = Number(d.pos_n || 0);
+  const negN = Number(d.neg_n || 0);
+  const hTotal = posN + negN;
   const el = document.createElement("div");
   el.className = "card " + cls;
   el.innerHTML = `
@@ -414,10 +418,26 @@ function card(name, d) {
     <div class="big" style="color:${color}">${sScore}</div>
     <div class="lbl" style="color:${color}">${label}</div>
     ${divergence(d.score, d.change_pct)}
-    <div class="chg">कीमत: ${sign}${d.change_pct}%</div>
+    <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
     ${spark(scoreHistory[name], color)}
+    ${isIndianIndex ? `
+      <details>
+        <summary>पूरा इंडेक्स विवरण देखें</summary>
+        <div class="hl">
+          <div class="hl-title">समाचार भावना</div>
+          <div class="hl-meta">सकारात्मक हेडलाइन: ${posN} · नकारात्मक हेडलाइन: ${negN}${hTotal ? " · कुल वर्गीकृत: " + hTotal : ""}</div>
+        </div>
+        <div class="hl">
+          <div class="hl-title">स्कोर का मतलब</div>
+          <div class="hl-meta">यह स्कोर उपलब्ध समाचारों की भावना का संकेत है; यह वास्तविक CE/PE खरीद, सभी रिटेल ट्रेडरों की पोज़िशन या पक्का ट्रेड सिग्नल नहीं है।</div>
+        </div>
+        <div class="hl">
+          <div class="hl-title">कीमत का बदलाव</div>
+          <div class="hl-meta">${sign}${d.change_pct}% · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
+        </div>
+      </details>` : ""}
     <details>
-      <summary>हेडलाइन (${(d.headlines || []).length})</summary>
+      <summary>हेडलाइन देखें (${(d.headlines || []).length})</summary>
       ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
     </details>`;
   return el;
