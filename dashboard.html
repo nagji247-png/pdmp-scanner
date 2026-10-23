@@ -79,6 +79,17 @@
   .flow-val { font-size: 20px; font-weight: 700; margin-top: 4px; }
   .flow-foot { font-size: 11px; color: #7b82a0; margin-top: 10px; line-height: 1.4; }
 
+  .divergence-item { border-top:1px solid #252b45; padding:8px 0; margin-top:0; color:#e6e9f2; }
+  .divergence-item summary { list-style:none; cursor:pointer; }
+  .divergence-item summary::-webkit-details-marker { display:none; }
+  .divergence-summary { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .divergence-summary:after { content:"＋"; color:#6cecff; font-size:16px; margin-left:4px; }
+  .divergence-item[open] .divergence-summary:after { content:"−"; }
+  .divergence-detail { padding:10px 4px 4px; background:rgba(5,12,28,.35); border-radius:8px; }
+  .detail-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+  .detail-stat { background:#111c35; border:1px solid #243658; border-radius:8px; padding:9px; }
+  .detail-stat span { display:block; color:#8a90a8; font-size:11px; margin-bottom:4px; }
+  .detail-stat b { font-size:12px; line-height:1.4; }
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 
   :root { color-scheme: dark; --bg:#050916; --panel:#0b1730; --line:#143967; --cyan:#24e5ff; --violet:#9b59ff; }
@@ -672,7 +683,7 @@ function renderContrarian(c) {
     <div>${rows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>`;
 }
 
-function renderDivergence(dv) {
+function renderDivergence(dv, instruments = {}) {
   const box = document.getElementById("divergence");
   if (!dv) { box.innerHTML = '<div class="sub">अभी कोई ⚡ डेटा नहीं</div>'; return; }
 
@@ -687,31 +698,49 @@ function renderDivergence(dv) {
        <div class="mood-split"><span class="pos">खबर की दिशा सही: ${dv.sentiment} (${sentPct}%)</span><span class="neg">कीमत की दिशा सही: ${dv.price} (${pricePct}%)</span></div>`
     : '<div class="sub">अभी कोई ⚡ संकेत अगले सत्र से मिलान नहीं हुआ</div>';
 
-  const rows = (dv.events || []).slice().reverse().map(e => {
+  const rows = (dv.events || []).slice().reverse().map((e, i) => {
     let tag = '<span class="tag t-pend">अगला सत्र बाकी</span>';
     if (e.outcome === "sentiment") tag = '<span class="tag t-cont">खबर सही निकली</span>';
     if (e.outcome === "price") tag = '<span class="tag t-rev">कीमत सही निकली</span>';
     const sSign = e.score > 0 ? "+" : "";
     const pSign = e.price_change > 0 ? "+" : "";
-    return `<div class="ev">
-      <div>${esc(e.date)} — <b>${esc(e.instrument)}</b>
-        <div class="sub">खबर ${sSign}${e.score} · कीमत ${pSign}${e.price_change}%</div></div>
-      <div>${tag}</div>
-    </div>`;
+    const direction = Number(e.score) > 0 ? "सकारात्मक" : Number(e.score) < 0 ? "नकारात्मक" : "तटस्थ";
+    const priceDirection = Number(e.price_change) > 0 ? "ऊपर" : Number(e.price_change) < 0 ? "नीचे" : "बिना बदलाव";
+    const nextText = e.next_change == null
+      ? "अगले सत्र का मिलान अभी उपलब्ध नहीं है।"
+      : `अगले सत्र में दर्ज बदलाव: ${Number(e.next_change) > 0 ? "+" : ""}${e.next_change}%`;
+    const inst = instruments[e.instrument];
+    const headlines = (inst && Array.isArray(inst.headlines)) ? inst.headlines.slice(0, 3) : [];
+    const newsHtml = headlines.length
+      ? `<div class="sub" style="margin:8px 0 4px">इस स्टॉक/इंस्ट्रूमेंट की अभी उपलब्ध खबरें (ये उस ऐतिहासिक तारीख की खबरें हों, इसकी पुष्टि नहीं है):</div>${headlines.map(h => `<div class="hl"><div class="hl-title">${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener noreferrer">${esc(h.title || "शीर्षक उपलब्ध नहीं")} ↗</a>` : esc(h.title || "शीर्षक उपलब्ध नहीं")}</div><div class="hl-meta">${esc(h.source || "स्रोत उपलब्ध नहीं")}${h.age_h != null ? " · लगभग " + esc(h.age_h) + " घंटे पुरानी" : ""}</div></div>`).join("")}`
+      : '<div class="sub" style="margin-top:8px">इस इंस्ट्रूमेंट की खबरें अभी उपलब्ध नहीं हैं।</div>';
+    return `<details class="divergence-item">
+      <summary>
+        <div class="divergence-summary">
+          <div><b>${esc(e.date)} — ${esc(e.instrument)}</b><div class="sub">खबर ${sSign}${esc(e.score)} · कीमत ${pSign}${esc(e.price_change)}%</div></div>
+          <div>${tag}</div>
+        </div>
+      </summary>
+      <div class="divergence-detail">
+        <div class="detail-grid">
+          <div class="detail-stat"><span>सेंटिमेंट स्कोर</span><b>${sSign}${esc(e.score)} / दिशा ${direction}</b></div>
+          <div class="detail-stat"><span>कीमत का बदलाव</span><b>${pSign}${esc(e.price_change)}% · ${priceDirection}</b></div>
+          <div class="detail-stat"><span>अगले सत्र का नतीजा</span><b>${e.outcome === "sentiment" ? "खबर की दिशा के पक्ष में" : e.outcome === "price" ? "कीमत की दिशा के पक्ष में" : "अभी तय नहीं"}</b></div>
+        </div>
+        <div class="sub" style="margin-top:8px">${esc(nextText)}</div>
+        <div class="warn" style="margin-top:8px">ऐतिहासिक खबर का मूल शीर्षक इस रिकॉर्ड में सेव नहीं है। नीचे दी गई खबरें वर्तमान उपलब्ध फ़ीड से हैं; इन्हें उस दिन की खबर न मानें।</div>
+        ${newsHtml}
+      </div>
+    </details>`;
   }).join("");
 
   box.innerHTML = `
     ${small}
-    <div class="sub">
-      जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। उसी दिन के सत्र में देखा जाता है कि कौन-सी दिशा सही निकली।
-    </div>
+    <div class="sub">जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। हर रिकॉर्ड पर टैप करें—स्कोर, कीमत, नतीजा और उपलब्ध खबरों का विवरण खुलेगा।</div>
     <div style="margin-top:12px">${summary}</div>
     <div style="margin-top:10px">${rows || '<div class="sub">अभी कोई ⚡ संकेत दर्ज नहीं हुआ</div>'}</div>
-    <div class="sub" style="margin-top:12px;line-height:1.5">
-      यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।
-    </div>`;
+    <div class="sub" style="margin-top:12px;line-height:1.5">यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।</div>`;
 }
-
 function renderSignals(sg) {
   const box = document.getElementById("signals");
   if (!sg) { box.innerHTML = '<div class="sub">अभी कोई संकेत डेटा नहीं</div>'; return; }
@@ -828,7 +857,7 @@ async function load() {
     renderInstruments(data.instruments);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
-    renderDivergence(data.divergence);
+    renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
     renderNews(data.market_news);
   } catch (err) {
