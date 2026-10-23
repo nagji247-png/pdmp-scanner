@@ -289,7 +289,7 @@ def update_contrarian(events, name, score, today_str, returns):
             e["outcome"] = "continued" if same_sign else "reversed"
 
 
-def update_divergence(events, name, score, change, today_str, returns):
+def update_divergence(events, name, score, change, today_str, returns, headlines=None):
     """⚡ संकेत दर्ज करें: स्कोर और कीमत की दिशा अलग हो।
     नतीजा उसी दिन के सत्र से भरता है जिस दिन संकेत बना।
     'sentiment' = खबर की दिशा में चाल, 'price' = कीमत की दिशा में चाल।
@@ -301,7 +301,13 @@ def update_divergence(events, name, score, change, today_str, returns):
         events.append({
             "key": key, "date": today_str, "instrument": name,
             "score": score, "price_change": change,
-            "sentiment_up": score > 0, "outcome": None, "next_change": None,
+            "sentiment_up": score > 0,
+            "headlines": [
+                {"title": h.get("title", ""), "source": h.get("source", ""),
+                 "link": h.get("link", ""), "score": h.get("score", 0)}
+                for h in (headlines or [])[:5]
+            ],
+            "outcome": None, "next_change": None,
         })
 
     for e in events:
@@ -345,7 +351,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "neg_n": sum(1 for h in heads if h["score"] < 0),
     }
     update_contrarian(events, name, score, today_str, returns)
-    update_divergence(div_events, name, score, change, today_str, returns)
+    update_divergence(div_events, name, score, change, today_str, returns, heads)
 
 
 # ---- संकेत-बदलाव लॉग ----
