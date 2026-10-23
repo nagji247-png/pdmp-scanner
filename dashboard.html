@@ -828,52 +828,34 @@ function renderDivergence(dv, instruments = {}) {
 function renderSignals(sg) {
   const box = document.getElementById("signals");
   if (!sg) { box.innerHTML = '<div class="sub">अभी कोई संकेत डेटा नहीं</div>'; return; }
-
   const st = sg.state || {};
   const names = sg.watch || Object.keys(st);
-
-  const stateRows = names.map(n => {
+  const events = (sg.events || []).slice().reverse();
+  const rows = names.map(n => {
     const s = st[n];
-    if (!s) return `<div class="ev"><div><b>${esc(n)}</b></div><div class="sub">डेटा नहीं</div></div>`;
-    const sentTxt = s.sent > 0 ? "सकारात्मक" : s.sent < 0 ? "नकारात्मक" : "तटस्थ";
-    const priceTxt = s.price_dir > 0 ? "ऊपर" : s.price_dir < 0 ? "नीचे" : "स्थिर";
-    let vwapTxt = "उपलब्ध नहीं";
-    if (s.vwap_side === 1) vwapTxt = "VWAP के ऊपर";
-    if (s.vwap_side === -1) vwapTxt = "VWAP के नीचे";
-    let volTxt = s.vol_ok ? "सामान्य" : "उपलब्ध नहीं";
-    if (s.vol_ok && s.vol_hi === true) volTxt = "ऊँचा";
-    return `<div class="ev">
-      <div><b>${esc(n)}</b> <span class="sub">स्कोर ${s.score > 0 ? "+" : ""}${s.score}</span>
-        <div class="sub">भावना: ${sentTxt} · कीमत: ${priceTxt} · ${vwapTxt} · वॉल्यूम: ${volTxt}</div>
-        <div class="sub">इसी स्थिति में since: ${istTime(s.since)}</div></div>
-    </div>`;
+    const history = events.filter(e => e.instrument === n);
+    let current = '<div class="sub">इस इंस्ट्रूमेंट का वर्तमान संकेत डेटा नहीं है।</div>';
+    if (s) {
+      const sentTxt = s.sent > 0 ? "सकारात्मक" : s.sent < 0 ? "नकारात्मक" : "तटस्थ";
+      const priceTxt = s.price_dir > 0 ? "ऊपर" : s.price_dir < 0 ? "नीचे" : "स्थिर";
+      let vwapTxt = "उपलब्ध नहीं";
+      if (s.vwap_side === 1) vwapTxt = "VWAP के ऊपर";
+      if (s.vwap_side === -1) vwapTxt = "VWAP के नीचे";
+      let volTxt = s.vol_ok ? "सामान्य" : "उपलब्ध नहीं";
+      if (s.vol_ok && s.vol_hi === true) volTxt = "ऊँचा";
+      current = `<div class="ev" style="display:block;margin-top:8px"><b>वर्तमान स्थिति</b><div class="sub">स्कोर ${s.score > 0 ? "+" : ""}${esc(s.score)} · भावना: ${sentTxt} · कीमत: ${priceTxt}</div><div class="sub">${vwapTxt} · वॉल्यूम: ${volTxt}</div><div class="sub">इसी स्थिति में since: ${istTime(s.since)}</div></div>`;
+    }
+    const historyHtml = history.map(e => {
+      const changed = (e.changed || []).map(c => `<span class="tag t-chg">${esc(c)}</span>`).join("");
+      const pDir = e.direction ? `${esc(e.direction)} (${e.move_pct > 0 ? "+" : ""}${esc(e.move_pct)}%)` : "बाद का डेटा बाकी";
+      const pAfter = e.after_minutes != null ? ` · ${heldText(e.after_minutes)} बाद` : "";
+      const volNote = e.vol_data ? "" : ' <span class="sub">(वॉल्यूम/VWAP डेटा नहीं)</span>';
+      return `<div class="ev" style="display:block;margin-top:8px"><b>${istTime(e.time)}</b> · स्कोर ${e.prev_score > 0 ? "+" : ""}${esc(e.prev_score)} → ${e.new_score > 0 ? "+" : ""}${esc(e.new_score)}<div style="margin-top:4px">${changed}${volNote}</div><div class="sub">पिछली स्थिति कितनी देर रही: ${heldText(e.held_minutes)}</div><div class="sub">बदलाव पर कीमत: ${e.price_at_change != null ? esc(e.price_at_change) : "—"} · बाद में: ${pDir}${pAfter}</div></div>`;
+    }).join("");
+    return `<details style="margin-top:8px;background:#1e2540;border-radius:8px;padding:10px 12px"><summary style="cursor:pointer;font-weight:700;color:#dfe3ef">${esc(n)} — वर्तमान स्थिति और इतिहास (${history.length} बदलाव)</summary><div style="margin-top:8px">${current}<div class="sub" style="margin-top:12px">इस इंस्ट्रूमेंट के संकेत-बदलाव</div>${historyHtml || '<div class="sub" style="margin-top:6px">अभी कोई पुराना बदलाव दर्ज नहीं है।</div>'}</div></details>`;
   }).join("");
-
-  const evRows = (sg.events || []).slice().reverse().map(e => {
-    const changed = (e.changed || []).map(c => `<span class="tag t-chg">${esc(c)}</span>`).join("");
-    const pDir = e.direction ? `${e.direction} (${e.move_pct > 0 ? "+" : ""}${e.move_pct}%)` : "बाद का डेटा बाकी";
-    const pAfter = e.after_minutes != null ? ` · ${heldText(e.after_minutes)} बाद` : "";
-    const volNote = e.vol_data ? "" : ' <span class="sub">(वॉल्यूम/VWAP डेटा नहीं)</span>';
-    return `<div class="ev" style="display:block">
-      <div><b>${esc(e.instrument)}</b> · ${istTime(e.time)} · स्कोर ${e.prev_score > 0 ? "+" : ""}${e.prev_score} → ${e.new_score > 0 ? "+" : ""}${e.new_score}</div>
-      <div style="margin-top:4px">${changed}${volNote}</div>
-      <div class="sub">पिछली स्थिति कितनी देर रही: ${heldText(e.held_minutes)}</div>
-      <div class="sub">बदलाव पर कीमत: ${e.price_at_change != null ? e.price_at_change : "—"} · बाद में: ${pDir}${pAfter}</div>
-    </div>`;
-  }).join("");
-
-  box.innerHTML = `
-    <div class="sub">
-      हर 30 मिनट के रन पर संकेत की स्थिति देखी जाती है। बदलाव का समय ±30 मिनट का अंदाज़ा है। इंडेक्स (NIFTY, BANKNIFTY) का वॉल्यूम और VWAP Yahoo पर नहीं मिलते, इसलिए वहाँ वे खाली रहेंगे।
-    </div>
-    <div style="margin-top:10px">${stateRows}</div>
-    <div class="sub" style="margin-top:14px">हाल के बदलाव:</div>
-    <div style="margin-top:6px">${evRows || '<div class="sub">अभी कोई बदलाव दर्ज नहीं हुआ</div>'}</div>
-    <div class="sub" style="margin-top:12px;line-height:1.5">
-      इससे पता चलेगा कि संकेत बदलने से पहले कीमत चल चुकी थी या नहीं। यह इतिहास का मिलान है, खरीद या बिक्री का संकेत नहीं।
-    </div>`;
+  box.innerHTML = `<div class="sub">हर 30 मिनट के रन पर संकेत की स्थिति देखी जाती है। नीचे NIFTY, BANKNIFTY और वॉचलिस्ट का हर इंस्ट्रूमेंट अलग खोलें; उसके वर्तमान संकेत और उसी इंस्ट्रूमेंट का पुराना इतिहास एक साथ दिखेगा। बदलाव का समय लगभग ±30 मिनट हो सकता है। इंडेक्स का VWAP/वॉल्यूम उपलब्ध न हो तो उसे साफ़ बताया जाएगा।</div><div style="margin-top:10px">${rows || '<div class="sub">अभी कोई संकेत रिकॉर्ड नहीं है।</div>'}</div><div class="sub" style="margin-top:12px;line-height:1.5">यह इतिहास का मिलान है, खरीद या बिक्री का संकेत नहीं।</div>`;
 }
-
 function renderNews(m) {
   const box = document.getElementById("news");
   if (!m) { box.innerHTML = '<div class="sub">अभी कोई खबर डेटा नहीं</div>'; return; }
