@@ -749,7 +749,10 @@ function renderContrarian(c) {
         <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.tracked}</b> कुल ट्रैक
       </div>
     </div>
-    <div>${rows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>`;
+    <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
+      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 सभी Extreme Sentiment रिकॉर्ड खोलें (${(c.events || []).length})</summary>
+      <div style="margin-top:8px">${rows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
+    </details>`;
 }
 
 function renderDivergence(dv, instruments = {}) {
