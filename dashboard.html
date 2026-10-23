@@ -268,7 +268,7 @@
 
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
 
-<section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स</h2><div class="box" id="market-summary"></div><div class="grid" id="indexes"></div></section>
+<section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स</h2><div class="grid" id="indexes"></div></section>
 
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
@@ -884,7 +884,6 @@ async function load() {
 
     scoreHistory = await loadHistory();
     renderRange(data.range);
-    renderMarketSummary(data);
     renderCrowd(data);
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
