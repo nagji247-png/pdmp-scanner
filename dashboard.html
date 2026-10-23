@@ -469,7 +469,7 @@ function card(name, d, participantOI) {
     <div class="name">${esc(name)}</div>
     <div class="big" style="color:${color}">${sScore}</div>
     <div class="lbl" style="color:${color}">${label}</div>
-    ${d.indicator_label ? `<div class="div">${esc(d.indicator_label)}</div>` : ((name === "SILVER" || name === "BITCOIN") ? `<div class="div">BUILDUP DATA UNAVAILABLE</div>` : "")}
+    ${d.indicator_label ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ((name === "SILVER" || name === "BITCOIN") ? `<div class="div">BUILDUP DATA UNAVAILABLE</div>` : "")}
     ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
 
