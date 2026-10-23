@@ -442,49 +442,6 @@ function renderRange(r) {
     <div class="sub" style="margin-top:10px">यह संभावना है, गारंटी नहीं।</div>`;
 }
 
-function renderMarketSummary(data) {
-  const box = document.getElementById("market-summary");
-  if (!box) return;
-  const t = data.trends || {}, hs = data.headline_split || {};
-  const n = (data.instruments || {}).NIFTY || {};
-  const parts = [];
-  if (t.ok && !t.stale && t.crowd_bull_pct != null && Number.isFinite(Number(t.crowd_bull_pct))) {
-    const pct = Math.max(0, Math.min(100, Number(t.crowd_bull_pct)));
-    parts.push({name:"रिटेल खोज-मूड", score:(pct - 50) / 5, weight:0.40, detail:"Bullish खोज "+pct.toFixed(1)+"%"});
-  }
-  const pos = Number(hs.pos), neg = Number(hs.neg);
-  if (Number.isFinite(pos) && Number.isFinite(neg) && pos + neg > 0) {
-    parts.push({name:"न्यूज़ सेंटिमेंट", score:10 * (pos - neg) / (pos + neg), weight:0.35, detail:"सकारात्मक "+pos+" · नकारात्मक "+neg});
-  }
-  const chg = Number(n.change_pct);
-  if (n.change_pct != null && Number.isFinite(chg)) {
-    parts.push({name:"चार्ट / कीमत", score:Math.max(-10, Math.min(10, chg * 5)), weight:0.25,
-      detail:(chg > 0 ? "↑ +" : chg < 0 ? "↓ " : "→ ")+chg.toFixed(2)+"%"});
-  }
-  if (!parts.length) {
-    box.innerHTML = '<div class="warn">COMBINED SCORE उपलब्ध नहीं — पर्याप्त ताज़ा डेटा नहीं</div>';
-    return;
-  }
-  const weightSum = parts.reduce((s,p)=>s+p.weight,0);
-  const score = Math.round((parts.reduce((s,p)=>s+p.score*p.weight,0)/weightSum)*10)/10;
-  const label = score >= 2 ? "BULLISH — कुल झुकाव ऊपर" : score <= -2 ? "BEARISH — कुल झुकाव नीचे" : "NEUTRAL / MIXED";
-  const color = score >= 2 ? "#35d07f" : score <= -2 ? "#ff5d68" : "#f4c95d";
-  const direction = chg > 0 ? "↑ बाजार ऊपर" : chg < 0 ? "↓ बाजार नीचे" : "→ बाजार स्थिर";
-  const rows = parts.map(p => {
-    const val = (p.score > 0 ? "+" : "") + p.score.toFixed(1);
-    const c = p.score > 0.5 ? "#35d07f" : p.score < -0.5 ? "#ff5d68" : "#aab4c4";
-    return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #203653"><div><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.detail)+'</div></div><b style="color:'+c+';white-space:nowrap">'+val+'/10</b></div>';
-  }).join("");
-  const hasRetail = t.ok && !t.stale && t.crowd_bull_pct != null;
-  const hasNews = Number.isFinite(pos) && Number.isFinite(neg) && pos+neg>0;
-  const hasChart = n.change_pct != null && Number.isFinite(chg);
-  const missing = [];
-  if (!hasRetail) missing.push("रिटेल मूड");
-  if (!hasNews) missing.push("न्यूज़");
-  if (!hasChart) missing.push("चार्ट");
-  box.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="sub">COMBINED MARKET SCORE · −10 से +10</div><div style="font-size:29px;font-weight:900;color:'+color+'">'+(score>0?"+":"")+score.toFixed(1)+'/10</div><div style="font-weight:800;color:'+color+'">'+label+'</div></div><div style="font-size:17px;font-weight:800">'+(hasChart ? direction : "चार्ट दिशा उपलब्ध नहीं")+'</div></div><div style="margin-top:10px">'+rows+'</div><div class="sub" style="margin-top:9px">भार: रिटेल खोज-मूड 40% · न्यूज़ 35% · NIFTY कीमत 25%. उपलब्ध हिस्सों के भार के अनुसार कुल स्कोर समायोजित होता है.</div>'+(missing.length?'<div class="warn" style="margin-top:8px">आंशिक स्कोर — डेटा उपलब्ध/ताज़ा नहीं: '+esc(missing.join(", "))+'</div>':"")+'<div class="sub" style="margin-top:6px">यह संयुक्त संकेत है, खरीद/बिक्री की गारंटी नहीं। Google Trends खोज-रुचि है, वास्तविक रिटेल पोज़िशन नहीं।</div>';
-}
-
 function renderCrowd(data) {
   const box = document.getElementById("crowd");
   const t = data.trends || {};
