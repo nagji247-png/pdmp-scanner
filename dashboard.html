@@ -240,6 +240,20 @@
   .trends-donut.unavailable { background:conic-gradient(#294365 0 100%); }
   @media(max-width:560px) { .trends-score-layout { gap:18px; justify-content:flex-start; } .trends-donut { width:112px; } .trends-score-legend strong { font-size:18px; } }
 
+
+  /* TRINETRA mobile-first brand lockup */
+  .brandbar{display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vw,22px);margin:8px 12px 16px;padding:clamp(12px,3vw,22px);border:1px solid #173d63;border-radius:18px;background:radial-gradient(ellipse at 50% 0%,#10294a 0%,#080f21 72%);box-shadow:0 8px 28px #0005;min-width:0;overflow:hidden}
+  .brand-mark{width:clamp(76px,20vw,124px);flex:0 0 auto;filter:drop-shadow(0 0 12px #00baff35)}
+  .brand-mark svg{display:block;width:100%;height:auto}
+  .brand-name{min-width:0;text-align:left}
+  .brand-title{font-size:clamp(25px,6.7vw,43px);font-weight:900;letter-spacing:clamp(1px,.5vw,4px);line-height:1.05;color:#f2f8ff;overflow-wrap:anywhere}
+  .brand-tagline{font-size:clamp(12px,3.2vw,18px);letter-spacing:clamp(1px,.5vw,3px);color:#c8eaff;margin-top:5px}
+  .brand-hi{font-size:clamp(18px,4.7vw,28px);font-weight:800;letter-spacing:2px;color:#00dfc0;margin-top:4px}
+  .brand-owner{display:inline-block;margin-top:7px;padding:5px 10px;border:1px solid #087f9f;border-radius:999px;background:#071b2d;color:#a9dced;font-size:clamp(10px,2.7vw,13px);line-height:1.2;max-width:100%}
+  .brand-owner strong{color:#fff}
+  @media(max-width:420px){.brandbar{gap:9px;padding:12px 10px;margin:6px 8px 12px;border-radius:14px}.brand-mark{width:76px}.brand-title{font-size:clamp(22px,6.2vw,27px);letter-spacing:1px}.brand-tagline{font-size:11px;letter-spacing:1px}.brand-hi{font-size:19px;margin-top:3px}.brand-owner{font-size:10px;padding:4px 7px}}
+  @media(min-width:700px){.brandbar{max-width:1000px;margin:14px auto 20px}.brand-name{text-align:center}.brandbar{justify-content:center}}
+
 </style>
 </head>
 <body>
@@ -251,18 +265,16 @@
 <nav class="topnav" aria-label="Dashboard sections">
   <a href="#trade-guard"><strong>Sentiment</strong></a><a href="#crowd"><strong>Retail Mood</strong></a><a href="#range"><strong>Range</strong></a><a href="#flow"><strong>FII/DII</strong></a><a href="#indexes"><strong>Indices</strong></a><a href="#stocks"><strong>Movers</strong></a><a href="#global"><strong>Global</strong></a><a href="#trends"><strong>Google Trends</strong></a>
 </nav>
-<header class="brandbar">
-  <div class="brand-mark" aria-label="Trinetra logo">
-    <svg viewBox="0 0 100 100" role="img" aria-label="Eye with rising market arrow">
-      <defs><linearGradient id="ng" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs>
-      <path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng)" stroke-width="4"/>
-      <path d="M25 51 Q50 22 72 43" fill="none" stroke="#45eaff" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng)" stroke-width="4"/><circle cx="48" cy="50" r="6" fill="#dffcff"/>
-      <path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M38 14 L44 4 L50 14 M34 18 L54 18" fill="none" stroke="#a9eaff" stroke-width="3" stroke-linecap="round"/>
+<header class="brandbar" aria-label="TRINETRA Market Seer brand">
+  <div class="brand-mark" aria-label="TRINETRA eye and market logo">
+    <svg viewBox="0 0 120 120" role="img" aria-label="Third eye, candlesticks and upward market arrow">
+      <defs><linearGradient id="trinetraGlow" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#087cff"/><stop offset=".55" stop-color="#00d9ff"/><stop offset="1" stop-color="#00f0a0"/></linearGradient><radialGradient id="trinetraIris"><stop stop-color="#00f5ff"/><stop offset="1" stop-color="#0759d9"/></radialGradient></defs>
+      <circle cx="60" cy="60" r="54" fill="#07152d" stroke="url(#trinetraGlow)" stroke-width="2.5"/>
+      <g stroke-linecap="round"><path d="M24 39V25 M24 31h8v15h-8z M42 31V15 M42 21h8v25h-8z M60 27V10 M60 16h9v31h-9z M80 31V17 M80 23h8v23h-8z" fill="#08dc9c" stroke="#08dc9c" stroke-width="1.5"/><path d="M60 10V3 M56 8h8v9h-8z" fill="#ff405c" stroke="#ff405c" stroke-width="1.5"/></g>
+      <path d="M13 62Q60 20 107 62Q60 101 13 62Z" fill="#0b2141" stroke="#e8f8ff" stroke-width="2.6"/><circle cx="60" cy="62" r="18" fill="url(#trinetraIris)" stroke="#16dfff" stroke-width="2"/><circle cx="60" cy="62" r="7" fill="#e8ffff"/><path d="M77 83L94 65 M85 65h9v9" fill="none" stroke="url(#trinetraGlow)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-  <div class="brand-name"><div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i></div><div class="brand-hi">त्रिनेत्र</div></div></div>
+  <div class="brand-name"><div class="brand-title"><span>TRINETRA</span></div><div class="brand-tagline">The Market Seer</div><div class="brand-hi">त्रिनेत्र</div><div class="brand-owner">Created by <strong>Nagji Ram</strong></div></div>
 </header>
 
 <div id="status" aria-live="polite" style="display:none"></div>
