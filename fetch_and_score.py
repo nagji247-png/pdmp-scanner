@@ -254,13 +254,15 @@ def load_json(path, default):
     return default
 
 
+PRICE_CACHE = {}
+
 def daily_returns(sym):
-    """तारीख -> उस दिन का % बदलाव।
-    आज का अधूरा बार छोड़ा जाता है, ताकि सुबह के रन में गलत बदलाव न आए।"""
+    """तारीख -> उस दिन का % बदलाव; साथ में अंतिम उपलब्ध पूर्ण daily close कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
     today_utc = dt.datetime.now(dt.timezone.utc).date()
     keep = [d.date() < today_utc for d in closes.index]
     closes = closes[keep]
+    PRICE_CACHE[sym] = round(float(closes.iloc[-1]), 4) if len(closes) and math.isfinite(float(closes.iloc[-1])) else None
     out = {}
     for i in range(1, len(closes)):
         prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
@@ -516,6 +518,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     instruments[name] = {
         "type": kind,
         "change_pct": change,
+        "price": PRICE_CACHE.get(sym),
+        "price_as_of": max(returns) if returns else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
