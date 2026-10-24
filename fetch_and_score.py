@@ -955,10 +955,29 @@ def _trends_once():
         else "NEUTRAL"
     )
 
-    # 3) Rising/related_queries अनुरोध जानबूझकर छोड़ा गया है:
-    # यह एक अतिरिक्त Google Trends कॉल करता था और 429 की संभावना बढ़ाता था।
-    # Crowd/Fear डेटा के बिना rising खोजों का खाली होना कोई सकारात्मक संकेत नहीं है।
+    # 3) Fetch actual Google Trends rising queries for Nifty, filtering market-related terms.
+    # If Google rate-limits this extra request, preserve the main sentiment data.
     spikes = []
+    try:
+        py.build_payload(["nifty"], timeframe="now 7-d", geo="IN")
+        related = py.related_queries() or {}
+        entry = related.get("nifty") or {}
+        rising = entry.get("rising")
+        if rising is not None and not rising.empty:
+            market_terms = ("nifty", "sensex", "stock", "market", "share", "bank", "option",
+                            "call", "put", "ce", "pe", "trading", "bull", "bear", "crash",
+                            "rally", "fall", "target", "support", "resistance", "gift")
+            for _, row in rising.iterrows():
+                query = str(row.get("query", "")).strip()
+                growth = row.get("value")
+                qlow = query.lower()
+                if query and any(word in qlow for word in market_terms):
+                    spikes.append({"query": query, "growth": str(growth) if growth is not None else "Breakout",
+                                   "source": "Google Trends Rising", "stock": None})
+                if len(spikes) >= 10:
+                    break
+    except Exception as exc:
+        print(f"Google Trends rising queries unavailable (main data retained): {exc}")
 
     today_total = bull_today_sum + bear_today_sum
     yesterday_total = bull_yesterday_sum + bear_yesterday_sum
