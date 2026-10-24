@@ -266,13 +266,17 @@ def daily_returns(sym):
     if last_close is not None and not math.isfinite(last_close):
         last_close = None
     # Yahoo GC=F और SI=F अमेरिकी डॉलर प्रति ट्रॉय औंस में हैं।
-    # USD/INR से गुणा करके रुपये प्रति ट्रॉय औंस दिखाएँ; भारत का प्रति 10g/किलो भाव नहीं।
+    # USD/INR से बदलकर भारत में प्रचलित इकाई दिखाएँ: Gold ₹/10 ग्राम, Silver ₹/किलो।
     if last_close is not None and sym in ("GC=F", "SI=F"):
         try:
             fx = yf.Ticker("INR=X").history(period="5d", interval="1d")["Close"].dropna()
             rate = float(fx.iloc[-1]) if len(fx) else None
             if rate is not None and math.isfinite(rate) and rate > 0:
-                last_close *= rate
+                last_close = last_close * rate
+                if sym == "GC=F":
+                    last_close *= (10.0 / 31.1034768)  # INR प्रति 10 ग्राम
+                else:
+                    last_close *= (1000.0 / 31.1034768)  # INR प्रति किलो
             else:
                 last_close = None
         except Exception:
