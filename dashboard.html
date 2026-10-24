@@ -256,6 +256,60 @@
   @media(max-width:420px){.brandbar{gap:9px;padding:12px 10px;margin:6px 8px 12px;border-radius:14px}.brand-mark{width:76px}.brand-title{font-size:clamp(22px,6.2vw,27px);letter-spacing:1px}.brand-tagline{font-size:11px;letter-spacing:1px}.brand-hi{font-size:19px;margin-top:3px}.brand-owner{font-size:10px;padding:4px 7px}}
   @media(min-width:700px){.brandbar{max-width:1000px;margin:14px auto 20px}.brand-name{text-align:center}.brandbar{justify-content:center}}
 
+
+  /* TRINETRA screenshot-inspired dashboard layout; data logic and section IDs preserved */
+  :root{--bg:#031126;--panel:#061a35;--line:#07517b;--cyan:#28dfff;--green:#00dfa0;--red:#ff526b}
+  body{background:radial-gradient(ellipse at 55% -20%,#103260 0,transparent 48%),#020d1d;color:#e8f4ff}
+  .sidebar{background:linear-gradient(180deg,#031024,#04152d);border-color:#10456b}
+  .side-logo strong{background:linear-gradient(90deg,#22eaff,#f3fbff);-webkit-background-clip:text}
+  .app-main{gap:0 12px}
+  .brandbar{background:linear-gradient(90deg,#031126,#041a35);border-bottom:1px solid #124c70;padding:12px 18px}
+  .brand-mark{filter:drop-shadow(0 0 9px #00cfff66)}
+  .brand-title{background:none;color:#f2f8ff;-webkit-text-fill-color:#f2f8ff;letter-spacing:1.5px}
+  .brand-tagline{color:#c9e5ff;letter-spacing:2px}
+  .brand-hi{color:#9bbde9;text-shadow:none}
+  .brand-owner{border:0;background:transparent;padding:2px 0;color:#20dfff}
+  .brand-owner strong{color:#00e5ac}
+  .topnav{background:#031126;border-bottom:1px solid #10456b}
+  .topnav a{border-radius:6px}
+  .panel .box,.panel .grid,.box,.card{background:linear-gradient(145deg,#061b36,#04152d);border-color:#07517b;box-shadow:none}
+  .card{border-left-width:2px;border-radius:9px}
+  .panel h2,h2{color:#d8edff}
+  .range-panel{grid-column:span 4;order:1}
+  .crowd-panel{grid-column:span 4;order:2}
+  .flow-panel{grid-column:span 3;order:3}
+  .indexes-panel{grid-column:span 5;order:4}
+  .stocks-panel{grid-column:span 4;order:5}
+  .global-panel{grid-column:span 4;order:6}
+  .trends-panel{grid-column:span 4;order:7}
+  .app-main > h2,.app-main > .box{grid-column:span 4}
+  #contrarian{grid-column:span 4}
+  #divergence{grid-column:span 4}
+  #signals{grid-column:span 4}
+  #news{grid-column:span 4}
+  #trade-guard{border-color:#164d77;background:linear-gradient(90deg,#061b35,#041329)}
+  #trade-guard.block{border-color:#a63852;background:#241323}
+  .mood-bar{background:#173452}
+  .mood-bull{background:#00dba0}.mood-bear{background:#ff526b}
+  .footer{color:#7598bd}
+  @media(max-width:900px){
+    .range-panel,.crowd-panel,.flow-panel,.indexes-panel,.stocks-panel,.global-panel,.trends-panel{grid-column:span 3}
+    .app-main > h2,.app-main > .box,#contrarian,#divergence,#signals,#news{grid-column:span 3}
+  }
+  @media(max-width:560px){
+    .brandbar{gap:9px;padding:10px}
+    .brand-mark{width:54px;height:54px;flex-basis:54px}
+    .brand-title{font-size:20px;letter-spacing:.5px}
+    .brand-tagline{font-size:11px;letter-spacing:1px}
+    .brand-hi{font-size:14px;letter-spacing:1px}
+    .brand-owner{font-size:10px;margin-top:3px}
+    .app-main{display:block;padding:0 10px 18px}
+    .app-main > .brandbar,.app-main > .topnav{margin-left:-10px;margin-right:-10px}
+    .panel{margin-top:10px}
+    .app-main > h2{margin:17px 2px 7px}
+    .app-main > .box{margin:0 0 12px}
+  }
+
 </style>
 </head>
 <body>
