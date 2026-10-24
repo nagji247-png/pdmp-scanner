@@ -259,6 +259,55 @@ SILVER_IMPORT_DUTY = 0.15  # अंतरराष्ट्रीय भाव �
 GST_RATE = 0.03  # दुकान/खरीद का अनुमान; एक्सचेंज भाव में GST नहीं
 MCX_SILVER_FILE = "mcx_silver.json"
 
+MCX_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-silver-price/"
+
+def refresh_mcx_silver_reference():
+    """Try to read public MCX SILVER quote from Upstox; never substitute SI=F."""
+    path = MCX_SILVER_FILE
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+        response = requests.get(MCX_PUBLIC_URL, headers=headers, timeout=15)
+        response.raise_for_status()
+        html = response.text
+        # The public page's main quote is normally rendered as ₹1,96,100.00.
+        # Use a conservative value range to avoid picking unrelated prices.
+        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{5,6}(?:\\.[0-9]{1,2})?)", html, re.I)
+        candidates = []
+        for item in matches:
+            try:
+                value = float(item.replace(",", ""))
+                if 50000 <= value <= 500000:
+                    candidates.append(value)
+            except ValueError:
+                pass
+        if not candidates:
+            raise ValueError("public page quote not found or outside validation range")
+        # First matching price in the page is usually the headline quote.
+        current = round(candidates[0], 2)
+        data = load_json(path, {})
+        old = data.get("mcx_price_per_kg")
+        try:
+            old_num = float(old)
+        except (TypeError, ValueError):
+            old_num = None
+        if old_num and old_num > 0 and old_num != current:
+            data["previous_mcx_price_per_kg"] = old_num
+        data.update({
+            "mcx_price_per_kg": current,
+            "date": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat(),
+            "source": "Upstox public MCX Silver quote (automatically fetched; verify if page format changes)",
+            "source_url": MCX_PUBLIC_URL,
+            "source_time": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST"),
+            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate."
+        })
+        with open(path, "w", encoding="utf-8") as out:
+            json.dump(data, out, ensure_ascii=False, indent=2)
+        print(f"MCX silver public quote refreshed: ₹{current:,.2f}/kg")
+        return True
+    except Exception as exc:
+        print(f"MCX silver auto-refresh failed; retaining last reference and its original timestamp: {exc}")
+        return False
+
 def silver_display_price(international_inr_per_kg=None):
     """केवल सत्यापित mcx_silver.json MCX भाव पर 3% GST जोड़ें; अंतरराष्ट्रीय भाव को MCX न बताएं."""
     try:
@@ -600,7 +649,8 @@ def intraday_snapshot(sym):
             idx_utc = idx_utc.tz_localize("UTC")
         else:
             idx_utc = idx_utc.tz_convert("UTC")
-        now_utc = dt.datetime.now(dt.timezone.utc)
+        refresh_mcx_silver_reference()
+    now_utc = dt.datetime.now(dt.timezone.utc)
         completed = idx_utc + dt.timedelta(minutes=30) <= now_utc
         h = h.loc[completed]
         if h.empty:
