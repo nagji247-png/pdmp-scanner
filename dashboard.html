@@ -730,11 +730,21 @@ function renderTrends(t) {
 
   const todayBull = t.today_bull_pct;
   const yesterdayBull = t.yesterday_bull_pct;
-  const todayTitle = t.today_basis === "rolling_24h"
-    ? "हाल के 24 घंटे की दिशा (आज का अलग डेटा उपलब्ध नहीं)"
-    : "आज (" + (t.today_date_ist || "IST") + ") की दिशा";
+  // आज का calendar-day डेटा न मिले तो उपलब्ध 7-दिन Google Trends दिशा दिखाएँ।
+  // इसे आज का वास्तविक डेटा नहीं कहेंगे; स्रोत समय/अवधि स्पष्ट रहेगी।
+  const weekTotal = Number(t.bull_sum_pct || 0) + Number(t.bear_sum_pct || 0);
+  const weekBull = weekTotal > 0 ? Number(t.bull_sum_pct || 0) / weekTotal * 100 : null;
+  const shownBull = todayBull != null ? Number(todayBull) : weekBull;
+  const todayTitle = todayBull != null
+    ? (t.today_basis === "rolling_24h"
+      ? "हाल के 24 घंटे की दिशा (आज का अलग डेटा उपलब्ध नहीं)"
+      : "आज (" + (t.today_date_ist || "IST") + ") की दिशा")
+    : (weekBull != null ? "पिछले 7 दिन की दिशा (आज का अलग डेटा उपलब्ध नहीं)" : "आज की दिशा");
+  const shownLabel = todayBull != null
+    ? (t.today_label || "")
+    : (weekBull != null ? "7-दिन के उपलब्ध डेटा से" : "Google Trends ने पर्याप्त डेटा नहीं दिया");
   const daySummary = `
-    <div class="sub" style="margin-top:12px">${todayTitle}: <b>${todayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + todayBull + "% · बियरिश " + (100 - todayBull).toFixed(1) + "%"}</b> — ${esc(t.today_label || "")}</div>
+    <div class="sub" style="margin-top:12px">${todayTitle}: <b>${shownBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + shownBull.toFixed(1) + "% · बियरिश " + (100 - shownBull).toFixed(1) + "%"}</b> — ${esc(shownLabel)}</div>
     <div class="sub" style="margin-top:6px">कल (${esc(t.yesterday_date_ist || "IST")}) की दिशा: <b>${yesterdayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + yesterdayBull + "% · बियरिश " + (100 - yesterdayBull).toFixed(1) + "%"}</b> — ${esc(t.yesterday_label || "")}</div>`;
 
   const allRows = ct.map(p => {
