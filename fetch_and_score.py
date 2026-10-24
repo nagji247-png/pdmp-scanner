@@ -649,8 +649,7 @@ def intraday_snapshot(sym):
             idx_utc = idx_utc.tz_localize("UTC")
         else:
             idx_utc = idx_utc.tz_convert("UTC")
-        refresh_mcx_silver_reference()
-    now_utc = dt.datetime.now(dt.timezone.utc)
+        now_utc = dt.datetime.now(dt.timezone.utc)
         completed = idx_utc + dt.timedelta(minutes=30) <= now_utc
         h = h.loc[completed]
         if h.empty:
@@ -1197,6 +1196,7 @@ def market_closed_today():
 
 def main():
     global SKIP_EVENTS
+    refresh_mcx_silver_reference()
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
