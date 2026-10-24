@@ -21,7 +21,7 @@ jobs:
         run: python trinetra_data.py
       - name: Commit updated data
         run: |
-          if git diff --quiet -- trinetra-data.json; then
+          if [ -z "$(git status --porcelain -- trinetra-data.json)" ]; then
             echo "No data changes"
             exit 0
           fi
