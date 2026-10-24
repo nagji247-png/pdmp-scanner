@@ -29,10 +29,36 @@ const sectors=[
 {name:"Consumer",count:null,stocks:[["ITC","ITC"],["HINDUNILVR","Hindustan Unilever"],["TITAN","Titan Company"]]},
 {name:"Banks & Property",count:null,stocks:[["HDFCBANK","HDFC Bank"],["SBIN","State Bank of India"],["DLF","DLF"]]}
 ];
-const allStocks=sectors.flatMap(s=>s.stocks.map(([symbol,name])=>({symbol,name,sector:s.name})));
+let allStocks=sectors.flatMap(s=>s.stocks.map(([symbol,name])=>({symbol,name,sector:s.name,fundamentals:null})));\nlet companyDataLoaded=false;
 const fmt=v=>v===null||v===undefined||v===""?"डेटा उपलब्ध नहीं":v;
 let selectedSector=sectors[0].name, selectedStock=null, watch=[];
-function renderSectors(){const q=document.getElementById("sector-search").value.toLowerCase();document.getElementById("sectors").innerHTML=sectors.filter(s=>s.name.toLowerCase().includes(q)).map(s=>'<button class="sector '+(s.name===selectedSector?'active':'')+'" data-sector="'+s.name+'"><span>'+s.name+'</span><b>'+(s.count??"—")+'</b></button>').join("");document.querySelectorAll("[data-sector]").forEach(b=>b.onclick=()=>{selectedSector=b.dataset.sector;selectedStock=null;renderSectors();renderStocks();renderNetwork();document.getElementById("company-title").textContent="Company कच्चा चिट्ठा";document.getElementById("company-detail").innerHTML='<div class="empty">अब '+selectedSector+' की सूची में से कंपनी चुनें।</div>';document.getElementById("relationships").innerHTML='<div class="empty">कंपनी चुनने पर सत्यापित कनेक्शन दिखेंगे।</div>'})}
+function renderSectors(){sectors.forEach(s=>{s.actualCount=allStocks.filter(x=>x.sector===s.name).length});const q=document.getElementById("sector-search").value.toLowerCase();document.getElementById("sectors").innerHTML=sectors.filter(s=>s.name.toLowerCase().includes(q)).map(s=>'<button class="sector '+(s.name===selectedSector?'active':'')+'" data-sector="'+s.name+'"><span>'+s.name+'</span><b>'+(companyDataLoaded?s.actualCount:(s.count??"—"))+'</b></button>').join("");document.querySelectorAll("[data-sector]").forEach(b=>b.onclick=()=>{selectedSector=b.dataset.sector;selectedStock=null;renderSectors();renderStocks();renderNetwork();
+async function loadCompanyUniverse(){
+ try{
+  const response=await fetch("./trinetra-data.json",{cache:"no-store"});
+  if(!response.ok)throw new Error("कंपनी डेटा फ़ाइल उपलब्ध नहीं");
+  const data=await response.json();
+  if(!Array.isArray(data.companies)||!data.companies.length)throw new Error("कंपनी सूची खाली है");
+  allStocks=data.companies.map(c=>({symbol:c.symbol,name:c.name||c.symbol,sector:c.sector||"Unclassified",fundamentals:c.fundamentals||null,isin:c.isin}));
+  const known=new Set(sectors.map(s=>s.name));
+  [...new Set(allStocks.map(s=>s.sector))].forEach(name=>{if(!known.has(name))sectors.push({name,count:null,stocks:[]})});
+  companyDataLoaded=true;
+  document.getElementById("count-companies").textContent=data.companies_count||allStocks.length;
+  document.getElementById("count-links").textContent="0 verified";
+  document.getElementById("count-strong").textContent="0 verified";
+  document.getElementById("count-ipo").textContent="डेटा नहीं";
+  document.getElementById("count-sources").textContent="2";
+  renderSectors();renderStocks();renderNetwork();
+  document.querySelector(".warning").textContent="NSE सूची स्रोत से लोड हुई। Sector केवल मैप किए गए symbols के लिए है; कारोबारी संबंध सत्यापित डेटा आने तक नहीं दिखाए जाएँगे।";
+ }catch(e){
+  document.getElementById("count-companies").textContent="डेटा नहीं";
+  document.getElementById("count-links").textContent="—";
+  document.getElementById("count-strong").textContent="—";
+  document.getElementById("count-ipo").textContent="—";
+  document.getElementById("count-sources").textContent="—";
+ }
+}
+loadCompanyUniverse();document.getElementById("company-title").textContent="Company कच्चा चिट्ठा";document.getElementById("company-detail").innerHTML='<div class="empty">अब '+selectedSector+' की सूची में से कंपनी चुनें।</div>';document.getElementById("relationships").innerHTML='<div class="empty">कंपनी चुनने पर सत्यापित कनेक्शन दिखेंगे।</div>'})}
 function renderStocks(){const q=document.getElementById("stock-search").value.toLowerCase();const list=allStocks.filter(s=>(!selectedSector||s.sector===selectedSector)&&((s.symbol+" "+s.name+" "+s.sector).toLowerCase().includes(q)));document.getElementById("stocks").innerHTML=list.length?list.map(s=>'<button class="stock" data-stock="'+s.symbol+'"><span><b>'+s.symbol+'</b><small>'+s.name+'</small></span><span class="pill">'+s.sector+'</span></button>').join(""):'<div class="empty">इस फ़िल्टर में नमूना सूची का शेयर नहीं मिला।</div>';document.querySelectorAll("[data-stock]").forEach(b=>b.onclick=()=>selectStock(b.dataset.stock))}
 function renderNetwork(){const svg=document.getElementById("network"),items=allStocks.filter(s=>s.sector===selectedSector).slice(0,9);const pts=items.map((s,i)=>{const a=(Math.PI*2*i/items.length)-Math.PI/2;return {...s,x:220+145*Math.cos(a),y:164+112*Math.sin(a)}});let out='<g><text x="220" y="164" fill="#91a2bc" font-size="11" text-anchor="middle">सत्यापित लिंक डेटा उपलब्ध नहीं</text></g>';pts.forEach((p,i)=>{out+='<g class="node" tabindex="0" role="button" aria-label="'+p.name+'" data-node="'+p.symbol+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+(i===0?29:24)+'" fill="'+(i===0?'#17677b':'#1a3150')+'"/><text x="'+p.x+'" y="'+(p.y+3)+'">'+p.symbol.slice(0,12)+'</text></g>'});svg.innerHTML=out;svg.querySelectorAll("[data-node]").forEach(n=>{n.onclick=()=>selectStock(n.dataset.node);n.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectStock(n.dataset.node)}}})}
 function selectStock(symbol){selectedStock=allStocks.find(s=>s.symbol===symbol);if(!selectedStock)return;document.getElementById("company-title").textContent=selectedStock.name+" ("+selectedStock.symbol+")";document.getElementById("company-detail").innerHTML='<div class="detail-grid">'+[['Sector',selectedStock.sector],['Current price',null],['Market cap',null],['P/E',null],['EPS',null],['ROE',null],['Earnings / growth',null],['52-week range',null],['RSI',null],['Promoter holding',null],['FII holding',null],['DII holding',null]].map(([k,v])=>'<div class="metric"><small>'+k+'</small><strong>'+fmt(v)+'</strong></div>').join("")+'</div><p class="warning">वित्तीय आँकड़े अभी किसी लाइव/सत्यापित फीड से जुड़े नहीं हैं।</p><button id="add-watch" class="sector">＋ Watchlist में जोड़ें</button>';document.getElementById("add-watch").onclick=()=>{if(!watch.some(w=>w.symbol===symbol))watch.push(selectedStock);renderWatch()};document.getElementById("relationships").innerHTML='<p>'+selectedStock.name+' के लिए सत्यापित supplier/customer/ownership संबंध अभी उपलब्ध नहीं हैं।</p><p class="warning">समान सेक्टर को कारोबारी कनेक्शन नहीं माना गया है। प्रतिस्पर्धी भी तभी सूचीबद्ध होंगे जब स्रोत से पुष्टि हो।</p>';renderNetwork()}
