@@ -271,7 +271,7 @@ def refresh_mcx_silver_reference():
         html = response.text
         # The public page's main quote is normally rendered as ₹1,96,100.00.
         # Use a conservative value range to avoid picking unrelated prices.
-        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{5,6}(?:\\.[0-9]{1,2})?)", html, re.I)
+        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{5,6}(?:\.[0-9]{1,2})?)", html, re.I)
         candidates = []
         for item in matches:
             try:
@@ -320,6 +320,64 @@ def silver_display_price(international_inr_per_kg=None):
         print(f"MCX silver manual file error: {e}")
     return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
 
+GOLD_MCX_FILE = "mcx_gold.json"
+GOLD_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-gold-price/"
+
+def refresh_mcx_gold_reference():
+    """Fetch a public MCX gold quote; only update when a plausible ₹/10g quote is found."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+        response = requests.get(GOLD_PUBLIC_URL, headers=headers, timeout=15)
+        response.raise_for_status()
+        html = response.text
+        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{5,6}(?:\.[0-9]{1,2})?)", html, re.I)
+        candidates = []
+        for item in matches:
+            try:
+                value = float(item.replace(",", ""))
+                if 50000 <= value <= 500000:
+                    candidates.append(value)
+            except ValueError:
+                pass
+        if not candidates:
+            raise ValueError("public page quote not found or outside ₹50,000–₹5,00,000 per 10g validation range")
+        current = round(candidates[0], 2)
+        data = load_json(GOLD_MCX_FILE, {})
+        old = data.get("mcx_price_per_10g")
+        try:
+            old_num = float(old)
+        except (TypeError, ValueError):
+            old_num = None
+        if old_num and old_num > 0 and old_num != current:
+            data["previous_mcx_price_per_10g"] = old_num
+        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        data.update({
+            "mcx_price_per_10g": current,
+            "date": now_ist.date().isoformat(),
+            "source": "Upstox public MCX Gold page quote; not an exchange-certified live feed",
+            "source_url": GOLD_PUBLIC_URL,
+            "source_time": now_ist.strftime("%Y-%m-%d %H:%M IST"),
+            "note": "Reference quote per 10g; dashboard display adds 3% GST estimate. Jewellery making charges are not included."
+        })
+        with open(GOLD_MCX_FILE, "w", encoding="utf-8") as out:
+            json.dump(data, out, ensure_ascii=False, indent=2)
+        print(f"MCX gold public quote refreshed: ₹{current:,.2f}/10g")
+        return True
+    except Exception as exc:
+        print(f"MCX gold auto-refresh failed; retaining last reference and its original timestamp: {exc}")
+        return False
+
+def gold_display_price():
+    """MCX reference per 10g plus 3% GST; no jewellery making charges."""
+    try:
+        data = load_json(GOLD_MCX_FILE, {})
+        value = float(data.get("mcx_price_per_10g"))
+        if math.isfinite(value) and value > 0:
+            return round(value * (1 + GST_RATE), 2), str(data.get("date", "")), "MCX quote × 3% GST"
+    except Exception as exc:
+        print(f"MCX gold reference unavailable: {exc}")
+    return None, "", "MCX Gold भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
+
 def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
@@ -346,6 +404,18 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
+    if sym == "GC=F":
+        gold_price, gold_date, gold_source = gold_display_price()
+        PRICE_CACHE[sym] = gold_price
+        PRICE_CACHE["GC=F_SOURCE"] = gold_source
+        PRICE_CACHE["GC=F_DATE"] = gold_date
+        gold = load_json(GOLD_MCX_FILE, {})
+        try:
+            previous_gold = float(gold.get("previous_mcx_price_per_10g"))
+            current_gold = float(gold.get("mcx_price_per_10g"))
+            PRICE_CACHE["GC=F_CHANGE_PCT"] = round((current_gold / previous_gold - 1) * 100, 2) if previous_gold > 0 and current_gold > 0 else None
+        except (TypeError, ValueError):
+            PRICE_CACHE["GC=F_CHANGE_PCT"] = None
     if sym == "SI=F":
         silver_price, silver_date, silver_source = silver_display_price(last_close)
         PRICE_CACHE[sym] = silver_price
@@ -1197,6 +1267,7 @@ def market_closed_today():
 def main():
     global SKIP_EVENTS
     refresh_mcx_silver_reference()
+    refresh_mcx_gold_reference()
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
