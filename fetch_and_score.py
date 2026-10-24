@@ -11,7 +11,7 @@ INDEXES = {
     "BANKNIFTY": ("^NSEBANK", '"Bank Nifty" OR Nifty Bank index OR banking index India'),
     "GOLD": ("GC=F", "gold price"),
     "SILVER": ("SI=F", "silver price"),
-    "CRUDEOIL": ("CL=F", "crude oil price"),
+    "CRUDEOIL": ("BZ=F", "Brent crude oil price"),
     "BITCOIN": ("BTC-USD", "bitcoin price"),
     "NASDAQ": ("^IXIC", "Nasdaq stock market"),
     "DJI": ("^DJI", "Dow Jones stock market"),
