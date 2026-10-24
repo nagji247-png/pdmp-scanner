@@ -255,6 +255,23 @@ def load_json(path, default):
 
 
 PRICE_CACHE = {}
+SILVER_IMPORT_DUTY = 0.15  # अंतरराष्ट्रीय भाव से अनुमानित MCX-समतुल्य भाव तक
+GST_RATE = 0.03  # दुकान/खरीद का अनुमान; एक्सचेंज भाव में GST नहीं
+MCX_SILVER_FILE = "mcx_silver.json"
+
+def silver_display_price(international_inr_per_kg=None):
+    """MCX manual close हो तो MCX×(1+GST); नहीं तो अंतरराष्ट्रीय×(1+शुल्क)×(1+GST)।"""
+    try:
+        mcx = load_json(MCX_SILVER_FILE, {})
+        raw = mcx.get("mcx_price_per_kg")
+        value = float(raw) if raw is not None else None
+        if value is not None and math.isfinite(value) and value > 0:
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX × GST"
+    except Exception as e:
+        print(f"MCX silver manual file error: {e}")
+    if international_inr_per_kg is not None and math.isfinite(international_inr_per_kg):
+        return round(international_inr_per_kg * (1 + SILVER_IMPORT_DUTY) * (1 + GST_RATE), 2), "", "International estimate × duty × GST"
+    return None, "", "Silver price unavailable"
 
 def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
@@ -282,6 +299,11 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
+    if sym == "SI=F":
+        silver_price, silver_date, silver_source = silver_display_price(last_close)
+        PRICE_CACHE[sym] = silver_price
+        PRICE_CACHE["SI=F_SOURCE"] = silver_source
+        PRICE_CACHE["SI=F_DATE"] = silver_date
     out = {}
     for i in range(1, len(closes)):
         prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
@@ -538,7 +560,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": max(returns) if returns else None,
+        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
+        "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
+        "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
