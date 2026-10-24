@@ -474,7 +474,7 @@ function card(name, d, participantOI) {
     <div class="score-price-row">
       <div class="big" style="color:${color}">${sScore}</div>
       <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
-        ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}))
+        ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "GOLD" ? " /10g" : name === "SILVER" ? " /kg" : ""))
         : "—"} <span style="color:${Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5"}">${Number(d.change_pct) > 0 ? "+" : ""}${Number.isFinite(Number(d.change_pct)) ? Number(d.change_pct).toFixed(2) + "%" : "—"}</span><small>${d.price_as_of ? esc(d.price_as_of) : ""}</small></div>
     </div>
     <div class="lbl" style="color:${color}">${label}</div>
