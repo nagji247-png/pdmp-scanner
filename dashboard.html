@@ -474,8 +474,8 @@ function card(name, d, participantOI) {
     <div class="score-price-row">
       <div class="big" style="color:${color}">${sScore}</div>
       <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
-        ? ((["CRUDEOIL","GOLD","SILVER","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}))
-        : "—"}<small>${d.price != null ? "अंतिम उपलब्ध बंद भाव" : "भाव उपलब्ध नहीं"}${d.price_as_of ? " · " + esc(d.price_as_of) : ""}</small></div>
+        ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}))
+        : "—"}<small>${d.price_as_of ? esc(d.price_as_of) : ""}</small></div>
     </div>
     <div class="lbl" style="color:${color}">${label}</div>
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
