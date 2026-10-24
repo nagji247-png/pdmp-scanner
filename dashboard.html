@@ -681,6 +681,23 @@ function renderTrends(t) {
   const neutralScore = Number(t.neutral_score_pct);
   const hasScores = [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
     .every(value => value != null && Number.isFinite(Number(value)));
+  const fearValue = Number(t.bear_sum_pct);
+  const greedValue = Number(t.bull_sum_pct);
+  const hasFearGreed = !failed && Number.isFinite(fearValue) && Number.isFinite(greedValue) && (fearValue + greedValue) > 0;
+  const fearShare = hasFearGreed ? fearValue / (fearValue + greedValue) * 100 : null;
+  const greedShare = hasFearGreed ? 100 - fearShare : null;
+  const fearGreedBlock = hasFearGreed ? `
+    <div class="panel" style="padding:14px;margin-top:12px;background:#1b263b;border-color:#2a3b58">
+      <div style="font-weight:800;margin-bottom:10px">Fear vs greed search interest right now</div>
+      <div style="display:flex;justify-content:space-between;gap:8px;font-weight:800;margin-bottom:7px">
+        <span class="neg">Fear ${fearShare.toFixed(1)}%</span><span class="pos">Greed ${greedShare.toFixed(1)}%</span>
+      </div>
+      <div style="height:12px;border-radius:99px;overflow:hidden;display:flex;background:#29364d">
+        <div style="width:${fearShare}%;background:#f04452"></div><div style="width:${greedShare}%;background:#16b364"></div>
+      </div>
+      <div style="font-weight:800;margin-top:9px">${Math.abs(fearShare-greedShare)<5 ? "BALANCED" : fearShare>greedShare ? "FEAR-LEANING" : "GREED-LEANING"}</div>
+      <div class="sub" style="margin-top:6px">Crash/fall खोज बनाम rally/rise खोज की आपसी सापेक्ष रुचि। यह वास्तविक खरीद/बिक्री या लोगों की संख्या नहीं है।</div>
+    </div>` : "";
   const scoreBlock = hasScores && !failed ? `
     <div class="trends-score-layout">
       <div class="trends-donut" style="--bull:${bullScore}%;--bear:${bearScore}%;--neutral:${neutralScore}%" role="img" aria-label="Bullish ${pctText(bullScore)}, Bearish ${pctText(bearScore)}, Neutral ${pctText(neutralScore)}">
@@ -731,6 +748,7 @@ function renderTrends(t) {
   box.innerHTML = `
     ${stale}
     ${scoreBlock}
+    ${fearGreedBlock}
     <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि (पिछले 7 दिन के डेटा से)${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
     ${daySummary}
     <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
