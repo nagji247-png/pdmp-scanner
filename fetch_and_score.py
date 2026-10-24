@@ -466,12 +466,10 @@ def derive_card_indicator(name, sym, score, change):
                 closes = [float(row[4]) for row in rows if len(row) > 6 and int(row[6]) < now_ms]
                 source = "Binance public spot candles"
             except Exception as exc:
-                return {"indicator_label": "DATA FEED ERROR",
-                        "indicator_reason": "Yahoo और Binance दोनों से Bitcoin कैंडल नहीं मिली: " + str(exc)[:100]}
+                return {}
 
         if len(closes) < 20:
-            return {"indicator_label": "INSUFFICIENT CANDLE DATA",
-                    "indicator_reason": "स्रोत से पर्याप्त पूरी हुई 30-मिनट Bitcoin कैंडल नहीं मिली"}
+            return {}
         # Wilder-style RSI approximation using rolling 14-bar average gains/losses.
         rsi = [None] * len(closes)
         deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
@@ -491,8 +489,7 @@ def derive_card_indicator(name, sym, score, change):
         if len(r1) >= 3 and len(r2) >= 3 and min(p1) < min(p2) and min(r1) > min(r2):
             return {"indicator_label": "⚡ Bullish divergence",
                     "indicator_reason": "30-मिनट कीमत lower low, RSI higher low · स्रोत: " + source}
-        return {"indicator_label": "NO CONFIRMED BULLISH DIVERGENCE",
-                "indicator_reason": "पूरी हुई 30-मिनट कैंडल में divergence की शर्त पूरी नहीं · स्रोत: " + source}
+        return {}
     return {}
 
 
