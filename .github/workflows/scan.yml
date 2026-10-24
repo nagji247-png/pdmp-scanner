@@ -2,7 +2,7 @@ name: PDMP Scan
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "15 */2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
-          for f in data.json history.csv contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json; do
+          for f in data.json history.csv contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json mcx_silver.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if git diff --cached --quiet; then
