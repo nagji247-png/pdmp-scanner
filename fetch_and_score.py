@@ -260,18 +260,16 @@ GST_RATE = 0.03  # दुकान/खरीद का अनुमान; ए�
 MCX_SILVER_FILE = "mcx_silver.json"
 
 def silver_display_price(international_inr_per_kg=None):
-    """MCX manual close हो तो MCX×(1+GST); नहीं तो अंतरराष्ट्रीय×(1+शुल्क)×(1+GST)।"""
+    """केवल सत्यापित mcx_silver.json MCX भाव पर 3% GST जोड़ें; अंतरराष्ट्रीय भाव को MCX न बताएं."""
     try:
         mcx = load_json(MCX_SILVER_FILE, {})
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0:
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX × GST"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX close × 3% GST"
     except Exception as e:
         print(f"MCX silver manual file error: {e}")
-    if international_inr_per_kg is not None and math.isfinite(international_inr_per_kg):
-        return round(international_inr_per_kg * (1 + SILVER_IMPORT_DUTY) * (1 + GST_RATE), 2), "", "International estimate × duty × GST"
-    return None, "", "Silver price unavailable"
+    return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
 
 def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
@@ -304,6 +302,17 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = silver_price
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
+        # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
+        # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
+        mcx = load_json(MCX_SILVER_FILE, {})
+        previous_mcx = mcx.get("previous_mcx_price_per_kg")
+        current_mcx = mcx.get("mcx_price_per_kg")
+        try:
+            previous_mcx = float(previous_mcx)
+            current_mcx = float(current_mcx)
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if previous_mcx > 0 and current_mcx > 0 else None
+        except (TypeError, ValueError):
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = None
     out = {}
     for i in range(1, len(closes)):
         prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
@@ -558,7 +567,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     instruments[name] = {
         "type": kind,
-        "change_pct": change,
+        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
         "price": PRICE_CACHE.get(sym),
         "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
         "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
