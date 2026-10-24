@@ -981,9 +981,17 @@ def _trends_once():
 
     today_total = bull_today_sum + bear_today_sum
     yesterday_total = bull_yesterday_sum + bear_yesterday_sum
+    # If Google Trends has no rows for today's IST calendar date, use the
+    # actual rolling 24-hour terms already fetched and label the basis clearly.
+    today_basis = "calendar_day"
+    if today_total <= 0 and (bull_pct_sum + bear_pct_sum) > 0:
+        bull_today_sum = bull_pct_sum
+        bear_today_sum = bear_pct_sum
+        today_total = bull_today_sum + bear_today_sum
+        today_basis = "rolling_24h"
     today_bull_pct = round(bull_today_sum / today_total * 100, 1) if today_total > 0 else None
     yesterday_bull_pct = round(bull_yesterday_sum / yesterday_total * 100, 1) if yesterday_total > 0 else None
-    today_label = crowd_decision(bull_today_sum, bear_today_sum)[1] if today_total > 0 else "आज का डेटा उपलब्ध नहीं"
+    today_label = crowd_decision(bull_today_sum, bear_today_sum)[1] if today_total > 0 else "डेटा उपलब्ध नहीं"
     yesterday_label = crowd_decision(bull_yesterday_sum, bear_yesterday_sum)[1] if yesterday_total > 0 else "कल का डेटा उपलब्ध नहीं"
 
     return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
@@ -992,6 +1000,7 @@ def _trends_once():
             "bull_score_pct": bull_score_pct, "bear_score_pct": bear_score_pct,
             "neutral_score_pct": neutral_score_pct, "sentiment_label": sentiment_label,
             "today_bull_pct": today_bull_pct, "today_label": today_label,
+            "today_basis": today_basis,
             "yesterday_bull_pct": yesterday_bull_pct, "yesterday_label": yesterday_label,
             "today_date_ist": today_ist, "yesterday_date_ist": yesterday_ist,
             "bull_sum_pct": round(bull_pct_sum, 2), "bear_sum_pct": round(bear_pct_sum, 2),
