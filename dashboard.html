@@ -730,8 +730,11 @@ function renderTrends(t) {
 
   const todayBull = t.today_bull_pct;
   const yesterdayBull = t.yesterday_bull_pct;
+  const todayTitle = t.today_basis === "rolling_24h"
+    ? "हाल के 24 घंटे की दिशा (आज का अलग डेटा उपलब्ध नहीं)"
+    : "आज (" + (t.today_date_ist || "IST") + ") की दिशा";
   const daySummary = `
-    <div class="sub" style="margin-top:12px">आज (${esc(t.today_date_ist || "IST")}) की दिशा: <b>${todayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + todayBull + "% · बियरिश " + (100 - todayBull).toFixed(1) + "%"}</b> — ${esc(t.today_label || "")}</div>
+    <div class="sub" style="margin-top:12px">${todayTitle}: <b>${todayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + todayBull + "% · बियरिश " + (100 - todayBull).toFixed(1) + "%"}</b> — ${esc(t.today_label || "")}</div>
     <div class="sub" style="margin-top:6px">कल (${esc(t.yesterday_date_ist || "IST")}) की दिशा: <b>${yesterdayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + yesterdayBull + "% · बियरिश " + (100 - yesterdayBull).toFixed(1) + "%"}</b> — ${esc(t.yesterday_label || "")}</div>`;
 
   const allRows = ct.map(p => {
