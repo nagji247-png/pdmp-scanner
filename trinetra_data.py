@@ -38,7 +38,7 @@ def get_universe():
             r=requests.get(url,headers=HEADERS,timeout=25)
             r.raise_for_status()
             rows=list(csv.DictReader(io.StringIO(r.content.decode("utf-8-sig"))))
-            if rows and "SYMBOL" in rows[0]:
+            if rows and "SYMBOL" in rows[0] and "NAME OF COMPANY" in rows[0]:
                 out=[]
                 for row in rows:
                     sym=(row.get("SYMBOL") or "").strip()
@@ -46,13 +46,17 @@ def get_universe():
                     out.append({"symbol":sym,"name":(row.get("NAME OF COMPANY") or "").strip() or None,
                                 "isin":(row.get("ISIN NUMBER") or "").strip() or None,
                                 "sector":SECTOR_MAP.get(sym)})
-                return out
+                if len(out) >= 100:
+                    return out
+                last="NSE CSV returned too few valid equity rows"
+            else:
+                last="NSE CSV headers were not recognized"
         except Exception as e: last=str(e)
     raise RuntimeError("NSE official equity list unavailable: "+str(last))
 
 def fundamentals(symbol):
     result={"price":None,"market_cap":None,"pe":None,"eps":None,"roe":None,
-            "week52_low":None,"week52_high":None,"revenue_growth":None,
+            "week52_low":None,"week52_high":None,"rsi14":None,"revenue_growth":None,
             "profit_growth":None,"promoter_pct":None,"fii_pct":None,"dii_pct":None,
             "currency":None,"source":"Yahoo Finance (best-effort)","as_of":None}
     try:
@@ -69,9 +73,27 @@ def fundamentals(symbol):
           "revenue_growth":num(info.get("revenueGrowth")),
           "profit_growth":num(info.get("earningsGrowth")),
           "currency":info.get("currency"),
-          "as_of":dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+          "as_of":None
         })
-    except Exception as e:
+        # Do not label the retrieval time as the exchange quote time.
+        quote_time=info.get("regularMarketTime")
+        if quote_time:
+            try:
+                result["as_of"]=dt.datetime.fromtimestamp(float(quote_time),dt.timezone.utc).isoformat(timespec="seconds")
+            except (TypeError,ValueError,OverflowError):
+                result["as_of"]=None
+        try:
+            hist=t.history(period="3mo", interval="1d", auto_adjust=False)
+            close=hist["Close"].dropna()
+            delta=close.diff()
+            gains=delta.clip(lower=0).rolling(14).mean()
+            losses=(-delta.clip(upper=0)).rolling(14).mean()
+            if len(close)>=15:
+                avg_gain=float(gains.iloc[-1]); avg_loss=float(losses.iloc[-1])
+                result["rsi14"]=100.0 if avg_loss==0 and avg_gain>0 else (50.0 if avg_loss==0 and avg_gain==0 else (100-(100/(1+avg_gain/avg_loss)) if avg_loss>0 else None))
+        except Exception:
+            result["rsi14"]=None
+    except Exception:
         result["error"]="Fundamental data unavailable from free source"
     return result
 
