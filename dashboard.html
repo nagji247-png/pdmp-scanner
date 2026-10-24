@@ -26,6 +26,10 @@
   .card.neu  { border-left-color: #f1c40f; }
   .name { font-size: 12px; color: #8a90a8; letter-spacing: 0.5px; }
   .big { font-size: 26px; font-weight: 700; margin: 2px 0; }
+  .score-price-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:2px 0; }
+  .score-price-row .big { margin:0; }
+  .last-price { text-align:right; font-size:13px; font-weight:700; color:#dfe6f5; line-height:1.25; }
+  .last-price small { display:block; font-size:10px; font-weight:500; color:#8a90a8; margin-top:2px; }
   .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
   .div { font-size: 11px; margin-top: 4px; color: #f5a623; }
   .chg { font-size: 11px; color: #8a90a8; margin-top: 2px; }
@@ -467,7 +471,12 @@ function card(name, d, participantOI) {
   el.className = "card " + cls;
   el.innerHTML = `
     <div class="name">${esc(name)}</div>
-    <div class="big" style="color:${color}">${sScore}</div>
+    <div class="score-price-row">
+      <div class="big" style="color:${color}">${sScore}</div>
+      <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
+        ? ((["CRUDEOIL","GOLD","SILVER","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}))
+        : "—"}<small>${d.price != null ? "अंतिम उपलब्ध बंद भाव" : "भाव उपलब्ध नहीं"}${d.price_as_of ? " · " + esc(d.price_as_of) : ""}</small></div>
+    </div>
     <div class="lbl" style="color:${color}">${label}</div>
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
     ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
