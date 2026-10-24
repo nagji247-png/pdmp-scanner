@@ -257,12 +257,27 @@ def load_json(path, default):
 PRICE_CACHE = {}
 
 def daily_returns(sym):
-    """तारीख -> उस दिन का % बदलाव; साथ में अंतिम उपलब्ध पूर्ण daily close कैश करें।"""
+    """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
     today_utc = dt.datetime.now(dt.timezone.utc).date()
     keep = [d.date() < today_utc for d in closes.index]
     closes = closes[keep]
-    PRICE_CACHE[sym] = round(float(closes.iloc[-1]), 4) if len(closes) and math.isfinite(float(closes.iloc[-1])) else None
+    last_close = float(closes.iloc[-1]) if len(closes) else None
+    if last_close is not None and not math.isfinite(last_close):
+        last_close = None
+    # Yahoo GC=F और SI=F अमेरिकी डॉलर प्रति ट्रॉय औंस में हैं।
+    # USD/INR से गुणा करके रुपये प्रति ट्रॉय औंस दिखाएँ; भारत का प्रति 10g/किलो भाव नहीं।
+    if last_close is not None and sym in ("GC=F", "SI=F"):
+        try:
+            fx = yf.Ticker("INR=X").history(period="5d", interval="1d")["Close"].dropna()
+            rate = float(fx.iloc[-1]) if len(fx) else None
+            if rate is not None and math.isfinite(rate) and rate > 0:
+                last_close *= rate
+            else:
+                last_close = None
+        except Exception:
+            last_close = None
+    PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
     out = {}
     for i in range(1, len(closes)):
         prev, cur = float(closes.iloc[i - 1]), float(closes.iloc[i])
