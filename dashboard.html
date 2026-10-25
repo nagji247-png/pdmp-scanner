@@ -344,7 +344,7 @@
 
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
-<section class="panel"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
+<section class="panel" style="display:block;grid-column:1 / -1;width:100%;max-width:100%"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap" style="grid-column:auto;width:auto;max-width:none;margin:0 14px 16px"></div></section>
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
 <section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
@@ -1090,6 +1090,7 @@ let selSector = null;
 let selStock = null;
 let selIndustry = null;
 let lastMapData = null;
+let sectorInit = false;
 
 const SECTOR_COLORS = ["#4fc3f7", "#2ecc71", "#f1c40f", "#e74c3c", "#9b59b6", "#e67e22", "#1abc9c", "#95a5a6"];
 
@@ -1172,6 +1173,8 @@ function renderSectorMap(data) {
   const asOfTxt = data.stock_analysis_as_of
     ? new Date(data.stock_analysis_as_of).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—";
   const header = `
+    ${steps}
+    <div style="font-size:13px;color:#4fc3f7;margin-bottom:8px">${prompt}</div>
     <div class="sub" style="margin-bottom:8px">कंपनी के आँकड़े दिन में दो बार (10:00 और 16:00 IST) अपडेट होते हैं · आख़िरी अपडेट: ${asOfTxt}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
       ${tile("कंपनियाँ", names.length)}
@@ -1183,6 +1186,16 @@ function renderSectorMap(data) {
     </div>
     <div class="sub" style="margin-bottom:12px;font-size:11px">0 का मतलब असली शून्य नहीं, "डेटा नहीं" है। लिंक, IPO और स्रोत का डेटा अभी नहीं जुड़ा है। डेटा वाली कंपनियाँ: ${withData}, न वाली: ${names.length - withData}।</div>`;
 
+  if (!sectorInit && parts.length) { selSector = parts[0].name; sectorInit = true; }
+  const steps = `<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:12px;margin-bottom:10px">
+      <span style="padding:4px 8px;border-radius:6px;background:${selSector ? "#20324a" : "#4fc3f7"};color:${selSector ? "#dfe3ef" : "#0f1220"}">1 · सेक्टर</span>
+      <span style="padding:4px 8px;border-radius:6px;background:${selIndustry ? "#20324a" : (selSector ? "#4fc3f7" : "#2a2f47")};color:${selIndustry ? "#dfe3ef" : (selSector ? "#0f1220" : "#8a90a8")}">2 · कैटेगरी</span>
+      <span style="padding:4px 8px;border-radius:6px;background:${selStock ? "#20324a" : (selIndustry ? "#4fc3f7" : "#2a2f47")};color:${selStock ? "#dfe3ef" : (selIndustry ? "#0f1220" : "#8a90a8")}">3 · स्टॉक</span>
+    </div>`;
+  const prompt = !selSector ? "👆 नीचे किसी सेक्टर पर क्लिक करें"
+    : !selIndustry ? "👆 अब कोई कैटेगरी दबाएँ, उसके स्टॉक खुलेंगे"
+    : !selStock ? "👆 अब कोई स्टॉक दबाएँ, उसका पूरा विवरण खुलेगा"
+    : "नीचे इस स्टॉक का पूरा विवरण है";
   const legendHint = `<div class="sub" style="grid-column:1/3;margin-bottom:2px">सेक्टर पर क्लिक करें ▸</div>`;
   const legend = legendHint + parts.map((p, i) => {
     const active = selSector === p.name;
@@ -1208,7 +1221,7 @@ function renderSectorMap(data) {
       <div class="bigm" style="font-size:18px">${val}</div><div class="sub" style="font-size:10px">${label}</div></div>`;
     const chips = inds.map(ind => {
       const act = selIndustry === ind;
-      return `<span onclick="pickIndustry('${esc(ind)}')" style="cursor:pointer;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid ${act ? "#4fc3f7" : "#2a2f47"};background:${act ? "#20324a" : "#20263f"};color:#dfe3ef">${esc(ind)} <b style="color:#4fc3f7">${ig[ind].length}</b> ▸</span>`;
+      return `<span onclick="pickIndustry('${esc(ind)}')" style="cursor:pointer;font-size:13px;padding:9px 12px;border-radius:10px;border:2px solid ${act ? "#4fc3f7" : "#3a4470"};background:${act ? "#20324a" : "#1e2540"};color:#e6e9f2;font-weight:600">${esc(ind)} <b style="color:#4fc3f7">${ig[ind].length}</b> ▸</span>`;
     }).join("");
     detail += `
       <div style="margin-top:12px;font-weight:700;color:#cfd4e6">${esc(selSector)}</div>
@@ -1228,7 +1241,7 @@ function renderSectorMap(data) {
         ig[selIndustry].map(n => {
           const i = ins[n] || {};
           const act = selStock === n;
-          return `<div class="ev" style="cursor:pointer;${act ? "background:#20263f" : ""}" onclick="pickStock('${esc(n)}')">
+          return `<div class="ev" style="cursor:pointer;padding:12px 10px;margin-top:6px;border-radius:10px;border:2px solid ${act ? "#4fc3f7" : "#3a4470"};background:${act ? "#20324a" : "#1e2540"}" onclick="pickStock('${esc(n)}')">
             <div><b>${esc(n)}</b> <span class="sub">स्कोर ${i.score == null ? "—" : i.score}</span></div>
             <div class="${(i.change_pct || 0) >= 0 ? "pos" : "neg"}">${i.change_pct == null ? "—" : (i.change_pct > 0 ? "+" : "") + i.change_pct + "%"} <span style="color:#4fc3f7">›</span></div>
           </div>`;
