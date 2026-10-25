@@ -345,7 +345,6 @@
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
 <section class="panel"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
-<section class="panel"><h2>🔬 स्टॉक विश्लेषण (कंपनी के आँकड़े)</h2><div class="box" id="stockAnalysis"></div></section>
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
 <section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
@@ -1170,7 +1169,10 @@ function renderSectorMap(data) {
 
   const tile = (label, val) => `<div style="flex:1;min-width:80px;text-align:center;padding:8px 4px;background:#1e2540;border-radius:8px">
       <div class="bigm" style="font-size:20px">${val}</div><div class="sub" style="font-size:10px">${label}</div></div>`;
+  const asOfTxt = data.stock_analysis_as_of
+    ? new Date(data.stock_analysis_as_of).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—";
   const header = `
+    <div class="sub" style="margin-bottom:8px">कंपनी के आँकड़े दिन में दो बार (10:00 और 16:00 IST) अपडेट होते हैं · आख़िरी अपडेट: ${asOfTxt}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
       ${tile("कंपनियाँ", names.length)}
       ${tile("सेक्टर", parts.length)}
@@ -1311,7 +1313,6 @@ async function load() {
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
     renderNews(data.market_news);
-    renderStockAnalysis(data.stock_analysis, data.stock_analysis_as_of);
     renderSectorMap(data);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
