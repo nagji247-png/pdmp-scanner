@@ -1315,6 +1315,21 @@ def market_closed_today():
         return False
 
 
+STOCK_REFRESH_HOURS_IST = (10, 16)
+
+
+def stock_refresh_slot(now_utc):
+    """अभी की स्टॉक-विश्लेषण स्लॉट (IST 10:00 या 16:00 में से पिछली)। इससे पहले का स्लॉट कल का होता है।"""
+    ist = (now_utc + dt.timedelta(hours=5, minutes=30)).replace(tzinfo=None)
+    slots = []
+    for day_off in (0, -1):
+        day = (ist + dt.timedelta(days=day_off)).date()
+        for h in STOCK_REFRESH_HOURS_IST:
+            slots.append(dt.datetime(day.year, day.month, day.day, h))
+    past = [x for x in slots if x <= ist]
+    return max(past).isoformat() if past else None
+
+
 def main():
     global SKIP_EVENTS
     refresh_mcx_silver_reference()
@@ -1365,10 +1380,20 @@ def main():
         "events": div_events[-12:],
     }
 
-    result["stock_analysis"] = {}
-    for name, (sym, _q) in STOCKS.items():
-        price = result["instruments"].get(name, {}).get("price")
-        result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
+    slot_now = stock_refresh_slot(now_utc)
+    prev_sa = previous.get("stock_analysis") or {}
+    if prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now:
+        # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
+        result["stock_analysis"] = prev_sa
+        result["stock_analysis_slot"] = slot_now
+        result["stock_analysis_as_of"] = previous.get("stock_analysis_as_of")
+    else:
+        result["stock_analysis"] = {}
+        for name, (sym, _q) in STOCKS.items():
+            price = result["instruments"].get(name, {}).get("price")
+            result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
+        result["stock_analysis_slot"] = slot_now
+        result["stock_analysis_as_of"] = updated
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
