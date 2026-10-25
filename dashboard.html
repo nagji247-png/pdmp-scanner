@@ -344,6 +344,8 @@
 
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
+<section class="panel"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
+<section class="panel"><h2>🔬 स्टॉक विश्लेषण (कंपनी के आँकड़े)</h2><div class="box" id="stockAnalysis"></div></section>
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
 <section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
@@ -1052,6 +1054,162 @@ function renderNews(m) {
     ${items || '<div class="sub">कोई खबर नहीं मिली</div>'}`;
 }
 
+function renderStockAnalysis(sa) {
+  const box = document.getElementById("stockAnalysis");
+  if (!sa || Object.keys(sa).length === 0) {
+    box.innerHTML = '<div class="sub">अभी कोई कंपनी-डेटा नहीं</div>';
+    return;
+  }
+  const n = (v, unit = "") => (v === null || v === undefined) ? "—" : (v.toLocaleString("en-IN") + unit);
+  const rows = Object.entries(sa).map(([name, d]) => {
+    if (!d.ok) {
+      return `<div class="card"><div class="name">${esc(name)}</div><div class="warn">${esc(d.error || "डेटा नहीं")}</div></div>`;
+    }
+    const up = d.upside_to_target_pct;
+    const upCls = up == null ? "" : (up >= 0 ? "pos" : "neg");
+    const pos = d.position_in_52w_pct;
+    const cap = d.market_cap_cr == null ? "—" : "₹" + Number(d.market_cap_cr).toLocaleString("en-IN") + " cr";
+    return `<div class="card" style="margin-bottom:10px">
+      <div class="name">${esc(name)}</div>
+      <div class="ev"><div>बाज़ार मूल्य (Market cap)</div><div>${cap}</div></div>
+      <div class="ev"><div>P/E (ट्रेलिंग / फ़ॉरवर्ड)</div><div>${n(d.pe_trailing)} / ${n(d.pe_forward)}</div></div>
+      <div class="ev"><div>आय प्रति शेयर (EPS)</div><div>${n(d.eps_trailing)}</div></div>
+      <div class="ev"><div>ROE / ऑपरेटिंग मार्जिन</div><div>${n(d.roe_pct, "%")} / ${n(d.operating_margin_pct, "%")}</div></div>
+      <div class="ev"><div>राजस्व वृद्धि / आय वृद्धि</div><div>${n(d.revenue_growth_pct, "%")} / ${n(d.earnings_growth_pct, "%")}</div></div>
+      <div class="ev"><div>Analyst लक्ष्य मूल्य</div><div>${d.analyst_target == null ? "—" : "₹" + d.analyst_target + (up == null ? "" : ` <span class="${upCls}">(${up > 0 ? "+" : ""}${up}%)</span>`)}</div></div>
+      <div class="ev"><div>52 हफ़्ते में कहाँ है</div><div>${pos == null ? "—" : pos + "% (नीचे से ऊपर)"}</div></div>
+      <div class="ev"><div>शेयरहोल्डिंग: अंदरूनी / संस्थागत</div><div>${n(d.insiders_pct, "%")} / ${n(d.institutions_pct, "%")}</div></div>
+      <div class="ev"><div>ग्राहक</div><div class="sub">${esc(d.customers_note)}</div></div>
+    </div>`;
+  }).join("");
+  box.innerHTML = `
+    <div class="sub" style="margin-bottom:8px">हर कंपनी के आँकड़े Yahoo Finance से। जो आँकड़ा नहीं मिलता, वहाँ "—" दिखता है। यह फ़ैसला नहीं है, सिर्फ़ जानकारी है।</div>
+    ${rows}`;
+}
+
+let selSector = null;
+let selStock = null;
+let lastMapData = null;
+
+const SECTOR_COLORS = ["#4fc3f7", "#2ecc71", "#f1c40f", "#e74c3c", "#9b59b6", "#e67e22", "#1abc9c", "#95a5a6"];
+
+function donutSvg(parts, total) {
+  const cx = 70, cy = 70, r = 60, ri = 34;
+  if (total === 0) return "";
+  let angle = -Math.PI / 2;
+  const paths = parts.map((p, i) => {
+    const frac = p.count / total;
+    if (frac >= 0.9999) {
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="pickSector('${esc(p.name)}')" style="cursor:pointer"/>`;
+    }
+    const a0 = angle, a1 = angle + frac * 2 * Math.PI;
+    angle = a1;
+    const large = (a1 - a0) > Math.PI ? 1 : 0;
+    const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+    const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+    const xi1 = cx + ri * Math.cos(a1), yi1 = cy + ri * Math.sin(a1);
+    const xi0 = cx + ri * Math.cos(a0), yi0 = cy + ri * Math.sin(a0);
+    const d = `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} L ${xi1} ${yi1} A ${ri} ${ri} 0 ${large} 0 ${xi0} ${yi0} Z`;
+    return `<path d="${d}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="pickSector('${esc(p.name)}')" style="cursor:pointer"/>`;
+  }).join("");
+  return `<svg width="140" height="140" viewBox="0 0 140 140">${paths}
+    <text x="70" y="66" text-anchor="middle" fill="#e6e9f2" font-size="18" font-weight="700">${total}</text>
+    <text x="70" y="82" text-anchor="middle" fill="#7b82a0" font-size="10">कंपनियाँ</text></svg>`;
+}
+
+function stockParamCard(name, data) {
+  const ins = (data.instruments || {})[name] || {};
+  const d = (data.stock_analysis || {})[name] || {};
+  if (!d.ok) return `<div class="warn">${esc(name)}: ${esc(d.error || "डेटा नहीं")}</div>`;
+  const n = (v, unit = "") => (v === null || v === undefined) ? "—" : (v.toLocaleString("en-IN") + unit);
+  const cap = d.market_cap_cr == null ? "—" : "₹" + Number(d.market_cap_cr).toLocaleString("en-IN") + " cr";
+  const up = d.upside_to_target_pct;
+  const price = ins.price == null ? "—" : "₹" + Number(ins.price).toLocaleString("en-IN");
+  return `<div class="card" style="margin-top:10px">
+    <div class="name">${esc(name)} · ${esc(d.sector || "")}</div>
+    <div class="ev"><div>कीमत / बदलाव</div><div>${price} · ${ins.change_pct == null ? "—" : ins.change_pct + "%"}</div></div>
+    <div class="ev"><div>स्कोर</div><div>${ins.score == null ? "—" : ins.score}</div></div>
+    <div class="ev"><div>बाज़ार मूल्य (Market cap)</div><div>${cap}</div></div>
+    <div class="ev"><div>P/E (ट्रेलिंग / फ़ॉरवर्ड)</div><div>${n(d.pe_trailing)} / ${n(d.pe_forward)}</div></div>
+    <div class="ev"><div>आय प्रति शेयर (EPS)</div><div>${n(d.eps_trailing)}</div></div>
+    <div class="ev"><div>ROE / ऑपरेटिंग मार्जिन</div><div>${n(d.roe_pct, "%")} / ${n(d.operating_margin_pct, "%")}</div></div>
+    <div class="ev"><div>राजस्व वृद्धि / आय वृद्धि</div><div>${n(d.revenue_growth_pct, "%")} / ${n(d.earnings_growth_pct, "%")}</div></div>
+    <div class="ev"><div>Analyst लक्ष्य मूल्य</div><div>${d.analyst_target == null ? "—" : "₹" + d.analyst_target + (up == null ? "" : ` (${up > 0 ? "+" : ""}${up}%)`)}</div></div>
+    <div class="ev"><div>52 हफ़्ते में कहाँ है</div><div>${d.position_in_52w_pct == null ? "—" : d.position_in_52w_pct + "% (नीचे से ऊपर)"}</div></div>
+    <div class="ev"><div>शेयरहोल्डिंग: अंदरूनी / संस्थागत</div><div>${n(d.insiders_pct, "%")} / ${n(d.institutions_pct, "%")}</div></div>
+    <div class="ev"><div>ग्राहक</div><div class="sub">${esc(d.customers_note || "")}</div></div>
+  </div>`;
+}
+
+function renderSectorMap(data) {
+  lastMapData = data;
+  const box = document.getElementById("sectorMap");
+  const sa = data.stock_analysis || {};
+  const ins = data.instruments || {};
+  const names = Object.keys(sa).filter(n => ins[n] && ins[n].type === "stock");
+  if (names.length === 0) {
+    box.innerHTML = '<div class="sub">अभी कोई वॉचलिस्ट डेटा नहीं</div>';
+    return;
+  }
+  const groups = {};
+  names.forEach(n => {
+    const sec = (sa[n] && sa[n].ok && sa[n].sector) ? sa[n].sector : "अज्ञात";
+    (groups[sec] = groups[sec] || []).push(n);
+  });
+  const parts = Object.keys(groups).map(k => ({ name: k, count: groups[k].length }))
+    .sort((a, b) => b.count - a.count);
+  const withData = names.filter(n => sa[n] && sa[n].ok).length;
+
+  const header = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin-bottom:12px">
+      <div><div class="bigm" style="font-size:20px">${names.length}</div><div class="sub">कंपनियाँ</div></div>
+      <div><div class="bigm" style="font-size:20px">${parts.length}</div><div class="sub">सेक्टर</div></div>
+      <div><div class="bigm" style="font-size:20px">${withData}</div><div class="sub">डेटा वाली</div></div>
+      <div><div class="bigm" style="font-size:20px">${names.length - withData}</div><div class="sub">डेटा नहीं</div></div>
+    </div>`;
+
+  const legend = parts.map((p, i) => {
+    const active = selSector === p.name;
+    return `<div class="ev" style="cursor:pointer;opacity:${selSector && !active ? 0.5 : 1}" onclick="pickSector('${esc(p.name)}')">
+      <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${SECTOR_COLORS[i % SECTOR_COLORS.length]};margin-right:6px"></span>${esc(p.name)}</div>
+      <div><b>${p.count}</b></div></div>`;
+  }).join("");
+
+  let detail = "";
+  if (selSector && groups[selSector]) {
+    detail = `<div class="sub" style="margin-top:12px">${esc(selSector)} के स्टॉक (क्लिक करें):</div>` +
+      groups[selSector].map(n => {
+        const i = ins[n] || {};
+        const act = selStock === n;
+        return `<div class="ev" style="cursor:pointer;${act ? "background:#20263f" : ""}" onclick="pickStock('${esc(n)}')">
+          <div><b>${esc(n)}</b> <span class="sub">स्कोर ${i.score == null ? "—" : i.score}</span></div>
+          <div class="${(i.change_pct || 0) >= 0 ? "pos" : "neg"}">${i.change_pct == null ? "—" : (i.change_pct > 0 ? "+" : "") + i.change_pct + "%"}</div>
+        </div>`;
+      }).join("");
+  }
+  if (selStock && sa[selStock]) detail += stockParamCard(selStock, data);
+
+  box.innerHTML = `
+    ${header}
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div>${donutSvg(parts, names.length)}</div>
+      <div style="flex:1;min-width:180px">${legend}</div>
+    </div>
+    ${detail}
+    ${(selSector || selStock) ? `<div class="sub" style="margin-top:10px;cursor:pointer" onclick="pickSector(null)">← सभी सेक्टर</div>` : ""}`;
+}
+
+function pickSector(name) {
+  selSector = (name === null || selSector === name) ? null : name;
+  selStock = null;
+  if (lastMapData) renderSectorMap(lastMapData);
+}
+
+function pickStock(name) {
+  selStock = (selStock === name) ? null : name;
+  if (lastMapData) renderSectorMap(lastMapData);
+}
+
 async function load() {
   if (loading) return;
   loading = true;
@@ -1084,6 +1242,8 @@ async function load() {
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
     renderNews(data.market_news);
+    renderStockAnalysis(data.stock_analysis);
+    renderSectorMap(data);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
     const guard = document.getElementById("trade-guard");
