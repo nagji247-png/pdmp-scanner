@@ -958,6 +958,205 @@ def fetch_stock_fundamentals(sym, price):
         return {"ok": False, "error": f"कंपनी के आँकड़े नहीं मिले: {str(e)[:120]}"}
 
 
+
+OPP_STOCKS = {
+    "SUZLON": ("SUZLON.NS", "Suzlon Energy"),
+    "DLINKINDIA": ("DLINKINDIA.NS", "D-Link (India)"),
+    "VEDL": ("VEDL.NS", "Vedanta"),
+    "APOLLOMICRO": ("APOLLOMICRO.NS", "Apollo Micro Systems"),
+    "MSUMI": ("MSUMI.NS", "Motherson Sumi Wiring India"),
+    "PARAS": ("PARAS.NS", "Paras Defence and Space Technologies"),
+    "IOC": ("IOC.NS", "Indian Oil Corporation"),
+    "GULPOLY": ("GULPOLY.NS", "Gulshan Polyols"),
+    "GPPL": ("GPPL.NS", "Gujarat Pipavav Port"),
+    "JAGRAN": ("JAGRAN.NS", "Jagran Prakashan"),
+}
+OPP_FACTORS = ["valuation", "growth", "profitability", "trend", "rsi", "analyst_upside"]
+
+
+def _rsi14(closes):
+    if len(closes) < 15:
+        return None
+    gains = [max(closes[i] - closes[i - 1], 0.0) for i in range(1, len(closes))]
+    losses = [max(closes[i - 1] - closes[i], 0.0) for i in range(1, len(closes))]
+    ag = sum(gains[:14]) / 14
+    al = sum(losses[:14]) / 14
+    for i in range(14, len(gains)):
+        ag = (ag * 13 + gains[i]) / 14
+        al = (al * 13 + losses[i]) / 14
+    if al == 0:
+        return 100.0
+    return 100 - 100 / (1 + ag / al)
+
+
+def _sma(closes, n):
+    return sum(closes[-n:]) / n if len(closes) >= n else None
+
+
+def opportunity_raw(sym):
+    """एक स्टॉक के कच्चे आँकड़े (कोई खबर या भीड़ नहीं)। जो नहीं मिलता वह None।"""
+    out = {"ok": False}
+    try:
+        t = yf.Ticker(sym)
+        info = t.info or {}
+        hist = t.history(period="1y", interval="1d")["Close"].dropna()
+        closes = [float(x) for x in hist.tolist()]
+        price = _num(info.get("currentPrice")) or _num(info.get("regularMarketPrice")) or (closes[-1] if closes else None)
+        pe = _num(info.get("trailingPE"))
+        rg = _num(info.get("revenueGrowth"))
+        eg = _num(info.get("earningsGrowth"))
+        roe = _num(info.get("returnOnEquity"))
+        om = _num(info.get("operatingMargins"))
+        tgt = _num(info.get("targetMeanPrice"))
+        s50, s200 = _sma(closes, 50), _sma(closes, 200)
+        trend = None
+        if price and s50 and s200:
+            trend = (1 if price > s50 else 0) * 0.5 + (1 if price > s200 else 0) * 0.5
+        growth_vals = [x for x in (rg, eg) if x is not None]
+        prof_vals = [x for x in (roe, om) if x is not None]
+        out.update({
+            "ok": True,
+            "price": round(price, 2) if price else None,
+            "sector": info.get("sector") or "अज्ञात",
+            "industry": info.get("industry") or "अज्ञात",
+            "valuation": pe if (pe is not None and pe > 0) else None,
+            "growth": (sum(growth_vals) / len(growth_vals)) if growth_vals else None,
+            "profitability": (sum(prof_vals) / len(prof_vals)) if prof_vals else None,
+            "trend": trend,
+            "rsi": _rsi14(closes),
+            "analyst_upside": ((tgt / price - 1) * 100) if (tgt and price) else None,
+            "_holding": {
+                "insiders_pct": round(_num(info.get("heldPercentInsiders")) * 100, 1) if _num(info.get("heldPercentInsiders")) is not None else None,
+                "institutions_pct": round(_num(info.get("heldPercentInstitutions")) * 100, 1) if _num(info.get("heldPercentInstitutions")) is not None else None,
+            },
+        })
+    except Exception as e:
+        out["error"] = f"आँकड़े नहीं मिले: {str(e)[:120]}"
+    return out
+
+
+def _cr(v):
+    """रुपये -> करोड़ (2 दशमलव)। नहीं मिला तो None।"""
+    try:
+        x = float(v)
+        return round(x / 1e7, 2) if math.isfinite(x) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _series_val(df, row_names):
+    if df is None or getattr(df, "empty", True):
+        return None
+    for rn in row_names:
+        if rn in df.index:
+            return df.loc[rn]
+    return None
+
+
+def opportunity_extra(sym, market_1y, info_holding):
+    """केवल वे आँकड़े जो सच में मिलें; बाकी कुछ नहीं जोड़ा जाता।"""
+    out = {}
+    try:
+        t = yf.Ticker(sym)
+        hist = t.history(period="1y", interval="1d")["Close"].dropna()
+        if len(hist) >= 200 and float(hist.iloc[0]) > 0:
+            out["return_1y_pct"] = round((float(hist.iloc[-1]) / float(hist.iloc[0]) - 1) * 100, 2)
+        if market_1y is not None:
+            out["market_1y_pct"] = market_1y
+
+        q = None
+        for attr in ("quarterly_financials", "quarterly_income_stmt"):
+            try:
+                q = getattr(t, attr)
+                if q is not None and not q.empty:
+                    break
+            except Exception:
+                q = None
+        rev_q = _series_val(q, ["Total Revenue"])
+        prf_q = _series_val(q, ["Net Income", "Net Income Common Stockholders"])
+        quarters = []
+        if q is not None and not q.empty:
+            for c in list(q.columns)[:5]:
+                r = _cr(rev_q[c]) if rev_q is not None else None
+                pr = _cr(prf_q[c]) if prf_q is not None else None
+                if r is None and pr is None:
+                    continue
+                quarters.append({"period": c.strftime("%b '%y"), "revenue_cr": r, "profit_cr": pr})
+            quarters.reverse()
+        if quarters:
+            out["quarterly"] = quarters
+
+        a = None
+        for attr in ("financials", "income_stmt"):
+            try:
+                a = getattr(t, attr)
+                if a is not None and not a.empty:
+                    break
+            except Exception:
+                a = None
+        rev_a = _series_val(a, ["Total Revenue"])
+        prf_a = _series_val(a, ["Net Income", "Net Income Common Stockholders"])
+        growth = {}
+        def _vals(series):
+            if series is None:
+                return []
+            return [float(series[c]) for c in series.index if series[c] == series[c]]
+        rv, pv = _vals(rev_a), _vals(prf_a)
+        if len(rv) >= 2 and rv[1] > 0:
+            growth["revenue_1y_pct"] = round((rv[0] / rv[1] - 1) * 100, 1)
+        if len(pv) >= 2 and pv[1] > 0:
+            growth["profit_1y_pct"] = round((pv[0] / pv[1] - 1) * 100, 1)
+        if len(rv) >= 4 and rv[0] > 0 and rv[3] > 0:
+            growth["revenue_3y_cagr_pct"] = round(((rv[0] / rv[3]) ** (1 / 3) - 1) * 100, 1)
+        if len(pv) >= 4 and pv[0] > 0 and pv[3] > 0:
+            growth["profit_3y_cagr_pct"] = round(((pv[0] / pv[3]) ** (1 / 3) - 1) * 100, 1)
+        if growth:
+            out["growth"] = growth
+    except Exception:
+        pass
+
+    holding = {k: v for k, v in info_holding.items() if v is not None}
+    if holding:
+        out["holding"] = holding
+    return out
+
+
+def _pct_rank(value, values, higher_is_better=True):
+    """बाकी स्टॉक के मुकाबले 0–100 का स्थान। बराबर मान पर आधा अंक।"""
+    if value is None or not values:
+        return None
+    if len(values) == 1:
+        return 50.0
+    below = sum(1 for v in values if v < value)
+    equal = sum(1 for v in values if v == value)
+    rank = (below + 0.5 * equal) / len(values) * 100
+    return round(rank if higher_is_better else 100 - rank, 1)
+
+
+def score_opportunities(raws):
+    """हर वैक्टर का 0–100 स्कोर सूची के भीतर तुलना से। उपलब्ध वैक्टर का औसत = कुल स्कोर।
+    RSI: कम RSI (ज़्यादा बिका हुआ) को ज़्यादा अंक; ज़्यादा RSI को कम अंक।"""
+    spec = {
+        "valuation": False,   # P/E कम हो तो बेहतर
+        "growth": True,
+        "profitability": True,
+        "trend": True,
+        "rsi": False,         # RSI कम हो तो बेहतर (ज़्यादा बिका)
+        "analyst_upside": True,
+    }
+    ok = {k: v for k, v in raws.items() if v.get("ok")}
+    for name, r in ok.items():
+        scores = {}
+        for f in OPP_FACTORS:
+            vals = [x[f] for x in ok.values() if x.get(f) is not None]
+            scores[f] = _pct_rank(r.get(f), vals, spec[f])
+        avail = [s for s in scores.values() if s is not None]
+        r["scores"] = scores
+        r["total"] = round(sum(avail) / len(avail), 1) if avail else None
+        r["missing"] = [f for f in OPP_FACTORS if scores[f] is None]
+    return raws
+
+
 def nifty_range():
     """India VIX से अगले सत्र का 68% संभावना वाला दायरा।
     सूत्र: दैनिक σ = VIX/100 ÷ √252, फिर अंतिम बंद × σ।"""
@@ -1394,6 +1593,31 @@ def main():
             result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
         result["stock_analysis_slot"] = slot_now
         result["stock_analysis_as_of"] = updated
+    prev_opp = previous.get("opportunity") or {}
+    if prev_opp and slot_now and previous.get("opportunity_slot") == slot_now:
+        result["opportunity"] = prev_opp
+        result["opportunity_slot"] = slot_now
+        result["opportunity_as_of"] = previous.get("opportunity_as_of")
+    else:
+        market_1y = None
+        try:
+            mh = yf.Ticker("^NSEI").history(period="1y", interval="1d")["Close"].dropna()
+            if len(mh) >= 200 and float(mh.iloc[0]) > 0:
+                market_1y = round((float(mh.iloc[-1]) / float(mh.iloc[0]) - 1) * 100, 2)
+        except Exception:
+            market_1y = None
+        raws = {k: opportunity_raw(sym) for k, (sym, _n) in OPP_STOCKS.items()}
+        for k, (sym, _n) in OPP_STOCKS.items():
+            r = raws[k]
+            holding = r.pop("_holding", {}) if isinstance(r, dict) else {}
+            if r.get("ok"):
+                r.update(opportunity_extra(sym, market_1y, holding))
+        score_opportunities(raws)
+        for k, r in raws.items():
+            r["name"] = OPP_STOCKS[k][1]
+        result["opportunity"] = raws
+        result["opportunity_slot"] = slot_now
+        result["opportunity_as_of"] = updated
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
