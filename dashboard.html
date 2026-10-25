@@ -1054,7 +1054,7 @@ function renderNews(m) {
     ${items || '<div class="sub">कोई खबर नहीं मिली</div>'}`;
 }
 
-function renderStockAnalysis(sa) {
+function renderStockAnalysis(sa, asOf) {
   const box = document.getElementById("stockAnalysis");
   if (!sa || Object.keys(sa).length === 0) {
     box.innerHTML = '<div class="sub">अभी कोई कंपनी-डेटा नहीं</div>';
@@ -1083,12 +1083,13 @@ function renderStockAnalysis(sa) {
     </div>`;
   }).join("");
   box.innerHTML = `
-    <div class="sub" style="margin-bottom:8px">हर कंपनी के आँकड़े Yahoo Finance से। जो आँकड़ा नहीं मिलता, वहाँ "—" दिखता है। यह फ़ैसला नहीं है, सिर्फ़ जानकारी है।</div>
+    <div class="sub" style="margin-bottom:8px">आँकड़े दिन में दो बार (10:00 और 16:00 IST) अपडेट होते हैं${asOf ? " · आख़िरी अपडेट: " + new Date(asOf).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : ""}। हर कंपनी के आँकड़े Yahoo Finance से। जो आँकड़ा नहीं मिलता, वहाँ "—" दिखता है। यह फ़ैसला नहीं है, सिर्फ़ जानकारी है।</div>
     ${rows}`;
 }
 
 let selSector = null;
 let selStock = null;
+let selIndustry = null;
 let lastMapData = null;
 
 const SECTOR_COLORS = ["#4fc3f7", "#2ecc71", "#f1c40f", "#e74c3c", "#9b59b6", "#e67e22", "#1abc9c", "#95a5a6"];
@@ -1141,6 +1142,13 @@ function stockParamCard(name, data) {
   </div>`;
 }
 
+function medianOf(arr) {
+  const a = arr.filter(x => x !== null && x !== undefined && isFinite(x)).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
 function renderSectorMap(data) {
   lastMapData = data;
   const box = document.getElementById("sectorMap");
@@ -1160,53 +1168,114 @@ function renderSectorMap(data) {
     .sort((a, b) => b.count - a.count);
   const withData = names.filter(n => sa[n] && sa[n].ok).length;
 
+  const tile = (label, val) => `<div style="flex:1;min-width:80px;text-align:center;padding:8px 4px;background:#1e2540;border-radius:8px">
+      <div class="bigm" style="font-size:20px">${val}</div><div class="sub" style="font-size:10px">${label}</div></div>`;
   const header = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin-bottom:12px">
-      <div><div class="bigm" style="font-size:20px">${names.length}</div><div class="sub">कंपनियाँ</div></div>
-      <div><div class="bigm" style="font-size:20px">${parts.length}</div><div class="sub">सेक्टर</div></div>
-      <div><div class="bigm" style="font-size:20px">${withData}</div><div class="sub">डेटा वाली</div></div>
-      <div><div class="bigm" style="font-size:20px">${names.length - withData}</div><div class="sub">डेटा नहीं</div></div>
-    </div>`;
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+      ${tile("कंपनियाँ", names.length)}
+      ${tile("सेक्टर", parts.length)}
+      ${tile("लिंक", 0)}
+      ${tile("मज़बूत लिंक", 0)}
+      ${tile("IPO", 0)}
+      ${tile("स्रोत", 0)}
+    </div>
+    <div class="sub" style="margin-bottom:12px;font-size:11px">0 का मतलब असली शून्य नहीं, "डेटा नहीं" है। लिंक, IPO और स्रोत का डेटा अभी नहीं जुड़ा है। डेटा वाली कंपनियाँ: ${withData}, न वाली: ${names.length - withData}।</div>`;
 
-  const legend = parts.map((p, i) => {
+  const legendHint = `<div class="sub" style="grid-column:1/3;margin-bottom:2px">सेक्टर पर क्लिक करें ▸</div>`;
+  const legend = legendHint + parts.map((p, i) => {
     const active = selSector === p.name;
     return `<div class="ev" style="cursor:pointer;opacity:${selSector && !active ? 0.5 : 1}" onclick="pickSector('${esc(p.name)}')">
       <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${SECTOR_COLORS[i % SECTOR_COLORS.length]};margin-right:6px"></span>${esc(p.name)}</div>
-      <div><b>${p.count}</b></div></div>`;
+      <div><b>${p.count}</b> <span style="color:#4fc3f7">›</span></div></div>`;
   }).join("");
 
   let detail = "";
   if (selSector && groups[selSector]) {
-    detail = `<div class="sub" style="margin-top:12px">${esc(selSector)} के स्टॉक (क्लिक करें):</div>` +
-      groups[selSector].map(n => {
-        const i = ins[n] || {};
-        const act = selStock === n;
-        return `<div class="ev" style="cursor:pointer;${act ? "background:#20263f" : ""}" onclick="pickStock('${esc(n)}')">
-          <div><b>${esc(n)}</b> <span class="sub">स्कोर ${i.score == null ? "—" : i.score}</span></div>
-          <div class="${(i.change_pct || 0) >= 0 ? "pos" : "neg"}">${i.change_pct == null ? "—" : (i.change_pct > 0 ? "+" : "") + i.change_pct + "%"}</div>
-        </div>`;
-      }).join("");
+    const list = groups[selSector];
+    const ok = list.filter(n => sa[n] && sa[n].ok);
+    const pe = medianOf(ok.map(n => sa[n].pe_trailing));
+    const roe = medianOf(ok.map(n => sa[n].roe_pct));
+    const mg = medianOf(ok.map(n => sa[n].operating_margin_pct));
+    const ig = {};
+    list.forEach(n => {
+      const ind = (sa[n] && sa[n].ok && sa[n].industry) ? sa[n].industry : "अज्ञात";
+      (ig[ind] = ig[ind] || []).push(n);
+    });
+    const inds = Object.keys(ig).sort((a, b) => ig[b].length - ig[a].length);
+    const tile2 = (label, val) => `<div style="flex:1;min-width:70px;text-align:center;padding:8px 4px;background:#1e2540;border-radius:8px">
+      <div class="bigm" style="font-size:18px">${val}</div><div class="sub" style="font-size:10px">${label}</div></div>`;
+    const chips = inds.map(ind => {
+      const act = selIndustry === ind;
+      return `<span onclick="pickIndustry('${esc(ind)}')" style="cursor:pointer;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid ${act ? "#4fc3f7" : "#2a2f47"};background:${act ? "#20324a" : "#20263f"};color:#dfe3ef">${esc(ind)} <b style="color:#4fc3f7">${ig[ind].length}</b> ▸</span>`;
+    }).join("");
+    detail += `
+      <div style="margin-top:12px;font-weight:700;color:#cfd4e6">${esc(selSector)}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        ${tile2("COMPANIES", list.length)}
+        ${tile2("SECTORS", inds.length)}
+        ${tile2("LINKS", 0)}
+        ${tile2("OPEN IN RANKINGS", 0)}
+        ${tile2("IPOS", 0)}
+        ${tile2("MEDIAN ROCE", "0%")}
+      </div>
+      <div class="sub" style="margin-top:10px;letter-spacing:.5px">SECTORS · OPEN IN RANKINGS</div>
+      <div class="sub" style="font-size:11px;color:#7b82a0">कैटेगरी पर क्लिक करें, उसके स्टॉक खुलेंगे</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${chips}</div>`;
+    if (selIndustry && ig[selIndustry]) {
+      detail += `<div class="sub" style="margin-top:10px">${esc(selIndustry)} के स्टॉक, विवरण के लिए स्टॉक पर क्लिक करें:</div>` +
+        ig[selIndustry].map(n => {
+          const i = ins[n] || {};
+          const act = selStock === n;
+          return `<div class="ev" style="cursor:pointer;${act ? "background:#20263f" : ""}" onclick="pickStock('${esc(n)}')">
+            <div><b>${esc(n)}</b> <span class="sub">स्कोर ${i.score == null ? "—" : i.score}</span></div>
+            <div class="${(i.change_pct || 0) >= 0 ? "pos" : "neg"}">${i.change_pct == null ? "—" : (i.change_pct > 0 ? "+" : "") + i.change_pct + "%"} <span style="color:#4fc3f7">›</span></div>
+          </div>`;
+        }).join("");
+    }
   }
   if (selStock && sa[selStock]) detail += stockParamCard(selStock, data);
 
+  const crumbs = [];
+  if (selSector) crumbs.push(`<span style="cursor:pointer;color:#4fc3f7" onclick="pickSector(null)">सभी सेक्टर</span>`);
+  if (selSector) crumbs.push(selIndustry ? `<span style="cursor:pointer;color:#4fc3f7" onclick="pickIndustry(null)">${esc(selSector)}</span>` : esc(selSector));
+  if (selIndustry) crumbs.push(selStock ? `<span style="cursor:pointer;color:#4fc3f7" onclick="pickStock(null)">${esc(selIndustry)}</span>` : esc(selIndustry));
+  if (selStock) crumbs.push(esc(selStock));
+  const trail = crumbs.length ? `<div class="sub" style="margin-bottom:6px">${crumbs.join(" › ")}</div>` : "";
+  const back = [];
+  if (selStock || selIndustry) back.push(`<span style="cursor:pointer" onclick="pickStock(null)">← वापस</span>`);
+  if (selSector) back.push(`<span style="cursor:pointer" onclick="pickSector(null)">← सभी सेक्टर</span>`);
+
   box.innerHTML = `
     ${header}
+    ${trail}
     <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
       <div>${donutSvg(parts, names.length)}</div>
-      <div style="flex:1;min-width:180px">${legend}</div>
+      <div style="flex:1;min-width:180px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px">${legend}</div>
     </div>
     ${detail}
-    ${(selSector || selStock) ? `<div class="sub" style="margin-top:10px;cursor:pointer" onclick="pickSector(null)">← सभी सेक्टर</div>` : ""}`;
+    ${back.length ? `<div class="sub" style="margin-top:10px">${back.join(" &nbsp;·&nbsp; ")}</div>` : ""}`;
 }
 
 function pickSector(name) {
   selSector = (name === null || selSector === name) ? null : name;
+  selIndustry = null;
+  selStock = null;
+  if (lastMapData) renderSectorMap(lastMapData);
+}
+
+function pickIndustry(name) {
+  selIndustry = (name === null || selIndustry === name) ? null : name;
   selStock = null;
   if (lastMapData) renderSectorMap(lastMapData);
 }
 
 function pickStock(name) {
-  selStock = (selStock === name) ? null : name;
+  if (name === null) {
+    if (selStock) { selStock = null; }
+    else { selIndustry = null; }
+  } else {
+    selStock = (selStock === name) ? null : name;
+  }
   if (lastMapData) renderSectorMap(lastMapData);
 }
 
@@ -1242,7 +1311,7 @@ async function load() {
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
     renderNews(data.market_news);
-    renderStockAnalysis(data.stock_analysis);
+    renderStockAnalysis(data.stock_analysis, data.stock_analysis_as_of);
     renderSectorMap(data);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
