@@ -907,6 +907,57 @@ def fetch_market_news():
     return {"ok": True, "items": items[:12]}
 
 
+def _num(x):
+    try:
+        v = float(x)
+        return v if math.isfinite(v) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def summarise_fundamentals(info, price):
+    """yfinance के info से कंपनी के आँकड़े। जो फ़ील्ड नहीं मिलता, वह None रहता है; कुछ भी बनाया नहीं जाता।
+    'ग्राहक' और 'प्रमोटर/FII/DII' का पूरा विभाजन यहाँ नहीं मिलता, इसलिए वह नहीं भरा जाता।"""
+    mcap = _num(info.get("marketCap"))
+    target = _num(info.get("targetMeanPrice"))
+    hi = _num(info.get("fiftyTwoWeekHigh"))
+    lo = _num(info.get("fiftyTwoWeekLow"))
+    out = {
+        "market_cap_cr": round(mcap / 1e7, 0) if mcap else None,
+        "pe_trailing": _num(info.get("trailingPE")),
+        "pe_forward": _num(info.get("forwardPE")),
+        "eps_trailing": _num(info.get("trailingEps")),
+        "roe_pct": round(_num(info.get("returnOnEquity")) * 100, 1) if _num(info.get("returnOnEquity")) is not None else None,
+        "operating_margin_pct": round(_num(info.get("operatingMargins")) * 100, 1) if _num(info.get("operatingMargins")) is not None else None,
+        "revenue_growth_pct": round(_num(info.get("revenueGrowth")) * 100, 1) if _num(info.get("revenueGrowth")) is not None else None,
+        "earnings_growth_pct": round(_num(info.get("earningsGrowth")) * 100, 1) if _num(info.get("earningsGrowth")) is not None else None,
+        "insiders_pct": round(_num(info.get("heldPercentInsiders")) * 100, 1) if _num(info.get("heldPercentInsiders")) is not None else None,
+        "institutions_pct": round(_num(info.get("heldPercentInstitutions")) * 100, 1) if _num(info.get("heldPercentInstitutions")) is not None else None,
+        "analyst_target": round(target, 2) if target else None,
+        "upside_to_target_pct": None,
+        "w52_high": round(hi, 2) if hi else None,
+        "w52_low": round(lo, 2) if lo else None,
+        "position_in_52w_pct": None,
+        "sector": info.get("sector") or "अज्ञात",
+        "industry": info.get("industry") or "",
+        "customers": None,
+        "customers_note": "ग्राहक डेटा का भरोसेमंद मुफ़्त स्रोत अभी नहीं जुड़ा है",
+    }
+    if price and target:
+        out["upside_to_target_pct"] = round((target / price - 1) * 100, 1)
+    if price and hi and lo and hi > lo:
+        out["position_in_52w_pct"] = round((price - lo) / (hi - lo) * 100, 1)
+    return out
+
+
+def fetch_stock_fundamentals(sym, price):
+    try:
+        info = yf.Ticker(sym).info or {}
+        return {"ok": True, **summarise_fundamentals(info, price)}
+    except Exception as e:
+        return {"ok": False, "error": f"कंपनी के आँकड़े नहीं मिले: {str(e)[:120]}"}
+
+
 def nifty_range():
     """India VIX से अगले सत्र का 68% संभावना वाला दायरा।
     सूत्र: दैनिक σ = VIX/100 ÷ √252, फिर अंतिम बंद × σ।"""
@@ -1314,6 +1365,10 @@ def main():
         "events": div_events[-12:],
     }
 
+    result["stock_analysis"] = {}
+    for name, (sym, _q) in STOCKS.items():
+        price = result["instruments"].get(name, {}).get("price")
+        result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
