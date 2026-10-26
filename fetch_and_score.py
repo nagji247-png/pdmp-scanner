@@ -665,7 +665,7 @@ def derive_card_indicator(name, sym, score, change):
             closes = [float(x) for x in yf.Ticker(sym).history(period="6mo", interval="1d")["Close"].dropna().tolist()]
             div = rsi_divergence(closes)
             if div:
-                return {"indicator_label": div["label"], "indicator_reason": div["reason"] + " · स्रोत: Yahoo दैनिक"}
+                return {"indicator_label": div["label"]}
         except Exception as exc:
             print(f"index RSI divergence skipped {name}: {exc}")
         return {}
@@ -1647,7 +1647,9 @@ def main():
     try:
         slot_now = stock_refresh_slot(now_utc)
         prev_sa = previous.get("stock_analysis") or {}
-        if prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now:
+        expected_keys = set(STOCKS.keys()) | set(OPP_STOCKS.keys())
+        if (prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now
+                and set(prev_sa.keys()) == expected_keys):
             # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
             result["stock_analysis"] = prev_sa
             result["stock_analysis_slot"] = slot_now
