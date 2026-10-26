@@ -1506,7 +1506,7 @@ function renderFoPanel(po) {
 
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
       ${card("INSIDER OPTIONS", insiderBody)}
       ${card("RETAIL BUILDUP", retailBody)}
       ${card("F&amp;O INSTITUTIONAL", instBody)}
