@@ -29,6 +29,16 @@ STOCKS = {
     "EICHERMOT": ("EICHERMOT.NS", "Eicher Motors share"),
     "APOLLOHOSP": ("APOLLOHOSP.NS", "Apollo Hospitals share"),
     "SBIN": ("SBIN.NS", "SBI share"),
+    "SUZLON": ("SUZLON.NS", "Suzlon Energy share"),
+    "DLINKINDIA": ("DLINKINDIA.NS", "D-Link India share"),
+    "VEDL": ("VEDL.NS", "Vedanta share"),
+    "APOLLOMICRO": ("APOLLOMICRO.NS", "Apollo Micro Systems share"),
+    "MSUMI": ("MSUMI.NS", "Motherson Sumi Wiring share"),
+    "PARAS": ("PARAS.NS", "Paras Defence and Space share"),
+    "IOC": ("IOC.NS", "Indian Oil Corporation share"),
+    "GULPOLY": ("GULPOLY.NS", "Gulshan Polyols share"),
+    "GPPL": ("GPPL.NS", "Gujarat Pipavav Port share"),
+    "JAGRAN": ("JAGRAN.NS", "Jagran Prakashan share"),
 }
 
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
@@ -43,6 +53,16 @@ STOCK_ALIASES = {
     "EICHERMOT": ["eicher", "eichermot"],
     "APOLLOHOSP": ["apollo hospital", "apollohosp", "apollo"],
     "SBIN": ["sbi", "sbin", "state bank"],
+    "SUZLON": ["suzlon"],
+    "DLINKINDIA": ["d-link", "dlink", "dlinkindia"],
+    "VEDL": ["vedanta", "vedl"],
+    "APOLLOMICRO": ["apollo micro", "apollomicro"],
+    "MSUMI": ["motherson sumi", "msumi"],
+    "PARAS": ["paras defence", "paras"],
+    "IOC": ["indian oil", "ioc"],
+    "GULPOLY": ["gulshan polyols", "gulpoly"],
+    "GPPL": ["pipavav", "gppl"],
+    "JAGRAN": ["jagran", "jagran prakashan"],
 }
 
 # शब्द-सूची: वज़न 1 या 2। मिलान शब्द की शुरुआत से होता है।
