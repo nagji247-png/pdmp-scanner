@@ -1592,6 +1592,25 @@ def stock_refresh_slot(now_utc):
     return max(past).isoformat() if past else None
 
 
+def participant_changes(today, prev):
+    """आज और पिछले उपलब्ध दिन के NSE participant आँकड़ों का अंतर (बदलाव)।
+    पिछला दिन data.json से लिया जाता है; उसी तारीख का हो तो कुछ नहीं बनता।"""
+    if not today.get("ok") or not prev.get("ok") or prev.get("date") == today.get("date"):
+        return {"ok": False, "prev_date": None, "by_group": {}}
+    P, Q = today.get("participants", {}), prev.get("participants", {})
+    keys = ["future_index_long", "future_index_short", "index_call_long",
+            "index_call_short", "index_put_long", "index_put_short"]
+    out = {}
+    for grp in ["FII", "DII", "PRO", "CLIENT"]:
+        if grp in P and grp in Q:
+            d = {}
+            for k in keys:
+                a, b = P[grp].get(k), Q[grp].get(k)
+                d[k] = (a - b) if (a is not None and b is not None) else None
+            out[grp] = d
+    return {"ok": bool(out), "prev_date": prev.get("date"), "by_group": out}
+
+
 def main():
     global SKIP_EVENTS
     refresh_mcx_silver_reference()
@@ -1713,6 +1732,8 @@ def main():
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
     result["participant_oi"] = fetch_participant_oi()
+    result["participant_oi"]["changes"] = participant_changes(
+        result["participant_oi"], previous.get("participant_oi") or {})
 
     market_news = pick_with_fallback(fetch_market_news(), previous.get("market_news") or {})
     if market_news.get("ok") and not market_news.get("stale"):
