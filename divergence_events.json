@@ -444,8 +444,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 2.92
   },
   {
     "key": "2026-10-26|COALINDIA|div",
@@ -486,8 +486,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.9
   },
   {
     "key": "2026-10-26|SBIN|div",
@@ -528,8 +528,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.23
   },
   {
     "key": "2026-10-26|HINDALCO|div",
@@ -570,8 +570,8 @@
         "score": -2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.82
   },
   {
     "key": "2026-10-26|DLINKINDIA|div",
@@ -862,6 +862,48 @@
         "source": "INDToday",
         "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOYVJUSldUY0lITEU2VWdpdlBTbXktbGQwVy15Rjh1dzctb3lRVGw5a3dfQVBod0ZaekZzbmV3d0xNQnFwX1dPY2JhYWkwazlTZkN3YmFFaTQzT2pHVW5uRWwxTjFEY01ncDkwLXRNQldWangtRGNIdDJVazUtT091Z2lR?oc=5",
         "score": 2
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-26|NASDAQ|div",
+    "date": "2026-10-26",
+    "instrument": "NASDAQ",
+    "score": 1.1,
+    "price_change": -0.21,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Anthropic Moves Closer to Public Market Debut With Nasdaq IPO Filing",
+        "source": "Asianet Newsable",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxQRkNVWWxqR0FOWi05X3VGTkNPaVFTVGVXdVBwakNONWtHYV9vaDZHWXE1WGtmdnAxTjNIV1F2Y0RtWVIwbTZ2dFplVkdYTFlRVktrbzQxZ2U4d2V6VGZXX2RJalM1MmowMUJjRmVXN0p6dk5ZUllCckMtbmNObE9sQ3o4RklqYTNOWDQ1QzNBM0FKRjc0bXBhRUxLOV9sVksxOUNoRnVGcWtuUUtrU3VOLWNVNmV0aXducUdJREtfR05lT1RnMEZxZGJB0gHPAUFVX3lxTE5tLVpJU0Fwc3NnMkVHeFJsS3piRjE4RGUxT081ODdobTl5a1dZSEY3U2llQldsWDlZcHlRQnRBX3ZUaExIcVZ6MmxyQVh2eFQxbGM3MDhTWF9lVU1Mc2xpb2x4YXZTNUJYd1lHWXVWVzRyQ0JfbFZxS3JuaTZfM1pic3hUVm0xZmFKejAwLWFYalNpVGJhTGM0TExXM1h0WXQyR3lQSXI0a0otLS0zVWhXdXYxX3BjNFczaVlvVUl6LWVWdmk1bmFzRVA0SWlOVQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Wall street opens on a positive note: Dow Jones surges 200 pts, S&P 500 and NASDAQ 100 rise 0.4%; Anthropic files for IPO",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxPRkMwSnllSnd6bUw2UnVlT19rMEtyZUZkYW1nVVFqMmszekhTOVQteWV0V1R0NnZRcGhIeVYtaUNmYWRoaGdLaFlzcjRkSFFWR24yWmNfRmpNN1E2UTZLb1Z6RzAwajRWWGF2dFMwSEEycjBRbmw4NUxROGlIXzVpaHo3Zy1Ma1pPMEtJemlOaXlaUFFkalRkT0pnX284MlJMUE1VZzFqdmpydlRCanBTSEtWU3lpMnQyVWtQdWFVVl83M0dZY0swS3NiWWdIQ0NGajR5MjFKUmZJY1poc09uNTNxY3Bvc1JUcV9fb2tCYU0?oc=5",
+        "score": 3
+      },
+      {
+        "title": "Anthropic files for Nasdaq IPO, reports $80.7B loss in first half By Investing.com",
+        "source": "Investing.com India",
+        "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxONVVJOW9fOUVYRTdNdU9fV2Z0T0VkWnRRMUdnbjFXS2UxZU03bTh2cGhGUDNyT3VMQnFPQ05Zdk1Ra3JGd1NZSUlUb3hCWGx6ODdldGhaemE3czhCc0xPOEk0Z0hZXzZBQXVSdERmQTdnVm1STjFramNQWVRWTUJzUVByN214VjNVU3UzdWtwMXFPeUUydXlqT2ZEb0dQZkxYWTNPeUxENkgxeHd3V1BGTEd2Qm9GN2FSRE1QWlFKYThldw?oc=5",
+        "score": -1
+      },
+      {
+        "title": "Anthropic IPO filing: Claude maker targets Nasdaq listing under ticker ANT amid AI market jitters | Hindustan Times",
+        "source": "Hindustan Times",
+        "link": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxNaXNkOWp5NFYtMmNYNThLWWxmbE9BNXljLTVObjJaek9YeGpNYjZLTFpvUXhyNFNjT0FjcUJpZXpOeExsVmlpRjM5dlBSeklBZ0FlRXJXSW10dUFfajRpNXNzNWhVc2JxaXZuVDZTei1qV0JfaHVzcE1OQWh5cDBSM1pYZGNkMm9BTjNna2huUzdXNTFyaGVHSjdqc0hENVQyQkptWkJraUpKNDhZbjhHczQyLW1ESXhfNnBUbmVfZ0Fkd2ZDRDJONHFkdWpyNzhTWXdIdkR2c0NTX0dYUzZHRmJQMFI5Mk42by0zeGJVM3ZwWUR5LWlsTXhlMNIBgAJBVV95cUxNbDg2SXVhM1k2WjFsRmJsVmYtNzc2akxSWEgwNVdnWXBYRDVHNGxOdm5xR1VkQWtXckM5SVNtbnhsSFBqSzNKZTY2WW8xN1Y3NjVJdk9wRWNPV1ZWUHE3NnQ3aGJhSnR5MjV4azRibk5Eb0JXQVZscFgtaloyOS1DM3FIT1FsVVptTmd5dExzeW10RGVyVmtiUTNwazU3LVphbERZZXE4VXVSMFU4N1hMZzFwdkZFdWYzdEhYSFFrZmUwU2F3bTZOLWJRT3B6dEFHUDVsN0lxbDl5cDRJZGtBRGFWUURES0FCc1ExWWR3N09pSC1JbHkyNXgzSng0MDdu?oc=5",
+        "score": 0
+      },
+      {
+        "title": "US Stock Market Today: Dow Jones, Nasdaq Jump On Anthropic IPO Interest, Falling Oil Prices",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQUzBMa0lRT0FxYmE2SXJfc3BXVkRyNHYzZi03VnNETXc2a19TZnlxeWhKNjBFeDctY3NhbnJCWHhOb0dpRXVCaHEwLVBYMWFrbVJzeGJHR0xTLVpxQXptNVdmRW9wbHE5RHVQekRtMFFnakx2T1ZGSGFGOXM5alNvdkJNNlZSWkJpcEtvZXViNVpoSGNHZXctTHRwRkdCc2R1VUFNSGw2NFBDcTM1ZnRzUWh1NzRQQlppb0FSeDRiWV9Qd25TeVY1ZFdKRGM?oc=5",
+        "score": 0
       }
     ],
     "outcome": null,
