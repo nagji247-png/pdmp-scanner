@@ -1579,45 +1579,50 @@ def main():
         "events": div_events[-12:],
     }
 
-    slot_now = stock_refresh_slot(now_utc)
-    prev_sa = previous.get("stock_analysis") or {}
-    if prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now:
-        # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
-        result["stock_analysis"] = prev_sa
-        result["stock_analysis_slot"] = slot_now
-        result["stock_analysis_as_of"] = previous.get("stock_analysis_as_of")
-    else:
-        result["stock_analysis"] = {}
-        for name, (sym, _q) in STOCKS.items():
-            price = result["instruments"].get(name, {}).get("price")
-            result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
-        result["stock_analysis_slot"] = slot_now
-        result["stock_analysis_as_of"] = updated
-    prev_opp = previous.get("opportunity") or {}
-    if prev_opp and slot_now and previous.get("opportunity_slot") == slot_now:
-        result["opportunity"] = prev_opp
-        result["opportunity_slot"] = slot_now
-        result["opportunity_as_of"] = previous.get("opportunity_as_of")
-    else:
-        market_1y = None
-        try:
-            mh = yf.Ticker("^NSEI").history(period="1y", interval="1d")["Close"].dropna()
-            if len(mh) >= 200 and float(mh.iloc[0]) > 0:
-                market_1y = round((float(mh.iloc[-1]) / float(mh.iloc[0]) - 1) * 100, 2)
-        except Exception:
+    try:
+        slot_now = stock_refresh_slot(now_utc)
+        prev_sa = previous.get("stock_analysis") or {}
+        if prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now:
+            # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
+            result["stock_analysis"] = prev_sa
+            result["stock_analysis_slot"] = slot_now
+            result["stock_analysis_as_of"] = previous.get("stock_analysis_as_of")
+        else:
+            result["stock_analysis"] = {}
+            for name, (sym, _q) in STOCKS.items():
+                price = result["instruments"].get(name, {}).get("price")
+                result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
+            result["stock_analysis_slot"] = slot_now
+            result["stock_analysis_as_of"] = updated
+        prev_opp = previous.get("opportunity") or {}
+        if prev_opp and slot_now and previous.get("opportunity_slot") == slot_now:
+            result["opportunity"] = prev_opp
+            result["opportunity_slot"] = slot_now
+            result["opportunity_as_of"] = previous.get("opportunity_as_of")
+        else:
             market_1y = None
-        raws = {k: opportunity_raw(sym) for k, (sym, _n) in OPP_STOCKS.items()}
-        for k, (sym, _n) in OPP_STOCKS.items():
-            r = raws[k]
-            holding = r.pop("_holding", {}) if isinstance(r, dict) else {}
-            if r.get("ok"):
-                r.update(opportunity_extra(sym, market_1y, holding))
-        score_opportunities(raws)
-        for k, r in raws.items():
-            r["name"] = OPP_STOCKS[k][1]
-        result["opportunity"] = raws
-        result["opportunity_slot"] = slot_now
-        result["opportunity_as_of"] = updated
+            try:
+                mh = yf.Ticker("^NSEI").history(period="1y", interval="1d")["Close"].dropna()
+                if len(mh) >= 200 and float(mh.iloc[0]) > 0:
+                    market_1y = round((float(mh.iloc[-1]) / float(mh.iloc[0]) - 1) * 100, 2)
+            except Exception:
+                market_1y = None
+            raws = {k: opportunity_raw(sym) for k, (sym, _n) in OPP_STOCKS.items()}
+            for k, (sym, _n) in OPP_STOCKS.items():
+                r = raws[k]
+                holding = r.pop("_holding", {}) if isinstance(r, dict) else {}
+                if r.get("ok"):
+                    r.update(opportunity_extra(sym, market_1y, holding))
+            score_opportunities(raws)
+            for k, r in raws.items():
+                r["name"] = OPP_STOCKS[k][1]
+            result["opportunity"] = raws
+            result["opportunity_slot"] = slot_now
+            result["opportunity_as_of"] = updated
+    except Exception as e:
+        print(f"stock and opportunity analysis skipped: {e}")
+        result.setdefault("stock_analysis", {})
+        result.setdefault("opportunity", {})
     result["range"] = nifty_range()
     result["levels"] = build_levels(result["range"])
 
