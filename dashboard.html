@@ -1439,7 +1439,75 @@ function foRow(label, longPct, shortPct) {
     <div class="mood-split"><span class="pos">Long ${longPct}%</span><span class="neg">Short ${shortPct}%</span></div></div>`;
 }
 
-function renderFoPanel(po) {
+let foSel = null;
+let foLast = { po: null, inst: null };
+
+function fmtLakh(v) {
+  if (v == null) return "—";
+  const sign = v > 0 ? "+" : v < 0 ? "−" : "";
+  const a = Math.abs(v);
+  return sign + (a >= 100000 ? (a / 100000).toFixed(2) + "L" : a.toLocaleString("en-IN"));
+}
+
+function foSumChg(chg, keys, f) {
+  if (!chg) return null;
+  const vals = keys.map(k => chg[k] && chg[k][f]).filter(v => v != null);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
+}
+
+function renderFoDetail() {
+  const box = document.getElementById("foDetail");
+  if (!box) return;
+  if (!foSel) { box.innerHTML = ""; return; }
+  const po = foLast.po || {};
+  const chg = (po.changes && po.changes.by_group) || null;
+  const nifty = (foLast.inst || {}).NIFTY || {};
+  const cfg = {
+    insider: { title: "INSIDER OPTIONS (DII + PRO)", keys: ["DII", "PRO"], call: true },
+    retail: { title: "RETAIL BUILDUP (CLIENT)", keys: ["CLIENT"], call: true },
+    inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: false },
+  }[foSel];
+  if (!cfg) { box.innerHTML = ""; return; }
+  const dash = '<div class="sub">डेटा नहीं मिला</div>';
+  const row = (label, val, tag, cls) => `<div class="ev"><div>${label}</div><div style="text-align:right"><b class="${cls || ""}">${val}</b>${tag ? ` <span class="tag ${cls === "pos" ? "t-cont" : "t-rev"}">${tag}</span>` : ""}</div></div>`;
+  let body = "";
+  if (!chg) {
+    body = dash + `<div class="sub" style="margin-top:6px">बदलाव के लिए पिछले दिन का NSE डेटा चाहिए। अगले रन पर यह अपने-आप बनेगा।</div>`;
+  } else if (cfg.call) {
+    const cLong = foSumChg(chg, cfg.keys, "index_call_long"), cShort = foSumChg(chg, cfg.keys, "index_call_short");
+    const pLong = foSumChg(chg, cfg.keys, "index_put_long"), pShort = foSumChg(chg, cfg.keys, "index_put_short");
+    const callNet = (cLong == null || cShort == null) ? null : cLong - cShort;
+    const putNet = (pLong == null || pShort == null) ? null : pLong - pShort;
+    const callTag = callNet == null ? "" : (callNet < 0 ? "BEARISH" : "BULLISH");
+    const putTag = putNet == null ? "" : (putNet < 0 ? "BULLISH" : "BEARISH");
+    body = row("Call Change", fmtLakh(callNet), callTag, callNet == null ? "" : (callNet < 0 ? "neg" : "pos")) +
+      `<div class="ev"><div class="sub">Long OI Chg ${fmtLakh(cLong)}</div><div class="sub">Short OI Chg ${fmtLakh(cShort)}</div></div>` +
+      row("Put Change", fmtLakh(putNet), putTag, putNet == null ? "" : (putNet < 0 ? "pos" : "neg")) +
+      `<div class="ev"><div class="sub">Put Long OI Chg ${fmtLakh(pLong)}</div><div class="sub">Put Short OI Chg ${fmtLakh(pShort)}</div></div>`;
+  } else {
+    const fLong = foSumChg(chg, cfg.keys, "future_index_long"), fShort = foSumChg(chg, cfg.keys, "future_index_short");
+    const net = (fLong == null || fShort == null) ? null : fLong - fShort;
+    body = row("Futures Net Change", fmtLakh(net), net == null ? "" : (net >= 0 ? "Long" : "Short"), net == null ? "" : (net >= 0 ? "pos" : "neg")) +
+      `<div class="ev"><div class="sub">Long Chg ${fmtLakh(fLong)}</div><div class="sub">Short Chg ${fmtLakh(fShort)}</div></div>`;
+  }
+  const niftyLine = nifty.price != null
+    ? `<div class="ev" style="margin-top:6px"><div>Nifty</div><div><b>${Number(nifty.price).toLocaleString("en-IN")}</b> <span class="${(nifty.change_pct || 0) >= 0 ? "pos" : "neg"}">(${nifty.change_pct > 0 ? "+" : ""}${nifty.change_pct}%)</span></div></div>`
+    : "";
+  box.innerHTML = `<div class="box" style="margin-top:10px">
+    <div style="font-weight:700;color:#cfd4e6;margin-bottom:6px">${cfg.title}</div>
+    <div class="sub" style="margin-bottom:6px">${chg && po.changes.prev_date ? "बदलाव: " + esc(po.changes.prev_date) + " से आज तक · " : ""}NSE, कल का डेटा</div>
+    ${body}${niftyLine}
+    <div class="sub" style="margin-top:8px">यह NSE का दिन का अंतर है, लाइव नहीं। Chart सहित पूरा ब्यौरा यहाँ नहीं है।</div></div>`;
+}
+
+function pickFo(k) {
+  foSel = (foSel === k) ? null : k;
+  renderFoDetail();
+  renderFoPanel(foLast.po, foLast.inst);
+}
+
+function renderFoPanel(po, instData) {
+  foLast = { po: po || null, inst: instData || null };
   const box = document.getElementById("foPanel");
   if (!po || !po.ok || !po.participants) {
     box.innerHTML = '<div class="sub">NSE participant डेटा: डेटा नहीं मिला</div>';
@@ -1452,22 +1520,15 @@ function renderFoPanel(po) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   };
   const dash = "डेटा नहीं मिला";
-
-  // Insider = DII + PRO (इंडेक्स ऑप्शन और फ़्यूचर्स)
   const ins = ["DII", "PRO"];
   const insCallL = sum(ins, "index_call_long"), insCallS = sum(ins, "index_call_short");
   const insPutL = sum(ins, "index_put_long"), insPutS = sum(ins, "index_put_short");
   const insNet = sum(ins, "future_index_net");
-
-  // Retail = CLIENT
   const retCallL = g("CLIENT", "index_call_long"), retCallS = g("CLIENT", "index_call_short");
   const retPutL = g("CLIENT", "index_put_long"), retPutS = g("CLIENT", "index_put_short");
-
-  // Institutional = FII + DII (इंडेक्स फ़्यूचर्स)
   const inst = ["FII", "DII"];
   const instL = sum(inst, "future_index_long"), instS = sum(inst, "future_index_short");
   const instNet = sum(inst, "future_index_net");
-
   const pct = (l, s) => {
     if (l == null || s == null) return null;
     const t = l + s;
@@ -1477,16 +1538,14 @@ function renderFoPanel(po) {
     ? `<div class="sub">${dash}</div>`
     : `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><div style="flex:1;height:8px;border-radius:4px;background:#2a2f47;overflow:hidden"><div style="width:${v}%;height:100%;background:${color}"></div></div><b style="min-width:52px;text-align:right">${v}%</b></div>`;
   const line = (label, body) => `<div style="padding:8px 0;border-top:1px solid #252b45"><div style="font-size:12px;color:#aab">${label}</div>${body}</div>`;
-  const card = (title, body) => `<div style="background:#1e2540;border-radius:10px;padding:12px">
-    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title}</div>${body}</div>`;
   const netTxt = (v) => v == null ? dash : (v >= 0 ? "Long" : "Short");
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
-
+  const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
+    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div>${body}</div>`;
   const insiderBody =
     line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
     line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
     `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(insNet)}"><b>${netTxt(insNet)}</b></div></div>`;
-
   const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
   let skew = dash, skewCls = "";
   if (retailCE != null && retailPE != null) {
@@ -1497,21 +1556,21 @@ function renderFoPanel(po) {
     line("CE Buildup", bar(retailCE, "#4fc3f7")) +
     line("PE Buildup", bar(retailPE, "#9b59b6")) +
     `<div class="ev" style="margin-top:6px"><div>Skew</div><div class="${skewCls}"><b>${skew}</b></div></div>`;
-
   const instPct = pct(instL, instS);
   const instBody =
     line("Long", bar(instPct, "#2ecc71")) +
     line("Short", bar(instPct == null ? null : Math.round((100 - instPct) * 10) / 10, "#e74c3c")) +
     `<div class="ev" style="margin-top:6px"><div>Net</div><div class="${netCls(instNet)}"><b>${netTxt(instNet)}</b></div></div>`;
-
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      ${card("INSIDER OPTIONS", insiderBody)}
-      ${card("RETAIL BUILDUP", retailBody)}
-      ${card("F&amp;O INSTITUTIONAL", instBody)}
+      ${card("insider", "INSIDER OPTIONS", insiderBody)}
+      ${card("retail", "RETAIL BUILDUP", retailBody)}
+      ${card("inst", "F&amp;O INSTITUTIONAL", instBody)}
     </div>
+    <div id="foDetail"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
+  renderFoDetail();
 }
 
 async function load() {
@@ -1547,7 +1606,7 @@ async function load() {
     renderSignals(data.signals);
     renderNews(data.market_news);
     renderSectorMap(data);
-    renderFoPanel(data.participant_oi);
+    renderFoPanel(data.participant_oi, data.instruments);
     lastOppData = { opp: data.opportunity, asOf: data.opportunity_as_of };
     renderOpportunity(data.opportunity, data.opportunity_as_of);
   } catch (err) {
