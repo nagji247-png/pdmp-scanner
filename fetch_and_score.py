@@ -382,7 +382,12 @@ def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
     today_utc = dt.datetime.now(dt.timezone.utc).date()
-    keep = [d.date() < today_utc for d in closes.index]
+    # भारतीय बाज़ार बंद होने (15:45 IST के बाद, सोम–शुक्र) पर आज का पूरा बार भी लें,
+    # ताकि तारीख और बदलाव ताज़ा रहें। बाकी बाज़ार में आज का अधूरा बार अब भी छोड़ा जाता है।
+    ist_now = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+    indian = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK", "^INDIAVIX")
+    indian_closed = indian and ist_now.weekday() < 5 and (ist_now.hour, ist_now.minute) >= (15, 45)
+    keep = [(d.date() < today_utc) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
     last_close = float(closes.iloc[-1]) if len(closes) else None
     if last_close is not None and not math.isfinite(last_close):
