@@ -1592,6 +1592,27 @@ def stock_refresh_slot(now_utc):
     return max(past).isoformat() if past else None
 
 
+def retail_adjust(po):
+    """रिटेल (CLIENT) की इंडेक्स ऑप्शन स्थिति से स्कोर का समायोजन (-2 से +2)।
+    CE का Long हिस्सा PE के Long हिस्से से जितना ज़्यादा, उतना बुलिश। (CE% − PE%) ÷ 10, सीमा ±2।
+    यह कल का (EOD) डेटा है। न मिले तो 0।"""
+    if not po or not po.get("ok"):
+        return 0.0, None
+    c = (po.get("participants") or {}).get("CLIENT") or {}
+    def share(l, sh):
+        l, sh = c.get(l), c.get(sh)
+        if l is None or sh is None or (l + sh) <= 0:
+            return None
+        return round(l / (l + sh) * 100, 1)
+    ce = share("index_call_long", "index_call_short")
+    pe = share("index_put_long", "index_put_short")
+    if ce is None or pe is None:
+        return 0.0, None
+    adj = round(max(-2.0, min(2.0, (ce - pe) / 10)), 2)
+    bias = "Bullish" if adj > 0 else ("Bearish" if adj < 0 else "Neutral")
+    return adj, {"ce_pct": ce, "pe_pct": pe, "bias": bias, "date": po.get("date"), "adj": adj}
+
+
 def participant_changes(today, prev):
     """आज और पिछले उपलब्ध दिन के NSE participant आँकड़ों का अंतर (बदलाव)।
     पिछला दिन data.json से लिया जाता है; उसी तारीख का हो तो कुछ नहीं बनता।"""
@@ -1734,6 +1755,14 @@ def main():
     result["participant_oi"] = fetch_participant_oi()
     result["participant_oi"]["changes"] = participant_changes(
         result["participant_oi"], previous.get("participant_oi") or {})
+    adj, rinfo = retail_adjust(result["participant_oi"])
+    for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
+        _d = result["instruments"].get(_n)
+        if _d and rinfo is not None:
+            _d["headline_score"] = _d["score"]
+            _d["retail_adj"] = adj
+            _d["score"] = round(_d["score"] + adj, 1)
+    result["retail_mood"] = rinfo
 
     market_news = pick_with_fallback(fetch_market_news(), previous.get("market_news") or {})
     if market_news.get("ok") and not market_news.get("stale"):
