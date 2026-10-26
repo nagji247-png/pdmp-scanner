@@ -75,7 +75,7 @@ TERM_CHUNK = 4
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
-TRENDS_RETRIES = 1  # तेज़ स्कैन: rate-limit पर लंबे retry loop से बचें
+TRENDS_RETRIES = 3  # 429 (rate limit) पर थोड़ा रुककर फिर कोशिश; कुल समय सीमित
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -1394,7 +1394,7 @@ def _trends_once():
     yesterday_ist = (ist_now.date() - dt.timedelta(days=1)).isoformat()
     for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
-            time.sleep(2)
+            time.sleep(8)
             df = _trends_request(py, chunk)
             for t in chunk:
                 r_now, r_avg = _ratio(df, t)
@@ -1513,12 +1513,10 @@ def fetch_trends():
         except Exception as e:
             last_err = str(e)
             print(f"trends attempt {attempt + 1} failed: {last_err}")
-            # Google 429 = rate limit. उसी रन में पूरा Trends sequence दोहराने से
-            # कई और अनुरोध होते हैं; तुरंत retry न करें, stale fallback/NO TRADE लागू होगा।
-            if "429" in last_err or "too many requests" in last_err.lower():
-                break
+            # Google 429 = rate limit: लंबा रुकें, फिर दोबारा कोशिश करें
             if attempt < TRENDS_RETRIES - 1:
-                time.sleep(60)
+                rate_limited = "429" in last_err or "too many requests" in last_err.lower()
+                time.sleep(120 if rate_limited else 60)
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
