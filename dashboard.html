@@ -341,6 +341,7 @@
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
 
 <section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स</h2><div class="grid" id="indexes"></div></section>
+<section class="panel" style="grid-column:1 / -1"><h2>🧾 F&amp;O और संस्थागत स्थिति (NSE, कल का डेटा)</h2><div class="box" id="foPanel"></div></section>
 
 <section class="panel stocks-panel"><h2>🏢 स्टॉक</h2><div class="grid" id="stocks"></div></section>
 
@@ -1421,6 +1422,98 @@ function toggleOpp(sym) {
 
 let lastOppData = null;
 
+function foPct(l, s) {
+  if (l == null || s == null) return null;
+  const t = l + s;
+  return t > 0 ? Math.round((l / t) * 1000) / 10 : null;
+}
+
+function foRow(label, longPct, shortPct) {
+  if (longPct == null || shortPct == null) {
+    return `<div class="ev"><div>${label}</div><div class="sub">डेटा नहीं मिला</div></div>`;
+  }
+  const side = longPct >= shortPct ? "Long" : "Short";
+  return `<div style="padding:8px 0;border-top:1px solid #252b45">
+    <div style="display:flex;justify-content:space-between;font-size:13px"><span>${label}</span><span class="${side === "Long" ? "pos" : "neg"}">${side}</span></div>
+    <div class="mood-bar" style="margin:6px 0 4px"><div class="mood-bull" style="width:${longPct}%"></div><div class="mood-bear" style="width:${shortPct}%"></div></div>
+    <div class="mood-split"><span class="pos">Long ${longPct}%</span><span class="neg">Short ${shortPct}%</span></div></div>`;
+}
+
+function renderFoPanel(po) {
+  const box = document.getElementById("foPanel");
+  if (!po || !po.ok || !po.participants) {
+    box.innerHTML = '<div class="sub">NSE participant डेटा: डेटा नहीं मिला</div>';
+    return;
+  }
+  const P = po.participants;
+  const g = (k, f) => (P[k] && P[k][f] != null) ? P[k][f] : null;
+  const sum = (keys, f) => {
+    const vals = keys.map(k => g(k, f)).filter(v => v != null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
+  };
+  const dash = "डेटा नहीं मिला";
+
+  // Insider = DII + PRO (इंडेक्स ऑप्शन और फ़्यूचर्स)
+  const ins = ["DII", "PRO"];
+  const insCallL = sum(ins, "index_call_long"), insCallS = sum(ins, "index_call_short");
+  const insPutL = sum(ins, "index_put_long"), insPutS = sum(ins, "index_put_short");
+  const insNet = sum(ins, "future_index_net");
+
+  // Retail = CLIENT
+  const retCallL = g("CLIENT", "index_call_long"), retCallS = g("CLIENT", "index_call_short");
+  const retPutL = g("CLIENT", "index_put_long"), retPutS = g("CLIENT", "index_put_short");
+
+  // Institutional = FII + DII (इंडेक्स फ़्यूचर्स)
+  const inst = ["FII", "DII"];
+  const instL = sum(inst, "future_index_long"), instS = sum(inst, "future_index_short");
+  const instNet = sum(inst, "future_index_net");
+
+  const pct = (l, s) => {
+    if (l == null || s == null) return null;
+    const t = l + s;
+    return t > 0 ? Math.round((l / t) * 1000) / 10 : null;
+  };
+  const bar = (v, color) => v == null
+    ? `<div class="sub">${dash}</div>`
+    : `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><div style="flex:1;height:8px;border-radius:4px;background:#2a2f47;overflow:hidden"><div style="width:${v}%;height:100%;background:${color}"></div></div><b style="min-width:52px;text-align:right">${v}%</b></div>`;
+  const line = (label, body) => `<div style="padding:8px 0;border-top:1px solid #252b45"><div style="font-size:12px;color:#aab">${label}</div>${body}</div>`;
+  const card = (title, body) => `<div style="background:#1e2540;border-radius:10px;padding:12px">
+    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title}</div>${body}</div>`;
+  const netTxt = (v) => v == null ? dash : (v >= 0 ? "Long" : "Short");
+  const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
+
+  const insiderBody =
+    line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
+    line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
+    `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(insNet)}"><b>${netTxt(insNet)}</b></div></div>`;
+
+  const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
+  let skew = dash, skewCls = "";
+  if (retailCE != null && retailPE != null) {
+    skew = retailPE > retailCE ? "Bearish" : "Bullish";
+    skewCls = skew === "Bearish" ? "neg" : "pos";
+  }
+  const retailBody =
+    line("CE Buildup", bar(retailCE, "#4fc3f7")) +
+    line("PE Buildup", bar(retailPE, "#9b59b6")) +
+    `<div class="ev" style="margin-top:6px"><div>Skew</div><div class="${skewCls}"><b>${skew}</b></div></div>`;
+
+  const instPct = pct(instL, instS);
+  const instBody =
+    line("Long", bar(instPct, "#2ecc71")) +
+    line("Short", bar(instPct == null ? null : Math.round((100 - instPct) * 10) / 10, "#e74c3c")) +
+    `<div class="ev" style="margin-top:6px"><div>Net</div><div class="${netCls(instNet)}"><b>${netTxt(instNet)}</b></div></div>`;
+
+  box.innerHTML = `
+    <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+      ${card("INSIDER OPTIONS", insiderBody)}
+      ${card("RETAIL BUILDUP", retailBody)}
+      ${card("F&amp;O INSTITUTIONAL", instBody)}
+    </div>
+    <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
+}
+
 async function load() {
   if (loading) return;
   loading = true;
@@ -1454,6 +1547,7 @@ async function load() {
     renderSignals(data.signals);
     renderNews(data.market_news);
     renderSectorMap(data);
+    renderFoPanel(data.participant_oi);
     lastOppData = { opp: data.opportunity, asOf: data.opportunity_as_of };
     renderOpportunity(data.opportunity, data.opportunity_as_of);
   } catch (err) {
