@@ -1140,6 +1140,7 @@ function stockParamCard(name, data) {
     <div class="ev"><div>52 हफ़्ते में कहाँ है</div><div>${d.position_in_52w_pct == null ? "—" : d.position_in_52w_pct + "% (नीचे से ऊपर)"}</div></div>
     <div class="ev"><div>शेयरहोल्डिंग: अंदरूनी / संस्थागत</div><div>${n(d.insiders_pct, "%")} / ${n(d.institutions_pct, "%")}</div></div>
     <div class="ev"><div>ग्राहक</div><div class="sub">${esc(d.customers_note || "")}</div></div>
+    ${extraBlock((data.opportunity || {})[name] || {})}
   </div>`;
 }
 
@@ -1164,7 +1165,7 @@ function renderSectorMapInner(data) {
   const box = document.getElementById("sectorMap");
   const sa = data.stock_analysis || {};
   const ins = data.instruments || {};
-  const names = Object.keys(sa).filter(n => ins[n] && ins[n].type === "stock");
+  const names = Object.keys(sa);
   if (names.length === 0) {
     box.innerHTML = '<div class="sub">अभी कोई वॉचलिस्ट डेटा नहीं</div>';
     return;
