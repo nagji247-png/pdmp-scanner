@@ -1486,10 +1486,10 @@
     "vol_data": false,
     "held_minutes": 79,
     "price_at_change": 22471.55078125,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 22590.5,
+    "move_pct": 0.53,
+    "after_minutes": 127,
+    "direction": "ऊपर"
   },
   {
     "time": "2026-10-26T04:23Z",
@@ -1502,10 +1502,10 @@
     "vol_data": false,
     "held_minutes": 912,
     "price_at_change": 53964.05078125,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 54042.6484,
+    "move_pct": 0.15,
+    "after_minutes": 127,
+    "direction": "ऊपर"
   },
   {
     "time": "2026-10-26T04:23Z",
@@ -1519,6 +1519,70 @@
     "vol_data": true,
     "held_minutes": 912,
     "price_at_change": 1184.5,
+    "price_after": 1195.4,
+    "move_pct": 0.92,
+    "after_minutes": 127,
+    "direction": "ऊपर"
+  },
+  {
+    "time": "2026-10-26T06:30Z",
+    "instrument": "NIFTY",
+    "prev_score": -3.7,
+    "new_score": -5.0,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 127,
+    "price_at_change": 22590.5,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-10-26T06:30Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": -4.6,
+    "new_score": -6.6,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 127,
+    "price_at_change": 54042.6484375,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-10-26T06:30Z",
+    "instrument": "RELIANCE",
+    "prev_score": 3.8,
+    "new_score": 0.3,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": true,
+    "held_minutes": 127,
+    "price_at_change": 1195.4000244140625,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-10-26T06:30Z",
+    "instrument": "HDFCBANK",
+    "prev_score": 1.0,
+    "new_score": 1.2,
+    "changed": [
+      "VWAP"
+    ],
+    "vol_data": true,
+    "held_minutes": 206,
+    "price_at_change": 689.5999755859375,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
