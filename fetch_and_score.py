@@ -574,6 +574,59 @@ def update_divergence(events, name, score, change, today_str, returns, headlines
         e["outcome"] = "sentiment" if move_up == e["sentiment_up"] else "price"
 
 
+def _rsi_series(closes, n=14):
+    """Wilder RSI हर बार के लिए (पहले n बार None)।"""
+    out = [None] * len(closes)
+    if len(closes) <= n:
+        return out
+    gains = [max(closes[i] - closes[i - 1], 0.0) for i in range(1, len(closes))]
+    losses = [max(closes[i - 1] - closes[i], 0.0) for i in range(1, len(closes))]
+    ag = sum(gains[:n]) / n
+    al = sum(losses[:n]) / n
+    out[n] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    for i in range(n + 1, len(closes)):
+        ag = (ag * (n - 1) + gains[i - 1]) / n
+        al = (al * (n - 1) + losses[i - 1]) / n
+        out[i] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    return out
+
+
+def _pivots(values, kind, k=3):
+    """स्थानीय निम्न (kind='low') या उच्च (kind='high') बिंदु। आख़िरी k बार पर पुष्टि नहीं होती।"""
+    idx = []
+    for i in range(k, len(values) - k):
+        win = values[i - k:i + k + 1]
+        if kind == "low" and values[i] == min(win) and win.count(values[i]) == 1:
+            idx.append(i)
+        if kind == "high" and values[i] == max(win) and win.count(values[i]) == 1:
+            idx.append(i)
+    return idx
+
+
+def rsi_divergence(closes, recent_bars=40):
+    """RSI विचलन (सही दिशा):
+    - Bullish: कीमत का निचला निम्न, पर RSI का ऊँचा निम्न।
+    - Bearish: कीमत का ऊँचा उच्च, पर RSI का नीचा उच्च।
+    सिर्फ़ हाल के बार (recent_bars) में पुष्ट बिंदुओं पर। न मिले तो None।"""
+    if len(closes) < 60:
+        return None
+    rsi = _rsi_series(closes)
+    if rsi[-1] is None:
+        return None
+    last = len(closes) - 1
+    lows = [i for i in _pivots(closes, "low") if i >= last - recent_bars and rsi[i] is not None]
+    highs = [i for i in _pivots(closes, "high") if i >= last - recent_bars and rsi[i] is not None]
+    if len(lows) >= 2:
+        a, b = lows[-2], lows[-1]
+        if closes[b] < closes[a] and rsi[b] > rsi[a]:
+            return {"label": "⚡ Bullish divergence", "reason": f"दैनिक कीमत निचला निम्न, RSI ऊँचा निम्न ({rsi[a]:.1f} → {rsi[b]:.1f})"}
+    if len(highs) >= 2:
+        a, b = highs[-2], highs[-1]
+        if closes[b] > closes[a] and rsi[b] < rsi[a]:
+            return {"label": "⚡ Bearish divergence", "reason": f"दैनिक कीमत ऊँचा उच्च, RSI नीचा उच्च ({rsi[a]:.1f} → {rsi[b]:.1f})"}
+    return None
+
+
 def derive_card_indicator(name, sym, score, change):
     """
     Card labels must be evidence-based:
@@ -606,6 +659,16 @@ def derive_card_indicator(name, sym, score, change):
         except Exception as exc:
             return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
                     "indicator_reason": str(exc)[:120]}
+
+    if name in ("NIFTY", "SENSEX", "BANKNIFTY"):
+        try:
+            closes = [float(x) for x in yf.Ticker(sym).history(period="6mo", interval="1d")["Close"].dropna().tolist()]
+            div = rsi_divergence(closes)
+            if div:
+                return {"indicator_label": div["label"], "indicator_reason": div["reason"] + " · स्रोत: Yahoo दैनिक"}
+        except Exception as exc:
+            print(f"index RSI divergence skipped {name}: {exc}")
+        return {}
 
     if name == "BITCOIN":
         # Primary: Yahoo Finance; fallback: Binance public spot klines (no API key).
