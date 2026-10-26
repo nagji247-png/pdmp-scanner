@@ -29,16 +29,6 @@ STOCKS = {
     "EICHERMOT": ("EICHERMOT.NS", "Eicher Motors share"),
     "APOLLOHOSP": ("APOLLOHOSP.NS", "Apollo Hospitals share"),
     "SBIN": ("SBIN.NS", "SBI share"),
-    "SUZLON": ("SUZLON.NS", "Suzlon Energy share"),
-    "DLINKINDIA": ("DLINKINDIA.NS", "D-Link India share"),
-    "VEDL": ("VEDL.NS", "Vedanta share"),
-    "APOLLOMICRO": ("APOLLOMICRO.NS", "Apollo Micro Systems share"),
-    "MSUMI": ("MSUMI.NS", "Motherson Sumi Wiring share"),
-    "PARAS": ("PARAS.NS", "Paras Defence and Space share"),
-    "IOC": ("IOC.NS", "Indian Oil Corporation share"),
-    "GULPOLY": ("GULPOLY.NS", "Gulshan Polyols share"),
-    "GPPL": ("GPPL.NS", "Gujarat Pipavav Port share"),
-    "JAGRAN": ("JAGRAN.NS", "Jagran Prakashan share"),
 }
 
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
@@ -53,16 +43,6 @@ STOCK_ALIASES = {
     "EICHERMOT": ["eicher", "eichermot"],
     "APOLLOHOSP": ["apollo hospital", "apollohosp", "apollo"],
     "SBIN": ["sbi", "sbin", "state bank"],
-    "SUZLON": ["suzlon"],
-    "DLINKINDIA": ["d-link", "dlink", "dlinkindia"],
-    "VEDL": ["vedanta", "vedl"],
-    "APOLLOMICRO": ["apollo micro", "apollomicro"],
-    "MSUMI": ["motherson sumi", "msumi"],
-    "PARAS": ["paras defence", "paras"],
-    "IOC": ["indian oil", "ioc"],
-    "GULPOLY": ["gulshan polyols", "gulpoly"],
-    "GPPL": ["pipavav", "gppl"],
-    "JAGRAN": ["jagran", "jagran prakashan"],
 }
 
 # शब्द-सूची: वज़न 1 या 2। मिलान शब्द की शुरुआत से होता है।
@@ -973,6 +953,8 @@ def summarise_fundamentals(info, price):
 def fetch_stock_fundamentals(sym, price):
     try:
         info = yf.Ticker(sym).info or {}
+        if price is None:
+            price = _num(info.get("currentPrice")) or _num(info.get("regularMarketPrice"))
         return {"ok": True, **summarise_fundamentals(info, price)}
     except Exception as e:
         return {"ok": False, "error": f"कंपनी के आँकड़े नहीं मिले: {str(e)[:120]}"}
@@ -1609,7 +1591,10 @@ def main():
             result["stock_analysis_as_of"] = previous.get("stock_analysis_as_of")
         else:
             result["stock_analysis"] = {}
-            for name, (sym, _q) in STOCKS.items():
+            sector_universe = {k: (v[0], v[1]) for k, v in STOCKS.items()}
+            for k, (sym, _n) in OPP_STOCKS.items():
+                sector_universe[k] = (sym, _n)
+            for name, (sym, _q) in sector_universe.items():
                 price = result["instruments"].get(name, {}).get("price")
                 result["stock_analysis"][name] = fetch_stock_fundamentals(sym, price)
             result["stock_analysis_slot"] = slot_now
