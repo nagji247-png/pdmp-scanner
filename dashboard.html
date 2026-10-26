@@ -1305,42 +1305,47 @@ function pickStock(name) {
 let oppOpen = null;
 
 function extraBlock(r) {
+  const NONE = '<div class="sub" style="padding:4px 0">डेटा नहीं मिला</div>';
   const rowH = (label, val, cls) => `<div class="ev"><div>${label}</div><div class="${cls || ""}">${val}</div></div>`;
   const sgn = v => (v > 0 ? "+" : "") + Number(v).toFixed(2) + "%";
   const cls = v => (v > 0 ? "pos" : v < 0 ? "neg" : "");
-  let out = "";
   const sec = (t) => `<div class="sub" style="margin-top:10px;font-weight:700;color:#cfd4e6">${t}</div>`;
+  let out = "";
 
-  if (r.return_1y_pct != null || r.market_1y_pct != null) {
-    out += sec("रिटर्न (1 वर्ष)");
-    if (r.return_1y_pct != null) out += rowH("कंपनी", sgn(r.return_1y_pct), cls(r.return_1y_pct));
-    if (r.market_1y_pct != null) out += rowH("बाज़ार (Nifty)", sgn(r.market_1y_pct), cls(r.market_1y_pct));
-  }
+  out += sec("रिटर्न (1 वर्ष)");
+  if (r.return_1y_pct != null) out += rowH("कंपनी", sgn(r.return_1y_pct), cls(r.return_1y_pct));
+  if (r.market_1y_pct != null) out += rowH("बाज़ार (Nifty)", sgn(r.market_1y_pct), cls(r.market_1y_pct));
+  if (r.return_1y_pct == null && r.market_1y_pct == null) out += NONE;
 
+  out += sec("तिमाही (करोड़ ₹)");
   if (r.quarterly && r.quarterly.length) {
-    out += sec("तिमाही (करोड़ ₹)");
     out += `<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse">
       <tr style="color:#7b82a0"><td>अवधि</td><td style="text-align:right">राजस्व</td><td style="text-align:right">मुनाफ़ा</td></tr>` +
       r.quarterly.map(q => `<tr style="border-top:1px solid #252b45"><td style="padding:4px 0">${esc(q.period)}</td>
-        <td style="text-align:right">${q.revenue_cr == null ? "" : q.revenue_cr.toLocaleString("en-IN")}</td>
-        <td style="text-align:right">${q.profit_cr == null ? "" : q.profit_cr.toLocaleString("en-IN")}</td></tr>`).join("") +
+        <td style="text-align:right">${q.revenue_cr == null ? "—" : q.revenue_cr.toLocaleString("en-IN")}</td>
+        <td style="text-align:right">${q.profit_cr == null ? "—" : q.profit_cr.toLocaleString("en-IN")}</td></tr>`).join("") +
       `</table></div>`;
+  } else {
+    out += NONE;
   }
 
-  if (r.growth && Object.keys(r.growth).length) {
-    out += sec("वृद्धि");
-    const g = r.growth;
-    if (g.revenue_1y_pct != null) out += rowH("राजस्व (1 वर्ष)", sgn(g.revenue_1y_pct), cls(g.revenue_1y_pct));
-    if (g.profit_1y_pct != null) out += rowH("मुनाफ़ा (1 वर्ष)", sgn(g.profit_1y_pct), cls(g.profit_1y_pct));
-    if (g.revenue_3y_cagr_pct != null) out += rowH("राजस्व (3 वर्ष CAGR)", sgn(g.revenue_3y_cagr_pct), cls(g.revenue_3y_cagr_pct));
-    if (g.profit_3y_cagr_pct != null) out += rowH("मुनाफ़ा (3 वर्ष CAGR)", sgn(g.profit_3y_cagr_pct), cls(g.profit_3y_cagr_pct));
-  }
+  out += sec("वृद्धि");
+  const g = r.growth || {};
+  const gRows = [
+    ["राजस्व (1 वर्ष)", g.revenue_1y_pct], ["मुनाफ़ा (1 वर्ष)", g.profit_1y_pct],
+    ["राजस्व (3 वर्ष CAGR)", g.revenue_3y_cagr_pct], ["मुनाफ़ा (3 वर्ष CAGR)", g.profit_3y_cagr_pct],
+  ];
+  const gShown = gRows.filter(([, v]) => v != null);
+  if (gShown.length) gShown.forEach(([l, v]) => { out += rowH(l, sgn(v), cls(v)); });
+  else out += NONE;
 
-  if (r.holding && Object.keys(r.holding).length) {
-    out += sec("शेयरहोल्डिंग (उपलब्ध आँकड़े)");
-    if (r.holding.insiders_pct != null) out += rowH("अंदरूनी (Insiders)", r.holding.insiders_pct + "%");
-    if (r.holding.institutions_pct != null) out += rowH("संस्थागत (Institutions)", r.holding.institutions_pct + "%");
-  }
+  out += sec("शेयरहोल्डिंग (उपलब्ध आँकड़े)");
+  const hd = r.holding || {};
+  const hRows = [["अंदरूनी (Insiders)", hd.insiders_pct], ["संस्थागत (Institutions)", hd.institutions_pct]];
+  const hShown = hRows.filter(([, v]) => v != null);
+  if (hShown.length) hShown.forEach(([l, v]) => { out += rowH(l, v + "%"); });
+  else out += NONE;
+
   return out;
 }
 
