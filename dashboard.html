@@ -1480,10 +1480,10 @@ function renderFoDetail() {
     const putNet = (pLong == null || pShort == null) ? null : pLong - pShort;
     const callTag = callNet == null ? "" : (callNet < 0 ? "BEARISH" : "BULLISH");
     const putTag = putNet == null ? "" : (putNet < 0 ? "BULLISH" : "BEARISH");
-    body = row("Call Change", fmtLakh(callNet), callTag, callNet == null ? "" : (callNet < 0 ? "neg" : "pos")) +
-      `<div class="ev"><div class="sub">Long OI Chg ${fmtLakh(cLong)}</div><div class="sub">Short OI Chg ${fmtLakh(cShort)}</div></div>` +
-      row("Put Change", fmtLakh(putNet), putTag, putNet == null ? "" : (putNet < 0 ? "pos" : "neg")) +
-      `<div class="ev"><div class="sub">Put Long OI Chg ${fmtLakh(pLong)}</div><div class="sub">Put Short OI Chg ${fmtLakh(pShort)}</div></div>`;
+    body = row("Call Net OI Change (Long − Short)", fmtLakh(callNet), callTag, callNet == null ? "" : (callNet < 0 ? "neg" : "pos")) +
+      `<div class="ev"><div class="sub">Call Long OI में बदलाव: ${fmtLakh(cLong)}</div><div class="sub">Call Short OI में बदलाव: ${fmtLakh(cShort)}</div></div>` +
+      row("Put Net OI Change (Long − Short)", fmtLakh(putNet), putTag, putNet == null ? "" : (putNet < 0 ? "pos" : "neg")) +
+      `<div class="ev"><div class="sub">Put Long OI में बदलाव: ${fmtLakh(pLong)}</div><div class="sub">Put Short OI में बदलाव: ${fmtLakh(pShort)}</div></div>`;
   } else {
     const fLong = foSumChg(chg, cfg.keys, "future_index_long"), fShort = foSumChg(chg, cfg.keys, "future_index_short");
     const net = (fLong == null || fShort == null) ? null : fLong - fShort;
@@ -1497,7 +1497,7 @@ function renderFoDetail() {
     <div style="font-weight:700;color:#cfd4e6;margin-bottom:6px">${cfg.title}</div>
     <div class="sub" style="margin-bottom:6px">${chg && po.changes.prev_date ? "बदलाव: " + esc(po.changes.prev_date) + " से आज तक · " : ""}NSE, कल का डेटा</div>
     ${body}${niftyLine}
-    <div class="sub" style="margin-top:8px">यह NSE का दिन का अंतर है, लाइव नहीं। Chart सहित पूरा ब्यौरा यहाँ नहीं है।</div></div>`;
+    <div class="sub" style="margin-top:8px">यह NSE participant का पिछले उपलब्ध दिन से EOD अंतर है, लाइव नहीं। Long OI बढ़ना/घटना और Short OI बढ़ना/घटना अलग-अलग देखें; Net Change अकेले यह साबित नहीं करता कि बाजार में सभी ने Call/Put खरीदा या बेचा।</div></div>`;
 }
 
 function pickFo(k) {
