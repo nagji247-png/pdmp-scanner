@@ -360,8 +360,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": 0.57
   },
   {
     "key": "2026-10-26|DJI|div",
@@ -402,8 +402,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.28
   },
   {
     "key": "2026-10-26|ADANIPORTS|div",
@@ -822,8 +822,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -5.88
   },
   {
     "key": "2026-10-26|GOLD|div",
@@ -864,8 +864,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.36
   },
   {
     "key": "2026-10-26|NASDAQ|div",
@@ -906,8 +906,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.82
   },
   {
     "key": "2026-10-26|NIFTY|div",
@@ -988,6 +988,174 @@
         "source": "TradingView",
         "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTFBZSDlEb21uWUZOSEtfbkZCbGV6NzROU2lGWVVYenREeUNRa3JiQ3JfM0lCRWxSeEpXam5WejNudFY4U1N6TmtvUTRnUGZINnh0T0x3OG9hZjJSbUJ1OEdKajBMY2pWZ0UxRUgtSU9aMGV0YVJ1WXZ2UHZvaw?oc=5",
         "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-27|SILVER|div",
+    "date": "2026-10-27",
+    "instrument": "SILVER",
+    "score": -1.6,
+    "price_change": 0.57,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Gold, Silver Rate Today Live Updates: Gold rises to Rs 1,46,300 per 10 gram in Delhi as silver remains steady",
+        "source": "The Times of India",
+        "link": "https://news.google.com/rss/articles/CBMi7AJBVV95cUxQZWpURms4SllrcTZHS2Q4VUdkZmxEMmJSYnYzSGViYVk4YjdvVXFXeDBPSk5SRDBmMWw2WHY0ZFp5MkxOcFRhYlBSZzBuLXdncXdIRkIwNnFDWmFuZ3M0cUlyRC1UZFdaSXVuN2EzNWxVSzBJeFpXalZYVjlQeUdDSnV2OWl0M3BOWTg5TmY4THZYbE9vSVdzVFNiVm1rWWJYOVdRODNFNzJpSnMwUDY5TzA5NUh6YzZKRWZGeFpVZktvLXFSVDc0bU1BOU9LVTJfNVRySU5GVFZOSkVRQ2xjVU14cGxaQ0RWWUdvX05UaE9PLUJSLVRkUlJRVmZfRGE5VVRFSzkwNXZBVWlkZG9JQ1dsc19saWtybTNlS2ZyZjBjYk1iZUh6bUQ4V2I2MUt4UWJRbU5fTlQydnNrUEhqdERSMVRjSER5dGJyNUwzOVVzbUtvSVlfSFIyMmxDMG1iT0tRU1UxUVg5aWln0gHyAkFVX3lxTE5KT2JPV2Fma3hteVVXd1VyTHdBSmMxeC13ajlsRzcxYnFtUUJBcHZFcXhlQWZQTTY5cG11MFpMUTNPQ0ZuME9qUGFodVhhQmpaUWRrNXBOdzM5TkpRRlFnOERzb3VidEFkdS1OenZlWm5NdWp2TlBaYVFCVHVBWTcyNUxpTFNJRk05SDl6aGNCeTg1ZlBHaWhkVWw0NFUyVHFMd1JxYkJqVHlNekwxdE95cFd1aXBDWGJUUmRSMnBNdmhkZERFNk1sQkZkSUZ1RWlIN09WUThOaE1uQXJwakJhNlVja3JHVUsteENTRVBQOThIX0lsbDRPU1hwaWNjZDE5WVdiTndEQ2xXRjdYMUtMZ1lOMVY0dXNERkcycXVFNFg4OGNTUlktMU9BNHdDbHczWDBpbkVUSW5pLWlCaElGS2tZMlNhOG1FZ2lGTFFYaHAzNUxIVGhMTXRuanAwdFdnTk9JQ0c2WjN3THhrSWo4S0E?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Silver Price Forecast: Bulls defend $53 as bearish structure holds",
+        "source": "www.tmgm.com",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNWkFpeHVsVWdTT0RiLTByNTdPMElhZFdibHdENzVqV1VVYTBrSThteVA0M0Q2RnZUUG5Ic3JydF9FX1EzaEplZ2ZqRFdrZjZCdDFKMDNzSWtJakh6Zi1mMU8wTG1SN1JSUDFSQUZtWUdfRDdPdFdqSHdoZER6Vm9wSGNwNzVMUmVLdE91a0xPeWtKbnExX29POENpSEdzVnBRNjZyYVZyVFdQTmU2UVh3RFBYN2tJOHVPdm9QYVV2MmtXcjBicjZpU3lB?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Silver crashes 53% from 2026 peak, gold falls 26% | Spot gold prices surged to $5,419/ounce in Jan | Inshorts",
+        "source": "Inshorts",
+        "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxNR3NjalE5WlgtRGNIUU1hSmR2aXlDSzh0VkJ5RHJIX0E0czdadGp6enRpaXpFYno4WFVHS1hyVl96RTFCX3ZsUlk2b0pfcnNzQm5PM1dpQTNNV3RuMkRUMVhtMXpVRlZuc1hrOTd4bUhXUG13amZqclBoRjZFRHlrSnphaVdHTExMdXVCQW1NbDcxVHpUYkRr0gGcAUFVX3lxTE5sRGkxV2JLVndGR2dqdUhjbXhfcnpfNDdZVG9tWGdJMjl4TVlBdHNsVVBRYWZDdGNDMjhPV0NGXzdoQmtDeXpSVFl6aW1PT1dCc0JpMWpwa2thaWNpNUxsa1BTYzBrMDR0N3pIRXItSGw1djBJdXpoNE5MaldpNlVuUWhqVmVxa2h3ekthSzZ6WnBZa2V0Qm43Nm9xdg?oc=5",
+        "score": -1
+      },
+      {
+        "title": "Gold, silver rates today, October 26: Prices rebound after last week's fall; Check rates in Delhi, Mumbai, Chennai and other cities",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMinwJBVV95cUxOUUhYZURhNVNEa1hLMjJ5QkREYjhHbHNaZ2hnVnNNb0ZsX1lGZFlKajdzNW5TN3NhQ1NGLXdkSVQ0RXNFWTluY1dOV1Z1cGwzaUhxcktGaG8teTJkOGhGNzlIVHEzMFhvR1EtYmpWbU9jZU50SU9jTFdzdjU0SGRkdU5GNDhrRDhkOGptc2xlbmNxTnRvNFB6dTk3SUxJaGxZNmtYQk5JNl90NzFnVDNjN2tSbFVWTHpvQmJCb0lPM2pGdW9pVkQ4elZIYWRQVk9PdzR6MFQwMXBqU0pFYkZ2Z3FYQWdKUl91MVR6MGFrb0ZmQTlQLU5GRjljVFo5a2ZqNTNJTFJmZEswOVBRVHhmMkZqNG5xcnFSUGFmMmdTUQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Silver price today: rises on October 26",
+        "source": "FXStreet",
+        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPb1lNVVlBM3Rld3N0OEFYMjdFTFBvczcyRk1wa2JWTnZ4bDFueUFfOEpnVHFicVU2c0k3SnAySXAxd1NJcnZOWEVHQ0ZKb0pUajRLa1FhNGVRTExJU2pRdUZ0WFg1aThhOTI4ckYtaTZYTXpiRE1lZXhwVUh5MGFCVGxjMTVpQVhBbm02SlhDYnJKU3EyOElhSmx4R254NmJZSlRZ?oc=5",
+        "score": 1
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-27|ADANIPORTS|div",
+    "date": "2026-10-27",
+    "instrument": "ADANIPORTS",
+    "score": 4.4,
+    "price_change": -2.7,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Buy Adani Ports and Special Economic Zone; target of Rs 2130: Motilal Oswal",
+        "source": "Moneycontrol.com",
+        "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPSmxFakR5VWRhMF8tQXdLUlFjMFhyZnpUZjBzTUdKVktPMHJxbTJ5ZHpzNnFYTEM0M0xQVFpVLTF6SVAxRVd1MVhVYy02LXZHWlZtR1RzR0NEcEo0MkNodlBvbkljbmJGYWdNYkZGQ1lVLW8yb1p4d1hUb0dfWDFSMGZySDFfWTkya19zM1NPVVhUZUpuZkxycVZjNWhUS2t0dk4wZWNPUndvSENOZU1rS19lWXRBS1JXV01NOEtFc3ZwSzhmU0tKMnd6TkZmSEnSAc8BQVVfeXFMT0psRWpEeVVkYTBfLUF3S1JRYzBYcmZ6VGYwc01HSlZLTzBycW0yeWR6czZxWExDNDNMUFRaVS0xeklQMUVXdTFYVWMtNi12R1pWbUdUc0dDRHBKNDJDaHZQb25JY25iRmFnTWJGRkNZVS1vMm9aeHdYVG9HX1gxUjBmckgxX1k5MmtfczNTT1VYVGVKbmZMcnFWYzVoVEtrdHZOMGVjT1J3b0hDTmVNa0tfZVl0QUtSV1dNTThLRXN2cEs4ZlNLSjJ3ek5GZkhJ?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Adani Ports expands Middle East footprint with new Oman subsidiary",
+        "source": "PRESS Insider",
+        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNTmhKZ3ZBakxKbXhuRDV0MmdzLWNsT2dXd0ZQSWpPRmZOSnR4VnQ0TDhvejdxVDhobFZWQlc1VTFDVThxYzJMTVN3cG1ncWZVOVROZndlMjQyeHZaYUpGcmdOdXBpYzRLWHBxWDJpV0NWajd3TnZCTGtvMEFmUHJRUG1SSGx2WGxFaG4xRFlNZ01SZV9tVDgxVjIwQkxDSE5pcFlV?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports sets up subsidiary in Oman",
+        "source": "ET Infra",
+        "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPajNzSllHMTA2eF9tVVBPLUZnZWwzaFVRc1VIa3FGcDBtNWdTbEFQbXo5c1RVSTlMT3BINFgxSXZsc0xUZG9mRFFRUGNXdUJzTFRscDNpNTJBRkVlRVg0RGFNS0VXWnZjeTBYc3dhT0VrcFc0S1c1SHBTUk9FclFITjhVRmVfZjk3Mm02aFd1d040V0RkbDU3Tmp6RTNBRjVSNFFWVGdKa2tzR3UyY0VKMdIBtgFBVV95cUxQTkNoZzllNHVaeDRucVZJUC1haVg2a2lXWXBuNVJ3WW02c0xxWmF0M0NPVzhhbzNnN0hZU01XSEJBSkNkalRpS3VXdTlfSmNGb19XQms2RTBzc1RxSm44OE5reGFwSVhCYW1VbnRLeEpSWW5Rekh0MUprRmtCNE83ek5KQ2VMbGMzZkZxc3FTMHRMUVF5X1BxN0RaSTBWOUpsbXVpTlIyQVBjaG04QkUtVEZXM3NGZw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports incorporates Oman-based terminal subsidiary",
+        "source": "scanx.trade",
+        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNa0RPUkM3SnFoRjFvVUtfSUJqcFpWZGttQkFfdzFfeVRHRzZFS0ZpYlREd0lBVG91M1lMSXNEV0t1aTE2UHBIQTYtVmFtSzB3Q3pLSmkwVWFoU2tIeGJTRGZPVWNNNU0zcWtJaUtuaHNtZnVpdTlGQnJXbEtPYWFrQ01ocVQ3X3VoYWo4MDJDM2U3YVkwZXVMY3N3blJQbmVHSnNXNGVvOUE5WmdRdnlzdlNR?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports (ADANIPORTS) Share Price Today, Live Chart & News",
+        "source": "TechGraph",
+        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1DY25zeVpWMlVBejg1Q05BeUp4X00tdVQwSHEzTEgyV3luZHJ6ZnM3bF9wYlBvZnNwczdvc00zRU83WG1meXFvX0hCZ19zM0g5Y2hhTmhCTUxpajlnT2p4TFhBeUs?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-27|COALINDIA|div",
+    "date": "2026-10-27",
+    "instrument": "COALINDIA",
+    "score": 6.4,
+    "price_change": -1.27,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Bharat Coking Coal shares surge over 6% after falling for 6 sessions - What's next for the stock?",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxQMzYzNDVqX0RPNm9BZ3YwM2pWTVFfYmZuVVd3Mm9YLUtZdzBBMDFzZjJVWk9Od1U0UVhfV1dEdmM2X1FjeG5zVjlWM2M2bHA3TW5sWE9TU3pidEFmRzlNQVQyVi1IcU84bTUxMzZmeXBCenNMZ3czOEhndno3dFNqYkNBaUtWZmlQVlZ1bGFBNnN4V1NnbHVmNVh6REJ4ZVQ4TlR3aVFxS3g0dnQydVBLRE41MXpDdHQtRE5Oc3UxSTZZcVNVQlI3bzhMaGFDOEJfQk1lN19IaVlQa2xTd3FNMXVmT3R0TF8zdGtfdmE0WHI5MHAz0gH6AUFVX3lxTE5tbktfNGZZaUtvMzAtd0NOS1cteHhJY09kWS1iejlOd1g4WVRlYWE1LWhVY1N2RFhlQm9DbmFoNmRtTEl0X2s2d1dITFhBWmgwR2M5MVo4Rkx4V2ZZeGN6Q3Zpd1RjUDdTdzFLUlY0WTZWT01IM0QxMHRvcjRjR2o1QXdtWnZSWUVOOXpsZ1dDUEJiZlNPSFBjUjVrdlZpRHk2bDlLS2NRX3JXYlhobTd2VEVjY3lQc0QxQm1zZGplWGt5VjZfOC1jV0JPWmlRblpDSFl5NEdYVHNkWUx6SWl4UnowUzhIQU1CbUd2Z2hjY19GOHo0WTdZYWc?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Bharat Coking Coal shares snap 6-day losing streak as earnings return to black",
+        "source": "ET EnergyWorld",
+        "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNdWVpYmZGdzNfaFdFVUE5THBWM2xpV05vVUUtX0cwNml5WDhfeG85T3V6a3FQQjJqX0JOeUZwbnNqSE1yMjdYaWZUc1VzWU92M0R3WUp0dkoxLTZrVmd0RHBvRnB0VVV1RWpKaWJ0dVFWWHNSNFpkZUYtSG9BeFhfMy1lc2ViS2g1VzZsajJoNTR6QWk4ckZ2RlYwVVd1NUhPbkNDWUJRU2RKVnE2ZF93YlczbGhRNjl5aExZN0lUTG5DLXB3cS1BY09nLUdrN0Rhcl83bDZCalBTQdIB3wFBVV95cUxQZE1vM1NnRzFYSzRPaTdRQmhQMXBtbFl5OE5ZRF8xZ0VqZTBOSVE2c3J5WllFbFl6bjZlMHd5WFluZ19vNG43UFo2d3lMYkZkNWpHcTdQV1NYMm1YU0JhSWFCaWo1MnBkYnF6Z0g0Ny16YTBudkxud0NvYjN6UEVNa19LSFZzbW1wdlpZRlk1OGVUZy1fcTEtaHVsTlZQZTBQOXlPU2hleVg3b1AtNVJjVXBsLUNUT0w5eTg2a0IzeUxiS0R0aFpqSlhqR2FKRTdlZ1lYdDJyUE04bVNCTlln?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Bharat Coking Coal shares rally 5% after Q2 profit turnaround; revenue jumps 39% YoY",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxQWHlESXRzYWdnX0Z5azJMVmN2OTI5ZDk5bWRpRkx4aW5QZy0xeWwtdEhQb01MMXpvem54QmhaSUt6SVFGTVl2Qk0ya2IxVmVEaENUbTRhRW5RaUFKb2JyUlpOQWYtLTRXOGNmN3BfUWE3V1NIN0NUMHZtdTdwNmZzaE9JV0FVanhJYUJOSHRzTzBKSDlsS21ZbWpGUV9uc1Nkal9ZaGJLS2JyenJvOUZCMTJROXlVQU9rc1o2RDQzVU9rN01SS2xrNzJwc1BjMGpoOU9sY09PdzNzR01KZ244X2FoVmNENkdoVFI00gHwAUFVX3lxTE5jeVk0YzVVdWVnbmRmcWp2R2o4em5Ya2k1M3ozTXlJNUhINVJ1a1NXZ3YyYndJMDNPWEJRYVRLZlRybkMwdjlUUEppcmpncUtsYV9FRUlXaWtiZTFlcmZJNzIxMmQyYnAxQktXMWhBN2ZBRTJvM05GM0Z3Mzl3ZEpibDBnNi1LZFpmR3c3NzN4aldYTVF4LTB0Vk1GOXdJdGVuWmVwOEVCX0plTUVndnIzY1JPRk9QajZtNC1WZTUydDlrTDI3QmNmVlgzSjdsdGZZS1lGVFhDcXNSeXA3TmxZZUNuajU1eW5OOE1wTTVUVw?oc=5",
+        "score": 4
+      },
+      {
+        "title": "PSU Q2 results 2026 preview: BEL, Coal India, IGL - Earnings estimate, brokerage target price, returns potential",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPN0syWjBfdUQyTTg5OTF5Ykk0UWlabDctV2NCcV9aYWtublhmaHUwVFdzQXljaTBHa1BoWFVybFh2QVVhSm1SaV9LQ3c1NTNEOEtSZkJ4ZXFiTUNJVTZDc2JBdG92bU91bnF5ZHAyOGk2c3lTN0U1U0pqeTk3TmMtbzNTbEpBWG5MQ2I0YVJLVFZMZlFzaF9oVDJrSWx2d0RYQjYtaWl6dkpIcVl1Zm9QT3FwVDNNaU1yZ2t4aVUwMThrNmlobWN2Z3JpbVdjcTUyMXd3NkJCYzhYVHBUUGxPclVEZHM0RjM1Z3hwaEQ1YXFqVGpTN2xiU0JGdld5eVZCQnBLYXh30gGLAkFVX3lxTE5LMGlDSGtBaUJRbm9YMG9oN2l0ZE9CMHota1lvRDZZcWItYm43Sy1WM1dlLXlnYmdBME9PR3hEc1B1dTVITkJWQy0xMlhpRkg2MDdVU3BqQklwNG5uVmJMYVNJLWoyQVZHUmlKX3kycnd4NjI0UXJKNUJVMGNLUnJzQ3RtVzhCYkxqaV9nTTFYbEJ1UXZmdUVqbk5ndmtQcWl4eHVKYUxCc00tdFVQSHdpRlEyLTlMaHg3cGJYWUZYZ20yWVJGaUFmZ1NHZ0NCZzZfYy1MSU9DTjZqcE83czVxN2c3Q3ZHWGFWMzlneFFiZnlEdlNzVkZPZlJjUTBybDBhVl9rbG93ckxuTQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Dividend buzz: Dalmia Bharat, Mazagon Dock, Coal India, NTPC, others to consider payouts this week - Check full list",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxNTS1peTJfaXNPeW5FYU9GaWVpaVZQZ0xVN25uMkZuMGFTdlVhRnpQZlJNdzFaV0RZbjhPZHpCTG16UTh6dU9fYU5EX2N4ODZHZFhGanFQZWdMM0p2YzI4VHM4ZXEwQXR4NTJ6U0JnRE96M19wT1ZZSGxSMHIyVWNLSHVRVnJtTDFFVTdKU3A2ajJESFE0MjJid2tjOGNWaWRVM3BFY2UyMndzcHVuYktwTjlUdU41ejdkdWxzV2FveTk2N0ctalVMTlpFUlJaSmtXdURnY0RaUkdWa1N4bGk2ZUtDYUM4dTJkZ0ZCQ3Y5U1FFdXNkNy1MMdIB_gFBVV95cUxPMC1aZ3B2T2JhMkdKSmtlT3VPVjZlSmotX2Z3bUZXdUNUSm80aU9FdXhHaGZDZk52dUc3aVBxUUhIN2JFUnVkaFd5c0RKTEMxdDZZZzdwMnd1TzdCa1pSYnR1WW1rb1F2bWpDSFEwbjFjSlkyY3JGT0dJLVVKbm1lRjJtbXlUSEI0QkpQX0FKOFZ4UkhvejRpSTdfeGVYR1VXXzlLSmpUVDQ4dWxENXpzZm5kSklOaG1GY1pKRU1EN2VjajZtMTBHYVVqeWZ6cWJIS1dUbklFTWZ6eTBGTVVfRW5GNm1qRzdhUjdIazZCTG1laE9pRHh4SGJHa3F4UQ?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-10-27|EICHERMOT|div",
+    "date": "2026-10-27",
+    "instrument": "EICHERMOT",
+    "score": 1.4,
+    "price_change": -0.26,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "How Royal Enfield Transformed Into a Premium Motorcycle Giant",
+        "source": "HDFC Sky",
+        "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNYXhQUjFzeUt6aThiNENzWWQ4a3M2a3JfVWt4dEZ4Z19jWWlhVElsTGJJVkZzOGZaNWxSekxKS21IeUtOd0xpYnV3M0NHMHFDVFpLRXFDSFUxMUQ2d2VINmtFcWR4VHpybFh2cHE1bl9qaU5uNURpdTdEbHl2RFZaVTJtYjlqYXdoS1htTy1ySk44dmFGLUU5dEtTcUZwTEJKRnhhWVpVMS1TMnRiRnhXNWZPU3lkNTJRNXE0?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Best Auto Stocks Ahead of Diwali 2026: Eicher, Hyundai, TMPV",
+        "source": "Univest",
+        "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPZk9TOTk3SUhnZW9rd1ZmUzVRUGhCX3lUcS1iRnhnWTdNSFVtaUUtRjJwTDlKMGFfNmsybzdnWHlWR0Fvb0h0cE5KdHZUQjByRUM2RFh1X2RlQnVKODYxaUpFTllJRUJFT282N21pUjFXcDRhd2xnbkRoaXBIQkNjSHdFMDAtaE1WWHY1VlR2V1ZBSjFEd2FLLVhMNExsLVVDeTZWLU5wLTlFdmdwaWJFajFFWlRja2F3YUxtQ09mRUJ3ckdEdENHZXI4OV8zZ3lVdWo0TlJBUHlJYUhZYVNfM2pPRjAwV1Fs?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Best auto stocks to buy ahead of Diwali 2026: Nuvama bets big on Eicher Motors, Hyundai and Tata Motors PV - Here's why",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMikgJBVV95cUxORkx3TGZVSDA4OTZFRWppT29tdVl0aXRhV0NoeEgwLW10LU9ZLU5rX042V3llT1dOR1JSUW9JbkVPbE5tQnpPN1JQWnU0X0Q5Snd1dWhkRlN0YmRJWG50d21IZHpmcnI4MTdYOEhCVWFzX1pCUlFteTlhcnlZQnpNV3l0dDNGOUw3Ujd1QS1mQlRRM1BTLVJMRHZsdmVLRllRZFY4WE56dEFkTVRqajRvYXB1ZzJqaDFEanpySmVrNUZjUkJpS0FKaUkyUndxc0wwUFZEQ1pvR25DOUZ5anM5S2FNSVV1aFZMcGhQMGVSQ3BJUENDY1RGVDY2VXFnSDE3R3ZQZmdlS05jTFgyV0Y3VU9B0gGXAkFVX3lxTE9VUWxQdkZKVW9PNWFLcTVYYlZha2VhSzJOVk5Ydms5cVlGSlRiUHlJOWpPMERHWmxfdUJ3MzNlZ3cyREpyaHBwTDl6R3hEWVJZWC1GMXZFVDIwQkJaMEVuSGYyNHhua1JWM0Y2VXRYbmpQMXpzU0czNjlNWWE4Ty1iSUlSWENQQWhXZkRvMXp5TTNxME9PRnV2SnhOa3BvOExWb1pxR2dHR3RlWkZ0Yk0wZDZWQkFRcjVQaFJQTThYc3BZdE5JZ1FYeDJOZVRjWVNhbjFSOXFKUWN0SF9EcThyV01Ya0ZpTm4ySS1ZZ05DbS1PckNIZVJESURMY3F5TEdqRTNIbWhEMENXRTd2aWJBc0gyU2pObw?oc=5",
+        "score": 1
+      },
+      {
+        "title": "EICHERMOT Outlook for the Week",
+        "source": "Equitypandit",
+        "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9RMTByazV6Y2t1UUc4c0IxTWp3Nlg5Tm5ISXBhdjdPQjZvLU5zNzBBc2wtR2ZfLUFQc01kd0YyQ3VWNkFOVWlRM3lTd0Z4VGdOTkk0SnNvTGx6SmxMQk45b2tZUDgzM3R0ZXQ3Rw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Buy, Sell Or Hold: Eicher Motors, Mahindra, Pine Labs, Belrise Industries, Data Patterns, Crompton Greaves — Ask Profit",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxOalp5N2VPalBMXzlkcEhuWkxyejQ5aXNzVEZ3bUd1M0d1UlN0SF9hUlloVUJrYkJBZDJYN1hJQWRHRVVoV2x0dE9kTkNNR0tCUWlhWUdhc3dtTGk5TjhNcmN6UTdsMTAtTng3c2dHbDBxS0FzYjJxSUgyUFZqaUR2VEl0aWJPXzBuYVVnM1B4YWFDdW1UWDlFT1h5cm9fYXNwbWdrRHFqVURNN1VjZUFqdnBYWFdSQWsyb0xBMXR3bk9KWkpQYkpRa21lQ0hNNjRxQ1JJVFZLME03dmdKQmplU0J4Y0FLS3FTcFHSAfIBQVVfeXFMTXE5QnVyTk1DMVNFaFVWYldMeXFQY3BCa1ZzVV9KVFpGazVlMlpESkRUSVlEUHcwT3Q3NUZkNGdoY19rb2hXSnBKRDhVNWF5dm53QThYY2cyeGlHMFN1TWx1V1c5SXhhZllCTExLQjFsd2NFTDhsMk5CYU9kQXdhalJPajJwU0pwRHFMdkd3aTVyc0hUMHVRWWhEdXRZN1MtNWxyMlhIbThxLWhQQnRsS2ZfS2paODJYZnBvTWY2OU5yaEd3eFZoN2NkcU82SHFyMzZXWTdQSVRDSmlrNmYwS0dlenNCVHNzbXRtQmV0YjY0dnc?oc=5",
+        "score": 2
       }
     ],
     "outcome": null,
