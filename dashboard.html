@@ -1465,7 +1465,7 @@ function renderFoDetail() {
   const cfg = {
     insider: { title: "INSIDER OPTIONS (DII + PRO)", keys: ["DII", "PRO"], call: true },
     retail: { title: "RETAIL BUILDUP (CLIENT)", keys: ["CLIENT"], call: true },
-    inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: false },
+    inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: true },
   }[foSel];
   if (!cfg) { box.innerHTML = ""; return; }
   const dash = '<div class="sub">डेटा नहीं मिला</div>';
