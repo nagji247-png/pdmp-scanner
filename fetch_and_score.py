@@ -29,7 +29,6 @@ STOCKS = {
     "EICHERMOT": ("EICHERMOT.NS", "Eicher Motors share"),
     "APOLLOHOSP": ("APOLLOHOSP.NS", "Apollo Hospitals share"),
     "SBIN": ("SBIN.NS", "SBI share"),
-
 }
 
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
@@ -44,7 +43,6 @@ STOCK_ALIASES = {
     "EICHERMOT": ["eicher", "eichermot"],
     "APOLLOHOSP": ["apollo hospital", "apollohosp", "apollo"],
     "SBIN": ["sbi", "sbin", "state bank"],
-
 }
 
 # शब्द-सूची: वज़न 1 या 2। मिलान शब्द की शुरुआत से होता है।
@@ -758,7 +756,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (dt.datetime.now(dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat() if PRICE_CACHE.get(sym) is not None else (max(returns) if returns else None)),
+        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
         "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
