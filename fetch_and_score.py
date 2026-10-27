@@ -1637,6 +1637,46 @@ def participant_changes(today, prev):
     return {"ok": bool(out), "prev_date": prev.get("date"), "by_group": out}
 
 
+def fetch_pcr_oi():
+    """NSE option-chain से NIFTY और BANKNIFTY का कुल OI PCR निकालता है."""
+    out = {"ok": False, "as_of": None, "nifty": None, "banknifty": None}
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://www.nseindia.com/option-chain",
+    })
+    try:
+        session.get("https://www.nseindia.com", timeout=12)
+        for symbol, key in (("NIFTY", "nifty"), ("BANKNIFTY", "banknifty")):
+            try:
+                response = session.get("https://www.nseindia.com/api/option-chain-indices",
+                                       params={"symbol": symbol}, timeout=15)
+                response.raise_for_status()
+                payload = response.json()
+                records = payload.get("records", {}).get("data", [])
+                ce_oi = sum(int(row.get("CE", {}).get("openInterest", 0) or 0)
+                            for row in records if row.get("CE"))
+                pe_oi = sum(int(row.get("PE", {}).get("openInterest", 0) or 0)
+                            for row in records if row.get("PE"))
+                if ce_oi > 0 and pe_oi > 0:
+                    expiry = payload.get("records", {}).get("expiryDates", [])
+                    out[key] = {"ce_oi": ce_oi, "pe_oi": pe_oi,
+                                "pcr": round(pe_oi / ce_oi, 3),
+                                "expiry": expiry[0] if expiry else None}
+            except Exception as exc:
+                print(f"PCR OI {symbol} unavailable: {exc}")
+        if out["nifty"] or out["banknifty"]:
+            out["ok"] = True
+            out["as_of"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes").replace("+00:00", "Z")
+        else:
+            out["error"] = "NSE option-chain डेटा उपलब्ध नहीं"
+    except Exception as exc:
+        out["error"] = str(exc)[:240]
+    return out
+
+
 def main():
     global SKIP_EVENTS
     refresh_mcx_silver_reference()
@@ -1757,6 +1797,7 @@ def main():
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
+    result["pcr_oi"] = fetch_pcr_oi()
     result["participant_oi"] = fetch_participant_oi()
     result["participant_oi"]["changes"] = participant_changes(
         result["participant_oi"], previous.get("participant_oi") or {})
