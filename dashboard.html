@@ -1581,8 +1581,8 @@ function renderFoPanel(po, instData) {
   const line = (label, body) => `<div style="padding:8px 0;border-top:1px solid #252b45"><div style="font-size:12px;color:#aab">${label}</div>${body}</div>`;
   const netTxt = (v) => v == null ? dash : (v >= 0 ? "Long" : "Short");
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
-  const card = (k, title, body) => \`<div onclick="pickFo('\${k}')" style="cursor:pointer;background:\${foSel === k ? "#20324a" : "#1e2540"};border:\${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px;min-width:0">
-    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">\${title} <span style="color:#4fc3f7;font-weight:400">\${foSel === k ? "▾ खुला है" : "▸ विवरण"}</span></div>\${body}\${foSel === k ? '<div id="foDetail" onclick="event.stopPropagation()" style="cursor:default;margin-top:10px;padding-top:8px;border-top:1px solid #315477"></div>' : ''}</div>\`;
+  const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px;min-width:0">
+    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">${foSel === k ? "▾ खुला है" : "▸ विवरण"}</span></div>${body}${foSel === k ? '<div id="foDetail" onclick="event.stopPropagation()" style="cursor:default;margin-top:10px;padding-top:8px;border-top:1px solid #315477"></div>' : ''}</div>`;
   const insiderBody =
     line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
     line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
