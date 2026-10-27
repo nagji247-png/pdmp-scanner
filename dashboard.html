@@ -1485,7 +1485,7 @@ function renderFoDetail() {
     const netCandle = (label, value, kind) => {
       const up = value != null && value > 0;
       const down = value != null && value < 0;
-      const height = value == null ? 0 : Math.max(3, Math.round(Math.abs(value) / oiMax * 42));
+      const height = value == null ? 0 : Math.max(3, Math.round(Math.abs(value) / oiMax * 24));
       const color = kind === "call" ? (up ? "#27c879" : "#ef5350") : "#ef5350";
       const bar = value == null
         ? '<div style="height:2px;width:24px;background:#526078"></div>'
@@ -1493,17 +1493,17 @@ function renderFoDetail() {
       const direction = value == null ? "डेटा नहीं मिला" : up ? (kind === "call" ? "नेट Call Buy तरफ" : "नेट Put Buy तरफ") : down ? (kind === "call" ? "नेट Call Sell तरफ" : "नेट Put Sell तरफ") : "नेट बराबर";
       return `<div style="flex:1;min-width:0;text-align:center;padding:8px 6px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px">
         <div style="font-size:14px;font-weight:700;color:#d5deee">${label}</div>
-        <div style="height:108px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin:5px 0">
-          <div style="height:48px;width:100%;display:flex;align-items:flex-end;justify-content:center">${up ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
+        <div style="height:68px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin:3px 0">
+          <div style="height:30px;width:100%;display:flex;align-items:flex-end;justify-content:center">${up ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
           <div style="height:2px;width:100%;background:#8a98b2"></div>
-          <div style="height:48px;width:100%;display:flex;align-items:flex-start;justify-content:center">${down ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
+          <div style="height:30px;width:100%;display:flex;align-items:flex-start;justify-content:center">${down ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
         </div>
         <div style="font-size:14px;font-weight:700;color:${value == null ? "#aab4c8" : kind === "call" && up ? "#27c879" : "#ef5350"}">${fmtLakh(value)}</div>
         <div style="font-size:11px;margin-top:4px;color:#b8c4d9">${direction}</div>
       </div>`;
     };
     body = `<div style="margin-top:8px;padding:10px 6px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px">
-      <div style="font-weight:700;color:#cfd4e6;margin-bottom:8px">NET OI · सिर्फ 2 कैंडल</div>
+      <div style="font-weight:700;color:#cfd4e6;margin-bottom:8px">NET OI · छोटी कैंडल</div>
       <div style="display:flex;gap:8px">
         ${netCandle("CALL NET (Long − Short)", callNet, "call")}
         ${netCandle("PUT NET (Long − Short)", putNet, "put")}
