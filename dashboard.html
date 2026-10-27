@@ -1463,7 +1463,8 @@ function renderFoDetail() {
   const chg = (po.changes && po.changes.by_group) || null;
   const nifty = (foLast.inst || {}).NIFTY || {};
   const cfg = {
-    insider: { title: "INSIDER OPTIONS (DII + PRO)", keys: ["DII", "PRO"], call: true },
+    fii: { title: "INSIDER OPTIONS (FII)", keys: ["FII"], call: true },
+    pro: { title: "INSIDER OPTIONS (PRO)", keys: ["PRO"], call: true },
     retail: { title: "RETAIL BUILDUP (CLIENT)", keys: ["CLIENT"], call: true },
     inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: true },
   }[foSel];
@@ -1545,10 +1546,13 @@ function renderFoPanel(po, instData) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   };
   const dash = "डेटा नहीं मिला";
-  const ins = ["DII", "PRO"];
+  const ins = ["FII"];
   const insCallL = sum(ins, "index_call_long"), insCallS = sum(ins, "index_call_short");
   const insPutL = sum(ins, "index_put_long"), insPutS = sum(ins, "index_put_short");
   const insNet = sum(ins, "future_index_net");
+  const proCallL = g("PRO", "index_call_long"), proCallS = g("PRO", "index_call_short");
+  const proPutL = g("PRO", "index_put_long"), proPutS = g("PRO", "index_put_short");
+  const proNet = sum(["PRO"], "future_index_net");
   const retCallL = g("CLIENT", "index_call_long"), retCallS = g("CLIENT", "index_call_short");
   const retPutL = g("CLIENT", "index_put_long"), retPutS = g("CLIENT", "index_put_short");
   const inst = ["FII", "DII"];
@@ -1571,6 +1575,10 @@ function renderFoPanel(po, instData) {
     line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
     line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
     `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(insNet)}"><b>${netTxt(insNet)}</b></div></div>`;
+  const proBody =
+    line("Call OI", bar(pct(proCallL, proCallS), "#2ecc71")) +
+    line("Put OI", bar(pct(proPutL, proPutS), "#e74c3c")) +
+    `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(proNet)}"><b>${netTxt(proNet)}</b></div></div>`;
   const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
   let skew = dash, skewCls = "";
   if (retailCE != null && retailPE != null) {
@@ -1589,7 +1597,8 @@ function renderFoPanel(po, instData) {
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      ${card("insider", "INSIDER OPTIONS", insiderBody)}
+      ${card("fii", "INSIDER OPTIONS (FII)", insiderBody)}
+      ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
       ${card("retail", "RETAIL BUILDUP", retailBody)}
       ${card("inst", "F&amp;O INSTITUTIONAL", instBody)}
     </div>
