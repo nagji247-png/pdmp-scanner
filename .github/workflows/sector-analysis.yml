@@ -1,0 +1,30 @@
+name: Refresh independent sector analysis
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 3 * * 1-5"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install free data library
+        run: python -m pip install yfinance
+      - name: Build separate sector data
+        run: python sector_analysis.py
+      - name: Commit updated sector data
+        run: |
+          if [ -z "$(git status --porcelain -- sector-analysis.json)" ]; then
+            echo "No sector data changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sector-analysis.json
+          git commit -m "Refresh independent sector analysis data"
+          git push
