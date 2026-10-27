@@ -1480,10 +1480,17 @@ function renderFoDetail() {
     const putNet = (pLong == null || pShort == null) ? null : pLong - pShort;
     const callTag = callNet == null ? "" : (callNet < 0 ? "BEARISH" : "BULLISH");
     const putTag = putNet == null ? "" : (putNet < 0 ? "BULLISH" : "BEARISH");
+    const oiMax = Math.max(1, ...[cLong, cShort, pLong, pShort].filter(v => v != null).map(v => Math.abs(v)));
+    const oiBar = (label, value, color) => {
+      const width = value == null ? 0 : Math.max(2, Math.min(100, Math.abs(value) / oiMax * 100));
+      return `<div style="padding:8px 0;border-top:1px solid #253653">
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:13px"><span>${label}</span><b class="${value == null ? "" : value >= 0 ? "pos" : "neg"}">${fmtLakh(value)}</b></div>
+        <div style="height:8px;margin-top:6px;background:#202a43;border-radius:5px;overflow:hidden"><div style="height:100%;width:${width}%;background:${color};border-radius:5px"></div></div></div>`;
+    };
     body = row("Call Net OI Change (Long − Short)", fmtLakh(callNet), callTag, callNet == null ? "" : (callNet < 0 ? "neg" : "pos")) +
-      `<div class="ev"><div class="sub">Call Long OI में बदलाव: ${fmtLakh(cLong)}</div><div class="sub">Call Short OI में बदलाव: ${fmtLakh(cShort)}</div></div>` +
+      `<div style="margin-top:8px;padding:8px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px"><b>CALL OI बदलाव</b>${oiBar("Call Long OI Change", cLong, "#27c879")}${oiBar("Call Short OI Change", cShort, "#ef5350")}</div>` +
       row("Put Net OI Change (Long − Short)", fmtLakh(putNet), putTag, putNet == null ? "" : (putNet < 0 ? "pos" : "neg")) +
-      `<div class="ev"><div class="sub">Put Long OI में बदलाव: ${fmtLakh(pLong)}</div><div class="sub">Put Short OI में बदलाव: ${fmtLakh(pShort)}</div></div>`;
+      `<div style="margin-top:8px;padding:8px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px"><b>PUT OI बदलाव</b>${oiBar("Put Long OI Change", pLong, "#27c879")}${oiBar("Put Short OI Change", pShort, "#ef5350")}</div>`;
   } else {
     const fLong = foSumChg(chg, cfg.keys, "future_index_long"), fShort = foSumChg(chg, cfg.keys, "future_index_short");
     const net = (fLong == null || fShort == null) ? null : fLong - fShort;
