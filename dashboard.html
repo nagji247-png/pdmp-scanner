@@ -745,19 +745,7 @@ function renderInstruments(instruments, participantOI) {
       glb.appendChild(card(name, d, participantOI));
     }
   }
-  idx.appendChild(pcrOiCard(window.latestPcrOi || null));
-}
-
-function pcrOiCard(pcr) {
-  const el = document.createElement("div");
-  el.className = "card " + (pcr && pcr.ok ? "neu" : "neu");
-  if (!pcr || !pcr.ok || (!pcr.nifty && !pcr.banknifty)) {
-    el.innerHTML = '<div class="name">PCR OI DATA</div><div class="big">—</div><div class="lbl">डेटा उपलब्ध नहीं</div><div class="more">NSE option-chain से वैध डेटा मिलने पर दिखेगा</div>';
-    return el;
-  }
-  const line = (label, d) => '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:7px;border-top:1px solid #183252;padding-top:7px"><span>' + label + '</span><b class="' + (d.pcr >= 1 ? 'pos' : 'neg') + '">' + Number(d.pcr).toFixed(2) + '</b></div><div class="more">CE OI ' + Number(d.ce_oi).toLocaleString('en-IN') + ' · PE OI ' + Number(d.pe_oi).toLocaleString('en-IN') + '</div>';
-  el.innerHTML = '<div class="name">PCR OI DATA</div><div class="lbl" style="margin-top:5px">PUT-CALL RATIO · OPEN INTEREST</div>' + (pcr.nifty ? line('NIFTY PCR', pcr.nifty) : '') + (pcr.banknifty ? line('BANKNIFTY PCR', pcr.banknifty) : '') + '<div class="more">स्रोत समय: ' + esc(istTime(pcr.as_of)) + '</div><div class="more">PCR = कुल PE OI ÷ कुल CE OI · अकेले ट्रेड सिग्नल नहीं</div>';
-  return el;
+  
 }
 
 function renderTrends(t) {
@@ -1581,8 +1569,8 @@ function renderFoPanel(po, instData) {
   const line = (label, body) => `<div style="padding:8px 0;border-top:1px solid #252b45"><div style="font-size:12px;color:#aab">${label}</div>${body}</div>`;
   const netTxt = (v) => v == null ? dash : (v >= 0 ? "Long" : "Short");
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
-  const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px;min-width:0">
-    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">${foSel === k ? "▾ खुला है" : "▸ विवरण"}</span></div>${body}${foSel === k ? '<div id="foDetail" onclick="event.stopPropagation()" style="cursor:default;margin-top:10px;padding-top:8px;border-top:1px solid #315477"></div>' : ''}</div>`;
+  const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
+    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div>${body}</div>`;
   const insiderBody =
     line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
     line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
@@ -1614,6 +1602,7 @@ function renderFoPanel(po, instData) {
       ${card("retail", "RETAIL BUILDUP", retailBody)}
       ${card("inst", "F&amp;O INSTITUTIONAL", instBody)}
     </div>
+    <div id="foDetail"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
   renderFoDetail();
 }
@@ -1625,7 +1614,6 @@ async function load() {
     const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    window.latestPcrOi = data.pcr_oi || null;
     updateTradeGuard(data);
 
     const updatedEl = document.getElementById("last-updated");
