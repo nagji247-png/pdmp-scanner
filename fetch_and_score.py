@@ -315,7 +315,7 @@ def silver_display_price(international_inr_per_kg=None):
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0:
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX close × 3% GST"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX quote + 3% GST Estimate"
     except Exception as e:
         print(f"MCX silver manual file error: {e}")
     return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
@@ -757,7 +757,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
         "price": PRICE_CACHE.get(sym),
         "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
-        "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
+        "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
         "headlines": heads[:8],
