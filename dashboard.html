@@ -426,19 +426,6 @@ function istTime(iso) {
   return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-// कीमत की तारीख अलग हो सकती है; उसे अपडेट समय न समझें। पुराने मूल्य पर साफ चेतावनी दें।
-function priceDateLabel(value) {
-  if (!value) return "कीमत की तारीख उपलब्ध नहीं";
-  const raw = String(value).slice(0, 10);
-  const parsed = new Date(raw + "T00:00:00+05:30");
-  if (!Number.isFinite(parsed.getTime())) return "कीमत की तारीख अमान्य";
-  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  today.setHours(0, 0, 0, 0);
-  const ageDays = Math.floor((today.getTime() - parsed.getTime()) / 86400000);
-  const formatted = parsed.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit", year: "numeric" });
-  return "मूल्य तारीख: " + formatted + (ageDays > 1 ? " · पुराना डेटा" : "");
-}
-
 function heldText(m) {
   if (m == null) return "—";
   if (m < 60) return m + " मिनट";
@@ -561,7 +548,7 @@ function card(name, d, participantOI) {
       <div class="big" style="color:${color}">${sScore}</div>
       <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
         ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "GOLD" ? " /10g" : name === "SILVER" ? " /kg" : ""))
-        : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${esc(priceDateLabel(d.price_as_of))}</small></div>
+        : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${d.price_as_of ? esc(d.price_as_of) : ""}</small></div>
     </div>
     <div class="lbl" style="color:${color}">${label}</div>
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
@@ -1476,67 +1463,75 @@ function renderFoDetail() {
   const chg = (po.changes && po.changes.by_group) || null;
   const nifty = (foLast.inst || {}).NIFTY || {};
   const cfg = {
-    fii: { title: "INSIDER OPTIONS (FII)", keys: ["FII"], call: true },
-    pro: { title: "INSIDER OPTIONS (PRO)", keys: ["PRO"], call: true },
+    insider: { title: "INSIDER OPTIONS (DII + PRO)", keys: ["DII", "PRO"], call: true },
     retail: { title: "RETAIL BUILDUP (CLIENT)", keys: ["CLIENT"], call: true },
-    inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: true },
+    inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: false },
   }[foSel];
   if (!cfg) { box.innerHTML = ""; return; }
-  const dash = '<div class="sub">डेटा नहीं मिला</div>';
-  const row = (label, val, tag, cls) => `<div class="ev"><div>${label}</div><div style="text-align:right"><b class="${cls || ""}">${val}</b>${tag ? ` <span class="tag ${cls === "pos" ? "t-cont" : "t-rev"}">${tag}</span>` : ""}</div></div>`;
-  let body = "";
+  const badge = (t, good) => t
+    ? `<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;background:${good ? "#1d3a2a" : "#3b1d22"};color:${good ? "#2ecc71" : "#e74c3c"}">${t}</span>`
+    : "";
+  const dashTxt = '<div class="sub">डेटा नहीं मिला</div>';
+  const prevDate = chg && po.changes.prev_date ? po.changes.prev_date : null;
+  const headerBox = (netTag, netGood) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div style="font-weight:700;color:#cfd4e6;font-size:14px">${cfg.title}</div>${netTag ? badge(netTag, netGood) : ""}</div>
+    <div class="sub" style="margin:4px 0 8px">${prevDate ? "बदलाव: " + esc(prevDate) + " से आज तक · " : ""}NSE, कल का डेटा</div>`;
+  const niftyLine = nifty.price != null
+    ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #252b45;margin-top:6px">
+         <div><span style="display:inline-block;width:14px;height:3px;background:#c77dff;margin-right:8px;vertical-align:middle"></span>Nifty</div>
+         <div><b>${Number(nifty.price).toLocaleString("en-IN")}</b> <span class="${(nifty.change_pct || 0) >= 0 ? "pos" : "neg"}">(${nifty.change_pct > 0 ? "+" : ""}${nifty.change_pct}%)</span></div></div>`
+    : "";
+  const wrap = (inner) => `<div class="box" style="margin-top:10px">${inner}${niftyLine}
+    <div class="sub" style="margin-top:8px">यह NSE का दिन का अंतर है, लाइव नहीं। Chart सहित पूरा ब्यौरा यहाँ नहीं है।</div></div>`;
+
   if (!chg) {
-    body = dash + `<div class="sub" style="margin-top:6px">बदलाव के लिए पिछले दिन का NSE डेटा चाहिए। अगले रन पर यह अपने-आप बनेगा।</div>`;
-  } else if (cfg.call) {
+    box.innerHTML = wrap(headerBox("", false) + dashTxt +
+      `<div class="sub" style="margin-top:6px">बदलाव के लिए पिछले दिन का NSE डेटा चाहिए। अगले रन पर यह अपने-आप बनेगा।</div>`);
+    return;
+  }
+  if (cfg.call) {
     const cLong = foSumChg(chg, cfg.keys, "index_call_long"), cShort = foSumChg(chg, cfg.keys, "index_call_short");
     const pLong = foSumChg(chg, cfg.keys, "index_put_long"), pShort = foSumChg(chg, cfg.keys, "index_put_short");
     const callNet = (cLong == null || cShort == null) ? null : cLong - cShort;
     const putNet = (pLong == null || pShort == null) ? null : pLong - pShort;
-    const callTag = callNet == null ? "" : (callNet < 0 ? "BEARISH" : "BULLISH");
-    const putTag = putNet == null ? "" : (putNet < 0 ? "BULLISH" : "BEARISH");
-    const oiMax = Math.max(1, ...[callNet, putNet].filter(v => v != null).map(v => Math.abs(v)));
-    const netCandle = (label, value, kind) => {
-      const up = value != null && value > 0;
-      const down = value != null && value < 0;
-      const height = value == null ? 0 : Math.max(3, Math.round(Math.abs(value) / oiMax * 24));
-      const color = kind === "call" ? (up ? "#27c879" : "#ef5350") : "#ef5350";
-      const bar = value == null
-        ? '<div style="height:2px;width:24px;background:#526078"></div>'
-        : `<div style="height:${height}px;width:24px;background:${color};border-radius:${up ? "3px 3px 0 0" : "0 0 3px 3px"}"></div>`;
-      const direction = value == null ? "डेटा नहीं मिला" : up ? (kind === "call" ? "नेट Call Buy तरफ" : "नेट Put Buy तरफ") : down ? (kind === "call" ? "नेट Call Sell तरफ" : "नेट Put Sell तरफ") : "नेट बराबर";
-      return `<div style="flex:1;min-width:0;text-align:center;padding:8px 6px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px">
-        <div style="font-size:14px;font-weight:700;color:#d5deee">${label}</div>
-        <div style="height:68px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin:3px 0">
-          <div style="height:30px;width:100%;display:flex;align-items:flex-end;justify-content:center">${up ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
-          <div style="height:2px;width:100%;background:#8a98b2"></div>
-          <div style="height:30px;width:100%;display:flex;align-items:flex-start;justify-content:center">${down ? bar : '<div style="height:2px;width:24px;visibility:hidden"></div>'}</div>
-        </div>
-        <div style="font-size:14px;font-weight:700;color:${value == null ? "#aab4c8" : kind === "call" && up ? "#27c879" : "#ef5350"}">${fmtLakh(value)}</div>
-        <div style="font-size:11px;margin-top:4px;color:#b8c4d9">${direction}</div>
-      </div>`;
-    };
-    body = `<div style="margin-top:8px;padding:10px 6px;background:#0a1c33;border:1px solid #203c5d;border-radius:8px">
-      <div style="font-weight:700;color:#cfd4e6;margin-bottom:8px">NET OI · छोटी कैंडल</div>
-      <div style="display:flex;gap:8px">
-        ${netCandle("CALL NET (Long − Short)", callNet, "call")}
-        ${netCandle("PUT NET (Long − Short)", putNet, "put")}
-      </div>
-      <div class="sub" style="margin-top:8px">शून्य रेखा से ऊपर = Long तरफ नेट अंतर · नीचे = Short तरफ नेट अंतर। यह OI-आधारित संकेत है, पक्की buy/sell पुष्टि नहीं।</div>
-    </div>`;
-  } else {
-    const fLong = foSumChg(chg, cfg.keys, "future_index_long"), fShort = foSumChg(chg, cfg.keys, "future_index_short");
-    const net = (fLong == null || fShort == null) ? null : fLong - fShort;
-    body = row("Futures Net Change", fmtLakh(net), net == null ? "" : (net >= 0 ? "Long" : "Short"), net == null ? "" : (net >= 0 ? "pos" : "neg")) +
-      `<div class="ev"><div class="sub">Long Chg ${fmtLakh(fLong)}</div><div class="sub">Short Chg ${fmtLakh(fShort)}</div></div>`;
+    const callBull = callNet == null ? null : callNet >= 0;
+    const putBull = putNet == null ? null : putNet < 0;
+    let netTag = "", netGood = true;
+    if (callBull != null && putBull != null) {
+      if (callBull && putBull) { netTag = "NET BULLISH"; netGood = true; }
+      else if (!callBull && !putBull) { netTag = "NET BEARISH"; netGood = false; }
+      else { netTag = "NEUTRAL"; netGood = true; }
+    }
+    const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
+    const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
+    box.innerHTML = wrap(
+      headerBox(netTag, netGood) +
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+         <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2ecc71;margin-right:8px"></span>Call Change</div>
+         <div style="display:flex;align-items:center;gap:8px"><b class="${valCls(callNet, callBull)}">${fmtLakh(callNet)}</b>${callBull == null ? "" : badge(callBull ? "BULLISH" : "BEARISH", callBull)}</div></div>` +
+      `<div style="background:#2a2f47;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font-size:12px;color:#cfd4e6">
+         <span>Long OI Chg <b>${fmtLakh(cLong)}</b></span><span>Short OI Chg <b>${fmtLakh(cShort)}</b></span></div>` +
+      sepRow +
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+         <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#e74c3c;margin-right:8px"></span>Put Change</div>
+         <div style="display:flex;align-items:center;gap:8px"><b class="${valCls(putNet, putBull)}">${fmtLakh(putNet)}</b>${putBull == null ? "" : badge(putBull ? "BULLISH" : "BEARISH", putBull)}</div></div>` +
+      `<div style="background:#2a2f47;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font-size:12px;color:#cfd4e6">
+         <span>Put Long OI Chg <b>${fmtLakh(pLong)}</b></span><span>Put Short OI Chg <b>${fmtLakh(pShort)}</b></span></div>`
+    );
+    return;
   }
-  const niftyLine = nifty.price != null
-    ? `<div class="ev" style="margin-top:6px"><div>Nifty</div><div><b>${Number(nifty.price).toLocaleString("en-IN")}</b> <span class="${(nifty.change_pct || 0) >= 0 ? "pos" : "neg"}">(${nifty.change_pct > 0 ? "+" : ""}${nifty.change_pct}%)</span></div></div>`
-    : "";
-  box.innerHTML = `<div class="box" style="margin-top:10px">
-    <div style="font-weight:700;color:#cfd4e6;margin-bottom:6px">${cfg.title}</div>
-    <div class="sub" style="margin-bottom:6px">${chg && po.changes.prev_date ? "बदलाव: " + esc(po.changes.prev_date) + " से आज तक · " : ""}NSE, कल का डेटा</div>
-    ${body}${niftyLine}
-    <div class="sub" style="margin-top:8px">यह NSE participant का पिछले उपलब्ध दिन से EOD अंतर है, लाइव नहीं। Long OI बढ़ना/घटना और Short OI बढ़ना/घटना अलग-अलग देखें; Net Change अकेले यह साबित नहीं करता कि बाजार में सभी ने Call/Put खरीदा या बेचा।</div></div>`;
+  const fLong = foSumChg(chg, cfg.keys, "future_index_long"), fShort = foSumChg(chg, cfg.keys, "future_index_short");
+  const net = (fLong == null || fShort == null) ? null : fLong - fShort;
+  const bull = net == null ? null : net >= 0;
+  box.innerHTML = wrap(
+    headerBox(bull == null ? "" : (bull ? "NET LONG" : "NET SHORT"), bull !== false) +
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+       <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#4fc3f7;margin-right:8px"></span>Futures Net Change</div>
+       <div style="display:flex;align-items:center;gap:8px"><b class="${bull == null ? "" : (bull ? "pos" : "neg")}">${fmtLakh(net)}</b>${bull == null ? "" : badge(bull ? "LONG" : "SHORT", bull)}</div></div>` +
+    `<div style="background:#2a2f47;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font-size:12px;color:#cfd4e6">
+       <span>Long Chg <b>${fmtLakh(fLong)}</b></span><span>Short Chg <b>${fmtLakh(fShort)}</b></span></div>`
+  );
 }
 
 function pickFo(k) {
@@ -1559,13 +1554,10 @@ function renderFoPanel(po, instData) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   };
   const dash = "डेटा नहीं मिला";
-  const ins = ["FII"];
+  const ins = ["DII", "PRO"];
   const insCallL = sum(ins, "index_call_long"), insCallS = sum(ins, "index_call_short");
   const insPutL = sum(ins, "index_put_long"), insPutS = sum(ins, "index_put_short");
   const insNet = sum(ins, "future_index_net");
-  const proCallL = g("PRO", "index_call_long"), proCallS = g("PRO", "index_call_short");
-  const proPutL = g("PRO", "index_put_long"), proPutS = g("PRO", "index_put_short");
-  const proNet = sum(["PRO"], "future_index_net");
   const retCallL = g("CLIENT", "index_call_long"), retCallS = g("CLIENT", "index_call_short");
   const retPutL = g("CLIENT", "index_put_long"), retPutS = g("CLIENT", "index_put_short");
   const inst = ["FII", "DII"];
@@ -1588,10 +1580,6 @@ function renderFoPanel(po, instData) {
     line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
     line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
     `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(insNet)}"><b>${netTxt(insNet)}</b></div></div>`;
-  const proBody =
-    line("Call OI", bar(pct(proCallL, proCallS), "#2ecc71")) +
-    line("Put OI", bar(pct(proPutL, proPutS), "#e74c3c")) +
-    `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(proNet)}"><b>${netTxt(proNet)}</b></div></div>`;
   const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
   let skew = dash, skewCls = "";
   if (retailCE != null && retailPE != null) {
@@ -1610,8 +1598,7 @@ function renderFoPanel(po, instData) {
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      ${card("fii", "INSIDER OPTIONS (FII)", insiderBody)}
-      ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
+      ${card("insider", "INSIDER OPTIONS", insiderBody)}
       ${card("retail", "RETAIL BUILDUP", retailBody)}
       ${card("inst", "F&amp;O INSTITUTIONAL", instBody)}
     </div>
