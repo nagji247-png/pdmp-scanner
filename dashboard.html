@@ -426,6 +426,19 @@ function istTime(iso) {
   return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+// कीमत की तारीख अलग हो सकती है; उसे अपडेट समय न समझें। पुराने मूल्य पर साफ चेतावनी दें।
+function priceDateLabel(value) {
+  if (!value) return "कीमत की तारीख उपलब्ध नहीं";
+  const raw = String(value).slice(0, 10);
+  const parsed = new Date(raw + "T00:00:00+05:30");
+  if (!Number.isFinite(parsed.getTime())) return "कीमत की तारीख अमान्य";
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  today.setHours(0, 0, 0, 0);
+  const ageDays = Math.floor((today.getTime() - parsed.getTime()) / 86400000);
+  const formatted = parsed.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit", year: "numeric" });
+  return "मूल्य तारीख: " + formatted + (ageDays > 1 ? " · पुराना डेटा" : "");
+}
+
 function heldText(m) {
   if (m == null) return "—";
   if (m < 60) return m + " मिनट";
@@ -548,7 +561,7 @@ function card(name, d, participantOI) {
       <div class="big" style="color:${color}">${sScore}</div>
       <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
         ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "GOLD" ? " /10g" : name === "SILVER" ? " /kg" : ""))
-        : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${d.price_as_of ? esc(d.price_as_of) : ""}</small></div>
+        : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${esc(priceDateLabel(d.price_as_of))}</small></div>
     </div>
     <div class="lbl" style="color:${color}">${label}</div>
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
