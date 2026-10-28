@@ -409,6 +409,31 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
+    if sym == "BTC-USD":
+        # Bitcoin trades 24/7: use the latest completed hourly candle, not a
+        # UTC daily candle that can make the card look one day stale in India.
+        try:
+            hourly = yf.Ticker(sym).history(period="5d", interval="1h")["Close"].dropna()
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            cutoff = now_utc - dt.timedelta(hours=1)
+            hourly = hourly[[idx.to_pydatetime().astimezone(dt.timezone.utc).replace(tzinfo=None) <= cutoff.replace(tzinfo=None) for idx in hourly.index]]
+            if len(hourly) >= 25:
+                btc_now = float(hourly.iloc[-1])
+                btc_prev = float(hourly.iloc[-25])
+                if math.isfinite(btc_now) and math.isfinite(btc_prev) and btc_now > 0 and btc_prev > 0:
+                    PRICE_CACHE[sym] = round(btc_now, 2)
+                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((btc_now / btc_prev - 1) * 100, 2)
+                    last_time = hourly.index[-1].to_pydatetime()
+                    if last_time.tzinfo is None:
+                        last_time = last_time.replace(tzinfo=dt.timezone.utc)
+                    PRICE_CACHE["BTC-USD_DATE"] = (last_time.astimezone(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST")
+                else:
+                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+            else:
+                PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+        except Exception as exc:
+            print(f"Bitcoin hourly price unavailable: {exc}")
+            PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     if sym == "GC=F":
         gold_price, gold_date, gold_source = gold_display_price()
         PRICE_CACHE[sym] = gold_price
@@ -754,9 +779,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     instruments[name] = {
         "type": kind,
-        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
+        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
+        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
