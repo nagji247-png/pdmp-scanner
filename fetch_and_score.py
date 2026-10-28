@@ -389,6 +389,8 @@ def daily_returns(sym):
     indian_closed = indian and ist_now.weekday() < 5 and (ist_now.hour, ist_now.minute) >= (15, 45)
     keep = [(d.date() < today_utc) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
+    # कीमत की तारीख उसी आखिरी close से लें जिससे कार्ड की कीमत बनी है।
+    PRICE_CACHE[sym + "_DATE"] = closes.index[-1].strftime("%Y-%m-%d") if len(closes) else None
     last_close = float(closes.iloc[-1]) if len(closes) else None
     if last_close is not None and not math.isfinite(last_close):
         last_close = None
@@ -756,7 +758,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
+        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else PRICE_CACHE.get(sym + "_DATE")) or (max(returns) if returns else None),
         "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
