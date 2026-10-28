@@ -184,11 +184,9 @@ def recency_weight(age_h):
 
 
 def headline_score(text):
-    """Score headlines using English sentiment keywords only; non-English text is ignored.
-    Negation words such as not/no/fails to reverse the matched keyword.
-    Match only at word starts so 'again' does not count as 'gain'."""
-    # Keep English letters, digits and basic punctuation; ignore Hindi/other scripts.
-    t = re.sub(r"[^a-z0-9\s%.-]", " ", str(text).lower())
+    """खबर का स्कोर। 'not/no/fails to' के बाद का शब्द उल्टा गिना जाता है।
+    'again' में 'gain' नहीं गिना जाता; शब्द की शुरुआत से मिलान होता है।"""
+    t = text.lower()
     total = 0
     for words, sign in ((POS, 1), (NEG, -1)):
         for k, v in words.items():
@@ -288,24 +286,19 @@ def refresh_mcx_silver_reference():
         current = round(candidates[0], 2)
         data = load_json(path, {})
         old = data.get("mcx_price_per_kg")
-        old_date = data.get("date")
         try:
             old_num = float(old)
         except (TypeError, ValueError):
             old_num = None
-        today_ist = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat()
-        # Do not treat a previous workflow scrape on the same day as yesterday's close.
-        # This public quote page does not reliably provide a separately validated prior close.
-        if old_num and old_num > 0 and old_num != current and old_date and old_date != today_ist:
+        if old_num and old_num > 0 and old_num != current:
             data["previous_mcx_price_per_kg"] = old_num
-            data["previous_mcx_date"] = old_date
         data.update({
             "mcx_price_per_kg": current,
-            "date": today_ist,
+            "date": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat(),
             "source": "Upstox public MCX Silver quote (automatically fetched; verify if page format changes)",
             "source_url": MCX_PUBLIC_URL,
             "source_time": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST"),
-            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate; previous-scrape changes are not a verified daily close change."
+            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate."
         })
         with open(path, "w", encoding="utf-8") as out:
             json.dump(data, out, ensure_ascii=False, indent=2)
@@ -322,7 +315,7 @@ def silver_display_price(international_inr_per_kg=None):
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0:
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "Upstox public MCX quote × 3% GST estimate"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX close × 3% GST"
     except Exception as e:
         print(f"MCX silver manual file error: {e}")
     return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
@@ -396,8 +389,6 @@ def daily_returns(sym):
     indian_closed = indian and ist_now.weekday() < 5 and (ist_now.hour, ist_now.minute) >= (15, 45)
     keep = [(d.date() < today_utc) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
-    # कीमत की तारीख उसी आखिरी close से लें जिससे कार्ड की कीमत बनी है।
-    PRICE_CACHE[sym + "_DATE"] = closes.index[-1].strftime("%Y-%m-%d") if len(closes) else None
     last_close = float(closes.iloc[-1]) if len(closes) else None
     if last_close is not None and not math.isfinite(last_close):
         last_close = None
@@ -435,17 +426,15 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = silver_price
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
-        # Do not show a daily percentage unless the reference price is explicitly from
-        # a different source date; a previous workflow scrape is not yesterday's close.
+        # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
+        # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
         mcx = load_json(MCX_SILVER_FILE, {})
         previous_mcx = mcx.get("previous_mcx_price_per_kg")
-        previous_date = mcx.get("previous_mcx_date")
         current_mcx = mcx.get("mcx_price_per_kg")
         try:
             previous_mcx = float(previous_mcx)
             current_mcx = float(current_mcx)
-            valid_previous = bool(previous_date and previous_date < str(mcx.get("date", "")))
-            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if valid_previous and previous_mcx > 0 and current_mcx > 0 else None
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if previous_mcx > 0 and current_mcx > 0 else None
         except (TypeError, ValueError):
             PRICE_CACHE["SI=F_CHANGE_PCT"] = None
     out = {}
@@ -767,7 +756,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else PRICE_CACHE.get(sym + "_DATE")) or (max(returns) if returns else None),
+        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
         "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
@@ -1051,17 +1040,6 @@ OPP_STOCKS = {
     "GULPOLY": ("GULPOLY.NS", "Gulshan Polyols"),
     "GPPL": ("GPPL.NS", "Gujarat Pipavav Port"),
     "JAGRAN": ("JAGRAN.NS", "Jagran Prakashan"),
-}
-
-# केवल सेक्टर नक्शे की अतिरिक्त वॉचलिस्ट; पुराने स्टॉक/अवसर सेक्शन में न जोड़ें।
-SECTOR_WATCHLIST = {
-    "GOCLCORP": ("GOCLCORP.NS", "GOCL Corporation"),
-    "PTL": ("PTL.NS", "PTL Enterprises"),
-    "PTC": ("PTC.NS", "PTC India"),
-    "BPCL": ("BPCL.NS", "Bharat Petroleum"),
-    "RECLTD": ("RECLTD.NS", "REC Limited"),
-    "VSTIND": ("VSTIND.NS", "VST Industries"),
-    "JSLL": ("JSLL.NS", "Jeena Sikho Lifecare"),
 }
 OPP_FACTORS = ["valuation", "growth", "profitability", "trend", "rsi", "analyst_upside"]
 
@@ -1641,7 +1619,8 @@ def retail_adjust(po):
 
 
 def participant_changes(today, prev):
-    """आज और पिछले अलग उपलब्ध दिन के NSE participant आँकड़ों का अंतर।"""
+    """आज और पिछले उपलब्ध दिन के NSE participant आँकड़ों का अंतर (बदलाव)।
+    पिछला दिन data.json से लिया जाता है; उसी तारीख का हो तो कुछ नहीं बनता।"""
     if not today.get("ok") or not prev.get("ok") or prev.get("date") == today.get("date"):
         return {"ok": False, "prev_date": None, "by_group": {}}
     P, Q = today.get("participants", {}), prev.get("participants", {})
@@ -1656,22 +1635,6 @@ def participant_changes(today, prev):
                 d[k] = (a - b) if (a is not None and b is not None) else None
             out[grp] = d
     return {"ok": bool(out), "prev_date": prev.get("date"), "by_group": out}
-
-
-def update_participant_history(today, previous_history, previous_snapshot):
-    """Keep one official EOD participant snapshot per source date in data.json."""
-    history = [x for x in (previous_history or [])
-               if isinstance(x, dict) and x.get("ok") and x.get("date") and x.get("participants")]
-    # Upgrade existing dashboard data once, so the first historical comparison is possible.
-    if isinstance(previous_snapshot, dict) and previous_snapshot.get("ok") and previous_snapshot.get("date"):
-        if not any(x.get("date") == previous_snapshot.get("date") for x in history):
-            history.append(previous_snapshot)
-    if isinstance(today, dict) and today.get("ok") and today.get("date") and today.get("participants"):
-        history = [x for x in history if x.get("date") != today.get("date")]
-        history.append({k: today.get(k) for k in ("ok", "date", "source", "participants", "scope") if k in today})
-    # Keep the newest 120 trading-day snapshots, sorted by source date.
-    by_date = {x["date"]: x for x in history}
-    return [by_date[d] for d in sorted(by_date)[-120:]]
 
 
 def main():
@@ -1727,7 +1690,7 @@ def main():
     try:
         slot_now = stock_refresh_slot(now_utc)
         prev_sa = previous.get("stock_analysis") or {}
-        expected_keys = set(STOCKS.keys()) | set(OPP_STOCKS.keys()) | set(SECTOR_WATCHLIST.keys())
+        expected_keys = set(STOCKS.keys()) | set(OPP_STOCKS.keys())
         if (prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now
                 and set(prev_sa.keys()) == expected_keys):
             # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
@@ -1738,8 +1701,6 @@ def main():
             result["stock_analysis"] = {}
             sector_universe = {k: (v[0], v[1]) for k, v in STOCKS.items()}
             for k, (sym, _n) in OPP_STOCKS.items():
-                sector_universe[k] = (sym, _n)
-            for k, (sym, _n) in SECTOR_WATCHLIST.items():
                 sector_universe[k] = (sym, _n)
             for name, (sym, _q) in sector_universe.items():
                 price = result["instruments"].get(name, {}).get("price")
@@ -1797,15 +1758,8 @@ def main():
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
     result["participant_oi"] = fetch_participant_oi()
-    po_today = result["participant_oi"]
-    po_history = update_participant_history(
-        po_today, previous.get("participant_oi_history") or [],
-        previous.get("participant_oi") or {})
-    result["participant_oi_history"] = po_history
-    prior_snapshots = [x for x in po_history
-                       if x.get("ok") and x.get("date") != po_today.get("date")]
-    previous_po = prior_snapshots[-1] if prior_snapshots else {}
-    po_today["changes"] = participant_changes(po_today, previous_po)
+    result["participant_oi"]["changes"] = participant_changes(
+        result["participant_oi"], previous.get("participant_oi") or {})
     adj, rinfo = retail_adjust(result["participant_oi"])
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
