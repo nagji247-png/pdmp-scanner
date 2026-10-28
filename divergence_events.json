@@ -1662,8 +1662,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.48
   },
   {
     "key": "2026-10-28|COALINDIA|div",
@@ -1704,8 +1704,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.51
   },
   {
     "key": "2026-10-28|BANKNIFTY|div",
@@ -1746,8 +1746,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.54
   },
   {
     "key": "2026-10-28|RELIANCE|div",
@@ -1788,8 +1788,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -3.19
   },
   {
     "key": "2026-10-28|HDFCBANK|div",
@@ -1830,8 +1830,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.75
   },
   {
     "key": "2026-10-28|APOLLOHOSP|div",
@@ -1872,8 +1872,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 4.43
   },
   {
     "key": "2026-10-28|SBIN|div",
@@ -1912,6 +1912,48 @@
         "source": "Business Today",
         "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPVDNXRlVlU0ZoTm5RazNHby1yVlotVkh5dmVkc3FOWHFYcUROeVFxaDVPS01TaldaVXpWcjN4MDhWdHhEano1UEJ2a05PNWtCVTNKVk1jcUM2LW4yamVRNFlCLXk2ZDJzYWRDWS04TjR1VmdPclN0cVMzeXBmMGotU2Q3TmdFQWJkaWNpR2VRb0tCVTVPc0dsdmdCc0ZvNVhLN24ydW93blVKOHgtdkxXcXJnaWZETEVoMnpMQk1nMzdSNVpPblhjb9IBzgFBVV95cUxOYVZOakJtWGt3b2hGSmdtbFQ1akZGZlMtMVZUbmE5MGVDQkQza3luVF9jRkc4ay1BakE5SnVvU3VtVmdENmJpQ1FyczRRRlBaMHFkVlhiRS1MVXotcTJPT0tla184SzVERHhzZnpjbENTQWZtcHV2MmxDNkFINkhLem5fY3Z2dURqVzZENHhuay1VOVV6aG9nUXRCSy1ad0pWUHJ0WHBLSi1Uek9TYmJIQzRIWmtTUlhQUnJPYm5peFlJaGFZWl9fVU52aHVRZw?oc=5",
         "score": -1
+      }
+    ],
+    "outcome": "sentiment",
+    "next_change": 1.24
+  },
+  {
+    "key": "2026-10-28|GOLD|div",
+    "date": "2026-10-28",
+    "instrument": "GOLD",
+    "score": -1.0,
+    "price_change": 0.9,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Gold Price Forecast: XAU/USD recovery halts below previous support around $4,070",
+        "source": "FXStreet",
+        "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNOGdfV0gtYlMwTUZ6WUVfYk9zYVpnZk91cVk0a3J6bkp0cFIyc25mRWdQcVRFQ3NETXhXelFsTEM3UnljNUxRWjMtN3dwb0RiUkRrZ2d3cE9yeXVTS3JMaGdLbmZtblpacHpPYXhGZ1QxMnQ5Z3BwU0RIM21TanpELWVLQS0tNGd4VmxQRlFqWW4zeUV6TFNFeDZ4VERDZEJOcFZObnNYdmdQeFlaUUhzWHQ1WUZoaWZFc2tqZVJB?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold, Silver Rate Today Live Updates: Gold prices declined Rs 646 to Rs 1,43,492 per 10 grams in futures trade",
+        "source": "The Times of India",
+        "link": "https://news.google.com/rss/articles/CBMi7AJBVV95cUxOOFZyVko1SXRKR0c3NVp4Z1hnS3N5djVoeWVENWk0YWt0RDlmZFRxbVdETlFTUjg0Q0h4TGtxSlh4MFhMUjdsekMwWGhQNXFkSnYxLUF5R0xBdGE4YUxGV2h2dmhITXM0VGp0NkJFcW5KNWxuX1duaExfUDFQeGp2TDBRMjg0SGZXS2ZTNGJKYktNZV93M0lOYWJ2RGo0UVFsbVIxUm8yMURQckZlemhqa3A4U2dhWW5sdXI2N19UeDVHellZR0lXRTNLMU5SYzdmU3Z2RkFjcDRvUG1WMFBsWklTd0FPcVlXX1BxNER4ZWpnMklma0N0Q3phXzExVHI5U3J6UUQzR1p1YWhQcGVEY1FSV3VVQkNONHFSM0s4b2E4MG1PYVZ0WWw0dU1SdFlmZGxKM3B5bmtybkp0czBwbXBta3Y4RG9wRXJ4TmFYb1BPT2U1Y29NZDNBZm05aGJyUWtBZGhjXzJDaVoz0gHyAkFVX3lxTFBmbGdnVHMwWm9EWm1mZlpRVTc0a3VnOEN5a0JXUzQ4RWtMaEJpWHhFQzdrY3dDR1hjb2MxeXU2eWFja1VhclQydUdCekptWkYwSF9waUx2UWIzOVhMQ3FpRW0yZ3BKbHJrU3YyWWFwZ0tXTFRLYm16WWhIMmlJMW1kWWlXNEhmUzRfTERiUURzenNQTV9OLVhjMnZpNXI3MFozeV9ILUxLeE8zUEdUdW1Ua1JyazFWXzJDSG0wX0txSW9YV1MyNnRFLTlMWWdYZnB2SWtCVzhwcFRzMThiRlZqYnVHUFZCalBCMmtDN2RZd0xoaWhSbjNJZjktTGZKc2w0dEtrUDZ1d0plZjlQWHM1VEV4cEp1QXZOWjV1Q3RIMjNaakY1NEpmNmhwS3BEMkh3TEN3QmZucXlqZ0FWbnRYcEotaEZRYVY0WHBUcUpGLUdQMXJPR09NV2VxS0diRHI3bGpPV3FFeHRRSGdyYmEwN2c?oc=5",
+        "score": -1
+      },
+      {
+        "title": "Gold and silver rate today (October 28, 2026): Check 24k, 22k, 20k and 18k gold jewellery prices from IBJA",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMipgJBVV95cUxPeG1DbHhGNkgwQmdGR3dybXUwSlJqUTR5OGRvWkstQms0a2lRbjVDQlptN0FZOTFIYzVWWTltN2dXb1FubDMxbkZaTGlieDJGRlB2d2R5Q2xiMG9PS1NWcUJuYjF0VzVVS2xTSHhLQTYzMS04UTBsV285Q2pNTDVHdnhoQVluTlViZjFuWElBalRNNkRfODJUOTV6MXZRZEJsOWgwU0gwQ3pGMDhRaGV6WmVFSkRtd3dVTzdROTFpVmNEQ1haekpsLTk5WGoxb2plVkdURWZ5UDVGMWRFWjc1NDJvcFJNZjBvUDhEUmlEakpLd2FQbHVMSXpQakZ2MjZWcC1PV2E4bHppZzRCTnNVME1pQ3Nob2VHRmZLdkpmZkNPbnQxRWfSAasCQVVfeXFMTzNxXzAzeTV4b2ZvSGtYSmVmbmdHUk83ZHpPanhXVTBScl9QNldzN01pSGlKSGQwSDQwTHpBMFpFamVqUndtMEZ2Z182cjQxM1hnVU94NHg0cG9Sc1hDcXNNUXNDcVBpSUxqRUxCQ3ZuS19HWEtRUjdtWjgtNkVfVzcwa2VjREVzdWZOWGVfYTFXdDJub1lLNjlySFFrdWlqbDd4TU9ScXpVTzlMRnNRSUJadlUzWHJfLVVTRTFYMXFaZGkwdVJLWlNpemJlaEMxbGN5LWZfVGxrRk90M3hXT2ZMbTRfMWFMdXNZUXZiQ184X3hsNi13V0RfdGNDR3R1OHk3NUFiTHdPbEdGTWxRT3BqX1J0clVtZ1FvRktVSlB0MlUwYUw0QnVVSXM?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold, silver outlook: Fed outcome in focus; key support, resistance levels to watch",
+        "source": "Business Today",
+        "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNYndZNHJtdjhvd1dndVRIdW1VS2tyVkwyREQ5aEEybFRIcmlnR25LMUQ2bXUyMGl3bnJPTmltdG1JalRlS296LWFBUTdkd3pKcDBZM1VZQnhjMmhfMDFJNDhjSDktaTVFQnBibWZQQ1BmRldWTmxxNVBoakpYVThPUmJ2X3AtLVlnM1R2ZkV1aFNkdWFSYkJQN1pEZVdXajdTaTQ3eEg2QThxbXR6WE9rSEl3d092TXdVb0g1SWxwLWhJWm9JMHVfNGlXYU5PLUtEQ0UwelpEUExucFMwU3JIV9IB5gFBVV95cUxOYkZ6NU5uV1ZjQ3B0cjQxUkdMbXBaNmFXdXgtVk81em5zVlpTNGhSLTE4cVlCamNNNkFqem02elRqQnhEYmpzakYyUEhIeWNUWU9GT0p0N3VucFhrdGVtamtrWk51bDhNUWNHR3Z4MzdWUUMzX1Z5OEZNZEtuMnpWWUwzTVAwXzZueXBJY3RucG9xOFJockp6MXpiODQyc0E1NjFzb3BxS3o4MDZKQ0hSLUVDbVNpSFRzSlI1THpKbl8wS3B0Nmc5ZkloU1B1bVdQVUsyQ081MmNZWVhGQWJHMXFpMVlJUQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold Price Dips Ahead Of Diwali: Can It Go Lower On Dhanteras? What To Expect",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOdzR0dFk0bkNoZktiWVRzbHRRVjdUMXhKSmIyMXcyLUE1MnZsRlZUT3RNRWVPcHZYbjJVZE1QYnZaOGFrWlZtTlFGT3lOYVVXWDA2eHV2a2J6ZE8xakk4a3lURjN6YlNSX1Z3Nmw4TVprMFB2elhMb0ozWVdmMGhjd2ZmNzlYSW9yWE1LUlp6WmVPMUt3NFEzV0Rtd2xtTzdqUGpTRWNPY2FkUWdoZ2tablViM25BbVVMbU5DR0xHWnJnaWs0UUVJ0gHPAUFVX3lxTE1UZXlNSkVYaW1VYVFSa1FOMXkxWkU4M3NWQl9tZFBLSVZGOVJ6NUc3dDZyanhiQ0NzYS1lblFKd2xmb09ZV3ZfaHB0aGhIQXhHZWV2TUJHMlNwakJfSTl3OVpYQ1Q2TXRCczZKN2JCSUktMjdlNi1Ia1dPWkpMSHBQLVQtTGd4WGZsSHN3N0d0cmhXR29acUl3TVgtdzYyeldvQnM5ZGtPQ29GaVkydmpzcGVuZkdSeWpXaHVXMEJGMEktX1FTczdMTzQwWnFPbw?oc=5",
+        "score": -2
       }
     ],
     "outcome": null,
