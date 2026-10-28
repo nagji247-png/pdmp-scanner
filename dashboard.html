@@ -1463,7 +1463,8 @@ function renderFoDetail() {
   const chg = (po.changes && po.changes.by_group) || null;
   const nifty = (foLast.inst || {}).NIFTY || {};
   const cfg = {
-    insider: { title: "INSIDER OPTIONS (DII + PRO)", keys: ["DII", "PRO"], call: true },
+    fii: { title: "INSIDER OPTIONS (FII)", keys: ["FII"], call: true },
+    pro: { title: "INSIDER OPTIONS (PRO)", keys: ["PRO"], call: true },
     retail: { title: "RETAIL BUILDUP (CLIENT)", keys: ["CLIENT"], call: true },
     inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: false },
   }[foSel];
@@ -1471,6 +1472,19 @@ function renderFoDetail() {
   const badge = (t, good) => t
     ? `<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;background:${good ? "#1d3a2a" : "#3b1d22"};color:${good ? "#2ecc71" : "#e74c3c"}">${t}</span>`
     : "";
+  const signedNum = v => v == null ? "डेटा नहीं" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toLocaleString("en-IN");
+  const candlePair = (callNet, putNet) => {
+    const vals = [callNet, putNet].filter(v => v != null);
+    if (!vals.length) return '<div class="sub">पिछले दिन का बदलाव उपलब्ध नहीं; कैंडल नहीं बनाई गई।</div>';
+    const maxAbs = Math.max(1, ...vals.map(v => Math.abs(v)));
+    const candle = (label, v, color) => {
+      if (v == null) return `<div style="flex:1;text-align:center;color:#aab">${label}<div style="height:150px;display:grid;place-items:center">—</div></div>`;
+      const height = Math.max(2, Math.round(Math.abs(v) / maxAbs * 62));
+      const bar = `<div style="width:24px;height:${height}px;background:${color};border:1px solid ${color};border-radius:3px;margin:auto"></div>`;
+      return `<div style="flex:1;min-width:0;text-align:center;font-size:12px;font-weight:700;color:${color}">${label}<div style="height:28px;display:flex;align-items:end;justify-content:center">${v > 0 ? signedNum(v) : ""}</div><div style="height:1px;background:#aab2c5;position:relative"></div><div style="height:62px;display:flex;align-items:${v >= 0 ? "start" : "end"};justify-content:center;padding-top:${v >= 0 ? "0" : "0"};padding-bottom:0">${v >= 0 ? bar : ""}</div><div style="height:62px;display:flex;align-items:${v < 0 ? "start" : "end"};justify-content:center">${v < 0 ? bar : ""}</div><div style="height:24px;display:flex;align-items:start;justify-content:center">${v < 0 ? signedNum(v) : ""}</div></div>`;
+    };
+    return `<div style="margin:12px 0 8px;padding:10px;background:#151b30;border-radius:10px"><div style="font-size:12px;font-weight:700;color:#cfd4e6;margin-bottom:6px">ZERO LINE · NET OI CHANGE</div><div style="display:flex;gap:12px">${candle("CALL NET",callNet,"#2ecc71")}${candle("PUT NET",putNet,"#e74c3c")}</div><div class="sub" style="margin-top:6px">शून्य रेखा के ऊपर = पॉज़िटिव · नीचे = नेगेटिव</div></div>`;
+  };
   const dashTxt = '<div class="sub">डेटा नहीं मिला</div>';
   const prevDate = chg && po.changes.prev_date ? po.changes.prev_date : null;
   const headerBox = (netTag, netGood) => `
@@ -1504,9 +1518,18 @@ function renderFoDetail() {
       else { netTag = "NEUTRAL"; netGood = true; }
     }
     const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
+    const putBull = putNet == null ? null : putNet < 0;
+    let netTag = "", netGood = true;
+    if (callBull != null && putBull != null) {
+      if (callBull && putBull) { netTag = "NET BULLISH"; netGood = true; }
+      else if (!callBull && !putBull) { netTag = "NET BEARISH"; netGood = false; }
+      else { netTag = "NEUTRAL"; netGood = true; }
+    }
+    const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
     const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
     box.innerHTML = wrap(
       headerBox(netTag, netGood) +
+      candlePair(callNet, putNet) +
       `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
          <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2ecc71;margin-right:8px"></span>Call Change</div>
          <div style="display:flex;align-items:center;gap:8px"><b class="${valCls(callNet, callBull)}">${fmtLakh(callNet)}</b>${callBull == null ? "" : badge(callBull ? "BULLISH" : "BEARISH", callBull)}</div></div>` +
@@ -1554,10 +1577,12 @@ function renderFoPanel(po, instData) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   };
   const dash = "डेटा नहीं मिला";
-  const ins = ["DII", "PRO"];
-  const insCallL = sum(ins, "index_call_long"), insCallS = sum(ins, "index_call_short");
-  const insPutL = sum(ins, "index_put_long"), insPutS = sum(ins, "index_put_short");
-  const insNet = sum(ins, "future_index_net");
+  const fiiCallL = g("FII", "index_call_long"), fiiCallS = g("FII", "index_call_short");
+  const fiiPutL = g("FII", "index_put_long"), fiiPutS = g("FII", "index_put_short");
+  const proCallL = g("PRO", "index_call_long"), proCallS = g("PRO", "index_call_short");
+  const proPutL = g("PRO", "index_put_long"), proPutS = g("PRO", "index_put_short");
+  const fiiNet = g("FII", "future_index_net");
+  const proNet = g("PRO", "future_index_net");
   const retCallL = g("CLIENT", "index_call_long"), retCallS = g("CLIENT", "index_call_short");
   const retPutL = g("CLIENT", "index_put_long"), retPutS = g("CLIENT", "index_put_short");
   const inst = ["FII", "DII"];
@@ -1576,10 +1601,12 @@ function renderFoPanel(po, instData) {
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
   const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
     <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div>${body}</div>`;
-  const insiderBody =
-    line("Call OI", bar(pct(insCallL, insCallS), "#2ecc71")) +
-    line("Put OI", bar(pct(insPutL, insPutS), "#e74c3c")) +
-    `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${netCls(insNet)}"><b>${netTxt(insNet)}</b></div></div>`;
+  const participantOptionBody = (callL, callS, putL, putS, net) =>
+    line("Call OI · Long / Short", `<div class="sub">${oiNum(callL)} / ${oiNum(callS)}</div>`) +
+    line("Put OI · Long / Short", `<div class="sub">${oiNum(putL)} / ${oiNum(putS)}</div>`) +
+    `<div class="ev" style="margin-top:6px"><div>Build-up · Futures net</div><div class="${netCls(net)}"><b>${signedNum(net)}</b></div></div>`;
+  const fiiBody = participantOptionBody(fiiCallL, fiiCallS, fiiPutL, fiiPutS, fiiNet);
+  const proBody = participantOptionBody(proCallL, proCallS, proPutL, proPutS, proNet);
   const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
   let skew = dash, skewCls = "";
   if (retailCE != null && retailPE != null) {
@@ -1598,9 +1625,10 @@ function renderFoPanel(po, instData) {
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      ${card("insider", "INSIDER OPTIONS", insiderBody)}
-      ${card("retail", "RETAIL BUILDUP", retailBody)}
-      ${card("inst", "F&amp;O INSTITUTIONAL", instBody)}
+      ${card("fii", "INSIDER OPTIONS (FII)", fiiBody)}
+      ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
+      ${card("retail", "RETAIL BUILDUP (CLIENT)", retailBody)}
+      ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
     </div>
     <div id="foDetail"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
