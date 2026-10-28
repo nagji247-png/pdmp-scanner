@@ -1634,8 +1634,7 @@ def retail_adjust(po):
 
 
 def participant_changes(today, prev):
-    """आज और पिछले उपलब्ध दिन के NSE participant आँकड़ों का अंतर (बदलाव)।
-    पिछला दिन data.json से लिया जाता है; उसी तारीख का हो तो कुछ नहीं बनता।"""
+    """आज और पिछले अलग उपलब्ध दिन के NSE participant आँकड़ों का अंतर।"""
     if not today.get("ok") or not prev.get("ok") or prev.get("date") == today.get("date"):
         return {"ok": False, "prev_date": None, "by_group": {}}
     P, Q = today.get("participants", {}), prev.get("participants", {})
@@ -1650,6 +1649,22 @@ def participant_changes(today, prev):
                 d[k] = (a - b) if (a is not None and b is not None) else None
             out[grp] = d
     return {"ok": bool(out), "prev_date": prev.get("date"), "by_group": out}
+
+
+def update_participant_history(today, previous_history, previous_snapshot):
+    """Keep one official EOD participant snapshot per source date in data.json."""
+    history = [x for x in (previous_history or [])
+               if isinstance(x, dict) and x.get("ok") and x.get("date") and x.get("participants")]
+    # Upgrade existing dashboard data once, so the first historical comparison is possible.
+    if isinstance(previous_snapshot, dict) and previous_snapshot.get("ok") and previous_snapshot.get("date"):
+        if not any(x.get("date") == previous_snapshot.get("date") for x in history):
+            history.append(previous_snapshot)
+    if isinstance(today, dict) and today.get("ok") and today.get("date") and today.get("participants"):
+        history = [x for x in history if x.get("date") != today.get("date")]
+        history.append({k: today.get(k) for k in ("ok", "date", "source", "participants", "scope") if k in today})
+    # Keep the newest 120 trading-day snapshots, sorted by source date.
+    by_date = {x["date"]: x for x in history}
+    return [by_date[d] for d in sorted(by_date)[-120:]]
 
 
 def main():
@@ -1775,8 +1790,15 @@ def main():
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
     result["participant_oi"] = fetch_participant_oi()
-    result["participant_oi"]["changes"] = participant_changes(
-        result["participant_oi"], previous.get("participant_oi") or {})
+    po_today = result["participant_oi"]
+    po_history = update_participant_history(
+        po_today, previous.get("participant_oi_history") or [],
+        previous.get("participant_oi") or {})
+    result["participant_oi_history"] = po_history
+    prior_snapshots = [x for x in po_history
+                       if x.get("ok") and x.get("date") != po_today.get("date")]
+    previous_po = prior_snapshots[-1] if prior_snapshots else {}
+    po_today["changes"] = participant_changes(po_today, previous_po)
     adj, rinfo = retail_adjust(result["participant_oi"])
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
