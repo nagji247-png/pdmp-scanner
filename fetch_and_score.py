@@ -288,19 +288,24 @@ def refresh_mcx_silver_reference():
         current = round(candidates[0], 2)
         data = load_json(path, {})
         old = data.get("mcx_price_per_kg")
+        old_date = data.get("date")
         try:
             old_num = float(old)
         except (TypeError, ValueError):
             old_num = None
-        if old_num and old_num > 0 and old_num != current:
+        today_ist = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat()
+        # Do not treat a previous workflow scrape on the same day as yesterday's close.
+        # This public quote page does not reliably provide a separately validated prior close.
+        if old_num and old_num > 0 and old_num != current and old_date and old_date != today_ist:
             data["previous_mcx_price_per_kg"] = old_num
+            data["previous_mcx_date"] = old_date
         data.update({
             "mcx_price_per_kg": current,
-            "date": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat(),
+            "date": today_ist,
             "source": "Upstox public MCX Silver quote (automatically fetched; verify if page format changes)",
             "source_url": MCX_PUBLIC_URL,
             "source_time": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST"),
-            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate."
+            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate; previous-scrape changes are not a verified daily close change."
         })
         with open(path, "w", encoding="utf-8") as out:
             json.dump(data, out, ensure_ascii=False, indent=2)
@@ -317,7 +322,7 @@ def silver_display_price(international_inr_per_kg=None):
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0:
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX close × 3% GST"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "Upstox public MCX quote × 3% GST estimate"
     except Exception as e:
         print(f"MCX silver manual file error: {e}")
     return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
@@ -430,15 +435,17 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = silver_price
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
-        # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
-        # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
+        # Do not show a daily percentage unless the reference price is explicitly from
+        # a different source date; a previous workflow scrape is not yesterday's close.
         mcx = load_json(MCX_SILVER_FILE, {})
         previous_mcx = mcx.get("previous_mcx_price_per_kg")
+        previous_date = mcx.get("previous_mcx_date")
         current_mcx = mcx.get("mcx_price_per_kg")
         try:
             previous_mcx = float(previous_mcx)
             current_mcx = float(current_mcx)
-            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if previous_mcx > 0 and current_mcx > 0 else None
+            valid_previous = bool(previous_date and previous_date < str(mcx.get("date", "")))
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if valid_previous and previous_mcx > 0 and current_mcx > 0 else None
         except (TypeError, ValueError):
             PRICE_CACHE["SI=F_CHANGE_PCT"] = None
     out = {}
