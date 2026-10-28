@@ -1518,14 +1518,6 @@ function renderFoDetail() {
       else { netTag = "NEUTRAL"; netGood = true; }
     }
     const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
-    const putBull = putNet == null ? null : putNet < 0;
-    let netTag = "", netGood = true;
-    if (callBull != null && putBull != null) {
-      if (callBull && putBull) { netTag = "NET BULLISH"; netGood = true; }
-      else if (!callBull && !putBull) { netTag = "NET BEARISH"; netGood = false; }
-      else { netTag = "NEUTRAL"; netGood = true; }
-    }
-    const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
     const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
     box.innerHTML = wrap(
       headerBox(netTag, netGood) +
