@@ -1598,8 +1598,13 @@ function renderFoPanel(po, instData) {
   const line = (label, body) => `<div style="padding:8px 0;border-top:1px solid #252b45"><div style="font-size:12px;color:#aab">${label}</div>${body}</div>`;
   const netTxt = (v) => v == null ? dash : (v >= 0 ? "Long" : "Short");
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
-  const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
-    <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div>${body}</div>`;
+  const signalBadge = (label, good) => {
+    const color = label === "NET BULLISH" ? "#2ecc71" : label === "NET BEARISH" ? "#e74c3c" : "#f5c451";
+    return `<span style="display:inline-block;font-size:10px;line-height:1.4;font-weight:800;white-space:nowrap;padding:3px 6px;border-radius:5px;background:#111729;color:${color};border:1px solid ${color};margin-left:5px">${label}</span>`;
+  };
+  const netSignal = v => v == null ? "NET DATA N/A" : v > 0 ? "NET BULLISH" : v < 0 ? "NET BEARISH" : "NET NEUTRAL";
+  const card = (k, title, body, signal) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
+    <div style="font-size:12px;letter-spacing:.3px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} ${signalBadge(signal)}<div style="margin-top:5px"><span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div></div>${body}</div>`;
   const participantOptionBody = (callL, callS, putL, putS, net) =>
     line("Call OI · Long / Short", `<div class="sub">${oiNum(callL)} / ${oiNum(callS)}</div>`) +
     line("Put OI · Long / Short", `<div class="sub">${oiNum(putL)} / ${oiNum(putS)}</div>`) +
@@ -1624,10 +1629,10 @@ function renderFoPanel(po, instData) {
   box.innerHTML = `
     <div class="sub" style="margin-bottom:8px">स्रोत: ${esc(po.source || "NSE")} · तारीख ${esc(po.date || "—")} · कल का (EOD) डेटा, लाइव नहीं</div>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      ${card("fii", "INSIDER OPTIONS (FII)", fiiBody)}
-      ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
-      ${card("retail", "RETAIL BUILDUP (CLIENT)", retailBody)}
-      ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
+      ${card("fii", "INSIDER OPTIONS (FII)", fiiBody, netSignal(fiiNet))}
+      ${card("pro", "INSIDER OPTIONS (PRO)", proBody, netSignal(proNet))}
+      ${card("retail", "RETAIL BUILDUP (CLIENT)", retailBody, retailCE == null || retailPE == null ? "NET DATA N/A" : retailPE > retailCE ? "NET BEARISH" : retailPE < retailCE ? "NET BULLISH" : "NET NEUTRAL")}
+      ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody, netSignal(instNet))}
     </div>
     <div id="foDetail"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
