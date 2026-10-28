@@ -184,9 +184,11 @@ def recency_weight(age_h):
 
 
 def headline_score(text):
-    """खबर का स्कोर। 'not/no/fails to' के बाद का शब्द उल्टा गिना जाता है।
-    'again' में 'gain' नहीं गिना जाता; शब्द की शुरुआत से मिलान होता है।"""
-    t = text.lower()
+    """Score headlines using English sentiment keywords only; non-English text is ignored.
+    Negation words such as not/no/fails to reverse the matched keyword.
+    Match only at word starts so 'again' does not count as 'gain'."""
+    # Keep English letters, digits and basic punctuation; ignore Hindi/other scripts.
+    t = re.sub(r"[^a-z0-9\s%.-]", " ", str(text).lower())
     total = 0
     for words, sign in ((POS, 1), (NEG, -1)):
         for k, v in words.items():
