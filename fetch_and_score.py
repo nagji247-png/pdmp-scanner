@@ -1041,6 +1041,17 @@ OPP_STOCKS = {
     "GPPL": ("GPPL.NS", "Gujarat Pipavav Port"),
     "JAGRAN": ("JAGRAN.NS", "Jagran Prakashan"),
 }
+
+# केवल सेक्टर नक्शे की अतिरिक्त वॉचलिस्ट; पुराने स्टॉक/अवसर सेक्शन में न जोड़ें।
+SECTOR_WATCHLIST = {
+    "GOCLCORP": ("GOCLCORP.NS", "GOCL Corporation"),
+    "PTL": ("PTL.NS", "PTL Enterprises"),
+    "PTC": ("PTC.NS", "PTC India"),
+    "BPCL": ("BPCL.NS", "Bharat Petroleum"),
+    "RECLTD": ("RECLTD.NS", "REC Limited"),
+    "VSTIND": ("VSTIND.NS", "VST Industries"),
+    "JSLL": ("JSLL.NS", "Jeena Sikho Lifecare"),
+}
 OPP_FACTORS = ["valuation", "growth", "profitability", "trend", "rsi", "analyst_upside"]
 
 
@@ -1690,7 +1701,7 @@ def main():
     try:
         slot_now = stock_refresh_slot(now_utc)
         prev_sa = previous.get("stock_analysis") or {}
-        expected_keys = set(STOCKS.keys()) | set(OPP_STOCKS.keys())
+        expected_keys = set(STOCKS.keys()) | set(OPP_STOCKS.keys()) | set(SECTOR_WATCHLIST.keys())
         if (prev_sa and slot_now and previous.get("stock_analysis_slot") == slot_now
                 and set(prev_sa.keys()) == expected_keys):
             # इसी स्लॉट का डेटा पहले से है: कंपनी के आँकड़े दोबारा नहीं माँगते
@@ -1701,6 +1712,8 @@ def main():
             result["stock_analysis"] = {}
             sector_universe = {k: (v[0], v[1]) for k, v in STOCKS.items()}
             for k, (sym, _n) in OPP_STOCKS.items():
+                sector_universe[k] = (sym, _n)
+            for k, (sym, _n) in SECTOR_WATCHLIST.items():
                 sector_universe[k] = (sym, _n)
             for name, (sym, _q) in sector_universe.items():
                 price = result["instruments"].get(name, {}).get("price")
