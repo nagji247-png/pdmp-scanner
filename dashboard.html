@@ -1573,6 +1573,7 @@ function renderFoPanel(po, instData) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) : null;
   };
   const dash = "डेटा नहीं मिला";
+  const signedNum = v => v == null ? dash : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toLocaleString("en-IN");
   const fiiCallL = g("FII", "index_call_long"), fiiCallS = g("FII", "index_call_short");
   const fiiPutL = g("FII", "index_put_long"), fiiPutS = g("FII", "index_put_short");
   const proCallL = g("PRO", "index_call_long"), proCallS = g("PRO", "index_call_short");
