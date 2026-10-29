@@ -1600,6 +1600,7 @@ function renderFoPanel(po, instData) {
     return;
   }
   const P = po.participants;
+  const chg = (po.changes && po.changes.ok && po.changes.by_group) || {};
   const g = (k, f) => (P[k] && P[k][f] != null) ? P[k][f] : null;
   const sum = (keys, f) => {
     const vals = keys.map(k => g(k, f)).filter(v => v != null);
