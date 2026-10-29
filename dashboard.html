@@ -1624,14 +1624,16 @@ function renderFoPanel(po, instData) {
   const clientPutShortChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_put_short");
   const clientCallNetChg = clientCallLongChg == null || clientCallShortChg == null ? null : clientCallLongChg - clientCallShortChg;
   const clientPutNetChg = clientPutLongChg == null || clientPutShortChg == null ? null : clientPutLongChg - clientPutShortChg;
-  const clientSentiment = clientCallNetChg == null || clientPutNetChg == null
+  const ceBuildupPct = pct(retCallL, retCallS);
+  const peBuildupPct = pct(retPutL, retPutS);
+  const clientSkew = ceBuildupPct == null || peBuildupPct == null
     ? null
-    : (clientCallNetChg < 0 && clientPutNetChg > 0 ? "BEARISH" : clientCallNetChg > 0 && clientPutNetChg < 0 ? "BULLISH" : "MIXED / NEUTRAL");
-  const clientSentimentGood = clientSentiment === "BULLISH";
+    : (peBuildupPct >= ceBuildupPct ? "BULLISH" : "BEARISH");
   const retailBody =
-    line("NSE Call Net OI Change", `<div class="${netCls(clientCallNetChg)}"><b>${signedNum(clientCallNetChg)}</b></div>`) +
-    line("NSE Put Net OI Change", `<div class="${netCls(clientPutNetChg)}"><b>${signedNum(clientPutNetChg)}</b></div>`) +
-    `<div class="ev" style="margin-top:6px"><div>Client Sentiment</div><div class="${clientSentiment == null ? "zero" : clientSentimentGood ? "pos" : "neg"}"><b>${clientSentiment || "NSE डेटा उपलब्ध नहीं"}</b></div></div>`;
+    line("CE Buildup %", bar(ceBuildupPct, "#2ecc71")) +
+    line("PE Buildup %", bar(peBuildupPct, "#e74c3c")) +
+    line("Skew", `<div class="${clientSkew == null ? "zero" : clientSkew === "BULLISH" ? "pos" : "neg"}"><b>${clientSkew || dash}</b></div>`) +
+    line("NSE Put Net OI Change", `<div class="${netCls(clientPutNetChg)}"><b>${signedNum(clientPutNetChg)}</b></div>`);
   const instPct = pct(instL, instS);
   const instBody =
     line("Long", bar(instPct, "#2ecc71")) +
