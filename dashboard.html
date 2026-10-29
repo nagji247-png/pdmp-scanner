@@ -1529,14 +1529,17 @@ function renderFoDetail() {
     const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
     let retailTitleTag = "";
     let retailTitleGood = true;
-    const client = po.participants && po.participants.CLIENT;
-    if (foSel === "retail" && client) {
-      const cl = client.index_call_long, cs = client.index_call_short, pl = client.index_put_long, ps = client.index_put_short;
-      if ([cl, cs, pl, ps].every(v => v != null) && cl + cs > 0 && pl + ps > 0) {
-        const cePct = cl / (cl + cs);
-        const pePct = pl / (pl + ps);
-        retailTitleTag = pePct >= cePct ? "BULLISH" : "BEARISH";
-        retailTitleGood = retailTitleTag === "BULLISH";
+    if (foSel === "retail") {
+      // Retail direction must come from the daily OI change, not old cumulative OI totals.
+      if (callNet == null || putNet == null) {
+        retailTitleTag = "DATA UNAVAILABLE";
+        retailTitleGood = false;
+      } else {
+        const callBull = callNet >= 0;
+        const putBull = putNet < 0;
+        retailTitleTag = callBull && putBull ? "BULLISH"
+          : (!callBull && !putBull ? "BEARISH" : "NEUTRAL");
+        retailTitleGood = retailTitleTag !== "BEARISH";
       }
     }
     const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
