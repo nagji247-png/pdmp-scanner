@@ -1618,12 +1618,22 @@ function renderFoPanel(po, instData) {
     `<div class="ev" style="margin-top:6px"><div>Build-up · Futures net</div><div class="${netCls(net)}"><b>${signedNum(net)}</b></div></div>`;
   const fiiBody = participantOptionBody(fiiCallL, fiiCallS, fiiPutL, fiiPutS, fiiNet);
   const proBody = participantOptionBody(proCallL, proCallS, proPutL, proPutS, proNet);
-  // Sensibull Daily Client Buy/Sell feed is not connected to data.json.
-  // Do not mislabel current CLIENT OI percentages as daily call/put buy-sell changes.
+  // Retail daily net OI change is sourced from NSE Participant-wise OI changes.
+  // This is OI change (Long change - Short change), not actual traded buy/sell volume.
+  const clientCallLongChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_call_long");
+  const clientCallShortChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_call_short");
+  const clientPutLongChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_put_long");
+  const clientPutShortChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_put_short");
+  const clientCallNetChg = clientCallLongChg == null || clientCallShortChg == null ? null : clientCallLongChg - clientCallShortChg;
+  const clientPutNetChg = clientPutLongChg == null || clientPutShortChg == null ? null : clientPutLongChg - clientPutShortChg;
+  const clientSentiment = clientCallNetChg == null || clientPutNetChg == null
+    ? null
+    : (clientCallNetChg < 0 && clientPutNetChg > 0 ? "BEARISH" : clientCallNetChg > 0 && clientPutNetChg < 0 ? "BULLISH" : "MIXED / NEUTRAL");
+  const clientSentimentGood = clientSentiment === "BULLISH";
   const retailBody =
-    line("Daily Client Call Change", '<div class="sub">Sensibull डेटा उपलब्ध नहीं</div>') +
-    line("Daily Client Put Change", '<div class="sub">Sensibull डेटा उपलब्ध नहीं</div>') +
-    `<div class="ev" style="margin-top:6px"><div>Client Sentiment</div><div class="zero"><b>निर्धारित नहीं</b></div></div>`;
+    line("NSE Call Net OI Change", `<div class="${netCls(clientCallNetChg)}"><b>${signedNum(clientCallNetChg)}</b></div>`) +
+    line("NSE Put Net OI Change", `<div class="${netCls(clientPutNetChg)}"><b>${signedNum(clientPutNetChg)}</b></div>`) +
+    `<div class="ev" style="margin-top:6px"><div>Client Sentiment</div><div class="${clientSentiment == null ? "zero" : clientSentimentGood ? "pos" : "neg"}"><b>${clientSentiment || "NSE डेटा उपलब्ध नहीं"}</b></div></div>`;
   const instPct = pct(instL, instS);
   const instBody =
     line("Long", bar(instPct, "#2ecc71")) +
