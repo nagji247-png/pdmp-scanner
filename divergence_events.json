@@ -2040,8 +2040,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.83
   },
   {
     "key": "2026-10-29|COALINDIA|div",
@@ -2082,8 +2082,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.28
   },
   {
     "key": "2026-10-29|SENSEX|div",
@@ -2124,8 +2124,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.24
   },
   {
     "key": "2026-10-29|RELIANCE|div",
@@ -2166,8 +2166,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.81
   },
   {
     "key": "2026-10-29|NIFTY|div",
@@ -2208,8 +2208,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.05
   },
   {
     "key": "2026-10-29|CRUDEOIL|div",
@@ -2332,6 +2332,48 @@
         "source": "IndiaIPO",
         "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPWXUzSV8xY1IwQmZCLVJRSWl5b29heE8zSWE0dUExaUFsR1pBaGNacFVaZVc5OXUzbFdwajRYMVBFZ2tad0IwWDVrMnEzeExrWktpMHRvWFlENnFybERmSlhLVzZsa1laa3k1Yll2aUVXbC13THhFOUhIV0NIX2pwcTVOSml5ckZJRjhIY3JlTVgxenlXR1owRmdGdDZkSnZSM0w1SDY0dGVGTHRzUDRjYTRfbjhqT2Zrek1HOEdB?oc=5",
         "score": 1
+      }
+    ],
+    "outcome": "price",
+    "next_change": 1.18
+  },
+  {
+    "key": "2026-10-29|NASDAQ|div",
+    "date": "2026-10-29",
+    "instrument": "NASDAQ",
+    "score": -2.7,
+    "price_change": 0.27,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Tech Rally Stalls as Alphabet, Samsung Disappoint: Markets Wrap",
+        "source": "Bloomberg.com",
+        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQd1B6V3JFX19tOWhyZHVKZzFGZ1k0aXcyNERXb0JrMFNjQVpEaFZMeVMxU1FUVnJpWmFrM3JQbjJ5cXRsU0NBekRsOUM2WEQ2Zlh3MWluWUU2c0poWTk1ZDBGMC13SUtxX1lVdjEtQW1PbWdXRE95ZFJqZ2JmZEwxeW5VbVVORWlzMlJTVHdnZ2NkaWR3?oc=5",
+        "score": 2
+      },
+      {
+        "title": "US Stock Market Today: S&P 500, Nasdaq And Dow Jones Open Lower After Corporate Earnings Miss Expectations",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxQVS1OcjRldTVMVmd0cDVZWUZSRkVaNnkyX0xzS1Q2ZkZwRTg3SThrSENMVDhwLUZjWS1DS1ZhX0xTRFd0cmo1MFFwZjlveE95Ti1KRFFZamhva001QTlpemk5VF9hV3p2MlpTcUZ4U0xtODR0Z19UQ1JQajR6YUVXeU5UemgwM1FPSU11ZHAyckdZbDBpaE04SEh2eHJsNk9hMk01LWZTTEdIZnlwTWF4aWZQVUxTdC1HZV9qWnZkMWpHcmczVThqemtxLUtMdFRxdGxwWVlNRE9rREF4TFFRaUZ30gHqAUFVX3lxTFB3U2I4bVhMc0lCYUlfRUh5WWM4ckxSZ1FlZlF6ZVVQdktyUG9NNk9jM2lncGtMUzB3R3lRWkp1VmtJZTFtYW1tT2VZbFJ2SkJ6TmRiOXNJdHdwWTR6Y3N4M082VnpNem9xS1N1NjE0LTZOTkkxTmt5TktoMGtLVG1KLXltaGNEVlROMGxiTFNQOVoxRXh5c3ZhdWN3QU5YbmRHcXVpcnRhMC1KSDJvRTNUSlVCemxjYnZLTGpXOUNabEhsRHQ3NkMxNG9JNkxJTUtHS044b0QxN1hkMFh0N1pzb0p6RTJWWVVsQQ?oc=5",
+        "score": -2
+      },
+      {
+        "title": "US stock market today: S&P 500, Nasdaq futures fall as Alphabet drops 11%",
+        "source": "CNBC TV18",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPRHpESDMwNmNhWEIxUm95TWtsT2JHU0pIYm1DQXM1b3lVN3JiXzlpeVBJaFFjbUtPLTZ4WXVJTUVxRHEyNGlHT2FCREhlVTN0VUNWYk44ckVwQy1MYWp2dzJPeXEzQXZwY2V3YUIybHdTNkJlb2Nac2tVd0o3dkMtVjJRLXJvRFI2OWhvREczVlE2c1hxMnNiUnZ3M1FhT2FE0gGmAUFVX3lxTFBGRW4wSE9HUGRRanNuekhuMEs0RVc4U0JKT3RyYjMxNVR3T01DOGJ6cGsyZXIxemh1bTdDYkRqU3paZFplLXUtN1JpU0ZxV3FCUHBtSk5DUmZTaElSM0VEM096dkhraHc4T25LbXlCVDY0YVZ4TzVHU0JXam9QYmNyRi1vYWxQdmdZWjFXZzhRdkJHMDRsODhfSXBabVVfRkpNQVhSWVE?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Q&A: Scaling Investment Products in a Crowded Market: Lessons from Future Proof Festival",
+        "source": "Nasdaq",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQdm5kclRJdGw4Y2RSUWhROUVCalNLWFlKT196aWdpNFJiNk1VVjhwbk9TdzRiX1YwUjluM21yci1mcFhWZGRyaE1leWhSeTBkZVlmOGItRjRUYWpDUklEVHFqRnRFdWh0eUE0SzVndl8zbnVjTHpiX09feEJ2WUxVUWNYVDFoT1JkRmpHR3h5bkRIUzgyMGVTZUFFUXVZa1JFV0E?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Dot Ai granted continued Nasdaq listing after equity compliance By Investing.com",
+        "source": "Investing.com India",
+        "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNbEZjQkR4UEhzQ0JiUzZkM1NGc184aGk3V2U2RlpSVktRZkxIZXdKOGk0cTc2Sk9DeWZFN2lEb2g3Q0wwN0F3QzFoVDdKS0JlTE9SR3RaWHFSNXRtWENMVmF3d1VwOG5JanNaNFktRDVrNUNNcjdsWXE3N0dvNDZsOUJ5a1I2dEJQbzl2RDJtd0xMTmNyZWYxUkFadHY2djhLWXkzVk1JRHhxaFlDbUFGVXBGcjdjNVNxTUR4RXhoR3dFdw?oc=5",
+        "score": 0
       }
     ],
     "outcome": null,
