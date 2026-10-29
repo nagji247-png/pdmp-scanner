@@ -1616,16 +1616,12 @@ function renderFoPanel(po, instData) {
     `<div class="ev" style="margin-top:6px"><div>Build-up · Futures net</div><div class="${netCls(net)}"><b>${signedNum(net)}</b></div></div>`;
   const fiiBody = participantOptionBody(fiiCallL, fiiCallS, fiiPutL, fiiPutS, fiiNet);
   const proBody = participantOptionBody(proCallL, proCallS, proPutL, proPutS, proNet);
-  const retailPE = pct(retPutL, retPutS), retailCE = pct(retCallL, retCallS);
-  let skew = dash, skewCls = "";
-  if (retailCE != null && retailPE != null) {
-    skew = retailPE > retailCE ? "Bearish" : "Bullish";
-    skewCls = skew === "Bearish" ? "neg" : "pos";
-  }
+  // Sensibull Daily Client Buy/Sell feed is not connected to data.json.
+  // Do not mislabel current CLIENT OI percentages as daily call/put buy-sell changes.
   const retailBody =
-    line("CE Buildup", bar(retailCE, "#4fc3f7")) +
-    line("PE Buildup", bar(retailPE, "#9b59b6")) +
-    `<div class="ev" style="margin-top:6px"><div>Skew</div><div class="${skewCls}"><b>${skew}</b></div></div>`;
+    line("Daily Client Call Change", '<div class="sub">Sensibull डेटा उपलब्ध नहीं</div>') +
+    line("Daily Client Put Change", '<div class="sub">Sensibull डेटा उपलब्ध नहीं</div>') +
+    `<div class="ev" style="margin-top:6px"><div>Client Sentiment</div><div class="zero"><b>निर्धारित नहीं</b></div></div>`;
   const instPct = pct(instL, instS);
   const instBody =
     line("Long", bar(instPct, "#2ecc71")) +
