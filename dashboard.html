@@ -1626,7 +1626,7 @@ function renderFoPanel(po, instData) {
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
       ${card("fii", "INSIDER OPTIONS (FII)", fiiBody)}
       ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
-      ${card("retail", "RETAIL BUILDUP (CLIENT)", retailBody)}
+      ${card("retail", `RETAIL BUILDUP (CLIENT) ${skew === dash ? "" : `<span class="${skewCls}" style="margin-left:6px;white-space:nowrap">${skew.toUpperCase()}</span>`}`, retailBody)}
       ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
     </div>
     <div id="foDetail"></div>
