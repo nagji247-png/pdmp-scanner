@@ -1632,8 +1632,7 @@ function renderFoPanel(po, instData) {
   const retailBody =
     line("CE Buildup %", bar(ceBuildupPct, "#2ecc71")) +
     line("PE Buildup %", bar(peBuildupPct, "#e74c3c")) +
-    line("Skew", `<div class="${clientSkew == null ? "zero" : clientSkew === "BULLISH" ? "pos" : "neg"}"><b>${clientSkew || dash}</b></div>`) +
-    line("NSE Put Net OI Change", `<div class="${netCls(clientPutNetChg)}"><b>${signedNum(clientPutNetChg)}</b></div>`);
+    `<div class="ev" style="margin-top:6px"><div>Net <b class="${clientSkew == null ? "zero" : clientSkew === "BULLISH" ? "pos" : "neg"}">${clientSkew == null ? "डेटा नहीं मिला" : clientSkew === "BULLISH" ? "Long" : "Short"}</b></div><div class="${clientSkew == null ? "zero" : clientSkew === "BULLISH" ? "pos" : "neg"}"><b>${clientSkew || dash}</b></div></div>`;
   const instPct = pct(instL, instS);
   const instBody =
     line("Long", bar(instPct, "#2ecc71")) +
