@@ -1511,10 +1511,10 @@ function renderFoDetail() {
       const vals = todayGroup.map(row => row[field]).filter(v => v != null);
       return vals.length === todayGroup.length && vals.length ? vals.reduce((a,b) => a+b,0) : null;
     };
-    const callToday = (() => { const l=todaySum("index_call_long"), s=todaySum("index_call_short"); return l == null || s == null ? null : l-s; })();
-    const putToday = (() => { const l=todaySum("index_put_long"), s=todaySum("index_put_short"); return l == null || s == null ? null : l-s; })();
-    const callPrev = callToday == null || callNet == null ? null : callToday-callNet;
-    const putPrev = putToday == null || putNet == null ? null : putToday-putNet;
+    const callToday = foSel === "retail" ? callNet : (() => { const l=todaySum("index_call_long"), s=todaySum("index_call_short"); return l == null || s == null ? null : l-s; })();
+    const putToday = foSel === "retail" ? putNet : (() => { const l=todaySum("index_put_long"), s=todaySum("index_put_short"); return l == null || s == null ? null : l-s; })();
+    const callPrev = foSel === "retail" ? null : (callToday == null || callNet == null ? null : callToday-callNet);
+    const putPrev = foSel === "retail" ? null : (putToday == null || putNet == null ? null : putToday-putNet);
     const callBull = callNet == null ? null : callNet >= 0;
     const putBull = putNet == null ? null : putNet < 0;
     let netTag = "", netGood = true;
