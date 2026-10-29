@@ -1514,8 +1514,9 @@ function renderFoDetail() {
     // सभी participant cards में candle आज का Net OI Change दिखाए; current outstanding OI नहीं।
     const callToday = callNet;
     const putToday = putNet;
-    const callPrev = callToday == null || callNet == null ? null : callToday-callNet;
-    const putPrev = putToday == null || putNet == null ? null : putToday-putNet;
+    // Daily-change candle has no previous daily-change candle unless historical change data is supplied.
+    const callPrev = null;
+    const putPrev = null;
     const callBull = callNet == null ? null : callNet >= 0;
     const putBull = putNet == null ? null : putNet < 0;
     let netTag = "", netGood = true;
