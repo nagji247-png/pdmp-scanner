@@ -1631,12 +1631,34 @@ function renderFoPanel(po, instData) {
   const netCls = (v) => v == null ? "" : (v >= 0 ? "pos" : "neg");
   const card = (k, title, body) => `<div onclick="pickFo('${k}')" style="cursor:pointer;background:${foSel === k ? "#20324a" : "#1e2540"};border:${foSel === k ? "2px solid #4fc3f7" : "2px solid transparent"};border-radius:10px;padding:12px">
     <div style="font-size:12px;letter-spacing:.5px;color:#cfd4e6;font-weight:700;margin-bottom:6px">${title} <span style="color:#4fc3f7;font-weight:400">▸ विवरण</span></div>${body}</div>`;
-  const participantOptionBody = (callL, callS, putL, putS, net) =>
-    line("Call OI · Long / Short", `<div class="sub">${oiNum(callL)} / ${oiNum(callS)}</div>`) +
-    line("Put OI · Long / Short", `<div class="sub">${oiNum(putL)} / ${oiNum(putS)}</div>`) +
-    `<div class="ev" style="margin-top:6px"><div>Build-up · Futures net</div><div class="${netCls(net)}"><b>${signedNum(net)}</b></div></div>`;
-  const fiiBody = participantOptionBody(fiiCallL, fiiCallS, fiiPutL, fiiPutS, fiiNet);
-  const proBody = participantOptionBody(proCallL, proCallS, proPutL, proPutS, proNet);
+  // Compact outer cards: show daily Call/Put OI net-change percentages and
+  // Futures build-up direction. Keep the existing card layout unchanged.
+  const participantOptionBody = (key, callL, callS, putL, putS) => {
+    const callLongChg = foSumChg(chg, [key], "index_call_long");
+    const callShortChg = foSumChg(chg, [key], "index_call_short");
+    const putLongChg = foSumChg(chg, [key], "index_put_long");
+    const putShortChg = foSumChg(chg, [key], "index_put_short");
+    const futureLongChg = foSumChg(chg, [key], "future_index_long");
+    const futureShortChg = foSumChg(chg, [key], "future_index_short");
+    const callNetChg = callLongChg == null || callShortChg == null ? null : callLongChg - callShortChg;
+    const putNetChg = putLongChg == null || putShortChg == null ? null : putLongChg - putShortChg;
+    const futureNetChg = futureLongChg == null || futureShortChg == null ? null : futureLongChg - futureShortChg;
+    const changePct = (netChange, longOi, shortOi, longChange, shortChange) => {
+      if (netChange == null || longOi == null || shortOi == null || longChange == null || shortChange == null) return null;
+      const priorTotalOi = (longOi + shortOi) - (longChange + shortChange);
+      return priorTotalOi > 0 ? Math.round((netChange / priorTotalOi) * 10000) / 100 : null;
+    };
+    const callPct = changePct(callNetChg, callL, callS, callLongChg, callShortChg);
+    const putPct = changePct(putNetChg, putL, putS, putLongChg, putShortChg);
+    const pctTxt = v => v == null ? dash : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+    const buildup = futureNetChg == null ? "डेटा नहीं मिला" : futureNetChg >= 0 ? "LONG" : "SHORT";
+    const buildupCls = futureNetChg == null ? "zero" : futureNetChg >= 0 ? "pos" : "neg";
+    return line("Call OI · बदलाव %", `<div class="sub ${callNetChg == null ? "" : callNetChg >= 0 ? "pos" : "neg"}">${pctTxt(callPct)}</div>`) +
+      line("Put OI · बदलाव %", `<div class="sub ${putNetChg == null ? "" : putNetChg >= 0 ? "pos" : "neg"}">${pctTxt(putPct)}</div>`) +
+      `<div class="ev" style="margin-top:6px"><div>Build-up</div><div class="${buildupCls}"><b>${buildup}</b></div></div>`;
+  };
+  const fiiBody = participantOptionBody("FII", fiiCallL, fiiCallS, fiiPutL, fiiPutS);
+  const proBody = participantOptionBody("PRO", proCallL, proCallS, proPutL, proPutS);
   // Retail daily net OI change is sourced from NSE Participant-wise OI changes.
   // This is OI change (Long change - Short change), not actual traded buy/sell volume.
   const clientCallLongChg = foSumChg((po.changes && po.changes.ok && po.changes.by_group) || {}, ["CLIENT"], "index_call_long");
