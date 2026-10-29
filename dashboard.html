@@ -1530,7 +1530,9 @@ function renderFoDetail() {
     if (foSel === "retail" && client) {
       const cl = client.index_call_long, cs = client.index_call_short, pl = client.index_put_long, ps = client.index_put_short;
       if ([cl, cs, pl, ps].every(v => v != null) && cl + cs > 0 && pl + ps > 0) {
-        retailTitleTag = (pl / (pl + ps)) > (cl / (cl + cs)) ? "BEARISH" : "BULLISH";
+        const cePct = cl / (cl + cs);
+        const pePct = pl / (pl + ps);
+        retailTitleTag = pePct >= cePct ? "BULLISH" : "BEARISH";
         retailTitleGood = retailTitleTag === "BULLISH";
       }
     }
@@ -1569,6 +1571,12 @@ function pickFo(k) {
   foSel = (foSel === k) ? null : k;
   renderFoDetail();
   renderFoPanel(foLast.po, foLast.inst);
+  if (foSel) {
+    requestAnimationFrame(() => {
+      const detail = document.getElementById("foDetail");
+      if (detail) detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }
 }
 
 function renderFoPanel(po, instData) {
