@@ -472,13 +472,18 @@ def daily_returns(sym):
     return out
 
 
-def fetch_participant_oi():
-    """NSE official participant-wise OI: daily EOD, not a live feed."""
+def fetch_participant_oi(base_date=None):
+    """NSE official participant-wise OI: daily EOD, not a live feed.
+    base_date lets the caller fetch the latest archived snapshot on/before a target date."""
     headers = {"User-Agent": "Mozilla/5.0", "Accept": "text/csv,text/plain,*/*",
                "Referer": "https://www.nseindia.com/"}
     last_error = "NSE participant OI CSV unavailable"
+    if base_date is None:
+        base_date = dt.datetime.now(dt.timezone.utc).date()
+    elif isinstance(base_date, str):
+        base_date = dt.date.fromisoformat(base_date)
     for offset in range(0, 8):
-        day = dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=offset)
+        day = base_date - dt.timedelta(days=offset)
         if day.weekday() >= 5:
             continue
         url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
@@ -1782,15 +1787,29 @@ def main():
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
-    # दैनिक बदलाव के लिए उसी दिन के पिछले scan को नहीं, पिछले उपलब्ध कारोबारी दिन को आधार बनाएं।
-    # data.json हर 30 मिनट में बदलता है, इसलिए पिछला कारोबारी snapshot अलग सुरक्षित रखें।
+    # NSE participant-wise OI daily EOD data है, live feed नहीं।
+    # आज उपलब्ध नवीनतम archive से पहले की तारीख का archive अलग fetch करें,
+    # ताकि बार-बार उसी दिन का data.json snapshot होने पर भी daily change न खोए।
     participant_today = fetch_participant_oi()
-    prior_snapshot = previous.get("participant_oi_previous_day") or {}
-    previous_current = previous.get("participant_oi") or {}
-    if (previous_current.get("ok") and participant_today.get("ok")
-            and previous_current.get("date") != participant_today.get("date")):
-        # नया कारोबारी दिन आया: पिछले data.json का वर्तमान snapshot अब पिछला दिन है।
-        prior_snapshot = previous_current
+    prior_snapshot = {}
+    if participant_today.get("ok") and participant_today.get("date"):
+        try:
+            target_prev = dt.date.fromisoformat(participant_today["date"]) - dt.timedelta(days=1)
+            prior_snapshot = fetch_participant_oi(base_date=target_prev)
+        except (TypeError, ValueError):
+            prior_snapshot = {}
+    # अगर NSE का पिछला archive अस्थायी रूप से उपलब्ध न हो, तो केवल सही पुराना
+    # snapshot fallback में लें; समान/नई तारीख को पिछला दिन न मानें।
+    if not prior_snapshot.get("ok"):
+        candidates = [
+            previous.get("participant_oi_previous_day") or {},
+            previous.get("participant_oi") or {},
+        ]
+        today_date = participant_today.get("date") or ""
+        prior_snapshot = next(
+            (p for p in candidates if p.get("ok") and p.get("date") and p.get("date") < today_date),
+            {}
+        )
     result["participant_oi"] = participant_today
     result["participant_oi_previous_day"] = prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
