@@ -1782,9 +1782,19 @@ def main():
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
-    result["participant_oi"] = fetch_participant_oi()
+    # दैनिक बदलाव के लिए उसी दिन के पिछले scan को नहीं, पिछले उपलब्ध कारोबारी दिन को आधार बनाएं।
+    # data.json हर 30 मिनट में बदलता है, इसलिए पिछला कारोबारी snapshot अलग सुरक्षित रखें।
+    participant_today = fetch_participant_oi()
+    prior_snapshot = previous.get("participant_oi_previous_day") or {}
+    previous_current = previous.get("participant_oi") or {}
+    if (previous_current.get("ok") and participant_today.get("ok")
+            and previous_current.get("date") != participant_today.get("date")):
+        # नया कारोबारी दिन आया: पिछले data.json का वर्तमान snapshot अब पिछला दिन है।
+        prior_snapshot = previous_current
+    result["participant_oi"] = participant_today
+    result["participant_oi_previous_day"] = prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
-        result["participant_oi"], previous.get("participant_oi") or {})
+        participant_today, prior_snapshot)
     adj, rinfo = retail_adjust(result["participant_oi"])
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
