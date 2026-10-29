@@ -1524,9 +1524,19 @@ function renderFoDetail() {
       else { netTag = "NEUTRAL"; netGood = true; }
     }
     const valCls = (v, good) => v == null ? "" : (good ? "pos" : "neg");
+    let retailTitleTag = "";
+    let retailTitleGood = true;
+    const client = po.participants && po.participants.CLIENT;
+    if (foSel === "retail" && client) {
+      const cl = client.index_call_long, cs = client.index_call_short, pl = client.index_put_long, ps = client.index_put_short;
+      if ([cl, cs, pl, ps].every(v => v != null) && cl + cs > 0 && pl + ps > 0) {
+        retailTitleTag = (pl / (pl + ps)) > (cl / (cl + cs)) ? "BEARISH" : "BULLISH";
+        retailTitleGood = retailTitleTag === "BULLISH";
+      }
+    }
     const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
     box.innerHTML = wrap(
-      headerBox(netTag, netGood) +
+      headerBox(foSel === "retail" ? retailTitleTag : netTag, foSel === "retail" ? retailTitleGood : netGood) +
       candlePair(callToday, putToday, callPrev, putPrev) +
       `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
          <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2ecc71;margin-right:8px"></span>Call Change</div>
@@ -1626,7 +1636,7 @@ function renderFoPanel(po, instData) {
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
       ${card("fii", "INSIDER OPTIONS (FII)", fiiBody)}
       ${card("pro", "INSIDER OPTIONS (PRO)", proBody)}
-      ${card("retail", `RETAIL BUILDUP (CLIENT) ${skew === dash ? "" : `<span class="${skewCls}" style="margin-left:6px;white-space:nowrap">${skew.toUpperCase()}</span>`}`, retailBody)}
+      ${card("retail", "RETAIL BUILDUP (CLIENT)", retailBody)}
       ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
     </div>
     <div id="foDetail"></div>
