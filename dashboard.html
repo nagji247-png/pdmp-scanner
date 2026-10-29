@@ -1509,15 +1509,12 @@ function renderFoDetail() {
     const pLong = foSumChg(chg, cfg.keys, "index_put_long"), pShort = foSumChg(chg, cfg.keys, "index_put_short");
     const callNet = (cLong == null || cShort == null) ? null : cLong - cShort;
     const putNet = (pLong == null || pShort == null) ? null : pLong - pShort;
-    const todayGroup = cfg.keys.map(k => po.participants && po.participants[k]).filter(Boolean);
-    const todaySum = field => {
-      const vals = todayGroup.map(row => row[field]).filter(v => v != null);
-      return vals.length === todayGroup.length && vals.length ? vals.reduce((a,b) => a+b,0) : null;
-    };
-    const callToday = foSel === "retail" ? callNet : (() => { const l=todaySum("index_call_long"), s=todaySum("index_call_short"); return l == null || s == null ? null : l-s; })();
-    const putToday = foSel === "retail" ? putNet : (() => { const l=todaySum("index_put_long"), s=todaySum("index_put_short"); return l == null || s == null ? null : l-s; })();
-    const callPrev = foSel === "retail" ? null : (callToday == null || callNet == null ? null : callToday-callNet);
-    const putPrev = foSel === "retail" ? null : (putToday == null || putNet == null ? null : putToday-putNet);
+    // Show daily net OI change for every participant. Do not plot cumulative OI
+    // totals as if they were today's change; previous-day daily change is not stored.
+    const callToday = callNet;
+    const putToday = putNet;
+    const callPrev = null;
+    const putPrev = null;
     const callBull = callNet == null ? null : callNet >= 0;
     const putBull = putNet == null ? null : putNet < 0;
     let netTag = "", netGood = true;
