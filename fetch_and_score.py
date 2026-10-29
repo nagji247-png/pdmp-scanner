@@ -1810,8 +1810,25 @@ def main():
             (p for p in candidates if p.get("ok") and p.get("date") and p.get("date") < today_date),
             {}
         )
+    # तीसरे बॉक्स की तारीख भी NSE archive से लें, weekday अनुमान से नहीं।
+    # इससे NSE holidays के बाद भी तारीख सही रहेगी।
+    prior_prior_snapshot = {}
+    if prior_snapshot.get("ok") and prior_snapshot.get("date"):
+        try:
+            target_two_days_ago = dt.date.fromisoformat(prior_snapshot["date"]) - dt.timedelta(days=1)
+            prior_prior_snapshot = fetch_participant_oi(base_date=target_two_days_ago)
+        except (TypeError, ValueError):
+            prior_prior_snapshot = {}
+    if not prior_prior_snapshot.get("ok"):
+        cached_two_days_ago = previous.get("participant_oi_two_days_ago") or {}
+        if (cached_two_days_ago.get("ok") and cached_two_days_ago.get("date")
+                and cached_two_days_ago.get("date") < (prior_snapshot.get("date") or "")):
+            prior_prior_snapshot = cached_two_days_ago
+    participant_today["two_days_ago_date"] = prior_prior_snapshot.get("date") if prior_prior_snapshot.get("ok") else None
+
     result["participant_oi"] = participant_today
     result["participant_oi_previous_day"] = prior_snapshot
+    result["participant_oi_two_days_ago"] = prior_prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
         participant_today, prior_snapshot)
     adj, rinfo = retail_adjust(result["participant_oi"])
