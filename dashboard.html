@@ -543,17 +543,38 @@ function card(name, d, participantOI) {
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
   const hTotal = posN + negN;
+  const goldPrice = d.price != null && Number.isFinite(Number(d.price))
+    ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) : "—";
+  const goldChange = d.change_pct != null && Number.isFinite(Number(d.change_pct))
+    ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं";
+  const goldChangeColor = d.change_pct != null && Number.isFinite(Number(d.change_pct))
+    ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5";
+  const goldDate = d.price_as_of ? esc(d.price_as_of) : "";
   const el = document.createElement("div");
   el.className = "card " + cls;
   el.innerHTML = `
-    <div class="name">${esc(name)}</div>
-    <div class="score-price-row">
-      <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव 6 से 8% अधिक हो सकते हैं</small>' : name === "GOLD" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव MCX भाव से लगभग 3 से 5% अधिक हो सकते हैं</small>' : ""}</div>
-      <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
-        ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "GOLD" ? " /10g" : name === "SILVER" ? " /kg" : ""))
-        : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${d.price_as_of ? (name === "SILVER" ? "मूल्य तारीख: " + esc(d.price_as_of.split("-").reverse().join("/")) : esc(d.price_as_of)) : ""}</small></div>
-    </div>
-    <div class="lbl" style="color:${color}">${label}</div>
+    ${name === "GOLD" ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <div class="name">GOLD</div><div class="last-price" style="font-size:14px">${goldPrice}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin:1px 0">
+        <div class="big" style="color:${color};margin:0">${sScore}</div>
+        <div class="last-price" style="font-size:12px">/10g <span style="color:${goldChangeColor}">${goldChange}</span></div>
+      </div>
+      <div style="font-size:10px;line-height:1.2;color:#aab2c5;margin:1px 0 3px">दुकानों के भाव MCX भाव से लगभग 3 से 5% अधिक हो सकते हैं</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <div class="lbl" style="color:${color}">${label}</div><div style="font-size:10px;color:#8a90a8">${goldDate}</div>
+      </div>
+    ` : `
+      <div class="name">${esc(name)}</div>
+      <div class="score-price-row">
+        <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव 6 से 8% अधिक हो सकते हैं</small>' : ""}</div>
+        <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
+          ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : ""))
+          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${d.price_as_of ? (name === "SILVER" ? "मूल्य तारीख: " + esc(d.price_as_of.split("-").reverse().join("/")) : esc(d.price_as_of)) : ""}</small></div>
+      </div>
+      <div class="lbl" style="color:${color}">${label}</div>
+    `}`;
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
     ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <div class="chg">कीमत में बदलाव: ${sign}${d.change_pct}%</div>
