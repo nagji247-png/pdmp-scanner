@@ -827,6 +827,17 @@ function renderInstruments(instruments, participantOI) {
     if (d) glb.appendChild(card(name, d, participantOI));
   }
 
+  // CRUDEOIL को BITCOIN कार्ड जितनी ही ऊँचाई दें; डेटा/कार्ड सामग्री न बदलें।
+  const crudeCard = glb.children[2];
+  const bitcoinCard = glb.children[3];
+  if (crudeCard && bitcoinCard) {
+    const bitcoinHeight = bitcoinCard.getBoundingClientRect().height;
+    if (bitcoinHeight > 0) {
+      crudeCard.style.height = bitcoinHeight + "px";
+      crudeCard.style.boxSizing = "border-box";
+    }
+  }
+
   const projection = createSilverProjectionCard();
   projection.style.gridColumn = "1 / -1";
   glb.appendChild(projection);
