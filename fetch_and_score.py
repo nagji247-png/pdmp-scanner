@@ -1847,21 +1847,9 @@ def main():
         market_news["as_of"] = updated
     result["market_news"] = market_news
 
-    # Google Trends is rate-limited on frequent GitHub Actions runs.
-    # Reuse a successful snapshot for up to 6 hours; preserve its real as_of timestamp.
-    # Once older than 6 hours, attempt a refresh and keep stale=true if refresh fails.
+    # Google Trends केवल तय समय पर चलाएँ: 09:10, 12:30 और 21:00 IST.
+    # बाकी हर 30-मिनट वाले PDMP रन में पिछली रीडिंग को दोबारा fetch न करें।
     previous_trends = previous.get("trends") or {}
-    trends_age_hours = None
-    try:
-        trends_as_of = dt.datetime.fromisoformat(
-            str(previous_trends.get("as_of", "")).replace("Z", "+00:00")
-        )
-        if trends_as_of.tzinfo is None:
-            trends_as_of = trends_as_of.replace(tzinfo=dt.timezone.utc)
-        trends_age_hours = (now_utc - trends_as_of.astimezone(dt.timezone.utc)).total_seconds() / 3600
-    except Exception:
-        pass
-
     previous_crowd_terms = previous_trends.get("crowd_terms") or []
     previous_trends_all_zero = (
         not previous_crowd_terms
@@ -1870,28 +1858,30 @@ def main():
         or (float(previous_trends.get("bull_sum_pct", 0) or 0) == 0
             and float(previous_trends.get("bear_sum_pct", 0) or 0) == 0)
     )
-    # पुराने snapshot में score fields न हों तो उसे 6 घंटे तक valid cache न मानें।
     previous_trends_has_scores = all(
         previous_trends.get(k) is not None
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
+    trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
 
-    if (previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero
-            and trends_age_hours is not None and 0 <= trends_age_hours < 6):
-        trends = dict(previous_trends)
-        trends["stale"] = False
-        trends["cached"] = True
-        trends["refresh_policy_hours"] = 6
-        trends.pop("error", None)
-        print(f"Using cached Google Trends snapshot ({trends_age_hours:.1f}h old; refresh window 6h)")
-    else:
-        # अमान्य zero-cache को fallback के रूप में भी वापस न दिखाएँ।
+    if trends_scan:
+        # तय समय पर नई रीडिंग लें। असफल होने पर पुरानी रीडिंग stale रहेगी,
+        # उसे आज की ताज़ा रीडिंग बताकर नहीं दिखाया जाएगा।
         fallback_trends = {} if previous_trends_all_zero or not previous_trends_has_scores else previous_trends
         trends = pick_with_fallback(fetch_trends(), fallback_trends)
         if trends.get("ok") and not trends.get("stale"):
             trends["as_of"] = updated
             trends["cached"] = False
-            trends["refresh_policy_hours"] = 6
+            trends["refresh_policy_hours"] = None
+    elif previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero:
+        trends = dict(previous_trends)
+        trends["cached"] = True
+        trends["refresh_policy_hours"] = None
+        print("Google Trends schedule: next scheduled refresh; keeping original source timestamp")
+    else:
+        # कोई वैध पिछली रीडिंग नहीं है; बिना तय स्कैन के Google को बार-बार न बुलाएँ।
+        trends = {"ok": False, "stale": True, "cached": False,
+                  "error": "अगला तय Google Trends स्कैन आने पर नई रीडिंग ली जाएगी"}
     result["trends"] = trends
 
     fresh_trends = trends.get("ok") and not trends.get("stale")
