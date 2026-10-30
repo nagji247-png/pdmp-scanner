@@ -818,23 +818,35 @@ function renderInstruments(instruments, participantOI) {
   stk.innerHTML = "";
   glb.innerHTML = "";
 
-  const entries = Object.entries(instruments);
-  const bitcoin = instruments.BITCOIN;
-  for (const [name, d] of entries) {
+  const leftCol = document.createElement("div");
+  const rightCol = document.createElement("div");
+  leftCol.className = "global-column";
+  rightCol.className = "global-column";
+  leftCol.style.cssText = "display:grid;align-content:start;gap:10px;min-width:0";
+  rightCol.style.cssText = "display:grid;align-content:start;gap:10px;min-width:0";
+  glb.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
+  glb.append(leftCol, rightCol);
+
+  const leftOrder = ["GOLD", "CRUDEOIL", "BITCOIN", "NASDAQ"];
+  const rightOrder = ["SILVER"];
+  for (const name of leftOrder) {
+    const d = instruments[name];
+    if (d) leftCol.appendChild(card(name, d, participantOI));
+  }
+  for (const name of rightOrder) {
+    const d = instruments[name];
+    if (d) rightCol.appendChild(card(name, d, participantOI));
+  }
+  rightCol.appendChild(createSilverProjectionCard());
+
+  for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
       stk.appendChild(card(name, d, participantOI));
     } else if (INDIAN_INDEXES.includes(name)) {
       idx.appendChild(card(name, d, participantOI));
-    } else if (name === "DJI" || name === "BITCOIN") {
-      continue;
-    } else {
-      glb.appendChild(card(name, d, participantOI));
-      if (name === "SILVER") glb.appendChild(createSilverProjectionCard());
     }
   }
-  if (bitcoin) glb.appendChild(card("BITCOIN", bitcoin, participantOI));
 }
-
 function renderTrends(t) {
   const box = document.getElementById("trends");
   if (!t) t = { ok: false, error: "अभी कोई Trends डेटा नहीं" };
