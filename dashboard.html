@@ -761,6 +761,55 @@ function renderFlow(f) {
 
 const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 
+function createSilverProjectionCard() {
+  const el = document.createElement("div");
+  el.className = "card silver-projection-card";
+  el.style.cssText = "box-sizing:border-box;width:100%;min-width:0;align-self:stretch;background:#121922;border:1px solid #232b35;border-top:4px solid #06b6d4;border-radius:12px;padding:14px;color:#e6edf3;box-shadow:inset 0 8px 15px -10px rgba(6,182,212,.3)";
+  const years = [
+    {year:"2025", growth:"शुरुआती कीमत", price:"₹75,000", height:15},
+    {year:"2026", growth:"100%", price:"₹1,50,000", height:35},
+    {year:"2027", growth:"75%", price:"₹2,62,500", height:55},
+    {year:"2028", growth:"50%", price:"₹3,93,750", height:75},
+    {year:"2029", growth:"25%", price:"₹4,92,187.50", height:95}
+  ];
+  const bars = years.map(item => `
+    <div style="flex:1;min-width:0;height:205px;position:relative">
+      <div style="position:absolute;left:50%;bottom:calc(${item.height}% + 7px);transform:translateX(-50%);font-size:clamp(8px,1.6vw,11px);font-weight:800;color:#e6edf3;white-space:nowrap">${item.price}</div>
+      <div style="position:absolute;bottom:0;left:12%;width:76%;height:${item.height}%;background:#3fb950;border-radius:5px 5px 0 0"></div>
+      <div style="position:absolute;bottom:-22px;left:0;width:100%;text-align:center;font-size:11px;color:#aab2c5">${item.year}</div>
+    </div>`).join("");
+  const rows = years.map(item => `
+    <tr>
+      <td style="padding:8px 5px;border-bottom:1px solid #29323d">${item.year}</td>
+      <td style="padding:8px 5px;border-bottom:1px solid #29323d;text-align:center">${item.growth}</td>
+      <td style="padding:8px 5px;border-bottom:1px solid #29323d;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
+    </tr>`).join("");
+  el.innerHTML = `
+    <div style="font-size:17px;font-weight:800;color:#f0f6fc">Silver Price Projection</div>
+    <div style="font-size:12px;color:#aab2c5;margin-top:4px">चांदी की अनुमानित कीमत (2025-2029)</div>
+    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:18px">Commodity Trend</div>
+    <div style="display:flex;align-items:stretch;gap:5px;margin-top:14px;padding:8px 2px 24px;border-bottom:1px solid #34404d">${bars}</div>
+    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:24px;margin-bottom:8px">सालाना अनुमान</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;color:#e6edf3">
+        <thead><tr style="color:#9fb0c2;text-align:left">
+          <th style="padding:8px 5px;border-bottom:1px solid #46515e">साल</th>
+          <th style="padding:8px 5px;border-bottom:1px solid #46515e;text-align:center">बढ़ोतरी</th>
+          <th style="padding:8px 5px;border-bottom:1px solid #46515e;text-align:right">चांदी की कीमत</th>
+        </tr></thead><tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px;padding:12px 8px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
+      <div style="font-size:12px;font-weight:800;color:#7ee787">अंतिम नतीजा</div>
+      <div style="font-size:12px;color:#d0d7de;margin-top:7px">2029 में अनुमानित चांदी की कीमत</div>
+      <div style="font-size:11px;color:#aab2c5;margin-top:4px">2025 की ₹75,000 की शुरुआती कीमत के आधार पर</div>
+      <div style="font-size:clamp(18px,3vw,24px);font-weight:900;color:#7ee787;margin-top:9px">₹4,92,187.50</div>
+      <div style="font-size:12px;color:#d0d7de">प्रति किलो</div>
+    </div>
+    <div style="font-size:10px;color:#8b949e;margin-top:10px">यह दिए गए प्रतिशतों पर आधारित अनुमान है, लाइव बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>`;
+  return el;
+}
+
 function renderInstruments(instruments, participantOI) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
@@ -769,16 +818,21 @@ function renderInstruments(instruments, participantOI) {
   stk.innerHTML = "";
   glb.innerHTML = "";
 
-  for (const [name, d] of Object.entries(instruments)) {
+  const entries = Object.entries(instruments);
+  const bitcoin = instruments.BITCOIN;
+  for (const [name, d] of entries) {
     if (d.type === "stock") {
       stk.appendChild(card(name, d, participantOI));
     } else if (INDIAN_INDEXES.includes(name)) {
       idx.appendChild(card(name, d, participantOI));
+    } else if (name === "DJI" || name === "BITCOIN") {
+      continue;
     } else {
       glb.appendChild(card(name, d, participantOI));
+      if (name === "SILVER") glb.appendChild(createSilverProjectionCard());
     }
   }
-  
+  if (bitcoin) glb.appendChild(card("BITCOIN", bitcoin, participantOI));
 }
 
 function renderTrends(t) {
