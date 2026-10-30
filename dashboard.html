@@ -555,15 +555,15 @@ function card(name, d, participantOI) {
   el.innerHTML = `
     ${name === "GOLD" ? `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="name">GOLD</div><div class="last-price" style="font-size:14px">${goldPrice}</div>
+        <div class="name" style="font-size:12px">GOLD</div><div class="last-price" style="font-size:15px">${goldPrice}</div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin:1px 0">
         <div class="big" style="color:${color};margin:0">${sScore}</div>
-        <div class="last-price" style="font-size:12px">/10g <span style="color:${goldChangeColor}">${goldChange}</span></div>
+        <div class="last-price" style="font-size:13px">/10g <span style="color:${goldChangeColor}">${goldChange}</span></div>
       </div>
-      <div style="font-size:10px;line-height:1.2;color:#aab2c5;margin:1px 0 3px">दुकानों के भाव MCX भाव से लगभग 3 से 5% अधिक हो सकते हैं</div>
+      <div style="font-size:11px;line-height:1.25;color:#aab2c5;margin:2px 0 4px">दुकानों के भाव MCX भाव से लगभग 3 से 5% अधिक हो सकते हैं</div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="lbl" style="color:${color}">${label}</div><div style="font-size:10px;color:#8a90a8">${goldDate}</div>
+        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${goldDate}</div>
       </div>
     ` : `
       <div class="name">${esc(name)}</div>
