@@ -773,33 +773,33 @@ function createSilverProjectionCard() {
     {year:"2029", growth:"25%", price:"₹4,92,187.50", height:95}
   ];
   const bars = years.map(item => `
-    <div style="flex:1;min-width:0;height:205px;position:relative">
+    <div style="flex:1;min-width:0;height:125px;position:relative">
       <div style="position:absolute;left:50%;bottom:calc(${item.height}% + 7px);transform:translateX(-50%);font-size:clamp(8px,1.6vw,11px);font-weight:800;color:#e6edf3;white-space:nowrap">${item.price}</div>
       <div style="position:absolute;bottom:0;left:12%;width:76%;height:${item.height}%;background:#3fb950;border-radius:5px 5px 0 0"></div>
       <div style="position:absolute;bottom:-22px;left:0;width:100%;text-align:center;font-size:11px;color:#aab2c5">${item.year}</div>
     </div>`).join("");
   const rows = years.map(item => `
     <tr>
-      <td style="padding:8px 5px;border-bottom:1px solid #29323d">${item.year}</td>
-      <td style="padding:8px 5px;border-bottom:1px solid #29323d;text-align:center">${item.growth}</td>
-      <td style="padding:8px 5px;border-bottom:1px solid #29323d;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #29323d">${item.year}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #29323d;text-align:center">${item.growth}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #29323d;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
     </tr>`).join("");
   el.innerHTML = `
     <div style="font-size:17px;font-weight:800;color:#f0f6fc">Silver Price Projection</div>
     <div style="font-size:12px;color:#aab2c5;margin-top:4px">चांदी की अनुमानित कीमत (2025-2029)</div>
-    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:18px">Commodity Trend</div>
-    <div style="display:flex;align-items:stretch;gap:5px;margin-top:14px;padding:8px 2px 24px;border-bottom:1px solid #34404d">${bars}</div>
+    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:10px">Commodity Trend</div>
+    <div style="display:flex;align-items:stretch;gap:5px;margin-top:8px;padding:5px 2px 18px;border-bottom:1px solid #34404d">${bars}</div>
     <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:24px;margin-bottom:8px">सालाना अनुमान</div>
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:11px;color:#e6edf3">
         <thead><tr style="color:#9fb0c2;text-align:left">
-          <th style="padding:8px 5px;border-bottom:1px solid #46515e">साल</th>
-          <th style="padding:8px 5px;border-bottom:1px solid #46515e;text-align:center">बढ़ोतरी</th>
-          <th style="padding:8px 5px;border-bottom:1px solid #46515e;text-align:right">चांदी की कीमत</th>
+          <th style="padding:5px 4px;border-bottom:1px solid #46515e">साल</th>
+          <th style="padding:5px 4px;border-bottom:1px solid #46515e;text-align:center">बढ़ोतरी</th>
+          <th style="padding:5px 4px;border-bottom:1px solid #46515e;text-align:right">चांदी की कीमत</th>
         </tr></thead><tbody>${rows}</tbody>
       </table>
     </div>
-    <div style="margin-top:16px;padding:12px 8px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
+    <div style="margin-top:10px;padding:8px 7px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
       <div style="font-size:12px;font-weight:800;color:#7ee787">अंतिम नतीजा</div>
       <div style="font-size:12px;color:#d0d7de;margin-top:7px">2029 में अनुमानित चांदी की कीमत</div>
       <div style="font-size:11px;color:#aab2c5;margin-top:4px">2025 की ₹75,000 की शुरुआती कीमत के आधार पर</div>
