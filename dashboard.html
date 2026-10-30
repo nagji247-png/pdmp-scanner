@@ -817,27 +817,19 @@ function renderInstruments(instruments, participantOI) {
   idx.innerHTML = "";
   stk.innerHTML = "";
   glb.innerHTML = "";
-
-  const leftCol = document.createElement("div");
-  const rightCol = document.createElement("div");
-  leftCol.className = "global-column";
-  rightCol.className = "global-column";
-  leftCol.style.cssText = "display:grid;align-content:start;gap:10px;min-width:0";
-  rightCol.style.cssText = "display:grid;align-content:start;gap:10px;min-width:0";
+  glb.style.display = "grid";
   glb.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
-  glb.append(leftCol, rightCol);
+  glb.style.alignItems = "start";
 
-  const leftOrder = ["GOLD", "CRUDEOIL", "BITCOIN", "NASDAQ"];
-  const rightOrder = ["SILVER"];
-  for (const name of leftOrder) {
+  const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN"];
+  for (const name of globalOrder) {
     const d = instruments[name];
-    if (d) leftCol.appendChild(card(name, d, participantOI));
+    if (d) glb.appendChild(card(name, d, participantOI));
   }
-  for (const name of rightOrder) {
-    const d = instruments[name];
-    if (d) rightCol.appendChild(card(name, d, participantOI));
-  }
-  rightCol.appendChild(createSilverProjectionCard());
+
+  const projection = createSilverProjectionCard();
+  projection.style.gridColumn = "1 / -1";
+  glb.appendChild(projection);
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
