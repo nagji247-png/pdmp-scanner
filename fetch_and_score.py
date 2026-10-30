@@ -22,7 +22,7 @@ INDEXES = {
 STOCKS = {
     "RELIANCE": ("RELIANCE.NS", "Reliance Industries share"),
     "HDFCBANK": ("HDFCBANK.NS", "HDFC Bank share"),
-    "TATAMOTORS": ("TATAMOTORS.NS", "Tata Motors share"),
+    "TATAMOTORS": ("TMPV.NS", "Tata Motors Passenger Vehicles share"),
     "HINDALCO": ("HINDALCO.NS", "Hindalco share"),
     "ADANIPORTS": ("ADANIPORTS.NS", "Adani Ports share"),
     "COALINDIA": ("COALINDIA.NS", "Coal India share"),
