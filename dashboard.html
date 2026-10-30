@@ -1147,8 +1147,8 @@ function donutSvg(parts, total) {
     return `<path d="${d}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${sectorMapOpen && selSector && selSector !== p.name ? 0.3 : 1}" onclick="${clickAction}" style="cursor:pointer"/>`;
   }).join("");
   return `<svg width="140" height="140" viewBox="0 0 140 140">${paths}
-    <text x="70" y="66" text-anchor="middle" fill="#e6e9f2" font-size="18" font-weight="700">${total}</text>
-    <text x="70" y="82" text-anchor="middle" fill="#7b82a0" font-size="10">कंपनियाँ</text></svg>`;
+    <text x="70" y="66" text-anchor="middle" fill="#e6e9f2" font-size="18" font-weight="700" onclick="toggleSectorMap()" style="cursor:pointer;pointer-events:all">${total}</text>
+    <text x="70" y="82" text-anchor="middle" fill="#7b82a0" font-size="10" onclick="toggleSectorMap()" style="cursor:pointer;pointer-events:all">कंपनियाँ</text></svg>`;
 }
 
 function stockParamCard(name, data) {
