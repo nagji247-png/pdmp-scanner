@@ -2418,8 +2418,8 @@
         "score": -3
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.41
   },
   {
     "key": "2026-10-30|BITCOIN|div",
@@ -2502,8 +2502,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.21
   },
   {
     "key": "2026-10-30|COALINDIA|div",
@@ -2544,8 +2544,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.04
   },
   {
     "key": "2026-10-30|CRUDEOIL|div",
@@ -2628,8 +2628,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.39
   },
   {
     "key": "2026-10-30|TATAMOTORS|div",
@@ -2670,8 +2670,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.23
   },
   {
     "key": "2026-10-30|HINDALCO|div",
@@ -2712,8 +2712,8 @@
         "score": -2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.18
   },
   {
     "key": "2026-10-30|EICHERMOT|div",
@@ -2754,7 +2754,91 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.25
+  },
+  {
+    "key": "2026-10-30|ADANIPORTS|div",
+    "date": "2026-10-30",
+    "instrument": "ADANIPORTS",
+    "score": 5.5,
+    "price_change": -1.18,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Adani Ports Places $3.3 Billion Bid for Evos Terminals; Shares Slump",
+        "source": "Equitypandit",
+        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQSWFsSkFoNFJjRWdIeUF5WnJXT01sMEhNang5XzZRUzh1UmlHeWZhNjVaeTNXUndoTUZ4Ul9JODB0bFBxUDRqdmpIdnNTcGpGenB3cTRsbXQyQURiRGsxNFZFWlZER1FtNmwtVEtXN2JpZFhDY3FwU3o5c1kzeWhHZ1RSWU1BbTZkNlpmS3FCZkhxc1dkZ25aanFXZTA?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Adani Ports Share Price: Why Jefferies And Nomura Raised Target Prices After Q2 Results",
+        "source": "Business Today",
+        "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxNUEVIVUhWNEo0RnduXzNha2lQYks2WVBIQ2Vka1dBMjRzUzZUX1FuMnVaZE9qZlktUmk5SkpocEtCZG92YjV6RFlXVEg0bzl5bW42aE1kaUE0WDRIMFJWc2llMnBLYnVrRzRsY2w0Z3ZxTFlEMzQ2bTlBRWIxdEcxcFlPVWppRVJtNW1Gb0xKY3pWYVRMRWlpTnB3SzJiY2V3VTY2Y1psQklOSFZ5U19VajRrRWlsb2lYSEtWeUk2Rm5YdjVPcTNERmUtTGhtWVJZNG5CckNEOGh4QXpsUTNDbnV4WVcwUQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ Current Price Update",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOQ21ieFNhU3RUdktxVmVjMDhMSTZRVGpOQmRJem5SQlh3UGRQTFVaVG5mRjhfZVVoa0hub2t0eVdOeWZscm9FQ3FnNTF3cmYtQVdhYURWMHVpTnZfQnU0TUtVQzM1WmJ3OXU3dFotVUlzZnRYX3M1QVV4TDM0Njl2ZGxjcU10ZnZCa1FObXlydC01TVVyYTdvSEd0ZzgybTV3TlZXUmVHY2E5ZkFvWEhOSnRFODV4TDVnc01lbmNVN3ZOYzBnVDEwd1VNTmYxd9IB0wFBVV95cUxNXzNKbmVIRl94S1VEZ3ByNzhaOXEyVF9EaVNTbVdpTi0wR1pvTTgwYzd4V1M1MnZQYzlCbVhvcThLU09YM0haaWZad0o0bHRTUWJ6ZWQ3Wmg3and6WG52eUJ0WUVqNU9mbnI1OFVIZVBmeExZeXdsU2pPSU5TeGVZWWFocnRNUFpWYmoxVE9tUk5tcVhTNjdKM1UtaWN2WDNrdkZlSnB3eWIwM3IxQmluTWRXbW9IM1A5Z2JvTklONzc5YjRFQXBkcThHOHUyeURIU0s4?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports Stock Jumps Over 5%",
+        "source": "India Business Trade",
+        "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE1SN3AwTzA1X3RDLXRQWTF0UlgyNVRUNTdod0JxNWdrTE1RaS1fTWF5T01WWDB2emhVbG4yU2FjcU0yOXdTc2VRQ3hjT083eG4xZndZd19DbkpBZjV1dmFlbEZ6eHgtTE9oZDRGSTRUYnM4UQ?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Top gainers and losers, Oct 29: Adani Ports, Adani Ent shares soar 6%, Power Grid rises 4%, Trent falls 2%; check list",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxPVXlTRXk0V2tmaUR3NmVMemNXSkNoeFowTVN3LUJxNXR5czRFMXZMVU5LZ0tKS1FoVUE5YTZIRUFkbXRILWpSVmxSU1IwOVpfMm90UlM4a3FQNGpDai1za2wzS3ZoUHRESXhUOS1NYnNDemxwd3NQZDNaTk9lUTNMcHRfdkQ3NGFjMWc4SXg5OFhORkZQQWJjc0RpS0xMRGtDT1FwLUpuRlBKbDE1TkpYWGlOR2lJSGE2d21VeHNjVkZMNG9lTDNxcHlTUnQxdllMUEJGRmpVU01wMHdSYjM2a3hZaUptVVNXQlNjWW9Ccjh5aUdHQldoWHh3REU?oc=5",
+        "score": 1
+      }
+    ],
+    "outcome": "price",
+    "next_change": -1.18
+  },
+  {
+    "key": "2026-10-30|SBIN|div",
+    "date": "2026-10-30",
+    "instrument": "SBIN",
+    "score": 1.0,
+    "price_change": -1.03,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "SBI Nifty Bank ETF",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9zZVE4Q213WVo4M0RBV1R1QTR6RU9yUFF2dHRGTjBtVzdfYVI4MHZmZDhpWkR2ZWRJbjc1S29UZlM3amVYSVMyQ2M5RTk1M19yWVpSaGthTXZFQ0xYcmRKNXU5ZndoS1ItWlJCbVlxVDhHVlQ5Ql9j?oc=5",
+        "score": 0
+      },
+      {
+        "title": "45.6% Indian households use digital payments for at least one consumption item: SBI Report",
+        "source": "TradingView",
+        "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxOa19sc2Vobm5hU3hYQzJ5Qkp5anBrcEtJN3pGdHh5LU1hZTRXXzZsMm9OWG5PNUthbFNWczZSYzhQa0lJdG9VV24xUjRtaGNXQXFxZi1oODRiSTlBUldnQ1pqd203eVJRX1lVQTg3dkRTekJobnBUWnpjMHI1ZDJibzRabUFJZDhTbDRwMkprVnQ2dTZDU2FEbXNMSjMzaWpZeVJHWXVJaU1ybF9hT2Vnd3lBQTBXTjhKU09Kb1BLcWZOQlpVbWZuWXJXODg4TS1ZZjI5cWV6dEI3Rmh1NGc?oc=5",
+        "score": 0
+      },
+      {
+        "title": "SBI Funds Management Ltd. Share Price Today - SBI Funds Management Ltd. Stock Price Live NSE/BSE",
+        "source": "CNBC TV18",
+        "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPd1pkY2dzWENxbjlMaWhnckI3cXR2anJlM1FqRG1WeTYzZXJsUlhvbmdXN3ppclZtNDM4S1hGQVBXQVIyUnY3aXk1U3BiMEVhM1hWc0hMY1JEOENSUUZGZTNpdmt0T1RoSkJaNGZvdmkySGFTM084bDFuLVNfdWFHaGN3aDYtQXR3aGpN?oc=5",
+        "score": 0
+      },
+      {
+        "title": "SBI FUNDS MANAGEMENT LTD Share Price",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1iR3N0X3ZRWmNrR0l0TFpyRkl1R1JfamY0Y1VkdnBsQmxIRWtjNWxPWlhhVElkY01BdlhmNnZNcktvRWdZMmtReWNVTTFmOVotUXp0QkxyTTBjN2gyWTdTVWh1bmtyMU9oMF9OYlpIZUg?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Diwali Stock Picks: SBI Securities bets on these 11 names from Tata Steel to Sky Gold",
+        "source": "CNBC TV18",
+        "link": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxQdWpKOUFTQkRmcmV0MVRCZHQzZDZKR1duVEhPNFBtcS1DOUwtOUVOeVp5dWRqVnNNUnRMakRPaUxmOTRqSUF0Ti1WUlFhRlhpaUQtS0xXenNZdTRNSXZiM0dPVFQ4N0Uyc2dEcll6UUlSYVg3UWhiV1BDYVpIQzd5ZEFmOTdRSWYxT3BPLTM3MmRGNEpOMkRkZjEwdW9yYWtQZDdOT1lYUDdFa0NxV0FVQ005YkZESzJLMlphODhRbm4xMzFZdkNFYTVRX0pXVVJHQVpEOTd0YjBaMG9veG91UXBnZmF6UE14UE84ZzFVMmRIQVVQYnZGRDNaVdIBgAJBVV95cUxPbmpyaEpTMjc0aDAydHVzZ1BhZ1MzS2lweEM1elZJYXJrQ0ZkUm9FY1hEczcxQTRUSkFreGlUME5yVE12dHV0Ync3X0lxLV9IV2t5MzNEVnhoWWNvZWR0bmkwdUxWNzFyVWtvZnBLZGxiMlF3Y1JlVzdwYm9mUjBBSkkzbWdhaV8zT0Y4YWZPWHJVbkJmNmFxV1p1bmtVdl94YjdwaTY3ek14ejNXaDV4RkdYb1NaaHZYaS1aM1gtY3RSN2xBZm15SHd1UGZkMURYQ3pZWDFPSng3ZVdnQUtVZWRPZmZlcW1UWVdQQ3dRc3RLSEJ3YjBicVZmenNrcFlr?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": "price",
+    "next_change": -1.03
   }
 ]
