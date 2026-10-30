@@ -827,15 +827,14 @@ function renderInstruments(instruments, participantOI) {
     if (d) glb.appendChild(card(name, d, participantOI));
   }
 
-  // CRUDEOIL को BITCOIN कार्ड जितनी ही ऊँचाई दें; डेटा/कार्ड सामग्री न बदलें।
+  // Global grid के दोनों कॉलम में कार्ड प्राकृतिक grid-row height लें।
+  // Fixed height हटाने से नीचे का "Click for details" भी कटेगा नहीं।
   const crudeCard = glb.children[2];
-  const bitcoinCard = glb.children[3];
-  if (crudeCard && bitcoinCard) {
-    const bitcoinHeight = bitcoinCard.getBoundingClientRect().height;
-    if (bitcoinHeight > 0) {
-      crudeCard.style.height = bitcoinHeight + "px";
-      crudeCard.style.boxSizing = "border-box";
-    }
+  if (crudeCard) {
+    crudeCard.style.height = "auto";
+    crudeCard.style.minHeight = "0";
+    crudeCard.style.marginTop = "0";
+    crudeCard.style.alignSelf = "stretch";
   }
 
   const projection = createSilverProjectionCard();
