@@ -1826,11 +1826,39 @@ def main():
         if (cached_two_days_ago.get("ok") and cached_two_days_ago.get("date")
                 and cached_two_days_ago.get("date") < (prior_snapshot.get("date") or "")):
             prior_prior_snapshot = cached_two_days_ago
+    # चौथे snapshot से तीसरे दिन का वास्तविक दैनिक बदलाव भी निकालें।
+    third_prior_snapshot = {}
+    if prior_prior_snapshot.get("ok") and prior_prior_snapshot.get("date"):
+        try:
+            target_three_days_ago = dt.date.fromisoformat(prior_prior_snapshot["date"]) - dt.timedelta(days=1)
+            third_prior_snapshot = fetch_participant_oi(base_date=target_three_days_ago)
+        except (TypeError, ValueError):
+            third_prior_snapshot = {}
+    if not third_prior_snapshot.get("ok"):
+        cached_three_days_ago = previous.get("participant_oi_three_days_ago") or {}
+        if (cached_three_days_ago.get("ok") and cached_three_days_ago.get("date")
+                and cached_three_days_ago.get("date") < (prior_prior_snapshot.get("date") or "")):
+            third_prior_snapshot = cached_three_days_ago
+
     participant_today["two_days_ago_date"] = prior_prior_snapshot.get("date") if prior_prior_snapshot.get("ok") else None
+    participant_today["three_days_ago_date"] = third_prior_snapshot.get("date") if third_prior_snapshot.get("ok") else None
+
+    daily_snapshots = [participant_today, prior_snapshot, prior_prior_snapshot]
+    daily_changes = []
+    for i, snap in enumerate(daily_snapshots):
+        older = daily_snapshots[i + 1] if i + 1 < len(daily_snapshots) else third_prior_snapshot
+        change = participant_changes(snap, older)
+        daily_changes.append({
+            "date": snap.get("date") if snap.get("ok") else None,
+            "ok": bool(change.get("ok")),
+            "by_group": change.get("by_group", {})
+        })
+    participant_today["daily_changes"] = daily_changes
 
     result["participant_oi"] = participant_today
     result["participant_oi_previous_day"] = prior_snapshot
     result["participant_oi_two_days_ago"] = prior_prior_snapshot
+    result["participant_oi_three_days_ago"] = third_prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
         participant_today, prior_snapshot)
     adj, rinfo = retail_adjust(result["participant_oi"])
