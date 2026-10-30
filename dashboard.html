@@ -314,12 +314,12 @@
   }
 
 
-  /* Owner photo: larger, original proportions, no frame and no cropping */
+  /* Owner photo: larger portrait; crop the lower part if needed, with no frame */
   .brandbar{justify-content:space-between}
   .brand-name{flex:1;min-width:0}
-  .brand-owner-photo{display:block;width:clamp(100px,22vw,160px);height:auto;max-height:190px;flex:0 0 auto;object-fit:contain;object-position:center;border:0;border-radius:0;box-shadow:none}
-  @media(max-width:560px){.brandbar{justify-content:space-between;gap:7px}.brand-mark{width:clamp(48px,15vw,58px);flex:0 0 auto}.brand-name{text-align:left;flex:1}.brand-owner-photo{width:clamp(96px,28vw,124px);height:auto;max-height:165px}}
-  @media(max-width:360px){.brandbar{gap:5px;padding-left:8px;padding-right:8px}.brand-mark{width:42px}.brand-owner-photo{width:88px;height:auto;max-height:145px}.brand-title{font-size:18px}.brand-tagline{font-size:9px}.brand-hi{font-size:12px}}
+  .brand-owner-photo{display:block;width:190px;height:175px;flex:0 0 auto;object-fit:cover;object-position:center top;border:0;border-radius:0;box-shadow:none}
+  @media(max-width:560px){.brandbar{justify-content:space-between;gap:7px}.brand-mark{width:clamp(48px,15vw,58px);flex:0 0 auto}.brand-name{text-align:left;flex:1}.brand-owner-photo{width:clamp(132px,38vw,155px);height:150px;object-fit:cover;object-position:center top}}
+  @media(max-width:360px){.brandbar{gap:5px;padding-left:8px;padding-right:8px}.brand-mark{width:42px}.brand-owner-photo{width:122px;height:138px}.brand-title{font-size:18px}.brand-tagline{font-size:9px}.brand-hi{font-size:12px}}
 
 </style>
 </head>
