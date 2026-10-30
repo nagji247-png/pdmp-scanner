@@ -2,7 +2,11 @@ name: PDMP Scan
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0,30 0-6,8-23 * * *"
+    - cron: "30 7 * * *"
+    - cron: "40 3 * * *"
+    - cron: "0 7 * * *"
+    - cron: "30 15 * * *"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +26,10 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install yfinance feedparser requests pytrends
-      - run: python fetch_and_score.py
+      - name: Run PDMP scan
+        env:
+          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '40 3 * * *' || github.event.schedule == '0 7 * * *' || github.event.schedule == '30 15 * * *' }}
+        run: python fetch_and_score.py
       - name: Commit results
         run: |
           git config user.name "pdmp-bot"
