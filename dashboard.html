@@ -1117,6 +1117,12 @@ let selStock = null;
 let selIndustry = null;
 let lastMapData = null;
 let sectorInit = false;
+let sectorMapOpen = false;
+
+function toggleSectorMap() {
+  sectorMapOpen = !sectorMapOpen;
+  if (lastMapData) renderSectorMap(lastMapData);
+}
 
 const SECTOR_COLORS = ["#4fc3f7", "#2ecc71", "#f1c40f", "#e74c3c", "#9b59b6", "#e67e22", "#1abc9c", "#95a5a6"];
 
@@ -1126,8 +1132,9 @@ function donutSvg(parts, total) {
   let angle = -Math.PI / 2;
   const paths = parts.map((p, i) => {
     const frac = p.count / total;
+    const clickAction = sectorMapOpen ? `pickSector('${esc(p.name)}')` : 'toggleSectorMap()';
     if (frac >= 0.9999) {
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="pickSector('${esc(p.name)}')" style="cursor:pointer"/>`;
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="${clickAction}" style="cursor:pointer"/>`;
     }
     const a0 = angle, a1 = angle + frac * 2 * Math.PI;
     angle = a1;
@@ -1137,7 +1144,7 @@ function donutSvg(parts, total) {
     const xi1 = cx + ri * Math.cos(a1), yi1 = cy + ri * Math.sin(a1);
     const xi0 = cx + ri * Math.cos(a0), yi0 = cy + ri * Math.sin(a0);
     const d = `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} L ${xi1} ${yi1} A ${ri} ${ri} 0 ${large} 0 ${xi0} ${yi0} Z`;
-    return `<path d="${d}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="pickSector('${esc(p.name)}')" style="cursor:pointer"/>`;
+    return `<path d="${d}" fill="${SECTOR_COLORS[i % SECTOR_COLORS.length]}" opacity="${selSector && selSector !== p.name ? 0.3 : 1}" onclick="${clickAction}" style="cursor:pointer"/>`;
   }).join("");
   return `<svg width="140" height="140" viewBox="0 0 140 140">${paths}
     <text x="70" y="66" text-anchor="middle" fill="#e6e9f2" font-size="18" font-weight="700">${total}</text>
@@ -1204,6 +1211,14 @@ function renderSectorMapInner(data) {
     .sort((a, b) => b.count - a.count);
   const withData = names.filter(n => sa[n] && sa[n].ok).length;
 
+  if (!sectorInit && parts.length) { selSector = parts[0].name; sectorInit = true; }
+  if (!sectorMapOpen) {
+    box.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;padding:8px 0">
+      <div style="width:min(100%,360px)">${donutSvg(parts, names.length).replace('width="140" height="140"', 'width="100%" height="auto" style="display:block;max-width:360px;margin:auto"')}</div>
+    </div>`;
+    return;
+  }
+
   const tile = (label, val) => `<div style="flex:1;min-width:80px;text-align:center;padding:8px 4px;background:#1e2540;border-radius:8px">
       <div class="bigm" style="font-size:20px">${val}</div><div class="sub" style="font-size:10px">${label}</div></div>`;
   const asOfTxt = data.stock_analysis_as_of
@@ -1229,7 +1244,6 @@ function renderSectorMapInner(data) {
     </div>
 `;
 
-  if (!sectorInit && parts.length) { selSector = parts[0].name; sectorInit = true; }
   const legendHint = `<div class="sub" style="grid-column:1/3;margin-bottom:2px">सेक्टर पर क्लिक करें ▸</div>`;
   const legend = legendHint + parts.map((p, i) => {
     const active = selSector === p.name;
@@ -1302,7 +1316,8 @@ function renderSectorMapInner(data) {
       <div style="flex:1;min-width:180px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px">${legend}</div>
     </div>
     ${detail}
-    ${back.length ? `<div class="sub" style="margin-top:10px">${back.join(" &nbsp;·&nbsp; ")}</div>` : ""}`;
+    ${back.length ? `<div class="sub" style="margin-top:10px">${back.join(" &nbsp;·&nbsp; ")}</div>` : ""}
+    <div class="sub" style="margin-top:12px;text-align:center;cursor:pointer;color:#4fc3f7" onclick="toggleSectorMap()">↑ गोल नक्शा बंद करें</div>`;
 }
 
 function pickSector(name) {
