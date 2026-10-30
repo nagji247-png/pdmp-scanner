@@ -1214,7 +1214,7 @@ function renderSectorMapInner(data) {
   if (!sectorInit && parts.length) { selSector = parts[0].name; sectorInit = true; }
   if (!sectorMapOpen) {
     box.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;padding:8px 0">
-      <div style="width:min(100%,360px)">${donutSvg(parts, names.length).replace('width="140" height="140"', 'width="100%" height="auto" style="display:block;max-width:360px;margin:auto"')}</div>
+      <div style="width:min(100%,280px)">${donutSvg(parts, names.length).replace('width="140" height="140"', 'width="100%" height="auto" style="display:block;max-width:360px;margin:auto"')}</div>
     </div>`;
     return;
   }
