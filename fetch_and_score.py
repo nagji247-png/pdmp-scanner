@@ -1399,143 +1399,127 @@ def _period_ratio(df, term, day_str):
         return None
 
 
+TQ_BASE_TERMS = ["nifty", "sensex"]
+TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull", "bullish",
+                 "jump", "surge", "gain", "टारगेट", "रैली", "तेज़ी", "उछाल", "ऊपर", "बुलिश", "खरीद"]
+TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
+                 "decline", "sell-off", "गिरावट", "गिरेगा", "नीचे", "मंदी", "बेयरिश", "बिकवाली"]
+TQ_MIN_WEIGHT = 20  # दोनों तरफ़ कुल खोज-वज़न इतना हो, तभी प्रतिशत बने
+
+
+def tq_dir(q):
+    """खोज-वाक्यांश की दिशा: 'bull', 'bear', या None (दोनों हों या कोई न हो)।"""
+    tk = set(re.findall(r"[\w\u0900-\u097F-]+", q.lower()))
+    bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
+    bear = any(w.lower() in tk for w in TQ_BEAR_WORDS)
+    if bull and not bear:
+        return "bull"
+    if bear and not bull:
+        return "bear"
+    return None
+
+
+def tq_weight(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 100.0  # 'Breakout' जैसे मान
+
+
+def tq_aggregate(queries):
+    """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
+    bull_w = bear_w = 0.0
+    crowd_terms, spikes = [], []
+    for item in queries.values():
+        d = tq_dir(item["term"])
+        if d == "bull":
+            bull_w += item["weight"]
+        elif d == "bear":
+            bear_w += item["weight"]
+        if d:
+            crowd_terms.append({"term": item["term"], "dir": d, "now": round(item["weight"], 1),
+                                "avg": round(item["weight"], 1), "today_pct": None, "yesterday_pct": None})
+        if item.get("rising"):
+            ok, stock = match_relevant(item["term"])
+            if ok:
+                spikes.append({"query": item["term"], "value": str(round(item["weight"])), "stock": stock})
+    crowd_terms.sort(key=lambda r: r["now"], reverse=True)
+    if bull_w < TQ_MIN_WEIGHT or bear_w < TQ_MIN_WEIGHT:
+        pct, label = None, "पर्याप्त खोज डेटा नहीं"
+        bull_score = bear_score = neutral_score = None
+        sentiment = "NO DATA"
+    else:
+        total = bull_w + bear_w
+        pct = round(bull_w / total * 100)
+        if pct >= CROWD_EXTREME:
+            label = "ज़्यादातर बुलिश सोच"
+        elif pct <= CROWD_LOW:
+            label = "ज़्यादातर बियरिश सोच"
+        else:
+            label = "सोच बँटी हुई"
+        bull_score = round(max(0.0, bull_w - bear_w) / total * 100, 1)
+        bear_score = round(max(0.0, bear_w - bull_w) / total * 100, 1)
+        neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
+        sentiment = ("BULLISH" if bull_score > max(bear_score, neutral_score)
+                     else "BEARISH" if bear_score > max(bull_score, neutral_score) else "NEUTRAL")
+    rising_all = [it for it in queries.values() if it.get("rising")]
+    return {
+        "crowd_bull_pct": pct, "crowd_label": label,
+        "bull_sum_pct": round(bull_w, 1), "bear_sum_pct": round(bear_w, 1),
+        "min_side_pct": TQ_MIN_WEIGHT,
+        "crowd_terms": crowd_terms[:20],
+        "spikes": spikes[:10],
+        "hidden_spikes": max(0, len(rising_all) - len(spikes)),
+        "bull_score_pct": bull_score, "bear_score_pct": bear_score,
+        "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "related_queries_7d",
+        "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
+        "queries_total": len(queries),
+    }
+
+
 def _trends_once():
-    """एक बार Google Trends से डेटा लेता है। 429 या कोई भी एरर ऊपर फेंकता है।
-    फ़ियर के नंबर अंकों (points) में हैं; भीड़ के नंबर 'nifty' की खोज के प्रतिशत में हैं।"""
+    """Google Trends से: (1) nifty/sensex की खोज-रुचि (ध्यान), (2) उनके साथ खोजे गए असली वाक्यांश
+    (related queries) को बुलिश/बियरिश शब्दों से बाँटकर भीड़ का मूड। 429 या खाली जवाब पर ऊपर फेंकता है।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-
-    # 1) फ़ियर मेट्रिक (एक अनुरोध)
-    df_f = _trends_request(py, FEAR_TERMS)
-    fear_df = df_f[FEAR_TERMS]
-    if float(fear_df.values.max()) == 0:
+    py.build_payload(TQ_BASE_TERMS, timeframe="now 7-d", geo="IN")
+    df = py.interest_over_time()
+    if df is None or df.empty:
+        raise ValueError("Google से खाली डेटा मिला")
+    df = df[TQ_BASE_TERMS].fillna(0)
+    if float(df.values.max()) == 0:
         raise ValueError("सभी खोजों का डेटा शून्य है")
-    base = float(fear_df.mean(axis=1).mean())
-    recent = float(fear_df.tail(24).mean(axis=1).mean())
-    fear_pts = round(recent - base, 1)
-    per_term = []
-    for t in FEAR_TERMS:
-        b = float(fear_df[t].mean())
-        r = float(fear_df[t].tail(24).mean())
-        per_term.append({"term": t, "pts": round(r - b, 1), "now": round(r, 1), "avg": round(b, 1)})
+    base = float(df.mean(axis=1).mean())
+    recent = float(df.tail(24).mean(axis=1).mean())
+    attention = round(recent - base, 1)
 
-    # 2) भीड़ का मूड: बुलिश और बियरिश शब्द, 4-4 के समूहों में, हर समूह के साथ ANCHOR
-    bull_pct_sum = 0.0
-    bear_pct_sum = 0.0
-    bull_today_sum = 0.0
-    bear_today_sum = 0.0
-    bull_yesterday_sum = 0.0
-    bear_yesterday_sum = 0.0
-    crowd_terms = []
-    ist_now = dt.datetime.now(dt.timezone.utc).astimezone(
-        dt.timezone(dt.timedelta(hours=5, minutes=30)))
-    today_ist = ist_now.strftime("%Y-%m-%d")
-    yesterday_ist = (ist_now.date() - dt.timedelta(days=1)).isoformat()
-    for side, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
-        for chunk in _chunks(terms, TERM_CHUNK):
-            time.sleep(8)
-            df = _trends_request(py, chunk)
-            for t in chunk:
-                r_now, r_avg = _ratio(df, t)
-                today_pct = _period_ratio(df, t, today_ist)
-                yesterday_pct = _period_ratio(df, t, yesterday_ist)
-                if side == "bull":
-                    bull_pct_sum += r_now * 100
-                    if today_pct is not None:
-                        bull_today_sum += today_pct
-                    if yesterday_pct is not None:
-                        bull_yesterday_sum += yesterday_pct
+    queries = {}
+    for kw in TQ_BASE_TERMS:
+        time.sleep(5)
+        py.build_payload([kw], timeframe="now 7-d", geo="IN")
+        rq = py.related_queries().get(kw, {}) or {}
+        for kind in ("top", "rising"):
+            d = rq.get(kind)
+            if d is None or d.empty:
+                continue
+            for _, row in d.head(25).iterrows():
+                q = str(row["query"]).strip()
+                if not q or q.lower() in TQ_BASE_TERMS:
+                    continue
+                w = tq_weight(row["value"])
+                key = q.lower()
+                prev = queries.get(key)
+                is_rising = (kind == "rising") or bool(prev and prev.get("rising"))
+                if prev is None or prev["weight"] < w:
+                    queries[key] = {"term": q, "weight": w, "rising": is_rising}
                 else:
-                    bear_pct_sum += r_now * 100
-                    if today_pct is not None:
-                        bear_today_sum += today_pct
-                    if yesterday_pct is not None:
-                        bear_yesterday_sum += yesterday_pct
-                crowd_terms.append({
-                    "term": t, "dir": side,
-                    "now": round(r_now * 100, 2), "avg": round(r_avg * 100, 2),
-                    "today_pct": today_pct, "yesterday_pct": yesterday_pct,
-                })
+                    prev["rising"] = is_rising
 
-    # सभी शब्दों में now और average शून्य हों तो इसे सफल रीडिंग न मानें।
-    # Google Trends कभी-कभी खाली/अधूरा जवाब देता है; उसे वैध डेटा बनाकर नहीं दिखाना चाहिए।
-    active_bull = sum(1 for p in crowd_terms if p["dir"] == "bull" and (p["now"] > 0 or p["avg"] > 0))
-    active_bear = sum(1 for p in crowd_terms if p["dir"] == "bear" and (p["now"] > 0 or p["avg"] > 0))
-    # केवल एक तरफ़ का बहुत छोटा/शून्य डेटा देखकर झूठा 100% मूड न बनाएं।
-    if (not crowd_terms
-            or active_bull == 0 or active_bear == 0
-            or active_bull + active_bear < 2
-            or bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT):
-        raise ValueError(
-            f"Google Trends crowd data अपर्याप्त: सक्रिय बुलिश शब्द {active_bull}, "
-            f"बियरिश शब्द {active_bear}; दोनों तरफ़ पर्याप्त खोज नहीं"
-        )
-
-    crowd_bull_pct, crowd_label = crowd_decision(bull_pct_sum, bear_pct_sum)
-    crowd_total = bull_pct_sum + bear_pct_sum
-    # तीन स्कोर 100% बनाते हैं: एक तरफ़ का शुद्ध अंतर directional score है,
-    # और बचा हिस्सा mixed/neutral खोज भावना है।
-    bull_score_pct = round(max(0.0, bull_pct_sum - bear_pct_sum) / crowd_total * 100, 1)
-    bear_score_pct = round(max(0.0, bear_pct_sum - bull_pct_sum) / crowd_total * 100, 1)
-    neutral_score_pct = round(max(0.0, 100.0 - bull_score_pct - bear_score_pct), 1)
-    sentiment_label = (
-        "BULLISH" if bull_score_pct > max(bear_score_pct, neutral_score_pct)
-        else "BEARISH" if bear_score_pct > max(bull_score_pct, neutral_score_pct)
-        else "NEUTRAL"
-    )
-
-    # 3) Fetch actual Google Trends rising queries for Nifty, filtering market-related terms.
-    # If Google rate-limits this extra request, preserve the main sentiment data.
-    spikes = []
-    try:
-        py.build_payload(["nifty"], timeframe="now 7-d", geo="IN")
-        related = py.related_queries() or {}
-        entry = related.get("nifty") or {}
-        rising = entry.get("rising")
-        if rising is not None and not rising.empty:
-            market_terms = ("nifty", "sensex", "stock", "market", "share", "bank", "option",
-                            "call", "put", "ce", "pe", "trading", "bull", "bear", "crash",
-                            "rally", "fall", "target", "support", "resistance", "gift")
-            for _, row in rising.iterrows():
-                query = str(row.get("query", "")).strip()
-                growth = row.get("value")
-                qlow = query.lower()
-                if query and any(word in qlow for word in market_terms):
-                    spikes.append({"query": query, "growth": str(growth) if growth is not None else "Breakout",
-                                   "source": "Google Trends Rising", "stock": None})
-                if len(spikes) >= 10:
-                    break
-    except Exception as exc:
-        print(f"Google Trends rising queries unavailable (main data retained): {exc}")
-
-    today_total = bull_today_sum + bear_today_sum
-    yesterday_total = bull_yesterday_sum + bear_yesterday_sum
-    # If Google Trends has no rows for today's IST calendar date, use the
-    # actual rolling 24-hour terms already fetched and label the basis clearly.
-    today_basis = "calendar_day"
-    if today_total <= 0 and (bull_pct_sum + bear_pct_sum) > 0:
-        bull_today_sum = bull_pct_sum
-        bear_today_sum = bear_pct_sum
-        today_total = bull_today_sum + bear_today_sum
-        today_basis = "rolling_24h"
-    today_bull_pct = round(bull_today_sum / today_total * 100, 1) if today_total > 0 else None
-    yesterday_bull_pct = round(bull_yesterday_sum / yesterday_total * 100, 1) if yesterday_total > 0 else None
-    today_label = crowd_decision(bull_today_sum, bear_today_sum)[1] if today_total > 0 else "डेटा उपलब्ध नहीं"
-    yesterday_label = crowd_decision(bull_yesterday_sum, bear_yesterday_sum)[1] if yesterday_total > 0 else "कल का डेटा उपलब्ध नहीं"
-
-    return {"ok": True, "unit": "points", "fear_vs_avg": fear_pts,
-            "per_term": per_term, "spikes": spikes[:10],
-            "crowd_bull_pct": crowd_bull_pct, "crowd_label": crowd_label,
-            "bull_score_pct": bull_score_pct, "bear_score_pct": bear_score_pct,
-            "neutral_score_pct": neutral_score_pct, "sentiment_label": sentiment_label,
-            "today_bull_pct": today_bull_pct, "today_label": today_label,
-            "today_basis": today_basis,
-            "yesterday_bull_pct": yesterday_bull_pct, "yesterday_label": yesterday_label,
-            "today_date_ist": today_ist, "yesterday_date_ist": yesterday_ist,
-            "bull_sum_pct": round(bull_pct_sum, 2), "bear_sum_pct": round(bear_pct_sum, 2),
-            "min_side_pct": MIN_SIDE_PCT,
-            "crowd_terms": crowd_terms}
+    out = {"ok": True, "unit": "points", "fear_vs_avg": attention, "per_term": []}
+    out.update(tq_aggregate(queries))
+    return out
 
 
 def fetch_trends():
