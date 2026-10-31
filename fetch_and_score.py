@@ -1068,7 +1068,7 @@ OPP_STOCKS = {
     "SUZLON": ("SUZLON.NS", "Suzlon Energy"),
     "DLINKINDIA": ("DLINKINDIA.NS", "D-Link (India)"),
     "VEDL": ("VEDL.NS", "Vedanta"),
-    "APOLLOMICRO": ("APOLLOMICRO.NS", "Apollo Micro Systems"),
+    "APOLLOMICRO": ("APOLLO.NS", "Apollo Micro Systems"),
     "MSUMI": ("MSUMI.NS", "Motherson Sumi Wiring India"),
     "PARAS": ("PARAS.NS", "Paras Defence and Space Technologies"),
     "IOC": ("IOC.NS", "Indian Oil Corporation"),
@@ -1126,6 +1126,7 @@ def opportunity_raw(sym):
             "industry": info.get("industry") or "अज्ञात",
             "valuation": pe if (pe is not None and pe > 0) else None,
             "growth": (sum(growth_vals) / len(growth_vals)) if growth_vals else None,
+            "growth_factor": (sum(growth_vals) / len(growth_vals)) if growth_vals else None,
             "profitability": (sum(prof_vals) / len(prof_vals)) if prof_vals else None,
             "trend": trend,
             "rsi": _rsi14(closes),
@@ -1253,8 +1254,10 @@ def score_opportunities(raws):
     for name, r in ok.items():
         scores = {}
         for f in OPP_FACTORS:
-            vals = [x[f] for x in ok.values() if x.get(f) is not None]
-            scores[f] = _pct_rank(r.get(f), vals, spec[f])
+            source_key = "growth_factor" if f == "growth" else f
+            vals = [x[source_key] for x in ok.values()
+                    if isinstance(x.get(source_key), (int, float)) and math.isfinite(x[source_key])]
+            scores[f] = _pct_rank(r.get(source_key), vals, spec[f])
         avail = [s for s in scores.values() if s is not None]
         r["scores"] = scores
         r["total"] = round(sum(avail) / len(avail), 1) if avail else None
@@ -1404,7 +1407,7 @@ TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull
                  "jump", "surge", "gain", "टारगेट", "रैली", "तेज़ी", "उछाल", "ऊपर", "बुलिश", "खरीद"]
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
                  "decline", "sell-off", "गिरावट", "गिरेगा", "नीचे", "मंदी", "बेयरिश", "बिकवाली"]
-TQ_MIN_WEIGHT = 20  # दोनों तरफ़ कुल खोज-वज़न इतना हो, तभी प्रतिशत बने
+TQ_MIN_WEIGHT = 1.0  # Nifty anchor के मुकाबले दोनों तरफ़ कम-से-कम 1% संयुक्त रुचि जरूरी
 
 
 def tq_dir(q):
@@ -1479,48 +1482,71 @@ def tq_aggregate(queries):
 
 
 def _trends_once():
-    """Google Trends से: (1) nifty/sensex की खोज-रुचि (ध्यान), (2) उनके साथ खोजे गए असली वाक्यांश
-    (related queries) को बुलिश/बियरिश शब्दों से बाँटकर भीड़ का मूड। 429 या खाली जवाब पर ऊपर फेंकता है।"""
+    """Google Trends: anchor के साथ संतुलित bull/bear शब्दों की 7-दिन की सापेक्ष रुचि।
+    Related Queries खाली होने पर भी निर्धारित शब्दों को सीधे जाँचता है; शून्य/अपर्याप्त डेटा को सफल नहीं मानता।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
     py.build_payload(TQ_BASE_TERMS, timeframe="now 7-d", geo="IN")
-    df = py.interest_over_time()
-    if df is None or df.empty:
-        raise ValueError("Google से खाली डेटा मिला")
-    df = df[TQ_BASE_TERMS].fillna(0)
-    if float(df.values.max()) == 0:
-        raise ValueError("सभी खोजों का डेटा शून्य है")
-    base = float(df.mean(axis=1).mean())
-    recent = float(df.tail(24).mean(axis=1).mean())
+    base_df = py.interest_over_time()
+    if base_df is None or base_df.empty:
+        raise ValueError("Google Trends से खाली आधार डेटा मिला")
+    base_df = base_df[TQ_BASE_TERMS].fillna(0)
+    if float(base_df.values.max()) <= 0:
+        raise ValueError("Google Trends का आधार डेटा शून्य है")
+    base = float(base_df.mean(axis=1).mean())
+    recent = float(base_df.tail(24).mean(axis=1).mean())
     attention = round(recent - base, 1)
 
+    # हर अनुरोध में ANCHOR + अधिकतम 4 शब्द; anchor अनुपात अलग बैचों को तुलनीय बनाता है।
     queries = {}
-    for kw in TQ_BASE_TERMS:
-        time.sleep(5)
-        py.build_payload([kw], timeframe="now 7-d", geo="IN")
-        rq = py.related_queries().get(kw, {}) or {}
-        for kind in ("top", "rising"):
-            d = rq.get(kind)
-            if d is None or d.empty:
-                continue
-            for _, row in d.head(25).iterrows():
-                q = str(row["query"]).strip()
-                if not q or q.lower() in TQ_BASE_TERMS:
-                    continue
-                w = tq_weight(row["value"])
-                key = q.lower()
-                prev = queries.get(key)
-                is_rising = (kind == "rising") or bool(prev and prev.get("rising"))
-                if prev is None or prev["weight"] < w:
-                    queries[key] = {"term": q, "weight": w, "rising": is_rising}
-                else:
-                    prev["rising"] = is_rising
+    for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
+        for chunk in _chunks(terms, TERM_CHUNK):
+            df = _trends_request(py, chunk)
+            for term in chunk:
+                recent_ratio, average_ratio = _ratio(df, term)
+                queries[term.lower()] = {
+                    "term": term, "weight": round(max(0.0, recent_ratio) * 100, 2),
+                    "avg_weight": round(max(0.0, average_ratio) * 100, 2),
+                    "rising": False, "direction": direction
+                }
 
-    out = {"ok": True, "unit": "points", "fear_vs_avg": attention, "per_term": []}
-    out.update(tq_aggregate(queries))
-    return out
+    bull_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bull")
+    bear_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bear")
+    if bull_total < TQ_MIN_WEIGHT or bear_total < TQ_MIN_WEIGHT:
+        raise ValueError(
+            f"Google Trends में दोनों पक्षों का पर्याप्त डेटा नहीं "
+            f"(bull={bull_total:.2f}, bear={bear_total:.2f}, minimum={TQ_MIN_WEIGHT})"
+        )
 
+    total = bull_total + bear_total
+    bull_pct = round(bull_total / total * 100)
+    bull_score = round(max(0.0, bull_total - bear_total) / total * 100, 1)
+    bear_score = round(max(0.0, bear_total - bull_total) / total * 100, 1)
+    neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
+    label = ("ज़्यादातर बुलिश सोच" if bull_pct >= CROWD_EXTREME
+             else "ज़्यादातर बियरिश सोच" if bull_pct <= CROWD_LOW else "सोच बँटी हुई")
+    sentiment = ("BULLISH" if bull_score > max(bear_score, neutral_score)
+                 else "BEARISH" if bear_score > max(bull_score, neutral_score) else "NEUTRAL")
+
+    crowd_terms = [{
+        "term": x["term"], "dir": x["direction"], "now": x["weight"],
+        "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
+    } for x in queries.values()]
+    crowd_terms.sort(key=lambda x: x["now"], reverse=True)
+    print(f"Google Trends validated: bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
+    return {
+        "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
+        "crowd_bull_pct": bull_pct, "crowd_label": label,
+        "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
+        "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms[:20],
+        "spikes": [], "hidden_spikes": 0,
+        "bull_score_pct": bull_score, "bear_score_pct": bear_score,
+        "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "7d_anchor_relative",
+        "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
+        "queries_total": len(queries)
+    }
 
 def fetch_trends():
     """Google 429 देने पर थोड़ी देर रुककर दोबारा कोशिश करता है।
@@ -1747,6 +1773,7 @@ def main():
                     r.update(opportunity_extra(sym, market_1y, holding))
             score_opportunities(raws)
             for k, r in raws.items():
+                r.pop("growth_factor", None)  # scoring-only field; keep Dashboard growth details unchanged
                 r["name"] = OPP_STOCKS[k][1]
             result["opportunity"] = raws
             result["opportunity_slot"] = slot_now
