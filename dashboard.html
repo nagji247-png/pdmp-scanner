@@ -620,7 +620,8 @@ function card(name, d, participantOI) {
     </details>`;
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
-    if (ev.target.closest && ev.target.closest("details, a, button")) return;
+    const inner = ev.target.closest && ev.target.closest("details, a, button");
+    if (inner && el.contains(inner)) return;
     openChart(name);
   });
   return el;
@@ -1250,7 +1251,7 @@ function stockParamCard(name, data) {
   const cap = d.market_cap_cr == null ? "—" : "₹" + Number(d.market_cap_cr).toLocaleString("en-IN") + " cr";
   const up = d.upside_to_target_pct;
   const price = ins.price == null ? "—" : "₹" + Number(ins.price).toLocaleString("en-IN");
-  return `<div class="card" style="margin-top:10px">
+  return `<div class="card" style="margin-top:10px;cursor:pointer" onclick="openChart('${esc(name)}')">
     <div class="name">${esc(name)} · ${esc(d.sector || "")}</div>
     <div class="ev"><div>कीमत / बदलाव</div><div>${price} · ${ins.change_pct == null ? "—" : ins.change_pct + "%"}</div></div>
     <div class="ev"><div>स्कोर</div><div>${ins.score == null ? "—" : ins.score}</div></div>
