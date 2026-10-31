@@ -765,7 +765,7 @@ function renderFlow(f) {
     </div>`;
 }
 
-const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
+const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY", "USDINR"];
 
 function createSilverProjectionCard() {
   const el = document.createElement("div");
@@ -1827,7 +1827,7 @@ function renderFoPanel(po, instData) {
 const CHART_SYMBOLS = {
   NIFTY: "NSE:NIFTY", SENSEX: "BSE:SENSEX", BANKNIFTY: "NSE:BANKNIFTY",
   GOLD: "MCX:GOLD1!", SILVER: "MCX:SILVER1!", CRUDEOIL: "TVC:USOIL",
-  BITCOIN: "BINANCE:BTCUSDT", NASDAQ: "NASDAQ:IXIC", DJI: "TVC:DJI"
+  BITCOIN: "BINANCE:BTCUSDT", NASDAQ: "NASDAQ:IXIC", DJI: "TVC:DJI", USDINR: "FX_IDC:USDINR"
 };
 
 function openChart(name) {
