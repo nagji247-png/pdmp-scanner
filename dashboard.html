@@ -770,62 +770,70 @@ const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY", "USDINR"];
 function createSilverProjectionCard() {
   const el = document.createElement("div");
   el.className = "card silver-projection-card";
-  el.style.cssText = "box-sizing:border-box;width:100%;min-width:0;align-self:stretch;background:linear-gradient(145deg,#101d31,#0b1425);border:1px solid #31506d;border-top:4px solid #b9c8d8;border-radius:14px;padding:10px;color:#e6edf3;box-shadow:0 8px 22px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.05)";
+  el.style.cssText = "box-sizing:border-box;width:100%;min-width:0;grid-column:1/-1;align-self:stretch;background:#030d1d!important;color:#fff!important;border:1px solid #1c4b82;border-radius:12px;padding:0;overflow:hidden;box-shadow:0 0 15px rgba(0,0,0,.65)";
   const years = [
-    {year:"2025", growth:"शुरुआती कीमत", price:"₹75,000", height:15},
-    {year:"2026", growth:"100%", price:"₹1,50,000", height:35},
-    {year:"2027", growth:"75%", price:"₹2,62,500", height:55},
-    {year:"2028", growth:"50%", price:"₹3,93,750", height:75},
-    {year:"2029", growth:"25%", price:"₹4,92,187.50", height:95}
+    {year:"2025", growth:"शुरुआती कीमत", price:"₹75,000", width:0, cls:"", color:"#a0aab5"},
+    {year:"2026", growth:"+100%", price:"₹1,50,000", width:100, cls:"fill-100", color:"#39ff14"},
+    {year:"2027", growth:"+75%", price:"₹2,62,500", width:75, cls:"fill-75", color:"#00d0ff"},
+    {year:"2028", growth:"+50%", price:"₹3,93,750", width:50, cls:"fill-50", color:"#ffb300"},
+    {year:"2029", growth:"+25%", price:"₹4,92,187.50", width:25, cls:"fill-25", color:"#ffcc00"}
   ];
-  const bars = years.map(item => `
-    <div style="flex:1;min-width:0;height:65px;position:relative">
-      <div style="position:absolute;left:50%;bottom:calc(${item.height}% + 4px);transform:translateX(-50%);font-size:clamp(7px,1.4vw,10px);font-weight:800;color:#e6edf3;white-space:nowrap">${item.price}</div>
-      <div style="position:absolute;bottom:0;left:12%;width:76%;height:${item.height}%;background:linear-gradient(180deg,#e4edf5,#8296aa);border:1px solid #d2dce6;border-radius:5px 5px 0 0"></div>
-      <div style="position:absolute;bottom:-17px;left:0;width:100%;text-align:center;font-size:11px;color:#aab2c5">${item.year}</div>
-    </div>`).join("");
   const rows = years.map(item => `
-    <tr>
-      <td style="padding:5px 4px;border-bottom:1px solid #293b50">${item.year}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #293b50;text-align:center">${item.growth}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #293b50;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
-    </tr>`).join("");
+    <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);align-items:center;gap:7px;padding:9px 0;border-bottom:1px solid #1a3a60;color:#fff">
+      <div style="font-size:13px;font-weight:700;color:${item.year==="2029"?"#fff":"#d0d0d0"}">${item.year}</div>
+      <div style="min-width:0;display:flex;align-items:center;gap:7px">
+        ${item.width ? `<div style="height:16px;flex:1;min-width:35px;background:#1a2737;border-radius:20px;overflow:hidden;box-shadow:inset 0 2px 5px rgba(0,0,0,.5)"><div style="height:100%;width:${item.width}%;border-radius:20px;background:${item.width===100?"linear-gradient(90deg,#1fdf2d,#42ff14)":item.width===75?"linear-gradient(90deg,#0099cc,#00d0ff)":item.width===50?"linear-gradient(90deg,#cc8800,#ffb300)":"linear-gradient(90deg,#8800cc,#b700ff)"};box-shadow:0 0 9px ${item.color}"></div></div>` : `<span style="font-size:11px;color:#a0aab5;white-space:nowrap">शुरुआती कीमत</span>`}
+        <b style="font-size:12px;color:${item.year==="2029"?"#ffcc00":"#fff"};width:48px;text-align:right;flex:0 0 48px">${item.width?item.growth:""}</b>
+      </div>
+      <div style="text-align:right;white-space:nowrap;font-size:12px;font-weight:800;color:${item.year==="2029"?"#ffcc00":"#fff"}">${item.price}</div>
+    </div>`).join("");
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <div aria-label="चाँदी की बटिया" role="img" style="width:54px;height:43px;flex:0 0 54px;display:flex;align-items:center;justify-content:center">
-        <svg viewBox="0 0 100 72" width="54" height="43" aria-hidden="true">
-          <defs><linearGradient id="silverBarGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#c8d4df"/><stop offset="1" stop-color="#71869a"/></linearGradient></defs>
-          <path d="M17 23 31 8h54L72 23Z" fill="#edf3f8" stroke="#aebdca" stroke-width="2"/>
-          <path d="M17 23h55v35H17z" fill="url(#silverBarGrad)" stroke="#9aabba" stroke-width="2"/>
-          <path d="M72 23 85 8v35L72 58Z" fill="#879bad" stroke="#9aabba" stroke-width="2"/>
-          <text x="44" y="45" text-anchor="middle" font-size="13" font-weight="900" fill="#52677a">Ag</text>
-        </svg>
+    <div style="background:linear-gradient(90deg,#010813,#0a1835,#010813);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 12px;border-bottom:2px solid #1c4b82">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <div aria-label="चाँदी की बटिया" role="img" style="width:54px;height:43px;flex:0 0 54px;position:relative;background:linear-gradient(135deg,#e3e6e8,#9ba3ab,#57606a);border:1px solid #fff;border-radius:5px;box-shadow:0 0 10px rgba(255,255,255,.35);clip-path:polygon(14% 22%,28% 0,100% 0,84% 100%,0 100%)">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#34404b;font-size:12px;font-weight:900">Ag</div>
+        </div>
+        <div style="min-width:0">
+          <div style="font-family:Georgia,serif;font-size:clamp(17px,3vw,25px);font-weight:900;line-height:1.1;color:#fff">Silver Price <span style="color:#00d0ff;text-shadow:0 0 5px rgba(0,208,255,.6)">अनुमान</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px 7px;margin-top:5px;font-size:clamp(9px,1.8vw,12px);font-weight:800">
+            <span style="color:#fff">2025 - 2029</span><span style="color:#ffcc00;font-style:italic">— चाँदी सा चमकता भविष्य —</span>
+          </div>
+        </div>
       </div>
-      <div style="min-width:0">
-        <div style="font-size:clamp(15px,2.4vw,19px);font-weight:900;color:#f0f6fc;line-height:1.2">Silver Price अनुमान</div>
-        <div style="font-size:11px;color:#c3d1df;margin-top:4px;line-height:1.35">2025 - 2029 — चाँदी सा चमकता भविष्य —</div>
+      <div style="flex:0 0 auto;background:#000;border:2px solid #ffcc00;border-radius:10px;padding:6px 8px;text-align:center;box-shadow:0 0 12px rgba(255,204,0,.2)">
+        <div style="font-size:9px;color:#fff;font-weight:800">2029 अनुमान</div>
+        <div style="font-size:clamp(12px,2.4vw,20px);color:#ffcc00;font-weight:900;white-space:nowrap">₹4,92,187.50 <span style="color:#39ff14">⬆</span></div>
+        <div style="font-size:9px;color:#ccc">प्रति किलो</div>
       </div>
     </div>
-    <div style="font-size:12px;font-weight:800;color:#cbd9e8;margin-top:7px">Commodity Trend</div>
-    <div style="display:flex;align-items:stretch;gap:5px;margin-top:4px;padding:3px 2px 14px;border-bottom:1px solid #344b62">${bars}</div>
-    <div style="font-size:12px;font-weight:800;color:#cbd9e8;margin-top:13px;margin-bottom:3px">सालाना अनुमान</div>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:11px;color:#e6edf3">
-        <thead><tr style="color:#b9c9d8;text-align:left">
-          <th style="padding:5px 4px;border-bottom:1px solid #64788b">साल</th>
-          <th style="padding:5px 4px;border-bottom:1px solid #64788b;text-align:center">बढ़ोतरी</th>
-          <th style="padding:5px 4px;border-bottom:1px solid #64788b;text-align:right">चांदी की कीमत</th>
-        </tr></thead><tbody>${rows}</tbody>
-      </table>
+    <div style="padding:11px;background:linear-gradient(180deg,#051021,#02070f)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:7px">
+        <div style="font-size:12px;font-weight:800;color:#fff">📈 Commodity Trend (₹ per Kg)</div>
+        <div style="background:#ffcc00;color:#000;font-size:10px;font-weight:900;padding:3px 8px;border-radius:12px">₹4,92,187.50</div>
+      </div>
+      <svg viewBox="0 0 500 220" style="width:100%;height:auto;display:block" role="img" aria-label="2025 से 2029 तक चाँदी के अनुमानित मूल्य का ग्राफ">
+        <defs><linearGradient id="silverAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00d0ff" stop-opacity=".5"/><stop offset="100%" stop-color="#00d0ff" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#14355c" stroke-width="1">
+          <path d="M30 20H480 M30 60H480 M30 100H480 M30 140H480 M30 180H480"/>
+          <path d="M60 20V185 M160 20V185 M260 20V185 M360 20V185 M460 20V185"/>
+        </g>
+        <g fill="#8bb4e7" font-size="10" font-weight="bold"><text x="5" y="24">5.0L</text><text x="5" y="64">4.0L</text><text x="5" y="104">3.0L</text><text x="5" y="144">2.0L</text><text x="5" y="184">1.0L</text>
+          <text x="60" y="205" text-anchor="middle">2025</text><text x="160" y="205" text-anchor="middle">2026</text><text x="260" y="205" text-anchor="middle">2027</text><text x="360" y="205" text-anchor="middle">2028</text><text x="460" y="205" text-anchor="middle">2029</text></g>
+        <polygon points="60,174 160,153 260,121 360,74 460,23 460,180 60,180" fill="url(#silverAreaGrad)"/>
+        <polyline points="60,174 160,153 260,121 360,74 460,23" fill="none" stroke="#00d0ff" stroke-width="2.5" style="filter:drop-shadow(0 0 3px #00d0ff)"/>
+        <g fill="#fff" stroke="#00d0ff" stroke-width="2"><circle cx="60" cy="174" r="3.5"/><circle cx="160" cy="153" r="3.5"/><circle cx="260" cy="121" r="3.5"/><circle cx="360" cy="74" r="3.5"/></g>
+        <g fill="#fff" font-size="10" font-weight="bold" text-anchor="middle"><text x="65" y="165" text-anchor="start">₹1,14,674</text><text x="160" y="143">₹1,67,820</text><text x="260" y="111">₹2,47,780</text><text x="360" y="64">₹3,65,354</text></g>
+        <circle cx="460" cy="23" r="6" fill="#ffcc00" style="filter:drop-shadow(0 0 8px #ffcc00)"/><circle cx="460" cy="23" r="3" fill="#fff"/>
+      </svg>
     </div>
-    <div style="margin-top:8px;padding:7px 5px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
-      <div style="font-size:12px;font-weight:800;color:#7ee787">अंतिम नतीजा</div>
-      <div style="font-size:12px;color:#d0d7de;margin-top:3px">2029 में अनुमानित चांदी की कीमत</div>
-      <div style="font-size:11px;color:#aab2c5;margin-top:2px">2025 की ₹75,000 की शुरुआती कीमत के आधार पर</div>
-      <div style="font-size:clamp(18px,3vw,24px);font-weight:900;color:#7ee787;margin-top:5px">₹4,92,187.50</div>
-      <div style="font-size:12px;color:#d0d7de">प्रति किलो</div>
-    </div>
-    <div style="font-size:10px;color:#8b949e;margin-top:6px">यह दिए गए प्रतिशतों पर आधारित अनुमान है, लाइव बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>`;
+    <div style="padding:12px;background:#0b1625;border-top:1px solid #1c4b82">
+      <div style="font-size:18px;font-weight:900;color:#f0f0f0;margin-bottom:10px">सालाना अनुमान</div>
+      <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);gap:7px;padding:7px 0;border-bottom:1px solid #1a3a60;color:#8bb4e7;font-size:12px;font-weight:900">
+        <div>साल</div><div>बढ़ोतरी</div><div style="text-align:right">चांदी की कीमत</div>
+      </div>
+      ${rows}
+      <div style="margin-top:13px;font-size:11px;color:#8899aa;line-height:1.5">नोट: यह मौजूदा कार्ड में दिए गए शुरुआती मूल्य और प्रतिशतों पर आधारित नमूना प्रोजेक्शन है; वास्तविक बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>
+    </div>`;
   return el;
 }
 function renderInstruments(instruments, participantOI) {
