@@ -770,7 +770,7 @@ const INDIAN_INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY", "USDINR"];
 function createSilverProjectionCard() {
   const el = document.createElement("div");
   el.className = "card silver-projection-card";
-  el.style.cssText = "box-sizing:border-box;width:100%;min-width:0;align-self:stretch;background:#121922;border:1px solid #232b35;border-top:4px solid #06b6d4;border-radius:12px;padding:6px;color:#e6edf3;box-shadow:inset 0 8px 15px -10px rgba(6,182,212,.3)";
+  el.style.cssText = "box-sizing:border-box;width:100%;min-width:0;align-self:stretch;background:linear-gradient(145deg,#101d31,#0b1425);border:1px solid #31506d;border-top:4px solid #b9c8d8;border-radius:14px;padding:10px;color:#e6edf3;box-shadow:0 8px 22px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.05)";
   const years = [
     {year:"2025", growth:"शुरुआती कीमत", price:"₹75,000", height:15},
     {year:"2026", growth:"100%", price:"₹1,50,000", height:35},
@@ -781,41 +781,53 @@ function createSilverProjectionCard() {
   const bars = years.map(item => `
     <div style="flex:1;min-width:0;height:65px;position:relative">
       <div style="position:absolute;left:50%;bottom:calc(${item.height}% + 4px);transform:translateX(-50%);font-size:clamp(7px,1.4vw,10px);font-weight:800;color:#e6edf3;white-space:nowrap">${item.price}</div>
-      <div style="position:absolute;bottom:0;left:12%;width:76%;height:${item.height}%;background:#3fb950;border-radius:5px 5px 0 0"></div>
+      <div style="position:absolute;bottom:0;left:12%;width:76%;height:${item.height}%;background:linear-gradient(180deg,#e4edf5,#8296aa);border:1px solid #d2dce6;border-radius:5px 5px 0 0"></div>
       <div style="position:absolute;bottom:-17px;left:0;width:100%;text-align:center;font-size:11px;color:#aab2c5">${item.year}</div>
     </div>`).join("");
   const rows = years.map(item => `
     <tr>
-      <td style="padding:2px 4px;border-bottom:1px solid #29323d">${item.year}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #29323d;text-align:center">${item.growth}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #29323d;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #293b50">${item.year}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #293b50;text-align:center">${item.growth}</td>
+      <td style="padding:5px 4px;border-bottom:1px solid #293b50;text-align:right;font-weight:700;white-space:nowrap">${item.price}</td>
     </tr>`).join("");
   el.innerHTML = `
-    <div style="font-size:15px;font-weight:800;color:#f0f6fc">Silver Price Projection</div>
-    <div style="font-size:12px;color:#aab2c5;margin-top:4px">चांदी की अनुमानित कीमत (2025-2029)</div>
-    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:5px">Commodity Trend</div>
-    <div style="display:flex;align-items:stretch;gap:5px;margin-top:4px;padding:3px 2px 14px;border-bottom:1px solid #34404d">${bars}</div>
-    <div style="font-size:12px;font-weight:800;color:#67e8f9;margin-top:13px;margin-bottom:3px">सालाना अनुमान</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div aria-label="चाँदी की बटिया" role="img" style="width:54px;height:43px;flex:0 0 54px;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 100 72" width="54" height="43" aria-hidden="true">
+          <defs><linearGradient id="silverBarGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#c8d4df"/><stop offset="1" stop-color="#71869a"/></linearGradient></defs>
+          <path d="M17 23 31 8h54L72 23Z" fill="#edf3f8" stroke="#aebdca" stroke-width="2"/>
+          <path d="M17 23h55v35H17z" fill="url(#silverBarGrad)" stroke="#9aabba" stroke-width="2"/>
+          <path d="M72 23 85 8v35L72 58Z" fill="#879bad" stroke="#9aabba" stroke-width="2"/>
+          <text x="44" y="45" text-anchor="middle" font-size="13" font-weight="900" fill="#52677a">Ag</text>
+        </svg>
+      </div>
+      <div style="min-width:0">
+        <div style="font-size:clamp(15px,2.4vw,19px);font-weight:900;color:#f0f6fc;line-height:1.2">Silver Price अनुमान</div>
+        <div style="font-size:11px;color:#c3d1df;margin-top:4px;line-height:1.35">2025 - 2029 — चाँदी सा चमकता भविष्य —</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:#cbd9e8;margin-top:7px">Commodity Trend</div>
+    <div style="display:flex;align-items:stretch;gap:5px;margin-top:4px;padding:3px 2px 14px;border-bottom:1px solid #344b62">${bars}</div>
+    <div style="font-size:12px;font-weight:800;color:#cbd9e8;margin-top:13px;margin-bottom:3px">सालाना अनुमान</div>
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:11px;color:#e6edf3">
-        <thead><tr style="color:#9fb0c2;text-align:left">
-          <th style="padding:5px 4px;border-bottom:1px solid #46515e">साल</th>
-          <th style="padding:5px 4px;border-bottom:1px solid #46515e;text-align:center">बढ़ोतरी</th>
-          <th style="padding:5px 4px;border-bottom:1px solid #46515e;text-align:right">चांदी की कीमत</th>
+        <thead><tr style="color:#b9c9d8;text-align:left">
+          <th style="padding:5px 4px;border-bottom:1px solid #64788b">साल</th>
+          <th style="padding:5px 4px;border-bottom:1px solid #64788b;text-align:center">बढ़ोतरी</th>
+          <th style="padding:5px 4px;border-bottom:1px solid #64788b;text-align:right">चांदी की कीमत</th>
         </tr></thead><tbody>${rows}</tbody>
       </table>
     </div>
-    <div style="margin-top:4px;padding:4px 5px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
+    <div style="margin-top:8px;padding:7px 5px;text-align:center;background:#172b28;border:1px solid #28634a;border-radius:9px">
       <div style="font-size:12px;font-weight:800;color:#7ee787">अंतिम नतीजा</div>
       <div style="font-size:12px;color:#d0d7de;margin-top:3px">2029 में अनुमानित चांदी की कीमत</div>
       <div style="font-size:11px;color:#aab2c5;margin-top:2px">2025 की ₹75,000 की शुरुआती कीमत के आधार पर</div>
       <div style="font-size:clamp(18px,3vw,24px);font-weight:900;color:#7ee787;margin-top:5px">₹4,92,187.50</div>
       <div style="font-size:12px;color:#d0d7de">प्रति किलो</div>
     </div>
-    <div style="font-size:10px;color:#8b949e;margin-top:4px">यह दिए गए प्रतिशतों पर आधारित अनुमान है, लाइव बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>`;
+    <div style="font-size:10px;color:#8b949e;margin-top:6px">यह दिए गए प्रतिशतों पर आधारित अनुमान है, लाइव बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>`;
   return el;
 }
-
 function renderInstruments(instruments, participantOI) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
