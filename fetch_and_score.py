@@ -9,6 +9,7 @@ INDEXES = {
     "NIFTY": ("^NSEI", '"Nifty 50" OR Nifty index OR Nifty 50 stocks India'),
     "SENSEX": ("^BSESN", '"BSE Sensex" OR Sensex index India'),
     "BANKNIFTY": ("^NSEBANK", '"Bank Nifty" OR Nifty Bank index OR banking index India'),
+    "USDINR": ("INR=X", "USD INR exchange rate India"),
     "GOLD": ("GC=F", "gold price"),
     "SILVER": ("SI=F", "silver price"),
     "CRUDEOIL": ("BZ=F", "Brent crude oil price"),
