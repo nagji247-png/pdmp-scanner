@@ -779,7 +779,7 @@ function createSilverProjectionCard() {
     {year:"2029", growth:"+25%", price:"₹4,92,187.50", width:25, cls:"fill-25", color:"#ffcc00"}
   ];
   const rows = years.map(item => `
-    <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);align-items:center;gap:7px;padding:9px 0;border-bottom:1px solid #1a3a60;color:#fff">
+    <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #1a3a60;color:#fff">
       <div style="font-size:13px;font-weight:700;color:${item.year==="2029"?"#fff":"#d0d0d0"}">${item.year}</div>
       <div style="min-width:0;display:flex;align-items:center;gap:7px">
         ${item.width ? `<div style="height:16px;flex:1;min-width:35px;background:#1a2737;border-radius:20px;overflow:hidden;box-shadow:inset 0 2px 5px rgba(0,0,0,.5)"><div style="height:100%;width:${item.width}%;border-radius:20px;background:${item.width===100?"linear-gradient(90deg,#1fdf2d,#42ff14)":item.width===75?"linear-gradient(90deg,#0099cc,#00d0ff)":item.width===50?"linear-gradient(90deg,#cc8800,#ffb300)":"linear-gradient(90deg,#8800cc,#b700ff)"};box-shadow:0 0 9px ${item.color}"></div></div>` : `<span style="font-size:11px;color:#a0aab5;white-space:nowrap">शुरुआती कीमत</span>`}
@@ -788,7 +788,7 @@ function createSilverProjectionCard() {
       <div style="text-align:right;white-space:nowrap;font-size:12px;font-weight:800;color:${item.year==="2029"?"#ffcc00":"#fff"}">${item.price}</div>
     </div>`).join("");
   el.innerHTML = `
-    <div style="background:linear-gradient(90deg,#010813,#0a1835,#010813);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 12px;border-bottom:2px solid #1c4b82">
+    <div style="background:linear-gradient(90deg,#010813,#0a1835,#010813);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:2px solid #1c4b82">
       <div style="display:flex;align-items:center;gap:10px;min-width:0">
         <div aria-label="चमकती चाँदी की बटिया" role="img" style="width:64px;height:48px;flex:0 0 64px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 48% 8%,rgba(255,255,255,.95) 0%,rgba(255,255,255,.25) 28%,transparent 58%),linear-gradient(145deg,#f8fbff 0%,#cbd3dc 18%,#7f8b99 42%,#eef3f8 57%,#8995a2 78%,#f9fcff 100%);border:1px solid #fff;border-radius:7px;clip-path:polygon(15% 24%,31% 3%,100% 3%,84% 100%,0 100%);box-shadow:inset 0 2px 5px rgba(255,255,255,.95),inset 0 -5px 9px rgba(25,35,48,.55),0 0 15px rgba(225,239,255,.65)">
           <div style="position:absolute;left:8%;top:17%;width:86%;height:2px;background:rgba(255,255,255,.95);transform:rotate(-8deg);box-shadow:0 0 7px 2px rgba(255,255,255,.8)"></div>
@@ -809,12 +809,12 @@ function createSilverProjectionCard() {
         <div style="font-size:9px;color:#ccc">प्रति किलो</div>
       </div>
     </div>
-    <div style="padding:11px;background:linear-gradient(180deg,#051021,#02070f)">
+    <div style="padding:7px 9px;background:linear-gradient(180deg,#051021,#02070f)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:7px">
         <div style="font-size:12px;font-weight:800;color:#fff">📈 Commodity Trend (₹ per Kg)</div>
         <div style="background:#ffcc00;color:#000;font-size:10px;font-weight:900;padding:3px 8px;border-radius:12px">₹4,92,187.50</div>
       </div>
-      <svg viewBox="0 0 500 220" style="width:100%;height:auto;display:block" role="img" aria-label="2025 से 2029 तक चाँदी के अनुमानित मूल्य का ग्राफ">
+      <svg viewBox="0 0 500 220" style="width:100%;height:auto;max-height:165px;display:block" role="img" aria-label="2025 से 2029 तक चाँदी के अनुमानित मूल्य का ग्राफ">
         <defs><linearGradient id="silverAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00d0ff" stop-opacity=".5"/><stop offset="100%" stop-color="#00d0ff" stop-opacity="0"/></linearGradient></defs>
         <g stroke="#14355c" stroke-width="1">
           <path d="M30 20H480 M30 60H480 M30 100H480 M30 140H480 M30 180H480"/>
@@ -830,13 +830,13 @@ function createSilverProjectionCard() {
         <text x="450" y="17" text-anchor="end" fill="#ffcc00" font-size="12" font-weight="bold">₹4,92,187.50</text>
       </svg>
     </div>
-    <div style="padding:12px;background:#0b1625;border-top:1px solid #1c4b82">
-      <div style="font-size:18px;font-weight:900;color:#f0f0f0;margin-bottom:10px">सालाना अनुमान</div>
-      <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);gap:7px;padding:7px 0;border-bottom:1px solid #1a3a60;color:#8bb4e7;font-size:12px;font-weight:900">
+    <div style="padding:8px 10px;background:#0b1625;border-top:1px solid #1c4b82">
+      <div style="font-size:18px;font-weight:900;color:#f0f0f0;margin-bottom:6px">सालाना अनुमान</div>
+      <div style="display:grid;grid-template-columns:52px minmax(0,1fr) minmax(94px,auto);gap:7px;padding:5px 0;border-bottom:1px solid #1a3a60;color:#8bb4e7;font-size:12px;font-weight:900">
         <div>साल</div><div>बढ़ोतरी</div><div style="text-align:right">चांदी की कीमत</div>
       </div>
       ${rows}
-      <div style="margin-top:13px;font-size:11px;color:#8899aa;line-height:1.5">नोट: यह मौजूदा कार्ड में दिए गए शुरुआती मूल्य और प्रतिशतों पर आधारित नमूना प्रोजेक्शन है; वास्तविक बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>
+      <div style="margin-top:8px;font-size:10px;color:#8899aa;line-height:1.5">नोट: यह मौजूदा कार्ड में दिए गए शुरुआती मूल्य और प्रतिशतों पर आधारित नमूना प्रोजेक्शन है; वास्तविक बाजार भाव या गारंटीड भविष्यवाणी नहीं।</div>
     </div>`;
   return el;
 }
