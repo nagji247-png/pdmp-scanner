@@ -618,6 +618,11 @@ function card(name, d, participantOI) {
       <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
       ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
     </details>`;
+  el.style.cursor = "pointer";
+  el.addEventListener("click", (ev) => {
+    if (ev.target.closest && ev.target.closest("details, a, button")) return;
+    openChart(name);
+  });
   return el;
 }
 
@@ -1816,6 +1821,17 @@ function renderFoPanel(po, instData) {
     <div id="foDetail"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
   renderFoDetail();
+}
+
+const CHART_SYMBOLS = {
+  NIFTY: "NSE:NIFTY", SENSEX: "BSE:SENSEX", BANKNIFTY: "NSE:BANKNIFTY",
+  GOLD: "MCX:GOLD1!", SILVER: "MCX:SILVER1!", CRUDEOIL: "TVC:USOIL",
+  BITCOIN: "BINANCE:BTCUSDT", NASDAQ: "NASDAQ:IXIC", DJI: "TVC:DJI"
+};
+
+function openChart(name) {
+  const sym = CHART_SYMBOLS[name] || ("NSE:" + name);
+  window.open("https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(sym), "_blank", "noopener");
 }
 
 async function load() {
