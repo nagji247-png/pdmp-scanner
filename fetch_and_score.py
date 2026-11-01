@@ -1571,7 +1571,8 @@ def fetch_trends():
                 last_err = str(e)
                 print(f"trends {timeframe} attempt {attempt + 1} failed: {last_err}")
                 insufficient = ("दोनों पक्षों का पर्याप्त डेटा नहीं" in last_err
-                                or "आधार डेटा शून्य" in last_err)
+                                or "आधार डेटा शून्य" in last_err
+                                or "खाली" in last_err)
                 if insufficient:
                     break
                 if attempt < TRENDS_RETRIES - 1:
