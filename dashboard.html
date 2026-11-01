@@ -230,6 +230,17 @@
   }
 
 
+  /* Gold Forecast card: bright, high-contrast and mobile readable */
+  .gold-forecast-card{grid-column:1/-1!important;overflow:hidden;border:1px solid #d7a83c;border-radius:16px;background:linear-gradient(145deg,#080f1e,#1a1427 55%,#080f1e);box-shadow:0 0 0 1px #f7d46a22,0 8px 26px #0008,0 0 22px #e5a92822;color:#fff}
+  .gold-summary{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;list-style:none;background:radial-gradient(ellipse at 40% 0%,#49320d 0,transparent 68%),linear-gradient(100deg,#0a1020,#1d1730);min-height:112px}
+  .gold-summary::-webkit-details-marker{display:none}.gold-art{flex:0 0 43%;max-width:190px;border:1px solid #ffe18a;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#74500c,#11101a 75%);box-shadow:0 0 16px #ffc83d55}.gold-art svg{display:block;width:100%;height:auto}
+  .gold-summary-copy{min-width:0;display:flex;flex-direction:column;gap:7px}.gold-summary-copy strong{font-size:clamp(17px,3.4vw,24px);line-height:1.25;color:#fff0a8;font-weight:950;text-shadow:0 0 10px #ffbd36a8,0 2px 2px #000}.gold-summary-copy span{font-size:clamp(12px,2.3vw,15px);font-weight:850;color:#fff}.gold-summary-copy small{font-size:11px;color:#ffe39a;font-weight:750}.gold-plus{margin-left:auto;color:#ffe18a;font-size:28px;text-shadow:0 0 12px #ffb52b}.gold-forecast-card[open] .gold-plus{transform:rotate(45deg)}
+  .gold-body{padding:12px;background:linear-gradient(180deg,#090e1a,#11172a)}.gold-base{padding:12px;border:1px solid #d8a83d;border-radius:12px;background:linear-gradient(100deg,#4a330d,#171322);display:flex;flex-direction:column;gap:5px}.gold-base span{font-size:13px;color:#ffe5a0;font-weight:850}.gold-base b{font-size:clamp(22px,5vw,30px);color:#fff4c6;font-weight:950;text-shadow:0 0 12px #ffbd3b88}.gold-base small{font-size:12px;color:#fff}
+  .gold-body h3{font-size:clamp(16px,3vw,20px);font-weight:950;color:#fff;margin:16px 0 9px}.gold-table-scroll{overflow-x:auto;border:1px solid #32405a;border-radius:10px}.gold-table{width:100%;border-collapse:collapse;min-width:520px;background:#0a1222}.gold-table th,.gold-table td{padding:10px 8px;border-bottom:1px solid #26344c;text-align:center;font-size:13px}.gold-table thead th{background:#17243a;color:#fff0b2;font-weight:950}.gold-table tbody th{color:#fff;font-size:14px}
+  .gold-logic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.gold-logic{padding:12px;border-radius:12px;border:1px solid #ffffff2b;min-width:0}.gold-logic.bear{background:linear-gradient(145deg,#51212c,#241421);border-color:#ff778766}.gold-logic.normal{background:linear-gradient(145deg,#574014,#21190d);border-color:#ffdc7a77}.gold-logic.bull{background:linear-gradient(145deg,#145035,#10251e);border-color:#75efaa77}.gold-logic h4{font-size:15px;line-height:1.35;margin:0 0 8px;color:#fff;font-weight:950}.gold-logic ul{padding-left:18px;margin:0;color:#fff;font-size:13px;line-height:1.55;font-weight:700}.gold-logic li{margin:0 0 6px}.gold-logic p{font-size:13px;line-height:1.5;font-weight:900;color:#fff;margin:9px 0 0;padding-top:8px;border-top:1px solid #ffffff38}
+  .gold-calc{margin-top:12px;padding:12px;border:1px solid #4b6c91;border-radius:12px;background:linear-gradient(135deg,#142d4a,#15162d)}.gold-calc h4{font-size:16px;color:#fff;font-weight:950;margin:0 0 8px}.gold-calc p{font-size:13px;color:#fff;line-height:1.6;margin:7px 0}.gold-calc b{color:#ffe49a}.gold-note{font-size:12px;line-height:1.6;color:#f0e5c8;background:#211c20;border-left:4px solid #d8a83d;padding:10px;border-radius:7px;margin-top:10px}
+  @media(max-width:700px){.gold-logic-grid{grid-template-columns:1fr}.gold-summary{gap:10px;padding:10px}.gold-art{flex-basis:42%}.gold-logic ul,.gold-logic p{font-size:14px}.gold-table th,.gold-table td{padding:9px 7px}}
+
   .trends-score-layout { display:flex; align-items:center; justify-content:center; gap:clamp(14px,3vw,30px); padding:8px 0 4px; min-width:0; }
   .trends-donut { width:clamp(104px,12vw,148px); aspect-ratio:1; flex:0 0 auto; border-radius:50%; display:grid; place-items:center; background:conic-gradient(#00d6a0 0 var(--bull),#f34f5d var(--bull) calc(var(--bull) + var(--bear)),#9ba9c4 calc(var(--bull) + var(--bear)) 100%); box-shadow:0 0 18px #1478c533; }
   .trends-donut-hole { width:70%; aspect-ratio:1; border-radius:50%; background:#071631; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; }
@@ -842,6 +853,24 @@ function createSilverProjectionCard() {
     </div>`;
   return el;
 }
+function createGoldForecastCard() {
+  const el = document.createElement("details");
+  el.className = "gold-forecast-card";
+  const base = 138485;
+  const scenarios = [
+    {key:"bear",title:"मंदी",color:"#ff9aa5",rates:[-8,2,-10,4],logic:["डॉलर मजबूत और अमेरिकी ब्याज दरें ऊँची रहें","सोने की मांग और केंद्रीय बैंक खरीद कमजोर पड़े","वैश्विक तनाव घटे और निवेशक जोखिम वाले एसेट चुनें"],result:"सोने की कीमत पर दबाव और गिरावट संभव।"},
+    {key:"normal",title:"सामान्य",color:"#ffe39a",rates:[3,7,-3,8],logic:["डॉलर और ब्याज दरों में सीमित बदलाव रहे","सोने की मांग और सप्लाई संतुलित रहें","केंद्रीय बैंकों की खरीद सामान्य रहे"],result:"उतार-चढ़ाव के साथ धीरे-धीरे बढ़त संभव।"},
+    {key:"bull",title:"तेजी",color:"#9bffc0",rates:[15,20,25,null],logic:["डॉलर कमजोर हो और अमेरिकी ब्याज दरें घटें","केंद्रीय बैंक और निवेशक खरीद बढ़ाएँ","युद्ध, महंगाई या संकट से सुरक्षित निवेश की मांग बढ़े"],result:"मजबूत मांग से तेज उछाल संभव; यह बहुत तेजी वाला परिदृश्य है।"}
+  ];
+  const fmt=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+  const pct=n=>(n>0?"+":"")+n+"%";
+  const rows=scenarios.map(sc=>{let prev=base;const vals=[{year:2026,price:base,change:0}];for(let i=0;i<3;i++){const price=Math.round(prev*(1+sc.rates[i]/100));vals.push({year:2027+i,price,change:sc.rates[i]});prev=price;}if(sc.key==="bull"){vals.push({year:2030,low:330000,high:380000,lo:Math.round((330000/prev-1)*100),hi:Math.round((380000/prev-1)*100)});}else{const rate=sc.rates[3];vals.push({year:2030,price:Math.round(prev*(1+rate/100)),change:rate});}return {sc,vals};});
+  const cells=year=>rows.map(({sc,vals})=>{const v=vals.find(x=>x.year===year);return `<td style="color:${sc.color};font-weight:900"><b>${v.low?fmt(v.low)+" – "+fmt(v.high):fmt(v.price)}</b><small style="display:block;font-size:12px;margin-top:3px">${v.low?pct(v.lo)+" से "+pct(v.hi):pct(v.change)}</small></td>`;}).join("");
+  const logic=rows.map(({sc})=>`<section class="gold-logic ${sc.key}"><h4>${sc.key==="bear"?"🔴":sc.key==="normal"?"🟡":"🟢"} ${sc.title} का लॉजिक</h4><ul>${sc.logic.map(x=>`<li>${x}</li>`).join("")}</ul><p>${sc.result}</p></section>`).join("");
+  el.innerHTML=`<summary class="gold-summary"><div class="gold-art" role="img" aria-label="चमकदार सुनहरी सोने की ईंटों का चित्र"><svg viewBox="0 0 360 150" aria-hidden="true"><defs><linearGradient id="goldBars" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8bd"/><stop offset=".25" stop-color="#ffd447"/><stop offset=".58" stop-color="#a96708"/><stop offset=".8" stop-color="#ffe98a"/><stop offset="1" stop-color="#8a4b00"/></linearGradient></defs><ellipse cx="180" cy="132" rx="145" ry="10" fill="#f7bd36" opacity=".25"/><g fill="url(#goldBars)" stroke="#fff0a0" stroke-width="2"><path d="M25 91 55 57 169 57 145 111 15 111Z"/><path d="M111 70 143 29 272 29 239 85 93 85Z"/><path d="M178 100 204 64 330 64 305 119 159 119Z"/></g><g fill="#fffbd2" font-size="11" font-weight="900" text-anchor="middle"><text x="88" y="91">999.9</text><text x="183" y="61">FINE GOLD</text><text x="250" y="105">999.9</text></g><path d="M25 20 31 7M44 30 54 19M314 22 323 8M333 34 346 26" stroke="#ffe58a" stroke-width="2" stroke-linecap="round"/></svg></div><div class="gold-summary-copy"><strong>🏢 खरा सोना 👇 खोलें</strong><span>2026–2030 · पूरा अनुमान और तेजी-मंदी का लॉजिक</span><small>टैप करके पूरा डेटा खोलें</small></div><b class="gold-plus">＋</b></summary>
+  <div class="gold-body"><div class="gold-base"><span>आधार भाव · 2026</span><b>${fmt(base)} / 10 ग्राम</b><small>दिया गया शुरुआती संदर्भ भाव; लाइव भाव नहीं।</small></div><h3>📊 सालाना अनुमान · ₹ प्रति 10 ग्राम</h3><div class="gold-table-scroll"><table class="gold-table"><thead><tr><th>साल</th><th>🔴 मंदी</th><th>🟡 सामान्य</th><th>🟢 तेजी</th></tr></thead><tbody>${[2026,2027,2028,2029,2030].map(y=>`<tr><th>${y}</th>${cells(y)}</tr>`).join("")}</tbody></table></div><h3>🧠 तेजी और मंदी के कारण</h3><div class="gold-logic-grid">${logic}</div><section class="gold-calc"><h4>🧮 गणना का लॉजिक</h4><p><b>अगले साल का भाव = पिछले साल का भाव × (1 + सालाना बदलाव % ÷ 100)</b></p><p>उदाहरण: 2027 सामान्य = ₹1,38,485 × 1.03 = लगभग ₹1,42,640। हर साल प्रतिशत अलग हो सकता है और नकारात्मक भी।</p><p>2030 तेजी का ₹3.30–3.80 लाख लक्ष्य बहुत तेज तेजी वाला परिदृश्य है, निश्चित लक्ष्य नहीं।</p></section><div class="gold-note">ये अनुमानित परिदृश्य हैं, प्रमाणित बाजार पूर्वानुमान या निवेश सलाह नहीं। अंतरराष्ट्रीय सोने की कीमत, USD/INR, ब्याज दर, केंद्रीय बैंक खरीद, महंगाई और भारतीय आयात लागत बदलने पर अनुमान बदलेंगे।</div></div>`;
+  return el;
+}
 function renderInstruments(instruments, participantOI) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
@@ -874,6 +903,7 @@ function renderInstruments(instruments, participantOI) {
   const projection = createSilverProjectionCard();
   projection.style.gridColumn = "1 / -1";
   glb.appendChild(projection);
+  glb.appendChild(createGoldForecastCard());
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
