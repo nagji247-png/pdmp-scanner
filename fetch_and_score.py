@@ -1505,6 +1505,19 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     base_df = base_df[TQ_BASE_TERMS].fillna(0)
     if float(base_df.values.max()) <= 0:
         raise ValueError("Google Trends का आधार डेटा शून्य है")
+    source_data_time = None
+    if timeframe == "now 1-d":
+        # Google Trends का आख़िरी observation भी हाल का होना चाहिए;
+        # केवल workflow का नया timestamp पुराने sample को नया नहीं बना सकता।
+        last_value = base_df.index[-1]
+        last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
+        if last_dt.tzinfo is None:
+            last_dt = last_dt.replace(tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+        last_utc = last_dt.astimezone(dt.timezone.utc)
+        age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
+        if age_minutes < -10 or age_minutes > 180:
+            raise ValueError(f"Google Trends का आख़िरी observation {age_minutes:.0f} मिनट पुराना/भविष्य का है; ताज़ा डेटा नहीं")
+        source_data_time = last_utc.isoformat()
     base = float(base_df.mean(axis=1).mean())
     recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
@@ -1555,6 +1568,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
         "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
         "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "source_data_time": source_data_time,
         "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
     }
