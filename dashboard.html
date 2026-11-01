@@ -937,6 +937,7 @@ function renderInstruments(instruments, participantOI) {
   glb.style.alignItems = "start";
 
   lastStockInstruments = instruments;
+  lastParticipantOI = participantOI;
   const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN"];
   for (const name of globalOrder) {
     const d = instruments[name];
@@ -1313,6 +1314,7 @@ let lastMapData = null;
 let sectorInit = false;
 let sectorMapOpen = false;
 let lastStockInstruments = {};
+let lastParticipantOI = null;
 
 function toggleSectorMap() {
   sectorMapOpen = !sectorMapOpen;
@@ -1528,7 +1530,7 @@ function renderSectorMapInner(data) {
     ).join("");
     const hosts = stockHost.querySelectorAll(".grid");
     Object.keys(stockGroups).sort().forEach((sector, i) => {
-      stockGroups[sector].forEach(([sym, item]) => hosts[i].appendChild(card(sym, item, null)));
+      stockGroups[sector].forEach(([sym, item]) => hosts[i].appendChild(card(sym, item, lastParticipantOI)));
     });
   }
 }
