@@ -986,11 +986,15 @@ function renderTrends(t) {
   const bullScore = Number(t.bull_score_pct);
   const bearScore = Number(t.bear_score_pct);
   const neutralScore = Number(t.neutral_score_pct);
-  const hasScores = [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
+  // 7-दिन related-query sample को आज का live crowd mood न दिखाएँ।
+  const hasCurrentMood = !failed && t.today_bull_pct != null
+    && t.today_basis !== "related_queries_7d"
+    && Number.isFinite(Number(t.today_bull_pct));
+  const hasScores = hasCurrentMood && [t.bull_score_pct, t.bear_score_pct, t.neutral_score_pct]
     .every(value => value != null && Number.isFinite(Number(value)));
   const fearValue = Number(t.bear_sum_pct);
   const greedValue = Number(t.bull_sum_pct);
-  const hasFearGreed = !failed && Number.isFinite(fearValue) && Number.isFinite(greedValue) && (fearValue + greedValue) > 0;
+  const hasFearGreed = hasCurrentMood && Number.isFinite(fearValue) && Number.isFinite(greedValue) && (fearValue + greedValue) > 0;
   const fearShare = hasFearGreed ? fearValue / (fearValue + greedValue) * 100 : null;
   const greedShare = hasFearGreed ? 100 - fearShare : null;
   const fearGreedBlock = hasFearGreed ? `
@@ -1005,7 +1009,7 @@ function renderTrends(t) {
       <div style="font-weight:800;margin-top:9px">${Math.abs(fearShare-greedShare)<5 ? "BALANCED" : fearShare>greedShare ? "FEAR-LEANING" : "GREED-LEANING"}</div>
       <div class="sub" style="margin-top:6px">Crash/fall खोज बनाम rally/rise खोज की आपसी सापेक्ष रुचि। यह वास्तविक खरीद/बिक्री या लोगों की संख्या नहीं है।</div>
     </div>` : "";
-  const scoreBlock = hasScores && !failed ? `
+  const scoreBlock = hasScores ? `
     <div class="trends-score-layout">
       <div class="trends-donut" style="--bull:${bullScore}%;--bear:${bearScore}%;--neutral:${neutralScore}%" role="img" aria-label="Bullish ${pctText(bullScore)}, Bearish ${pctText(bearScore)}, Neutral ${pctText(neutralScore)}">
         <div class="trends-donut-hole"><strong class="${t.sentiment_label === "BEARISH" ? "neg" : t.sentiment_label === "NEUTRAL" ? "neutral-score" : "pos"}">${esc(t.sentiment_label || "NO DATA")}</strong><b>${pctText(bullScore)}</b></div>
@@ -1044,7 +1048,12 @@ function renderTrends(t) {
 
   const allRows = ct.map(p => {
     const isBull = p.dir === "bull";
-    const tag = isBull ? '<span class="tag t-cont">बुलिश</span>' : '<span class="tag t-rev">बियरिश</span>';
+    const isBear = p.dir === "bear";
+    const tag = isBull
+      ? '<span class="tag t-cont">बुलिश</span>'
+      : isBear
+        ? '<span class="tag t-rev">बियरिश</span>'
+        : '<span class="tag">न्यूट्रल</span>';
     return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">आज ${pctText(p.today_pct)} · कल ${pctText(p.yesterday_pct)} · पिछले 24 घंटे ${pctText(p.now)} · 7-दिन औसत ${pctText(p.avg)} (Nifty खोज के सापेक्ष)</div></div></div>`;
   }).join("");
 
@@ -1057,7 +1066,7 @@ function renderTrends(t) {
     ${stale}
     ${scoreBlock}
     ${fearGreedBlock}
-    <div class="sub" style="margin-top:8px">स्रोत: Google Trends · सापेक्ष खोज-रुचि (पिछले 7 दिन के डेटा से)${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
+    <div class="sub" style="margin-top:8px">${hasCurrentMood ? "स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि" : "आज का अलग Google Trends डेटा उपलब्ध नहीं; पिछले 7 दिनों की खोजों को आज का मूड नहीं माना जा रहा।"}${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
     ${daySummary}
     <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
     <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
