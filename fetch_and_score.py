@@ -1550,6 +1550,93 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     }
 
 
+def _trends_related_queries():
+    """Google Trends की असली related searches से भीड़ का मूड निकालें।
+    हर seed की अपनी 0-100 scale होती है, इसलिए पहले हर seed के भीतर प्रतिशत
+    निकालकर फिर seed percentages का औसत लिया जाता है; अलग scales को सीधे नहीं जोड़ते।
+    """
+    from pytrends.request import TrendReq
+
+    seeds = ["nifty", "sensex", "share market", "stock market"]
+    py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+    py.build_payload(seeds, timeframe="now 7-d", geo="IN")
+    related = py.related_queries()
+    per_seed = []
+    all_terms = {}
+
+    for seed in seeds:
+        pack = (related or {}).get(seed) or {}
+        top = pack.get("top")
+        if top is None or top.empty or "query" not in top or "value" not in top:
+            continue
+
+        bull = bear = neutral = 0.0
+        rows = 0
+        for _, row in top.iterrows():
+            term = str(row.get("query", "")).strip()
+            if not term:
+                continue
+            try:
+                weight = float(row.get("value", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if weight <= 0:
+                continue
+            rows += 1
+            direction = tq_dir(term)
+            if direction == "bull":
+                bull += weight
+            elif direction == "bear":
+                bear += weight
+            else:
+                neutral += weight
+            key = term.casefold()
+            entry = {"term": term, "weight": weight, "direction": direction or "neutral"}
+            if key not in all_terms or weight > all_terms[key]["weight"]:
+                all_terms[key] = entry
+
+        total = bull + bear + neutral
+        if rows >= 3 and total > 0:
+            per_seed.append((bull / total * 100, bear / total * 100, neutral / total * 100))
+
+    if len(per_seed) < 2:
+        raise ValueError("Google Trends related searches में कम-से-कम 2 विषयों का पर्याप्त डेटा नहीं मिला")
+
+    bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
+    bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
+    neutral_pct = round(max(0.0, 100.0 - bull_pct - bear_pct), 1)
+    if bull_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
+    elif bear_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
+    else:
+        label, sentiment = "NEUTRAL", "NEUTRAL"
+
+    terms = []
+    for item in all_terms.values():
+        terms.append({
+            "term": item["term"], "dir": item["direction"],
+            "now": round(item["weight"], 1), "avg": round(item["weight"], 1),
+            "today_pct": None, "yesterday_pct": None
+        })
+    terms.sort(key=lambda x: x["now"], reverse=True)
+
+    return {
+        "ok": True, "unit": "Google Trends related-query share (%)",
+        "crowd_bull_pct": round(bull_pct), "crowd_label": label,
+        "bull_sum_pct": bull_pct, "bear_sum_pct": bear_pct,
+        "min_side_pct": None, "crowd_terms": terms[:20],
+        "spikes": [], "hidden_spikes": 0,
+        "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
+        "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
+        "today_bull_pct": None, "today_label": "7-दिन related searches",
+        "today_basis": "related_queries_7d",
+        "source_timeframe": "now 7-d related queries",
+        "fallback_used": False, "queries_total": len(all_terms),
+        "related_seed_count": len(per_seed)
+    }
+
+
 def fetch_trends():
     """पहले 7-दिन डेटा; खोज अपर्याप्त हो तो 3-महीने के दैनिक डेटा पर fallback।
     असफल/शून्य डेटा कभी सफल reading नहीं माना जाता।"""
@@ -1557,6 +1644,20 @@ def fetch_trends():
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
+
+    # पहले Google Trends की वास्तविक related searches पढ़ें। यह आम लोगों द्वारा
+    # किए गए सवाल/खोज दिखाता है; fixed low-volume phrases पर निर्भरता कम होती है।
+    try:
+        result = _trends_related_queries()
+        print(
+            "Google Trends related queries validated: "
+            f"bull={result['bull_score_pct']:.1f}% "
+            f"bear={result['bear_score_pct']:.1f}% "
+            f"neutral={result['neutral_score_pct']:.1f}%"
+        )
+        return result
+    except Exception as e:
+        print(f"Google Trends related-query method failed; using phrase fallback: {e}")
 
     last_err = ""
     periods = (("now 7-d", 24), ("today 3-m", 7))
