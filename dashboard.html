@@ -862,21 +862,50 @@ function createTradingViewSnapshotCard(title, symbol, accent) {
   summary.innerHTML = '<span>'+title+' · लाइव TradingView चार्ट</span><b class="tv-toggle" style="color:'+accent+';font-size:22px">＋</b>';
   const body = document.createElement("div");
   body.style.cssText = "padding:0 8px 12px";
-  const frame = document.createElement("iframe");
-  const params = new URLSearchParams({symbol:symbol,interval:"30",hidesidetoolbar:"1",symboledit:"1",saveimage:"0",toolbarbg:"081426",studies:[],theme:"dark",style:"1",timezone:"Asia/Kolkata",withdateranges:"1",hideideas:"1",hidevolume:"0",allow_symbol_change:"1"});
-  frame.src = "https://www.tradingview.com/widgetembed/?"+params.toString();
-  frame.title = title+" live TradingView chart";
-  frame.loading = "lazy";
-  frame.referrerPolicy = "strict-origin-when-cross-origin";
-  frame.allow = "fullscreen";
-  frame.style.cssText = "display:block;width:100%;height:420px;border:0;border-radius:9px;background:#080d17";
+  const chartBox = document.createElement("div");
+  chartBox.style.cssText = "height:420px;width:100%;min-width:0;border-radius:9px;overflow:hidden;background:#080d17";
   const link = document.createElement("a");
   link.href = "https://www.tradingview.com/chart/?symbol="+encodeURIComponent(symbol);
   link.target = "_blank"; link.rel = "noopener noreferrer";
   link.textContent = "चार्ट अलग से खोलें ↗";
   link.style.cssText = "display:block;margin:9px 2px 0;color:"+accent+";font-size:12px;font-weight:800;text-decoration:none";
-  body.append(frame,link); el.append(summary,body);
-  el.addEventListener("toggle",()=>{const icon=el.querySelector(".tv-toggle");if(icon)icon.textContent=el.open?"−":"＋";});
+  body.append(chartBox,link); el.append(summary,body);
+  let mounted = false;
+  const mountChart = () => {
+    if (mounted) return;
+    mounted = true;
+    const container = document.createElement("div");
+    container.className = "tradingview-widget-container";
+    container.style.cssText = "height:100%;width:100%";
+    const widget = document.createElement("div");
+    widget.className = "tradingview-widget-container__widget";
+    widget.style.cssText = "height:calc(100% - 32px);width:100%";
+    const credit = document.createElement("div");
+    credit.style.cssText = "height:24px;line-height:24px;text-align:center;font-size:10px;color:#8aa0bd";
+    const creditLink = document.createElement("a");
+    creditLink.href = "https://www.tradingview.com/";
+    creditLink.target = "_blank"; creditLink.rel = "noopener noreferrer";
+    creditLink.textContent = "TradingView";
+    credit.appendChild(creditLink);
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.async = true;
+    script.text = JSON.stringify({
+      autosize:true, symbol:symbol, interval:"30", timezone:"Asia/Kolkata",
+      theme:"dark", style:"1", locale:"en", allow_symbol_change:true,
+      calendar:false, support_host:"https://www.tradingview.com",
+      withdateranges:true, hide_side_toolbar:true, details:false,
+      hotlist:false, show_popup_button:false
+    });
+    container.append(widget,credit,script);
+    chartBox.replaceChildren(container);
+  };
+  el.addEventListener("toggle",()=> {
+    const icon=el.querySelector(".tv-toggle");
+    if(icon) icon.textContent=el.open?"−":"＋";
+    if(el.open) mountChart();
+  });
   return el;
 }
 function createGoldForecastCard() {
