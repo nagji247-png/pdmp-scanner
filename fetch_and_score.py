@@ -80,6 +80,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 3  # 429 (rate limit) पर थोड़ा रुककर फिर कोशिश; कुल समय सीमित
+TRENDS_MAX_AGE_MINUTES = 150  # इससे पुरानी Google Trends reading डैशबोर्ड पर नहीं दिखेगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -1410,18 +1411,25 @@ TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
                  "decline", "sell-off", "girawat", "girega", "giregi", "neeche", "mandi", "tutega",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा"]
-TQ_MIN_WEIGHT = 1.0  # Nifty anchor के मुकाबले दोनों तरफ़ कम-से-कम 1% संयुक्त रुचि जरूरी
+# सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
+TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
+                    "share", "sensex", "nifty", "what", "meaning", "history", "hours",
+                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स"]
+TQ_MIN_WEIGHT = 1.0  # दोनों दिशाओं में कम-से-कम इतना Trends weight जरूरी
 
 
 def tq_dir(q):
-    """खोज-वाक्यांश की दिशा: 'bull', 'bear', या None (दोनों हों या कोई न हो)।"""
-    tk = set(re.findall(r"[\w\u0900-\u097F-]+", q.lower()))
+    """खोज-वाक्यांश की दिशा: bull/bear/neutral; अस्पष्ट query को None रखें।"""
+    text = str(q or "").lower()
+    tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
     bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
     bear = any(w.lower() in tk for w in TQ_BEAR_WORDS)
     if bull and not bear:
         return "bull"
     if bear and not bull:
         return "bear"
+    if not bull and not bear and any(w.lower() in tk for w in TQ_NEUTRAL_WORDS):
+        return "neutral"
     return None
 
 
@@ -1584,8 +1592,11 @@ def _trends_related_queries():
                 continue
             if weight <= 0:
                 continue
-            rows += 1
             direction = tq_dir(term)
+            # अनजान/general queries को mood प्रतिशत में न मिलाएँ; केवल पहचानी दिशा गिनें।
+            if direction is None:
+                continue
+            rows += 1
             if direction == "bull":
                 bull += weight
             elif direction == "bear":
@@ -1593,7 +1604,7 @@ def _trends_related_queries():
             else:
                 neutral += weight
             key = term.casefold()
-            entry = {"term": term, "weight": weight, "direction": direction or "neutral"}
+            entry = {"term": term, "weight": weight, "direction": direction}
             if key not in all_terms or weight > all_terms[key]["weight"]:
                 all_terms[key] = entry
 
@@ -1602,11 +1613,16 @@ def _trends_related_queries():
             per_seed.append((bull / total * 100, bear / total * 100, neutral / total * 100))
 
     if len(per_seed) < 2:
-        raise ValueError("Google Trends related searches में कम-से-कम 2 विषयों का पर्याप्त डेटा नहीं मिला")
+        raise ValueError("Google Trends related searches में कम-से-कम 2 विषयों का पर्याप्त वर्गीकृत डेटा नहीं मिला")
 
     bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
     bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
-    neutral_pct = round(max(0.0, 100.0 - bull_pct - bear_pct), 1)
+    neutral_pct = round(sum(x[2] for x in per_seed) / len(per_seed), 1)
+    if bull_pct < TQ_MIN_WEIGHT or bear_pct < TQ_MIN_WEIGHT:
+        raise ValueError(
+            f"Google Trends में दोनों दिशाओं की पर्याप्त खोज नहीं "
+            f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
+        )
     if bull_pct >= CROWD_EXTREME:
         label, sentiment = "EXTREMELY BULLISH", "BULLISH"
     elif bear_pct >= CROWD_EXTREME:
@@ -1659,7 +1675,13 @@ def fetch_trends():
         )
         return result
     except Exception as e:
-        print(f"Google Trends related-query method failed; using phrase fallback: {e}")
+        related_error = str(e)
+        print(f"Google Trends related-query method failed: {related_error}")
+        # अगर actual related searches में दिशा का पर्याप्त प्रमाण नहीं है,
+        # तो fixed phrases से कृत्रिम रूप से mood भरकर न दिखाएँ।
+        if ("पर्याप्त वर्गीकृत डेटा" in related_error
+                or "दोनों दिशाओं की पर्याप्त खोज" in related_error):
+            return {"ok": False, "error": f"Google Trends भीड़ का मूड तय नहीं कर सका: {related_error}"}
 
     last_err = ""
     periods = (("now 7-d", 24), ("today 3-m", 7))
@@ -1727,6 +1749,21 @@ def pick_with_fallback(fresh, prev):
         return stale
     fresh["stale"] = False
     return fresh
+
+def trends_within_freshness(data, now_utc=None):
+    """Google Trends fetch timestamp की उम्र जाँचें; पुराना डेटा कभी ताज़ा न मानें।"""
+    if not data or not data.get("ok") or not data.get("as_of"):
+        return False
+    try:
+        stamp = dt.datetime.fromisoformat(str(data["as_of"]).replace("Z", "+00:00"))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=dt.timezone.utc)
+        now = now_utc or dt.datetime.now(dt.timezone.utc)
+        age_minutes = (now - stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
+        return -5 <= age_minutes <= TRENDS_MAX_AGE_MINUTES
+    except (TypeError, ValueError):
+        return False
+
 
 
 def market_closed_today():
@@ -1999,23 +2036,35 @@ def main():
     trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
 
     if trends_scan:
-        # तय समय पर नई रीडिंग लें। असफल होने पर पुरानी रीडिंग stale रहेगी,
-        # उसे आज की ताज़ा रीडिंग बताकर नहीं दिखाया जाएगा।
-        fallback_trends = {} if previous_trends_all_zero or not previous_trends_has_scores else previous_trends
-        trends = pick_with_fallback(fetch_trends(), fallback_trends)
-        if trends.get("ok") and not trends.get("stale"):
+        # हर तय स्लॉट पर नया डेटा ही स्वीकारें; असफलता पर पिछली reading बिल्कुल न दिखाएँ।
+        fresh_trends = fetch_trends()
+        if fresh_trends.get("ok"):
+            trends = fresh_trends
+            trends["stale"] = False
             trends["as_of"] = updated
             trends["cached"] = False
             trends["refresh_policy_hours"] = None
+        else:
+            trends = {
+                "ok": False, "stale": False, "cached": False,
+                "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
+            }
     elif previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero:
-        trends = dict(previous_trends)
-        trends["cached"] = True
-        trends["refresh_policy_hours"] = None
-        print("Google Trends schedule: next scheduled refresh; keeping original source timestamp")
+        if trends_within_freshness(previous_trends, now_utc):
+            trends = dict(previous_trends)
+            trends["cached"] = True
+            trends["stale"] = False
+            trends["refresh_policy_hours"] = None
+        else:
+            trends = {
+                "ok": False, "stale": True, "cached": False,
+                "error": f"आख़िरी सफल Google Trends reading {TRENDS_MAX_AGE_MINUTES} मिनट से पुरानी है; पुराना मूड छिपाया गया"
+            }
     else:
-        # कोई वैध पिछली रीडिंग नहीं है; बिना तय स्कैन के Google को बार-बार न बुलाएँ।
-        trends = {"ok": False, "stale": True, "cached": False,
-                  "error": "अगला तय Google Trends स्कैन आने पर नई रीडिंग ली जाएगी"}
+        trends = {
+            "ok": False, "stale": False, "cached": False,
+            "error": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी"
+        }
     result["trends"] = trends
 
     fresh_trends = trends.get("ok") and not trends.get("stale")

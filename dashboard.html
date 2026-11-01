@@ -976,11 +976,11 @@ function renderInstruments(instruments, participantOI) {
 function renderTrends(t) {
   const box = document.getElementById("trends");
   if (!t) t = { ok: false, error: "अभी कोई Trends डेटा नहीं" };
-  const failed = !t.ok;
+  const failed = !t.ok || !!t.stale;
   const stale = t.stale
-    ? `<div class="warn">यह पुराना डेटा है (आख़िरी सफल रन)।</div>`
+    ? `<div class="warn">यह reading तय सीमा से पुरानी है; पुराना मूड छिपाया गया है।</div>`
     : (t.cached
-      ? `<div class="sub">कैश की गई Google Trends रीडिंग · असली स्रोत समय: ${esc(istTime(t.as_of))} · अधिकतम कैश अवधि 6 घंटे</div>`
+      ? `<div class="sub">हाल की सफल Google Trends reading · स्रोत समय: ${esc(istTime(t.as_of))}</div>`
       : "");
   const pctText = value => value == null || !Number.isFinite(Number(value)) ? "डेटा नहीं" : Number(value).toFixed(1) + "%";
   const bullScore = Number(t.bull_score_pct);
@@ -1021,7 +1021,7 @@ function renderTrends(t) {
        <div class="trends-score-legend"><div><small>BULLISH</small><strong>उपलब्ध नहीं</strong></div><div><small>BEARISH</small><strong>उपलब्ध नहीं</strong></div><div><small>NEUTRAL</small><strong>उपलब्ध नहीं</strong></div></div>
      </div><div class="sub">${failed ? "Google Trends डेटा नहीं मिला: " + esc(t.error || "अज्ञात त्रुटि") + ". " : ""}अगली सफल Google Trends गणना में तीनों प्रतिशत दिखाई देंगे। अभी अनुमानित प्रतिशत नहीं दिखाए जा रहे।</div>`;
 
-  const ct = t.crowd_terms || [];
+  const ct = failed ? [] : (t.crowd_terms || []);
   const topOf = (dir) => {
     const xs = ct.filter(p => p.dir === dir && p.today_pct != null);
     if (!xs.length) return null;
@@ -1035,11 +1035,11 @@ function renderTrends(t) {
   };
   const topRows = rowFor(topOf("bull")) + rowFor(topOf("bear"));
 
-  const todayBull = t.today_bull_pct;
-  const yesterdayBull = t.yesterday_bull_pct;
+  const todayBull = failed ? null : t.today_bull_pct;
+  const yesterdayBull = failed ? null : t.yesterday_bull_pct;
   // आज का calendar-day डेटा न मिले तो उपलब्ध 7-दिन Google Trends दिशा दिखाएँ।
   // इसे आज का वास्तविक डेटा नहीं कहेंगे; स्रोत समय/अवधि स्पष्ट रहेगी।
-  const weekTotal = Number(t.bull_sum_pct || 0) + Number(t.bear_sum_pct || 0);
+  const weekTotal = failed ? 0 : Number(t.bull_sum_pct || 0) + Number(t.bear_sum_pct || 0);
   const weekBull = weekTotal > 0 ? Number(t.bull_sum_pct || 0) / weekTotal * 100 : null;
   const shownBull = todayBull != null ? Number(todayBull) : weekBull;
   const todayTitle = todayBull != null
@@ -1060,7 +1060,7 @@ function renderTrends(t) {
     return `<div class="ev"><div>${esc(p.term)} ${tag}<div class="sub">आज ${pctText(p.today_pct)} · कल ${pctText(p.yesterday_pct)} · पिछले 24 घंटे ${pctText(p.now)} · 7-दिन औसत ${pctText(p.avg)} (Nifty खोज के सापेक्ष)</div></div></div>`;
   }).join("");
 
-  const spikes = (t.spikes || []).slice(0, 3).map(s => {
+  const spikes = (failed ? [] : (t.spikes || [])).slice(0, 3).map(s => {
     const tag = s.stock ? ` <span class="tag t-rev">${esc(s.stock)}</span>` : "";
     return `<span class="rq">${esc(s.query)}${tag}</span>`;
   }).join("");
