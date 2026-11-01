@@ -1545,6 +1545,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
         "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
         "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
     }
 
