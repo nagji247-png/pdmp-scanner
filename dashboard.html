@@ -853,6 +853,27 @@ function createSilverProjectionCard() {
     </div>`;
   return el;
 }
+function createTradingViewSnapshotCard(title, url, accent) {
+  const el = document.createElement("details");
+  el.className = "tv-snapshot-card";
+  el.style.cssText = "grid-column:1/-1;overflow:hidden;border:1px solid "+accent+";border-radius:14px;background:linear-gradient(145deg,#081426,#101c31);box-shadow:0 6px 18px #0007;color:#fff;margin-top:10px";
+  const summary = document.createElement("summary");
+  summary.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;font-weight:900;color:#fff";
+  summary.innerHTML = '<span>'+title+' · TradingView चार्ट</span><b class="tv-toggle" style="color:'+accent+';font-size:22px">＋</b>';
+  const body = document.createElement("div");
+  body.style.cssText = "padding:0 10px 12px";
+  const frame = document.createElement("iframe");
+  frame.src = url; frame.title = title+" TradingView snapshot"; frame.loading = "lazy";
+  frame.referrerPolicy = "no-referrer";
+  frame.style.cssText = "display:block;width:100%;height:340px;border:0;border-radius:9px;background:#080d17";
+  const link = document.createElement("a");
+  link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+  link.textContent = "अगर चार्ट यहाँ न खुले तो TradingView पर देखें ↗";
+  link.style.cssText = "display:block;margin:9px 2px 0;color:"+accent+";font-size:12px;font-weight:800;text-decoration:none";
+  body.append(frame,link); el.append(summary,body);
+  el.addEventListener("toggle",()=>{const icon=el.querySelector(".tv-toggle");if(icon)icon.textContent=el.open?"−":"＋";});
+  return el;
+}
 function createGoldForecastCard() {
   const el = document.createElement("details");
   el.className = "gold-forecast-card";
@@ -904,6 +925,8 @@ function renderInstruments(instruments, participantOI) {
   projection.style.gridColumn = "1 / -1";
   glb.appendChild(projection);
   glb.appendChild(createGoldForecastCard());
+  glb.appendChild(createTradingViewSnapshotCard("चाँदी", "https://www.tradingview.com/x/4y4qx01m/", "#b8d8ef"));
+  glb.appendChild(createTradingViewSnapshotCard("सोना", "https://www.tradingview.com/x/YeSxqaKo/", "#f5c84c"));
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
