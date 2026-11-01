@@ -371,8 +371,8 @@
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div>
-<section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
-<section class="panel" style="grid-column:1 / -1"><h2>🎯 अवसर विश्लेषण (सिर्फ़ आँकड़े)</h2><div class="box" id="opportunity"></div></section>
+<div id="stocksBySector" style="margin-top:14px"></div>
+<section class="panel" style="margin-top:16px"><h2>🎯 अवसर विश्लेषण (सिर्फ़ आँकड़े)</h2><div class="box" id="opportunity"></div></section>
 </section>
 
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
@@ -936,6 +936,7 @@ function renderInstruments(instruments, participantOI) {
   glb.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
   glb.style.alignItems = "start";
 
+  lastStockInstruments = instruments;
   const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN"];
   for (const name of globalOrder) {
     const d = instruments[name];
@@ -959,14 +960,7 @@ function renderInstruments(instruments, participantOI) {
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
-      const stockCard = card(name, d, participantOI);
-      if (name === "RELIANCE" || name === "HDFCBANK") {
-        stk.appendChild(stockCard);
-      } else if (stkMore) {
-        stkMore.appendChild(stockCard);
-      } else {
-        stk.appendChild(stockCard);
-      }
+      // स्टॉक कार्ड सेक्टर नक्शे के अंदर सेक्टर-वार दिखाए जाते हैं।
     } else if (INDIAN_INDEXES.includes(name)) {
       idx.appendChild(card(name, d, participantOI));
     }
@@ -1318,6 +1312,7 @@ let selIndustry = null;
 let lastMapData = null;
 let sectorInit = false;
 let sectorMapOpen = false;
+let lastStockInstruments = {};
 
 function toggleSectorMap() {
   sectorMapOpen = !sectorMapOpen;
@@ -1518,6 +1513,24 @@ function renderSectorMapInner(data) {
     ${detail}
     ${back.length ? `<div class="sub" style="margin-top:10px">${back.join(" &nbsp;·&nbsp; ")}</div>` : ""}
     <div class="sub" style="margin-top:12px;text-align:center;cursor:pointer;color:#4fc3f7" onclick="toggleSectorMap()">↑ गोल नक्शा बंद करें</div>`;
+  const stockHost = document.getElementById("stocksBySector");
+  if (stockHost) {
+    const stockGroups = {};
+    Object.entries(lastStockInstruments || {}).forEach(([sym, item]) => {
+      if (!item || item.type !== "stock") return;
+      const meta = sa[sym] || {};
+      const sector = meta.ok && meta.sector ? meta.sector : "अज्ञात";
+      (stockGroups[sector] = stockGroups[sector] || []).push([sym, item]);
+    });
+    stockHost.innerHTML = Object.keys(stockGroups).sort().map(sector =>
+      '<div style="margin-top:12px"><div style="font-weight:900;color:#4fc3f7;padding:7px 2px;border-bottom:1px solid #303957">' +
+      esc(sector) + ' · ' + stockGroups[sector].length + '</div><div class="grid" style="margin-top:8px"></div></div>'
+    ).join("");
+    const hosts = stockHost.querySelectorAll(".grid");
+    Object.keys(stockGroups).sort().forEach((sector, i) => {
+      stockGroups[sector].forEach(([sym, item]) => hosts[i].appendChild(card(sym, item, null)));
+    });
+  }
 }
 
 function pickSector(name) {
