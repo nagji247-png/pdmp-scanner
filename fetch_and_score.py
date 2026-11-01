@@ -1362,22 +1362,22 @@ def _chunks(items, size):
         yield items[i:i + size]
 
 
-def _trends_request(py, terms):
+def _trends_request(py, terms, timeframe="now 7-d"):
     """एक Google Trends अनुरोध: ANCHOR + ज़्यादा से ज़्यादा 4 शब्द।"""
-    py.build_payload([ANCHOR] + terms, timeframe="now 7-d", geo="IN")
+    py.build_payload([ANCHOR] + terms, timeframe=timeframe, geo="IN")
     df = py.interest_over_time()
     if df is None or df.empty:
         raise ValueError("Google से खाली डेटा मिला")
     return df[[ANCHOR] + terms].fillna(0)
 
 
-def _ratio(df, term):
-    """शब्द की खोज 'nifty' की खोज के अनुपात में (अभी और औसत)। एक ही अनुरोध के अंदर।"""
-    a_recent = float(df[ANCHOR].tail(24).mean())
+def _ratio(df, term, recent_points=24):
+    """शब्द की खोज nifty के अनुपात में हाल की अवधि और पूरे समय के औसत के रूप में।"""
+    a_recent = float(df[ANCHOR].tail(recent_points).mean())
     a_avg = float(df[ANCHOR].mean())
     if a_recent <= 0 or a_avg <= 0:
         return 0.0, 0.0
-    t_recent = float(df[term].tail(24).mean())
+    t_recent = float(df[term].tail(recent_points).mean())
     t_avg = float(df[term].mean())
     return t_recent / a_recent, t_avg / a_avg
 
@@ -1482,13 +1482,13 @@ def tq_aggregate(queries):
     }
 
 
-def _trends_once():
-    """Google Trends: anchor के साथ संतुलित bull/bear शब्दों की 7-दिन की सापेक्ष रुचि।
-    Related Queries खाली होने पर भी निर्धारित शब्दों को सीधे जाँचता है; शून्य/अपर्याप्त डेटा को सफल नहीं मानता।"""
+def _trends_once(timeframe="now 7-d", recent_points=24):
+    """Google Trends: anchor के साथ संतुलित bull/bear शब्दों की सापेक्ष रुचि।
+    7-दिन डेटा अपर्याप्त हो तो caller 3-महीने के दैनिक डेटा पर fallback करता है।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-    py.build_payload(TQ_BASE_TERMS, timeframe="now 7-d", geo="IN")
+    py.build_payload(TQ_BASE_TERMS, timeframe=timeframe, geo="IN")
     base_df = py.interest_over_time()
     if base_df is None or base_df.empty:
         raise ValueError("Google Trends से खाली आधार डेटा मिला")
@@ -1496,16 +1496,15 @@ def _trends_once():
     if float(base_df.values.max()) <= 0:
         raise ValueError("Google Trends का आधार डेटा शून्य है")
     base = float(base_df.mean(axis=1).mean())
-    recent = float(base_df.tail(24).mean(axis=1).mean())
+    recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
 
-    # हर अनुरोध में ANCHOR + अधिकतम 4 शब्द; anchor अनुपात अलग बैचों को तुलनीय बनाता है।
     queries = {}
     for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
-            df = _trends_request(py, chunk)
+            df = _trends_request(py, chunk, timeframe=timeframe)
             for term in chunk:
-                recent_ratio, average_ratio = _ratio(df, term)
+                recent_ratio, average_ratio = _ratio(df, term, recent_points=recent_points)
                 queries[term.lower()] = {
                     "term": term, "weight": round(max(0.0, recent_ratio) * 100, 2),
                     "avg_weight": round(max(0.0, average_ratio) * 100, 2),
@@ -1535,7 +1534,7 @@ def _trends_once():
         "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
     } for x in queries.values()]
     crowd_terms.sort(key=lambda x: x["now"], reverse=True)
-    print(f"Google Trends validated: bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
+    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
         "crowd_bull_pct": bull_pct, "crowd_label": label,
@@ -1544,30 +1543,47 @@ def _trends_once():
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_score, "bear_score_pct": bear_score,
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
-        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "7d_anchor_relative",
-        "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
+        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
+        "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
     }
 
+
 def fetch_trends():
-    """Google 429 देने पर थोड़ी देर रुककर दोबारा कोशिश करता है।
-    सब फेल हो तो {"ok": False, "error": ...} लौटता है।"""
+    """पहले 7-दिन डेटा; खोज अपर्याप्त हो तो 3-महीने के दैनिक डेटा पर fallback।
+    असफल/शून्य डेटा कभी सफल reading नहीं माना जाता।"""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
     last_err = ""
-    for attempt in range(TRENDS_RETRIES):
-        try:
-            return _trends_once()
-        except Exception as e:
-            last_err = str(e)
-            print(f"trends attempt {attempt + 1} failed: {last_err}")
-            # Google 429 = rate limit: लंबा रुकें, फिर दोबारा कोशिश करें
-            if attempt < TRENDS_RETRIES - 1:
-                rate_limited = "429" in last_err or "too many requests" in last_err.lower()
-                time.sleep(120 if rate_limited else 60)
+    periods = (("now 7-d", 24), ("today 3-m", 7))
+    for period_index, (timeframe, recent_points) in enumerate(periods):
+        insufficient = False
+        for attempt in range(TRENDS_RETRIES):
+            try:
+                result = _trends_once(timeframe=timeframe, recent_points=recent_points)
+                result["fallback_used"] = period_index > 0
+                return result
+            except Exception as e:
+                last_err = str(e)
+                print(f"trends {timeframe} attempt {attempt + 1} failed: {last_err}")
+                insufficient = ("दोनों पक्षों का पर्याप्त डेटा नहीं" in last_err
+                                or "आधार डेटा शून्य" in last_err
+                                or "खाली" in last_err)
+                if insufficient:
+                    break
+                if attempt < TRENDS_RETRIES - 1:
+                    rate_limited = "429" in last_err or "too many requests" in last_err.lower()
+                    time.sleep(120 if rate_limited else 60)
+                else:
+                    return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
+        if insufficient and period_index == 0:
+            print("Google Trends: 7-दिन डेटा अपर्याप्त; 3-महीने के दैनिक डेटा पर fallback")
+            continue
+        break
     return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
 
 
