@@ -1505,6 +1505,19 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     base_df = base_df[TQ_BASE_TERMS].fillna(0)
     if float(base_df.values.max()) <= 0:
         raise ValueError("Google Trends का आधार डेटा शून्य है")
+    source_data_time = None
+    if timeframe == "now 1-d":
+        # Google Trends का आख़िरी observation भी हाल का होना चाहिए;
+        # केवल workflow का नया timestamp पुराने sample को नया नहीं बना सकता।
+        last_value = base_df.index[-1]
+        last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
+        if last_dt.tzinfo is None:
+            last_dt = last_dt.replace(tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+        last_utc = last_dt.astimezone(dt.timezone.utc)
+        age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
+        if age_minutes < -10 or age_minutes > 180:
+            raise ValueError(f"Google Trends का आख़िरी observation {age_minutes:.0f} मिनट पुराना/भविष्य का है; ताज़ा डेटा नहीं")
+        source_data_time = last_utc.isoformat()
     base = float(base_df.mean(axis=1).mean())
     recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
@@ -1555,6 +1568,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
         "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
         "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "source_data_time": source_data_time,
         "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
     }
@@ -1656,60 +1670,36 @@ def _trends_related_queries():
 
 
 def fetch_trends():
-    """पहले 7-दिन डेटा; खोज अपर्याप्त हो तो 3-महीने के दैनिक डेटा पर fallback।
-    असफल/शून्य डेटा कभी सफल reading नहीं माना जाता।"""
+    """पहले पिछले 24 घंटे का Google Trends डेटा लें।
+    7-दिन/3-महीने के नमूने ऐतिहासिक संदर्भ हैं, आज का crowd mood नहीं।"""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    # पहले Google Trends की वास्तविक related searches पढ़ें। यह आम लोगों द्वारा
-    # किए गए सवाल/खोज दिखाता है; fixed low-volume phrases पर निर्भरता कम होती है।
-    try:
-        result = _trends_related_queries()
-        print(
-            "Google Trends related queries validated: "
-            f"bull={result['bull_score_pct']:.1f}% "
-            f"bear={result['bear_score_pct']:.1f}% "
-            f"neutral={result['neutral_score_pct']:.1f}%"
-        )
-        return result
-    except Exception as e:
-        related_error = str(e)
-        print(f"Google Trends related-query method failed: {related_error}")
-        # अगर actual related searches में दिशा का पर्याप्त प्रमाण नहीं है,
-        # तो fixed phrases से कृत्रिम रूप से mood भरकर न दिखाएँ।
-        if ("पर्याप्त वर्गीकृत डेटा" in related_error
-                or "दोनों दिशाओं की पर्याप्त खोज" in related_error):
-            return {"ok": False, "error": f"Google Trends भीड़ का मूड तय नहीं कर सका: {related_error}"}
-
     last_err = ""
-    periods = (("now 7-d", 24), ("today 3-m", 7))
-    for period_index, (timeframe, recent_points) in enumerate(periods):
-        insufficient = False
-        for attempt in range(TRENDS_RETRIES):
-            try:
-                result = _trends_once(timeframe=timeframe, recent_points=recent_points)
-                result["fallback_used"] = period_index > 0
-                return result
-            except Exception as e:
-                last_err = str(e)
-                print(f"trends {timeframe} attempt {attempt + 1} failed: {last_err}")
-                insufficient = ("दोनों पक्षों का पर्याप्त डेटा नहीं" in last_err
-                                or "आधार डेटा शून्य" in last_err
-                                or "खाली" in last_err)
-                if insufficient:
-                    break
-                if attempt < TRENDS_RETRIES - 1:
-                    rate_limited = "429" in last_err or "too many requests" in last_err.lower()
-                    time.sleep(120 if rate_limited else 60)
-                else:
-                    return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
-        if insufficient and period_index == 0:
-            print("Google Trends: 7-दिन डेटा अपर्याप्त; 3-महीने के दैनिक डेटा पर fallback")
-            continue
-        break
-    return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
+    # प्राथमिक स्रोत: Google Trends का now 1-d डेटा।
+    for attempt in range(TRENDS_RETRIES):
+        try:
+            result = _trends_once(timeframe="now 1-d", recent_points=24)
+            result["fallback_used"] = False
+            result["today_bull_pct"] = result["crowd_bull_pct"]
+            result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
+            result["today_basis"] = "now_1d_anchor_relative"
+            result["source_timeframe"] = "now 1-d"
+            return result
+        except Exception as e:
+            last_err = str(e)
+            print(f"Google Trends now 1-d attempt {attempt + 1} failed: {last_err}")
+            if attempt < TRENDS_RETRIES - 1:
+                rate_limited = "429" in last_err or "too many requests" in last_err.lower()
+                time.sleep(120 if rate_limited else 45)
+
+    # पुराने 7-दिन/related-query स्कोर को live mood बनाकर कभी न दिखाएँ।
+    return {
+        "ok": False, "stale": False,
+        "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
+    }
 
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
