@@ -1405,9 +1405,11 @@ def _period_ratio(df, term, day_str):
 
 TQ_BASE_TERMS = ["nifty", "sensex"]
 TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull", "bullish",
-                 "jump", "surge", "gain", "टारगेट", "रैली", "तेज़ी", "उछाल", "ऊपर", "बुलिश", "खरीद"]
+                 "jump", "surge", "gain", "teji", "tez", "badhega", "badhegi", "upar", "chadhega",
+                 "टारगेट", "रैली", "तेज़ी", "तेजी", "उछाल", "ऊपर", "बुलिश", "खरीद", "बढ़ेगा", "बढ़ेगी"]
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
-                 "decline", "sell-off", "गिरावट", "गिरेगा", "नीचे", "मंदी", "बेयरिश", "बिकवाली"]
+                 "decline", "sell-off", "girawat", "girega", "giregi", "neeche", "mandi", "tutega",
+                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा"]
 TQ_MIN_WEIGHT = 1.0  # Nifty anchor के मुकाबले दोनों तरफ़ कम-से-कम 1% संयुक्त रुचि जरूरी
 
 
