@@ -1675,7 +1675,13 @@ def fetch_trends():
         )
         return result
     except Exception as e:
-        print(f"Google Trends related-query method failed; using phrase fallback: {e}")
+        related_error = str(e)
+        print(f"Google Trends related-query method failed: {related_error}")
+        # अगर actual related searches में दिशा का पर्याप्त प्रमाण नहीं है,
+        # तो fixed phrases से कृत्रिम रूप से mood भरकर न दिखाएँ।
+        if ("पर्याप्त वर्गीकृत डेटा" in related_error
+                or "दोनों दिशाओं की पर्याप्त खोज" in related_error):
+            return {"ok": False, "error": f"Google Trends भीड़ का मूड तय नहीं कर सका: {related_error}"}
 
     last_err = ""
     periods = (("now 7-d", 24), ("today 3-m", 7))
