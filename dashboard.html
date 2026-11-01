@@ -667,7 +667,10 @@ function renderCrowd(data) {
   const levels = data.levels || [];
 
   let moodHtml;
-  if (t.ok && t.crowd_bull_pct != null && !t.stale) {
+  const hasFreshOneDayMood = t.ok && !t.stale
+    && t.today_bull_pct != null
+    && t.today_basis === "now_1d_anchor_relative";
+  if (hasFreshOneDayMood && t.crowd_bull_pct != null) {
     const bull = Number(t.crowd_bull_pct);
     const bear = 100 - bull;
     let state = "NEUTRAL", color = "#aab4c4";
@@ -681,7 +684,8 @@ function renderCrowd(data) {
       <div class="sub" style="margin-top:8px">यह Google Trends पर सापेक्ष खोज रुचि है, वास्तविक खोजों की संख्या नहीं।</div>`;
   } else {
     const why = !t.ok ? (t.error || "Google Trends डेटा उपलब्ध नहीं") :
-      t.stale ? "Google Trends का डेटा पुराना/fallback है" : "दोनों दिशाओं का पर्याप्त डेटा नहीं";
+      t.stale ? "Google Trends का डेटा पुराना/fallback है" :
+      "आज/पिछले 24 घंटे का अलग डेटा उपलब्ध नहीं; 7-दिन के आँकड़े से आज का मूड तय नहीं किया जाएगा।";
     moodHtml = `<div class="warn" style="font-size:20px;font-weight:900">NO TRADE — DATA UNAVAILABLE</div><div class="sub">${esc(why)}</div>`;
   }
 
@@ -709,7 +713,8 @@ function renderTrapDetector(data) {
   const t = data.trends || {};
   const n = (((data.signals || {}).state || {}).NIFTY) || {};
   const dir = Number(n.price_dir);
-  const freshMood = t.ok && !t.stale && t.crowd_bull_pct != null;
+  const freshMood = t.ok && !t.stale && t.crowd_bull_pct != null
+    && t.today_bull_pct != null && t.today_basis === "now_1d_anchor_relative";
   const pct = freshMood ? Number(t.crowd_bull_pct) : null;
 
   if (!freshMood) {
