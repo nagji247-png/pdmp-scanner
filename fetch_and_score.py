@@ -1512,7 +1512,10 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         last_value = base_df.index[-1]
         last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
         if last_dt.tzinfo is None:
-            last_dt = last_dt.replace(tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+            # pytrends converts Google's epoch-second timestamps with
+            # pandas.to_datetime(..., unit="s"), which produces naive UTC.
+            # Treating this as IST shifts the observation 5h30m backwards.
+            last_dt = last_dt.replace(tzinfo=dt.timezone.utc)
         last_utc = last_dt.astimezone(dt.timezone.utc)
         age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
         if age_minutes < -10 or age_minutes > 180:
