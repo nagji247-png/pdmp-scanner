@@ -906,9 +906,17 @@ function createGoldForecastCard() {
     const chartHeading = document.createElement("h3");
     chartHeading.textContent = "📈 आपकी TradingView Drawings";
     chartHeading.style.cssText = "margin:18px 0 8px;color:#f5d77a";
-    goldBody.appendChild(chartHeading);
-    goldBody.appendChild(createTradingViewSnapshotCard("चाँदी", "https://s3.tradingview.com/snapshots/4/4y4qx01m.png", "#b8d8ef"));
-    goldBody.appendChild(createTradingViewSnapshotCard("सोना", "https://s3.tradingview.com/snapshots/y/YeSxqaKo.png", "#f5c84c"));
+    const causesHeading = Array.from(goldBody.querySelectorAll("h3")).find(h => h.textContent.includes("तेजी और मंदी के कारण"));
+    if (causesHeading) goldBody.insertBefore(chartHeading, causesHeading);
+    else goldBody.appendChild(chartHeading);
+    const silverDrawing = createTradingViewSnapshotCard("चाँदी", "https://s3.tradingview.com/snapshots/4/4y4qx01m.png", "#b8d8ef");
+    const goldDrawing = createTradingViewSnapshotCard("सोना", "https://s3.tradingview.com/snapshots/y/YeSxqaKo.png", "#f5c84c");
+    if (causesHeading) {
+      goldBody.insertBefore(silverDrawing, causesHeading);
+      goldBody.insertBefore(goldDrawing, causesHeading);
+    } else {
+      goldBody.append(silverDrawing, goldDrawing);
+    }
     const progress = document.createElement("div");
     progress.textContent = "काम प्रगतिशील है — अभी पूरा नहीं हुआ है।";
     progress.style.cssText = "margin-top:14px;padding:11px 12px;border:1px solid #b88b35;border-radius:10px;background:#211a0d;color:#ffe4a0;font-size:12px;font-weight:800;text-align:center";
