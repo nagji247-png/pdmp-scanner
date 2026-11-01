@@ -377,6 +377,9 @@
 <h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
 <div class="box" id="contrarian"></div>
 
+<h2>🎯 Verified Prediction Accuracy</h2>
+<div class="box" id="verified-accuracy"></div>
+
 <h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2>
 <div class="box" id="divergence"></div>
 
@@ -1149,6 +1152,57 @@ function renderContrarian(c) {
       <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 इंस्ट्रूमेंट के अनुसार रिकॉर्ड खोलें (${(c.events || []).length})</summary>
       <div style="margin-top:8px">${groupedRows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
     </details>`;
+}
+
+
+function renderVerifiedAccuracy(v) {
+  const box = document.getElementById("verified-accuracy");
+  if (!box) return;
+
+  // This panel accepts only separately recorded, prospectively verified predictions.
+  // The legacy Contrarian Watch history is deliberately not reused as prediction accuracy.
+  const evaluated = Number(v && v.evaluated);
+  const correct = Number(v && v.correct);
+  const incorrect = Number(v && v.incorrect);
+  const flat = Number(v && v.flat);
+  const pending = Number(v && v.pending);
+  const hasCounts = v && [evaluated, correct, incorrect, flat, pending].every(Number.isFinite)
+    && evaluated >= 0 && correct >= 0 && incorrect >= 0 && flat >= 0 && pending >= 0
+    && evaluated === correct + incorrect;
+
+  if (!hasCounts || evaluated < 30) {
+    const countText = hasCounts
+      ? `अभी ${evaluated} संकेतों के नतीजे जाँचे गए हैं।`
+      : "अभी अलग से दर्ज और सत्यापित भविष्यवाणी रिकॉर्ड उपलब्ध नहीं हैं।";
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;background:#1e2540;border-radius:8px;padding:12px;margin-bottom:8px">
+        <div style="text-align:center;min-width:100px">
+          <div class="bigm" style="font-size:20px;color:#f5a623">INSUFFICIENT DATA</div>
+          <div style="font-size:10px;color:#7b82a0;letter-spacing:.4px">VERIFIED ACCURACY</div>
+        </div>
+        <div style="font-size:13px;color:#dfe3ef">${countText} कम-से-कम 30 सत्यापित नतीजे होने तक Accuracy प्रतिशत नहीं दिखाया जाएगा।</div>
+      </div>
+      <div class="ev"><div>सही भविष्यवाणियाँ</div><div>—</div></div>
+      <div class="ev"><div>गलत भविष्यवाणियाँ</div><div>—</div></div>
+      <div class="ev"><div>Flat / बिना स्पष्ट चाल</div><div>${hasCounts ? flat : "—"}</div></div>
+      <div class="ev"><div>Pending / नतीजा बाकी</div><div>${hasCounts ? pending : "—"}</div></div>
+      <div class="sub" style="margin-top:10px">पुराने Contrarian Watch के 43% को यहाँ शामिल नहीं किया गया है। इस सेक्शन में केवल पहले से दर्ज संकेत और बाद में वास्तविक बाजार डेटा से जाँचे गए परिणाम आएँगे।</div>`;
+    return;
+  }
+
+  const accuracy = correct + incorrect > 0 ? (correct / (correct + incorrect)) * 100 : null;
+  const accuracyText = accuracy == null ? "—" : accuracy.toFixed(1) + "%";
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;background:#1e2540;border-radius:8px;padding:12px;margin-bottom:8px">
+      <div style="text-align:center;min-width:90px">
+        <div class="bigm" style="font-size:28px">${accuracyText}</div>
+        <div style="font-size:10px;color:#7b82a0;letter-spacing:.5px">VERIFIED ACCURACY</div>
+      </div>
+      <div style="font-size:13px;color:#dfe3ef">${correct} सही · ${incorrect} गलत · ${evaluated} जाँचे गए</div>
+    </div>
+    <div class="ev"><div>Flat / बिना स्पष्ट चाल</div><div>${flat}</div></div>
+    <div class="ev"><div>Pending / नतीजा बाकी</div><div>${pending}</div></div>
+    <div class="sub" style="margin-top:10px">Accuracy = सही ÷ (सही + गलत)। Flat और Pending को Accuracy के हर में शामिल नहीं किया गया है।</div>`;
 }
 
 function renderDivergence(dv, instruments = {}) {
@@ -1975,6 +2029,7 @@ async function load() {
     renderInstruments(data.instruments, data.participant_oi);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
+    renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
     renderNews(data.market_news);
