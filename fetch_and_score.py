@@ -1804,10 +1804,10 @@ def fetch_trends():
     7-दिन/3-महीने के नमूने ऐतिहासिक संदर्भ हैं, आज का crowd mood नहीं।"""
     try:
         import pytrends  # noqa: F401
+        last_err = ""
     except Exception as e:
-        return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
-
-    last_err = ""
+        # pytrends न हो तब भी नीचे Google India Trending RSS fallback चलेगा।
+        last_err = f"pytrends नहीं मिला: {e}"
     # प्राथमिक स्रोत: Google Trends का now 1-d डेटा।
     for attempt in range(TRENDS_RETRIES):
         try:
