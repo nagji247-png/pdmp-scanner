@@ -1738,6 +1738,67 @@ def _trends_related_queries():
     }
 
 
+def _google_trending_rss_fallback():
+    """Google India Trending RSS fallback: active market-related search clusters only."""
+    url = "https://trends.google.com/trending/rss?geo=IN"
+    response = requests.get(url, timeout=18, headers={"User-Agent": "Mozilla/5.0 PDMPScanner/1.0", "Accept": "application/rss+xml, application/xml, text/xml"})
+    response.raise_for_status()
+    feed = feedparser.parse(response.content)
+    now = dt.datetime.now(dt.timezone.utc)
+    market_words = ("nifty", "sensex", "bank nifty", "stock market", "share market", "share price", "shares", "stocks", "equity", "ipo", "bse", "nse", "reliance", "hdfc bank", "banking stocks", "market crash", "market rally")
+    bull_words = ("rally", "rise", "rising", "surge", "bullish", "upside", "breakout", "record high", "target", "buy", "teji", "badhega", "ऊपर", "तेजी", "उछाल", "बढ़ेगा", "चढ़ेगा", "खरीद")
+    bear_words = ("fall", "falling", "crash", "bearish", "downside", "selloff", "sell-off", "slump", "drop", "decline", "girawat", "girega", "गिरावट", "गिरेगा", "नीचे", "मंदी", "बेचें")
+    clusters = []; latest = None
+    for entry in getattr(feed, "entries", []):
+        title = str(getattr(entry, "title", "") or "").strip()
+        body = (title + " " + str(getattr(entry, "summary", "") or "")).lower()
+        if not title or not any(w in body for w in market_words): continue
+        published = getattr(entry, "published_parsed", None)
+        if not published: continue
+        stamp = dt.datetime.fromtimestamp(time.mktime(published), tz=dt.timezone.utc)
+        age = (now - stamp).total_seconds() / 60
+        if age < -10 or age > 180: continue
+        latest = stamp if latest is None or stamp > latest else latest
+        bh = sum(1 for w in bull_words if w in body); sh = sum(1 for w in bear_words if w in body)
+        direction = "bull" if bh > sh else "bear" if sh > bh else "neutral"
+        clusters.append({"term": title, "dir": direction, "now": 1, "avg": 0, "today_pct": None, "yesterday_pct": None, "age_minutes": round(age), "traffic": str(getattr(entry, "ht_approx_traffic", "") or "")})
+    if not clusters or latest is None:
+        raise ValueError("पिछले 3 घंटे में बाजार-संबंधी सक्रिय India trending खोजें नहीं मिलीं")
+    bn = sum(x["dir"] == "bull" for x in clusters); rn = sum(x["dir"] == "bear" for x in clusters); nn = len(clusters) - bn - rn; total = len(clusters)
+    bp = round(bn / total * 100, 1); rp = round(rn / total * 100, 1); np = round(nn / total * 100, 1)
+    sentiment = "BULLISH" if bn > rn else "BEARISH" if rn > bn else "NEUTRAL"
+    return {"ok": True, "unit": "India Trending market-cluster share (%)", "crowd_bull_pct": round(bp), "crowd_label": sentiment, "bull_sum_pct": bp, "bear_sum_pct": rp, "min_side_pct": None, "crowd_terms": clusters[:20], "spikes": [], "hidden_spikes": 0, "bull_score_pct": bp, "bear_score_pct": rp, "neutral_score_pct": np, "sentiment_label": sentiment, "today_bull_pct": bp, "today_label": "India Trending बाजार-संबंधी सक्रिय खोजों का अनुपात", "today_basis": "india_trending_rss_market_cluster_share", "source_timeframe": "Google India Trending RSS", "source_data_time": latest.isoformat(), "fallback_used": True, "fallback_type": "trending_rss", "data_note": "यह सक्रिय बाजार-संबंधी trending clusters का अनुपात है, सभी NIFTY searches का search-interest प्रतिशत नहीं।", "queries_total": total}
+
+def build_crowd_composite(trends, participant_oi, retail_info, headline_split):
+    """Weighted -10..+10 composite from fresh search, CLIENT OI, positioning and news."""
+    parts = []
+    if trends and trends.get("ok") and not trends.get("stale"):
+        b = float(trends.get("bull_score_pct", 0) or 0); r = float(trends.get("bear_score_pct", 0) or 0)
+        parts.append(("google_search", max(-10.0, min(10.0, (b-r)/10.0)), 40))
+    changes = ((participant_oi or {}).get("changes") or {}).get("by_group") or {}
+    client = changes.get("CLIENT") or {}
+    def normalized_net(long_key, short_key, bullish=True):
+        lv, sv = client.get(long_key), client.get(short_key)
+        if lv is None or sv is None: return None
+        den = abs(float(lv)) + abs(float(sv))
+        if den <= 0: return 0.0
+        value = (float(lv)-float(sv))/den*10.0
+        return value if bullish else -value
+    call_score = normalized_net("index_call_long", "index_call_short", True)
+    put_score = normalized_net("index_put_long", "index_put_short", False)
+    if call_score is not None and put_score is not None:
+        parts.append(("client_ce_pe_net_oi_change", max(-10.0, min(10.0, (call_score+put_score)/2)), 30))
+    if retail_info and retail_info.get("adj") is not None:
+        parts.append(("client_total_ce_pe_position", max(-10.0, min(10.0, float(retail_info["adj"])*5)), 15))
+    hs = headline_split or {}; pos = float(hs.get("pos", 0) or 0); neg = float(hs.get("neg", 0) or 0)
+    if pos + neg > 0:
+        parts.append(("market_news", max(-10.0, min(10.0, (pos-neg)/(pos+neg)*10)), 15))
+    if not parts: return {"ok": False, "score": None, "label": "डेटा की पुष्टि बाकी", "coverage_pct": 0, "components": []}
+    weight_total = sum(x[2] for x in parts)
+    score = round(sum(x[1]*x[2] for x in parts)/weight_total, 2)
+    label = "EXTREMELY BULLISH" if score >= 7.5 else "BULLISH CROWD" if score >= 2 else "EXTREMELY BEARISH" if score <= -7.5 else "BEARISH CROWD" if score <= -2 else "NEUTRAL"
+    return {"ok": True, "score": score, "label": label, "coverage_pct": weight_total, "components": [{"name": n, "score": round(v,2), "weight_pct": w} for n,v,w in parts], "method": "available component weights are renormalized; missing sources are excluded, not treated as zero"}
+
 def fetch_trends():
     """पहले पिछले 24 घंटे का Google Trends डेटा लें।
     7-दिन/3-महीने के नमूने ऐतिहासिक संदर्भ हैं, आज का crowd mood नहीं।"""
@@ -1783,10 +1844,14 @@ def fetch_trends():
                 rate_limited = "429" in last_err or "too many requests" in last_err.lower()
                 time.sleep(120 if rate_limited else 45)
 
-    return {
-        "ok": False, "stale": False,
-        "error": f"Google Trends के 24-घंटे और ताज़ा 7-दिन fallback दोनों विफल: {last_err}"
-    }
+    try:
+        result = _google_trending_rss_fallback()
+        result["fallback_reason"] = f"Interest-over-time endpoint विफल: {last_err}"
+        return result
+    except Exception as e:
+        last_err = f"{last_err}; India Trending RSS: {e}"
+        print(f"Google India Trending RSS fallback failed: {e}")
+    return {"ok": False, "stale": False, "error": f"आज की Google search reading नहीं मिली: {last_err}"}
 
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
@@ -2169,6 +2234,7 @@ def main():
             "error": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी"
         }
     result["trends"] = trends
+    result["crowd_composite"] = build_crowd_composite(trends, result["participant_oi"], rinfo, result.get("headline_split"))
 
     fresh_trends = trends.get("ok") and not trends.get("stale")
     crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
