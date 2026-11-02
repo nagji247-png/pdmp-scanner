@@ -447,6 +447,8 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = gold_price
         PRICE_CACHE["GC=F_SOURCE"] = gold_source
         PRICE_CACHE["GC=F_DATE"] = gold_date
+        gold_meta = load_json(GOLD_MCX_FILE, {})
+        PRICE_CACHE["GC=F_TIME"] = " ".join(gold_meta.get("source_time", "").split(" ")[1:]) or None
         gold = load_json(GOLD_MCX_FILE, {})
         try:
             previous_gold = float(gold.get("previous_mcx_price_per_10g"))
@@ -459,6 +461,8 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = silver_price
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
+        silver_meta = load_json(MCX_SILVER_FILE, {})
+        PRICE_CACHE["SI=F_TIME"] = " ".join(silver_meta.get("source_time", "").split(" ")[1:]) or None
         # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
         # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
         mcx = load_json(MCX_SILVER_FILE, {})
@@ -482,33 +486,33 @@ def daily_returns(sym):
 
 
 def intraday_quote(sym):
-    """Best-effort latest Yahoo 5-minute quote for NSE indices/stocks.
-    Reject bars from another date or older than 15 minutes; never label daily close as today's quote."""
-    indian = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
-    if not indian:
+    """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time."""
+    indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
+    supported = indian_cash or sym in ("INR=X", "BZ=F")
+    if not supported:
         return None
     try:
         h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
         if h is None or h.empty or "Close" not in h.columns:
             return None
-        idx = h.index[-1]
-        stamp = idx.to_pydatetime()
+        stamp = h.index[-1].to_pydatetime()
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=dt.timezone.utc)
         stamp_utc = stamp.astimezone(dt.timezone.utc)
         now_utc = dt.datetime.now(dt.timezone.utc)
         age = (now_utc - stamp_utc).total_seconds() / 60
-        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
-        if age < -2 or age > 15 or bar_ist.date() != today_ist:
+        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
+        max_age = 15 if indian_cash else 60
+        if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
         price = float(h["Close"].iloc[-1])
         if not math.isfinite(price) or price <= 0:
             return None
-        return {"price": round(price, 2),
-                "date": today_ist.isoformat(),
-                "time": bar_ist.strftime("%Y-%m-%d %H:%M IST"),
-                "source": "Yahoo Finance 5-minute intraday"}
+        return {"price": round(price, 4 if sym == "INR=X" else 2),
+                "date": bar_ist.date().isoformat(),
+                "time": bar_ist.strftime("%I.%M %p IST").lstrip("0"),
+                "source": "Yahoo Finance 5-minute quote"}
     except Exception as exc:
         print(f"intraday quote unavailable {sym}: {exc}")
         return None
@@ -823,6 +827,11 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
         if prev_close and prev_close > 0:
             change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+    price_time = live_quote["time"] if live_quote else (
+        PRICE_CACHE.get("GC=F_TIME") if sym == "GC=F" else
+        PRICE_CACHE.get("SI=F_TIME") if sym == "SI=F" else
+        (" ".join(PRICE_CACHE.get("BTC-USD_DATE", "").split(" ")[1:]) or None) if sym == "BTC-USD" else None
+    )
 
     try:
         heads = fetch_news(query)
@@ -837,9 +846,10 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
         "price": PRICE_CACHE.get(sym),
+        "price_time": price_time,
         "price_as_of": live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
-        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
+        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
