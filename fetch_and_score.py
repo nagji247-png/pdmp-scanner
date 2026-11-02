@@ -1474,8 +1474,10 @@ def tq_aggregate(queries):
         bull_score = round(max(0.0, bull_w - bear_w) / total * 100, 1)
         bear_score = round(max(0.0, bear_w - bull_w) / total * 100, 1)
         neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
-        sentiment = ("BULLISH" if bull_score > max(bear_score, neutral_score)
-                     else "BEARISH" if bear_score > max(bull_score, neutral_score) else "NEUTRAL")
+        # Direction label compares bullish vs bearish search interest directly.
+        # Residual neutral score measures strength/uncertainty; it is not a vote.
+        sentiment = ("BULLISH" if bull_w > bear_w
+                     else "BEARISH" if bear_w > bull_w else "NEUTRAL")
     rising_all = [it for it in queries.values() if it.get("rising")]
     return {
         "crowd_bull_pct": pct, "crowd_label": label,
@@ -1552,8 +1554,9 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
     label = ("ज़्यादातर बुलिश सोच" if bull_pct >= CROWD_EXTREME
              else "ज़्यादातर बियरिश सोच" if bull_pct <= CROWD_LOW else "सोच बँटी हुई")
-    sentiment = ("BULLISH" if bull_score > max(bear_score, neutral_score)
-                 else "BEARISH" if bear_score > max(bull_score, neutral_score) else "NEUTRAL")
+    # Classify direction from bullish vs bearish interest, not residual neutral score.
+    sentiment = ("BULLISH" if bull_total > bear_total
+                 else "BEARISH" if bear_total > bull_total else "NEUTRAL")
 
     crowd_terms = [{
         "term": x["term"], "dir": x["direction"], "now": x["weight"],
