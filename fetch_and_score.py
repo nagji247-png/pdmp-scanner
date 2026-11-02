@@ -416,6 +416,7 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
+    PRICE_CACHE[sym + "_PREV_CLOSE"] = last_close
     if sym == "BTC-USD":
         # Bitcoin trades 24/7: use the latest completed hourly candle, not a
         # UTC daily candle that can make the card look one day stale in India.
@@ -477,6 +478,40 @@ def daily_returns(sym):
         d = closes.index[i].strftime("%Y-%m-%d")
         out[d] = round((cur / prev - 1) * 100, 2)
     return out
+
+
+
+def intraday_quote(sym):
+    """Best-effort latest Yahoo 5-minute quote for NSE indices/stocks.
+    Reject bars from another date or older than 15 minutes; never label daily close as today's quote."""
+    indian = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
+    if not indian:
+        return None
+    try:
+        h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
+        if h is None or h.empty or "Close" not in h.columns:
+            return None
+        idx = h.index[-1]
+        stamp = idx.to_pydatetime()
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=dt.timezone.utc)
+        stamp_utc = stamp.astimezone(dt.timezone.utc)
+        now_utc = dt.datetime.now(dt.timezone.utc)
+        age = (now_utc - stamp_utc).total_seconds() / 60
+        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
+        bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
+        if age < -2 or age > 15 or bar_ist.date() != today_ist:
+            return None
+        price = float(h["Close"].iloc[-1])
+        if not math.isfinite(price) or price <= 0:
+            return None
+        return {"price": round(price, 2),
+                "date": today_ist.isoformat(),
+                "time": bar_ist.strftime("%Y-%m-%d %H:%M IST"),
+                "source": "Yahoo Finance 5-minute intraday"}
+    except Exception as exc:
+        print(f"intraday quote unavailable {sym}: {exc}")
+        return None
 
 
 def fetch_participant_oi(base_date=None):
@@ -780,6 +815,15 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         print(f"price error {name}: {e}")
     all_returns[name] = returns
 
+    # For NSE index/stock cards, prefer a fresh 5-minute intraday quote.
+    # Keep the existing daily close only when no fresh intraday quote is returned.
+    live_quote = intraday_quote(sym)
+    if live_quote:
+        PRICE_CACHE[sym] = live_quote["price"]
+        prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+        if prev_close and prev_close > 0:
+            change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+
     try:
         heads = fetch_news(query)
     except Exception as e:
@@ -793,9 +837,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "type": kind,
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
+        "price_as_of": live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
-        "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
+        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
