@@ -383,6 +383,15 @@ def gold_display_price():
         print(f"MCX gold reference unavailable: {exc}")
     return None, "", "MCX Gold भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
 
+def compact_ist_time(value):
+    """Convert a stored YYYY-MM-DD HH:MM IST timestamp to a short 12-hour label."""
+    try:
+        stamp = dt.datetime.strptime(str(value), "%Y-%m-%d %H:%M IST")
+        return stamp.strftime("%I.%M %p IST").lstrip("0")
+    except (TypeError, ValueError):
+        return None
+
+
 def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
@@ -448,7 +457,7 @@ def daily_returns(sym):
         PRICE_CACHE["GC=F_SOURCE"] = gold_source
         PRICE_CACHE["GC=F_DATE"] = gold_date
         gold_meta = load_json(GOLD_MCX_FILE, {})
-        PRICE_CACHE["GC=F_TIME"] = " ".join(gold_meta.get("source_time", "").split(" ")[1:]) or None
+        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_meta.get("source_time"))
         gold = load_json(GOLD_MCX_FILE, {})
         try:
             previous_gold = float(gold.get("previous_mcx_price_per_10g"))
@@ -462,7 +471,7 @@ def daily_returns(sym):
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
         silver_meta = load_json(MCX_SILVER_FILE, {})
-        PRICE_CACHE["SI=F_TIME"] = " ".join(silver_meta.get("source_time", "").split(" ")[1:]) or None
+        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_meta.get("source_time"))
         # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
         # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
         mcx = load_json(MCX_SILVER_FILE, {})
@@ -830,7 +839,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     price_time = live_quote["time"] if live_quote else (
         PRICE_CACHE.get("GC=F_TIME") if sym == "GC=F" else
         PRICE_CACHE.get("SI=F_TIME") if sym == "SI=F" else
-        (" ".join(PRICE_CACHE.get("BTC-USD_DATE", "").split(" ")[1:]) or None) if sym == "BTC-USD" else None
+        compact_ist_time(PRICE_CACHE.get("BTC-USD_DATE")) if sym == "BTC-USD" else None
     )
 
     try:
