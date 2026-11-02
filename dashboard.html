@@ -672,7 +672,7 @@ function renderCrowd(data) {
   let moodHtml;
   const hasFreshOneDayMood = t.ok && !t.stale
     && t.today_bull_pct != null
-    && t.today_basis === "now_1d_anchor_relative";
+    && ["now_1d_anchor_relative", "now_7d_recent_24"].includes(t.today_basis);
   if (hasFreshOneDayMood && t.crowd_bull_pct != null) {
     const bull = Number(t.crowd_bull_pct);
     const bear = 100 - bull;
@@ -717,7 +717,7 @@ function renderTrapDetector(data) {
   const n = (((data.signals || {}).state || {}).NIFTY) || {};
   const dir = Number(n.price_dir);
   const freshMood = t.ok && !t.stale && t.crowd_bull_pct != null
-    && t.today_bull_pct != null && t.today_basis === "now_1d_anchor_relative";
+    && t.today_bull_pct != null && ["now_1d_anchor_relative", "now_7d_recent_24"].includes(t.today_basis);
   const pct = freshMood ? Number(t.crowd_bull_pct) : null;
 
   if (!freshMood) {
