@@ -2029,19 +2029,45 @@ def main():
     trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
 
     if trends_scan:
-        # हर तय स्लॉट पर नया डेटा ही स्वीकारें; असफलता पर पिछली reading बिल्कुल न दिखाएँ।
-        fresh_trends = fetch_trends()
-        if fresh_trends.get("ok"):
-            trends = fresh_trends
+        # अगर इसी retry-window में पहले ही नई reading मिल चुकी है, तो अनावश्यक
+        # Google अनुरोध न करें। असफल/पुरानी reading पर अगला scheduled retry फिर चलेगा।
+        recent_success = (
+            previous_trends.get("ok")
+            and previous_trends_has_scores
+            and not previous_trends_all_zero
+            and trends_within_freshness(previous_trends, now_utc)
+        )
+        recent_age_minutes = None
+        if recent_success:
+            try:
+                _stamp = dt.datetime.fromisoformat(str(previous_trends.get("as_of")).replace("Z", "+00:00"))
+                if _stamp.tzinfo is None:
+                    _stamp = _stamp.replace(tzinfo=dt.timezone.utc)
+                recent_age_minutes = (now_utc - _stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
+            except (TypeError, ValueError):
+                recent_age_minutes = None
+
+        if recent_age_minutes is not None and -5 <= recent_age_minutes <= 90:
+            trends = dict(previous_trends)
             trends["stale"] = False
-            trends["as_of"] = updated
-            trends["cached"] = False
+            trends["cached"] = True
+            trends["retry_skipped"] = True
             trends["refresh_policy_hours"] = None
+            print(f"Google Trends retry skipped: successful reading is only {recent_age_minutes:.0f} minutes old")
         else:
-            trends = {
-                "ok": False, "stale": False, "cached": False,
-                "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
-            }
+            # नया डेटा ही स्वीकारें; असफलता पर पिछली reading को ताज़ा बताकर न दिखाएँ।
+            fresh_trends = fetch_trends()
+            if fresh_trends.get("ok"):
+                trends = fresh_trends
+                trends["stale"] = False
+                trends["as_of"] = updated
+                trends["cached"] = False
+                trends["refresh_policy_hours"] = None
+            else:
+                trends = {
+                    "ok": False, "stale": False, "cached": False,
+                    "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
+                }
     elif previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero:
         if trends_within_freshness(previous_trends, now_utc):
             trends = dict(previous_trends)

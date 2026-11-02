@@ -3,6 +3,7 @@ name: PDMP Scan
 on:
   schedule:
     - cron: "0,30 0-6,8-23 * * *"
+    - cron: "15,45 4 * * *"
     - cron: "30 7 * * *"
     - cron: "45 3 * * *"
     - cron: "15 5 * * *"
@@ -31,7 +32,7 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Run PDMP scan
         env:
-          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '45 3 * * *' || github.event.schedule == '15 5 * * *' || github.event.schedule == '0 7 * * *' || github.event.schedule == '15 9 * * *' || github.event.schedule == '30 15 * * *' }}
+          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '45 3 * * *' || github.event.schedule == '0 4 * * *' || github.event.schedule == '15 4 * * *' || github.event.schedule == '30 4 * * *' || github.event.schedule == '45 4 * * *' || github.event.schedule == '15 5 * * *' || github.event.schedule == '0 7 * * *' || github.event.schedule == '15 9 * * *' || github.event.schedule == '30 15 * * *' }}
         run: python fetch_and_score.py
       - name: Commit results
         run: |
