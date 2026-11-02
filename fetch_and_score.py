@@ -2209,7 +2209,7 @@ def main():
             if fresh_trends.get("ok"):
                 trends = fresh_trends
                 trends["stale"] = False
-                trends["as_of"] = updated
+                trends["as_of"] = trends.get("source_data_time") or updated
                 trends["cached"] = False
                 trends["refresh_policy_hours"] = None
             else:
