@@ -574,7 +574,7 @@ function card(name, d, participantOI) {
     ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं";
   const goldChangeColor = d.change_pct != null && Number.isFinite(Number(d.change_pct))
     ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5";
-  const goldDate = d.price_as_of ? esc(d.price_as_of) : "";
+  const priceTime = d.price_time ? esc(d.price_time) : "";
   const el = document.createElement("div");
   el.className = "card " + cls;
   el.innerHTML = `
@@ -588,7 +588,7 @@ function card(name, d, participantOI) {
       </div>
       <div style="font-size:11px;line-height:1.25;color:#aab2c5;margin:2px 0 4px">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${goldDate}</div>
+        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${priceTime}</div>
       </div>
     ` : `
       <div class="name">${esc(name)}</div>
@@ -596,7 +596,7 @@ function card(name, d, participantOI) {
         <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव अलग हो सकते हैं</small>' : ""}</div>
         <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
           ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : ""))
-          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${d.price_as_of ? (name === "SILVER" ? "मूल्य तारीख: " + esc(d.price_as_of.split("-").reverse().join("/")) : esc(d.price_as_of)) : ""}</small></div>
+          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${priceTime}</small></div>
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
     `}
