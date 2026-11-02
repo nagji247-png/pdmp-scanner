@@ -1796,7 +1796,12 @@ def build_crowd_composite(trends, participant_oi, retail_info, headline_split):
     if not parts: return {"ok": False, "score": None, "label": "डेटा की पुष्टि बाकी", "coverage_pct": 0, "components": []}
     weight_total = sum(x[2] for x in parts)
     score = round(sum(x[1]*x[2] for x in parts)/weight_total, 2)
-    label = "EXTREMELY BULLISH" if score >= 7.5 else "BULLISH CROWD" if score >= 2 else "EXTREMELY BEARISH" if score <= -7.5 else "BEARISH CROWD" if score <= -2 else "NEUTRAL"
+    label = ("EXTREMELY BULLISH · BULL TRAP WATCH" if score >= 7.5 else
+             "BULLISH CROWD · TRAP WATCH" if score >= 6 else
+             "BULLISH" if score >= 2 else
+             "EXTREMELY BEARISH · BEAR TRAP WATCH" if score <= -7.5 else
+             "BEARISH CROWD · TRAP WATCH" if score <= -6 else
+             "BEARISH" if score <= -2 else "NEUTRAL")
     return {"ok": True, "score": score, "label": label, "coverage_pct": weight_total, "components": [{"name": n, "score": round(v,2), "weight_pct": w} for n,v,w in parts], "method": "available component weights are renormalized; missing sources are excluded, not treated as zero"}
 
 def fetch_trends():
