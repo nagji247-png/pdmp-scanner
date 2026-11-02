@@ -79,7 +79,7 @@ TERM_CHUNK = 4
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
-TRENDS_RETRIES = 3  # 429 (rate limit) पर थोड़ा रुककर फिर कोशिश; कुल समय सीमित
+TRENDS_RETRIES = 2  # सीमित retry; फिर ताज़ा 7-दिन fallback
 TRENDS_MAX_AGE_MINUTES = 150  # इससे पुरानी Google Trends reading डैशबोर्ड पर नहीं दिखेगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
@@ -1571,7 +1571,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     if float(base_df.values.max()) <= 0:
         raise ValueError("Google Trends का आधार डेटा शून्य है")
     source_data_time = None
-    if timeframe == "now 1-d":
+    if timeframe in ("now 1-d", "now 7-d"):
         # Google Trends का आख़िरी observation भी हाल का होना चाहिए;
         # केवल workflow का नया timestamp पुराने sample को नया नहीं बना सकता।
         last_value = base_df.index[-1]
@@ -1764,10 +1764,28 @@ def fetch_trends():
                 rate_limited = "429" in last_err or "too many requests" in last_err.lower()
                 time.sleep(120 if rate_limited else 45)
 
-    # पुराने 7-दिन/related-query स्कोर को live mood बनाकर कभी न दिखाएँ।
+    # 24h endpoint विफल हो तो 7-दिन hourly series लें; केवल हाल के 24
+    # observations का उपयोग करें और आख़िरी Google observation 180 मिनट से नया हो।
+    for attempt in range(TRENDS_RETRIES):
+        try:
+            result = _trends_once(timeframe="now 7-d", recent_points=24)
+            result["fallback_used"] = True
+            result["today_bull_pct"] = result["crowd_bull_pct"]
+            result["today_label"] = "7-दिन स्रोत के सबसे हाल के 24 डेटा पॉइंट"
+            result["today_basis"] = "now_7d_recent_24"
+            result["source_timeframe"] = "now 7-d"
+            result["fallback_reason"] = f"24-घंटे स्रोत विफल: {last_err}"
+            return result
+        except Exception as e:
+            last_err = str(e)
+            print(f"Google Trends now 7-d fallback attempt {attempt + 1} failed: {last_err}")
+            if attempt < TRENDS_RETRIES - 1:
+                rate_limited = "429" in last_err or "too many requests" in last_err.lower()
+                time.sleep(120 if rate_limited else 45)
+
     return {
         "ok": False, "stale": False,
-        "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
+        "error": f"Google Trends के 24-घंटे और ताज़ा 7-दिन fallback दोनों विफल: {last_err}"
     }
 
 
