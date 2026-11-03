@@ -574,15 +574,27 @@ function card(name, d, participantOI) {
     ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं";
   const goldChangeColor = d.change_pct != null && Number.isFinite(Number(d.change_pct))
     ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5";
-  const priceTime = d.price_time ? esc(d.price_time) : "";
+  const priceTime = (() => {
+    const raw = String(d.price_time || "").trim();
+    const m = raw.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
+    return m ? Number(m[1]) + ":" + m[2] + " " + m[3].toLowerCase() + " IST" : raw.replace(/\b(AM|PM)\b/i, x => x.toLowerCase());
+  })();
   const priceDate = (() => {
     const raw = String(d.price_as_of || "").trim();
     let m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (m) return new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
-    m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (m) return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
+    if (m) return m[1] + "/" + m[2] + "/" + m[3];
+    m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[3] + "/" + m[2] + "/" + m[1];
+    m = raw.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})/);
+    if (m) {
+      const months = {Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
+      return String(m[1]).padStart(2,"0") + "/" + (months[m[2]] || "??") + "/" + m[3];
+    }
     return raw;
   })();
+  const priceMeta = (d.price_source ? esc(d.price_source) : "") +
+    (priceDate ? (d.price_source ? "<br>" : "") + esc(priceDate) : "") +
+    (priceTime ? "<br>" + esc(priceTime) : "");
   const priceStamp = [priceDate, priceTime].filter(Boolean).join(" · ");
   const el = document.createElement("div");
   el.className = "card " + cls;
@@ -597,7 +609,7 @@ function card(name, d, participantOI) {
       </div>
       <div style="font-size:11px;line-height:1.25;color:#aab2c5;margin:2px 0 4px">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${priceStamp}</div>
+        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;line-height:1.35;color:#8a90a8">${priceMeta}</div>
       </div>
     ` : `
       <div class="name">${esc(name)}</div>
@@ -605,7 +617,7 @@ function card(name, d, participantOI) {
         <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव अलग हो सकते हैं</small>' : ""}</div>
         <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
           ? ((name === "BITCOIN" ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : ""))
-          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${priceStamp}</small></div>
+          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small style="display:block;line-height:1.35">${priceMeta}</small></div>
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
     `}
