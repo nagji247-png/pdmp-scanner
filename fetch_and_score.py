@@ -338,12 +338,12 @@ def nse_cash_quote(name, sym):
                     "source": "NSE"}
     elif sym.endswith(".NS"):
         symbol = sym[:-3].upper()
-        if symbol == "TMPV":
-            symbol = "TMPV"
-        item = nse_stock_universe().get(symbol)
-        if item and item.get("lastTradedPrice") and item.get("latestTimestamp"):
-            return {"price": float(item["lastTradedPrice"]),
-                    "stamp": item["latestTimestamp"], "source": "NSE"}
+        data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
+        item = data.get("stock", data) if isinstance(data, dict) else {}
+        price = item.get("lastTradedPrice", item.get("lastPrice", item.get("ltp")))
+        stamp = item.get("latestTimestamp", item.get("timestamp"))
+        if price and stamp:
+            return {"price": float(price), "stamp": stamp, "source": "NSE"}
     return None
 
 def nse_stamp_fields(stamp):
