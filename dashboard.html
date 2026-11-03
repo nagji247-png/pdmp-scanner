@@ -577,9 +577,9 @@ function card(name, d, participantOI) {
   const priceTime = d.price_time ? esc(d.price_time) : "";
   const priceDate = (() => {
     const raw = String(d.price_as_of || "").trim();
-    let m = raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+    let m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (m) return new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
-    m = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+    m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (m) return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
     return raw;
   })();
@@ -597,7 +597,7 @@ function card(name, d, participantOI) {
       </div>
       <div style="font-size:11px;line-height:1.25;color:#aab2c5;margin:2px 0 4px">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${priceTime}</div>
+        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;color:#8a90a8">${priceStamp}</div>
       </div>
     ` : `
       <div class="name">${esc(name)}</div>
