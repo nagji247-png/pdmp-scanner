@@ -324,8 +324,59 @@ def nse_stock_universe():
         return NSE_QUOTE_CACHE["stocks"]
     return NSE_QUOTE_CACHE["stocks"] or {}
 
+def bse_sensex_quote():
+    """Return BSE's own SENSEX quote only when its exchange timestamp is for today."""
+    try:
+        url = "https://api.bseindia.com/RealTimeBseIndiaAPI/api/GetSensexData/w"
+        headers = {"Accept": "application/json, text/plain, */*",
+                   "Referer": "https://www.bseindia.com/",
+                   "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                   "Cache-Control": "no-cache"}
+        response = requests.get(url, headers=headers, timeout=12)
+        response.raise_for_status()
+        payload = response.json()
+        rows = payload if isinstance(payload, list) else payload.get("Table", []) if isinstance(payload, dict) else []
+        row = next((item for item in rows if isinstance(item, dict) and
+                    str(item.get("indxnm") or item.get("Index") or "").lower().replace(" ", "") in
+                    ("sensexvalue", "sensex")), None)
+        if row is None and isinstance(payload, dict):
+            row = payload
+        if not isinstance(row, dict):
+            raise ValueError("BSE SENSEX response row missing")
+        raw_price = row.get("ltp") or row.get("LTP") or row.get("CurrentIndexValue")
+        raw_pct = row.get("perchg") or row.get("Change %") or row.get("PercentChange")
+        raw_stamp = row.get("dttm") or row.get("DateTime") or row.get("timestamp")
+        if raw_price is None or not raw_stamp:
+            raise ValueError("BSE quote price/timestamp missing")
+        price = float(str(raw_price).replace(",", ""))
+        stamp_text = str(raw_stamp).strip()
+        stamp = None
+        for fmt in ("%d %b %y | %H:%M", "%d %b %Y | %H:%M",
+                    "%d-%B-%Y %H:%M:%S", "%d-%b-%Y %H:%M:%S"):
+            try:
+                stamp = dt.datetime.strptime(stamp_text, fmt)
+                break
+            except ValueError:
+                continue
+        if stamp is None:
+            raise ValueError(f"unrecognized BSE timestamp: {stamp_text}")
+        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        if stamp.date() != now_ist.date():
+            raise ValueError(f"BSE quote is not today's session: {stamp_text}")
+        if (now_ist - stamp).total_seconds() > 30 * 60 or stamp > now_ist + dt.timedelta(minutes=2):
+            raise ValueError(f"BSE quote timestamp outside 30-minute freshness window: {stamp_text}")
+        return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+                "source": "BSE",
+                "change_pct": float(str(raw_pct).replace("%", "").replace(",", "")) if raw_pct is not None else None}
+    except Exception as exc:
+        print(f"BSE SENSEX quote unavailable: {exc}")
+        return None
+
+
 def nse_cash_quote(name, sym):
-    """Return actual NSE quote and exchange timestamp; never replace it with scan time."""
+    """Return actual NSE/BSE quote and exchange timestamp; never replace it with scan time."""
+    if name == "SENSEX":
+        return bse_sensex_quote()
     if name == "NIFTY":
         data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
         idx = (data or {}).get("index", {})
@@ -652,7 +703,8 @@ def daily_returns(sym):
         PRICE_CACHE["GC=F_SOURCE"] = gold_source
         PRICE_CACHE["GC=F_DATE"] = gold_date
         gold_meta = load_json(GOLD_MCX_FILE, {})
-        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_meta.get("source_time"))
+        gold_stamp = str(gold_meta.get("source_time") or "")
+        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_stamp) if gold_stamp[:10] == str(gold_meta.get("date") or "") else None
         gold = load_json(GOLD_MCX_FILE, {})
         try:
             previous_gold = float(gold.get("previous_mcx_price_per_10g"))
@@ -666,7 +718,8 @@ def daily_returns(sym):
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
         silver_meta = load_json(MCX_SILVER_FILE, {})
-        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_meta.get("source_time"))
+        silver_stamp = str(silver_meta.get("source_time") or "")
+        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if silver_stamp[:10] == str(silver_meta.get("date") or "") else None
         # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
         # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
         mcx = load_json(MCX_SILVER_FILE, {})
