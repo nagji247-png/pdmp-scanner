@@ -1133,6 +1133,8 @@ function renderContrarian(c) {
         status = '<span style="font-size:12px;color:#f5a623">पलटा</span>';
       } else if (e.outcome === "continued") {
         status = '<span style="font-size:12px;color:#2ecc71">जारी रहा</span>';
+      } else if (e.outcome === "neutral") {
+        status = '<span style="font-size:12px;color:#7b82a0">लगभग स्थिर — Accuracy में शामिल नहीं</span>';
       } else {
         status = '<span style="font-size:12px;color:#7b82a0">अगले दिन का डेटा अभी उपलब्ध नहीं</span>';
       }
@@ -1168,7 +1170,7 @@ function renderContrarian(c) {
         <div style="font-size:10px;color:#7b82a0;letter-spacing:0.5px">REVERSAL RATE</div>
       </div>
       <div style="font-size:13px;color:#dfe3ef">
-        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.tracked}</b> कुल ट्रैक
+        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> गणना में
       </div>
     </div>
     <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
