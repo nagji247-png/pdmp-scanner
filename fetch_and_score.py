@@ -673,46 +673,12 @@ def daily_returns(sym):
         PRICE_CACHE[sym + "_SOURCE"] = crude_source
         PRICE_CACHE[sym + "_CHANGE_PCT"] = crude_change
     if sym == "BTC-USD":
-        # Bitcoin trades 24/7: use the latest completed hourly candle, not a
-        # UTC daily candle that can make the card look one day stale in India.
-        try:
-            hourly = yf.Ticker(sym).history(period="5d", interval="1h")["Close"].dropna()
-            now_utc = dt.datetime.now(dt.timezone.utc)
-            cutoff = now_utc - dt.timedelta(hours=1)
-            hourly = hourly[[idx.to_pydatetime().astimezone(dt.timezone.utc).replace(tzinfo=None) <= cutoff.replace(tzinfo=None) for idx in hourly.index]]
-            if len(hourly) >= 25:
-                btc_now = float(hourly.iloc[-1])
-                btc_prev = float(hourly.iloc[-25])
-                if math.isfinite(btc_now) and math.isfinite(btc_prev) and btc_now > 0 and btc_prev > 0:
-                    last_time = hourly.index[-1].to_pydatetime()
-                    if last_time.tzinfo is None:
-                        last_time = last_time.replace(tzinfo=dt.timezone.utc)
-                    else:
-                        last_time = last_time.astimezone(dt.timezone.utc)
-                    age_hours = (now_utc - last_time).total_seconds() / 3600
-                    if 0 <= age_hours <= 2.5:
-                        PRICE_CACHE[sym] = round(btc_now, 2)
-                        PRICE_CACHE["BTC-USD_DATE"] = (last_time + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST")
-                        PRICE_CACHE["BTC-USD_SOURCE"] = "Yahoo Finance · completed 1-hour candle"
-                        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((btc_now / btc_prev - 1) * 100, 2)
-                    else:
-                        # Do not label an old hourly candle as a current Bitcoin quote.
-                        PRICE_CACHE["BTC-USD_SOURCE"] = None
-                        PRICE_CACHE["BTC-USD_DATE"] = None
-                        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
-                else:
-                    PRICE_CACHE["BTC-USD_SOURCE"] = None
-                    PRICE_CACHE["BTC-USD_DATE"] = None
-                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
-            else:
-                PRICE_CACHE["BTC-USD_SOURCE"] = None
-                PRICE_CACHE["BTC-USD_DATE"] = None
-                PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
-        except Exception as exc:
-            print(f"Bitcoin hourly price unavailable: {exc}")
-            PRICE_CACHE["BTC-USD_SOURCE"] = None
-            PRICE_CACHE["BTC-USD_DATE"] = None
-            PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+        # Bitcoin quote is supplied only by the 1-minute intraday path below.
+        # Never fall back to an hourly/daily candle as the scan-time price.
+        PRICE_CACHE[sym] = None
+        PRICE_CACHE["BTC-USD_SOURCE"] = None
+        PRICE_CACHE["BTC-USD_DATE"] = None
+        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     if sym == "GC=F":
         gold_price, gold_date, gold_source = gold_display_price()
         PRICE_CACHE[sym] = gold_price
@@ -762,7 +728,8 @@ def intraday_quote(sym):
     """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time.
     yfinance is tried first; the public Yahoo chart endpoint is a no-key fallback."""
     indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
-    supported = indian_cash or sym == "INR=X"
+    bitcoin = sym == "BTC-USD"
+    supported = indian_cash or sym == "INR=X" or bitcoin
     if not supported:
         return None
 
@@ -771,7 +738,7 @@ def intraday_quote(sym):
         age = (now_utc - stamp_utc).total_seconds() / 60
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
         today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
-        max_age = 15 if indian_cash else 60
+        max_age = 3 if bitcoin else 15 if indian_cash else 60
         if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
         if not math.isfinite(price) or price <= 0:
@@ -781,9 +748,35 @@ def intraday_quote(sym):
                 "time": bar_ist.strftime("%I.%M %p IST").lstrip("0"),
                 "source": source}
 
-    # Preferred path: yfinance's 5-minute history.
+    # Bitcoin must use the latest executed spot trade, not an OHLC candle.
+    # Coinbase's public ticker returns trade price and the trade timestamp.
+    if bitcoin:
+        try:
+            response = requests.get(
+                "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+                timeout=12
+            )
+            response.raise_for_status()
+            ticker = response.json()
+            stamp = dt.datetime.fromisoformat(str(ticker["time"]).replace("Z", "+00:00"))
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=dt.timezone.utc)
+            else:
+                stamp = stamp.astimezone(dt.timezone.utc)
+            result = validate_and_format(float(ticker["price"]), stamp,
+                                         "Coinbase BTC-USD latest executed trade")
+            if result:
+                return result
+            raise ValueError("Coinbase latest trade is older than 3 minutes or has an invalid timestamp")
+        except Exception as exc:
+            print(f"Bitcoin latest-trade quote unavailable: {str(exc)[:160]}")
+            return None
+
+    # Other instruments retain their existing 5-minute quote path.
+    interval = "5m"
     try:
-        h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
+        h = yf.Ticker(sym).history(period="1d", interval=interval, prepost=False)
         if h is not None and not h.empty and "Close" in h.columns:
             stamp = h.index[-1].to_pydatetime()
             if stamp.tzinfo is None:
@@ -791,7 +784,7 @@ def intraday_quote(sym):
             else:
                 stamp = stamp.astimezone(dt.timezone.utc)
             result = validate_and_format(float(h["Close"].iloc[-1]), stamp,
-                                         "Yahoo Finance 5-minute quote")
+                                         "Yahoo Finance 1-minute quote" if bitcoin else "Yahoo Finance 5-minute quote")
             if result:
                 return result
     except Exception as exc:
@@ -803,7 +796,7 @@ def intraday_quote(sym):
     for host in ("query2.finance.yahoo.com", "query1.finance.yahoo.com"):
         try:
             url = ("https://" + host + "/v8/finance/chart/"
-                   + quote_plus(sym) + "?range=1d&interval=5m&includePrePost=false")
+                   + quote_plus(sym) + "?range=1d&interval=" + interval + "&includePrePost=false")
             response = requests.get(url, headers={
                 "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
                 "Accept": "application/json",
@@ -827,10 +820,10 @@ def intraday_quote(sym):
             ts, price = valid[-1]
             stamp = dt.datetime.fromtimestamp(ts, tz=dt.timezone.utc)
             result = validate_and_format(price, stamp,
-                                         "Yahoo Finance public 5-minute chart (" + host + ")")
+                                         "Yahoo Finance public 1-minute chart (" + host + ")" if bitcoin else "Yahoo Finance public 5-minute chart (" + host + ")")
             if result:
                 return result
-            raise ValueError("Yahoo chart quote is outside the freshness window")
+            raise ValueError("Yahoo chart quote is outside the freshness window (3 minutes for Bitcoin)")
         except Exception as exc:
             errors.append(host + ": " + str(exc)[:140])
             print(f"Yahoo chart intraday fallback unavailable {sym} via {host}: {str(exc)[:140]}")
@@ -1145,12 +1138,24 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     live_quote = nse_quote or yahoo_quote
     if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
+        if sym == "BTC-USD":
+            PRICE_CACHE["BTC-USD_DATE"] = live_quote["date"] + " " + live_quote["time"]
+            PRICE_CACHE["BTC-USD_SOURCE"] = live_quote["source"]
+            prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+            if prev_close and prev_close > 0:
+                PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
         else:
             prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
             if prev_close and prev_close > 0:
                 change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+    elif sym == "BTC-USD":
+        # Do not expose a previous hourly/daily cached BTC value as current.
+        PRICE_CACHE[sym] = None
+        PRICE_CACHE["BTC-USD_DATE"] = None
+        PRICE_CACHE["BTC-USD_SOURCE"] = None
+        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     quote_date, quote_time = nse_stamp_fields(live_quote["stamp"]) if nse_quote else (
         (live_quote["date"], live_quote["time"]) if live_quote else (None, None))
     price_time = quote_time if live_quote else (
