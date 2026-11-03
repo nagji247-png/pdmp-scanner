@@ -79,6 +79,26 @@ def inspect(label, endpoint):
             if isinstance(tools_result, dict) and tools_result.get("result", {}).get("tools") is not None:
                 tools = tools_result["result"]["tools"]
                 print("TOOL_NAMES:", ", ".join(t.get("name", "?") for t in tools))
+
+                # Small read-only sample calls to validate live response shapes.
+                samples = [
+                    ("cm_get_data_status", {}),
+                    ("cm_get_index_quote", {"indexName": "NIFTY 50"}),
+                    ("cm_get_index_quote", {"indexName": "NIFTY BANK"}),
+                    ("cm_get_stock_quote", {"symbol": "RELIANCE"}),
+                    ("get_bulk_quote", {"symbols": [
+                        "RELIANCE", "HDFCBANK", "TMPV", "HINDALCO",
+                        "ADANIPORTS", "COALINDIA", "EICHERMOT",
+                        "APOLLOHOSP", "SBIN"
+                    ]}),
+                ]
+                for call_id, (tool_name, arguments) in enumerate(samples, start=10):
+                    print(f"\\n===== SAMPLE {tool_name} =====")
+                    result, _ = rpc(
+                        session, endpoint, "tools/call", call_id,
+                        {"name": tool_name, "arguments": arguments}, session_id
+                    )
+                    print(json.dumps(result, ensure_ascii=False, indent=2)[:9000])
         except Exception as exc:
             print(f"DISCOVERY_ERROR: {type(exc).__name__}: {exc}")
             if getattr(exc, "response", None) is not None:
