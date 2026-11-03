@@ -12,7 +12,7 @@ INDEXES = {
     "USDINR": ("INR=X", "USD INR exchange rate India"),
     "GOLD": ("GC=F", "gold price"),
     "SILVER": ("SI=F", "silver price"),
-    "CRUDEOIL": ("BZ=F", "Brent crude oil price"),
+    "CRUDEOIL": ("BZ=F", "MCX crude oil futures India"),
     "BITCOIN": ("BTC-USD", "bitcoin price"),
     "NASDAQ": ("^IXIC", "Nasdaq stock market"),
     "DJI": ("^DJI", "Dow Jones stock market"),
