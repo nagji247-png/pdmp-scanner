@@ -886,7 +886,7 @@ function createSilverProjectionCard() {
     </div>`;
   return el;
 }
-function createTradingViewSnapshotCard(title, snapshotUrl, accent) {
+function createTradingViewSnapshotCard(title, snapshotUrl, accent, drawingUrl = snapshotUrl) {
   const el = document.createElement("details");
   el.className = "tv-snapshot-card";
   el.style.cssText = "grid-column:1/-1;overflow:hidden;border:1px solid "+accent+";border-radius:14px;background:linear-gradient(145deg,#081426,#101c31);box-shadow:0 6px 18px #0007;color:#fff;margin-top:10px";
@@ -896,7 +896,7 @@ function createTradingViewSnapshotCard(title, snapshotUrl, accent) {
   const body = document.createElement("div");
   body.style.cssText = "padding:0 8px 12px";
   const imageLink = document.createElement("a");
-  imageLink.href = snapshotUrl;
+  imageLink.href = drawingUrl;
   imageLink.target = "_blank";
   imageLink.rel = "noopener noreferrer";
   imageLink.style.cssText = "display:block;width:100%;text-decoration:none";
@@ -943,7 +943,7 @@ function createGoldForecastCard() {
     if (causesHeading) goldBody.insertBefore(chartHeading, causesHeading);
     else goldBody.appendChild(chartHeading);
     const silverDrawing = createTradingViewSnapshotCard("चाँदी", "https://s3.tradingview.com/snapshots/4/4y4qx01m.png", "#b8d8ef");
-    const goldDrawing = createTradingViewSnapshotCard("सोना", "https://s3.tradingview.com/snapshots/y/YeSxqaKo.png", "#f5c84c");
+    const goldDrawing = createTradingViewSnapshotCard("सोना", "https://s3.tradingview.com/snapshots/f/FiUDAV11.png", "#f5c84c", "https://www.tradingview.com/x/FiUDAV11/");
     if (causesHeading) {
       goldBody.insertBefore(silverDrawing, causesHeading);
       goldBody.insertBefore(goldDrawing, causesHeading);
