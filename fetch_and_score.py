@@ -827,6 +827,64 @@ def intraday_quote(sym):
         except Exception as exc:
             errors.append(host + ": " + str(exc)[:140])
             print(f"Yahoo chart intraday fallback unavailable {sym} via {host}: {str(exc)[:140]}")
+    # SENSEX: if Yahoo's intraday feed is unavailable, try BSE's public
+    # real-time index endpoint. Keep the quote only when BSE supplies a
+    # parseable source timestamp within the same 15-minute freshness window.
+    if sym == "^BSESN":
+        try:
+            response = requests.get(
+                "https://api.bseindia.com/RealTimeBseIndiaAPI/api/GetSensexData/w",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                    "Referer": "https://www.bseindia.com/"
+                },
+                timeout=12
+            )
+            response.raise_for_status()
+            payload = response.json()
+            rows = payload if isinstance(payload, list) else (
+                payload.get("Table") or payload.get("Table1") or
+                payload.get("Data") or payload.get("data") or [payload]
+            )
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                fields = {re.sub(r"[^a-z]", "", str(k).lower()): v for k, v in row.items()}
+                raw_price = next((fields[k] for k in
+                                  ("ltp", "sensexvalue", "indexvalue", "currentvalue")
+                                  if fields.get(k) not in (None, "")), None)
+                raw_stamp = next((fields[k] for k in
+                                  ("datetime", "dttm", "timestamp", "updatedtime", "tradetime")
+                                  if fields.get(k) not in (None, "")), None)
+                if raw_price is None or raw_stamp is None:
+                    continue
+                stamp_text = str(raw_stamp).strip()
+                stamp = None
+                for fmt in ("%d %b %y | %H:%M", "%d %b %Y | %H:%M",
+                            "%d %b %y %H:%M", "%d %b %Y %H:%M",
+                            "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+                    try:
+                        stamp = dt.datetime.strptime(stamp_text, fmt)
+                        break
+                    except ValueError:
+                        pass
+                if stamp is None:
+                    try:
+                        stamp = dt.datetime.fromisoformat(stamp_text.replace("Z", "+00:00"))
+                    except ValueError:
+                        continue
+                if stamp.tzinfo is None:
+                    stamp = stamp.replace(tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+                stamp = stamp.astimezone(dt.timezone.utc)
+                result = validate_and_format(float(str(raw_price).replace(",", "")), stamp,
+                                             "BSE India public SENSEX quote")
+                if result:
+                    print("SENSEX quote recovered from BSE public endpoint")
+                    return result
+        except Exception as exc:
+            print(f"BSE SENSEX live quote unavailable: {str(exc)[:160]}")
+
     if errors:
         print("All Yahoo chart hosts failed for " + sym + ": " + " | ".join(errors))
     return None
