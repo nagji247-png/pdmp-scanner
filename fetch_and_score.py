@@ -363,8 +363,13 @@ def bse_sensex_quote():
         now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
         if stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not today's session: {stamp_text}")
-        if (now_ist - stamp).total_seconds() > 30 * 60 or stamp > now_ist + dt.timedelta(minutes=2):
-            raise ValueError(f"BSE quote timestamp outside 30-minute freshness window: {stamp_text}")
+        # After the cash market closes, the final exchange quote remains the
+        # valid closing snapshot for today. Accept it only when its source
+        # timestamp is from the final 15 minutes of today's session.
+        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
+        max_age_seconds = 6 * 60 * 60 if after_close else 30 * 60
+        if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
+            raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "source": "BSE",
                 "change_pct": float(str(raw_pct).replace("%", "").replace(",", "")) if raw_pct is not None else None}
@@ -737,8 +742,14 @@ def intraday_quote(sym):
         now_utc = dt.datetime.now(dt.timezone.utc)
         age = (now_utc - stamp_utc).total_seconds() / 60
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
-        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
-        max_age = 3 if bitcoin else 15 if indian_cash else 60
+        now_ist = now_utc + dt.timedelta(hours=5, minutes=30)
+        today_ist = now_ist.date()
+        # During trading, keep the strict 15-minute freshness guard. Once the
+        # cash session has closed, allow only today's final-session bar as the
+        # closing quote; never carry a previous day's price forward.
+        after_close = (indian_cash and now_ist.time() >= dt.time(15, 30)
+                       and dt.time(15, 15) <= bar_ist.time() <= dt.time(15, 35))
+        max_age = 3 if bitcoin else 360 if after_close else 15 if indian_cash else 60
         if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
         if not math.isfinite(price) or price <= 0:
@@ -1261,6 +1272,17 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
                 PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
+        elif name == "SENSEX":
+            # After 15:45 IST daily_returns includes today's completed close.
+            # Do not divide the closing quote by today's close (which would
+            # incorrectly display 0.00%); use today's recorded daily return.
+            now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+            if now_ist.weekday() < 5 and now_ist.time() >= dt.time(15, 45) and returns:
+                change = returns[max(returns)]
+            else:
+                prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+                if prev_close and prev_close > 0:
+                    change = round((live_quote["price"] / prev_close - 1) * 100, 2)
         else:
             prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
             if prev_close and prev_close > 0:
