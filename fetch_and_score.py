@@ -2680,7 +2680,7 @@ def main():
          "status": slot_records.get(key, {}).get("status", "pending")}
         for key in required_slots
     ]
-    if all_slots_ok:
+    if all_slots_ok and trends_scan and slot_id in slot_labels:
         for field, output_key in (
             ("bull_pct", "bull_score_pct"),
             ("bear_pct", "bear_score_pct"),
