@@ -2056,14 +2056,7 @@ def main():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
 
-    # संकेत-बदलाव: CRUDEOIL और DJI के लिए
-    update_signals(result["instruments"], sig_state, sig_log, updated)
-
-    result["signals"] = {
-        "state": signal_summary(sig_state),
-        "events": sig_log[-15:],
-        "watch": list(SIGNAL_WATCH.keys()),
-    }
+    # संकेतों का स्नैपशॉट अंतिम संयुक्त स्कोर बनने के बाद नीचे बनाया जाएगा।
 
     result["contrarian"] = {
         "events": events[-30:],
@@ -2284,7 +2277,46 @@ def main():
         }
     result["trends"] = trends
 
-    fresh_trends = trends.get("ok") and not trends.get("stale")
+    # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
+    # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
+    # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
+    fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
+    crowd_bull = trends.get("bull_score_pct") if fresh_trends else None
+    crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
+    crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
+    crowd_valid = all(
+        isinstance(v, (int, float)) and 0 <= v <= 100
+        for v in (crowd_bull, crowd_bear, crowd_neutral)
+    ) and abs((crowd_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
+    retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
+    for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
+        _d = result["instruments"].get(_n)
+        if not _d:
+            continue
+        if crowd_valid and retail_valid:
+            news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
+            crowd_component = max(-10.0, min(10.0, float(crowd_bull - crowd_bear) / 100 * 10))
+            retail_component = max(-10.0, min(10.0, float(adj) * 5))
+            combined = news_component * 0.40 + crowd_component * 0.40 + retail_component * 0.20
+            _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
+            _d["score_mode"] = "news_crowd_client"
+        else:
+            _d["score_mode"] = "news_client_only"
+    result["index_score_method"] = {
+        "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
+        "weights": {"news": 40, "crowd": 40, "client": 20},
+        "crowd_included": bool(crowd_valid),
+        "client_included": bool(retail_valid),
+    }
+
+    # अब signal history भी इसी अंतिम स्कोर से बनेगी।
+    update_signals(result["instruments"], sig_state, sig_log, updated)
+    result["signals"] = {
+        "state": signal_summary(sig_state),
+        "events": sig_log[-15:],
+        "watch": list(SIGNAL_WATCH.keys()),
+    }
+
     crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
     nifty_ret = all_returns.get("NIFTY") or {}
     update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
