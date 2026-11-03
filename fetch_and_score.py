@@ -2696,7 +2696,7 @@ def main():
         trends["stale"] = False
         trends["daily_label"] = "चारों निर्धारित स्लॉट का औसत"
         trends["as_of"] = slot_records["1900"].get("source_data_time")
-    else:
+    elif not all_slots_ok:
         trends["ok"] = False
         trends["stale"] = False
         trends["daily_label"] = "चारों स्लॉट पूरे होने तक Crowd Score उपलब्ध नहीं"
