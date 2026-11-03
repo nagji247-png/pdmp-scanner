@@ -1103,11 +1103,11 @@ def update_contrarian(events, name, score, today_str, returns):
         if e.get("instrument") != name:
             continue
 
-        # पुराने रिकॉर्ड में 0.1% से कम चाल को गलती से "जारी रहा" गिना गया था।
+        # पुराने रिकॉर्ड में 0.00% चाल को गलती से "जारी रहा" गिना गया था।
         # उसे neutral करें ताकि वह सफलता/विफलता की गणना में न आए।
         if e.get("outcome") in ("continued", "reversed") and e.get("next_change") is not None:
             try:
-                if abs(float(e["next_change"])) < SIG_MOVE_BAND:
+                if float(e["next_change"]) == 0:
                     e["outcome"] = "neutral"
             except (TypeError, ValueError):
                 pass
@@ -1118,7 +1118,7 @@ def update_contrarian(events, name, score, today_str, returns):
         if later:
             nxt = returns[later[0]]
             e["next_change"] = nxt
-            if abs(nxt) < SIG_MOVE_BAND:
+            if nxt == 0:
                 e["outcome"] = "neutral"
             else:
                 same_sign = (nxt > 0) == (e["score"] > 0)
