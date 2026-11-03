@@ -1093,21 +1093,36 @@ def fetch_participant_oi(base_date=None):
 
 
 def update_contrarian(events, name, score, today_str, returns):
-    """±6 से ज़्यादा स्कोर दर्ज करें और पुराने इवेंट का नतीजा भरें"""
+    """±6 या उससे अधिक स्कोर दर्ज करें; लगभग स्थिर चाल को Accuracy से अलग रखें।"""
     key = f"{today_str}|{name}"
     if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and not any(e["key"] == key for e in events):
         events.append({"key": key, "date": today_str, "instrument": name,
                        "score": score, "outcome": None, "next_change": None})
 
     for e in events:
-        if e["outcome"] is not None or e["instrument"] != name:
+        if e.get("instrument") != name:
+            continue
+
+        # पुराने रिकॉर्ड में 0.1% से कम चाल को गलती से "जारी रहा" गिना गया था।
+        # उसे neutral करें ताकि वह सफलता/विफलता की गणना में न आए।
+        if e.get("outcome") in ("continued", "reversed") and e.get("next_change") is not None:
+            try:
+                if abs(float(e["next_change"])) < SIG_MOVE_BAND:
+                    e["outcome"] = "neutral"
+            except (TypeError, ValueError):
+                pass
+
+        if e.get("outcome") is not None:
             continue
         later = sorted(d for d in returns if d > e["date"])
         if later:
             nxt = returns[later[0]]
             e["next_change"] = nxt
-            same_sign = (nxt >= 0) == (e["score"] >= 0)
-            e["outcome"] = "continued" if same_sign else "reversed"
+            if abs(nxt) < SIG_MOVE_BAND:
+                e["outcome"] = "neutral"
+            else:
+                same_sign = (nxt > 0) == (e["score"] > 0)
+                e["outcome"] = "continued" if same_sign else "reversed"
 
 
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
@@ -2515,9 +2530,11 @@ def main():
 
     result["contrarian"] = {
         "events": events[-30:],
-        "tracked": len([e for e in events if e["outcome"]]),
-        "reversed": len([e for e in events if e["outcome"] == "reversed"]),
-        "continued": len([e for e in events if e["outcome"] == "continued"]),
+        # केवल दिशा साफ़ होने वाले रिकॉर्ड Accuracy में गिने जाते हैं।
+        "tracked": len([e for e in events if e.get("outcome") in ("reversed", "continued")]),
+        "reversed": len([e for e in events if e.get("outcome") == "reversed"]),
+        "continued": len([e for e in events if e.get("outcome") == "continued"]),
+        "neutral": len([e for e in events if e.get("outcome") == "neutral"]),
     }
 
     div_done = [e for e in div_events if e.get("outcome")]
