@@ -506,6 +506,71 @@ def gold_display_price():
         print(f"MCX gold reference unavailable: {exc}")
     return None, "", "MCX Gold भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
 
+CRUDE_MCX_FILE = "mcx_crudeoil.json"
+CRUDE_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-crudeoil-price/"
+
+def refresh_mcx_crude_reference():
+    """Fetch MCX CRUDEOIL in INR/barrel; never substitute Brent USD quotes."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+        response = requests.get(CRUDE_PUBLIC_URL, headers=headers, timeout=15)
+        response.raise_for_status()
+        html = response.text
+        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{4,5}(?:\\.[0-9]{1,2})?)", html, re.I)
+        candidates = []
+        for item in matches:
+            try:
+                value = float(item.replace(",", ""))
+                if 3000 <= value <= 30000:
+                    candidates.append(value)
+            except ValueError:
+                pass
+        if not candidates:
+            raise ValueError("MCX CRUDEOIL quote not found or outside ₹3,000–₹30,000/BBL validation range")
+        current = round(candidates[0], 2)
+        stamp_match = re.search(r"Last updated on\\s*(\\d{1,2}\\s+[A-Za-z]{3},?\\s+\\d{4})\\s*\\|\\s*(\\d{1,2}:\\d{2})\\s*IST", html, re.I)
+        if not stamp_match:
+            raise ValueError("MCX quote timestamp missing; refusing to label it live")
+        stamp = dt.datetime.strptime(stamp_match.group(1).replace(",", ""), "%d %b %Y")
+        hh, mm = map(int, stamp_match.group(2).split(":"))
+        stamp = stamp.replace(hour=hh, minute=mm)
+        date = stamp.date().isoformat()
+        time_label = stamp.strftime("%I:%M %p IST").lstrip("0")
+        pct_match = re.search(r"(?:\\+|−|-)?\\s*₹[\\d,]+(?:\\.\\d+)?\\s*\\(\\s*([+\\-]?\\d+(?:\\.\\d+)?)%\\s*\\)", html, re.I)
+        change_pct = round(float(pct_match.group(1)), 2) if pct_match else None
+        data = load_json(CRUDE_MCX_FILE, {})
+        old_price = data.get("mcx_price_per_bbl")
+        if old_price is not None and float(old_price) != current:
+            data["previous_mcx_price_per_bbl"] = float(old_price)
+        data.update({
+            "mcx_price_per_bbl": current, "change_pct": change_pct,
+            "date": date, "time": time_label,
+            "source": "Upstox MCX CRUDEOIL quote (₹/BBL)",
+            "source_url": CRUDE_PUBLIC_URL,
+            "note": "Public MCX contract quote; not an exchange-certified direct feed."
+        })
+        with open(CRUDE_MCX_FILE, "w", encoding="utf-8") as out:
+            json.dump(data, out, ensure_ascii=False, indent=2)
+        print(f"MCX crude quote refreshed: ₹{current:,.2f}/BBL ({date} {time_label})")
+        return True
+    except Exception as exc:
+        print(f"MCX crude refresh failed; keeping original quote timestamp if available: {exc}")
+        return False
+
+def crude_display_quote():
+    """Return the stored MCX quote with its actual source date/time."""
+    data = load_json(CRUDE_MCX_FILE, {})
+    try:
+        value = float(data.get("mcx_price_per_bbl"))
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("invalid MCX crude quote")
+        return (round(value, 2), str(data.get("date") or ""),
+                str(data.get("time") or ""), str(data.get("source") or "MCX CRUDEOIL"),
+                data.get("change_pct"))
+    except (TypeError, ValueError):
+        return None, "", "", "MCX CRUDEOIL भाव उपलब्ध नहीं", None
+
+
 def compact_ist_time(value):
     """Convert a stored YYYY-MM-DD HH:MM IST timestamp to a short 12-hour label."""
     try:
@@ -549,6 +614,13 @@ def daily_returns(sym):
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
     PRICE_CACHE[sym + "_PREV_CLOSE"] = last_close
+    if sym == "BZ=F":
+        crude_price, crude_date, crude_time, crude_source, crude_change = crude_display_quote()
+        PRICE_CACHE[sym] = crude_price
+        PRICE_CACHE[sym + "_DATE"] = crude_date
+        PRICE_CACHE[sym + "_TIME"] = crude_time
+        PRICE_CACHE[sym + "_SOURCE"] = crude_source
+        PRICE_CACHE[sym + "_CHANGE_PCT"] = crude_change
     if sym == "BTC-USD":
         # Bitcoin trades 24/7: use the latest completed hourly candle, not a
         # UTC daily candle that can make the card look one day stale in India.
@@ -620,7 +692,7 @@ def daily_returns(sym):
 def intraday_quote(sym):
     """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time."""
     indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
-    supported = indian_cash or sym in ("INR=X", "BZ=F")
+    supported = indian_cash or sym == "INR=X"
     if not supported:
         return None
     try:
@@ -968,6 +1040,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     price_time = quote_time if live_quote else (
         PRICE_CACHE.get("GC=F_TIME") if sym == "GC=F" else
         PRICE_CACHE.get("SI=F_TIME") if sym == "SI=F" else
+        PRICE_CACHE.get("BZ=F_TIME") if sym == "BZ=F" else
         compact_ist_time(PRICE_CACHE.get("BTC-USD_DATE")) if sym == "BTC-USD" else None
     )
 
@@ -982,12 +1055,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     instruments[name] = {
         "type": kind,
-        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
+        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else PRICE_CACHE.get("BZ=F_CHANGE_PCT") if sym == "BZ=F" else change,
         "price": PRICE_CACHE.get(sym),
         "price_time": price_time,
-        "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
-        "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
-        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
+        "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
+        "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
+        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
@@ -2034,6 +2107,7 @@ def main():
     global SKIP_EVENTS
     refresh_mcx_silver_reference()
     refresh_mcx_gold_reference()
+    refresh_mcx_crude_reference()
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
