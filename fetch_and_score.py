@@ -684,18 +684,34 @@ def daily_returns(sym):
                 btc_now = float(hourly.iloc[-1])
                 btc_prev = float(hourly.iloc[-25])
                 if math.isfinite(btc_now) and math.isfinite(btc_prev) and btc_now > 0 and btc_prev > 0:
-                    PRICE_CACHE[sym] = round(btc_now, 2)
-                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((btc_now / btc_prev - 1) * 100, 2)
                     last_time = hourly.index[-1].to_pydatetime()
                     if last_time.tzinfo is None:
                         last_time = last_time.replace(tzinfo=dt.timezone.utc)
-                    PRICE_CACHE["BTC-USD_DATE"] = (last_time.astimezone(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST")
+                    else:
+                        last_time = last_time.astimezone(dt.timezone.utc)
+                    age_hours = (now_utc - last_time).total_seconds() / 3600
+                    if 0 <= age_hours <= 2.5:
+                        PRICE_CACHE[sym] = round(btc_now, 2)
+                        PRICE_CACHE["BTC-USD_DATE"] = (last_time + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST")
+                        PRICE_CACHE["BTC-USD_SOURCE"] = "Yahoo Finance · completed 1-hour candle"
+                        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((btc_now / btc_prev - 1) * 100, 2)
+                    else:
+                        # Do not label an old hourly candle as a current Bitcoin quote.
+                        PRICE_CACHE["BTC-USD_SOURCE"] = None
+                        PRICE_CACHE["BTC-USD_DATE"] = None
+                        PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
                 else:
+                    PRICE_CACHE["BTC-USD_SOURCE"] = None
+                    PRICE_CACHE["BTC-USD_DATE"] = None
                     PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
             else:
+                PRICE_CACHE["BTC-USD_SOURCE"] = None
+                PRICE_CACHE["BTC-USD_DATE"] = None
                 PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
         except Exception as exc:
             print(f"Bitcoin hourly price unavailable: {exc}")
+            PRICE_CACHE["BTC-USD_SOURCE"] = None
+            PRICE_CACHE["BTC-USD_DATE"] = None
             PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     if sym == "GC=F":
         gold_price, gold_date, gold_source = gold_display_price()
