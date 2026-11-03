@@ -40,7 +40,7 @@ jobs:
         run: |
           python - <<'PY'
           import fetch_and_score as app
-          for name, symbol in (("NIFTY", "^NSEI"), ("RELIANCE", "RELIANCE.NS")):
+          for name, symbol in (("NIFTY", "^NSEI"), ("SENSEX", "^BSESN"), ("RELIANCE", "RELIANCE.NS")):
               quote = app.nse_cash_quote(name, symbol)
               if not quote:
                   print(f"NSE quote unavailable for {name}; external probe only.")
