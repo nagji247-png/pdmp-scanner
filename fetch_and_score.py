@@ -1,4 +1,4 @@
-import json, csv, os, re, time, math, datetime as dt
+import json, csv, os, re, time, math, datetime as dt, html
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 import requests
