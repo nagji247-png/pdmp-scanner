@@ -744,12 +744,9 @@ def intraday_quote(sym):
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
         now_ist = now_utc + dt.timedelta(hours=5, minutes=30)
         today_ist = now_ist.date()
-        # During trading, keep the strict 15-minute freshness guard. Once the
-        # cash session has closed, allow only today's final-session bar as the
-        # closing quote; never carry a previous day's price forward.
-        after_close = (indian_cash and now_ist.time() >= dt.time(15, 30)
-                       and dt.time(15, 15) <= bar_ist.time() <= dt.time(15, 35))
-        max_age = 3 if bitcoin else 360 if after_close else 15 if indian_cash else 60
+        # Intraday candles remain subject to the strict freshness guard.
+        # They are never used as the SENSEX price; SENSEX comes from BSE's direct quote.
+        max_age = 3 if bitcoin else 15 if indian_cash else 60
         if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
         if not math.isfinite(price) or price <= 0:
@@ -1260,7 +1257,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
     nse_quote = nse_cash_quote(name, sym)
-    yahoo_quote = intraday_quote(sym) if not nse_quote else None
+    # SENSEX price must come only from the direct BSE index quote, never an OHLC candle.
+    yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
     live_quote = nse_quote or yahoo_quote
     if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
