@@ -9,6 +9,7 @@ INDEXES = {
     "NIFTY": ("^NSEI", '"Nifty 50" OR Nifty index OR Nifty 50 stocks India'),
     "SENSEX": ("^BSESN", '"BSE Sensex" OR Sensex index India'),
     "BANKNIFTY": ("^NSEBANK", '"Bank Nifty" OR Nifty Bank index OR banking index India'),
+    "USDINR": ("INR=X", "USD INR exchange rate India"),
     "GOLD": ("GC=F", "gold price"),
     "SILVER": ("SI=F", "silver price"),
     "CRUDEOIL": ("BZ=F", "Brent crude oil price"),
@@ -22,7 +23,7 @@ INDEXES = {
 STOCKS = {
     "RELIANCE": ("RELIANCE.NS", "Reliance Industries share"),
     "HDFCBANK": ("HDFCBANK.NS", "HDFC Bank share"),
-    "TATAMOTORS": ("TATAMOTORS.NS", "Tata Motors share"),
+    "TATAMOTORS": ("TMPV.NS", "Tata Motors Passenger Vehicles share"),
     "HINDALCO": ("HINDALCO.NS", "Hindalco share"),
     "ADANIPORTS": ("ADANIPORTS.NS", "Adani Ports share"),
     "COALINDIA": ("COALINDIA.NS", "Coal India share"),
@@ -63,12 +64,15 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
 BULL_TERMS = [
-    # भारत में प्रचलित English search phrases; Google Trends की कम-volume हिन्दी queries से बचें
+    # प्रचलित English + Hindi/roman Hindi खोजें; कम-volume शब्दों को भी रखा है,
+    # ताकि एक-दो शब्द शून्य होने पर पूरा Trends स्कैन विफल न हो।
     "nifty rally", "nifty rise", "nifty bullish", "sensex rise",
+    "nifty target", "nifty up", "share market teji", "nifty badhega",
 ]
 BEAR_TERMS = [
-    # दोनों दिशाओं में समान संख्या के प्रचलित search phrases
+    # बुलिश सूची के समान आकार की bearish खोजें; दोनों पक्षों का संतुलित कवरेज।
     "nifty fall", "nifty crash", "nifty bearish", "sensex fall",
+    "nifty down", "nifty low", "share market girawat", "nifty girega",
 ]
 TERM_CHUNK = 4
 
@@ -76,6 +80,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 3  # 429 (rate limit) पर थोड़ा रुककर फिर कोशिश; कुल समय सीमित
+TRENDS_MAX_AGE_MINUTES = 150  # इससे पुरानी Google Trends reading डैशबोर्ड पर नहीं दिखेगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -315,7 +320,7 @@ def silver_display_price(international_inr_per_kg=None):
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0:
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX close × 3% GST"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX quote + 3% GST Estimate"
     except Exception as e:
         print(f"MCX silver manual file error: {e}")
     return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
@@ -378,16 +383,27 @@ def gold_display_price():
         print(f"MCX gold reference unavailable: {exc}")
     return None, "", "MCX Gold भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
 
+def compact_ist_time(value):
+    """Convert a stored YYYY-MM-DD HH:MM IST timestamp to a short 12-hour label."""
+    try:
+        stamp = dt.datetime.strptime(str(value), "%Y-%m-%d %H:%M IST")
+        return stamp.strftime("%I.%M %p IST").lstrip("0")
+    except (TypeError, ValueError):
+        return None
+
+
 def daily_returns(sym):
     """तारीख -> उस दिन का % बदलाव; कीमत को जरूरत के अनुसार रुपये में दिखाने हेतु कैश करें।"""
     closes = yf.Ticker(sym).history(period="1mo", interval="1d")["Close"]
     today_utc = dt.datetime.now(dt.timezone.utc).date()
-    # भारतीय बाज़ार बंद होने (15:45 IST के बाद, सोम–शुक्र) पर आज का पूरा बार भी लें,
-    # ताकि तारीख और बदलाव ताज़ा रहें। बाकी बाज़ार में आज का अधूरा बार अब भी छोड़ा जाता है।
+    # Yahoo भारतीय शेयर/इंडेक्स की daily candle तारीख IST में देता है।
+    # UTC तारीख से तुलना करने पर आधी रात के बाद (IST में) पिछला पूरा दिन
+    # गलती से छँट जाता था; भारतीय symbols के लिए IST की तारीख इस्तेमाल करें।
     ist_now = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
     indian = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK", "^INDIAVIX")
+    today_market_date = ist_now.date() if indian else today_utc
     indian_closed = indian and ist_now.weekday() < 5 and (ist_now.hour, ist_now.minute) >= (15, 45)
-    keep = [(d.date() < today_utc) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
+    keep = [(d.date() < today_market_date) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
     last_close = float(closes.iloc[-1]) if len(closes) else None
     if last_close is not None and not math.isfinite(last_close):
@@ -409,11 +425,39 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
+    PRICE_CACHE[sym + "_PREV_CLOSE"] = last_close
+    if sym == "BTC-USD":
+        # Bitcoin trades 24/7: use the latest completed hourly candle, not a
+        # UTC daily candle that can make the card look one day stale in India.
+        try:
+            hourly = yf.Ticker(sym).history(period="5d", interval="1h")["Close"].dropna()
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            cutoff = now_utc - dt.timedelta(hours=1)
+            hourly = hourly[[idx.to_pydatetime().astimezone(dt.timezone.utc).replace(tzinfo=None) <= cutoff.replace(tzinfo=None) for idx in hourly.index]]
+            if len(hourly) >= 25:
+                btc_now = float(hourly.iloc[-1])
+                btc_prev = float(hourly.iloc[-25])
+                if math.isfinite(btc_now) and math.isfinite(btc_prev) and btc_now > 0 and btc_prev > 0:
+                    PRICE_CACHE[sym] = round(btc_now, 2)
+                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((btc_now / btc_prev - 1) * 100, 2)
+                    last_time = hourly.index[-1].to_pydatetime()
+                    if last_time.tzinfo is None:
+                        last_time = last_time.replace(tzinfo=dt.timezone.utc)
+                    PRICE_CACHE["BTC-USD_DATE"] = (last_time.astimezone(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST")
+                else:
+                    PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+            else:
+                PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+        except Exception as exc:
+            print(f"Bitcoin hourly price unavailable: {exc}")
+            PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     if sym == "GC=F":
         gold_price, gold_date, gold_source = gold_display_price()
         PRICE_CACHE[sym] = gold_price
         PRICE_CACHE["GC=F_SOURCE"] = gold_source
         PRICE_CACHE["GC=F_DATE"] = gold_date
+        gold_meta = load_json(GOLD_MCX_FILE, {})
+        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_meta.get("source_time"))
         gold = load_json(GOLD_MCX_FILE, {})
         try:
             previous_gold = float(gold.get("previous_mcx_price_per_10g"))
@@ -426,6 +470,8 @@ def daily_returns(sym):
         PRICE_CACHE[sym] = silver_price
         PRICE_CACHE["SI=F_SOURCE"] = silver_source
         PRICE_CACHE["SI=F_DATE"] = silver_date
+        silver_meta = load_json(MCX_SILVER_FILE, {})
+        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_meta.get("source_time"))
         # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
         # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
         mcx = load_json(MCX_SILVER_FILE, {})
@@ -447,13 +493,52 @@ def daily_returns(sym):
     return out
 
 
-def fetch_participant_oi():
-    """NSE official participant-wise OI: daily EOD, not a live feed."""
+
+def intraday_quote(sym):
+    """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time."""
+    indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
+    supported = indian_cash or sym in ("INR=X", "BZ=F")
+    if not supported:
+        return None
+    try:
+        h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
+        if h is None or h.empty or "Close" not in h.columns:
+            return None
+        stamp = h.index[-1].to_pydatetime()
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=dt.timezone.utc)
+        stamp_utc = stamp.astimezone(dt.timezone.utc)
+        now_utc = dt.datetime.now(dt.timezone.utc)
+        age = (now_utc - stamp_utc).total_seconds() / 60
+        bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
+        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
+        max_age = 15 if indian_cash else 60
+        if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
+            return None
+        price = float(h["Close"].iloc[-1])
+        if not math.isfinite(price) or price <= 0:
+            return None
+        return {"price": round(price, 4 if sym == "INR=X" else 2),
+                "date": bar_ist.date().isoformat(),
+                "time": bar_ist.strftime("%I.%M %p IST").lstrip("0"),
+                "source": "Yahoo Finance 5-minute quote"}
+    except Exception as exc:
+        print(f"intraday quote unavailable {sym}: {exc}")
+        return None
+
+
+def fetch_participant_oi(base_date=None):
+    """NSE official participant-wise OI: daily EOD, not a live feed.
+    base_date lets the caller fetch the latest archived snapshot on/before a target date."""
     headers = {"User-Agent": "Mozilla/5.0", "Accept": "text/csv,text/plain,*/*",
                "Referer": "https://www.nseindia.com/"}
     last_error = "NSE participant OI CSV unavailable"
+    if base_date is None:
+        base_date = dt.datetime.now(dt.timezone.utc).date()
+    elif isinstance(base_date, str):
+        base_date = dt.date.fromisoformat(base_date)
     for offset in range(0, 8):
-        day = dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=offset)
+        day = base_date - dt.timedelta(days=offset)
         if day.weekday() >= 5:
             continue
         url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
@@ -743,6 +828,20 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         print(f"price error {name}: {e}")
     all_returns[name] = returns
 
+    # For NSE index/stock cards, prefer a fresh 5-minute intraday quote.
+    # Keep the existing daily close only when no fresh intraday quote is returned.
+    live_quote = intraday_quote(sym)
+    if live_quote:
+        PRICE_CACHE[sym] = live_quote["price"]
+        prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+        if prev_close and prev_close > 0:
+            change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+    price_time = live_quote["time"] if live_quote else (
+        PRICE_CACHE.get("GC=F_TIME") if sym == "GC=F" else
+        PRICE_CACHE.get("SI=F_TIME") if sym == "SI=F" else
+        compact_ist_time(PRICE_CACHE.get("BTC-USD_DATE")) if sym == "BTC-USD" else None
+    )
+
     try:
         heads = fetch_news(query)
     except Exception as e:
@@ -754,11 +853,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     instruments[name] = {
         "type": kind,
-        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else change,
+        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
         "price": PRICE_CACHE.get(sym),
-        "price_as_of": (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else (max(returns) if returns else None),
-        "price_unit": ("₹/kg (MCX × GST)" if sym == "SI=F" and PRICE_CACHE.get("SI=F_SOURCE") == "MCX × GST" else "₹/kg (अनुमान)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
-        "price_source": PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else None,
+        "price_time": price_time,
+        "price_as_of": live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
+        "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
+        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
         "score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
@@ -1033,7 +1133,7 @@ OPP_STOCKS = {
     "SUZLON": ("SUZLON.NS", "Suzlon Energy"),
     "DLINKINDIA": ("DLINKINDIA.NS", "D-Link (India)"),
     "VEDL": ("VEDL.NS", "Vedanta"),
-    "APOLLOMICRO": ("APOLLOMICRO.NS", "Apollo Micro Systems"),
+    "APOLLOMICRO": ("APOLLO.NS", "Apollo Micro Systems"),
     "MSUMI": ("MSUMI.NS", "Motherson Sumi Wiring India"),
     "PARAS": ("PARAS.NS", "Paras Defence and Space Technologies"),
     "IOC": ("IOC.NS", "Indian Oil Corporation"),
@@ -1091,6 +1191,7 @@ def opportunity_raw(sym):
             "industry": info.get("industry") or "अज्ञात",
             "valuation": pe if (pe is not None and pe > 0) else None,
             "growth": (sum(growth_vals) / len(growth_vals)) if growth_vals else None,
+            "growth_factor": (sum(growth_vals) / len(growth_vals)) if growth_vals else None,
             "profitability": (sum(prof_vals) / len(prof_vals)) if prof_vals else None,
             "trend": trend,
             "rsi": _rsi14(closes),
@@ -1218,8 +1319,10 @@ def score_opportunities(raws):
     for name, r in ok.items():
         scores = {}
         for f in OPP_FACTORS:
-            vals = [x[f] for x in ok.values() if x.get(f) is not None]
-            scores[f] = _pct_rank(r.get(f), vals, spec[f])
+            source_key = "growth_factor" if f == "growth" else f
+            vals = [x[source_key] for x in ok.values()
+                    if isinstance(x.get(source_key), (int, float)) and math.isfinite(x[source_key])]
+            scores[f] = _pct_rank(r.get(source_key), vals, spec[f])
         avail = [s for s in scores.values() if s is not None]
         r["scores"] = scores
         r["total"] = round(sum(avail) / len(avail), 1) if avail else None
@@ -1308,14 +1411,14 @@ def crowd_decision(bull_pct_sum, bear_pct_sum):
     """भीड़ की सोच: EXTREMELY BULLISH / EXTREMELY BEARISH / NEUTRAL।
     Google Trends सापेक्ष खोज रुचि है, वास्तविक search count नहीं।"""
     if bull_pct_sum < MIN_SIDE_PCT or bear_pct_sum < MIN_SIDE_PCT:
-        return None, "पर्याप्त खोज डेटा नहीं"
+        return None, "डेटा अपर्याप्त — NO TRADE"
     total = bull_pct_sum + bear_pct_sum
     pct = round(bull_pct_sum / total * 100)
     if pct >= CROWD_EXTREME:
-        return pct, "ज़्यादातर बुलिश सोच"
+        return pct, "EXTREMELY BULLISH"
     if pct <= CROWD_LOW:
-        return pct, "ज़्यादातर बियरिश सोच"
-    return pct, "सोच बँटी हुई"
+        return pct, "EXTREMELY BEARISH"
+    return pct, "NEUTRAL"
 
 
 def _chunks(items, size):
@@ -1323,22 +1426,22 @@ def _chunks(items, size):
         yield items[i:i + size]
 
 
-def _trends_request(py, terms):
+def _trends_request(py, terms, timeframe="now 7-d"):
     """एक Google Trends अनुरोध: ANCHOR + ज़्यादा से ज़्यादा 4 शब्द।"""
-    py.build_payload([ANCHOR] + terms, timeframe="now 7-d", geo="IN")
+    py.build_payload([ANCHOR] + terms, timeframe=timeframe, geo="IN")
     df = py.interest_over_time()
     if df is None or df.empty:
         raise ValueError("Google से खाली डेटा मिला")
     return df[[ANCHOR] + terms].fillna(0)
 
 
-def _ratio(df, term):
-    """शब्द की खोज 'nifty' की खोज के अनुपात में (अभी और औसत)। एक ही अनुरोध के अंदर।"""
-    a_recent = float(df[ANCHOR].tail(24).mean())
+def _ratio(df, term, recent_points=24):
+    """शब्द की खोज nifty के अनुपात में हाल की अवधि और पूरे समय के औसत के रूप में।"""
+    a_recent = float(df[ANCHOR].tail(recent_points).mean())
     a_avg = float(df[ANCHOR].mean())
     if a_recent <= 0 or a_avg <= 0:
         return 0.0, 0.0
-    t_recent = float(df[term].tail(24).mean())
+    t_recent = float(df[term].tail(recent_points).mean())
     t_avg = float(df[term].mean())
     return t_recent / a_recent, t_avg / a_avg
 
@@ -1364,43 +1467,48 @@ def _period_ratio(df, term, day_str):
         return None
 
 
-TREND_BASE_TERMS = ["nifty", "sensex"]
-TREND_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull", "bullish",
-                    "jump", "surge", "gain", "टारगेट", "रैली", "तेज़ी", "उछाल", "ऊपर", "बुलिश", "खरीद"]
-TREND_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
-                    "decline", "sell-off", "गिरावट", "गिरेगा", "नीचे", "मंदी", "बेयरिश", "बिकवाली"]
-TREND_MIN_WEIGHT = 20  # दोनों तरफ़ कुल खोज-वज़न इतना हो, तभी प्रतिशत बने
+TQ_BASE_TERMS = ["nifty", "sensex"]
+TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull", "bullish",
+                 "jump", "surge", "gain", "teji", "tez", "badhega", "badhegi", "upar", "chadhega",
+                 "टारगेट", "रैली", "तेज़ी", "तेजी", "उछाल", "ऊपर", "बुलिश", "खरीद", "बढ़ेगा", "बढ़ेगी"]
+TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
+                 "decline", "sell-off", "girawat", "girega", "giregi", "neeche", "mandi", "tutega",
+                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा"]
+# सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
+TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
+                    "share", "sensex", "nifty", "what", "meaning", "history", "hours",
+                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स"]
+TQ_MIN_WEIGHT = 1.0  # दोनों दिशाओं में कम-से-कम इतना Trends weight जरूरी
 
 
-def _trend_tokens(q):
-    return set(re.findall(r"[\w\u0900-\u097F-]+", q.lower()))
-
-
-def trend_dir(q):
-    """खोज-वाक्यांश की दिशा: 'bull', 'bear', या None (दोनों हों या कोई न हो)।"""
-    tk = _trend_tokens(q)
-    bull = any(w.lower() in tk for w in TREND_BULL_WORDS)
-    bear = any(w.lower() in tk for w in TREND_BEAR_WORDS)
+def tq_dir(q):
+    """खोज-वाक्यांश की दिशा: bull/bear/neutral; अस्पष्ट query को None रखें।"""
+    text = str(q or "").lower()
+    tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+    bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
+    bear = any(w.lower() in tk for w in TQ_BEAR_WORDS)
     if bull and not bear:
         return "bull"
     if bear and not bull:
         return "bear"
+    if not bull and not bear and any(w.lower() in tk for w in TQ_NEUTRAL_WORDS):
+        return "neutral"
     return None
 
 
-def _trend_weight(v):
+def tq_weight(v):
     try:
         return float(v)
     except (TypeError, ValueError):
         return 100.0  # 'Breakout' जैसे मान
 
 
-def _trend_aggregate(queries):
-    """queries: {key: {'term','weight','rising'}} -> भीड़ का मूड और सूचियाँ।"""
+def tq_aggregate(queries):
+    """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
     bull_w = bear_w = 0.0
     crowd_terms, spikes = [], []
     for item in queries.values():
-        d = trend_dir(item["term"])
+        d = tq_dir(item["term"])
         if d == "bull":
             bull_w += item["weight"]
         elif d == "bear":
@@ -1413,97 +1521,256 @@ def _trend_aggregate(queries):
             if ok:
                 spikes.append({"query": item["term"], "value": str(round(item["weight"])), "stock": stock})
     crowd_terms.sort(key=lambda r: r["now"], reverse=True)
-    rising_all = [it for it in queries.values() if it.get("rising")]
-    hidden = max(0, len(rising_all) - len(spikes))
-    if bull_w < TREND_MIN_WEIGHT or bear_w < TREND_MIN_WEIGHT:
+    if bull_w < TQ_MIN_WEIGHT or bear_w < TQ_MIN_WEIGHT:
         pct, label = None, "पर्याप्त खोज डेटा नहीं"
-        fg_label, fear_pct = "पर्याप्त डेटा नहीं", None
+        bull_score = bear_score = neutral_score = None
+        sentiment = "NO DATA"
     else:
-        pct = round(bull_w / (bull_w + bear_w) * 100)
+        total = bull_w + bear_w
+        pct = round(bull_w / total * 100)
         if pct >= CROWD_EXTREME:
             label = "ज़्यादातर बुलिश सोच"
         elif pct <= CROWD_LOW:
             label = "ज़्यादातर बियरिश सोच"
         else:
             label = "सोच बँटी हुई"
-        fear_pct = 100 - pct
-        fg_label = "लालच / बुलिश ज़ोर" if pct >= 60 else ("डर / बियरिश ज़ोर" if pct <= 40 else "संतुलित")
+        bull_score = round(max(0.0, bull_w - bear_w) / total * 100, 1)
+        bear_score = round(max(0.0, bear_w - bull_w) / total * 100, 1)
+        neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
+        # Direction label compares bullish vs bearish search interest directly.
+        # Residual neutral score measures strength/uncertainty; it is not a vote.
+        sentiment = ("BULLISH" if bull_w > bear_w
+                     else "BEARISH" if bear_w > bull_w else "NEUTRAL")
+    rising_all = [it for it in queries.values() if it.get("rising")]
     return {
         "crowd_bull_pct": pct, "crowd_label": label,
         "bull_sum_pct": round(bull_w, 1), "bear_sum_pct": round(bear_w, 1),
-        "min_side_pct": TREND_MIN_WEIGHT,
+        "min_side_pct": TQ_MIN_WEIGHT,
         "crowd_terms": crowd_terms[:20],
-        "spikes": spikes[:10], "hidden_spikes": hidden,
-        "fear_greed": {"greed_pct": pct, "fear_pct": fear_pct, "label": fg_label},
+        "spikes": spikes[:10],
+        "hidden_spikes": max(0, len(rising_all) - len(spikes)),
+        "bull_score_pct": bull_score, "bear_score_pct": bear_score,
+        "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "related_queries_7d",
+        "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries),
     }
 
 
-def _trends_once():
-    """Google Trends से: (1) nifty/sensex की खोज-रुचि (ध्यान), (2) उनके साथ खोजे गए असली वाक्यांश
-    (related queries) जिन्हें बुलिश/बियरिश शब्दों से बाँटा जाता है। 429 या खाली जवाब पर ऊपर फेंकता है।"""
+def _trends_once(timeframe="now 7-d", recent_points=24):
+    """Google Trends: anchor के साथ संतुलित bull/bear शब्दों की सापेक्ष रुचि।
+    7-दिन डेटा अपर्याप्त हो तो caller 3-महीने के दैनिक डेटा पर fallback करता है।"""
     from pytrends.request import TrendReq
 
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
-    py.build_payload(TREND_BASE_TERMS, timeframe="now 7-d", geo="IN")
-    df = py.interest_over_time()
-    if df is None or df.empty:
-        raise ValueError("Google से खाली डेटा मिला")
-    df = df[TREND_BASE_TERMS].fillna(0)
-    if float(df.values.max()) == 0:
-        raise ValueError("सभी खोजों का डेटा शून्य है")
-    base = float(df.mean(axis=1).mean())
-    recent = float(df.tail(24).mean(axis=1).mean())
+    py.build_payload(TQ_BASE_TERMS, timeframe=timeframe, geo="IN")
+    base_df = py.interest_over_time()
+    if base_df is None or base_df.empty:
+        raise ValueError("Google Trends से खाली आधार डेटा मिला")
+    base_df = base_df[TQ_BASE_TERMS].fillna(0)
+    if float(base_df.values.max()) <= 0:
+        raise ValueError("Google Trends का आधार डेटा शून्य है")
+    source_data_time = None
+    if timeframe == "now 1-d":
+        # Google Trends का आख़िरी observation भी हाल का होना चाहिए;
+        # केवल workflow का नया timestamp पुराने sample को नया नहीं बना सकता।
+        last_value = base_df.index[-1]
+        last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
+        if last_dt.tzinfo is None:
+            # pytrends converts Google's epoch-second timestamps with
+            # pandas.to_datetime(..., unit="s"), which produces naive UTC.
+            # Treating this as IST shifts the observation 5h30m backwards.
+            last_dt = last_dt.replace(tzinfo=dt.timezone.utc)
+        last_utc = last_dt.astimezone(dt.timezone.utc)
+        age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
+        if age_minutes < -10 or age_minutes > 180:
+            raise ValueError(f"Google Trends का आख़िरी observation {age_minutes:.0f} मिनट पुराना/भविष्य का है; ताज़ा डेटा नहीं")
+        source_data_time = last_utc.isoformat()
+    base = float(base_df.mean(axis=1).mean())
+    recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
 
     queries = {}
-    for kw in TREND_BASE_TERMS:
-        time.sleep(5)
-        py.build_payload([kw], timeframe="now 7-d", geo="IN")
-        rq = py.related_queries().get(kw, {}) or {}
-        for kind in ("top", "rising"):
-            d = rq.get(kind)
-            if d is None or d.empty:
-                continue
-            for _, row in d.head(25).iterrows():
-                q = str(row["query"]).strip()
-                if not q or q.lower() in TREND_BASE_TERMS:
-                    continue
-                w = _trend_weight(row["value"])
-                key = q.lower()
-                prev = queries.get(key)
-                is_rising = (kind == "rising") or bool(prev and prev.get("rising"))
-                if prev is None or prev["weight"] < w:
-                    queries[key] = {"term": q, "weight": w, "rising": is_rising}
-                else:
-                    prev["rising"] = is_rising
+    for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
+        for chunk in _chunks(terms, TERM_CHUNK):
+            df = _trends_request(py, chunk, timeframe=timeframe)
+            for term in chunk:
+                recent_ratio, average_ratio = _ratio(df, term, recent_points=recent_points)
+                queries[term.lower()] = {
+                    "term": term, "weight": round(max(0.0, recent_ratio) * 100, 2),
+                    "avg_weight": round(max(0.0, average_ratio) * 100, 2),
+                    "rising": False, "direction": direction
+                }
 
-    agg = _trend_aggregate(queries)
-    out = {"ok": True, "unit": "points", "fear_vs_avg": attention, "per_term": []}
-    out.update(agg)
-    return out
+    bull_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bull")
+    bear_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bear")
+    if bull_total < TQ_MIN_WEIGHT or bear_total < TQ_MIN_WEIGHT:
+        raise ValueError(
+            f"Google Trends में दोनों पक्षों का पर्याप्त डेटा नहीं "
+            f"(bull={bull_total:.2f}, bear={bear_total:.2f}, minimum={TQ_MIN_WEIGHT})"
+        )
+
+    total = bull_total + bear_total
+    bull_pct = round(bull_total / total * 100)
+    bull_score = round(max(0.0, bull_total - bear_total) / total * 100, 1)
+    bear_score = round(max(0.0, bear_total - bull_total) / total * 100, 1)
+    neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
+    label = ("ज़्यादातर बुलिश सोच" if bull_pct >= CROWD_EXTREME
+             else "ज़्यादातर बियरिश सोच" if bull_pct <= CROWD_LOW else "सोच बँटी हुई")
+    # Classify direction from bullish vs bearish interest, not residual neutral score.
+    sentiment = ("BULLISH" if bull_total > bear_total
+                 else "BEARISH" if bear_total > bull_total else "NEUTRAL")
+
+    crowd_terms = [{
+        "term": x["term"], "dir": x["direction"], "now": x["weight"],
+        "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
+    } for x in queries.values()]
+    crowd_terms.sort(key=lambda x: x["now"], reverse=True)
+    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
+    return {
+        "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
+        "crowd_bull_pct": bull_pct, "crowd_label": label,
+        "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
+        "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms[:20],
+        "spikes": [], "hidden_spikes": 0,
+        "bull_score_pct": bull_score, "bear_score_pct": bear_score,
+        "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
+        "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "source_data_time": source_data_time,
+        "yesterday_label": "कल का डेटा उपलब्ध नहीं",
+        "queries_total": len(queries)
+    }
+
+
+def _trends_related_queries(timeframe="now 1-d"):
+    """Google Trends की असली related searches से भीड़ का मूड निकालें।
+    हर seed की अपनी 0-100 scale होती है, इसलिए पहले हर seed के भीतर प्रतिशत
+    निकालकर फिर seed percentages का औसत लिया जाता है; अलग scales को सीधे नहीं जोड़ते।
+    """
+    from pytrends.request import TrendReq
+
+    seeds = ["nifty", "sensex", "share market", "stock market"]
+    py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+    py.build_payload(seeds, timeframe=timeframe, geo="IN")
+    related = py.related_queries()
+    per_seed = []
+    all_terms = {}
+
+    for seed in seeds:
+        pack = (related or {}).get(seed) or {}
+        top = pack.get("top")
+        if top is None or top.empty or "query" not in top or "value" not in top:
+            continue
+
+        bull = bear = neutral = 0.0
+        rows = 0
+        for _, row in top.iterrows():
+            term = str(row.get("query", "")).strip()
+            if not term:
+                continue
+            try:
+                weight = float(row.get("value", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if weight <= 0:
+                continue
+            direction = tq_dir(term)
+            # अनजान/general queries को mood प्रतिशत में न मिलाएँ; केवल पहचानी दिशा गिनें।
+            if direction is None:
+                continue
+            rows += 1
+            if direction == "bull":
+                bull += weight
+            elif direction == "bear":
+                bear += weight
+            else:
+                neutral += weight
+            key = term.casefold()
+            entry = {"term": term, "weight": weight, "direction": direction}
+            if key not in all_terms or weight > all_terms[key]["weight"]:
+                all_terms[key] = entry
+
+        total = bull + bear + neutral
+        if rows >= 3 and total > 0:
+            per_seed.append((bull / total * 100, bear / total * 100, neutral / total * 100))
+
+    if len(per_seed) < 2:
+        raise ValueError("Google Trends related searches में कम-से-कम 2 विषयों का पर्याप्त वर्गीकृत डेटा नहीं मिला")
+
+    bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
+    bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
+    neutral_pct = round(sum(x[2] for x in per_seed) / len(per_seed), 1)
+    if bull_pct < TQ_MIN_WEIGHT or bear_pct < TQ_MIN_WEIGHT:
+        raise ValueError(
+            f"Google Trends में दोनों दिशाओं की पर्याप्त खोज नहीं "
+            f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
+        )
+    if bull_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
+    elif bear_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
+    else:
+        label, sentiment = "NEUTRAL", "NEUTRAL"
+
+    terms = []
+    for item in all_terms.values():
+        terms.append({
+            "term": item["term"], "dir": item["direction"],
+            "now": round(item["weight"], 1), "avg": round(item["weight"], 1),
+            "today_pct": None, "yesterday_pct": None
+        })
+    terms.sort(key=lambda x: x["now"], reverse=True)
+
+    return {
+        "ok": True, "unit": "Google Trends related-query share (%)",
+        "crowd_bull_pct": round(bull_pct), "crowd_label": label,
+        "bull_sum_pct": bull_pct, "bear_sum_pct": bear_pct,
+        "min_side_pct": None, "crowd_terms": terms[:20],
+        "spikes": [], "hidden_spikes": 0,
+        "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
+        "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
+        "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
+        "today_basis": "related_queries_7d",
+        "source_timeframe": timeframe + " related queries",
+        "fallback_used": False, "queries_total": len(all_terms),
+        "related_seed_count": len(per_seed)
+    }
 
 
 def fetch_trends():
-    """Google 429 देने पर थोड़ी देर रुककर दोबारा कोशिश करता है।
-    सब फेल हो तो {"ok": False, "error": ...} लौटता है।"""
+    """पहले पिछले 24 घंटे का Google Trends डेटा लें।
+    7-दिन/3-महीने के नमूने ऐतिहासिक संदर्भ हैं, आज का crowd mood नहीं।"""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
     last_err = ""
+    # प्राथमिक स्रोत: Google Trends का now 1-d डेटा।
     for attempt in range(TRENDS_RETRIES):
         try:
-            return _trends_once()
+            result = _trends_related_queries(timeframe="now 1-d")
+            result.setdefault("fear_vs_avg", None)
+            result.setdefault("per_term", [])
+            result["fallback_used"] = False
+            result["today_bull_pct"] = result["crowd_bull_pct"]
+            result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
+            result["today_basis"] = "now_1d_anchor_relative"
+            result["source_timeframe"] = "now 1-d"
+            return result
         except Exception as e:
             last_err = str(e)
-            print(f"trends attempt {attempt + 1} failed: {last_err}")
-            # Google 429 = rate limit: लंबा रुकें, फिर दोबारा कोशिश करें
+            print(f"Google Trends now 1-d attempt {attempt + 1} failed: {last_err}")
             if attempt < TRENDS_RETRIES - 1:
                 rate_limited = "429" in last_err or "too many requests" in last_err.lower()
-                time.sleep(120 if rate_limited else 60)
-    return {"ok": False, "error": f"Google Trends फेल: {last_err}"}
+                time.sleep(120 if rate_limited else 45)
+
+    # पुराने 7-दिन/related-query स्कोर को live mood बनाकर कभी न दिखाएँ।
+    return {
+        "ok": False, "stale": False,
+        "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
+    }
 
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
@@ -1543,6 +1810,21 @@ def pick_with_fallback(fresh, prev):
         return stale
     fresh["stale"] = False
     return fresh
+
+def trends_within_freshness(data, now_utc=None):
+    """Google Trends fetch timestamp की उम्र जाँचें; पुराना डेटा कभी ताज़ा न मानें।"""
+    if not data or not data.get("ok") or not data.get("as_of"):
+        return False
+    try:
+        stamp = dt.datetime.fromisoformat(str(data["as_of"]).replace("Z", "+00:00"))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=dt.timezone.utc)
+        now = now_utc or dt.datetime.now(dt.timezone.utc)
+        age_minutes = (now - stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
+        return -5 <= age_minutes <= TRENDS_MAX_AGE_MINUTES
+    except (TypeError, ValueError):
+        return False
+
 
 
 def market_closed_today():
@@ -1709,6 +1991,7 @@ def main():
                     r.update(opportunity_extra(sym, market_1y, holding))
             score_opportunities(raws)
             for k, r in raws.items():
+                r.pop("growth_factor", None)  # scoring-only field; keep Dashboard growth details unchanged
                 r["name"] = OPP_STOCKS[k][1]
             result["opportunity"] = raws
             result["opportunity_slot"] = slot_now
@@ -1738,9 +2021,50 @@ def main():
     if fii.get("ok") and not fii.get("stale"):
         fii["as_of_run"] = updated
     result["fii_dii"] = fii
-    result["participant_oi"] = fetch_participant_oi()
+    # NSE participant-wise OI daily EOD data है, live feed नहीं।
+    # आज उपलब्ध नवीनतम archive से पहले की तारीख का archive अलग fetch करें,
+    # ताकि बार-बार उसी दिन का data.json snapshot होने पर भी daily change न खोए।
+    participant_today = fetch_participant_oi()
+    prior_snapshot = {}
+    if participant_today.get("ok") and participant_today.get("date"):
+        try:
+            target_prev = dt.date.fromisoformat(participant_today["date"]) - dt.timedelta(days=1)
+            prior_snapshot = fetch_participant_oi(base_date=target_prev)
+        except (TypeError, ValueError):
+            prior_snapshot = {}
+    # अगर NSE का पिछला archive अस्थायी रूप से उपलब्ध न हो, तो केवल सही पुराना
+    # snapshot fallback में लें; समान/नई तारीख को पिछला दिन न मानें।
+    if not prior_snapshot.get("ok"):
+        candidates = [
+            previous.get("participant_oi_previous_day") or {},
+            previous.get("participant_oi") or {},
+        ]
+        today_date = participant_today.get("date") or ""
+        prior_snapshot = next(
+            (p for p in candidates if p.get("ok") and p.get("date") and p.get("date") < today_date),
+            {}
+        )
+    # तीसरे बॉक्स की तारीख भी NSE archive से लें, weekday अनुमान से नहीं।
+    # इससे NSE holidays के बाद भी तारीख सही रहेगी।
+    prior_prior_snapshot = {}
+    if prior_snapshot.get("ok") and prior_snapshot.get("date"):
+        try:
+            target_two_days_ago = dt.date.fromisoformat(prior_snapshot["date"]) - dt.timedelta(days=1)
+            prior_prior_snapshot = fetch_participant_oi(base_date=target_two_days_ago)
+        except (TypeError, ValueError):
+            prior_prior_snapshot = {}
+    if not prior_prior_snapshot.get("ok"):
+        cached_two_days_ago = previous.get("participant_oi_two_days_ago") or {}
+        if (cached_two_days_ago.get("ok") and cached_two_days_ago.get("date")
+                and cached_two_days_ago.get("date") < (prior_snapshot.get("date") or "")):
+            prior_prior_snapshot = cached_two_days_ago
+    participant_today["two_days_ago_date"] = prior_prior_snapshot.get("date") if prior_prior_snapshot.get("ok") else None
+
+    result["participant_oi"] = participant_today
+    result["participant_oi_previous_day"] = prior_snapshot
+    result["participant_oi_two_days_ago"] = prior_prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
-        result["participant_oi"], previous.get("participant_oi") or {})
+        participant_today, prior_snapshot)
     adj, rinfo = retail_adjust(result["participant_oi"])
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
@@ -1755,21 +2079,9 @@ def main():
         market_news["as_of"] = updated
     result["market_news"] = market_news
 
-    # Google Trends is rate-limited on frequent GitHub Actions runs.
-    # Reuse a successful snapshot for up to 6 hours; preserve its real as_of timestamp.
-    # Once older than 6 hours, attempt a refresh and keep stale=true if refresh fails.
+    # Google Trends केवल तय समय पर चलाएँ: 09:10, 12:30 और 21:00 IST.
+    # बाकी हर 30-मिनट वाले PDMP रन में पिछली रीडिंग को दोबारा fetch न करें।
     previous_trends = previous.get("trends") or {}
-    trends_age_hours = None
-    try:
-        trends_as_of = dt.datetime.fromisoformat(
-            str(previous_trends.get("as_of", "")).replace("Z", "+00:00")
-        )
-        if trends_as_of.tzinfo is None:
-            trends_as_of = trends_as_of.replace(tzinfo=dt.timezone.utc)
-        trends_age_hours = (now_utc - trends_as_of.astimezone(dt.timezone.utc)).total_seconds() / 3600
-    except Exception:
-        pass
-
     previous_crowd_terms = previous_trends.get("crowd_terms") or []
     previous_trends_all_zero = (
         not previous_crowd_terms
@@ -1778,28 +2090,68 @@ def main():
         or (float(previous_trends.get("bull_sum_pct", 0) or 0) == 0
             and float(previous_trends.get("bear_sum_pct", 0) or 0) == 0)
     )
-    # पुराने snapshot में score fields न हों तो उसे 6 घंटे तक valid cache न मानें।
     previous_trends_has_scores = all(
         previous_trends.get(k) is not None
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
+    trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
 
-    if (previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero
-            and trends_age_hours is not None and 0 <= trends_age_hours < 6):
-        trends = dict(previous_trends)
-        trends["stale"] = False
-        trends["cached"] = True
-        trends["refresh_policy_hours"] = 6
-        trends.pop("error", None)
-        print(f"Using cached Google Trends snapshot ({trends_age_hours:.1f}h old; refresh window 6h)")
+    if trends_scan:
+        # अगर इसी retry-window में पहले ही नई reading मिल चुकी है, तो अनावश्यक
+        # Google अनुरोध न करें। असफल/पुरानी reading पर अगला scheduled retry फिर चलेगा।
+        recent_success = (
+            previous_trends.get("ok")
+            and previous_trends_has_scores
+            and not previous_trends_all_zero
+            and trends_within_freshness(previous_trends, now_utc)
+        )
+        recent_age_minutes = None
+        if recent_success:
+            try:
+                _stamp = dt.datetime.fromisoformat(str(previous_trends.get("as_of")).replace("Z", "+00:00"))
+                if _stamp.tzinfo is None:
+                    _stamp = _stamp.replace(tzinfo=dt.timezone.utc)
+                recent_age_minutes = (now_utc - _stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
+            except (TypeError, ValueError):
+                recent_age_minutes = None
+
+        if recent_age_minutes is not None and -5 <= recent_age_minutes <= 90:
+            trends = dict(previous_trends)
+            trends["stale"] = False
+            trends["cached"] = True
+            trends["retry_skipped"] = True
+            trends["refresh_policy_hours"] = None
+            print(f"Google Trends retry skipped: successful reading is only {recent_age_minutes:.0f} minutes old")
+        else:
+            # नया डेटा ही स्वीकारें; असफलता पर पिछली reading को ताज़ा बताकर न दिखाएँ।
+            fresh_trends = fetch_trends()
+            if fresh_trends.get("ok"):
+                trends = fresh_trends
+                trends["stale"] = False
+                trends["as_of"] = updated
+                trends["cached"] = False
+                trends["refresh_policy_hours"] = None
+            else:
+                trends = {
+                    "ok": False, "stale": False, "cached": False,
+                    "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
+                }
+    elif previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero:
+        if trends_within_freshness(previous_trends, now_utc):
+            trends = dict(previous_trends)
+            trends["cached"] = True
+            trends["stale"] = False
+            trends["refresh_policy_hours"] = None
+        else:
+            trends = {
+                "ok": False, "stale": True, "cached": False,
+                "error": f"आख़िरी सफल Google Trends reading {TRENDS_MAX_AGE_MINUTES} मिनट से पुरानी है; पुराना मूड छिपाया गया"
+            }
     else:
-        # अमान्य zero-cache को fallback के रूप में भी वापस न दिखाएँ।
-        fallback_trends = {} if previous_trends_all_zero or not previous_trends_has_scores else previous_trends
-        trends = pick_with_fallback(fetch_trends(), fallback_trends)
-        if trends.get("ok") and not trends.get("stale"):
-            trends["as_of"] = updated
-            trends["cached"] = False
-            trends["refresh_policy_hours"] = 6
+        trends = {
+            "ok": False, "stale": False, "cached": False,
+            "error": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी"
+        }
     result["trends"] = trends
 
     fresh_trends = trends.get("ok") and not trends.get("stale")
