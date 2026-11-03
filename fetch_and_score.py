@@ -897,9 +897,9 @@ def intraday_quote(sym):
             )
             page.raise_for_status()
             html_text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
-            html_text = re.sub(r"\\s+", " ", html_text)
+            html_text = re.sub(r"\s+", " ", html_text)
             stamp_match = re.search(
-                r"([A-Z][a-z]{2} \\d{1,2}, \\d{1,2}:\\d{2}:\\d{2}\\s*[AP]M\\s*GMT\\+5:30)",
+                r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\+5:30)",
                 html_text
             )
             if not stamp_match:
@@ -910,14 +910,14 @@ def intraday_quote(sym):
                                                tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
             stamp_utc = stamp_local.astimezone(dt.timezone.utc)
             price_match = re.search(
-                r"BSE SENSEX.{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})",
+                r"BSE SENSEX.{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})",
                 html_text
             )
             if not price_match:
                 # SSR page puts the quote before the overview metadata; use
                 # the first formatted index-level number before the timestamp.
                 prefix = html_text[:stamp_match.start()]
-                candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})(?![0-9])", prefix)
+                candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})(?![0-9])", prefix)
                 if not candidates:
                     raise ValueError("Google Finance SENSEX price not found")
                 raw_price = candidates[-1]
