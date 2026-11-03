@@ -394,7 +394,7 @@ def google_finance_sensex_quote():
         text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
         text = re.sub(r"\s+", " ", text)
         match = re.search(
-            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\\+5:30)",
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\+5:30)",
             text
         )
         if not match:
