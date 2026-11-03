@@ -516,7 +516,7 @@ def refresh_mcx_crude_reference():
         response = requests.get(CRUDE_PUBLIC_URL, headers=headers, timeout=15)
         response.raise_for_status()
         html = response.text
-        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{4,5}(?:\\.[0-9]{1,2})?)", html, re.I)
+        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{4,5}(?:\.[0-9]{1,2})?)", html, re.I)
         candidates = []
         for item in matches:
             try:
@@ -528,7 +528,7 @@ def refresh_mcx_crude_reference():
         if not candidates:
             raise ValueError("MCX CRUDEOIL quote not found or outside ₹3,000–₹30,000/BBL validation range")
         current = round(candidates[0], 2)
-        stamp_match = re.search(r"Last updated on\\s*(\\d{1,2}\\s+[A-Za-z]{3},?\\s+\\d{4})\\s*\\|\\s*(\\d{1,2}:\\d{2})\\s*IST", html, re.I)
+        stamp_match = re.search(r"Last updated on\s*(\d{1,2}\s+[A-Za-z]{3},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2})\s*IST", html, re.I)
         if not stamp_match:
             raise ValueError("MCX quote timestamp missing; refusing to label it live")
         stamp = dt.datetime.strptime(stamp_match.group(1).replace(",", ""), "%d %b %Y")
@@ -536,7 +536,7 @@ def refresh_mcx_crude_reference():
         stamp = stamp.replace(hour=hh, minute=mm)
         date = stamp.date().isoformat()
         time_label = stamp.strftime("%I:%M %p IST").lstrip("0")
-        pct_match = re.search(r"(?:\\+|−|-)?\\s*₹[\\d,]+(?:\\.\\d+)?\\s*\\(\\s*([+\\-]?\\d+(?:\\.\\d+)?)%\\s*\\)", html, re.I)
+        pct_match = re.search(r"(?:\+|−|-)?\s*₹[\d,]+(?:\.\d+)?\s*\(\s*([+\-]?\d+(?:\.\d+)?)%\s*\)", html, re.I)
         change_pct = round(float(pct_match.group(1)), 2) if pct_match else None
         data = load_json(CRUDE_MCX_FILE, {})
         old_price = data.get("mcx_price_per_bbl")
