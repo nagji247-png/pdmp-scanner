@@ -575,6 +575,15 @@ function card(name, d, participantOI) {
   const goldChangeColor = d.change_pct != null && Number.isFinite(Number(d.change_pct))
     ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5";
   const priceTime = d.price_time ? esc(d.price_time) : "";
+  const priceDate = (() => {
+    const raw = String(d.price_as_of || "").trim();
+    let m = raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+    if (m) return new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
+    m = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+    if (m) return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric", timeZone:"UTC"});
+    return raw;
+  })();
+  const priceStamp = [priceDate, priceTime].filter(Boolean).join(" · ");
   const el = document.createElement("div");
   el.className = "card " + cls;
   el.innerHTML = `
@@ -595,8 +604,8 @@ function card(name, d, participantOI) {
       <div class="score-price-row">
         <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव अलग हो सकते हैं</small>' : ""}</div>
         <div class="last-price">${d.price != null && Number.isFinite(Number(d.price))
-          ? ((["CRUDEOIL","BITCOIN"].includes(name) ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : ""))
-          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${priceTime}</small></div>
+          ? ((name === "BITCOIN" ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : ""))
+          : "—"} <span style="color:${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5"}">${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं"}</span><small>${d.price_source ? esc(d.price_source) + " · " : ""}${priceStamp}</small></div>
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
     `}
