@@ -259,6 +259,105 @@ def load_json(path, default):
     return default
 
 
+
+# ---- NSE official MCP quotes (primary for NSE cash market) ----
+NSE_MCP_URL = "https://mcp.nseindia.in/cmmkt/mcp"
+NSE_MCP_HEADERS = {"Content-Type": "application/json",
+                   "Accept": "application/json, text/event-stream",
+                   "User-Agent": "Mozilla/5.0 Trinetra"}
+NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
+
+def nse_mcp_call(tool_name, arguments):
+    """One fresh MCP session per call; NSE Streamable HTTP may expire sessions between calls."""
+    try:
+        with requests.Session() as session:
+            init = session.post(NSE_MCP_URL, headers=NSE_MCP_HEADERS, json={
+                "jsonrpc": "2.0", "id": 1, "method": "initialize",
+                "params": {"protocolVersion": "2025-03-26", "capabilities": {},
+                           "clientInfo": {"name": "trinetra", "version": "1.0"}}
+            }, timeout=25)
+            init.raise_for_status()
+            headers = dict(NSE_MCP_HEADERS)
+            sid = init.headers.get("Mcp-Session-Id")
+            if sid:
+                headers["Mcp-Session-Id"] = sid
+            response = session.post(NSE_MCP_URL, headers=headers, json={
+                "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                "params": {"name": tool_name, "arguments": arguments}
+            }, timeout=35)
+            response.raise_for_status()
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = None
+                for line in response.text.splitlines():
+                    if line.startswith("data:"):
+                        try:
+                            payload = json.loads(line[5:].strip())
+                            break
+                        except ValueError:
+                            continue
+            if not isinstance(payload, dict) or payload.get("error"):
+                return None
+            contents = (payload.get("result") or {}).get("content") or []
+            for item in contents:
+                if item.get("type") == "text":
+                    try:
+                        return json.loads(item.get("text", ""))
+                    except (ValueError, TypeError):
+                        continue
+    except Exception as exc:
+        print(f"NSE MCP {tool_name} unavailable: {str(exc)[:180]}")
+    return None
+
+def nse_stock_universe():
+    now = time.time()
+    if NSE_QUOTE_CACHE["stocks"] is not None and now - NSE_QUOTE_CACHE["loaded_at"] < 240:
+        return NSE_QUOTE_CACHE["stocks"]
+    data = nse_mcp_call("cm_get_equity_stocks", {"limit": 500, "symbolFilter": ""})
+    stocks = data.get("stocks", []) if isinstance(data, dict) else []
+    if stocks:
+        NSE_QUOTE_CACHE["stocks"] = {str(x.get("symbol", "")).upper(): x for x in stocks}
+        NSE_QUOTE_CACHE["loaded_at"] = now
+        return NSE_QUOTE_CACHE["stocks"]
+    return NSE_QUOTE_CACHE["stocks"] or {}
+
+def nse_cash_quote(name, sym):
+    """Return actual NSE quote and exchange timestamp; never replace it with scan time."""
+    if name == "NIFTY":
+        data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
+        idx = (data or {}).get("index", {})
+        if idx.get("last") and data.get("nseTimestamp"):
+            return {"price": float(idx["last"]), "stamp": data["nseTimestamp"],
+                    "source": "NSE"}
+    elif name == "BANKNIFTY":
+        data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY BANK"})
+        idx = (data or {}).get("index", {})
+        if idx.get("last") and data.get("nseTimestamp"):
+            return {"price": float(idx["last"]), "stamp": data["nseTimestamp"],
+                    "source": "NSE"}
+    elif sym.endswith(".NS"):
+        symbol = sym[:-3].upper()
+        if symbol == "TMPV":
+            symbol = "TMPV"
+        item = nse_stock_universe().get(symbol)
+        if item and item.get("lastTradedPrice") and item.get("latestTimestamp"):
+            return {"price": float(item["lastTradedPrice"]),
+                    "stamp": item["latestTimestamp"], "source": "NSE"}
+    return None
+
+def nse_stamp_fields(stamp):
+    """NSE timestamps are exchange-local; output DD/MM/YYYY and 12-hour IST."""
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                "%d-%b-%Y %H:%M", "%Y-%m-%d %H:%M"):
+        try:
+            value = dt.datetime.strptime(str(stamp), fmt)
+            return value.strftime("%d/%m/%Y"), value.strftime("%I:%M %p IST")
+        except (TypeError, ValueError):
+            pass
+    return None, None
+
+
 PRICE_CACHE = {}
 SILVER_IMPORT_DUTY = 0.15  # अंतरराष्ट्रीय भाव से अनुमानित MCX-समतुल्य भाव तक
 GST_RATE = 0.03  # दुकान/खरीद का अनुमान; एक्सचेंज भाव में GST नहीं
@@ -828,15 +927,18 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         print(f"price error {name}: {e}")
     all_returns[name] = returns
 
-    # For NSE index/stock cards, prefer a fresh 5-minute intraday quote.
-    # Keep the existing daily close only when no fresh intraday quote is returned.
-    live_quote = intraday_quote(sym)
+    # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
+    nse_quote = nse_cash_quote(name, sym)
+    yahoo_quote = intraday_quote(sym) if not nse_quote else None
+    live_quote = nse_quote or yahoo_quote
     if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
         prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
         if prev_close and prev_close > 0:
             change = round((live_quote["price"] / prev_close - 1) * 100, 2)
-    price_time = live_quote["time"] if live_quote else (
+    quote_date, quote_time = nse_stamp_fields(live_quote["stamp"]) if nse_quote else (
+        (live_quote["date"], live_quote["time"]) if live_quote else (None, None))
+    price_time = quote_time if live_quote else (
         PRICE_CACHE.get("GC=F_TIME") if sym == "GC=F" else
         PRICE_CACHE.get("SI=F_TIME") if sym == "SI=F" else
         compact_ist_time(PRICE_CACHE.get("BTC-USD_DATE")) if sym == "BTC-USD" else None
@@ -856,7 +958,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else change,
         "price": PRICE_CACHE.get(sym),
         "price_time": price_time,
-        "price_as_of": live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
+        "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
         "score": score,
