@@ -885,6 +885,53 @@ def intraday_quote(sym):
         except Exception as exc:
             print(f"BSE SENSEX live quote unavailable: {str(exc)[:160]}")
 
+    # Google Finance public quote page is a no-key fallback for SENSEX.
+    # Accept only a page timestamp from today's IST session and within 15 minutes.
+    if sym == "^BSESN":
+        try:
+            page = requests.get(
+                "https://www.google.com/finance/quote/SENSEX:INDEXBOM",
+                headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                         "Accept-Language": "en-IN,en;q=0.9"},
+                timeout=15
+            )
+            page.raise_for_status()
+            html_text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
+            html_text = re.sub(r"\\s+", " ", html_text)
+            stamp_match = re.search(
+                r"([A-Z][a-z]{2} \\d{1,2}, \\d{1,2}:\\d{2}:\\d{2}\\s*[AP]M\\s*GMT\\+5:30)",
+                html_text
+            )
+            if not stamp_match:
+                raise ValueError("Google Finance quote timestamp not found")
+            stamp_local = dt.datetime.strptime(stamp_match.group(1), "%b %d, %I:%M:%S %p GMT+5:30")
+            now_local = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+            stamp_local = stamp_local.replace(year=now_local.year,
+                                               tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+            stamp_utc = stamp_local.astimezone(dt.timezone.utc)
+            price_match = re.search(
+                r"BSE SENSEX.{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})",
+                html_text
+            )
+            if not price_match:
+                # SSR page puts the quote before the overview metadata; use
+                # the first formatted index-level number before the timestamp.
+                prefix = html_text[:stamp_match.start()]
+                candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})(?![0-9])", prefix)
+                if not candidates:
+                    raise ValueError("Google Finance SENSEX price not found")
+                raw_price = candidates[-1]
+            else:
+                raw_price = price_match.group(1)
+            result = validate_and_format(float(raw_price.replace(",", "")), stamp_utc,
+                                         "Google Finance SENSEX quote")
+            if result:
+                print("SENSEX quote recovered from Google Finance public page")
+                return result
+            raise ValueError("Google Finance quote is outside today's 15-minute freshness window")
+        except Exception as exc:
+            print(f"Google Finance SENSEX quote unavailable: {str(exc)[:160]}")
+
     if errors:
         print("All Yahoo chart hosts failed for " + sym + ": " + " | ".join(errors))
     return None
