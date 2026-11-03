@@ -57,7 +57,11 @@ def get_universe():
 def fundamentals(symbol):
     result={"price":None,"market_cap":None,"pe":None,"eps":None,"roe":None,
             "week52_low":None,"week52_high":None,"rsi14":None,"revenue_growth":None,
-            "profit_growth":None,"promoter_pct":None,"fii_pct":None,"dii_pct":None,
+            "profit_growth":None,"debt_to_equity":None,"dividend_yield":None,
+            "operating_margin":None,"profit_margin":None,
+            "held_pct_insiders":None,"held_pct_institutions":None,
+            # Promoter/FII/DII are not inferred from Yahoo insider/institutional fields.
+            "promoter_pct":None,"fii_pct":None,"dii_pct":None,
             "currency":None,"source":"Yahoo Finance (best-effort)","as_of":None}
     try:
         t=yf.Ticker(symbol+".NS")
@@ -72,6 +76,12 @@ def fundamentals(symbol):
           "week52_high":num(info.get("fiftyTwoWeekHigh")),
           "revenue_growth":num(info.get("revenueGrowth")),
           "profit_growth":num(info.get("earningsGrowth")),
+          "debt_to_equity":num(info.get("debtToEquity")),
+          "dividend_yield":num(info.get("dividendYield")),
+          "operating_margin":num(info.get("operatingMargins")),
+          "profit_margin":num(info.get("profitMargins")),
+          "held_pct_insiders":num(info.get("heldPercentInsiders")),
+          "held_pct_institutions":num(info.get("heldPercentInstitutions")),
           "currency":info.get("currency"),
           "as_of":None
         })
@@ -99,18 +109,53 @@ def fundamentals(symbol):
 
 def main():
     companies=get_universe()
-    # Small verified seed set for usable initial details; full universe remains searchable.
-    # Additional symbols can be enriched on later runs to avoid hammering free endpoints.
-    seed={"RELIANCE","HDFCBANK","TATAMOTORS","HINDALCO","ADANIPORTS","COALINDIA","EICHERMOT","APOLLOHOSP","SBIN","TCS","INFY","BEL","HAL","SUNPHARMA","NTPC","ITC","ICICIBANK","LT","MARUTI","BHARTIARTL"}
+    previous={}
+    try:
+        with open(OUT,"r",encoding="utf-8") as f:
+            previous=json.load(f)
+    except (OSError,ValueError,TypeError):
+        previous={}
+    old_by_symbol={
+        str(c.get("symbol","")).upper():c
+        for c in previous.get("companies",[])
+        if isinstance(c,dict) and c.get("symbol")
+    }
+    # Preserve last-known values and refresh a rotating batch each weekday.
     for c in companies:
-        if c["symbol"] in seed:
-            c["fundamentals"]=fundamentals(c["symbol"])
-        else:
-            c["fundamentals"]=None
+        old=old_by_symbol.get(c["symbol"].upper(),{})
+        c["fundamentals"]=old.get("fundamentals")
+        if old.get("fundamentals_updated_at"):
+            c["fundamentals_updated_at"]=old["fundamentals_updated_at"]
+    batch_size=40
+    progress=previous.get("fundamentals_progress") or {}
+    last_symbol=str(progress.get("last_symbol") or "").upper()
+    start_index=0
+    if last_symbol:
+        for i,c in enumerate(companies):
+            if c["symbol"].upper()==last_symbol:
+                start_index=(i+1)%len(companies)
+                break
+    batch=[companies[(start_index+i)%len(companies)]
+           for i in range(min(batch_size,len(companies)))]
+    attempt_time=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    for index,c in enumerate(batch,1):
+        print(f"Fundamentals batch {index}/{len(batch)}: {c['symbol']}",flush=True)
+        c["fundamentals"]=fundamentals(c["symbol"])
+        c["fundamentals_updated_at"]=attempt_time
+    last_done=batch[-1]["symbol"] if batch else last_symbol
+    previous_total=int(progress.get("total_attempts",0) or 0)
+    total_attempts=previous_total+len(batch)
     data={"generated_at":dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
           "source":"NSE official listed equity CSV; Yahoo Finance best-effort fundamentals",
           "companies_count":len(companies),"companies":companies,
-          "disclaimer":"Sector is only populated for a curated mapping. Missing fundamentals/holdings are null, not zero. Business relationships are not inferred from sector."}
+          "fundamentals_progress":{
+              "batch_size":batch_size,"last_symbol":last_done,
+              "total_attempts":total_attempts,
+              "estimated_batches":(len(companies)+batch_size-1)//batch_size,
+              "coverage_note":"40 symbols are refreshed per scheduled run; remaining values are preserved from the last successful fetch. Unavailable fields remain null."
+          },
+          "disclaimer":"Sector is only populated for a curated mapping. Yahoo insider/institutional ownership is not promoter/FII/DII shareholding. Missing fundamentals/holdings are null, not zero. Business relationships are not inferred from sector."}
     with open(OUT,"w",encoding="utf-8") as f: json.dump(data,f,ensure_ascii=False,separators=(",",":"))
-    print("Wrote",OUT,"with",len(companies),"NSE equity records")
+    print("Wrote",OUT,"with",len(companies),"NSE equity records; refreshed",len(batch),
+          "fundamentals records; cumulative attempts",total_attempts,flush=True)
 if __name__=="__main__": main()
