@@ -1,0 +1,48 @@
+name: Validate NSE quote integration
+
+on:
+  pull_request:
+    paths:
+      - "fetch_and_score.py"
+      - ".github/workflows/nse-quote-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install runtime dependencies
+        run: pip install yfinance feedparser requests pytrends
+      - name: Check Python syntax
+        run: python -m py_compile fetch_and_score.py
+      - name: Verify NSE timestamp formatter
+        run: |
+          python - <<'PY'
+          import fetch_and_score as app
+          date, clock = app.nse_stamp_fields("02-Nov-2026 15:30:00")
+          assert date == "02/11/2026", (date, clock)
+          assert clock == "03:30 PM IST", (date, clock)
+          date, clock = app.nse_stamp_fields("2026-11-02 16:00:27")
+          assert date == "02/11/2026", (date, clock)
+          assert clock == "04:00 PM IST", (date, clock)
+          print("Timestamp formatting checks passed.")
+          PY
+      - name: Check NSE index and stock quote responses
+        run: |
+          python - <<'PY'
+          import fetch_and_score as app
+          for name, symbol in (("NIFTY", "^NSEI"), ("RELIANCE", "RELIANCE.NS")):
+              quote = app.nse_cash_quote(name, symbol)
+              if not quote:
+                  raise SystemExit(f"NSE quote unavailable for {name}; integration not validated")
+              date, clock = app.nse_stamp_fields(quote.get("stamp"))
+              if not quote.get("price") or not date or not clock or quote.get("source") != "NSE":
+                  raise SystemExit(f"Incomplete NSE quote for {name}: {quote}")
+              print(f"{name}: price={quote['price']} date={date} time={clock} source=NSE")
+          PY
