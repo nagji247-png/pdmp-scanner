@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
+      - "trinetra_data.py"
       - ".github/workflows/nse-quote-validation.yml"
 
 permissions:
@@ -20,7 +21,7 @@ jobs:
       - name: Install runtime dependencies
         run: pip install yfinance feedparser requests pytrends
       - name: Check Python syntax
-        run: python -m py_compile fetch_and_score.py
+        run: python -m py_compile fetch_and_score.py trinetra_data.py
       - name: Verify NSE timestamp formatter
         run: |
           python - <<'PY'
