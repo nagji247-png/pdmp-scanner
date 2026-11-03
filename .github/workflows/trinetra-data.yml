@@ -2,9 +2,13 @@ name: Build TRINETRA company data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 2 * * 1-5"
+    - cron: "17 2,6,10 * * 1-5"
 permissions:
   contents: write
+
+concurrency:
+  group: trinetra-company-data
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
