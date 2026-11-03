@@ -702,6 +702,12 @@ def daily_returns(sym):
     indian = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK", "^INDIAVIX")
     today_market_date = ist_now.date() if indian else today_utc
     indian_closed = indian and ist_now.weekday() < 5 and (ist_now.hour, ist_now.minute) >= (15, 45)
+    # Save the previous completed session close separately. After the market
+    # closes, today's close may be included for display, but it must never
+    # become the comparison base (otherwise index change incorrectly becomes 0%).
+    previous_session = [float(value) for stamp, value in closes.items()
+                        if stamp.date() < today_market_date and math.isfinite(float(value))]
+    previous_close = previous_session[-1] if previous_session else None
     keep = [(d.date() < today_market_date) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
     last_close = float(closes.iloc[-1]) if len(closes) else None
@@ -724,7 +730,8 @@ def daily_returns(sym):
         except Exception:
             last_close = None
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
-    PRICE_CACHE[sym + "_PREV_CLOSE"] = last_close
+    PRICE_CACHE[sym + "_PREV_CLOSE"] = (previous_close if indian_closed and previous_close is not None
+                                         else last_close)
     if sym == "BZ=F":
         crude_price, crude_date, crude_time, crude_source, crude_change = crude_display_quote()
         PRICE_CACHE[sym] = crude_price
@@ -1354,6 +1361,11 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         PRICE_CACHE["BTC-USD_DATE"] = None
         PRICE_CACHE["BTC-USD_SOURCE"] = None
         PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+    elif sym == "INR=X":
+        # USD/INR must have a fresh intraday quote; a daily Yahoo close is not
+        # presented as today's live exchange rate when the quote feed is absent.
+        PRICE_CACHE[sym] = None
+        change = None
     elif name == "SENSEX":
         # SENSEX must never fall back to yesterday's daily Yahoo/cache close.
         # Keep trying BSE + fresh Yahoo intraday above; if both fail, publish
@@ -1385,7 +1397,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "price_time": price_time,
         "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
-        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else None,
+        "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else ("Yahoo Finance · LAST CLOSING PRICE" if PRICE_CACHE.get(sym) is not None and sym != "INR=X" else None),
         "score": score,
         "headline_score": score,
         "headlines": heads[:8],
