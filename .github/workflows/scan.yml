@@ -2,10 +2,14 @@ name: PDMP Scan
 
 on:
   schedule:
-    # सामान्य PDMP स्कैन हर 30 मिनट (UTC); भारत में भी हर आधे घंटे।
-    - cron: "0,30 * * * *"
-    # Google Trends: 09:15 IST (03:45 UTC); बाकी तीन स्लॉट आधे-घंटे वाले रन में।
+    # सामान्य PDMP स्कैन हर 30 मिनट; Trends वाले मिनटों पर वही रन Trends भी लेगा।
+    - cron: "0 * * * *"
+    - cron: "30 0-4,6,8-12,14-23 * * *"
+    # Google Trends के चार स्लॉट (IST): 09:15, 11:00, 13:00, 19:00।
     - cron: "45 3 * * *"
+    - cron: "30 5 * * *"
+    - cron: "30 7 * * *"
+    - cron: "30 13 * * *"
   workflow_dispatch:
 
 permissions:
