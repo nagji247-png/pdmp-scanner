@@ -40,7 +40,8 @@ jobs:
         env:
           # केवल चार तय IST स्लॉट: 09:15, 11:00, 13:00 और 19:00।
           # Manual dispatch और बाकी 30-मिनट रन Google Trends को कॉल नहीं करेंगे।
-          TRENDS_SCAN: ${{ github.event_name == 'push' || github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *' }}
+          TRENDS_SCAN: ${{ github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *') }}
+          TRENDS_SLOT: ${{ github.event.schedule == '45 3 * * *' && '0915' || github.event.schedule == '30 5 * * *' && '1100' || github.event.schedule == '30 7 * * *' && '1300' || github.event.schedule == '30 13 * * *' && '1900' || '' }}
         run: python fetch_and_score.py
       - name: Commit results
         run: |

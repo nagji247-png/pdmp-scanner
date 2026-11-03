@@ -2579,46 +2579,19 @@ def main():
     trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
 
     if trends_scan:
-        # अगर इसी retry-window में पहले ही नई reading मिल चुकी है, तो अनावश्यक
-        # Google अनुरोध न करें। असफल/पुरानी reading पर अगला scheduled retry फिर चलेगा।
-        recent_success = (
-            previous_trends.get("ok")
-            and previous_trends_has_scores
-            and not previous_trends_all_zero
-            and trends_within_freshness(previous_trends, now_utc)
-        )
-        recent_age_minutes = None
-        if recent_success:
-            try:
-                _stamp = dt.datetime.fromisoformat(str(previous_trends.get("as_of")).replace("Z", "+00:00"))
-                if _stamp.tzinfo is None:
-                    _stamp = _stamp.replace(tzinfo=dt.timezone.utc)
-                recent_age_minutes = (now_utc - _stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
-            except (TypeError, ValueError):
-                recent_age_minutes = None
-
-        if recent_age_minutes is not None and -5 <= recent_age_minutes <= 90:
-            trends = dict(previous_trends)
+        # हर निर्धारित स्लॉट पर नया Google Trends अनुरोध करें; पुराने सफल डेटा से स्लॉट पूरा न मानें।
+        fresh_trends = fetch_trends()
+        if fresh_trends.get("ok"):
+            trends = fresh_trends
             trends["stale"] = False
-            trends["cached"] = True
-            trends["retry_skipped"] = True
+            trends["as_of"] = fresh_trends.get("source_data_time")
+            trends["cached"] = False
             trends["refresh_policy_hours"] = None
-            print(f"Google Trends retry skipped: successful reading is only {recent_age_minutes:.0f} minutes old")
         else:
-            # नया डेटा ही स्वीकारें; असफलता पर पिछली reading को ताज़ा बताकर न दिखाएँ।
-            fresh_trends = fetch_trends()
-            if fresh_trends.get("ok"):
-                trends = fresh_trends
-                trends["stale"] = False
-                # वास्तविक Google observation time ही freshness clock है।
-                trends["as_of"] = fresh_trends.get("source_data_time")
-                trends["cached"] = False
-                trends["refresh_policy_hours"] = None
-            else:
-                trends = {
-                    "ok": False, "stale": False, "cached": False,
-                    "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
-                }
+            trends = {
+                "ok": False, "stale": False, "cached": False,
+                "error": fresh_trends.get("error", "Google Trends की नई reading उपलब्ध नहीं")
+            }
     elif previous_trends.get("ok") and previous_trends_has_scores and not previous_trends_all_zero:
         if trends_within_freshness(previous_trends, now_utc):
             trends = dict(previous_trends)
@@ -2635,6 +2608,82 @@ def main():
             "ok": False, "stale": False, "cached": False,
             "error": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी"
         }
+    # चारों निर्धारित IST स्लॉट का दैनिक हिसाब; किसी एक स्लॉट की विफलता पर Crowd प्रतिशत नहीं दिखेंगे।
+    slot_id = os.getenv("TRENDS_SLOT", "").strip()
+    slot_labels = {"0915": "09:15", "1100": "11:00", "1300": "13:00", "1900": "19:00"}
+    slot_date = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat()
+    prior_slot_state = previous_trends.get("daily_slots") or {}
+    if prior_slot_state.get("date") != slot_date:
+        slot_state = {"date": slot_date, "slots": {}}
+    else:
+        slot_state = {"date": slot_date, "slots": dict(prior_slot_state.get("slots") or {})}
+
+    if trends_scan and slot_id in slot_labels:
+        if trends.get("ok") and trends.get("source_data_time") and all(
+            isinstance(trends.get(k), (int, float))
+            for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
+        ):
+            slot_state["slots"][slot_id] = {
+                "time": slot_labels[slot_id], "status": "success",
+                "source_data_time": trends.get("source_data_time"),
+                "basis": trends.get("today_basis"),
+                "timeframe": trends.get("source_timeframe"),
+                "bull_pct": trends.get("bull_score_pct"),
+                "bear_pct": trends.get("bear_score_pct"),
+                "neutral_pct": trends.get("neutral_score_pct"),
+                "crowd_pct": trends.get("crowd_bull_pct"),
+            }
+        else:
+            slot_state["slots"][slot_id] = {
+                "time": slot_labels[slot_id], "status": "failed",
+                "checked_at": now_utc.isoformat(),
+                "error": trends.get("error", "इस स्लॉट में वैध Google Trends डेटा नहीं मिला"),
+            }
+
+    required_slots = ("0915", "1100", "1300", "1900")
+    slot_records = slot_state["slots"]
+    all_slots_ok = all(
+        isinstance(slot_records.get(key), dict) and slot_records[key].get("status") == "success"
+        for key in required_slots
+    )
+    trends["daily_slots"] = slot_state
+    trends["daily_complete"] = all_slots_ok
+    trends["daily_slot_summary"] = [
+        {"id": key, "time": slot_labels[key],
+         "status": slot_records.get(key, {}).get("status", "pending")}
+        for key in required_slots
+    ]
+    if all_slots_ok and trends_scan and slot_id in slot_labels:
+        for field, output_key in (
+            ("bull_pct", "bull_score_pct"),
+            ("bear_pct", "bear_score_pct"),
+            ("neutral_pct", "neutral_score_pct"),
+        ):
+            trends[output_key] = round(
+                sum(float(slot_records[key][field]) for key in required_slots) / 4, 1
+            )
+        trends["crowd_bull_pct"] = round(
+            sum(float(slot_records[key].get("crowd_pct") or 0) for key in required_slots) / 4, 1
+        )
+        trends["ok"] = True
+        trends["stale"] = False
+        trends["daily_label"] = "चारों निर्धारित स्लॉट का औसत"
+        trends["as_of"] = slot_records["1900"].get("source_data_time")
+    elif not all_slots_ok:
+        trends["ok"] = False
+        trends["stale"] = False
+        trends["daily_label"] = "चारों स्लॉट पूरे होने तक Crowd Score उपलब्ध नहीं"
+        failed = [slot_labels[key] for key in required_slots
+                  if slot_records.get(key, {}).get("status") == "failed"]
+        pending = [slot_labels[key] for key in required_slots
+                   if slot_records.get(key, {}).get("status") not in ("success", "failed")]
+        details = []
+        if failed:
+            details.append("असफल: " + ", ".join(failed))
+        if pending:
+            details.append("बाकी: " + ", ".join(pending))
+        trends["error"] = "DATA UNAVAILABLE — CROWD SCORE नहीं (" + "; ".join(details) + ")"
+
     result["trends"] = trends
 
     # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
