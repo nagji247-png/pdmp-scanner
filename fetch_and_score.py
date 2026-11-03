@@ -390,9 +390,9 @@ def google_finance_sensex_quote():
         )
         page.raise_for_status()
         text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
-        text = re.sub(r"\\s+", " ", text)
+        text = re.sub(r"\s+", " ", text)
         match = re.search(
-            r"([A-Z][a-z]{2} \\d{1,2}, \\d{1,2}:\\d{2}:\\d{2}\\s*[AP]M\\s*GMT\\+5:30)",
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\\+5:30)",
             text
         )
         if not match:
@@ -408,12 +408,12 @@ def google_finance_sensex_quote():
         if (now_ist - stamp).total_seconds() > max_age:
             raise ValueError("Google Finance quote is outside the allowed freshness window")
         price_match = re.search(
-            r"(?:BSE SENSEX|S&P BSE SENSEX).{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})",
+            r"(?:BSE SENSEX|S&P BSE SENSEX).{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})",
             text
         )
         if not price_match:
             prefix = text[:match.start()]
-            candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})(?![0-9])", prefix)
+            candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})(?![0-9])", prefix)
             if not candidates:
                 raise ValueError("Google Finance SENSEX price missing")
             raw_price = candidates[-1]
