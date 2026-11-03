@@ -967,7 +967,7 @@ function renderInstruments(instruments, participantOI) {
   glb.innerHTML = "";
   glb.style.display = "grid";
   glb.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
-  glb.style.alignItems = "start";
+  glb.style.alignItems = "stretch";
 
   const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN"];
   for (const name of globalOrder) {
@@ -975,15 +975,13 @@ function renderInstruments(instruments, participantOI) {
     if (d) glb.appendChild(card(name, d, participantOI));
   }
 
-  // Global grid के दोनों कॉलम में कार्ड प्राकृतिक grid-row height लें।
-  // Fixed height हटाने से नीचे का "Click for details" भी कटेगा नहीं।
-  const crudeCard = glb.children[2];
-  if (crudeCard) {
-    crudeCard.style.height = "auto";
-    crudeCard.style.minHeight = "0";
-    crudeCard.style.marginTop = "0";
-    crudeCard.style.alignSelf = "stretch";
-  }
+  // दोनों कॉलम के कार्ड हर grid row में बराबर ऊँचाई लें।
+  // इससे GOLD/SILVER और CRUDEOIL/BITCOIN की ऊँचाई एक जैसी रहती है।
+  Array.from(glb.children).slice(0, 4).forEach(item => {
+    item.style.height = "100%";
+    item.style.minHeight = "0";
+    item.style.alignSelf = "stretch";
+  });
 
   const projection = createSilverProjectionCard();
   projection.style.gridColumn = "1 / -1";
