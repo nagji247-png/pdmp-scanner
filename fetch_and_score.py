@@ -268,46 +268,48 @@ NSE_MCP_HEADERS = {"Content-Type": "application/json",
 NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
 def nse_mcp_call(tool_name, arguments):
-    """One fresh MCP session per call; NSE Streamable HTTP may expire sessions between calls."""
-    try:
-        with requests.Session() as session:
-            init = session.post(NSE_MCP_URL, headers=NSE_MCP_HEADERS, json={
-                "jsonrpc": "2.0", "id": 1, "method": "initialize",
-                "params": {"protocolVersion": "2025-03-26", "capabilities": {},
-                           "clientInfo": {"name": "trinetra", "version": "1.0"}}
-            }, timeout=25)
-            init.raise_for_status()
-            headers = dict(NSE_MCP_HEADERS)
-            sid = init.headers.get("Mcp-Session-Id")
-            if sid:
-                headers["Mcp-Session-Id"] = sid
-            response = session.post(NSE_MCP_URL, headers=headers, json={
-                "jsonrpc": "2.0", "id": 2, "method": "tools/call",
-                "params": {"name": tool_name, "arguments": arguments}
-            }, timeout=35)
-            response.raise_for_status()
-            try:
-                payload = response.json()
-            except ValueError:
-                payload = None
-                for line in response.text.splitlines():
-                    if line.startswith("data:"):
-                        try:
-                            payload = json.loads(line[5:].strip())
-                            break
-                        except ValueError:
-                            continue
-            if not isinstance(payload, dict) or payload.get("error"):
-                return None
-            contents = (payload.get("result") or {}).get("content") or []
-            for item in contents:
-                if item.get("type") == "text":
-                    try:
-                        return json.loads(item.get("text", ""))
-                    except (ValueError, TypeError):
-                        continue
-    except Exception as exc:
-        print(f"NSE MCP {tool_name} unavailable: {str(exc)[:180]}")
+    """Each retry uses a fresh MCP session; NSE sometimes returns transient HTTP 404."""
+    for attempt in range(3):
+        try:
+            with requests.Session() as session:
+                init = session.post(NSE_MCP_URL, headers=NSE_MCP_HEADERS, json={
+                    "jsonrpc": "2.0", "id": 1, "method": "initialize",
+                    "params": {"protocolVersion": "2025-03-26", "capabilities": {},
+                               "clientInfo": {"name": "trinetra", "version": "1.0"}}
+                }, timeout=25)
+                init.raise_for_status()
+                headers = dict(NSE_MCP_HEADERS)
+                sid = init.headers.get("Mcp-Session-Id")
+                if sid:
+                    headers["Mcp-Session-Id"] = sid
+                response = session.post(NSE_MCP_URL, headers=headers, json={
+                    "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                    "params": {"name": tool_name, "arguments": arguments}
+                }, timeout=35)
+                response.raise_for_status()
+                try:
+                    payload = response.json()
+                except ValueError:
+                    payload = None
+                    for line in response.text.splitlines():
+                        if line.startswith("data:"):
+                            try:
+                                payload = json.loads(line[5:].strip())
+                                break
+                            except ValueError:
+                                continue
+                if isinstance(payload, dict) and not payload.get("error"):
+                    contents = (payload.get("result") or {}).get("content") or []
+                    for item in contents:
+                        if item.get("type") == "text":
+                            try:
+                                return json.loads(item.get("text", ""))
+                            except (ValueError, TypeError):
+                                continue
+        except Exception as exc:
+            print(f"NSE MCP {tool_name} attempt {attempt + 1}/3 failed: {str(exc)[:180]}")
+        if attempt < 2:
+            time.sleep(1.0 + attempt)
     return None
 
 def nse_stock_universe():
