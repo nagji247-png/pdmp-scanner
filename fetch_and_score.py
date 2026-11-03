@@ -360,7 +360,9 @@ def bse_sensex_quote():
                 continue
         if stamp is None:
             raise ValueError(f"unrecognized BSE timestamp: {stamp_text}")
-        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
+        stamp = stamp.replace(tzinfo=ist_tz)
         if stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not today's session: {stamp_text}")
         # After the cash market closes, the final exchange quote remains the
@@ -397,10 +399,10 @@ def google_finance_sensex_quote():
         )
         if not match:
             raise ValueError("Google Finance quote timestamp missing")
-        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
         stamp = dt.datetime.strptime(match.group(1), "%b %d, %I:%M:%S %p GMT+5:30")
-        stamp = stamp.replace(year=now_ist.year,
-                              tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+        stamp = stamp.replace(year=now_ist.year, tzinfo=ist_tz)
         if stamp.date() != now_ist.date() or stamp > now_ist + dt.timedelta(minutes=2):
             raise ValueError("Google Finance quote is not from today's session")
         after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
