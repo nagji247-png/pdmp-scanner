@@ -577,7 +577,7 @@ function card(name, d, participantOI) {
   const priceTime = (() => {
     const raw = String(d.price_time || "").trim();
     const m = raw.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
-    return m ? Number(m[1]) + ":" + m[2] + " " + m[3].toLowerCase() + " IST" : raw.replace(/\b(AM|PM)\b/i, x => x.toLowerCase());
+    return m ? Number(m[1]) + "." + m[2] + " " + m[3].toLowerCase() + " IST" : raw.replace(/\b(AM|PM)\b/i, x => x.toLowerCase()).replace(/^(\d{1,2}):(\d{2})/, "$1.$2");
   })();
   const priceDate = (() => {
     const raw = String(d.price_as_of || "").trim();
