@@ -378,10 +378,63 @@ def bse_sensex_quote():
         return None
 
 
+def google_finance_sensex_quote():
+    """Read Google's direct SENSEX quote and its explicit timestamp; never use a candle."""
+    try:
+        page = requests.get(
+            "https://www.google.com/finance/quote/SENSEX:INDEXBOM",
+            headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                     "Accept-Language": "en-IN,en;q=0.9",
+                     "Cache-Control": "no-cache"},
+            timeout=15
+        )
+        page.raise_for_status()
+        text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
+        text = re.sub(r"\\s+", " ", text)
+        match = re.search(
+            r"([A-Z][a-z]{2} \\d{1,2}, \\d{1,2}:\\d{2}:\\d{2}\\s*[AP]M\\s*GMT\\+5:30)",
+            text
+        )
+        if not match:
+            raise ValueError("Google Finance quote timestamp missing")
+        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        stamp = dt.datetime.strptime(match.group(1), "%b %d, %I:%M:%S %p GMT+5:30")
+        stamp = stamp.replace(year=now_ist.year,
+                              tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+        if stamp.date() != now_ist.date() or stamp > now_ist + dt.timedelta(minutes=2):
+            raise ValueError("Google Finance quote is not from today's session")
+        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
+        max_age = 6 * 60 * 60 if after_close else 15 * 60
+        if (now_ist - stamp).total_seconds() > max_age:
+            raise ValueError("Google Finance quote is outside the allowed freshness window")
+        price_match = re.search(
+            r"(?:BSE SENSEX|S&P BSE SENSEX).{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})",
+            text
+        )
+        if not price_match:
+            prefix = text[:match.start()]
+            candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\\.\\d{2})(?![0-9])", prefix)
+            if not candidates:
+                raise ValueError("Google Finance SENSEX price missing")
+            raw_price = candidates[-1]
+        else:
+            raw_price = price_match.group(1)
+        price = float(raw_price.replace(",", ""))
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError("Google Finance returned an invalid SENSEX price")
+        return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+                "source": "Google Finance direct SENSEX quote"}
+    except Exception as exc:
+        print(f"Google Finance direct SENSEX quote unavailable: {str(exc)[:160]}")
+        return None
+
+
 def nse_cash_quote(name, sym):
     """Return actual NSE/BSE quote and exchange timestamp; never replace it with scan time."""
     if name == "SENSEX":
-        return bse_sensex_quote()
+        # BSE exchange quote first; Google's direct quote page is the no-key backup.
+        # Neither source reads an OHLC/intraday candle.
+        return bse_sensex_quote() or google_finance_sensex_quote()
     if name == "NIFTY":
         data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
         idx = (data or {}).get("index", {})
