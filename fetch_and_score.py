@@ -781,38 +781,46 @@ def intraday_quote(sym):
     except Exception as exc:
         print(f"yfinance intraday quote unavailable {sym}: {str(exc)[:120]}")
 
-    # Direct public Yahoo chart endpoint fallback. It needs no API key or crumb.
-    try:
-        url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
-               + quote_plus(sym) + "?range=1d&interval=5m&includePrePost=false")
-        response = requests.get(url, headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
-            "Accept": "application/json"
-        }, timeout=12)
-        response.raise_for_status()
-        payload = response.json()
-        chart = (payload.get("chart") or {}).get("result") or []
-        if not chart:
-            raise ValueError("Yahoo chart response has no result")
-        item = chart[0]
-        stamps = item.get("timestamp") or []
-        quotes = ((item.get("indicators") or {}).get("quote") or [])
-        closes = quotes[0].get("close") if quotes else None
-        if not stamps or not closes or len(stamps) != len(closes):
-            raise ValueError("Yahoo chart timestamps/close values missing")
-        valid = [(int(ts), float(close)) for ts, close in zip(stamps, closes)
-                 if ts is not None and close is not None]
-        if not valid:
-            raise ValueError("Yahoo chart has no completed price bars")
-        ts, price = valid[-1]
-        stamp = dt.datetime.fromtimestamp(ts, tz=dt.timezone.utc)
-        result = validate_and_format(price, stamp, "Yahoo Finance public 5-minute chart")
-        if result:
-            return result
-        raise ValueError("Yahoo chart quote is outside the freshness window")
-    except Exception as exc:
-        print(f"Yahoo chart intraday fallback unavailable {sym}: {str(exc)[:160]}")
-        return None
+    # Direct public Yahoo chart endpoint fallback. Try query2 before query1:
+    # Yahoo may rate-limit one hostname independently. No key/crumb is used.
+    errors = []
+    for host in ("query2.finance.yahoo.com", "query1.finance.yahoo.com"):
+        try:
+            url = ("https://" + host + "/v8/finance/chart/"
+                   + quote_plus(sym) + "?range=1d&interval=5m&includePrePost=false")
+            response = requests.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                "Accept": "application/json",
+                "Cache-Control": "no-cache"
+            }, timeout=12)
+            response.raise_for_status()
+            payload = response.json()
+            chart = (payload.get("chart") or {}).get("result") or []
+            if not chart:
+                raise ValueError("Yahoo chart response has no result")
+            item = chart[0]
+            stamps = item.get("timestamp") or []
+            quotes = ((item.get("indicators") or {}).get("quote") or [])
+            closes = quotes[0].get("close") if quotes else None
+            if not stamps or not closes or len(stamps) != len(closes):
+                raise ValueError("Yahoo chart timestamps/close values missing")
+            valid = [(int(ts), float(close)) for ts, close in zip(stamps, closes)
+                     if ts is not None and close is not None]
+            if not valid:
+                raise ValueError("Yahoo chart has no completed price bars")
+            ts, price = valid[-1]
+            stamp = dt.datetime.fromtimestamp(ts, tz=dt.timezone.utc)
+            result = validate_and_format(price, stamp,
+                                         "Yahoo Finance public 5-minute chart (" + host + ")")
+            if result:
+                return result
+            raise ValueError("Yahoo chart quote is outside the freshness window")
+        except Exception as exc:
+            errors.append(host + ": " + str(exc)[:140])
+            print(f"Yahoo chart intraday fallback unavailable {sym} via {host}: {str(exc)[:140]}")
+    if errors:
+        print("All Yahoo chart hosts failed for " + sym + ": " + " | ".join(errors))
+    return None
 
 def fetch_participant_oi(base_date=None):
     """NSE official participant-wise OI: daily EOD, not a live feed.
