@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
-"""Read-only NSE MCP diagnostics: fetch one complete CM equity snapshot."""
+"""Read-only NSE MCP protocol probe: initialize then one tool call, no notification."""
 import json, requests
-H={"Content-Type":"application/json","Accept":"application/json, text/event-stream","User-Agent":"Trinetra-ReadOnly-Diagnostic/1.3"}
-CM="https://mcp.nseindia.in/cmmkt/mcp"
-def main():
-  with requests.Session() as s:
-    r=s.post(CM,headers=H,json={"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"trinetra-check","version":"1.3"}}},timeout=30)
-    print("INITIALIZE",r.status_code); r.raise_for_status()
-    sid=r.headers.get("Mcp-Session-Id"); h=dict(H)
-    if sid: h["Mcp-Session-Id"]=sid
-    n=s.post(CM,headers=h,json={"jsonrpc":"2.0","method":"notifications/initialized"},timeout=20)
-    print("INITIALIZED_NOTIFICATION",n.status_code)
-    for i,(name,args) in enumerate([
-      ("cm_get_data_status",{}),
-      ("cm_get_equity_stocks",{"limit":500,"symbolFilter":""}),
-      ("cm_get_index_quote",{"indexName":"NIFTY 50"}),
-      ("cm_get_index_quote",{"indexName":"NIFTY BANK"}),
-    ],2):
-      print("\nTOOL",name,args)
-      try:
-        q=s.post(CM,headers=h,json={"jsonrpc":"2.0","id":i,"method":"tools/call","params":{"name":name,"arguments":args}},timeout=45)
-        print("HTTP",q.status_code)
-        if q.status_code != 200: print(q.text[:1200]); continue
-        try: data=q.json()
-        except ValueError:
-          data={"raw":q.text[:5000]}
-        print(json.dumps(data,ensure_ascii=False)[:16000])
-      except Exception as e: print("ERROR",repr(e))
-if __name__=="__main__": main()
+URL="https://mcp.nseindia.in/cmmkt/mcp"
+H={"Content-Type":"application/json","Accept":"application/json, text/event-stream","User-Agent":"Mozilla/5.0 Trinetra diagnostic"}
+def decode(r):
+    try: return r.json()
+    except ValueError:
+        for line in r.text.splitlines():
+            if line.startswith("data:"):
+                try: return json.loads(line[5:].strip())
+                except ValueError: pass
+    return {"raw":r.text[:5000]}
+def probe(name,args):
+    print("\nTOOL",name,args)
+    with requests.Session() as s:
+        init=s.post(URL,headers=H,json={"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"trinetra-probe","version":"1.4"}}},timeout=30)
+        print("INIT",init.status_code,"SESSION",init.headers.get("Mcp-Session-Id"))
+        init.raise_for_status()
+        h=dict(H)
+        if init.headers.get("Mcp-Session-Id"): h["Mcp-Session-Id"]=init.headers["Mcp-Session-Id"]
+        r=s.post(URL,headers=h,json={"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":name,"arguments":args}},timeout=40)
+        print("TOOL_HTTP",r.status_code)
+        print(json.dumps(decode(r),ensure_ascii=False)[:12000])
+if __name__=="__main__":
+  for n,a in [("cm_get_data_status",{}),("cm_get_index_quote",{"indexName":"NIFTY 50"}),("cm_get_equity_stocks",{"limit":500,"symbolFilter":""})]:
+    try: probe(n,a)
+    except Exception as e:
+      print("ERROR",repr(e))
+      if getattr(e,"response",None) is not None: print(e.response.text[:1000])
