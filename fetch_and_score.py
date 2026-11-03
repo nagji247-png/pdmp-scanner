@@ -998,6 +998,16 @@ def update_divergence(events, name, score, change, today_str, returns, headlines
     नतीजा उसी दिन के सत्र से भरता है जिस दिन संकेत बना।
     'sentiment' = खबर की दिशा में चाल, 'price' = कीमत की दिशा में चाल।
     यह इतिहास का मिलान है, भविष्य की गारंटी नहीं।"""
+    # A missing live quote has no valid price direction; skip divergence
+    # bookkeeping rather than aborting the entire market-data scan.
+    if change is None:
+        return
+    try:
+        change = float(change)
+    except (TypeError, ValueError):
+        return
+    if not math.isfinite(change):
+        return
     diverging = (abs(score) >= DIV_SCORE_MIN and abs(change) >= DIV_CHANGE_MIN
                  and (score > 0) != (change > 0) and not SKIP_EVENTS)
     key = f"{today_str}|{name}|div"
