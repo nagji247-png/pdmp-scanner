@@ -668,26 +668,14 @@ function renderCrowd(data) {
   const hs = data.headline_split || { pos: 0, neg: 0 };
   const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0 };
   const levels = data.levels || [];
-  const composite = data.crowd_composite || {};
-  const parts = Array.isArray(composite.components) ? composite.components : [];
-  const scoreColor = Number(composite.score) >= 2 ? "#35d07f" : Number(composite.score) <= -2 ? "#ff5d68" : "#aab4c4";
-  const compositeHtml = composite.ok ? `
-    <div style="margin:10px 0;padding:10px;border:1px solid #303751;border-radius:9px;background:#111729">
-      <div class="sub">TRINETRA COMBINED CROWD SCORE</div>
-      <div style="font-size:28px;font-weight:900;color:${scoreColor}">${Number(composite.score) > 0 ? "+" : ""}${Number(composite.score).toFixed(2)} / 10</div>
-      <div style="font-size:13px;font-weight:800;color:${scoreColor}">${esc(composite.label || "NEUTRAL")}</div>
-      <div class="sub">डेटा कवरेज ${Number(composite.coverage_pct || 0)}% · उपलब्ध स्रोतों के आधार पर भार पुनः संतुलित</div>
-      ${parts.map(p => `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #252b45"><span class="sub">${esc(p.name)}</span><b>${Number(p.score) > 0 ? "+" : ""}${Number(p.score).toFixed(1)}</b></div>`).join("")}
-    </div>` : `<div class="sub" style="margin:10px 0">संयुक्त Crowd Score के लिए अभी पर्याप्त स्रोत नहीं जुड़े हैं।</div>`;
 
   let moodHtml;
   const hasFreshOneDayMood = t.ok && !t.stale
     && t.today_bull_pct != null
-    && ["now_1d_anchor_relative", "now_7d_recent_24", "india_trending_rss_market_cluster_share"].includes(t.today_basis);
+    && t.today_basis === "now_1d_anchor_relative";
   if (hasFreshOneDayMood && t.crowd_bull_pct != null) {
     const bull = Number(t.crowd_bull_pct);
-    const bear = Number(t.bear_score_pct != null ? t.bear_score_pct : (100 - bull));
-    const neutral = Number(t.neutral_score_pct || 0);
+    const bear = 100 - bull;
     let state = "NEUTRAL", color = "#aab4c4";
     if (bull >= 70) { state = "EXTREMELY BULLISH"; color = "#35d07f"; }
     else if (bull <= 30) { state = "EXTREMELY BEARISH"; color = "#ff5d68"; }
@@ -696,13 +684,12 @@ function renderCrowd(data) {
       <div style="margin:12px 0 8px;font-size:25px;font-weight:900;letter-spacing:.2px;color:${color}">${state}</div>
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div></div>
       <div class="mood-split"><span class="pos">बुलिश ${bull}%</span><span class="neg">बियरिश ${bear.toFixed(1)}%</span></div>
-      <div class="sub">न्यूट्रल ${neutral.toFixed(1)}%</div>
-      <div class="sub" style="margin-top:8px">${t.today_basis === "india_trending_rss_market_cluster_share" ? "Google India Trending के सक्रिय बाजार-संबंधी खोज समूहों का अनुपात।" : "Google Trends की सापेक्ष खोज रुचि, वास्तविक खोजों की संख्या नहीं।"}</div>`;
+      <div class="sub" style="margin-top:8px">यह Google Trends पर सापेक्ष खोज रुचि है, वास्तविक खोजों की संख्या नहीं।</div>`;
   } else {
     const why = !t.ok ? (t.error || "Google Trends डेटा उपलब्ध नहीं") :
       t.stale ? "Google Trends का डेटा पुराना/fallback है" :
       "आज/पिछले 24 घंटे का अलग डेटा उपलब्ध नहीं; 7-दिन के आँकड़े से आज का मूड तय नहीं किया जाएगा।";
-    moodHtml = `<div class="sub" style="margin-top:10px">आज की Google खोज-रुचि की पुष्टि अभी नहीं हुई। ऊपर का संयुक्त स्कोर उपलब्ध ताज़ा स्रोतों से बनाया गया है।</div>`;
+    moodHtml = `<div class="warn" style="font-size:20px;font-weight:900">NO TRADE — DATA UNAVAILABLE</div><div class="sub">${esc(why)}</div>`;
   }
 
   const hTotal = hs.pos + hs.neg;
@@ -720,7 +707,7 @@ function renderCrowd(data) {
       <div class="${l.dist_pct > 0 ? "pos" : "neg"}">${sign}${l.dist_pct}% दूर</div></div>`;
   }).join("");
 
-  box.innerHTML = `${compositeHtml}${moodHtml}${headHtml}${trapLine}
+  box.innerHTML = `${moodHtml}${headHtml}${trapLine}
     ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
 }
 
@@ -730,11 +717,11 @@ function renderTrapDetector(data) {
   const n = (((data.signals || {}).state || {}).NIFTY) || {};
   const dir = Number(n.price_dir);
   const freshMood = t.ok && !t.stale && t.crowd_bull_pct != null
-    && t.today_bull_pct != null && ["now_1d_anchor_relative", "now_7d_recent_24", "india_trending_rss_market_cluster_share"].includes(t.today_basis);
+    && t.today_bull_pct != null && t.today_basis === "now_1d_anchor_relative";
   const pct = freshMood ? Number(t.crowd_bull_pct) : null;
 
   if (!freshMood) {
-    box.innerHTML = '<div style="font-size:18px;font-weight:800;color:#aab4c4">भीड़ और कीमत का संयुक्त संकेत देखा जा रहा है</div><div class="sub">Google खोज-रुचि की पुष्टि बाकी है। CLIENT CE/PE Net OI, उपलब्ध रिटेल पोजिशन और समाचार का योगदान ऊपर संयुक्त स्कोर में शामिल है।</div>';
+    box.innerHTML = '<div class="warn">DATA INSUFFICIENT — भीड़ की दिशा तय नहीं</div><div class="sub">Google Trends का ताज़ा और मान्य डेटा नहीं है। समाचार स्कोर को रिटेल की असली पोज़िशन नहीं माना जाएगा।</div>';
     return;
   }
   if (pct > 30 && pct < 70) {
@@ -1087,7 +1074,7 @@ function renderTrends(t) {
     ${stale}
     ${scoreBlock}
     ${fearGreedBlock}
-    <div class="sub" style="margin-top:8px">${hasCurrentMood ? "स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि" : "आज की अलग Google खोज-रुचि की पुष्टि बाकी है।"}${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
+    <div class="sub" style="margin-top:8px">${hasCurrentMood ? "स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि" : "आज का अलग Google Trends डेटा उपलब्ध नहीं; पिछले 7 दिनों की खोजों को आज का मूड नहीं माना जा रहा।"}${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
     ${daySummary}
     <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
     <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
