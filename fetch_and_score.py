@@ -1175,38 +1175,36 @@ def _pivots(values, kind, k=3):
     return idx
 
 
-def rsi_divergence(closes, recent_bars=40):
-    """RSI विचलन (सही दिशा):
-    - Bullish: कीमत का निचला निम्न, पर RSI का ऊँचा निम्न।
-    - Bearish: कीमत का ऊँचा उच्च, पर RSI का नीचा उच्च।
-    सिर्फ़ हाल के बार (recent_bars) में पुष्ट बिंदुओं पर। न मिले तो None।"""
+def rsi_divergence(closes, recent_bars=40, timeframe_label="दैनिक", source_label="Yahoo Finance"):
+    """पुष्ट pivot पर bullish और bearish RSI divergence स्वतंत्र रूप से जाँचें."""
     if len(closes) < 60:
-        return None
+        return []
     rsi = _rsi_series(closes)
     if rsi[-1] is None:
-        return None
+        return []
     last = len(closes) - 1
     lows = [i for i in _pivots(closes, "low") if i >= last - recent_bars and rsi[i] is not None]
     highs = [i for i in _pivots(closes, "high") if i >= last - recent_bars and rsi[i] is not None]
+    signals = []
     if len(lows) >= 2:
         a, b = lows[-2], lows[-1]
         if closes[b] < closes[a] and rsi[b] > rsi[a]:
-            return {"label": "⚡ Bullish divergence", "reason": f"दैनिक कीमत निचला निम्न, RSI ऊँचा निम्न ({rsi[a]:.1f} → {rsi[b]:.1f})"}
+            signals.append({
+                "label": "⚡ Bullish divergence",
+                "reason": f"{timeframe_label} कीमत lower low, RSI higher low ({rsi[a]:.1f} → {rsi[b]:.1f}) · स्रोत: {source_label}"
+            })
     if len(highs) >= 2:
         a, b = highs[-2], highs[-1]
         if closes[b] > closes[a] and rsi[b] < rsi[a]:
-            return {"label": "⚡ Bearish divergence", "reason": f"दैनिक कीमत ऊँचा उच्च, RSI नीचा उच्च ({rsi[a]:.1f} → {rsi[b]:.1f})"}
-    return None
+            signals.append({
+                "label": "⚡ Bearish divergence",
+                "reason": f"{timeframe_label} कीमत higher high, RSI lower high ({rsi[a]:.1f} → {rsi[b]:.1f}) · स्रोत: {source_label}"
+            })
+    return signals
 
 
 def derive_card_indicator(name, sym, score, change):
-    """
-    Card labels must be evidence-based:
-    - SILVER "still building" only when Yahoo returns same-contract open-interest
-      rising alongside falling price; otherwise unavailable.
-    - BITCOIN bullish divergence only when completed 30m candles show price lower-low
-      while RSI makes a higher-low. This is a technical pattern, not a prediction.
-    """
+    """केवल पुष्ट तकनीकी संकेत लौटाएँ; कोई संकेत न हो तो UI में कुछ न दिखे."""
     if name == "SILVER":
         try:
             h = yf.Ticker(sym).history(period="5d", interval="30m")
@@ -1232,72 +1230,52 @@ def derive_card_indicator(name, sym, score, change):
             return {"indicator_label": "BUILDUP DATA UNAVAILABLE",
                     "indicator_reason": str(exc)[:120]}
 
-    if name in ("NIFTY", "SENSEX", "BANKNIFTY"):
-        try:
-            closes = [float(x) for x in yf.Ticker(sym).history(period="6mo", interval="1d")["Close"].dropna().tolist()]
-            div = rsi_divergence(closes)
-            if div:
-                return {"indicator_label": div["label"]}
-        except Exception as exc:
-            print(f"index RSI divergence skipped {name}: {exc}")
-        return {}
-
     if name == "BITCOIN":
-        # Primary: Yahoo Finance; fallback: Binance public spot klines (no API key).
-        # Both sources use completed 30-minute candles only.
         closes = []
+        source = "Yahoo Finance"
         try:
             h = yf.Ticker(sym).history(period="5d", interval="30m")
-            if h is not None and len(h) >= 20 and "Close" in h.columns:
-                now = dt.datetime.now(dt.timezone.utc)
+            if h is not None and not h.empty and "Close" in h.columns:
                 idx = h.index
                 last_time = idx[-1].to_pydatetime()
                 if last_time.tzinfo is None:
                     last_time = last_time.replace(tzinfo=dt.timezone.utc)
-                if (now - last_time.astimezone(dt.timezone.utc)).total_seconds() < 30 * 60:
+                if (dt.datetime.now(dt.timezone.utc) - last_time.astimezone(dt.timezone.utc)).total_seconds() < 30 * 60:
                     h = h.iloc[:-1]
                 closes = [float(v) for v in h["Close"].dropna().tolist()]
         except Exception:
             closes = []
-
-        source = "Yahoo Finance"
-        if len(closes) < 20:
+        if len(closes) < 60:
             try:
                 url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=30m&limit=100"
                 response = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
                 response.raise_for_status()
                 rows = response.json()
                 now_ms = int(time.time() * 1000)
-                # Kline index 6 is close-time in milliseconds; discard any unfinished candle.
                 closes = [float(row[4]) for row in rows if len(row) > 6 and int(row[6]) < now_ms]
                 source = "Binance public spot candles"
-            except Exception as exc:
+            except Exception:
                 return {}
+        signals = rsi_divergence(closes, recent_bars=40, timeframe_label="30-मिनट", source_label=source)
+        return {"indicator_signals": signals} if signals else {}
 
-        if len(closes) < 20:
+    # NIFTY/SENSEX/BANKNIFTY और NSE स्टॉक्स के लिए पूरी हुई दैनिक candles.
+    if name in ("NIFTY", "SENSEX", "BANKNIFTY") or sym.endswith(".NS"):
+        try:
+            h = yf.Ticker(sym).history(period="6mo", interval="1d")
+            if h is None or h.empty or "Close" not in h.columns:
+                return {}
+            now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+            if now_ist.time() < dt.time(15, 45) and len(h):
+                if h.index[-1].date() == now_ist.date():
+                    h = h.iloc[:-1]
+            closes = [float(x) for x in h["Close"].dropna().tolist()]
+            signals = rsi_divergence(closes, recent_bars=40, timeframe_label="दैनिक")
+            return {"indicator_signals": signals} if signals else {}
+        except Exception as exc:
+            print(f"RSI divergence skipped {name}: {exc}")
             return {}
-        # Wilder-style RSI approximation using rolling 14-bar average gains/losses.
-        rsi = [None] * len(closes)
-        deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
-        for i in range(14, len(closes)):
-            window = deltas[i-14:i]
-            avg_gain = sum(max(x, 0.0) for x in window) / 14
-            avg_loss = sum(max(-x, 0.0) for x in window) / 14
-            if avg_loss == 0:
-                rsi[i] = 100.0 if avg_gain > 0 else 50.0
-            else:
-                rs = avg_gain / avg_loss
-                rsi[i] = 100.0 - (100.0 / (1.0 + rs))
-        # Compare last six completed candles to the six before them.
-        p1, p2 = closes[-6:], closes[-12:-6]
-        r1 = [x for x in rsi[-6:] if x is not None]
-        r2 = [x for x in rsi[-12:-6] if x is not None]
-        if len(r1) >= 3 and len(r2) >= 3 and min(p1) < min(p2) and min(r1) > min(r2):
-            return {"indicator_label": "⚡ Bullish divergence",
-                    "indicator_reason": "30-मिनट कीमत lower low, RSI higher low · स्रोत: " + source}
-        return {}
     return {}
-
 
 def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
     returns = {}
@@ -1379,6 +1357,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else None,
         "score": score,
+        "headline_score": score,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
         "neg_n": sum(1 for h in heads if h["score"] < 0),

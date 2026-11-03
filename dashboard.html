@@ -495,22 +495,22 @@ function spark(values, color) {
 }
 
 function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml) {
-  if (Math.abs(score) < 1 || Math.abs(change) < 0.2) return "";
-  if (Math.sign(score) === Math.sign(change)) return "";
-  const sentiment = score > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : "BEARISH (खबरों का रुख नकारात्मक)";
-  const priceDirection = change > 0 ? "कीमत बढ़ी है" : "कीमत गिरी है";
-  const reason = (score > 0 && change < 0)
+  const s = Number(score), c = Number(change);
+  if (!Number.isFinite(s) || !Number.isFinite(c) || Math.abs(s) < 1 || Math.abs(c) < 0.2) return "";
+  if (Math.sign(s) === Math.sign(c)) return "";
+  const sentiment = s > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : "BEARISH (खबरों का रुख नकारात्मक)";
+  const priceDirection = c > 0 ? "कीमत बढ़ी है" : "कीमत गिरी है";
+  const reason = (s > 0 && c < 0)
     ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
     : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।";
-  if (isIndianIndex) return `<div class="div">⚡ सेंटिमेंट और कीमत उलटे हैं</div>`;
   return `<details class="div"><summary>⚡ सेंटिमेंट और कीमत उलटे हैं — समझें</summary>
     <div class="hl-meta" style="margin-top:8px"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
-    <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${score > 0 ? "+" : ""}${score})</div>
-    <div class="hl-meta"><b>कीमत:</b> ${change > 0 ? "+" : ""}${change}% — ${priceDirection}</div>
+    <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${s > 0 ? "+" : ""}${s})</div>
+    <div class="hl-meta"><b>कीमत:</b> ${c > 0 ? "+" : ""}${c}% — ${priceDirection}</div>
     <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
     <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
-    <details><summary>📰 इस स्टॉक की हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
-    <details><summary>👥 वास्तविक F&O पोज़िशन देखें — DII / PRO / RETAIL</summary>${participantOIHtml}</details>
+    <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
+    <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
   </details>`;
 }
 
@@ -624,8 +624,9 @@ function card(name, d, participantOI) {
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
     `}
+    ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
-    ${divergence(d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
+    ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     ${name !== "BITCOIN" ? '<div class="chg">कीमत में बदलाव: ' + sign + d.change_pct + '%</div>' : (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? '<div class="chg">कीमत में बदलाव: ' + sign + d.change_pct + '%</div>' : "")}
 
     ${spark(scoreHistory[name], color)}
