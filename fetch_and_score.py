@@ -2211,10 +2211,10 @@ def _trends_related_queries(timeframe="now 1-d"):
         "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
         "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
         "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
-        "today_basis": "related_queries_7d",
+        "today_basis": "now_1d_related_queries" if timeframe == "now 1-d" else "related_queries_other",
         "source_timeframe": timeframe + " related queries",
         "source_data_time": source_data_time,
-        "fallback_used": False, "queries_total": len(all_terms),
+        "fallback_used": True, "queries_total": len(all_terms),
         "related_seed_count": len(per_seed)
     }
 
