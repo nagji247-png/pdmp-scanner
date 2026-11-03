@@ -79,7 +79,7 @@ TERM_CHUNK = 4
 # भीड़ का मूड तभी दिखेगा जब दोनों तरफ़ के शब्दों में कम से कम इतनी खोज हो।
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
-TRENDS_RETRIES = 3  # 429 (rate limit) पर थोड़ा रुककर फिर कोशिश; कुल समय सीमित
+TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
 TRENDS_MAX_AGE_MINUTES = 150  # इससे पुरानी Google Trends reading डैशबोर्ड पर नहीं दिखेगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
@@ -1779,7 +1779,8 @@ def _trends_related_queries(timeframe="now 1-d"):
     """
     from pytrends.request import TrendReq
 
-    seeds = ["nifty", "sensex", "share market", "stock market"]
+    # कम अनुरोध: दो मुख्य index seeds; pytrends related_queries इनके लिए ही fetch करता है।
+    seeds = ["nifty", "sensex"]
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
     py.build_payload(seeds, timeframe=timeframe, geo="IN")
     related = py.related_queries()
@@ -2208,7 +2209,7 @@ def main():
         market_news["as_of"] = updated
     result["market_news"] = market_news
 
-    # Google Trends केवल तय समय पर चलाएँ: 09:10, 12:30 और 21:00 IST.
+    # Google Trends केवल workflow के चार तय स्लॉट पर चलाएँ: 09:15, 11:00, 13:00 और 19:00 IST.
     # बाकी हर 30-मिनट वाले PDMP रन में पिछली रीडिंग को दोबारा fetch न करें।
     previous_trends = previous.get("trends") or {}
     previous_crowd_terms = previous_trends.get("crowd_terms") or []
