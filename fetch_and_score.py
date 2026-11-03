@@ -1259,27 +1259,52 @@ def derive_card_indicator(name, sym, score, change):
         signals = rsi_divergence(closes, recent_bars=40, timeframe_label="30-मिनट", source_label=source)
         return {"indicator_signals": signals} if signals else {}
 
-    # SENSEX RSI के लिए अभी सत्यापित BSE ऐतिहासिक candles उपलब्ध नहीं हैं।
-    # Yahoo OHLC से SENSEX संकेत न बनाएँ; भरोसेमंद BSE history जुड़ने पर ही सक्षम करें।
+    # SENSEX RSI के लिए सत्यापित BSE ऐतिहासिक candles उपलब्ध नहीं हैं।
+    # इसलिए Yahoo OHLC से SENSEX का कोई RSI संकेत नहीं बनाया जाएगा।
     if name == "SENSEX":
         return {}
 
-    # NIFTY/BANKNIFTY और NSE स्टॉक्स के लिए पूरी हुई दैनिक candles.
     if name in ("NIFTY", "BANKNIFTY") or sym.endswith(".NS"):
+        signals = []
+
+        # 30-मिनट: केवल पूरी हो चुकी candles लें; चलती candle से संकेत न बनाएँ।
         try:
-            h = yf.Ticker(sym).history(period="6mo", interval="1d")
-            if h is None or h.empty or "Close" not in h.columns:
-                return {}
-            now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
-            if now_ist.time() < dt.time(15, 45) and len(h):
-                if h.index[-1].date() == now_ist.date():
-                    h = h.iloc[:-1]
-            closes = [float(x) for x in h["Close"].dropna().tolist()]
-            signals = rsi_divergence(closes, recent_bars=40, timeframe_label="दैनिक")
-            return {"indicator_signals": signals} if signals else {}
+            h30 = yf.Ticker(sym).history(period="10d", interval="30m")
+            if h30 is not None and not h30.empty and "Close" in h30.columns:
+                now_ist = dt.datetime.now(dt.timezone.utc).astimezone(
+                    dt.timezone(dt.timedelta(hours=5, minutes=30)))
+                while not h30.empty:
+                    last_time = h30.index[-1].to_pydatetime()
+                    if last_time.tzinfo is None:
+                        last_time = last_time.replace(tzinfo=now_ist.tzinfo)
+                    else:
+                        last_time = last_time.astimezone(now_ist.tzinfo)
+                    if last_time + dt.timedelta(minutes=30) <= now_ist:
+                        break
+                    h30 = h30.iloc[:-1]
+                closes30 = [float(v) for v in h30["Close"].dropna().tolist()]
+                signals.extend(rsi_divergence(
+                    closes30, recent_bars=40, timeframe_label="30-मिनट",
+                    source_label="Yahoo Finance पूरी हुई candles"))
         except Exception as exc:
-            print(f"RSI divergence skipped {name}: {exc}")
-            return {}
+            print(f"30-minute RSI divergence skipped {name}: {exc}")
+
+        # Daily: आज की अधूरी candle को 15:45 IST से पहले शामिल न करें।
+        try:
+            hd = yf.Ticker(sym).history(period="6mo", interval="1d")
+            if hd is not None and not hd.empty and "Close" in hd.columns:
+                now_ist = dt.datetime.now(dt.timezone.utc).astimezone(
+                    dt.timezone(dt.timedelta(hours=5, minutes=30)))
+                if now_ist.time() < dt.time(15, 45) and hd.index[-1].date() == now_ist.date():
+                    hd = hd.iloc[:-1]
+                closes_daily = [float(v) for v in hd["Close"].dropna().tolist()]
+                signals.extend(rsi_divergence(
+                    closes_daily, recent_bars=40, timeframe_label="दैनिक",
+                    source_label="Yahoo Finance पूरी हुई candles"))
+        except Exception as exc:
+            print(f"Daily RSI divergence skipped {name}: {exc}")
+
+        return {"indicator_signals": signals} if signals else {}
     return {}
 
 def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
