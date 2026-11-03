@@ -1957,6 +1957,26 @@ def _trends_related_queries(timeframe="now 1-d"):
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
     py.build_payload(seeds, timeframe=timeframe, geo="IN")
     related = py.related_queries()
+
+    # related_queries() में अपना observation timestamp नहीं आता।
+    # उसी Google Trends payload का interest_over_time() लेकर आख़िरी वास्तविक
+    # observation का समय सत्यापित करें; workflow का scan time इसका विकल्प नहीं है।
+    observed = py.interest_over_time()
+    if observed is None or observed.empty:
+        raise ValueError("Google Trends का timestamp सत्यापित करने के लिए hourly data खाली है")
+    last_value = observed.index[-1]
+    last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
+    if last_dt.tzinfo is None:
+        # pytrends index naive UTC होता है।
+        last_dt = last_dt.replace(tzinfo=dt.timezone.utc)
+    last_utc = last_dt.astimezone(dt.timezone.utc)
+    age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
+    if age_minutes < -10 or age_minutes > TRENDS_MAX_AGE_MINUTES:
+        raise ValueError(
+            f"Google Trends का आख़िरी वास्तविक observation {age_minutes:.0f} मिनट पुराना/भविष्य का है"
+        )
+    source_data_time = last_utc.isoformat()
+
     per_seed = []
     all_terms = {}
 
@@ -2036,6 +2056,7 @@ def _trends_related_queries(timeframe="now 1-d"):
         "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
         "today_basis": "related_queries_7d",
         "source_timeframe": timeframe + " related queries",
+        "source_data_time": source_data_time,
         "fallback_used": False, "queries_total": len(all_terms),
         "related_seed_count": len(per_seed)
     }
@@ -2425,7 +2446,8 @@ def main():
             if fresh_trends.get("ok"):
                 trends = fresh_trends
                 trends["stale"] = False
-                trends["as_of"] = updated
+                # वास्तविक Google observation time ही freshness clock है।
+                trends["as_of"] = fresh_trends.get("source_data_time")
                 trends["cached"] = False
                 trends["refresh_policy_hours"] = None
             else:
