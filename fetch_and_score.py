@@ -1214,6 +1214,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         PRICE_CACHE["BTC-USD_DATE"] = None
         PRICE_CACHE["BTC-USD_SOURCE"] = None
         PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
+    elif name == "SENSEX":
+        # SENSEX must never fall back to yesterday's daily Yahoo/cache close.
+        # Keep trying BSE + fresh Yahoo intraday above; if both fail, publish
+        # no quote fields rather than a stale value or stale daily change.
+        PRICE_CACHE[sym] = None
+        change = None
     quote_date, quote_time = nse_stamp_fields(live_quote["stamp"]) if nse_quote else (
         (live_quote["date"], live_quote["time"]) if live_quote else (None, None))
     price_time = quote_time if live_quote else (
