@@ -1728,6 +1728,25 @@ def _chunks(items, size):
         yield items[i:i + size]
 
 
+def _trends_observation_time(df, label="Google Trends"):
+    """हर payload का आख़िरी वास्तविक observation UTC में लौटाएँ; scan time इसका विकल्प नहीं।"""
+    if df is None or df.empty:
+        raise ValueError(f"{label}: hourly observation खाली है")
+    last_value = df.index[-1]
+    last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
+    if last_dt.tzinfo is None:
+        # pytrends pandas index naive UTC होता है।
+        last_dt = last_dt.replace(tzinfo=dt.timezone.utc)
+    last_utc = last_dt.astimezone(dt.timezone.utc)
+    age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
+    if age_minutes < -10 or age_minutes > TRENDS_MAX_AGE_MINUTES:
+        raise ValueError(
+            f"{label}: आख़िरी वास्तविक observation {age_minutes:.0f} मिनट पुराना/भविष्य का है; "
+            f"सीमा {TRENDS_MAX_AGE_MINUTES} मिनट"
+        )
+    return last_utc
+
+
 def _trends_request(py, terms, timeframe="now 7-d"):
     """एक Google Trends अनुरोध: ANCHOR + ज़्यादा से ज़्यादा 4 शब्द।"""
     py.build_payload([ANCHOR] + terms, timeframe=timeframe, geo="IN")
@@ -1874,19 +1893,8 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         raise ValueError("Google Trends का आधार डेटा शून्य है")
     source_data_time = None
     if timeframe == "now 1-d":
-        # Google Trends का आख़िरी observation भी हाल का होना चाहिए;
-        # केवल workflow का नया timestamp पुराने sample को नया नहीं बना सकता।
-        last_value = base_df.index[-1]
-        last_dt = last_value.to_pydatetime() if hasattr(last_value, "to_pydatetime") else last_value
-        if last_dt.tzinfo is None:
-            # pytrends converts Google's epoch-second timestamps with
-            # pandas.to_datetime(..., unit="s"), which produces naive UTC.
-            # Treating this as IST shifts the observation 5h30m backwards.
-            last_dt = last_dt.replace(tzinfo=dt.timezone.utc)
-        last_utc = last_dt.astimezone(dt.timezone.utc)
-        age_minutes = (dt.datetime.now(dt.timezone.utc) - last_utc).total_seconds() / 60
-        if age_minutes < -10 or age_minutes > 180:
-            raise ValueError(f"Google Trends का आख़िरी observation {age_minutes:.0f} मिनट पुराना/भविष्य का है; ताज़ा डेटा नहीं")
+        # वास्तविक Google observation 30 मिनट के भीतर होना चाहिए।
+        last_utc = _trends_observation_time(base_df, "Google Trends base")
         source_data_time = last_utc.isoformat()
     base = float(base_df.mean(axis=1).mean())
     recent = float(base_df.tail(recent_points).mean(axis=1).mean())
@@ -1896,6 +1904,13 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
             df = _trends_request(py, chunk, timeframe=timeframe)
+            if timeframe == "now 1-d":
+                chunk_time = _trends_observation_time(df, f"Google Trends {direction} keywords")
+                if abs((chunk_time - last_utc).total_seconds()) > TRENDS_MAX_AGE_MINUTES * 60:
+                    raise ValueError(
+                        f"Google Trends {direction} keywords का observation base data से "
+                        "30 मिनट से अधिक अलग है"
+                    )
             for term in chunk:
                 recent_ratio, average_ratio = _ratio(df, term, recent_points=recent_points)
                 queries[term.lower()] = {
@@ -2063,38 +2078,32 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def fetch_trends():
-    """पहले पिछले 24 घंटे का Google Trends डेटा लें।
-    7-दिन/3-महीने के नमूने ऐतिहासिक संदर्भ हैं, आज का crowd mood नहीं।"""
+    """एक संतुलित 24-घंटे का Trends scan; पुराने/अधूरे डेटा पर Crowd score नहीं।"""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    last_err = ""
-    # प्राथमिक स्रोत: Google Trends का now 1-d डेटा।
-    for attempt in range(TRENDS_RETRIES):
-        try:
-            result = _trends_related_queries(timeframe="now 1-d")
-            result.setdefault("fear_vs_avg", None)
-            result.setdefault("per_term", [])
-            result["fallback_used"] = False
-            result["today_bull_pct"] = result["crowd_bull_pct"]
-            result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
-            result["today_basis"] = "now_1d_anchor_relative"
-            result["source_timeframe"] = "now 1-d"
-            return result
-        except Exception as e:
-            last_err = str(e)
-            print(f"Google Trends now 1-d attempt {attempt + 1} failed: {last_err}")
-            if attempt < TRENDS_RETRIES - 1:
-                rate_limited = "429" in last_err or "too many requests" in last_err.lower()
-                time.sleep(120 if rate_limited else 45)
-
-    # पुराने 7-दिन/related-query स्कोर को live mood बनाकर कभी न दिखाएँ।
-    return {
-        "ok": False, "stale": False,
-        "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
-    }
+    # Related-query fallback हटाया गया: दोनों दिशाओं की पर्याप्त खोज न मिलने पर
+    # अतिरिक्त Google requests करके rate-limit जोखिम नहीं बढ़ाएँ। एक balanced
+    # anchor-relative pass में bull और bear terms समान रूप से जाँचे जाते हैं।
+    try:
+        result = _trends_once(timeframe="now 1-d", recent_points=24)
+        result.setdefault("fear_vs_avg", None)
+        result.setdefault("per_term", [])
+        result["fallback_used"] = False
+        result["today_bull_pct"] = result["crowd_bull_pct"]
+        result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
+        result["today_basis"] = "now_1d_anchor_relative"
+        result["source_timeframe"] = "now 1-d"
+        return result
+    except Exception as e:
+        last_err = str(e)
+        print(f"Google Trends now 1-d failed: {last_err}")
+        return {
+            "ok": False, "stale": False,
+            "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
+        }
 
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
