@@ -748,9 +748,33 @@ def intraday_quote(sym):
                 "time": bar_ist.strftime("%I.%M %p IST").lstrip("0"),
                 "source": source}
 
-    # Bitcoin: 1-minute quote with a strict 3-minute maximum age.
+    # Bitcoin must use the latest executed spot trade, not an OHLC candle.
+    # Coinbase's public ticker returns trade price and the trade timestamp.
+    if bitcoin:
+        try:
+            response = requests.get(
+                "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+                timeout=12
+            )
+            response.raise_for_status()
+            ticker = response.json()
+            stamp = dt.datetime.fromisoformat(str(ticker["time"]).replace("Z", "+00:00"))
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=dt.timezone.utc)
+            else:
+                stamp = stamp.astimezone(dt.timezone.utc)
+            result = validate_and_format(float(ticker["price"]), stamp,
+                                         "Coinbase BTC-USD latest executed trade")
+            if result:
+                return result
+            raise ValueError("Coinbase latest trade is older than 3 minutes or has an invalid timestamp")
+        except Exception as exc:
+            print(f"Bitcoin latest-trade quote unavailable: {str(exc)[:160]}")
+            return None
+
     # Other instruments retain their existing 5-minute quote path.
-    interval = "1m" if bitcoin else "5m"
+    interval = "5m"
     try:
         h = yf.Ticker(sym).history(period="1d", interval=interval, prepost=False)
         if h is not None and not h.empty and "Close" in h.columns:
