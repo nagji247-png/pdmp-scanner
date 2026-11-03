@@ -743,19 +743,14 @@ def daily_returns(sym):
 
 
 def intraday_quote(sym):
-    """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time."""
+    """Best-effort fresh Yahoo 5-minute quote; timestamps are displayed in India time.
+    yfinance is tried first; the public Yahoo chart endpoint is a no-key fallback."""
     indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK")
     supported = indian_cash or sym == "INR=X"
     if not supported:
         return None
-    try:
-        h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
-        if h is None or h.empty or "Close" not in h.columns:
-            return None
-        stamp = h.index[-1].to_pydatetime()
-        if stamp.tzinfo is None:
-            stamp = stamp.replace(tzinfo=dt.timezone.utc)
-        stamp_utc = stamp.astimezone(dt.timezone.utc)
+
+    def validate_and_format(price, stamp_utc, source):
         now_utc = dt.datetime.now(dt.timezone.utc)
         age = (now_utc - stamp_utc).total_seconds() / 60
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
@@ -763,17 +758,61 @@ def intraday_quote(sym):
         max_age = 15 if indian_cash else 60
         if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
-        price = float(h["Close"].iloc[-1])
         if not math.isfinite(price) or price <= 0:
             return None
         return {"price": round(price, 4 if sym == "INR=X" else 2),
                 "date": bar_ist.date().isoformat(),
                 "time": bar_ist.strftime("%I.%M %p IST").lstrip("0"),
-                "source": "Yahoo Finance 5-minute quote"}
-    except Exception as exc:
-        print(f"intraday quote unavailable {sym}: {exc}")
-        return None
+                "source": source}
 
+    # Preferred path: yfinance's 5-minute history.
+    try:
+        h = yf.Ticker(sym).history(period="1d", interval="5m", prepost=False)
+        if h is not None and not h.empty and "Close" in h.columns:
+            stamp = h.index[-1].to_pydatetime()
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=dt.timezone.utc)
+            else:
+                stamp = stamp.astimezone(dt.timezone.utc)
+            result = validate_and_format(float(h["Close"].iloc[-1]), stamp,
+                                         "Yahoo Finance 5-minute quote")
+            if result:
+                return result
+    except Exception as exc:
+        print(f"yfinance intraday quote unavailable {sym}: {str(exc)[:120]}")
+
+    # Direct public Yahoo chart endpoint fallback. It needs no API key or crumb.
+    try:
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+               + quote_plus(sym) + "?range=1d&interval=5m&includePrePost=false")
+        response = requests.get(url, headers={
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+            "Accept": "application/json"
+        }, timeout=12)
+        response.raise_for_status()
+        payload = response.json()
+        chart = (payload.get("chart") or {}).get("result") or []
+        if not chart:
+            raise ValueError("Yahoo chart response has no result")
+        item = chart[0]
+        stamps = item.get("timestamp") or []
+        quotes = ((item.get("indicators") or {}).get("quote") or [])
+        closes = quotes[0].get("close") if quotes else None
+        if not stamps or not closes or len(stamps) != len(closes):
+            raise ValueError("Yahoo chart timestamps/close values missing")
+        valid = [(int(ts), float(close)) for ts, close in zip(stamps, closes)
+                 if ts is not None and close is not None]
+        if not valid:
+            raise ValueError("Yahoo chart has no completed price bars")
+        ts, price = valid[-1]
+        stamp = dt.datetime.fromtimestamp(ts, tz=dt.timezone.utc)
+        result = validate_and_format(price, stamp, "Yahoo Finance public 5-minute chart")
+        if result:
+            return result
+        raise ValueError("Yahoo chart quote is outside the freshness window")
+    except Exception as exc:
+        print(f"Yahoo chart intraday fallback unavailable {sym}: {str(exc)[:160]}")
+        return None
 
 def fetch_participant_oi(base_date=None):
     """NSE official participant-wise OI: daily EOD, not a live feed.
@@ -1108,10 +1147,10 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     instruments[name] = {
         "type": kind,
-        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else PRICE_CACHE.get("BZ=F_CHANGE_PCT") if sym == "BZ=F" else change,
+        "change_pct": PRICE_CACHE.get("SI=F_CHANGE_PCT") if sym == "SI=F" else PRICE_CACHE.get("GC=F_CHANGE_PCT") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_CHANGE_PCT") if sym == "BTC-USD" else PRICE_CACHE.get("BZ=F_CHANGE_PCT") if sym == "BZ=F" else change,
         "price": PRICE_CACHE.get(sym),
         "price_time": price_time,
-        "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
+        "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else None,
         "score": score,
