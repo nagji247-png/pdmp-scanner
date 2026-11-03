@@ -77,11 +77,11 @@ def fundamentals(symbol):
           "revenue_growth":num(info.get("revenueGrowth")),
           "profit_growth":num(info.get("earningsGrowth")),
           "debt_to_equity":num(info.get("debtToEquity")),
-          "dividend_yield":num(info.get("dividendYield")),
+          "dividend_yield":(num(info.get("dividendYield"))*100 if num(info.get("dividendYield")) is not None else None),
           "operating_margin":num(info.get("operatingMargins")),
           "profit_margin":num(info.get("profitMargins")),
-          "held_pct_insiders":num(info.get("heldPercentInsiders")),
-          "held_pct_institutions":num(info.get("heldPercentInstitutions")),
+          "held_pct_insiders":(num(info.get("heldPercentInsiders"))*100 if num(info.get("heldPercentInsiders")) is not None else None),
+          "held_pct_institutions":(num(info.get("heldPercentInstitutions"))*100 if num(info.get("heldPercentInstitutions")) is not None else None),
           "currency":info.get("currency"),
           "as_of":None
         })
