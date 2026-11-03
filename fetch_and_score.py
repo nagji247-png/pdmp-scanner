@@ -2226,9 +2226,9 @@ def fetch_trends():
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    # Related-query fallback हटाया गया: दोनों दिशाओं की पर्याप्त खोज न मिलने पर
-    # अतिरिक्त Google requests करके rate-limit जोखिम नहीं बढ़ाएँ। एक balanced
-    # anchor-relative pass में bull और bear terms समान रूप से जाँचे जाते हैं।
+    # पहले balanced anchor-relative hourly data लें। यदि Google पर किसी एक
+    # दिशा के शब्द बहुत कम खोजे गए हों, तो उसी 24h timeframe की वास्तविक
+    # related searches से दूसरा प्रयास करें; 7-दिन का पुराना mood इस्तेमाल न करें।
     try:
         result = _trends_once(timeframe="now 1-d", recent_points=24)
         result.setdefault("fear_vs_avg", None)
@@ -2240,11 +2240,24 @@ def fetch_trends():
         result["source_timeframe"] = "now 1-d"
         return result
     except Exception as e:
-        last_err = str(e)
-        print(f"Google Trends now 1-d failed: {last_err}")
+        primary_err = str(e)
+        print(f"Google Trends now 1-d balanced scan failed: {primary_err}")
+
+    try:
+        result = _trends_related_queries(timeframe="now 1-d")
+        result["fallback_used"] = True
+        result["primary_error"] = primary_err
+        result["today_label"] = "पिछले 24 घंटे की वास्तविक related searches"
+        result["today_basis"] = "now_1d_related_queries"
+        return result
+    except Exception as fallback_error:
+        print(f"Google Trends now 1-d related-query fallback failed: {fallback_error}")
         return {
             "ok": False, "stale": False,
-            "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {last_err}"
+            "error": (
+                "पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: "
+                f"मुख्य स्कैन: {primary_err}; related-search fallback: {fallback_error}"
+            )
         }
 
 
