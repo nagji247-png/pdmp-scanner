@@ -2,16 +2,10 @@ name: PDMP Scan
 
 on:
   schedule:
-    - cron: "*/10 3-10 * * 1-5"
-    - cron: "0,30 0-6,8-23 * * *"
-    - cron: "15,45 4 * * *"
-    - cron: "30 7 * * *"
+    # सामान्य PDMP स्कैन हर 30 मिनट (UTC); भारत में भी हर आधे घंटे।
+    - cron: "0,30 * * * *"
+    # Google Trends: 09:15 IST (03:45 UTC); बाकी तीन स्लॉट आधे-घंटे वाले रन में।
     - cron: "45 3 * * *"
-    - cron: "15 5 * * *"
-    - cron: "15 9 * * *"
-    - cron: "50 3 * * *"
-    - cron: "0 7 * * *"
-    - cron: "30 15 * * *"
   workflow_dispatch:
 
 permissions:
@@ -33,7 +27,9 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Run PDMP scan
         env:
-          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '45 3 * * *' || github.event.schedule == '0 4 * * *' || github.event.schedule == '15 4 * * *' || github.event.schedule == '30 4 * * *' || github.event.schedule == '45 4 * * *' || github.event.schedule == '15 5 * * *' || github.event.schedule == '0 7 * * *' || github.event.schedule == '15 9 * * *' || github.event.schedule == '30 15 * * *' }}
+          # केवल चार तय IST स्लॉट: 09:15, 11:00, 13:00 और 19:00।
+          # Manual dispatch और बाकी 30-मिनट रन Google Trends को कॉल नहीं करेंगे।
+          TRENDS_SCAN: ${{ github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *' }}
         run: python fetch_and_score.py
       - name: Commit results
         run: |
