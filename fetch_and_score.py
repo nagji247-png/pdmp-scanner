@@ -339,11 +339,33 @@ def nse_cash_quote(name, sym):
     elif sym.endswith(".NS"):
         symbol = sym[:-3].upper()
         data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
-        item = data.get("stock", data) if isinstance(data, dict) else {}
-        price = item.get("lastTradedPrice", item.get("lastPrice", item.get("ltp")))
-        stamp = item.get("latestTimestamp", item.get("timestamp"))
-        if price and stamp:
-            return {"price": float(price), "stamp": stamp, "source": "NSE"}
+        def find_quote(node):
+            if isinstance(node, dict):
+                price = next((node.get(k) for k in
+                              ("lastTradedPrice", "lastPrice", "ltp", "last")
+                              if node.get(k) is not None), None)
+                stamp = next((node.get(k) for k in
+                              ("latestTimestamp", "timestamp", "nseTimestamp")
+                              if node.get(k)), None)
+                pct = next((node.get(k) for k in
+                            ("perChange", "changePercent", "pChange", "change_pct")
+                            if node.get(k) is not None), None)
+                if price is not None and stamp:
+                    return {"price": float(price), "stamp": stamp,
+                            "change_pct": float(pct) if pct is not None else None}
+                for value in node.values():
+                    found = find_quote(value)
+                    if found:
+                        return found
+            elif isinstance(node, list):
+                for value in node:
+                    found = find_quote(value)
+                    if found:
+                        return found
+            return None
+        quote = find_quote(data)
+        if quote:
+            return {**quote, "source": "NSE"}
     return None
 
 def nse_stamp_fields(stamp):
@@ -933,9 +955,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     live_quote = nse_quote or yahoo_quote
     if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
-        prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
-        if prev_close and prev_close > 0:
-            change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+        if nse_quote and nse_quote.get("change_pct") is not None:
+            change = round(nse_quote["change_pct"], 2)
+        else:
+            prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+            if prev_close and prev_close > 0:
+                change = round((live_quote["price"] / prev_close - 1) * 100, 2)
     quote_date, quote_time = nse_stamp_fields(live_quote["stamp"]) if nse_quote else (
         (live_quote["date"], live_quote["time"]) if live_quote else (None, None))
     price_time = quote_time if live_quote else (
