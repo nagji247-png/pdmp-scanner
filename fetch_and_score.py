@@ -360,11 +360,18 @@ def bse_sensex_quote():
                 continue
         if stamp is None:
             raise ValueError(f"unrecognized BSE timestamp: {stamp_text}")
-        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+        ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
+        stamp = stamp.replace(tzinfo=ist_tz)
         if stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not today's session: {stamp_text}")
-        if (now_ist - stamp).total_seconds() > 30 * 60 or stamp > now_ist + dt.timedelta(minutes=2):
-            raise ValueError(f"BSE quote timestamp outside 30-minute freshness window: {stamp_text}")
+        # After the cash market closes, the final exchange quote remains the
+        # valid closing snapshot for today. Accept it only when its source
+        # timestamp is from the final 15 minutes of today's session.
+        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
+        max_age_seconds = 6 * 60 * 60 if after_close else 30 * 60
+        if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
+            raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "source": "BSE",
                 "change_pct": float(str(raw_pct).replace("%", "").replace(",", "")) if raw_pct is not None else None}
@@ -373,10 +380,63 @@ def bse_sensex_quote():
         return None
 
 
+def google_finance_sensex_quote():
+    """Read Google's direct SENSEX quote and its explicit timestamp; never use a candle."""
+    try:
+        page = requests.get(
+            "https://www.google.com/finance/quote/SENSEX:INDEXBOM",
+            headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                     "Accept-Language": "en-IN,en;q=0.9",
+                     "Cache-Control": "no-cache"},
+            timeout=15
+        )
+        page.raise_for_status()
+        text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
+        text = re.sub(r"\s+", " ", text)
+        match = re.search(
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\+5:30)",
+            text
+        )
+        if not match:
+            raise ValueError("Google Finance quote timestamp missing")
+        ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
+        stamp = dt.datetime.strptime(match.group(1), "%b %d, %I:%M:%S %p GMT+5:30")
+        stamp = stamp.replace(year=now_ist.year, tzinfo=ist_tz)
+        if stamp.date() != now_ist.date() or stamp > now_ist + dt.timedelta(minutes=2):
+            raise ValueError("Google Finance quote is not from today's session")
+        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
+        max_age = 6 * 60 * 60 if after_close else 15 * 60
+        if (now_ist - stamp).total_seconds() > max_age:
+            raise ValueError("Google Finance quote is outside the allowed freshness window")
+        price_match = re.search(
+            r"(?:BSE SENSEX|S&P BSE SENSEX).{0,500}?([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})",
+            text
+        )
+        if not price_match:
+            prefix = text[:match.start()]
+            candidates = re.findall(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{3})+\.\d{2})(?![0-9])", prefix)
+            if not candidates:
+                raise ValueError("Google Finance SENSEX price missing")
+            raw_price = candidates[-1]
+        else:
+            raw_price = price_match.group(1)
+        price = float(raw_price.replace(",", ""))
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError("Google Finance returned an invalid SENSEX price")
+        return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+                "source": "Google Finance direct SENSEX quote"}
+    except Exception as exc:
+        print(f"Google Finance direct SENSEX quote unavailable: {str(exc)[:160]}")
+        return None
+
+
 def nse_cash_quote(name, sym):
     """Return actual NSE/BSE quote and exchange timestamp; never replace it with scan time."""
     if name == "SENSEX":
-        return bse_sensex_quote()
+        # BSE exchange quote first; Google's direct quote page is the no-key backup.
+        # Neither source reads an OHLC/intraday candle.
+        return bse_sensex_quote() or google_finance_sensex_quote()
     if name == "NIFTY":
         data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
         idx = (data or {}).get("index", {})
@@ -737,7 +797,10 @@ def intraday_quote(sym):
         now_utc = dt.datetime.now(dt.timezone.utc)
         age = (now_utc - stamp_utc).total_seconds() / 60
         bar_ist = stamp_utc + dt.timedelta(hours=5, minutes=30)
-        today_ist = (now_utc + dt.timedelta(hours=5, minutes=30)).date()
+        now_ist = now_utc + dt.timedelta(hours=5, minutes=30)
+        today_ist = now_ist.date()
+        # Intraday candles remain subject to the strict freshness guard.
+        # They are never used as the SENSEX price; SENSEX comes from BSE's direct quote.
         max_age = 3 if bitcoin else 15 if indian_cash else 60
         if age < -2 or age > max_age or (indian_cash and bar_ist.date() != today_ist):
             return None
@@ -1249,7 +1312,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
     nse_quote = nse_cash_quote(name, sym)
-    yahoo_quote = intraday_quote(sym) if not nse_quote else None
+    # SENSEX price must come only from the direct BSE index quote, never an OHLC candle.
+    yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
     live_quote = nse_quote or yahoo_quote
     if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
@@ -1261,6 +1325,17 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
                 PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
+        elif name == "SENSEX":
+            # After 15:45 IST daily_returns includes today's completed close.
+            # Do not divide the closing quote by today's close (which would
+            # incorrectly display 0.00%); use today's recorded daily return.
+            now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+            if now_ist.weekday() < 5 and now_ist.time() >= dt.time(15, 45) and returns:
+                change = returns[max(returns)]
+            else:
+                prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+                if prev_close and prev_close > 0:
+                    change = round((live_quote["price"] / prev_close - 1) * 100, 2)
         else:
             prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
             if prev_close and prev_close > 0:
