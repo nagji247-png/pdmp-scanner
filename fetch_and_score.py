@@ -1259,8 +1259,13 @@ def derive_card_indicator(name, sym, score, change):
         signals = rsi_divergence(closes, recent_bars=40, timeframe_label="30-मिनट", source_label=source)
         return {"indicator_signals": signals} if signals else {}
 
-    # NIFTY/SENSEX/BANKNIFTY और NSE स्टॉक्स के लिए पूरी हुई दैनिक candles.
-    if name in ("NIFTY", "SENSEX", "BANKNIFTY") or sym.endswith(".NS"):
+    # SENSEX RSI के लिए अभी सत्यापित BSE ऐतिहासिक candles उपलब्ध नहीं हैं।
+    # Yahoo OHLC से SENSEX संकेत न बनाएँ; भरोसेमंद BSE history जुड़ने पर ही सक्षम करें।
+    if name == "SENSEX":
+        return {}
+
+    # NIFTY/BANKNIFTY और NSE स्टॉक्स के लिए पूरी हुई दैनिक candles.
+    if name in ("NIFTY", "BANKNIFTY") or sym.endswith(".NS"):
         try:
             h = yf.Ticker(sym).history(period="6mo", interval="1d")
             if h is None or h.empty or "Close" not in h.columns:
