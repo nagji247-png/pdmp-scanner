@@ -54,6 +54,6 @@ jobs:
             echo "कोई बदलाव नहीं, commit छोड़ा गया"
           else
             git commit -m "scan $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase origin "$GITHUB_REF_NAME"
+            git pull --rebase -X theirs origin "$GITHUB_REF_NAME"
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
