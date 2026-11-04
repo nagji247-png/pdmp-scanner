@@ -1400,9 +1400,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
     global_quote = None
     if not nse_quote and not yahoo_quote and name == "NASDAQ":
-        global_quote = google_finance_quote("IXIC", "INDEXNASDAQ", "NASDAQ")
+        global_quote = google_finance_quote(".IXIC", "INDEXNASDAQ", "NASDAQ")
     elif not nse_quote and not yahoo_quote and name == "DJI":
-        global_quote = google_finance_quote("DJI", "INDEXDJX", "DOW JONES")
+        global_quote = google_finance_quote(".DJI", "INDEXDJX", "DOW JONES")
     live_quote = nse_quote or yahoo_quote or global_quote
     if live_quote:
         quote_stamp = live_quote.get("stamp") or (
