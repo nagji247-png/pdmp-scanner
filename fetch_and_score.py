@@ -32,6 +32,15 @@ STOCKS = {
     "SBIN": ("SBIN.NS", "SBI share"),
 }
 
+# वॉचलिस्ट से हटाए गए शेयरों के पुराने Contrarian रिकॉर्ड पूरे करने हेतु
+# इन्हें Dashboard के सक्रिय स्टॉक कार्ड में नहीं जोड़ा जाता।
+ARCHIVE_PENDING_SYMBOLS = {
+    "RAYMOND": "RAYMOND.NS",
+    "GESHIP": "GESHIP.NS",
+    "ITC": "ITC.NS",
+    "MOTILALOFS": "MOTILALOFS.NS",
+}
+
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
 # नया स्टॉक जोड़ें तो यहाँ भी एक लाइन जोड़ें।
 STOCK_ALIASES = {
@@ -2547,6 +2556,23 @@ def main():
     for name, (sym, query) in STOCKS.items():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
+
+    # सक्रिय वॉचलिस्ट से हटे शेयरों के पुराने Pending रिकॉर्ड भी अगले पूरे
+    # कारोबारी दिन के Yahoo daily close से मिलाएँ; नए Dashboard कार्ड न बनाएँ।
+    pending_archive_names = {
+        e.get("instrument") for e in events
+        if e.get("outcome") is None and e.get("instrument") in ARCHIVE_PENDING_SYMBOLS
+    }
+    for name in sorted(pending_archive_names):
+        if name in all_returns:
+            continue
+        try:
+            archived_returns = daily_returns(ARCHIVE_PENDING_SYMBOLS[name])
+            all_returns[name] = archived_returns
+            update_contrarian(events, name, 0, today_str, archived_returns)
+            print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
+        except Exception as exc:
+            print(f"Archived Contrarian history unavailable {name}: {str(exc)[:160]}")
 
     # संकेतों का स्नैपशॉट अंतिम संयुक्त स्कोर बनने के बाद नीचे बनाया जाएगा।
 
