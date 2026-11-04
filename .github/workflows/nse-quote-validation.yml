@@ -22,6 +22,72 @@ jobs:
         run: pip install yfinance feedparser requests pytrends
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py
+      - name: Verify Google Trends fallbacks and NSE MCP handshake
+        run: |
+          python - <<'PY'
+          import sys
+          import types
+          from unittest.mock import patch
+          import fetch_and_score as app
+
+          # The third source must be attempted only after both hourly requests fail.
+          sys.modules["pytrends"] = types.ModuleType("pytrends")
+          related = {
+              "ok": True, "crowd_bull_pct": 61.0,
+              "bull_score_pct": 35.0, "bear_score_pct": 25.0,
+              "neutral_score_pct": 40.0, "source_data_time": "2026-11-04T10:00:00+00:00",
+              "crowd_terms": [], "today_bull_pct": 61.0,
+          }
+          with patch.object(app, "_trends_once", side_effect=[ValueError("hourly 1d"), ValueError("hourly 7d")]) as hourly:
+              with patch.object(app, "_trends_related_queries", return_value=related) as related_queries:
+                  result = app.fetch_trends()
+                  assert result["ok"] is True, result
+                  assert result["fallback_source"] == "Google Trends related_queries", result
+                  assert result["today_basis"] == "now_1d_related_queries", result
+                  assert hourly.call_count == 2
+                  related_queries.assert_called_once_with(timeframe="now 1-d")
+          print("Google Trends related-query fallback routing passed.")
+
+          # A successful MCP request must initialize, announce initialized, then call the tool.
+          class FakeResponse:
+              def __init__(self, payload=None, headers=None, status=200):
+                  self._payload = payload or {}
+                  self.headers = headers or {}
+                  self.status_code = status
+              def raise_for_status(self):
+                  if self.status_code >= 400:
+                      raise RuntimeError("HTTP status")
+              def json(self):
+                  return self._payload
+
+          class FakeSession:
+              def __init__(self):
+                  self.calls = []
+              def __enter__(self):
+                  return self
+              def __exit__(self, *args):
+                  return False
+              def post(self, url, headers=None, json=None, timeout=None):
+                  self.calls.append((url, headers or {}, json or {}))
+                  if len(self.calls) == 1:
+                      return FakeResponse({"result": {"protocolVersion": "2025-03-26"}},
+                                          {"Mcp-Session-Id": "test-session"})
+                  if len(self.calls) == 2:
+                      return FakeResponse(status=202)
+                  return FakeResponse({"result": {"content": [
+                      {"type": "text", "text": '{"ok": true}'}
+                  ]}})
+          fake_session = FakeSession()
+          with patch.object(app.requests, "Session", return_value=fake_session):
+              payload = app.nse_mcp_call("cm_get_index_quote", {"index": "NIFTY"})
+          assert payload == {"ok": True}, payload
+          assert [call[2].get("method") for call in fake_session.calls] == [
+              "initialize", "notifications/initialized", "tools/call"
+          ]
+          assert fake_session.calls[1][1]["Mcp-Session-Id"] == "test-session"
+          assert fake_session.calls[2][1]["MCP-Protocol-Version"] == "2025-03-26"
+          print("NSE Streamable HTTP handshake sequence passed.")
+          PY
       - name: Verify NSE timestamp formatter
         run: |
           python - <<'PY'
