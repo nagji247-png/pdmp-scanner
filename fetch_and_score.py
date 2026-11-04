@@ -417,21 +417,37 @@ def google_finance_quote(symbol, exchange, label):
         page_text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
         page_text = re.sub(r"\s+", " ", page_text)
         match = re.search(
-            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\+5:30)",
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT([+-]\d{1,2}:\d{2}))",
             page_text
         )
         if not match:
             raise ValueError("Google Finance exchange timestamp missing")
-        ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
-        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
-        stamp = dt.datetime.strptime(match.group(1), "%b %d, %I:%M:%S %p GMT+5:30")
-        stamp = stamp.replace(year=now_ist.year, tzinfo=ist_tz)
-        if stamp.date() != now_ist.date() or stamp > now_ist + dt.timedelta(minutes=2):
-            raise ValueError("Google Finance quote is not from today's session")
-        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
-        max_age = 6 * 60 * 60 if after_close else 15 * 60
-        if (now_ist - stamp).total_seconds() > max_age:
-            raise ValueError("Google Finance quote is outside the allowed freshness window")
+        # Google Finance timestamps are exchange-local. Parse their explicit
+        # GMT offset rather than assuming every market is in India.
+        offset_text = match.group(2)
+        sign = 1 if offset_text[0] == "+" else -1
+        hours, minutes = map(int, offset_text[1:].split(":"))
+        exchange_tz = dt.timezone(sign * dt.timedelta(hours=hours, minutes=minutes))
+        now_utc = dt.datetime.now(dt.timezone.utc)
+        stamp_naive = dt.datetime.strptime(match.group(1)[:match.group(1).rfind(" GMT")], "%b %d, %I:%M:%S %p")
+        stamp = stamp_naive.replace(year=now_utc.astimezone(exchange_tz).year, tzinfo=exchange_tz)
+        now_exchange = now_utc.astimezone(exchange_tz)
+        age_seconds = (now_utc - stamp.astimezone(dt.timezone.utc)).total_seconds()
+        if age_seconds < -120:
+            raise ValueError("Google Finance quote timestamp is in the future")
+        if exchange == "INDEXNASDAQ" or exchange == "INDEXDJX":
+            # US indices: accept a same-session close overnight, but never a
+            # quote older than 18 hours (weekends/holidays naturally expire).
+            max_age = 18 * 60 * 60
+            if age_seconds > max_age:
+                raise ValueError("US index quote is older than the allowed 18-hour session window")
+            time_label = stamp.strftime("%I:%M %p ET").lstrip("0")
+        else:
+            after_close = now_exchange.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
+            max_age = 6 * 60 * 60 if after_close else 15 * 60
+            if age_seconds > max_age:
+                raise ValueError("Google Finance quote is outside the allowed freshness window")
+            time_label = stamp.strftime("%I:%M %p") + " " + ("IST" if offset_text == "+5:30" else "local")
         # Google Finance's current 2026 quote header uses N6SYTe for price
         # and ujg0He for the daily change. Never guess from unrelated page numbers.
         price_tag = re.search(
@@ -455,6 +471,7 @@ def google_finance_quote(symbol, exchange, label):
         pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", change_text)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+                "date": stamp.date().isoformat(), "time": time_label,
                 "source": "Google Finance direct " + label + " quote",
                 "change_pct": change_pct}
     except Exception as exc:
@@ -1381,7 +1398,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     nse_quote = nse_cash_quote(name, sym)
     # SENSEX price must come only from the direct BSE index quote, never an OHLC candle.
     yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
-    live_quote = nse_quote or yahoo_quote
+    global_quote = None
+    if not nse_quote and not yahoo_quote and name == "NASDAQ":
+        global_quote = google_finance_quote("IXIC", "INDEXNASDAQ", "NASDAQ")
+    elif not nse_quote and not yahoo_quote and name == "DJI":
+        global_quote = google_finance_quote("DJI", "INDEXDJX", "DOW JONES")
+    live_quote = nse_quote or yahoo_quote or global_quote
     if live_quote:
         quote_stamp = live_quote.get("stamp") or (
             str(live_quote.get("date", "")) + " " + str(live_quote.get("time", ""))
