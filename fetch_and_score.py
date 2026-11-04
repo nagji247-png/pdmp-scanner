@@ -96,7 +96,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
-TRENDS_MAX_AGE_MINUTES = 30  # 30 मिनट से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
+TRENDS_MAX_AGE_MINUTES = 360  # 30 मिनट से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -2811,6 +2811,25 @@ def main():
     else:
         slot_state = {"date": slot_date, "slots": dict(prior_slot_state.get("slots") or {})}
 
+    # पुराने दिन के failed/pending slot को आज का परिणाम न मानें।
+    ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    def _parse_slot_time(value):
+        try:
+            stamp = dt.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return stamp.replace(tzinfo=dt.timezone.utc) if stamp.tzinfo is None else stamp
+        except (TypeError, ValueError):
+            return None
+
+    for _key, _record in list(slot_state["slots"].items()):
+        if not isinstance(_record, dict):
+            slot_state["slots"].pop(_key, None)
+            continue
+        _time_text = (_record.get("source_data_time") if _record.get("status") == "success"
+                      else _record.get("checked_at"))
+        _stamp = _parse_slot_time(_time_text) if _time_text else None
+        if _stamp is None or _stamp.astimezone(ist_tz).date().isoformat() != slot_date:
+            slot_state["slots"].pop(_key, None)
+
     if trends_scan and slot_id in slot_labels:
         if trends.get("ok") and trends.get("source_data_time") and all(
             isinstance(trends.get(k), (int, float))
@@ -2825,6 +2844,11 @@ def main():
                 "bear_pct": trends.get("bear_score_pct"),
                 "neutral_pct": trends.get("neutral_score_pct"),
                 "crowd_pct": trends.get("crowd_bull_pct"),
+                "today_bull_pct": trends.get("today_bull_pct"),
+                "today_label": trends.get("today_label"),
+                "bull_sum_pct": trends.get("bull_sum_pct"),
+                "bear_sum_pct": trends.get("bear_sum_pct"),
+                "crowd_terms": trends.get("crowd_terms") or [],
             }
         else:
             slot_state["slots"][slot_id] = {
@@ -2839,6 +2863,42 @@ def main():
         isinstance(slot_records.get(key), dict) and slot_records[key].get("status") == "success"
         for key in required_slots
     )
+    # अगर इस रन में नई reading नहीं मिली, तो आज के slots में सबसे नई
+    # सफल reading को 6 घंटे तक दिखाएँ; पुरानी/दूसरे दिन की reading नहीं।
+    if not trends.get("ok"):
+        _valid_slots = []
+        for _key, _record in slot_state["slots"].items():
+            if not isinstance(_record, dict) or _record.get("status") != "success":
+                continue
+            _stamp = _parse_slot_time(_record.get("source_data_time"))
+            if _stamp is None:
+                continue
+            _age = (now_utc - _stamp.astimezone(dt.timezone.utc)).total_seconds() / 60
+            if -5 <= _age <= TRENDS_MAX_AGE_MINUTES:
+                _valid_slots.append((_stamp, _key, _record))
+        if _valid_slots:
+            _stamp, _key, _record = max(_valid_slots, key=lambda item: item[0])
+            _crowd = _record.get("crowd_pct")
+            trends = {
+                "ok": True, "stale": False, "cached": True,
+                "source_data_time": _stamp.isoformat(),
+                "as_of": _stamp.isoformat(),
+                "source_timeframe": _record.get("timeframe"),
+                "today_basis": _record.get("basis"),
+                "today_bull_pct": _record.get("today_bull_pct", _crowd),
+                "crowd_bull_pct": _crowd,
+                "bull_score_pct": _record.get("bull_pct"),
+                "bear_score_pct": _record.get("bear_pct"),
+                "neutral_score_pct": _record.get("neutral_pct"),
+                "bull_sum_pct": _record.get("bull_sum_pct"),
+                "bear_sum_pct": _record.get("bear_sum_pct"),
+                "crowd_terms": _record.get("crowd_terms") or [],
+                "today_date_ist": slot_date,
+                "today_label": _record.get("today_label") or "पिछले 24 घंटे की Google Trends खोज-रुचि",
+                "daily_label": "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग",
+                "refresh_policy_hours": None,
+            }
+
     trends["daily_slots"] = slot_state
     trends["daily_complete"] = all_slots_ok
     trends["daily_slot_summary"] = [
@@ -2862,7 +2922,7 @@ def main():
         trends["stale"] = False
         trends["daily_label"] = "चारों निर्धारित स्लॉट का औसत"
         trends["as_of"] = slot_records["1900"].get("source_data_time")
-    elif not all_slots_ok and slot_id in slot_labels:
+    elif not all_slots_ok:
         # निर्धारित स्लॉट का दैनिक औसत अधूरा हो तो भी इसी रन की ताज़ा,
         # timestamp-validated reading को Crowd Score से न हटाएँ।
         # Manual verification runs (बिना slot_id) भी अपना ताज़ा score दिखाएँ।
