@@ -1,38 +1,5 @@
 [
   {
-    "time": "2026-10-29T00:31Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 1.2,
-    "new_score": 1.4,
-    "changed": [
-      "कीमत"
-    ],
-    "vol_data": true,
-    "held_minutes": 230,
-    "price_at_change": 685.2999877929688,
-    "price_after": 685.75,
-    "move_pct": 0.07,
-    "after_minutes": 285,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-10-29T05:16Z",
-    "instrument": "NIFTY",
-    "prev_score": -2.0,
-    "new_score": 0.9,
-    "changed": [
-      "भावना",
-      "कीमत"
-    ],
-    "vol_data": false,
-    "held_minutes": 515,
-    "price_at_change": 22849.05078125,
-    "price_after": 22853.9492,
-    "move_pct": 0.02,
-    "after_minutes": 82,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-10-29T05:16Z",
     "instrument": "BANKNIFTY",
     "prev_score": 0.1,
@@ -3221,16 +3188,48 @@
     "vol_data": false,
     "held_minutes": 18,
     "price_at_change": 55744.3984375,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 55744.3984,
+    "move_pct": 0.0,
+    "after_minutes": 3,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-04T08:12Z",
     "instrument": "RELIANCE",
     "prev_score": 7.1,
     "new_score": 5.2,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": true,
+    "held_minutes": 3,
+    "price_at_change": 1307.800048828125,
+    "price_after": 1307.8,
+    "move_pct": 0.0,
+    "after_minutes": 3,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-04T08:15Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": 4.5,
+    "new_score": -0.4,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 3,
+    "price_at_change": 55744.3984375,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-04T08:15Z",
+    "instrument": "RELIANCE",
+    "prev_score": 5.2,
+    "new_score": 7.1,
     "changed": [
       "भावना"
     ],
