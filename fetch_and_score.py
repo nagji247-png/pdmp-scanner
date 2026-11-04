@@ -1250,7 +1250,7 @@ def update_contrarian(events, name, score, today_str, returns, sym):
     if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and existing is None:
         event = {"key": key, "date": today_str, "instrument": name,
                  "score": score, "outcome": None, "next_change": None,
-                 "baseline_price": None, "baseline_time": None,
+                 "baseline_price": None, "baseline_time": None, "baseline_attempted": False,
                  "intraday_source": "Yahoo Finance completed 5-minute candles",
                  "after_30m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"},
                  "after_60m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"}}
@@ -1284,18 +1284,24 @@ def update_contrarian(events, name, score, today_str, returns, sym):
             for field in ("after_30m", "after_60m")
         ) for e in relevant
     )
-    new_baseline_needed = bool(existing and existing.get("baseline_time") is None
-                               and existing.get("after_30m", {}).get("status") == "unavailable"
-                               and existing.get("after_30m", {}).get("reason") == "ताज़ा शुरुआती candle नहीं मिली")
+    new_baseline_needed = bool(existing and existing.get("baseline_attempted") is False)
     bars = _completed_5m_bars(sym) if (needs_bars or new_baseline_needed) else []
-    if new_baseline_needed and bars:
-        latest = bars[-1]
-        age = (dt.datetime.now(dt.timezone.utc) - latest["time"]).total_seconds() / 60
-        if -1 <= age <= 15:
+    if new_baseline_needed:
+        # Baseline केवल उसी scan में लें जिसमें extreme event पहली बार दर्ज हुआ।
+        # अगली सुबह की candle को पिछली शाम के संकेत का शुरुआती भाव नहीं मानना है।
+        existing["baseline_attempted"] = True
+        latest = bars[-1] if bars else None
+        age = ((dt.datetime.now(dt.timezone.utc) - latest["time"]).total_seconds() / 60
+               if latest else None)
+        if latest and -1 <= age <= 15:
             existing["baseline_price"] = round(latest["price"], 4)
             existing["baseline_time"] = latest["time"].isoformat(timespec="seconds").replace("+00:00", "Z")
             existing["after_30m"] = {"status": "pending"}
             existing["after_60m"] = {"status": "pending"}
+        else:
+            reason = "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+            existing["after_30m"] = {"status": "unavailable", "reason": reason}
+            existing["after_60m"] = {"status": "unavailable", "reason": reason}
     if bars:
         for e in relevant:
             if not e.get("baseline_time"):
