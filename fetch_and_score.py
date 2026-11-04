@@ -2052,7 +2052,7 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
 TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
                     "share", "sensex", "nifty", "what", "meaning", "history", "hours",
                     "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स"]
-TQ_MIN_WEIGHT = 1.0  # दोनों दिशाओं में कम-से-कम इतना Trends weight जरूरी
+TQ_MIN_WEIGHT = 0.25  # दोनों दिशाओं में न्यूनतम वास्तविक anchor-relative Trends weight; शून्य/लगभग शून्य रीडिंग अस्वीकार
 
 
 def tq_dir(q):
