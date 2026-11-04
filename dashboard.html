@@ -973,13 +973,14 @@ function createGoldForecastCard() {
     chartIcon.className = "tv-drawings-heading-icon";
     chartIcon.textContent = "📈";
     const chartTitle = document.createElement("span");
+    chartTitle.className = "tv-drawings-heading-text";
     chartTitle.textContent = " मेरे खास चार्ट और विश्लेषण";
     chartHeading.append(chartIcon, chartTitle);
     chartHeading.style.cssText = "display:flex;align-items:center;gap:7px;margin:18px 0 8px;color:#35e6a0;font-weight:950;text-shadow:0 0 10px #35e6a044";
     if (!document.getElementById("tv-drawings-heading-animation")) {
       const headingStyle = document.createElement("style");
       headingStyle.id = "tv-drawings-heading-animation";
-      headingStyle.textContent = "@keyframes tvDrawingsIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes tvDrawingsHeadingGlow{0%,100%{text-shadow:0 0 5px #35e6a033}50%{text-shadow:0 0 13px #35e6a088}}.tv-drawings-heading-icon{display:inline-block;animation:tvDrawingsIconFloat 3.5s ease-in-out infinite}.tv-drawings-heading{animation:tvDrawingsHeadingGlow 4s ease-in-out infinite}@media(prefers-reduced-motion:reduce){.tv-drawings-heading-icon,.tv-drawings-heading{animation:none}}";
+      headingStyle.textContent = "@keyframes tvDrawingsIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes tvDrawingsHeadingGlow{0%,100%{text-shadow:0 0 5px #35e6a033}50%{text-shadow:0 0 13px #35e6a088}}@keyframes tvDrawingsTextSweep{0%{background-position:100% 50%;filter:drop-shadow(0 0 3px rgba(54,230,164,.25))}50%{filter:drop-shadow(0 0 9px rgba(255,214,112,.75))}100%{background-position:0% 50%;filter:drop-shadow(0 0 3px rgba(54,230,164,.25))}}.tv-drawings-heading-icon{display:inline-block;animation:tvDrawingsIconFloat 3.5s ease-in-out infinite}.tv-drawings-heading{animation:tvDrawingsHeadingGlow 4s ease-in-out infinite}.tv-drawings-heading-text{background:linear-gradient(90deg,#e4fff2 0%,#38e6a4 24%,#ffe08a 50%,#38e6a4 76%,#e4fff2 100%);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:tvDrawingsTextSweep 3.2s ease-in-out infinite;font-weight:950}.tv-drawings-heading-text{white-space:normal}@media(prefers-reduced-motion:reduce){.tv-drawings-heading-icon,.tv-drawings-heading,.tv-drawings-heading-text{animation:none}}";
       document.head.appendChild(headingStyle);
     }
     const causesHeading = Array.from(goldBody.querySelectorAll("h3")).find(h => h.textContent.includes("तेजी और मंदी के कारण"));
