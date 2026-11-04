@@ -1161,7 +1161,7 @@ function renderContrarian(c) {
   const box = document.getElementById("contrarian");
   if (!c) { box.innerHTML = '<div class="sub">अभी कोई डेटा नहीं</div>'; return; }
 
-  const rate = c.tracked ? Math.round((c.reversed / c.tracked) * 100) + "%" : "—";
+  const rate = c.tracked ? ((c.reversed / c.tracked) * 100).toFixed(1) + "%" : "—";
   const small = c.tracked < 10
     ? '<div class="warn">Small sample size so far — इसे अभी शुरुआती संकेत मानें, पक्का नतीजा नहीं।</div>'
     : "";
@@ -1187,6 +1187,9 @@ function renderContrarian(c) {
         status = '<span style="font-size:12px;color:#7b82a0">अगले दिन का डेटा अभी उपलब्ध नहीं</span>';
       }
 
+      const move = Number.isFinite(Number(e.next_change))
+        ? `<span style="font-size:11px;color:#8fb8d8;margin-left:7px">अगला सत्र: ${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%</span>`
+        : "";
       const sign = e.score > 0 ? "+" : "";
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
@@ -1198,7 +1201,7 @@ function renderContrarian(c) {
             ${badge}
           </div>
         </div>
-        <div style="text-align:right;margin:-4px 12px 2px 0">${status}</div>`;
+        <div style="text-align:right;margin:-4px 12px 2px 0">${status}${move}</div>`;
     }).join("");
     return `
       <details style="margin-top:8px;background:#1e2540;border-radius:8px;padding:10px 12px">
@@ -1209,16 +1212,16 @@ function renderContrarian(c) {
 
   box.innerHTML = `
     <div class="warn" style="color:#f5a623">
-      Score crossed ±6.0. एकतरफ़ा सेंटिमेंट अक्सर पलटाव से पहले देखा गया है, पर यह गारंटी नहीं है।
+      NEWS SCORE (समाचार-आधारित): ±6.0 सीमा पार। परिणाम उसी इंस्ट्रूमेंट के अगले उपलब्ध कारोबारी सत्र की चाल से जाँचा गया है; यह ट्रेडिंग accuracy या भविष्यवाणी की गारंटी नहीं है।
     </div>
     ${small}
     <div style="display:flex;align-items:center;gap:14px;background:#1e2540;border-radius:8px;padding:12px;margin-bottom:6px">
       <div style="text-align:center;min-width:90px">
         <div class="bigm" style="font-size:28px">${rate}</div>
-        <div style="font-size:10px;color:#7b82a0;letter-spacing:0.5px">REVERSAL RATE</div>
+        <div style="font-size:10px;color:#7b82a0;letter-spacing:0.5px">NEXT-SESSION REVERSAL</div>
       </div>
       <div style="font-size:13px;color:#dfe3ef">
-        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> गणना में
+        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> नतीजे जाँचे
       </div>
     </div>
     <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
@@ -1259,7 +1262,7 @@ function renderVerifiedAccuracy(v) {
       <div class="ev"><div>गलत भविष्यवाणियाँ</div><div>—</div></div>
       <div class="ev"><div>Flat / बिना स्पष्ट चाल</div><div>${hasCounts ? flat : "—"}</div></div>
       <div class="ev"><div>Pending / नतीजा बाकी</div><div>${hasCounts ? pending : "—"}</div></div>
-      <div class="sub" style="margin-top:10px">पुराने Contrarian Watch के 43% को यहाँ शामिल नहीं किया गया है। इस सेक्शन में केवल पहले से दर्ज संकेत और बाद में वास्तविक बाजार डेटा से जाँचे गए परिणाम आएँगे।</div>`;
+      <div class="sub" style="margin-top:10px">Contrarian Watch की ऐतिहासिक next-session reversal rate को यहाँ prediction accuracy नहीं माना गया है। इस सेक्शन में केवल पहले से दर्ज संकेत और बाद में वास्तविक बाजार डेटा से जाँचे गए परिणाम आएँगे।</div>`;
     return;
   }
 
