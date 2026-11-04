@@ -63,17 +63,18 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 # और हर समूह के साथ ANCHOR शब्द जोड़ा जाता है, ताकि अलग अनुरोधों के नंबर तुलनीय बनें।
 ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
+# हर श्रेणी में 4 English + 4 हिंदी खोज-शब्द; कुल अनुरोधों की संख्या वही रखी गई है।
 BULL_TERMS = [
-    "nifty rally", "market recovery", "share market teji", "nifty breakout",
-    "निफ्टी ऊपर", "बाजार में तेजी", "शेयर बाजार में तेजी", "stock market gains",
+    "market rally", "market recovery", "nifty breakout", "stock market gains",
+    "बाजार में तेजी", "शेयर बाजार में तेजी", "निफ्टी में तेजी", "बाजार में चढ़ाव",
 ]
 BEAR_TERMS = [
-    "nifty crash", "nifty correction", "market selloff", "share market girawat",
-    "निफ्टी नीचे", "बाजार में गिरावट", "शेयर बाजार में गिरावट", "stock market correction",
+    "market fall", "market crash", "market correction", "market sell-off",
+    "बाजार में गिरावट", "शेयर बाजार में गिरावट", "निफ्टी में गिरावट", "बाजार में बिकवाली",
 ]
 NEUTRAL_TERMS = [
-    "nifty today", "nifty live", "sensex today", "bank nifty",
-    "stock market", "share market", "शेयर बाजार", "निफ्टी आज",
+    "nifty today", "sensex today", "share market", "option chain",
+    "निफ्टी आज", "सेंसेक्स आज", "शेयर बाजार", "शेयर बाजार आज",
 ]
 TERM_CHUNK = 4
 
