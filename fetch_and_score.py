@@ -349,10 +349,24 @@ def nse_mcp_call(tool_name, arguments):
                 if isinstance(payload, dict) and payload.get("error"):
                     print(f"NSE MCP {tool_name} protocol error: {str(payload['error'])[:180]}")
         except Exception as exc:
+            error_response = getattr(exc, "response", None)
+            status = getattr(error_response, "status_code", None)
+            if error_response is not None:
+                # Capture only non-secret transport diagnostics. Never print cookies or session IDs.
+                diagnostic_headers = {
+                    key: error_response.headers.get(key)
+                    for key in ("content-type", "server", "via", "x-cache",
+                                "cf-ray", "location", "www-authenticate")
+                    if error_response.headers.get(key)
+                }
+                diagnostic_body = re.sub(r"\\s+", " ", error_response.text or "")[:500]
+                print(
+                    f"NSE MCP HTTP_DIAGNOSTIC phase={phase} status={status} "
+                    f"headers={json.dumps(diagnostic_headers, ensure_ascii=False)} "
+                    f"body={diagnostic_body!r}"
+                )
             print(f"NSE MCP {tool_name} {phase} attempt {attempt + 1}/3 failed: {str(exc)[:180]}")
-            # A 404/410 from initialize means NSE/CDN is refusing this runner request;
-            # do not retry a permanent response or mislabel a fallback quote as NSE.
-            status = getattr(getattr(exc, "response", None), "status_code", None)
+            # A permanent protocol/route response should not be retried or mislabeled as NSE data.
             if status in (400, 404, 410):
                 return None
         if attempt < 2:
