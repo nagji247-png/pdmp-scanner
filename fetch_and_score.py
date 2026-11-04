@@ -2882,8 +2882,7 @@ def main():
             w.writerow([result["updated"], name, d["change_pct"], d["score"]])
 
 
-if __name__ == "__main__":
-    main(def nse_cash_quote(name, sym):
+def nse_cash_quote(name, sym):
     """Prefer official exchange quotes; use Google Finance only as a timestamp-validated backup."""
     if name == "SENSEX":
         return bse_sensex_quote() or google_finance_sensex_quote()
