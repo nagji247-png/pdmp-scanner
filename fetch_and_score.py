@@ -744,6 +744,7 @@ def refresh_mcx_crude_reference():
         data.update({
             "mcx_price_per_bbl": current, "change_pct": change_pct,
             "date": date, "time": time_label,
+            "source_time": stamp.strftime("%Y-%m-%d %H:%M IST"),
             "source": "Upstox MCX CRUDEOIL quote (₹/BBL)",
             "source_url": CRUDE_PUBLIC_URL,
             "note": "Public MCX contract quote; not an exchange-certified direct feed."
