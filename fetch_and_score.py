@@ -1178,37 +1178,130 @@ def fetch_participant_oi(base_date=None):
             "participants": {}}
 
 
-def update_contrarian(events, name, score, today_str, returns):
-    """±6 या उससे अधिक स्कोर दर्ज करें; लगभग स्थिर चाल को Accuracy से अलग रखें।"""
+def _completed_5m_bars(sym):
+    """NSE cash instrument की केवल पूरी हुई 5-minute candles लौटाएँ (UTC end time)."""
+    if not (sym.endswith(".NS") or sym in ("^NSEI", "^NSEBANK", "^BSESN")):
+        return []
+    try:
+        frame = yf.Ticker(sym).history(period="5d", interval="5m", prepost=False)
+        if frame is None or frame.empty or "Close" not in frame.columns:
+            return []
+        now = dt.datetime.now(dt.timezone.utc)
+        bars = []
+        for stamp, close in frame["Close"].dropna().items():
+            bar_start = stamp.to_pydatetime() if hasattr(stamp, "to_pydatetime") else stamp
+            if bar_start.tzinfo is None:
+                bar_start = bar_start.replace(tzinfo=dt.timezone.utc)
+            else:
+                bar_start = bar_start.astimezone(dt.timezone.utc)
+            bar_end = bar_start + dt.timedelta(minutes=5)
+            price = float(close)
+            if bar_end <= now and math.isfinite(price) and price > 0:
+                bars.append({"time": bar_end, "price": price})
+        return sorted(bars, key=lambda item: item["time"])
+    except Exception as exc:
+        print(f"Contrarian 5-minute candles unavailable {sym}: {str(exc)[:160]}")
+        return []
+
+
+def _update_intraday_horizon(event, field, minutes, bars):
+    """लक्ष्य समय के बाद 10 मिनट के भीतर की पहली पूरी candle लें; gap को अनुमान न बनाएँ."""
+    horizon = event.get(field)
+    if not isinstance(horizon, dict) or horizon.get("status") != "pending":
+        return
+    try:
+        baseline = dt.datetime.fromisoformat(event["baseline_time"].replace("Z", "+00:00"))
+        if baseline.tzinfo is None:
+            baseline = baseline.replace(tzinfo=dt.timezone.utc)
+        baseline_price = float(event["baseline_price"])
+        if not math.isfinite(baseline_price) or baseline_price <= 0:
+            raise ValueError("invalid baseline price")
+    except (KeyError, TypeError, ValueError):
+        horizon.update({"status": "unavailable", "reason": "शुरुआती भाव/समय उपलब्ध नहीं"})
+        return
+
+    target = baseline + dt.timedelta(minutes=minutes)
+    latest = bars[-1]["time"] if bars else None
+    candidate = next((bar for bar in bars
+                      if target <= bar["time"] <= target + dt.timedelta(minutes=10)), None)
+    if candidate:
+        move = round((candidate["price"] / baseline_price - 1) * 100, 2)
+        if abs(move) < 0.000001:
+            outcome = "neutral"
+        else:
+            same_sign = (move > 0) == (float(event.get("score") or 0) > 0)
+            outcome = "continued" if same_sign else "reversed"
+        horizon.update({
+            "status": "complete", "price": round(candidate["price"], 4),
+            "time": candidate["time"].isoformat(timespec="seconds").replace("+00:00", "Z"),
+            "change_pct": move, "outcome": outcome,
+        })
+    elif latest and latest > target + dt.timedelta(minutes=10):
+        horizon.update({
+            "status": "unavailable",
+            "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली",
+        })
+
+
+def update_contrarian(events, name, score, today_str, returns, sym):
+    """±6 समाचार स्कोर इवेंट; अगले सत्र के साथ अलग 30m/60m परिणाम भी दर्ज करें."""
     key = f"{today_str}|{name}"
-    if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and not any(e["key"] == key for e in events):
-        events.append({"key": key, "date": today_str, "instrument": name,
-                       "score": score, "outcome": None, "next_change": None})
+    existing = next((e for e in events if e.get("key") == key), None)
+    if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and existing is None:
+        event = {"key": key, "date": today_str, "instrument": name,
+                 "score": score, "outcome": None, "next_change": None,
+                 "baseline_price": None, "baseline_time": None,
+                 "intraday_source": "Yahoo Finance completed 5-minute candles",
+                 "after_30m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"},
+                 "after_60m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"}}
+        events.append(event)
+        existing = event
 
-    for e in events:
-        if e.get("instrument") != name:
-            continue
-
-        # पुराने रिकॉर्ड में 0.00% चाल को गलती से "जारी रहा" गिना गया था।
-        # उसे neutral करें ताकि वह सफलता/विफलता की गणना में न आए।
+    relevant = [e for e in events if e.get("instrument") == name]
+    # Legacy next-session result handling is unchanged.
+    for e in relevant:
         if e.get("outcome") in ("continued", "reversed") and e.get("next_change") is not None:
             try:
                 if float(e["next_change"]) == 0:
                     e["outcome"] = "neutral"
             except (TypeError, ValueError):
                 pass
+        if e.get("outcome") is None:
+            later = sorted(d for d in returns if d > e["date"])
+            if later:
+                nxt = returns[later[0]]
+                e["next_change"] = nxt
+                if nxt == 0:
+                    e["outcome"] = "neutral"
+                else:
+                    same_sign = (nxt > 0) == (float(e.get("score") or 0) > 0)
+                    e["outcome"] = "continued" if same_sign else "reversed"
 
-        if e.get("outcome") is not None:
-            continue
-        later = sorted(d for d in returns if d > e["date"])
-        if later:
-            nxt = returns[later[0]]
-            e["next_change"] = nxt
-            if nxt == 0:
-                e["outcome"] = "neutral"
-            else:
-                same_sign = (nxt > 0) == (e["score"] > 0)
-                e["outcome"] = "continued" if same_sign else "reversed"
+    # Intraday horizons are prospective only. Old records without a baseline stay legacy.
+    needs_bars = any(
+        e.get("baseline_time") and any(
+            isinstance(e.get(field), dict) and e[field].get("status") == "pending"
+            for field in ("after_30m", "after_60m")
+        ) for e in relevant
+    )
+    new_baseline_needed = bool(existing and existing.get("baseline_time") is None
+                               and existing.get("after_30m", {}).get("status") == "unavailable"
+                               and existing.get("after_30m", {}).get("reason") == "ताज़ा शुरुआती candle नहीं मिली")
+    bars = _completed_5m_bars(sym) if (needs_bars or new_baseline_needed) else []
+    if new_baseline_needed and bars:
+        latest = bars[-1]
+        age = (dt.datetime.now(dt.timezone.utc) - latest["time"]).total_seconds() / 60
+        if -1 <= age <= 15:
+            existing["baseline_price"] = round(latest["price"], 4)
+            existing["baseline_time"] = latest["time"].isoformat(timespec="seconds").replace("+00:00", "Z")
+            existing["after_30m"] = {"status": "pending"}
+            existing["after_60m"] = {"status": "pending"}
+    if bars:
+        for e in relevant:
+            if not e.get("baseline_time"):
+                continue
+            _update_intraday_horizon(e, "after_30m", 30, bars)
+            _update_intraday_horizon(e, "after_60m", 60, bars)
 
 
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
@@ -1534,7 +1627,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "neg_n": sum(1 for h in heads if h["score"] < 0),
         **derive_card_indicator(name, sym, score, change),
     }
-    update_contrarian(events, name, score, today_str, returns)
+    update_contrarian(events, name, score, today_str, returns, sym)
     update_divergence(div_events, name, score, change, today_str, returns, heads)
 
 
