@@ -294,6 +294,8 @@ def nse_mcp_call(tool_name, arguments):
     """NSE CM Market Streamable HTTP MCP call with browser-like headers and full handshake."""
     for attempt in range(3):
         phase = "initialize"
+        session_id_present = False
+        protocol_version_used = None
         try:
             with requests.Session() as session:
                 init = session.post(NSE_MCP_URL, headers=NSE_MCP_HEADERS, json={
@@ -309,9 +311,11 @@ def nse_mcp_call(tool_name, arguments):
                 )
                 headers = dict(NSE_MCP_HEADERS)
                 headers["MCP-Protocol-Version"] = negotiated_version
+                protocol_version_used = negotiated_version
                 sid = init.headers.get("Mcp-Session-Id")
                 if sid:
                     headers["Mcp-Session-Id"] = sid
+                    session_id_present = True
 
                 # Streamable HTTP clients must announce initialization before tool calls.
                 phase = "notifications/initialized"
@@ -359,11 +363,15 @@ def nse_mcp_call(tool_name, arguments):
                                 "cf-ray", "location", "www-authenticate")
                     if error_response.headers.get(key)
                 }
-                diagnostic_body = re.sub(r"\\s+", " ", error_response.text or "")[:500]
+                raw_body = re.sub(r"\\s+", " ", error_response.text or "")
+                diagnostic_body = raw_body[:350]
+                diagnostic_tail = raw_body[-700:] if len(raw_body) > 350 else ""
                 print(
                     f"NSE MCP HTTP_DIAGNOSTIC phase={phase} status={status} "
+                    f"session_id_present={session_id_present} "
+                    f"protocol_version={protocol_version_used} "
                     f"headers={json.dumps(diagnostic_headers, ensure_ascii=False)} "
-                    f"body={diagnostic_body!r}"
+                    f"body_start={diagnostic_body!r} body_end={diagnostic_tail!r}"
                 )
             print(f"NSE MCP {tool_name} {phase} attempt {attempt + 1}/3 failed: {str(exc)[:180]}")
             # A permanent protocol/route response should not be retried or mislabeled as NSE data.
