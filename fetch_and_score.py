@@ -2150,11 +2150,9 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     base_df = base_df[TQ_BASE_TERMS].fillna(0)
     if float(base_df.values.max()) <= 0:
         raise ValueError("Google Trends का आधार डेटा शून्य है")
-    source_data_time = None
-    if timeframe == "now 1-d":
-        # वास्तविक Google observation 30 मिनट के भीतर होना चाहिए।
-        last_utc = _trends_observation_time(base_df, "Google Trends base")
-        source_data_time = last_utc.isoformat()
+    # दोनों timeframe में Google का आख़िरी वास्तविक observation 30 मिनट के भीतर होना चाहिए।
+    last_utc = _trends_observation_time(base_df, "Google Trends base")
+    source_data_time = last_utc.isoformat()
     base = float(base_df.mean(axis=1).mean())
     recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
@@ -2163,13 +2161,12 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS), ("neutral", NEUTRAL_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
             df = _trends_request(py, chunk, timeframe=timeframe)
-            if timeframe == "now 1-d":
-                chunk_time = _trends_observation_time(df, f"Google Trends {direction} keywords")
-                if abs((chunk_time - last_utc).total_seconds()) > TRENDS_MAX_AGE_MINUTES * 60:
-                    raise ValueError(
-                        f"Google Trends {direction} keywords का observation base data से "
-                        "30 मिनट से अधिक अलग है"
-                    )
+            chunk_time = _trends_observation_time(df, f"Google Trends {direction} keywords")
+            if abs((chunk_time - last_utc).total_seconds()) > TRENDS_MAX_AGE_MINUTES * 60:
+                raise ValueError(
+                    f"Google Trends {direction} keywords का observation base data से "
+                    "30 मिनट से अधिक अलग है"
+                )
             for term in chunk:
                 recent_ratio, average_ratio = _ratio(df, term, recent_points=recent_points)
                 queries[term.lower()] = {
@@ -2347,32 +2344,47 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def fetch_trends():
-    """एक सीमित Google Trends batch: तेजी, मंदी और सामान्य खोजें; उसी स्लॉट में retry नहीं."""
+    """पहले 1-दिन डेटा; अपर्याप्त खोज-रुचि पर 7-दिन श्रृंखला के अंतिम 24 observations का सीमित fallback."""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
+    first_error = None
     try:
         result = _trends_once(timeframe="now 1-d", recent_points=24)
-        result.setdefault("fear_vs_avg", None)
-        result.setdefault("per_term", [])
-        result["fallback_used"] = False
-        result["today_bull_pct"] = result["bull_score_pct"]
+        used_fallback = False
         result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
         result["today_basis"] = "now_1d_three_bucket_interest"
         result["source_timeframe"] = "now 1-d"
-        result["search_groups"] = {
-            "bullish": BULL_TERMS, "bearish": BEAR_TERMS, "neutral": NEUTRAL_TERMS
-        }
-        result["request_policy"] = "one scheduled batch; no same-slot retry"
-        return result
     except Exception as e:
-        print(f"Google Trends three-bucket 1-d scan failed: {e}")
-        return {
-            "ok": False, "stale": False,
-            "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {e}"
-        }
+        first_error = str(e)
+        print(f"Google Trends now 1-d scan failed; trying 7-d recent observations: {e}")
+        try:
+            result = _trends_once(timeframe="now 7-d", recent_points=24)
+            used_fallback = True
+            result["today_label"] = "7-दिन श्रृंखला के अंतिम 24 वास्तविक observations"
+            result["today_basis"] = "now_7d_last_24_observations"
+            result["source_timeframe"] = "now 7-d · last 24 observations"
+        except Exception as fallback_error:
+            print(f"Google Trends now 7-d fallback failed: {fallback_error}")
+            return {
+                "ok": False, "stale": False,
+                "error": (
+                    f"नया Google Trends डेटा नहीं मिला। 24 घंटे: {first_error}; "
+                    f"7-दिन श्रृंखला fallback: {fallback_error}"
+                )
+            }
+
+    result.setdefault("fear_vs_avg", None)
+    result.setdefault("per_term", [])
+    result["fallback_used"] = used_fallback
+    result["today_bull_pct"] = result["bull_score_pct"]
+    result["search_groups"] = {
+        "bullish": BULL_TERMS, "bearish": BEAR_TERMS, "neutral": NEUTRAL_TERMS
+    }
+    result["request_policy"] = "one 1-d batch; one 7-d fallback batch only if needed; no same-slot retry"
+    return result
 
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
