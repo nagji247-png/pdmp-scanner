@@ -1708,6 +1708,34 @@ def _num(x):
         return None
 
 
+def fetch_usdinr_reference():
+    """Daily USD/INR reference rate only; never label it as an intraday quote."""
+    try:
+        response = requests.get(
+            "https://api.frankfurter.dev/v2/rate/usd/inr",
+            headers={"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"},
+            timeout=12
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("base") != "USD" or payload.get("quote") != "INR":
+            raise ValueError("Unexpected Frankfurter currency pair")
+        rate = float(payload.get("rate"))
+        rate_date = dt.date.fromisoformat(str(payload.get("date")))
+        age_days = (dt.datetime.now(dt.timezone.utc).date() - rate_date).days
+        if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 3:
+            raise ValueError("Frankfurter daily reference rate is invalid or too old")
+        print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
+        return {
+            "reference_price": round(rate, 4),
+            "reference_date": rate_date.isoformat(),
+            "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)"
+        }
+    except Exception as exc:
+        print(f"USDINR daily reference unavailable: {str(exc)[:160]}")
+        return {"reference_price": None, "reference_date": None, "reference_source": None}
+
+
 def summarise_fundamentals(info, price):
     """yfinance के info से कंपनी के आँकड़े। जो फ़ील्ड नहीं मिलता, वह None रहता है; कुछ भी बनाया नहीं जाता।
     'ग्राहक' और 'प्रमोटर/FII/DII' का पूरा विभाजन यहाँ नहीं मिलता, इसलिए वह नहीं भरा जाता।"""
@@ -2610,6 +2638,11 @@ def main():
     for name, (sym, query) in STOCKS.items():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
+
+    # Add a clearly separate daily reference rate when the intraday FX quote is unavailable.
+    # The live price field remains null unless a validated intraday quote exists.
+    if "USDINR" in result["instruments"]:
+        result["instruments"]["USDINR"].update(fetch_usdinr_reference())
 
     # सक्रिय वॉचलिस्ट से हटे शेयरों के पुराने Pending रिकॉर्ड भी अगले पूरे
     # कारोबारी दिन के Yahoo daily close से मिलाएँ; नए Dashboard कार्ड न बनाएँ।
