@@ -42,7 +42,7 @@ jobs:
 
           ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
           now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
-          stamp = now.strftime("%d %b, %Y | %H:%M")
+          stamp = now.strftime("%d %b, %Y | %H:%M IST")
 
           gold_html = (
               "<div>₹1,42,405.00</div>"
