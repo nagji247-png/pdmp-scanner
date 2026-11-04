@@ -1429,6 +1429,18 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
                 PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
+        elif global_quote:
+            if global_quote.get("change_pct") is not None:
+                change = round(global_quote["change_pct"], 2)
+            elif returns and global_quote.get("date") == max(returns):
+                # Google Finance may publish the last US session close before
+                # the next US session opens; use that completed candle's daily
+                # return rather than comparing the close with itself.
+                change = round(returns[max(returns)], 2)
+            else:
+                prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+                if prev_close and prev_close > 0:
+                    change = round((live_quote["price"] / prev_close - 1) * 100, 2)
         elif name == "SENSEX":
             # After 15:45 IST daily_returns includes today's completed close.
             # Do not divide the closing quote by today's close (which would
