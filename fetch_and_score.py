@@ -2782,10 +2782,13 @@ def main():
         trends["stale"] = False
         trends["daily_label"] = "चारों निर्धारित स्लॉट का औसत"
         trends["as_of"] = slot_records["1900"].get("source_data_time")
-    elif not all_slots_ok:
-        trends["ok"] = False
-        trends["stale"] = False
-        trends["daily_label"] = "चारों स्लॉट पूरे होने तक Crowd Score उपलब्ध नहीं"
+    elif not all_slots_ok and slot_id in slot_labels:
+        # निर्धारित स्लॉट का दैनिक औसत अधूरा हो तो भी इसी रन की ताज़ा,
+        # timestamp-validated reading को Crowd Score से न हटाएँ।
+        # Manual verification runs (बिना slot_id) भी अपना ताज़ा score दिखाएँ।
+        if not trends.get("ok"):
+            trends["stale"] = False
+        trends["daily_label"] = "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग"
         failed = [slot_labels[key] for key in required_slots
                   if slot_records.get(key, {}).get("status") == "failed"]
         pending = [slot_labels[key] for key in required_slots
@@ -2795,7 +2798,7 @@ def main():
             details.append("असफल: " + ", ".join(failed))
         if pending:
             details.append("बाकी: " + ", ".join(pending))
-        trends["error"] = "DATA UNAVAILABLE — CROWD SCORE नहीं (" + "; ".join(details) + ")"
+        trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
 
