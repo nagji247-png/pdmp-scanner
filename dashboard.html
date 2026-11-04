@@ -886,13 +886,35 @@ function createSilverProjectionCard() {
     </div>`;
   return el;
 }
-function createTradingViewSnapshotCard(title, snapshotUrl, accent, drawingUrl = snapshotUrl) {
+function createTradingViewSnapshotCard(title, snapshotUrl, accent, drawingUrl = snapshotUrl, subtitle = "", callToAction = "") {
   const el = document.createElement("details");
   el.className = "tv-snapshot-card";
   el.style.cssText = "grid-column:1/-1;overflow:hidden;border:1px solid "+accent+";border-radius:14px;background:linear-gradient(145deg,#081426,#101c31);box-shadow:0 6px 18px #0007;color:#fff;margin-top:10px";
   const summary = document.createElement("summary");
   summary.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;font-weight:900;color:#fff";
-  summary.innerHTML = '<span>'+title+' · आपकी TradingView Drawing</span><b class="tv-toggle" style="color:'+accent+';font-size:22px">＋</b>';
+  const label = document.createElement("span");
+  label.style.cssText = "display:flex;flex-direction:column;gap:5px;min-width:0";
+  const heading = document.createElement("span");
+  heading.textContent = title;
+  heading.style.cssText = "font-size:16px;line-height:1.35;font-weight:900";
+  label.appendChild(heading);
+  if (subtitle) {
+    const detail = document.createElement("span");
+    detail.textContent = subtitle;
+    detail.style.cssText = "font-size:13px;line-height:1.4;font-weight:800;color:#f5d77a";
+    label.appendChild(detail);
+  }
+  if (callToAction) {
+    const action = document.createElement("span");
+    action.textContent = callToAction;
+    action.style.cssText = "font-size:12px;line-height:1.4;font-weight:900;color:#ffffff";
+    label.appendChild(action);
+  }
+  const toggle = document.createElement("b");
+  toggle.className = "tv-toggle";
+  toggle.textContent = "＋";
+  toggle.style.cssText = "flex:0 0 auto;color:"+accent+";font-size:22px";
+  summary.append(label,toggle);
   const body = document.createElement("div");
   body.style.cssText = "padding:0 8px 12px";
   const imageLink = document.createElement("a");
@@ -943,7 +965,7 @@ function createGoldForecastCard() {
     if (causesHeading) goldBody.insertBefore(chartHeading, causesHeading);
     else goldBody.appendChild(chartHeading);
     const silverDrawing = createTradingViewSnapshotCard("चाँदी", "https://s3.tradingview.com/snapshots/4/4y4qx01m.png", "#b8d8ef");
-    const goldDrawing = createTradingViewSnapshotCard("👁️ सोने का अगला दांव क्या है?", "https://s3.tradingview.com/snapshots/f/FiUDAV11.png", "#f5c84c", "https://www.tradingview.com/x/FiUDAV11/");
+    const goldDrawing = createTradingViewSnapshotCard("👁️ सोने का अगला दांव क्या है?", "https://s3.tradingview.com/snapshots/f/FiUDAV11.png", "#f5c84c", "https://www.tradingview.com/x/FiUDAV11/", "📊 चार्ट खोलें — मेरा खास विश्लेषण देखें", "यहाँ टैप करके देखें");
     if (causesHeading) {
       goldBody.insertBefore(silverDrawing, causesHeading);
       goldBody.insertBefore(goldDrawing, causesHeading);
