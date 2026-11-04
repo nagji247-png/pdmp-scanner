@@ -1,41 +1,6 @@
 [
   {
     "time": "2026-10-29T05:16Z",
-    "instrument": "BANKNIFTY",
-    "prev_score": 0.1,
-    "new_score": 1.6,
-    "changed": [
-      "भावना",
-      "कीमत"
-    ],
-    "vol_data": false,
-    "held_minutes": 285,
-    "price_at_change": 54599.5,
-    "price_after": 54557.5,
-    "move_pct": -0.08,
-    "after_minutes": 82,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-10-29T05:16Z",
-    "instrument": "RELIANCE",
-    "prev_score": -0.4,
-    "new_score": 2.4,
-    "changed": [
-      "भावना",
-      "VWAP",
-      "वॉल्यूम"
-    ],
-    "vol_data": true,
-    "held_minutes": 769,
-    "price_at_change": 1178.9000244140625,
-    "price_after": 1175.0,
-    "move_pct": -0.33,
-    "after_minutes": 82,
-    "direction": "नीचे"
-  },
-  {
-    "time": "2026-10-29T05:16Z",
     "instrument": "HDFCBANK",
     "prev_score": 1.4,
     "new_score": 0.3,
@@ -3220,10 +3185,10 @@
     "vol_data": false,
     "held_minutes": 3,
     "price_at_change": 55744.3984375,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 55744.3984,
+    "move_pct": 0.0,
+    "after_minutes": 8,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-04T08:15Z",
@@ -3235,6 +3200,39 @@
     ],
     "vol_data": true,
     "held_minutes": 3,
+    "price_at_change": 1307.800048828125,
+    "price_after": 1307.8,
+    "move_pct": 0.0,
+    "after_minutes": 8,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-04T08:23Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": -0.4,
+    "new_score": 4.5,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 8,
+    "price_at_change": 55744.3984375,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-04T08:23Z",
+    "instrument": "RELIANCE",
+    "prev_score": 7.1,
+    "new_score": 5.2,
+    "changed": [
+      "भावना",
+      "कीमत"
+    ],
+    "vol_data": true,
+    "held_minutes": 8,
     "price_at_change": 1307.800048828125,
     "price_after": null,
     "move_pct": null,
