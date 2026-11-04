@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install runtime dependencies
-        run: pip install yfinance feedparser requests pytrends 'mcp>=2.0,<3'
+        run: pip install yfinance feedparser requests pytrends
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py
       - name: Verify Google Trends fallbacks and NSE MCP handshake
@@ -48,14 +48,45 @@ jobs:
                   related_queries.assert_called_once_with(timeframe="now 1-d")
           print("Google Trends related-query fallback routing passed.")
 
-          # The wrapper delegates to the official MCP SDK transport and returns parsed JSON.
-          from unittest.mock import AsyncMock
-          sdk_call = AsyncMock(return_value={"ok": True})
-          with patch.object(app, "_nse_mcp_call_async", new=sdk_call):
-              payload = app.nse_mcp_call("cm_get_index_quote", {"index": "NIFTY"})
+          # Exercise the documented initialize -> initialized -> tools/call sequence.
+          class FakeResponse:
+              def __init__(self, status_code, payload=None, headers=None):
+                  self.status_code = status_code
+                  self._payload = payload or {}
+                  self.headers = headers or {"content-type": "application/json"}
+                  self.text = ""
+              def json(self):
+                  return self._payload
+
+          class FakeSession:
+              def __init__(self):
+                  self.calls = []
+              def post(self, url, headers, json, timeout):
+                  self.calls.append((url, headers, json, timeout))
+                  method = json.get("method")
+                  if method == "initialize":
+                      return FakeResponse(200, {"jsonrpc": "2.0", "id": 1, "result": {}},
+                                          {"content-type": "application/json", "mcp-session-id": "test-session"})
+                  if method == "notifications/initialized":
+                      return FakeResponse(202)
+                  if method == "tools/call":
+                      return FakeResponse(200, {
+                          "jsonrpc": "2.0", "id": 3,
+                          "result": {"content": [{"type": "text", "text": '{"ok":true}'}]}
+                      })
+                  raise AssertionError(f"Unexpected MCP method: {method}")
+
+          fake_session = FakeSession()
+          with patch.object(app, "NSE_MCP_HTTP", fake_session):
+              with patch.object(app, "NSE_MCP_SESSION_ID", None):
+                  payload = app.nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
           assert payload == {"ok": True}, payload
-          sdk_call.assert_awaited_once_with("cm_get_index_quote", {"index": "NIFTY"})
-          print("NSE official MCP SDK call routing passed.")
+          assert [call[2]["method"] for call in fake_session.calls] == [
+              "initialize", "notifications/initialized", "tools/call"
+          ]
+          assert fake_session.calls[-1][1]["Mcp-Session-Id"] == "test-session"
+          assert fake_session.calls[-1][2]["params"]["arguments"] == {"indexName": "NIFTY 50"}
+          print("NSE Streamable HTTP session and tool-call checks passed.")
           PY
       - name: Verify NSE timestamp formatter
         run: |
