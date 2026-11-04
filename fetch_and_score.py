@@ -64,15 +64,14 @@ FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
 ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
 BULL_TERMS = [
-    # प्रचलित English + Hindi/roman Hindi खोजें; कम-volume शब्दों को भी रखा है,
-    # ताकि एक-दो शब्द शून्य होने पर पूरा Trends स्कैन विफल न हो।
-    "nifty rally", "nifty rise", "nifty bullish", "sensex rise",
-    "nifty target", "nifty up", "share market teji", "nifty badhega",
+    "nifty rally", "market recovery", "share market teji", "nifty breakout",
 ]
 BEAR_TERMS = [
-    # बुलिश सूची के समान आकार की bearish खोजें; दोनों पक्षों का संतुलित कवरेज।
-    "nifty fall", "nifty crash", "nifty bearish", "sensex fall",
-    "nifty down", "nifty low", "share market girawat", "nifty girega",
+    "nifty crash", "nifty correction", "market selloff", "share market girawat",
+]
+NEUTRAL_TERMS = [
+    "nifty today", "nifty live", "sensex today", "bank nifty",
+    "stock market", "share market", "option chain", "nifty prediction",
 ]
 TERM_CHUNK = 4
 
@@ -2056,7 +2055,7 @@ TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market"
                     "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
                     "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
                     "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
-TQ_MIN_WEIGHT = 0.10  # कम volume वाले वास्तविक hourly Trends डेटा के लिए न्यूनतम; शून्य डेटा अस्वीकार
+TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero reading स्वीकार; शून्य/अनुपलब्ध डेटा अस्वीकार
 
 
 def tq_dir(q):
@@ -2158,7 +2157,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     attention = round(recent - base, 1)
 
     queries = {}
-    for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS)):
+    for direction, terms in (("bull", BULL_TERMS), ("bear", BEAR_TERMS), ("neutral", NEUTRAL_TERMS)):
         for chunk in _chunks(terms, TERM_CHUNK):
             df = _trends_request(py, chunk, timeframe=timeframe)
             if timeframe == "now 1-d":
@@ -2178,20 +2177,25 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
 
     bull_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bull")
     bear_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bear")
+    neutral_total = sum(x["weight"] for x in queries.values() if x["direction"] == "neutral")
     if bull_total < TQ_MIN_WEIGHT or bear_total < TQ_MIN_WEIGHT:
         raise ValueError(
-            f"Google Trends में दोनों पक्षों का पर्याप्त डेटा नहीं "
-            f"(bull={bull_total:.2f}, bear={bear_total:.2f}, minimum={TQ_MIN_WEIGHT})"
+            f"Google Trends में तेजी और मंदी दोनों समूहों का वास्तविक non-zero डेटा चाहिए "
+            f"(bull={bull_total:.3f}, bear={bear_total:.3f}, minimum={TQ_MIN_WEIGHT})"
         )
 
-    total = bull_total + bear_total
-    bull_pct = round(bull_total / total * 100)
-    bull_score = round(max(0.0, bull_total - bear_total) / total * 100, 1)
-    bear_score = round(max(0.0, bear_total - bull_total) / total * 100, 1)
-    neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
-    label = ("ज़्यादातर बुलिश सोच" if bull_pct >= CROWD_EXTREME
-             else "ज़्यादातर बियरिश सोच" if bull_pct <= CROWD_LOW else "सोच बँटी हुई")
-    # Classify direction from bullish vs bearish interest, not residual neutral score.
+    total = bull_total + bear_total + neutral_total
+    if total <= 0:
+        raise ValueError("Google Trends के तीनों समूहों का कुल डेटा शून्य है")
+    bull_pct = bull_total / total * 100
+    bear_pct = bear_total / total * 100
+    neutral_pct = neutral_total / total * 100
+    bull_score = round(bull_pct, 1)
+    bear_score = round(bear_pct, 1)
+    neutral_score = round(neutral_pct, 1)
+    crowd_direction_pct = bull_total / (bull_total + bear_total) * 100
+    label = ("ज़्यादातर बुलिश सोच" if crowd_direction_pct >= CROWD_EXTREME
+             else "ज़्यादातर बियरिश सोच" if crowd_direction_pct <= CROWD_LOW else "सोच बँटी हुई")
     sentiment = ("BULLISH" if bull_total > bear_total
                  else "BEARISH" if bear_total > bull_total else "NEUTRAL")
 
@@ -2203,7 +2207,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
-        "crowd_bull_pct": bull_pct, "crowd_label": label,
+        "crowd_bull_pct": round(bull_pct, 1), "crowd_label": label,
         "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
         "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms[:20],
         "spikes": [], "hidden_spikes": 0,
@@ -2340,29 +2344,31 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def fetch_trends():
-    """एक सीमित multi-seed Google Trends scan; पांच बाजार विषयों से related searches."""
+    """एक सीमित Google Trends batch: तेजी, मंदी और सामान्य खोजें; उसी स्लॉट में retry नहीं."""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    # केवल एक multi-seed Trends collection pass. हर seed की related_queries
-    # Google Trends के अपने 0-100 scale पर आती हैं; helper प्रति seed normalize
-    # करके औसत लेता है। असफलता पर उसी स्लॉट में दूसरा/बार-बार अनुरोध नहीं।
     try:
-        result = _trends_related_queries(timeframe="now 1-d")
+        result = _trends_once(timeframe="now 1-d", recent_points=24)
+        result.setdefault("fear_vs_avg", None)
+        result.setdefault("per_term", [])
         result["fallback_used"] = False
-        result["today_label"] = "पिछले 24 घंटे की वास्तविक बाजार-संबंधित खोजें"
-        result["today_basis"] = "now_1d_multi_seed_related_queries"
-        result["source_timeframe"] = "now 1-d · 5 market seeds"
-        result["seed_topics"] = ["NIFTY", "SENSEX", "BANK NIFTY", "SHARE MARKET", "STOCK MARKET"]
+        result["today_bull_pct"] = result["bull_score_pct"]
+        result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
+        result["today_basis"] = "now_1d_three_bucket_interest"
+        result["source_timeframe"] = "now 1-d"
+        result["search_groups"] = {
+            "bullish": BULL_TERMS, "bearish": BEAR_TERMS, "neutral": NEUTRAL_TERMS
+        }
         result["request_policy"] = "one scheduled batch; no same-slot retry"
         return result
     except Exception as e:
-        print(f"Google Trends multi-seed 1-d scan failed: {e}")
+        print(f"Google Trends three-bucket 1-d scan failed: {e}")
         return {
             "ok": False, "stale": False,
-            "error": f"पिछले 24 घंटे का नया Google Trends multi-seed डेटा नहीं मिला: {e}"
+            "error": f"पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: {e}"
         }
 
 
