@@ -558,6 +558,7 @@ MCX_SILVER_FILE = "mcx_silver.json"
 
 MCX_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-silver-price/"
 
+# MCX quote parser is covered by the NSE quote-validation workflow's regression test.
 def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
     """Extract an MCX quote, its exchange-page timestamp and daily change from Upstox."""
     text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
