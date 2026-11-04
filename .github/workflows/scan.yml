@@ -38,9 +38,9 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Run PDMP scan
         env:
-          # इस एक बार के push सत्यापन में Trends चालू; अगली commit में push पर फिर बंद होगा।
-          # Manual dispatch और तय चार schedule स्लॉट भी Trends चलाते हैं।
-          TRENDS_SCAN: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) }}
+          # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।
+          # सामान्य 30-मिनट schedule और code push पर Trends कॉल नहीं होंगे।
+          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) }}
           TRENDS_SLOT: ${{ github.event.schedule == '45 3 * * *' && '0915' || github.event.schedule == '30 5 * * *' && '1100' || github.event.schedule == '30 7 * * *' && '1300' || github.event.schedule == '30 13 * * *' && '1900' || '' }}
         run: python fetch_and_score.py
       - name: Commit results
