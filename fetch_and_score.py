@@ -558,122 +558,153 @@ MCX_SILVER_FILE = "mcx_silver.json"
 
 MCX_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-silver-price/"
 
+# MCX quote parser is covered by the NSE quote-validation workflow's regression test.
+def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
+    """Extract an MCX quote, its exchange-page timestamp and daily change from Upstox."""
+    text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
+    matches = re.findall(
+        r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{4,6}(?:\.[0-9]{1,2})?)",
+        page_html, re.I
+    )
+    prices = []
+    for item in matches:
+        try:
+            value = float(item.replace(",", ""))
+            if min_price <= value <= max_price:
+                prices.append(value)
+        except ValueError:
+            continue
+    if not prices:
+        raise ValueError(f"{label} price missing or outside validation range")
+    stamp_match = re.search(
+        r"Last updated on\s*(\d{1,2}\s+[A-Za-z]{3},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2})\s*IST",
+        text, re.I
+    )
+    if not stamp_match:
+        raise ValueError(f"{label} source timestamp missing")
+    stamp = dt.datetime.strptime(stamp_match.group(1).replace(",", ""), "%d %b %Y")
+    hour, minute = map(int, stamp_match.group(2).split(":"))
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    stamp = stamp.replace(hour=hour, minute=minute, tzinfo=ist)
+    now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    age_minutes = (now - stamp).total_seconds() / 60
+    if age_minutes < -2 or age_minutes > 45:
+        raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
+    pct_match = re.search(
+        r"(?:\+|−|-)?\s*₹[\d,]+(?:\.\d+)?\s*\(\s*([+\-−]?\d+(?:\.\d+)?)%\s*\)",
+        text
+    )
+    if not pct_match:
+        raise ValueError(f"{label} daily change percentage missing")
+    change_pct = float(pct_match.group(1).replace("−", "-"))
+    prev_match = re.search(r"Prev\.?\s*Close\s*₹\s*([\d,]+(?:\.\d+)?)", text, re.I)
+    previous_close = float(prev_match.group(1).replace(",", "")) if prev_match else None
+    if previous_close is None or previous_close <= 0:
+        raise ValueError(f"{label} previous close missing")
+    return {
+        "price": round(prices[0], 2), "previous_close": round(previous_close, 2),
+        "change_pct": round(change_pct, 2), "date": stamp.date().isoformat(),
+        "time": stamp.strftime("%H:%M"), "source_time": stamp.strftime("%Y-%m-%d %H:%M IST")
+    }
+
+
+def mcx_reference_is_fresh(data, max_age_minutes=45):
+    """Reject cached MCX quotes unless their source-page timestamp is recent."""
+    try:
+        stamp = dt.datetime.strptime(str(data.get("source_time") or ""), "%Y-%m-%d %H:%M IST")
+        ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        stamp = stamp.replace(tzinfo=ist)
+        now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+        age = (now - stamp).total_seconds() / 60
+        return -2 <= age <= max_age_minutes
+    except (TypeError, ValueError):
+        return False
+
 def refresh_mcx_silver_reference():
-    """Try to read public MCX SILVER quote from Upstox; never substitute SI=F."""
-    path = MCX_SILVER_FILE
+    """Fetch the timestamped MCX SILVER quote from Upstox; never substitute SI=F."""
     try:
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
         response = requests.get(MCX_PUBLIC_URL, headers=headers, timeout=15)
         response.raise_for_status()
-        html = response.text
-        # The public page's main quote is normally rendered as ₹1,96,100.00.
-        # Use a conservative value range to avoid picking unrelated prices.
-        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{5,6}(?:\.[0-9]{1,2})?)", html, re.I)
-        candidates = []
-        for item in matches:
-            try:
-                value = float(item.replace(",", ""))
-                if 50000 <= value <= 500000:
-                    candidates.append(value)
-            except ValueError:
-                pass
-        if not candidates:
-            raise ValueError("public page quote not found or outside validation range")
-        # First matching price in the page is usually the headline quote.
-        current = round(candidates[0], 2)
-        data = load_json(path, {})
-        old = data.get("mcx_price_per_kg")
-        try:
-            old_num = float(old)
-        except (TypeError, ValueError):
-            old_num = None
-        if old_num and old_num > 0 and old_num != current:
-            data["previous_mcx_price_per_kg"] = old_num
+        quote = parse_upstox_mcx_quote(response.text, 50000, 500000, "MCX SILVER")
+        data = load_json(MCX_SILVER_FILE, {})
         data.update({
-            "mcx_price_per_kg": current,
-            "date": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).date().isoformat(),
-            "source": "Upstox public MCX Silver quote (automatically fetched; verify if page format changes)",
+            "mcx_price_per_kg": quote["price"],
+            "previous_mcx_price_per_kg": quote["previous_close"],
+            "change_pct": quote["change_pct"], "date": quote["date"],
+            "source_time": quote["source_time"],
+            "source": "Upstox public MCX Silver quote; source timestamp validated; not exchange-certified",
             "source_url": MCX_PUBLIC_URL,
-            "source_time": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M IST"),
             "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate."
         })
-        with open(path, "w", encoding="utf-8") as out:
+        with open(MCX_SILVER_FILE, "w", encoding="utf-8") as out:
             json.dump(data, out, ensure_ascii=False, indent=2)
-        print(f"MCX silver public quote refreshed: ₹{current:,.2f}/kg")
+        print(f"MCX silver quote refreshed: ₹{quote['price']:,.2f}/kg ({quote['source_time']}, {quote['change_pct']:+.2f}%)")
         return True
     except Exception as exc:
-        print(f"MCX silver auto-refresh failed; retaining last reference and its original timestamp: {exc}")
+        print(f"MCX silver refresh failed; retaining source timestamp for freshness check: {str(exc)[:180]}")
         return False
 
+
 def silver_display_price(international_inr_per_kg=None):
-    """केवल सत्यापित mcx_silver.json MCX भाव पर 3% GST जोड़ें; अंतरराष्ट्रीय भाव को MCX न बताएं."""
+    """Show only a recent, timestamp-validated MCX quote plus the GST estimate."""
     try:
         mcx = load_json(MCX_SILVER_FILE, {})
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
-        if value is not None and math.isfinite(value) and value > 0:
+        if value is not None and math.isfinite(value) and value > 0 and mcx_reference_is_fresh(mcx):
             return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX quote + 3% GST Estimate"
-    except Exception as e:
-        print(f"MCX silver manual file error: {e}")
-    return None, "", "MCX भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
+        if not mcx_reference_is_fresh(mcx):
+            return None, "", "MCX SILVER quote पुराना है — नया भाव उपलब्ध नहीं"
+    except Exception as exc:
+        print(f"MCX silver reference unavailable: {exc}")
+    return None, "", "MCX SILVER भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
+
+
 
 GOLD_MCX_FILE = "mcx_gold.json"
 GOLD_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-gold-price/"
 
 def refresh_mcx_gold_reference():
-    """Fetch a public MCX gold quote; only update when a plausible ₹/10g quote is found."""
+    """Fetch the timestamped MCX GOLD quote from Upstox; never stamp scrape time as quote time."""
     try:
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
         response = requests.get(GOLD_PUBLIC_URL, headers=headers, timeout=15)
         response.raise_for_status()
-        html = response.text
-        matches = re.findall(r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{5,6}(?:\.[0-9]{1,2})?)", html, re.I)
-        candidates = []
-        for item in matches:
-            try:
-                value = float(item.replace(",", ""))
-                if 50000 <= value <= 500000:
-                    candidates.append(value)
-            except ValueError:
-                pass
-        if not candidates:
-            raise ValueError("public page quote not found or outside ₹50,000–₹5,00,000 per 10g validation range")
-        current = round(candidates[0], 2)
+        quote = parse_upstox_mcx_quote(response.text, 50000, 500000, "MCX GOLD")
         data = load_json(GOLD_MCX_FILE, {})
-        old = data.get("mcx_price_per_10g")
-        try:
-            old_num = float(old)
-        except (TypeError, ValueError):
-            old_num = None
-        if old_num and old_num > 0 and old_num != current:
-            data["previous_mcx_price_per_10g"] = old_num
-        now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
         data.update({
-            "mcx_price_per_10g": current,
-            "date": now_ist.date().isoformat(),
-            "source": "Upstox public MCX Gold page quote; not an exchange-certified live feed",
+            "mcx_price_per_10g": quote["price"],
+            "previous_mcx_price_per_10g": quote["previous_close"],
+            "change_pct": quote["change_pct"], "date": quote["date"],
+            "source_time": quote["source_time"],
+            "source": "Upstox public MCX Gold quote; source timestamp validated; not exchange-certified",
             "source_url": GOLD_PUBLIC_URL,
-            "source_time": now_ist.strftime("%Y-%m-%d %H:%M IST"),
-            "note": "Reference quote per 10g; dashboard display adds 3% GST estimate. Jewellery making charges are not included."
+            "note": "Public-page quote per 10g; dashboard display adds 3% GST estimate. Jewellery making charges are not included."
         })
         with open(GOLD_MCX_FILE, "w", encoding="utf-8") as out:
             json.dump(data, out, ensure_ascii=False, indent=2)
-        print(f"MCX gold public quote refreshed: ₹{current:,.2f}/10g")
+        print(f"MCX gold quote refreshed: ₹{quote['price']:,.2f}/10g ({quote['source_time']}, {quote['change_pct']:+.2f}%)")
         return True
     except Exception as exc:
-        print(f"MCX gold auto-refresh failed; retaining last reference and its original timestamp: {exc}")
+        print(f"MCX gold refresh failed; retaining source timestamp for freshness check: {str(exc)[:180]}")
         return False
 
+
 def gold_display_price():
-    """MCX reference per 10g plus 3% GST; no jewellery making charges."""
+    """Show only a recent, timestamp-validated MCX quote plus the GST estimate."""
     try:
         data = load_json(GOLD_MCX_FILE, {})
         value = float(data.get("mcx_price_per_10g"))
-        if math.isfinite(value) and value > 0:
+        if math.isfinite(value) and value > 0 and mcx_reference_is_fresh(data):
             return round(value * (1 + GST_RATE), 2), str(data.get("date", "")), "MCX quote × 3% GST"
+        if not mcx_reference_is_fresh(data):
+            return None, "", "MCX GOLD quote पुराना है — नया भाव उपलब्ध नहीं"
     except Exception as exc:
         print(f"MCX gold reference unavailable: {exc}")
     return None, "", "MCX Gold भाव उपलब्ध नहीं — अनुमान नहीं दिखाया गया"
+
+
 
 CRUDE_MCX_FILE = "mcx_crudeoil.json"
 CRUDE_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-crudeoil-price/"
@@ -714,6 +745,7 @@ def refresh_mcx_crude_reference():
         data.update({
             "mcx_price_per_bbl": current, "change_pct": change_pct,
             "date": date, "time": time_label,
+            "source_time": stamp.strftime("%Y-%m-%d %H:%M IST"),
             "source": "Upstox MCX CRUDEOIL quote (₹/BBL)",
             "source_url": CRUDE_PUBLIC_URL,
             "note": "Public MCX contract quote; not an exchange-certified direct feed."
@@ -727,18 +759,19 @@ def refresh_mcx_crude_reference():
         return False
 
 def crude_display_quote():
-    """Return the stored MCX quote with its actual source date/time."""
+    """Return only a recent, source-timestamped MCX CRUDEOIL quote."""
     data = load_json(CRUDE_MCX_FILE, {})
     try:
         value = float(data.get("mcx_price_per_bbl"))
         if not math.isfinite(value) or value <= 0:
             raise ValueError("invalid MCX crude quote")
+        if not mcx_reference_is_fresh(data):
+            raise ValueError("MCX CRUDEOIL source quote is older than 45 minutes")
         return (round(value, 2), str(data.get("date") or ""),
                 str(data.get("time") or ""), str(data.get("source") or "MCX CRUDEOIL"),
                 data.get("change_pct"))
     except (TypeError, ValueError):
         return None, "", "", "MCX CRUDEOIL भाव उपलब्ध नहीं", None
-
 
 def compact_ist_time(value):
     """Convert a stored YYYY-MM-DD HH:MM IST timestamp to a short 12-hour label."""
@@ -811,12 +844,9 @@ def daily_returns(sym):
         PRICE_CACHE["GC=F_DATE"] = gold_date
         gold_meta = load_json(GOLD_MCX_FILE, {})
         gold_stamp = str(gold_meta.get("source_time") or "")
-        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_stamp) if gold_stamp[:10] == str(gold_meta.get("date") or "") else None
-        gold = load_json(GOLD_MCX_FILE, {})
+        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_stamp) if mcx_reference_is_fresh(gold_meta) and gold_stamp[:10] == str(gold_meta.get("date") or "") else None
         try:
-            previous_gold = float(gold.get("previous_mcx_price_per_10g"))
-            current_gold = float(gold.get("mcx_price_per_10g"))
-            PRICE_CACHE["GC=F_CHANGE_PCT"] = round((current_gold / previous_gold - 1) * 100, 2) if previous_gold > 0 and current_gold > 0 else None
+            PRICE_CACHE["GC=F_CHANGE_PCT"] = float(gold_meta.get("change_pct")) if mcx_reference_is_fresh(gold_meta) else None
         except (TypeError, ValueError):
             PRICE_CACHE["GC=F_CHANGE_PCT"] = None
     if sym == "SI=F":
@@ -826,16 +856,10 @@ def daily_returns(sym):
         PRICE_CACHE["SI=F_DATE"] = silver_date
         silver_meta = load_json(MCX_SILVER_FILE, {})
         silver_stamp = str(silver_meta.get("source_time") or "")
-        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if silver_stamp[:10] == str(silver_meta.get("date") or "") else None
-        # Yahoo SI=F का प्रतिशत बदलाव MCX के ₹/kg भाव का बदलाव नहीं है।
-        # MCX का पिछला भाव फाइल में न हो तो गलत प्रतिशत न दिखाएँ।
-        mcx = load_json(MCX_SILVER_FILE, {})
-        previous_mcx = mcx.get("previous_mcx_price_per_kg")
-        current_mcx = mcx.get("mcx_price_per_kg")
+        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if mcx_reference_is_fresh(silver_meta) and silver_stamp[:10] == str(silver_meta.get("date") or "") else None
+        # Use Upstox's source-reported daily change, not the previous scan's quote.
         try:
-            previous_mcx = float(previous_mcx)
-            current_mcx = float(current_mcx)
-            PRICE_CACHE["SI=F_CHANGE_PCT"] = round((current_mcx / previous_mcx - 1) * 100, 2) if previous_mcx > 0 and current_mcx > 0 else None
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = float(silver_meta.get("change_pct")) if mcx_reference_is_fresh(silver_meta) else None
         except (TypeError, ValueError):
             PRICE_CACHE["SI=F_CHANGE_PCT"] = None
     out = {}
