@@ -38,14 +38,14 @@ jobs:
               "neutral_score_pct": 40.0, "source_data_time": "2026-11-04T10:00:00+00:00",
               "crowd_terms": [], "today_bull_pct": 61.0,
           }
-          with patch.object(app, "_trends_once", side_effect=[ValueError("hourly 1d"), ValueError("hourly 7d")]) as hourly, \\
-               patch.object(app, "_trends_related_queries", return_value=related) as related_queries:
-              result = app.fetch_trends()
-              assert result["ok"] is True, result
-              assert result["fallback_source"] == "Google Trends related_queries", result
-              assert result["today_basis"] == "now_1d_related_queries", result
-              assert hourly.call_count == 2
-              related_queries.assert_called_once_with(timeframe="now 1-d")
+          with patch.object(app, "_trends_once", side_effect=[ValueError("hourly 1d"), ValueError("hourly 7d")]) as hourly:
+              with patch.object(app, "_trends_related_queries", return_value=related) as related_queries:
+                  result = app.fetch_trends()
+                  assert result["ok"] is True, result
+                  assert result["fallback_source"] == "Google Trends related_queries", result
+                  assert result["today_basis"] == "now_1d_related_queries", result
+                  assert hourly.call_count == 2
+                  related_queries.assert_called_once_with(timeframe="now 1-d")
           print("Google Trends related-query fallback routing passed.")
 
           # A successful MCP request must initialize, announce initialized, then call the tool.
@@ -75,7 +75,7 @@ jobs:
                   if len(self.calls) == 2:
                       return FakeResponse(status=202)
                   return FakeResponse({"result": {"content": [
-                      {"type": "text", "text": "{\\"ok\\": true}"}
+                      {"type": "text", "text": '{"ok": true}'}
                   ]}})
           fake_session = FakeSession()
           with patch.object(app.requests, "Session", return_value=fake_session):
