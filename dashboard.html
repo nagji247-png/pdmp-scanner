@@ -895,8 +895,17 @@ function createTradingViewSnapshotCard(title, snapshotUrl, accent, drawingUrl = 
   const label = document.createElement("span");
   label.style.cssText = "display:flex;flex-direction:column;gap:5px;min-width:0";
   const heading = document.createElement("span");
-  heading.textContent = title;
-  heading.style.cssText = "font-size:16px;line-height:1.35;font-weight:900";
+  heading.style.cssText = "font-size:18px;line-height:1.35;font-weight:950;color:"+(title.startsWith("👁️ ") ? "#35e6a0" : "#fff");
+  if (title.startsWith("👁️ ")) {
+    const eye = document.createElement("span");
+    eye.textContent = "👁️";
+    eye.style.cssText = "display:inline-block;font-size:1.4em;line-height:1;vertical-align:-2px;margin-right:3px";
+    const words = document.createElement("span");
+    words.textContent = title.slice(3);
+    heading.append(eye,words);
+  } else {
+    heading.textContent = title;
+  }
   label.appendChild(heading);
   if (subtitle) {
     const detail = document.createElement("span");
