@@ -2482,48 +2482,72 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def fetch_trends():
-    """पहले 1-दिन डेटा; अपर्याप्त खोज-रुचि पर 7-दिन श्रृंखला के अंतिम 24 observations का सीमित fallback."""
+    """पहले 1-दिन/7-दिन hourly डेटा; विफल होने पर असली related searches से सीमित fallback."""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    first_error = None
-    try:
-        result = _trends_once(timeframe="now 1-d", recent_points=24)
-        used_fallback = False
+    errors = []
+    attempts = (
+        ("hourly_1d", lambda: _trends_once(timeframe="now 1-d", recent_points=24)),
+        ("hourly_7d", lambda: _trends_once(timeframe="now 7-d", recent_points=24)),
+        ("related_1d", lambda: _trends_related_queries(timeframe="now 1-d")),
+        ("related_7d", lambda: _trends_related_queries(timeframe="now 7-d")),
+    )
+    result = None
+    selected = None
+    for name, fetch in attempts:
+        try:
+            result = fetch()
+            selected = name
+            break
+        except Exception as exc:
+            errors.append(f"{name}: {exc}")
+            print(f"Google Trends {name} failed; trying next real-data source: {exc}")
+
+    if result is None:
+        return {
+            "ok": False, "stale": False,
+            "error": "नया Google Trends डेटा नहीं मिला। " + " | ".join(errors)
+        }
+
+    used_fallback = selected != "hourly_1d"
+    if selected == "hourly_1d":
         result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
         result["today_basis"] = result.get("today_basis", "now_1d_anchor_relative")
         result["source_timeframe"] = "now 1-d"
-    except Exception as e:
-        first_error = str(e)
-        print(f"Google Trends now 1-d scan failed; trying 7-d recent observations: {e}")
-        try:
-            result = _trends_once(timeframe="now 7-d", recent_points=24)
-            used_fallback = True
-            result["today_label"] = "7-दिन श्रृंखला के अंतिम 24 वास्तविक observations"
-            result["today_basis"] = "now_7d_last_24_observations"
-            result["source_timeframe"] = "now 7-d · last 24 observations"
-        except Exception as fallback_error:
-            print(f"Google Trends now 7-d fallback failed: {fallback_error}")
-            return {
-                "ok": False, "stale": False,
-                "error": (
-                    f"नया Google Trends डेटा नहीं मिला। 24 घंटे: {first_error}; "
-                    f"7-दिन श्रृंखला fallback: {fallback_error}"
-                )
-            }
+    elif selected == "hourly_7d":
+        result["today_label"] = "7-दिन श्रृंखला के अंतिम 24 वास्तविक observations"
+        result["today_basis"] = "now_7d_last_24_observations"
+        result["source_timeframe"] = "now 7-d · last 24 observations"
+    elif selected == "related_1d":
+        result["today_label"] = "पिछले 24 घंटे की वास्तविक related searches"
+        result["today_basis"] = "now_1d_related_queries"
+        result["source_timeframe"] = "now 1-d related queries"
+    else:
+        result["today_label"] = "7-दिन की वास्तविक related searches"
+        result["today_basis"] = "now_7d_related_queries"
+        result["source_timeframe"] = "now 7-d related queries"
 
     result.setdefault("fear_vs_avg", None)
     result.setdefault("per_term", [])
     result["fallback_used"] = used_fallback
-    result["today_bull_pct"] = result.get("crowd_bull_pct") if not used_fallback else None
+    if selected.startswith("related_"):
+        result["fallback_source"] = "Google Trends related_queries"
+        result["fallback_attempts_failed"] = errors
+    else:
+        result["fallback_source"] = "Google Trends hourly interest_over_time"
+        result["fallback_attempts_failed"] = errors
+    result["today_bull_pct"] = result.get("crowd_bull_pct") if selected.endswith("1d") else None
     result["search_groups"] = {
         "bullish": BULL_TERMS, "bearish": BEAR_TERMS, "neutral": NEUTRAL_TERMS
     }
-    result["request_policy"] = "one 1-d batch; one 7-d fallback batch only if needed; no same-slot retry"
+    result["request_policy"] = (
+        "timestamp-validated real Google Trends data: hourly 1-d, hourly 7-d, "
+        "related 1-d, related 7-d; stop at first valid result"
+    )
     return result
-
 
 def update_crowd(events, crowd_pct, today_str, nifty_ret):
     """भीड़ एकतरफ़ा हो तो उस दिन दर्ज करें। अगले सत्र की Nifty चाल से नतीजा भरें।
