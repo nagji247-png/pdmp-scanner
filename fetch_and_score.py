@@ -1,4 +1,4 @@
-import json, csv, os, re, time, math, datetime as dt, html, asyncio
+import json, csv, os, re, time, math, datetime as dt, html, asyncio, traceback
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 import requests
@@ -324,7 +324,8 @@ def nse_mcp_call(tool_name, arguments):
         try:
             return asyncio.run(_nse_mcp_call_async(tool_name, arguments))
         except Exception as exc:
-            print(f"NSE MCP {tool_name} SDK attempt {attempt + 1}/2 failed: {str(exc)[:220]}")
+            detail = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+            print(f"NSE MCP {tool_name} SDK attempt {attempt + 1}/2 failed: {detail[-1800:]}")
             if attempt == 0:
                 time.sleep(1.0)
     return None
