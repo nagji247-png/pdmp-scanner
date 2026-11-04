@@ -560,9 +560,9 @@ MCX_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-silver-price/"
 
 def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
     """Extract an MCX quote, its exchange-page timestamp and daily change from Upstox."""
-    text = html.unescape(re.sub(r"\\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
+    text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
     matches = re.findall(
-        r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{4,6}(?:\\.[0-9]{1,2})?)",
+        r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{4,6}(?:\.[0-9]{1,2})?)",
         page_html, re.I
     )
     prices = []
@@ -576,7 +576,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
     if not prices:
         raise ValueError(f"{label} price missing or outside validation range")
     stamp_match = re.search(
-        r"Last updated on\\s*(\\d{1,2}\\s+[A-Za-z]{3},?\\s+\\d{4})\\s*\\|\\s*(\\d{1,2}:\\d{2})\\s*IST",
+        r"Last updated on\s*(\d{1,2}\s+[A-Za-z]{3},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2})\s*IST",
         text, re.I
     )
     if not stamp_match:
@@ -590,13 +590,13 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
     if age_minutes < -2 or age_minutes > 45:
         raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
     pct_match = re.search(
-        r"(?:\\+|−|-)?\\s*₹[\\d,]+(?:\\.\\d+)?\\s*\\(\\s*([+\\-−]?\\d+(?:\\.\\d+)?)%\\s*\\)",
+        r"(?:\+|−|-)?\s*₹[\d,]+(?:\.\d+)?\s*\(\s*([+\-−]?\d+(?:\.\d+)?)%\s*\)",
         text
     )
     if not pct_match:
         raise ValueError(f"{label} daily change percentage missing")
     change_pct = float(pct_match.group(1).replace("−", "-"))
-    prev_match = re.search(r"Prev\\.?\\s*Close\\s*₹\\s*([\\d,]+(?:\\.\\d+)?)", text, re.I)
+    prev_match = re.search(r"Prev\.?\s*Close\s*₹\s*([\d,]+(?:\.\d+)?)", text, re.I)
     previous_close = float(prev_match.group(1).replace(",", "")) if prev_match else None
     if previous_close is None or previous_close <= 0:
         raise ValueError(f"{label} previous close missing")
@@ -759,7 +759,7 @@ def refresh_mcx_crude_reference():
 
 def crude_display_quote():
     """Return only a recent, source-timestamped MCX CRUDEOIL quote."""
-    data = load_json(CRUE_MCX_FILE, {})
+    data = load_json(CRUDE_MCX_FILE, {})
     try:
         value = float(data.get("mcx_price_per_bbl"))
         if not math.isfinite(value) or value <= 0:
@@ -843,9 +843,9 @@ def daily_returns(sym):
         PRICE_CACHE["GC=F_DATE"] = gold_date
         gold_meta = load_json(GOLD_MCX_FILE, {})
         gold_stamp = str(gold_meta.get("source_time") or "")
-        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_stamp) if gold_stamp[:10] == str(gold_meta.get("date") or "") else None
+        PRICE_CACHE["GC=F_TIME"] = compact_ist_time(gold_stamp) if mcx_reference_is_fresh(gold_meta) and gold_stamp[:10] == str(gold_meta.get("date") or "") else None
         try:
-            PRICE_CACHE["GC=F_CHANGE_PCT"] = float(gold_meta.get("change_pct"))
+            PRICE_CACHE["GC=F_CHANGE_PCT"] = float(gold_meta.get("change_pct")) if mcx_reference_is_fresh(gold_meta) else None
         except (TypeError, ValueError):
             PRICE_CACHE["GC=F_CHANGE_PCT"] = None
     if sym == "SI=F":
@@ -855,10 +855,10 @@ def daily_returns(sym):
         PRICE_CACHE["SI=F_DATE"] = silver_date
         silver_meta = load_json(MCX_SILVER_FILE, {})
         silver_stamp = str(silver_meta.get("source_time") or "")
-        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if silver_stamp[:10] == str(silver_meta.get("date") or "") else None
+        PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if mcx_reference_is_fresh(silver_meta) and silver_stamp[:10] == str(silver_meta.get("date") or "") else None
         # Use Upstox's source-reported daily change, not the previous scan's quote.
         try:
-            PRICE_CACHE["SI=F_CHANGE_PCT"] = float(silver_meta.get("change_pct"))
+            PRICE_CACHE["SI=F_CHANGE_PCT"] = float(silver_meta.get("change_pct")) if mcx_reference_is_fresh(silver_meta) else None
         except (TypeError, ValueError):
             PRICE_CACHE["SI=F_CHANGE_PCT"] = None
     out = {}
