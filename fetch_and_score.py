@@ -2043,15 +2043,19 @@ def _period_ratio(df, term, day_str):
 
 TQ_BASE_TERMS = ["nifty", "sensex"]
 TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull", "bullish",
-                 "jump", "surge", "gain", "teji", "tez", "badhega", "badhegi", "upar", "chadhega",
-                 "टारगेट", "रैली", "तेज़ी", "तेजी", "उछाल", "ऊपर", "बुलिश", "खरीद", "बढ़ेगा", "बढ़ेगी"]
+                 "jump", "surge", "gain", "breakout", "recovery", "recover", "bounce", "uptrend",
+                 "teji", "tez", "badhega", "badhegi", "upar", "chadhega", "chadhav",
+                 "टारगेट", "रैली", "तेज़ी", "तेजी", "उछाल", "ऊपर", "बुलिश", "खरीद", "बढ़ेगा", "बढ़ेगी", "रिकवरी", "ब्रेकआउट"]
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
-                 "decline", "sell-off", "girawat", "girega", "giregi", "neeche", "mandi", "tutega",
-                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा"]
+                 "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
+                 "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
+                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन", "गिरावट"]
 # सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
 TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
-                    "share", "sensex", "nifty", "what", "meaning", "history", "hours",
-                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स"]
+                    "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
+                    "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
+                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
+                    "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
 TQ_MIN_WEIGHT = 0.10  # कम volume वाले वास्तविक hourly Trends डेटा के लिए न्यूनतम; शून्य डेटा अस्वीकार
 
 
@@ -2220,8 +2224,10 @@ def _trends_related_queries(timeframe="now 1-d"):
     """
     from pytrends.request import TrendReq
 
-    # कम अनुरोध: दो मुख्य index seeds; pytrends related_queries इनके लिए ही fetch करता है।
-    seeds = ["nifty", "sensex"]
+    # पाँच व्यापक भारतीय बाजार seed: Nifty, Sensex, Bank Nifty, Share Market, Stock Market.
+    # एक ही payload/related-query pass; प्रत्येक seed से मिले वास्तविक queries को
+    # तेजी/मंदी/सामान्य में वर्गीकृत किया जाता है। कोई काल्पनिक प्रतिशत नहीं।
+    seeds = ["nifty", "sensex", "bank nifty", "share market", "stock market"]
     py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
     py.build_payload(seeds, timeframe=timeframe, geo="IN")
     related = py.related_queries()
@@ -2286,8 +2292,11 @@ def _trends_related_queries(timeframe="now 1-d"):
         if rows >= 3 and total > 0:
             per_seed.append((bull / total * 100, bear / total * 100, neutral / total * 100))
 
-    if len(per_seed) < 2:
-        raise ValueError("Google Trends related searches में कम-से-कम 2 विषयों का पर्याप्त वर्गीकृत डेटा नहीं मिला")
+    if len(per_seed) < 3:
+        raise ValueError(
+            f"Google Trends related searches में 5 में से कम-से-कम 3 बाजार विषयों का "
+            f"वर्गीकृत डेटा चाहिए; उपलब्ध विषय={len(per_seed)}"
+        )
 
     bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
     bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
@@ -2331,44 +2340,29 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def fetch_trends():
-    """एक संतुलित 24-घंटे का Trends scan; पुराने/अधूरे डेटा पर Crowd score नहीं।"""
+    """एक सीमित multi-seed Google Trends scan; पांच बाजार विषयों से related searches."""
     try:
         import pytrends  # noqa: F401
     except Exception as e:
         return {"ok": False, "error": f"pytrends नहीं मिला: {e}"}
 
-    # पहले balanced anchor-relative hourly data लें। यदि Google पर किसी एक
-    # दिशा के शब्द बहुत कम खोजे गए हों, तो उसी 24h timeframe की वास्तविक
-    # related searches से दूसरा प्रयास करें; 7-दिन का पुराना mood इस्तेमाल न करें।
-    try:
-        result = _trends_once(timeframe="now 1-d", recent_points=24)
-        result.setdefault("fear_vs_avg", None)
-        result.setdefault("per_term", [])
-        result["fallback_used"] = False
-        result["today_bull_pct"] = result["crowd_bull_pct"]
-        result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
-        result["today_basis"] = "now_1d_anchor_relative"
-        result["source_timeframe"] = "now 1-d"
-        return result
-    except Exception as e:
-        primary_err = str(e)
-        print(f"Google Trends now 1-d balanced scan failed: {primary_err}")
-
+    # केवल एक multi-seed Trends collection pass. हर seed की related_queries
+    # Google Trends के अपने 0-100 scale पर आती हैं; helper प्रति seed normalize
+    # करके औसत लेता है। असफलता पर उसी स्लॉट में दूसरा/बार-बार अनुरोध नहीं।
     try:
         result = _trends_related_queries(timeframe="now 1-d")
-        result["fallback_used"] = True
-        result["primary_error"] = primary_err
-        result["today_label"] = "पिछले 24 घंटे की वास्तविक related searches"
-        result["today_basis"] = "now_1d_related_queries"
+        result["fallback_used"] = False
+        result["today_label"] = "पिछले 24 घंटे की वास्तविक बाजार-संबंधित खोजें"
+        result["today_basis"] = "now_1d_multi_seed_related_queries"
+        result["source_timeframe"] = "now 1-d · 5 market seeds"
+        result["seed_topics"] = ["NIFTY", "SENSEX", "BANK NIFTY", "SHARE MARKET", "STOCK MARKET"]
+        result["request_policy"] = "one scheduled batch; no same-slot retry"
         return result
-    except Exception as fallback_error:
-        print(f"Google Trends now 1-d related-query fallback failed: {fallback_error}")
+    except Exception as e:
+        print(f"Google Trends multi-seed 1-d scan failed: {e}")
         return {
             "ok": False, "stale": False,
-            "error": (
-                "पिछले 24 घंटे का नया Google Trends डेटा नहीं मिला: "
-                f"मुख्य स्कैन: {primary_err}; related-search fallback: {fallback_error}"
-            )
+            "error": f"पिछले 24 घंटे का नया Google Trends multi-seed डेटा नहीं मिला: {e}"
         }
 
 
