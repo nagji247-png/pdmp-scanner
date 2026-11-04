@@ -34,6 +34,42 @@ jobs:
           assert clock == "04:00 PM IST", (date, clock)
           print("Timestamp formatting checks passed.")
           PY
+      - name: Verify MCX source price, daily change, and freshness parsing
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import fetch_and_score as app
+
+          ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+          now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+          stamp = now.strftime("%d %b, %Y | %H:%M")
+
+          gold_html = (
+              "<div>₹1,42,405.00</div>"
+              f"<div>+₹2,953.00 (2.12%) Last updated on {stamp} "
+              "Prev. Close₹1,39,452.00</div>"
+          )
+          gold = app.parse_upstox_mcx_quote(gold_html, 50000, 500000, "MCX GOLD")
+          assert gold["price"] == 142405.0, gold
+          assert gold["previous_close"] == 139452.0, gold
+          assert gold["change_pct"] == 2.12, gold
+
+          silver_html = (
+              "<div>₹1,86,802.00</div>"
+              f"<div>+₹7,104.00 (3.95%) Last updated on {stamp} "
+              "Prev. Close₹1,79,698.00</div>"
+          )
+          silver = app.parse_upstox_mcx_quote(silver_html, 50000, 500000, "MCX SILVER")
+          assert silver["price"] == 186802.0, silver
+          assert silver["previous_close"] == 179698.0, silver
+          assert silver["change_pct"] == 3.95, silver
+          assert app.mcx_reference_is_fresh({"source_time": gold["source_time"]})
+
+          stale = now - dt.timedelta(minutes=46)
+          stale_data = {"source_time": stale.strftime("%Y-%m-%d %H:%M IST")}
+          assert not app.mcx_reference_is_fresh(stale_data), stale_data
+          print("MCX quote parsing and stale-data checks passed.")
+          PY
       # External NSE endpoints can rate-limit or return 404 from GitHub runners.
       # Keep this diagnostic visible without blocking unrelated code validation.
       - name: Diagnostic NSE index and stock quote probe
