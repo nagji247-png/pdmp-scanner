@@ -2209,7 +2209,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
     } for x in queries.values()]
     crowd_terms.sort(key=lambda x: x["now"], reverse=True)
-    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
+    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={crowd_direction_pct:.1f}%")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
         "crowd_bull_pct": round(crowd_direction_pct, 1), "crowd_label": label,
@@ -2362,7 +2362,7 @@ def fetch_trends():
         result = _trends_once(timeframe="now 1-d", recent_points=24)
         used_fallback = False
         result["today_label"] = "पिछले 24 घंटे की Google Trends खोज-रुचि"
-        result["today_basis"] = "now_1d_three_bucket_interest"
+        result["today_basis"] = result.get("today_basis", "now_1d_anchor_relative")
         result["source_timeframe"] = "now 1-d"
     except Exception as e:
         first_error = str(e)
@@ -2386,7 +2386,7 @@ def fetch_trends():
     result.setdefault("fear_vs_avg", None)
     result.setdefault("per_term", [])
     result["fallback_used"] = used_fallback
-    result["today_bull_pct"] = result["bull_score_pct"]
+    result["today_bull_pct"] = result.get("crowd_bull_pct") if not used_fallback else None
     result["search_groups"] = {
         "bullish": BULL_TERMS, "bearish": BEAR_TERMS, "neutral": NEUTRAL_TERMS
     }
