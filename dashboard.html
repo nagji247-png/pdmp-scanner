@@ -592,14 +592,18 @@ function card(name, d, participantOI) {
     }
     return raw;
   })();
+  const referenceMeta = name === "USDINR" && d.reference_price != null
+    ? '<br><span style="color:#aab2c5">दैनिक संदर्भ दर: ₹' + Number(d.reference_price).toFixed(4) +
+      ' · ' + esc(d.reference_date || "") + ' · Frankfurter · लाइव नहीं</span>'
+    : "";
   const priceMeta = (d.price_source ? esc(d.price_source) : "") +
     (priceDate ? (d.price_source ? "<br>" : "") + esc(priceDate) : "") +
-    (priceTime ? "<br>" + esc(priceTime) : "");
+    (priceTime ? "<br>" + esc(priceTime) : "") + referenceMeta;
   const priceStamp = [priceDate, priceTime].filter(Boolean).join(" · ");
   const hasPrice = d.price != null && Number.isFinite(Number(d.price));
   const priceHtml = name === "BITCOIN"
     ? (hasPrice ? "$" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + ((priceDate || priceTime) ? '<small style="display:block;line-height:1.35">' + [priceDate, priceTime].filter(Boolean).map(esc).join("<br>") + '</small>' : "") : "")
-    : (hasPrice ? (name === "NASDAQ" || name === "DJI" ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—")
+    : (hasPrice ? (name === "NASDAQ" || name === "DJI" ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : (name === "USDINR" && d.reference_price != null ? "लाइव भाव उपलब्ध नहीं" : "—"))
       + ' <span style="color:' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5") + '">' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं") + '</span><small style="display:block;line-height:1.35">' + priceMeta + '</small>';
   const el = document.createElement("div");
   el.className = "card " + cls;
