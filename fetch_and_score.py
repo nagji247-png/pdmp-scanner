@@ -1383,6 +1383,17 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
     live_quote = nse_quote or yahoo_quote
     if live_quote:
+        quote_stamp = live_quote.get("stamp") or (
+            str(live_quote.get("date", "")) + " " + str(live_quote.get("time", ""))
+        )
+        print(
+            f"MARKET_QUOTE {name}: price={live_quote.get('price')} "
+            f"change_pct={live_quote.get('change_pct')} "
+            f"source={live_quote.get('source')} as_of={quote_stamp}"
+        )
+    else:
+        print(f"MARKET_QUOTE {name}: unavailable; no validated intraday quote")
+    if live_quote:
         PRICE_CACHE[sym] = live_quote["price"]
         if sym == "BTC-USD":
             PRICE_CACHE["BTC-USD_DATE"] = live_quote["date"] + " " + live_quote["time"]
