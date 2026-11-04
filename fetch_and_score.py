@@ -432,14 +432,27 @@ def google_finance_quote(symbol, exchange, label):
         max_age = 6 * 60 * 60 if after_close else 15 * 60
         if (now_ist - stamp).total_seconds() > max_age:
             raise ValueError("Google Finance quote is outside the allowed freshness window")
-        prefix = page_text[:match.start()]
-        price_match = re.search(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.\d+)?|[0-9]+\.\d+)(?![0-9])", prefix)
+        # Google Finance's current 2026 quote header uses N6SYTe for price
+        # and ujg0He for the daily change. Never guess from unrelated page numbers.
+        price_tag = re.search(
+            r"<div\\b[^>]*class=['\\\"][^'\\\"]*\\bN6SYTe\\b[^'\\\"]*['\\\"][^>]*>(.*?)</div>",
+            page.text, re.I | re.S
+        )
+        if not price_tag:
+            raise ValueError("Google Finance quote price element N6SYTe missing")
+        price_text = html.unescape(re.sub(r"<[^>]+>", " ", price_tag.group(1)))
+        price_match = re.search(r"([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.\\d+)?|[0-9]+\\.\\d+)", price_text)
         if not price_match:
-            raise ValueError("Google Finance headline price missing")
+            raise ValueError("Google Finance quote price is not numeric")
         price = float(price_match.group(1).replace(",", ""))
         if not math.isfinite(price) or price <= 0:
             raise ValueError("Google Finance returned an invalid price")
-        pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", prefix[price_match.end():])
+        change_tag = re.search(
+            r"<div\\b[^>]*class=['\\\"][^'\\\"]*\\bujg0He\\b[^'\\\"]*['\\\"][^>]*>(.*?)</div>",
+            page.text, re.I | re.S
+        )
+        change_text = html.unescape(re.sub(r"<[^>]+>", " ", change_tag.group(1))) if change_tag else ""
+        pct_match = re.search(r"([+-]\\s*\\d+(?:\\.\\d+)?\\s*%)", change_text)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "source": "Google Finance direct " + label + " quote",
