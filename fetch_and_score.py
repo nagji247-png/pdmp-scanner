@@ -1236,10 +1236,12 @@ def _update_intraday_horizon(event, field, minutes, bars):
             "time": candidate["time"].isoformat(timespec="seconds").replace("+00:00", "Z"),
             "change_pct": move, "outcome": outcome,
         })
-    elif latest and latest > target + dt.timedelta(minutes=10):
+    elif dt.datetime.now(dt.timezone.utc) > target + dt.timedelta(minutes=10):
+        # स्रोत से कोई candle न लौटे (जैसे Yahoo 429/खाली response) तब भी
+        # लक्ष्य विंडो बीतने के बाद pending अनिश्चितकाल तक नहीं रहना चाहिए।
         horizon.update({
             "status": "unavailable",
-            "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली",
+            "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली या स्रोत ने डेटा नहीं दिया",
         })
 
 
