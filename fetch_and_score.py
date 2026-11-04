@@ -324,6 +324,11 @@ def nse_mcp_call(tool_name, arguments):
                                 continue
         except Exception as exc:
             print(f"NSE MCP {tool_name} attempt {attempt + 1}/3 failed: {str(exc)[:180]}")
+            # A 404/410 is a missing endpoint, not a transient failure.
+            # Stop retrying and let the timestamp-validated quote fallback run.
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status in (400, 404, 410):
+                return None
         if attempt < 2:
             time.sleep(1.0 + attempt)
     return None
