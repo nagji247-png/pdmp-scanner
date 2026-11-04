@@ -410,9 +410,9 @@ def google_finance_quote(symbol, exchange, label):
         )
         page.raise_for_status()
         page_text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
-        page_text = re.sub(r"\\s+", " ", page_text)
+        page_text = re.sub(r"\s+", " ", page_text)
         match = re.search(
-            r"([A-Z][a-z]{2} \\d{1,2}, \\d{1,2}:\\d{2}:\\d{2}\\s*[AP]M\\s*GMT\\+5:30)",
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT\+5:30)",
             page_text
         )
         if not match:
@@ -430,13 +430,13 @@ def google_finance_quote(symbol, exchange, label):
 
         # The headline quote is the first numeric value before the timestamp.
         prefix = page_text[:match.start()]
-        price_match = re.search(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.\\d+)?|[0-9]+\\.\\d+)(?![0-9])", prefix)
+        price_match = re.search(r"(?<![0-9])([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.\d+)?|[0-9]+\.\d+)(?![0-9])", prefix)
         if not price_match:
             raise ValueError("Google Finance headline price missing")
         price = float(price_match.group(1).replace(",", ""))
         if not math.isfinite(price) or price <= 0:
             raise ValueError("Google Finance returned an invalid price")
-        pct_match = re.search(r"([+-]\\s*\\d+(?:\\.\\d+)?\\s*%)", prefix[price_match.end():])
+        pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", prefix[price_match.end():])
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "source": "Google Finance direct " + label + " quote",
