@@ -1,7 +1,9 @@
-import json, csv, os, re, time, math, datetime as dt, html
+import json, csv, os, re, time, math, datetime as dt, html, asyncio
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 import requests
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -290,95 +292,41 @@ NSE_MCP_HEADERS = {
 }
 NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
+async def _nse_mcp_call_async(tool_name, arguments):
+    """Use the official MCP Python Streamable HTTP client for NSE's session lifecycle."""
+    # NSE's documented Streamable HTTP endpoint uses the MCP SDK handshake.
+    # NSE does not support HTTP DELETE for terminating sessions.
+    async with streamable_http_client(NSE_MCP_URL, terminate_on_close=False) as (read, write):
+        async with ClientSession(read, write) as session:
+            init = await session.initialize()
+            result = await session.call_tool(tool_name, arguments)
+            if getattr(result, "is_error", False):
+                detail = "; ".join(
+                    str(getattr(item, "text", "")) for item in (result.content or [])
+                )
+                raise RuntimeError(f"NSE MCP {tool_name} returned tool error: {detail[:240]}")
+            for item in (result.content or []):
+                if getattr(item, "type", None) == "text":
+                    raw = getattr(item, "text", "")
+                    try:
+                        payload = json.loads(raw)
+                    except (ValueError, TypeError):
+                        continue
+                    if isinstance(payload, dict) and payload.get("error"):
+                        raise RuntimeError(f"NSE MCP {tool_name}: {str(payload['error'])[:180]}")
+                    return payload
+            raise RuntimeError(f"NSE MCP {tool_name}: no JSON text result")
+
+
 def nse_mcp_call(tool_name, arguments):
-    """NSE CM Market Streamable HTTP MCP call with browser-like headers and full handshake."""
-    for attempt in range(3):
-        phase = "initialize"
-        session_id_present = False
-        protocol_version_used = None
+    """Call NSE MCP through the official SDK; reconnect once on a lost session."""
+    for attempt in range(2):
         try:
-            with requests.Session() as session:
-                init = session.post(NSE_MCP_URL, headers=NSE_MCP_HEADERS, json={
-                    "jsonrpc": "2.0", "id": 1, "method": "initialize",
-                    "params": {"protocolVersion": "2025-03-26", "capabilities": {},
-                               "clientInfo": {"name": "trinetra", "version": "1.0.1"}}
-                }, timeout=25)
-                init.raise_for_status()
-                init_payload = init.json()
-                negotiated_version = (
-                    (init_payload.get("result") or {}).get("protocolVersion")
-                    or "2025-03-26"
-                )
-                headers = dict(NSE_MCP_HEADERS)
-                headers["MCP-Protocol-Version"] = negotiated_version
-                protocol_version_used = negotiated_version
-                sid = init.headers.get("Mcp-Session-Id")
-                if sid:
-                    headers["Mcp-Session-Id"] = sid
-                    session_id_present = True
-
-                # Streamable HTTP clients must announce initialization before tool calls.
-                phase = "notifications/initialized"
-                initialized = session.post(NSE_MCP_URL, headers=headers, json={
-                    "jsonrpc": "2.0", "method": "notifications/initialized"
-                }, timeout=20)
-                if initialized.status_code not in (200, 202, 204):
-                    initialized.raise_for_status()
-
-                phase = "tools/call"
-                response = session.post(NSE_MCP_URL, headers=headers, json={
-                    "jsonrpc": "2.0", "id": 2, "method": "tools/call",
-                    "params": {"name": tool_name, "arguments": arguments}
-                }, timeout=35)
-                response.raise_for_status()
-                try:
-                    payload = response.json()
-                except ValueError:
-                    payload = None
-                    for line in response.text.splitlines():
-                        if line.startswith("data:"):
-                            try:
-                                payload = json.loads(line[5:].strip())
-                                break
-                            except ValueError:
-                                continue
-                if isinstance(payload, dict) and not payload.get("error"):
-                    contents = (payload.get("result") or {}).get("content") or []
-                    for item in contents:
-                        if item.get("type") == "text":
-                            try:
-                                return json.loads(item.get("text", ""))
-                            except (ValueError, TypeError):
-                                continue
-                if isinstance(payload, dict) and payload.get("error"):
-                    print(f"NSE MCP {tool_name} protocol error: {str(payload['error'])[:180]}")
+            return asyncio.run(_nse_mcp_call_async(tool_name, arguments))
         except Exception as exc:
-            error_response = getattr(exc, "response", None)
-            status = getattr(error_response, "status_code", None)
-            if error_response is not None:
-                # Capture only non-secret transport diagnostics. Never print cookies or session IDs.
-                diagnostic_headers = {
-                    key: error_response.headers.get(key)
-                    for key in ("content-type", "server", "via", "x-cache",
-                                "cf-ray", "location", "www-authenticate")
-                    if error_response.headers.get(key)
-                }
-                raw_body = re.sub(r"\\s+", " ", error_response.text or "")
-                diagnostic_body = raw_body[:350]
-                diagnostic_tail = raw_body[-700:] if len(raw_body) > 350 else ""
-                print(
-                    f"NSE MCP HTTP_DIAGNOSTIC phase={phase} status={status} "
-                    f"session_id_present={session_id_present} "
-                    f"protocol_version={protocol_version_used} "
-                    f"headers={json.dumps(diagnostic_headers, ensure_ascii=False)} "
-                    f"body_start={diagnostic_body!r} body_end={diagnostic_tail!r}"
-                )
-            print(f"NSE MCP {tool_name} {phase} attempt {attempt + 1}/3 failed: {str(exc)[:180]}")
-            # A permanent protocol/route response should not be retried or mislabeled as NSE data.
-            if status in (400, 404, 410):
-                return None
-        if attempt < 2:
-            time.sleep(1.0 + attempt)
+            print(f"NSE MCP {tool_name} SDK attempt {attempt + 1}/2 failed: {str(exc)[:220]}")
+            if attempt == 0:
+                time.sleep(1.0)
     return None
 
 def nse_stock_universe():
