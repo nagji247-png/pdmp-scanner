@@ -1,69 +1,5 @@
 [
   {
-    "time": "2026-10-28T12:00Z",
-    "instrument": "RELIANCE",
-    "prev_score": 0.5,
-    "new_score": 0.8,
-    "changed": [
-      "वॉल्यूम"
-    ],
-    "vol_data": true,
-    "held_minutes": 194,
-    "price_at_change": 1158.0,
-    "price_after": 1158.0,
-    "move_pct": 0.0,
-    "after_minutes": 11,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-10-28T12:00Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 1.7,
-    "new_score": 1.8,
-    "changed": [
-      "कीमत"
-    ],
-    "vol_data": true,
-    "held_minutes": 194,
-    "price_at_change": 685.2999877929688,
-    "price_after": 685.3,
-    "move_pct": 0.0,
-    "after_minutes": 11,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-10-28T12:11Z",
-    "instrument": "BANKNIFTY",
-    "prev_score": 1.1,
-    "new_score": 0.2,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 11,
-    "price_at_change": 54267.3984375,
-    "price_after": 54267.3984,
-    "move_pct": 0.0,
-    "after_minutes": 153,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-10-28T14:44Z",
-    "instrument": "NIFTY",
-    "prev_score": -7.7,
-    "new_score": -6.1,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 164,
-    "price_at_change": 22698.849609375,
-    "price_after": 22698.8496,
-    "move_pct": 0.0,
-    "after_minutes": 53,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-10-28T15:37Z",
     "instrument": "BANKNIFTY",
     "prev_score": 0.2,
@@ -3221,10 +3157,10 @@
     "vol_data": false,
     "held_minutes": 67,
     "price_at_change": 23763.5,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 23815.9004,
+    "move_pct": 0.22,
+    "after_minutes": 21,
+    "direction": "ऊपर"
   },
   {
     "time": "2026-11-04T06:51Z",
@@ -3237,6 +3173,71 @@
     "vol_data": false,
     "held_minutes": 67,
     "price_at_change": 55471.69921875,
+    "price_after": 55618.6992,
+    "move_pct": 0.26,
+    "after_minutes": 21,
+    "direction": "ऊपर"
+  },
+  {
+    "time": "2026-11-04T07:12Z",
+    "instrument": "NIFTY",
+    "prev_score": 3.6,
+    "new_score": 2.4,
+    "changed": [
+      "भावना",
+      "कीमत"
+    ],
+    "vol_data": false,
+    "held_minutes": 21,
+    "price_at_change": 23815.900390625,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-04T07:12Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": 0.0,
+    "new_score": 6.9,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 21,
+    "price_at_change": 55618.69921875,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-04T07:12Z",
+    "instrument": "RELIANCE",
+    "prev_score": 5.9,
+    "new_score": 5.4,
+    "changed": [
+      "कीमत"
+    ],
+    "vol_data": true,
+    "held_minutes": 88,
+    "price_at_change": 1304.0999755859375,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-04T07:12Z",
+    "instrument": "HDFCBANK",
+    "prev_score": 2.5,
+    "new_score": 3.8,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": true,
+    "held_minutes": 88,
+    "price_at_change": 732.3499755859375,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
