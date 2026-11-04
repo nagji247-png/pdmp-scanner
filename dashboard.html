@@ -599,7 +599,7 @@ function card(name, d, participantOI) {
   const hasPrice = d.price != null && Number.isFinite(Number(d.price));
   const priceHtml = name === "BITCOIN"
     ? (hasPrice ? "$" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + ((priceDate || priceTime) ? '<small style="display:block;line-height:1.35">' + [priceDate, priceTime].filter(Boolean).map(esc).join("<br>") + '</small>' : "") : "")
-    : (hasPrice ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—")
+    : (hasPrice ? (name === "NASDAQ" || name === "DJI" ? "$" : "₹") + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) + (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—")
       + ' <span style="color:' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5") + '">' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा नहीं") + '</span><small style="display:block;line-height:1.35">' + priceMeta + '</small>';
   const el = document.createElement("div");
   el.className = "card " + cls;
@@ -1014,7 +1014,7 @@ function renderInstruments(instruments, participantOI) {
   glb.style.gridTemplateColumns = "repeat(2,minmax(0,1fr))";
   glb.style.alignItems = "stretch";
 
-  const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN"];
+  const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN", "NASDAQ", "DJI"];
   for (const name of globalOrder) {
     const d = instruments[name];
     if (d) glb.appendChild(card(name, d, participantOI));
