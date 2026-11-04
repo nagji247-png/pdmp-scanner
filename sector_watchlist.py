@@ -10,6 +10,16 @@ ROOT = Path(__file__).resolve().parent
 INPUT = ROOT / "sector-analysis.json"
 OUTPUT = ROOT / "sector-analysis.json"
 MAX_ATTEMPTS = 2
+SYMBOL_OVERRIDES = {
+    "APOLLOMICRO": "APOLLO.NS",
+    "AUTHUM": "AIIL.NS",
+    "GEPIL": "GVPIL.NS",
+}
+
+
+def symbol_for(company):
+    name = company.get("name")
+    return SYMBOL_OVERRIDES.get(name, company.get("symbol"))
 
 
 def expected_nse_session(now_ist):
@@ -51,7 +61,7 @@ def rsi14(closes):
 def unavailable(old, reason, date=None):
     return {
         "name": old.get("name"),
-        "symbol": old.get("symbol"),
+        "symbol": symbol_for(old),
         "source": "Yahoo Finance daily candles; no stale fallback",
         "ok": False,
         "error": reason,
@@ -80,7 +90,7 @@ def unavailable(old, reason, date=None):
 
 
 def fetch_company(old, expected_date):
-    name, symbol = old.get("name"), old.get("symbol")
+    name, symbol = old.get("name"), symbol_for(old)
     last_error = "ताज़ा दैनिक भाव उपलब्ध नहीं"
     hist = None
     for attempt in range(MAX_ATTEMPTS):
