@@ -2829,6 +2829,14 @@ def main():
         _stamp = _parse_slot_time(_time_text) if _time_text else None
         if _stamp is None or _stamp.astimezone(ist_tz).date().isoformat() != slot_date:
             slot_state["slots"].pop(_key, None)
+            continue
+        if _record.get("status") == "failed" and _key in slot_labels:
+            _local_stamp = _stamp.astimezone(ist_tz)
+            _expected = dt.datetime.combine(
+                _local_stamp.date(), dt.time.fromisoformat(slot_labels[_key]), tzinfo=ist_tz
+            )
+            if abs((_local_stamp - _expected).total_seconds()) > 3 * 60 * 60:
+                slot_state["slots"].pop(_key, None)
 
     if trends_scan and slot_id in slot_labels:
         if trends.get("ok") and trends.get("source_data_time") and all(
