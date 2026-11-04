@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install yfinance feedparser requests pytrends
+      - run: pip install yfinance feedparser requests pytrends 'mcp>=2.0,<3'
       - name: Run PDMP scan
         env:
           # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।

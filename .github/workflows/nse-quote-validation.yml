@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install runtime dependencies
-        run: pip install yfinance feedparser requests pytrends
+        run: pip install yfinance feedparser requests pytrends 'mcp>=2.0,<3'
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py
       - name: Verify Google Trends fallbacks and NSE MCP handshake
@@ -48,45 +48,14 @@ jobs:
                   related_queries.assert_called_once_with(timeframe="now 1-d")
           print("Google Trends related-query fallback routing passed.")
 
-          # A successful MCP request must initialize, announce initialized, then call the tool.
-          class FakeResponse:
-              def __init__(self, payload=None, headers=None, status=200):
-                  self._payload = payload or {}
-                  self.headers = headers or {}
-                  self.status_code = status
-              def raise_for_status(self):
-                  if self.status_code >= 400:
-                      raise RuntimeError("HTTP status")
-              def json(self):
-                  return self._payload
-
-          class FakeSession:
-              def __init__(self):
-                  self.calls = []
-              def __enter__(self):
-                  return self
-              def __exit__(self, *args):
-                  return False
-              def post(self, url, headers=None, json=None, timeout=None):
-                  self.calls.append((url, headers or {}, json or {}))
-                  if len(self.calls) == 1:
-                      return FakeResponse({"result": {"protocolVersion": "2025-03-26"}},
-                                          {"Mcp-Session-Id": "test-session"})
-                  if len(self.calls) == 2:
-                      return FakeResponse(status=202)
-                  return FakeResponse({"result": {"content": [
-                      {"type": "text", "text": '{"ok": true}'}
-                  ]}})
-          fake_session = FakeSession()
-          with patch.object(app.requests, "Session", return_value=fake_session):
+          # The wrapper delegates to the official MCP SDK transport and returns parsed JSON.
+          from unittest.mock import AsyncMock
+          sdk_call = AsyncMock(return_value={"ok": True})
+          with patch.object(app, "_nse_mcp_call_async", new=sdk_call):
               payload = app.nse_mcp_call("cm_get_index_quote", {"index": "NIFTY"})
           assert payload == {"ok": True}, payload
-          assert [call[2].get("method") for call in fake_session.calls] == [
-              "initialize", "notifications/initialized", "tools/call"
-          ]
-          assert fake_session.calls[1][1]["Mcp-Session-Id"] == "test-session"
-          assert fake_session.calls[2][1]["MCP-Protocol-Version"] == "2025-03-26"
-          print("NSE Streamable HTTP handshake sequence passed.")
+          sdk_call.assert_awaited_once_with("cm_get_index_quote", {"index": "NIFTY"})
+          print("NSE official MCP SDK call routing passed.")
           PY
       - name: Verify NSE timestamp formatter
         run: |
