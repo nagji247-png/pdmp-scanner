@@ -1,6 +1,10 @@
 name: Refresh independent sector analysis
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/sector-analysis.yml"
+      - "sector_analysis.py"
   schedule:
     - cron: "35 3 * * 1-5"
 permissions:
