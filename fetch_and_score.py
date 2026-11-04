@@ -65,15 +65,15 @@ ANCHOR = "nifty"
 # Nifty/Sensex से जुड़े खोज-वाक्यांश। Google Trends सापेक्ष रुचि देता है, वास्तविक search count नहीं।
 BULL_TERMS = [
     "nifty rally", "market recovery", "share market teji", "nifty breakout",
-    "stock market rally", "market up", "sensex rise", "stock market gains",
+    "निफ्टी ऊपर", "बाजार में तेजी", "शेयर बाजार में तेजी", "stock market gains",
 ]
 BEAR_TERMS = [
     "nifty crash", "nifty correction", "market selloff", "share market girawat",
-    "stock market crash", "market down", "sensex fall", "stock market correction",
+    "निफ्टी नीचे", "बाजार में गिरावट", "शेयर बाजार में गिरावट", "stock market correction",
 ]
 NEUTRAL_TERMS = [
     "nifty today", "nifty live", "sensex today", "bank nifty",
-    "stock market", "share market", "option chain", "nifty prediction",
+    "stock market", "share market", "शेयर बाजार", "निफ्टी आज",
 ]
 TERM_CHUNK = 4
 
