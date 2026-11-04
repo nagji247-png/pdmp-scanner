@@ -417,16 +417,20 @@ def google_finance_quote(symbol, exchange, label):
         page_text = html.unescape(re.sub(r"<[^>]+>", " ", page.text))
         page_text = re.sub(r"\s+", " ", page_text)
         match = re.search(
-            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT([+-]\d{1,2}:\d{2}))",
+            r"([A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}:\d{2}\s*[AP]M\s*GMT([+-]\d{1,2}(?::\d{2})?))",
             page_text
         )
         if not match:
             raise ValueError("Google Finance exchange timestamp missing")
-        # Google Finance timestamps are exchange-local. Parse their explicit
-        # GMT offset rather than assuming every market is in India.
+        # Google Finance sometimes prints GMT-5 and sometimes GMT-5:00.
+        # Parse the explicit offset rather than assuming every market is in India.
         offset_text = match.group(2)
-        sign = 1 if offset_text[0] == "+" else -1
-        hours, minutes = map(int, offset_text[1:].split(":"))
+        offset_parts = re.fullmatch(r"([+-])(\d{1,2})(?::(\d{2}))?", offset_text)
+        if not offset_parts:
+            raise ValueError("Google Finance exchange timezone offset is invalid")
+        sign = 1 if offset_parts.group(1) == "+" else -1
+        hours = int(offset_parts.group(2))
+        minutes = int(offset_parts.group(3) or 0)
         exchange_tz = dt.timezone(sign * dt.timedelta(hours=hours, minutes=minutes))
         now_utc = dt.datetime.now(dt.timezone.utc)
         stamp_naive = dt.datetime.strptime(match.group(1)[:match.group(1).rfind(" GMT")], "%b %d, %I:%M:%S %p")
