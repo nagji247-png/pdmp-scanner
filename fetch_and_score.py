@@ -2212,14 +2212,16 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={bull_pct}%")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
-        "crowd_bull_pct": round(bull_pct, 1), "crowd_label": label,
+        "crowd_bull_pct": round(crowd_direction_pct, 1), "crowd_label": label,
         "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
         "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms[:20],
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_score, "bear_score_pct": bear_score,
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
-        "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं",
-        "today_basis": timeframe + "_anchor_relative", "source_timeframe": timeframe,
+        "today_bull_pct": round(crowd_direction_pct, 1) if timeframe == "now 1-d" else None,
+        "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी खोज-रुचि" if timeframe == "now 1-d" else "डेटा उपलब्ध नहीं",
+        "today_basis": "now_1d_anchor_relative" if timeframe == "now 1-d" else timeframe + "_anchor_relative",
+        "source_timeframe": timeframe,
         "source_data_time": source_data_time,
         "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
