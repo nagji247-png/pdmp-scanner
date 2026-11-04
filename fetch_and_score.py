@@ -299,6 +299,13 @@ async def _nse_mcp_call_async(tool_name, arguments):
     async with streamable_http_client(NSE_MCP_URL, terminate_on_close=False) as (read, write):
         async with ClientSession(read, write) as session:
             init = await session.initialize()
+            # Cache tool schemas before the call. The SDK otherwise performs a
+            # second tools/list after a successful call to validate its output;
+            # NSE currently terminates the session before that extra request.
+            available = await session.list_tools()
+            names = {item.name for item in (available.tools or [])}
+            if tool_name not in names:
+                raise RuntimeError(f"NSE MCP tool not advertised: {tool_name}")
             result = await session.call_tool(tool_name, arguments)
             if getattr(result, "is_error", False):
                 detail = "; ".join(
