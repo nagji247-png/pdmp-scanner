@@ -388,40 +388,40 @@
     "date": "2026-11-04",
     "instrument": "NIFTY",
     "score": 8.3,
-    "outcome": null,
-    "next_change": null
+    "outcome": "continued",
+    "next_change": 2.4
   },
   {
     "key": "2026-11-04|BANKNIFTY",
     "date": "2026-11-04",
     "instrument": "BANKNIFTY",
     "score": 7.2,
-    "outcome": null,
-    "next_change": null
+    "outcome": "continued",
+    "next_change": 3.33
   },
   {
     "key": "2026-11-04|RELIANCE",
     "date": "2026-11-04",
     "instrument": "RELIANCE",
     "score": 7.8,
-    "outcome": null,
-    "next_change": null
+    "outcome": "continued",
+    "next_change": 0.18
   },
   {
     "key": "2026-11-04|ADANIPORTS",
     "date": "2026-11-04",
     "instrument": "ADANIPORTS",
     "score": 6.4,
-    "outcome": null,
-    "next_change": null
+    "outcome": "reversed",
+    "next_change": -1.33
   },
   {
     "key": "2026-11-04|SENSEX",
     "date": "2026-11-04",
     "instrument": "SENSEX",
     "score": 7.9,
-    "outcome": null,
-    "next_change": null
+    "outcome": "continued",
+    "next_change": 2.6
   },
   {
     "key": "2026-11-04|NASDAQ",
@@ -527,6 +527,26 @@
       "time": "2026-11-05T09:00:00Z",
       "change_pct": 0.36,
       "outcome": "continued"
+    }
+  },
+  {
+    "key": "2026-11-05|BANKNIFTY",
+    "date": "2026-11-05",
+    "instrument": "BANKNIFTY",
+    "score": 6.7,
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance completed 5-minute candles",
+    "after_30m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    },
+    "after_60m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
     }
   }
 ]

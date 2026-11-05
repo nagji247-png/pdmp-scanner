@@ -5358,8 +5358,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 3.95
   },
   {
     "key": "2026-11-05|SBIN|div",
@@ -5400,8 +5400,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 2.8
   },
   {
     "key": "2026-11-05|COALINDIA|div",
@@ -5442,7 +5442,49 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.34
+  },
+  {
+    "key": "2026-11-05|ADANIPORTS|div",
+    "date": "2026-11-05",
+    "instrument": "ADANIPORTS",
+    "score": 4.0,
+    "price_change": -1.33,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Adani Ports to Acquire Dutch Operator Evos in $2.88 Billion Deal",
+        "source": "Global Banking & Finance Review",
+        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPUmVrdWJ5Um9WemsxZGFaZjBfVVBvTy1Kai0xLTJiRXJKcVEzREM2bmVNNnk0RFk3QndNdkdTWE82VnFKNDNSWTlTQnJVbjVlQmY2ZUFPUzNNYW1HTFB5QjFFckJjc0tRaktKdjVMVlc3cFV3bV8yaDF5ejhhNVRrVmY0QW1pc3FOV3NuMzRacXduRE1raWNUVWt4bWg?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Adani Ports to buy Dutch storage operator Evos for $2.88 billion",
+        "source": "Moneycontrol.com",
+        "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPNFhwWXRaZWk5WnZUWk5nZ1NGWGdHTWhxNlFoYXJvRmozenAyMkNYYlNLbEJwVEZzbV9qdVI5MmQ1ek5BVGpYaHFfdkUtcklmVnFEbVJmNkFLSGRmZTM3NzlZbkc0Q2pOZ1BtTjJDQjZOeDNRaGlBX2tUdGZUeldiUG1mYnRLOHdVajB6am9QNElNbG1TMll2M29RMEJBeElFdDVmUXFldHN5bDVwcUt1YzdFRWZSdmV1aVJpMklRRkRLWGd4TmVN0gHMAUFVX3lxTE9mcHdJLWwwNHRXbkZUQVFaRXozVXA3U1lmMzNyQlFyVzFlNjhzc3J6QjFKZXVLMmx5VWdBQ29HSDktMU1QYnFWelcwUTZ6eGdaT28yekk1SDBXSzVfbS0tTkRaenMxQW5rVFZfQi1yNTZUdU9QVlpncTJXbGtzNHEyNGhUNWk5ODdsTFUwc3JnNTJqYWNOelFvRHRYOGxaQTN3VWNXbEU2Vzd2NGdVSHNQU3gtWjY1XzRXMnV0ZlM0aFRZYkJFY05FdUhqeA?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Diwali Dhamaka stocks for portfolio: 10 shares with up to 34% upside potential ICICI Direct is bullish on",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMioAJBVV95cUxQeGVsY3V4aE1IN3hYaGktb3NuWHQ4OGVBVERZQzc2Rm92RUMyWjRGTHU1cVdBZ0hDTnRsU0xlYXMwYVMybk54cDVkandIeXlxQWNyYnQ3VlRmck02dElNOTNYNEpZOUo1andUS0ZTVk1nYmVmaGpqV25qUWVrLVRKQUxKLUQ4a29Wd21GZ3g5bjhVblF0T2lLeGhiTUR6dWdNbVFJMC1raTRZZnpBdzdFM2hiRlNzV0tLd0hpeHRVMTJlSXZmNG9MNDJTbUxCMDhYM3JZMDlTVWh2cGZ5VU05REFKeHFKTjk3ZXFsQUUwYjFONFFsRzE3QlhTcGkzWWtRY1F4dm82M1l4SElzVHhCQ1FnS2RacmFWMFJJS0Y4aGE?oc=5",
+        "score": 2
+      },
+      {
+        "title": "Sensex stocks Adani Ports, TechM at new highs; Eternal, ICICI Bk near peaks",
+        "source": "Business Standard",
+        "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPWW9iX3J2LTNxdVB3SnJQZkpSUW1ZcExiRFZJbGFVeS1KUWlTWDEtLXJ5cEdTTUxVcEdjQnBJYl9CYmdxX0JUaU5aSnUzbGp3OE50Yy11NlVndFFNUU0xdGNSdVdEYlZqdVBaWWNraEJOUHVldnQtVzAybnpEbDBLa2Joa0pOMkZRNzZOaWhyaFltU1NvX01YajAycGxpcnJSRlJkeXRQRUVwdU5seDJKOFlZM3BEUjJyQllXMXdzaGYzMHN3YU9HaXVDd1g3dGd2eldoZWhScXrSAd4BQVVfeXFMUGxHZHZYS1NhZEZsbzhJb0tPOWE5VzV1eVA5SllJWmNzVFVKZWY0aUtQSERmSVpTOTlFdWhaaWZGSFhpeGhXQzR3QnE2Q3BRa2Vjc21RYXhUSVRHVDRTb0ZNb0tkcnRfMGtRQy1KV3JDRzdoRi1UT21hUXVPUlhWWmhzVGdnR21vNkFaeERUUlhBeFFzVVFINlBjcGdZcDNVQzBYYjZ6c0U0QUk5eEttR1o2VGRwUnBFaUVxZ25fVkZTRVhTVl9QT08zOWFoX0tWY2U4eGI0MnFiZWRiOVp3?oc=5",
+        "score": 0
+      },
+      {
+        "title": "F&O Radar: Long Call Butterfly Spread strategy for Adani Ports",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNUW9zSHNuOGFlY1NrOVNDWFlOa2M1alp4eUYyUVdpdUxhYWROZ3o1YkZCdU5OTFhqRC01VEdDYkZFZlRYZjdVcnhqR3Z2MDBhc041OUFDMnNCNkFhZWlyX3BFaGxSdVFDWi1fUDNCUUk2aEl5bm5jMks3TWZtREdoTC1zeFpDOUxnbEtSRThQYWIxSkl0YTB0MFlQV29TQlg4UUYxYmZLXzkyYjJaQXFyWUk4OEdSYUItZ1hIMjZSbEFYLWRoTXZyOXM1eTlJdW_SAdQBQVVfeXFMT2JSSmhxTHo1TEtBNGxXeV9EanFsdGZCemhScnl2Ti1UQTY5OXJQWnZMOENhUEg3ZTdpR0NYVXNzNDVScHN0b2ViNTAyUmVvb3UxeE5ILTN6T2pndVRUd25MN1Uwd3JoNllTSUpKcWJkVmJSTHdSd0RRcDMyVHlrNlpOOHEtTGh1WGxkN29BdlM0WVNWeS1zanJIWnZIbFN4WHY0T3FDMENwaHQwX2Ixb25VM204aTdWWmwyVmtmTkp1ZzJvV0hTdlQxc0FBemtfTXBBcUo?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": "price",
+    "next_change": -1.33
   }
 ]
