@@ -3758,7 +3758,7 @@ def update_participant_oi_history(*snapshots):
                 continue
             date = historical.get("date")
             participants = historical.get("participants")
-            if (not isinstance(date, str) or not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", date)
+            if (not isinstance(date, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date)
                     or not isinstance(participants, dict)
                     or not all(group in participants for group in ("FII", "DII", "PRO", "CLIENT"))
                     or date in by_date):
