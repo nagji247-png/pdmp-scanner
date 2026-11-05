@@ -90,8 +90,9 @@ jobs:
 
           fake_session = FakeSession()
           with patch.object(app, "NSE_MCP_HTTP", fake_session):
-              with patch.object(app, "NSE_MCP_SESSION_ID", None):
-                  payload = app.nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
+              with patch.object(app, "NSE_MCP_WARMED", True):
+                  with patch.object(app, "NSE_MCP_SESSION_ID", None):
+                      payload = app.nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
           assert payload == {"ok": True}, payload
           assert [call[2]["method"] for call in fake_session.calls] == [
               "initialize", "notifications/initialized", "tools/list", "tools/call"
