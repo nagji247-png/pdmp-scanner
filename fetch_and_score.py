@@ -281,18 +281,12 @@ NSE_MCP_URL = "https://mcp.nseindia.in/cmmkt/mcp"
 NSE_MCP_HEADERS = {
     "Content-Type": "application/json",
     "Accept": "application/json, text/event-stream",
-    "Origin": "https://www.nseindia.com",
-    "Referer": "https://www.nseindia.com/",
-    "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    ),
 }
 NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
 NSE_MCP_HTTP = requests.Session()
 NSE_MCP_SESSION_ID = None
-NSE_MCP_PROTOCOL_VERSION = "2025-03-26"
+NSE_MCP_PROTOCOL_VERSION = "2024-11-05"
 NSE_MCP_TOOLS = {}
 NSE_MCP_REQUEST_ID = 0
 
@@ -301,7 +295,6 @@ def _nse_mcp_headers(session=True):
     headers = dict(NSE_MCP_HEADERS)
     if session and NSE_MCP_SESSION_ID:
         headers["Mcp-Session-Id"] = NSE_MCP_SESSION_ID
-        headers["MCP-Protocol-Version"] = NSE_MCP_PROTOCOL_VERSION
     return headers
 
 
