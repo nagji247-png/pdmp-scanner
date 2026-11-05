@@ -136,7 +136,12 @@ jobs:
           stale = now - dt.timedelta(minutes=46)
           stale_data = {"source_time": stale.strftime("%Y-%m-%d %H:%M IST")}
           assert not app.mcx_reference_is_fresh(stale_data), stale_data
-          print("MCX quote parsing and stale-data checks passed.")
+
+          after_close = dt.datetime(2026, 11, 4, 23, 40, tzinfo=ist)
+          last_close = {"source_time": "2026-11-04 23:29 IST"}
+          assert app.mcx_reference_is_fresh(last_close, now=after_close)
+          assert not app.mcx_reference_is_live(last_close, now=after_close)
+          print("MCX quote parsing, freshness and live/closed labels passed.")
           PY
       - name: Verify symbol-specific NSE quote validation
         run: |
