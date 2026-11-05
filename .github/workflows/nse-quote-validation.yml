@@ -5,6 +5,7 @@ on:
     paths:
       - "fetch_and_score.py"
       - "trinetra_data.py"
+      - "backtest_participant_oi.py"
       - ".github/workflows/nse-quote-validation.yml"
 
 permissions:
@@ -21,7 +22,7 @@ jobs:
       - name: Install runtime dependencies
         run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Check Python syntax
-        run: python -m py_compile fetch_and_score.py trinetra_data.py
+        run: python -m py_compile fetch_and_score.py trinetra_data.py backtest_participant_oi.py
       - name: Verify Google Trends fallbacks and NSE MCP handshake
         run: |
           python - <<'PY'
