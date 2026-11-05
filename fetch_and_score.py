@@ -923,7 +923,7 @@ class _UpstoxHistoryTableParser(HTMLParser):
     def handle_endtag(self, tag):
         tag = tag.lower()
         if tag in ("td", "th") and self.row is not None and self.cell is not None:
-            self.row.append(re.sub(r"\\s+", " ", "".join(self.cell)).strip())
+            self.row.append(re.sub(r"\s+", " ", "".join(self.cell)).strip())
             self.cell = None
         elif tag == "tr" and self.row is not None:
             if self.row:
@@ -933,7 +933,7 @@ class _UpstoxHistoryTableParser(HTMLParser):
 
 
 def _parse_upstox_table_date(value):
-    value = re.sub(r"\\s+", " ", str(value or "").replace(",", " ")).strip()
+    value = re.sub(r"\s+", " ", str(value or "").replace(",", " ")).strip()
     for fmt in ("%d %b %y", "%d %b %Y", "%d %B %y", "%d %B %Y",
                 "%d-%b-%Y", "%d-%B-%Y"):
         try:
@@ -972,9 +972,9 @@ def _upstox_previous_session_close(page_html, quote_date, expiry):
 
 def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh=True):
     """Extract MCX quote and calculate daily change from the same contract's prior-session CLOSE."""
-    text = html.unescape(re.sub(r"\\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
+    text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
     matches = re.findall(
-        r"(?:₹|&#8377;|&#x20b9;|INR\\s*)\\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\\.[0-9]{1,2})?|[0-9]{4,6}(?:\\.[0-9]{1,2})?)",
+        r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{4,6}(?:\.[0-9]{1,2})?)",
         page_html, re.I
     )
     prices = []
@@ -988,7 +988,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
     if not prices:
         raise ValueError(f"{label} price missing or outside validation range")
     stamp_match = re.search(
-        r"Last updated on\\s*(\\d{1,2}\\s+[A-Za-z]{3},?\\s+\\d{4})\\s*\\|\\s*(\\d{1,2}:\\d{2})\\s*IST",
+        r"Last updated on\s*(\d{1,2}\s+[A-Za-z]{3},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2})\s*IST",
         text, re.I
     )
     if not stamp_match:
@@ -1002,7 +1002,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
     if require_fresh and (age_minutes < -2 or age_minutes > 45):
         raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
     expiry_match = re.search(
-        r"Expiry:\\s*(\\d{1,2})\\s+([A-Za-z]+),?\\s*(\\d{2,4})", text, re.I
+        r"Expiry:\s*(\d{1,2})\s+([A-Za-z]+),?\s*(\d{2,4})", text, re.I
     )
     if not expiry_match:
         raise ValueError(f"{label} selected contract expiry missing")
