@@ -3802,7 +3802,7 @@ def update_market_signal_history(result):
     """Capture one point-in-time EOD snapshot per trading date for honest future testing."""
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
     now_ist = dt.datetime.now(ist)
-    if now_ist.time() < dt.time(20, 0) or result.get("market_closed"):
+    if now_ist.time() < dt.time(20, 0) or SKIP_EVENTS:
         return
 
     date = now_ist.date().isoformat()
