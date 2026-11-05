@@ -2,6 +2,12 @@
   "schema_version": 1,
   "source": "NSE participant-wise Open Interest daily EOD CSV",
   "retention_sessions": 260,
+  "backfill": {
+    "status": "partial",
+    "attempted_at": "2026-11-05T13:04Z",
+    "sessions_added": 0,
+    "target_sessions": 25
+  },
   "records": [
     {
       "date": "2026-11-02",
@@ -241,6 +247,6 @@
       }
     }
   ],
-  "updated_at": "2026-11-05T12:49Z",
-  "added_this_run": 3
+  "updated_at": "2026-11-05T13:04Z",
+  "added_this_run": 0
 }
