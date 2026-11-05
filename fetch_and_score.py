@@ -1015,6 +1015,11 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
                 break
             except ValueError:
                 pass
+    if expiry is None:
+        table_probe = _UpstoxHistoryTableParser()
+        table_probe.feed(page_html or "")
+        if table_probe.rows:
+            raise ValueError(f"{label} historical table exists but selected contract expiry could not be verified")
     previous_close, previous_close_date = (
         _upstox_previous_session_close(page_html, stamp.date().isoformat(), expiry.isoformat())
         if expiry else (None, None)
