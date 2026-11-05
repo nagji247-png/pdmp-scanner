@@ -2228,6 +2228,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         if sym == "BTC-USD":
             PRICE_CACHE["BTC-USD_DATE"] = live_quote["date"] + " " + live_quote["time"]
             PRICE_CACHE["BTC-USD_SOURCE"] = live_quote["source"]
+            # Never carry yesterday's BTC percentage into a fresh quote.
+            # Publish a change only when this run verifies the matching previous close.
+            PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
             prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
             if prev_close and prev_close > 0:
                 PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
