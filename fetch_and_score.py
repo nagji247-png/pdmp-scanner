@@ -2402,15 +2402,28 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
             change = round(nse_quote["change_pct"], 2)
         elif global_quote:
             if name == "SENSEX":
-                # SENSEX must use the percentage supplied with the same
-                # timestamped Google Finance quote. Never borrow Yahoo's
-                # daily return or a cached previous close for this live quote.
+                # Prefer the percentage supplied with this exact Google Finance quote.
+                # If the provider omits it, derive the daily change only when the
+                # quote date exactly matches Yahoo's completed daily candle date.
+                # Never compare against a cached or mismatched previous close.
                 pct = global_quote.get("change_pct")
-                change = (
-                    round(float(pct), 2)
-                    if pct is not None and math.isfinite(float(pct))
-                    else None
-                )
+                if pct is not None and math.isfinite(float(pct)):
+                    change = round(float(pct), 2)
+                else:
+                    quote_date = global_quote.get("date")
+                    if not quote_date and global_quote.get("stamp"):
+                        try:
+                            quote_date = dt.datetime.strptime(
+                                str(global_quote["stamp"]), "%d-%b-%Y %H:%M:%S"
+                            ).date().isoformat()
+                        except ValueError:
+                            quote_date = None
+                    latest_return_date = max(returns) if returns else None
+                    change = (
+                        round(returns[latest_return_date], 2)
+                        if latest_return_date and quote_date == latest_return_date
+                        else None
+                    )
             elif global_quote.get("change_pct") is not None:
                 change = round(global_quote["change_pct"], 2)
             elif returns and global_quote.get("date") == max(returns):
