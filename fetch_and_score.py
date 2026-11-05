@@ -156,6 +156,7 @@ DIV_FILE = "divergence_events.json"
 SIG_STATE_FILE = "signal_state.json"
 SIG_LOG_FILE = "signal_log.json"
 HISTORY_FILE = "history.csv"
+MARKET_SIGNAL_HISTORY_FILE = "market_signal_history.json"
 
 
 def clean(obj):
@@ -3796,6 +3797,145 @@ def update_participant_oi_history(*snapshots):
     }
 
 
+
+def update_market_signal_history(result):
+    """Capture one point-in-time EOD snapshot per trading date for honest future testing."""
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now_ist = dt.datetime.now(ist)
+    if now_ist.time() < dt.time(20, 0) or SKIP_EVENTS:
+        return
+
+    date = now_ist.date().isoformat()
+    oi = result.get("participant_oi") or {}
+    instruments = result.get("instruments") or {}
+    if not oi.get("ok") or oi.get("stale") or oi.get("date") != date:
+        return
+
+    def as_market_date(value):
+        if not isinstance(value, str):
+            return None
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                return dt.datetime.strptime(value[:10], fmt).date().isoformat()
+            except ValueError:
+                pass
+        return None
+
+    index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
+    index_records = {}
+    for name in index_names:
+        item = instruments.get(name)
+        if not isinstance(item, dict) or as_market_date(item.get("price_as_of")) != date:
+            return
+        headlines = item.get("headlines") or []
+        index_records[name] = {
+            "close": item.get("price"),
+            "close_as_of": item.get("price_as_of"),
+            "day_change_pct": item.get("change_pct"),
+            "headline_score": item.get("headline_score"),
+            "headline_count": len(headlines),
+            "headlines": [
+                {
+                    "title": h.get("title"),
+                    "source": h.get("source"),
+                    "score": h.get("score"),
+                    "age_hours": h.get("age_h"),
+                }
+                for h in headlines[:8] if isinstance(h, dict)
+            ],
+            "client_retail_adjustment": item.get("retail_adj"),
+            "published_score": item.get("score"),
+            "published_score_mode": item.get("score_mode"),
+        }
+
+    trends = result.get("trends") or {}
+    trends_valid = bool(
+        trends.get("ok") and not trends.get("stale")
+        and isinstance(trends.get("crowd_bull_pct"), (int, float))
+        and isinstance(trends.get("bull_score_pct"), (int, float))
+        and isinstance(trends.get("bear_score_pct"), (int, float))
+        and isinstance(trends.get("neutral_score_pct"), (int, float))
+    )
+    market_news = result.get("market_news") or {}
+    record = {
+        "date": date,
+        "captured_at_utc": result.get("updated"),
+        "captured_at_ist": now_ist.isoformat(timespec="minutes"),
+        "price_source_note": "Index close must be dated to this trading session",
+        "news_capture_time_utc": result.get("updated"),
+        "trends": ({
+            "valid": True,
+            "as_of": trends.get("as_of"),
+            "source_data_time": trends.get("source_data_time"),
+            "daily_label": trends.get("daily_label"),
+            "crowd_bull_pct": trends.get("crowd_bull_pct"),
+            "bull_score_pct": trends.get("bull_score_pct"),
+            "bear_score_pct": trends.get("bear_score_pct"),
+            "neutral_score_pct": trends.get("neutral_score_pct"),
+            "daily_complete": trends.get("daily_complete"),
+        } if trends_valid else {
+            "valid": False,
+            "reason": trends.get("error") or trends.get("daily_status_note") or "No fresh validated Trends reading",
+        }),
+        "market_news_context": {
+            "ok": bool(market_news.get("ok")),
+            "as_of": market_news.get("as_of"),
+            "items": [
+                {"topic": x.get("topic"), "title": x.get("title"),
+                 "source": x.get("source"), "score": x.get("score"),
+                 "age_hours": x.get("age_h")}
+                for x in (market_news.get("items") or [])[:12] if isinstance(x, dict)
+            ],
+        },
+        "indices": index_records,
+        "participant_oi": {
+            "date": oi.get("date"),
+            "source": oi.get("source"),
+            "scope": oi.get("scope"),
+            "changes": oi.get("changes"),
+            "participants": oi.get("participants"),
+        },
+        "score_method": result.get("index_score_method"),
+    }
+
+    archive = load_json(MARKET_SIGNAL_HISTORY_FILE, {
+        "schema_version": 1,
+        "description": "Point-in-time EOD News, Google Trends, participant OI and index close snapshots; not backfilled",
+        "retention_sessions": 260,
+        "records": [],
+    })
+    records = archive.get("records") if isinstance(archive.get("records"), list) else []
+    by_date = {
+        x.get("date"): x for x in records
+        if isinstance(x, dict) and isinstance(x.get("date"), str)
+    }
+    previous = by_date.get(date)
+    # Never replace a complete same-day Trends snapshot with a later incomplete scan.
+    def completeness(item):
+        if not isinstance(item, dict):
+            return -1
+        idx = item.get("indices") or {}
+        return (
+            sum(1 for n in index_names if isinstance(idx.get(n), dict)
+                and isinstance(idx[n].get("headline_score"), (int, float)))
+            + (3 if (item.get("trends") or {}).get("valid") else 0)
+            + (1 if (item.get("participant_oi") or {}).get("date") == date else 0)
+        )
+    if previous is None or completeness(record) >= completeness(previous):
+        by_date[date] = record
+
+    ordered = [by_date[d] for d in sorted(by_date)][-260:]
+    archive.update({
+        "schema_version": 1,
+        "description": "Point-in-time EOD News, Google Trends, participant OI and index close snapshots; not backfilled",
+        "retention_sessions": 260,
+        "records": ordered,
+        "updated_at": result.get("updated"),
+    })
+    with open(MARKET_SIGNAL_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(clean(archive), f, ensure_ascii=False, indent=2, allow_nan=False)
+
+
 def main():
     global SKIP_EVENTS
     mcx_updated = refresh_mcx_market_watch_quotes()
@@ -4281,6 +4421,7 @@ def main():
     }
 
     result = clean(result)
+    update_market_signal_history(result)
     events = clean(events)
     crowd_events = clean(crowd_events)
     div_events = clean(div_events)
