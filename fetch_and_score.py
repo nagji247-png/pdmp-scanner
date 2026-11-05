@@ -559,19 +559,17 @@ def bse_sensex_quote():
         ist_tz = dt.timezone(dt.timedelta(hours=5, minutes=30))
         now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist_tz)
         stamp = stamp.replace(tzinfo=ist_tz)
-        if stamp.date() != now_ist.date():
-            raise ValueError(f"BSE quote is not today's session: {stamp_text}")
-        # After the cash market closes, the final exchange quote remains the
-        # valid closing snapshot for today. Accept it only when its source
-        # timestamp is from the final 15 minutes of today's session.
+        # During the live cash session require today's quote; outside session
+        # allow the most recent previous close for up to 18 hours.
         session_open = india_cash_session_open(now_ist)
         if session_open and stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not from today's live session: {stamp_text}")
         max_age_seconds = 30 * 60 if session_open else 18 * 60 * 60
         if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
             raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
+        source = "BSE" if session_open or (now_ist - stamp).total_seconds() <= 15 * 60 else "BSE · पिछला बंद भाव"
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
-                "source": "BSE",
+                "source": source,
                 "change_pct": float(str(raw_pct).replace("%", "").replace(",", "")) if raw_pct is not None else None}
     except Exception as exc:
         print(f"BSE SENSEX quote unavailable: {exc}")
