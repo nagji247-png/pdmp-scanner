@@ -291,6 +291,7 @@ NSE_MCP_SESSION_ID = None
 NSE_MCP_PROTOCOL_VERSION = "2024-11-05"
 NSE_MCP_TOOLS = {}
 NSE_MCP_REQUEST_ID = 0
+NSE_DIRECT_WARMED = False
 
 
 def _nse_mcp_headers(session=True):
@@ -743,112 +744,139 @@ def nse_web_indices_quote(index_name):
         return None
 
 
+
+
+def parse_nse_direct_equity_payload(symbol, payload, now=None):
+    """Parse one NSE GetQuoteApi response only when its symbol and exchange time match."""
+    expected = str(symbol or "").strip().upper()
+    rows = payload.get("equityResponse") if isinstance(payload, dict) else None
+    if not expected or not isinstance(rows, list):
+        return None
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ist)
+    else:
+        current = current.astimezone(ist)
+
+    for entry in rows:
+        if not isinstance(entry, dict):
+            continue
+        meta = entry.get("metaData") or {}
+        trade = entry.get("tradeInfo") or {}
+        sec = entry.get("secInfo") or {}
+        reported_symbol = next((str(source.get(key) or "").strip().upper()
+                                for source in (meta, sec, entry)
+                                for key in ("symbol", "tradingSymbol", "trading_symbol")
+                                if source.get(key)), "")
+        if reported_symbol != expected:
+            continue
+
+        raw_price = trade.get("lastPrice")
+        if raw_price in (None, ""):
+            raw_price = meta.get("lastPrice", meta.get("iep"))
+        price = _num(raw_price)
+        raw_stamp = meta.get("lastUpdateTime") or entry.get("lastUpdateTime")
+        if price is None or price <= 0 or not raw_stamp:
+            continue
+
+        parsed_stamp = None
+        for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M",
+                    "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+            try:
+                parsed_stamp = dt.datetime.strptime(str(raw_stamp).strip(), fmt)
+                break
+            except ValueError:
+                pass
+        if parsed_stamp is None:
+            try:
+                parsed_stamp = dt.datetime.fromisoformat(str(raw_stamp).strip().replace("Z", "+00:00"))
+            except ValueError:
+                continue
+        if parsed_stamp.tzinfo is None:
+            parsed_stamp = parsed_stamp.replace(tzinfo=ist)
+        else:
+            parsed_stamp = parsed_stamp.astimezone(ist)
+
+        age_seconds = (current - parsed_stamp).total_seconds()
+        max_age = 15 * 60 if india_cash_session_open(current) else 18 * 60 * 60
+        if age_seconds < -120 or age_seconds > max_age:
+            continue
+
+        previous = _num(meta.get("previousClose"))
+        change_pct = None
+        for key in ("pChange", "pchange", "ic_pchange"):
+            if meta.get(key) not in (None, ""):
+                change_pct = _num(meta.get(key))
+                break
+        if change_pct is None and previous and previous > 0:
+            change_pct = round((price / previous - 1) * 100, 2)
+
+        source = "NSE India direct quote API"
+        if not india_cash_session_open(current) and age_seconds > 15 * 60:
+            source += " · पिछला बंद भाव"
+        return {
+            "price": round(price, 2),
+            "stamp": parsed_stamp.strftime("%d-%b-%Y %H:%M:%S"),
+            "source": source,
+            "change_pct": change_pct,
+        }
+    return None
+
+
+def nse_direct_equity_quote(symbol):
+    """Fetch a symbol-specific quote from NSE's public GetQuoteApi endpoint."""
+    global NSE_DIRECT_WARMED
+    try:
+        symbol = str(symbol or "").strip().upper()
+        if not symbol:
+            return None
+        page_url = "https://www.nseindia.com/get-quotes/equity?symbol=" + quote_plus(symbol)
+        if not NSE_DIRECT_WARMED:
+            for warm_url in ("https://www.nseindia.com", page_url):
+                try:
+                    warm = NSE_MCP_HTTP.get(warm_url, timeout=20)
+                    warm.raise_for_status()
+                except Exception as warm_exc:
+                    print(f"NSE direct quote warm-up note: {str(warm_exc)[:120]}")
+            NSE_DIRECT_WARMED = True
+        url = ("https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi"
+               "?functionName=getSymbolData&marketType=N&series=EQ&symbol=" + quote_plus(symbol))
+        response = NSE_MCP_HTTP.get(url, headers={
+            "Accept": "application/json, text/plain, */*",
+            "Referer": page_url,
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+            "Cache-Control": "no-cache",
+        }, timeout=20)
+        response.raise_for_status()
+        quote = parse_nse_direct_equity_payload(symbol, response.json())
+        if quote:
+            return quote
+        raise ValueError("NSE direct response did not contain a matching symbol, valid price and fresh exchange timestamp")
+    except Exception as exc:
+        print(f"NSE direct equity {symbol} quote unavailable: {str(exc)[:200]}")
+        return None
+
+
 def nse_cash_quote(name, sym):
     """Prefer official exchange quotes; use Google Finance only as a timestamp-validated backup."""
     if name == "SENSEX":
         return bse_sensex_quote() or google_finance_sensex_quote()
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
-        # Actual Actions logs confirmed NSE MCP tools/list/tools/call return HTTP 404.
-        # Use NSE's public allIndices JSON endpoint; no guessed MCP parameters.
+        # NSE MCP index calls are unavailable; use the public NSE feed, then a
+        # separately timestamped Google Finance quote. Never walk an undefined MCP payload.
         quote = nse_web_indices_quote(index_name)
         if quote:
             return quote
-        def find_index_quote(node, inherited_stamp=None, matched=False):
-            if isinstance(node, dict):
-                labels = " ".join(str(node.get(k) or "") for k in
-                                  ("indexName", "name", "index", "symbol", "index_name")).upper()
-                target = index_name.upper()
-                is_match = matched or (target in labels if labels else False)
-                stamp = next((node.get(k) for k in
-                              ("nseTimestamp", "latestTimestamp", "updatedAt",
-                               "timestamp", "time", "lastUpdateTime")
-                              if node.get(k)), inherited_stamp)
-                price = next((node.get(k) for k in
-                              ("last", "lastValue", "lastPrice", "lastTradedPrice",
-                               "indexValue", "currentIndexValue", "ltp", "currentValue")
-                              if node.get(k) is not None), None)
-                if price is not None and stamp and (is_match or not labels):
-                    return {"price": float(price), "stamp": stamp}
-                for key, value in node.items():
-                    key_match = target in str(key).upper()
-                    found = find_index_quote(value, stamp, is_match or key_match)
-                    if found:
-                        return found
-            elif isinstance(node, list):
-                for value in node:
-                    found = find_index_quote(value, inherited_stamp, matched)
-                    if found:
-                        return found
-            return None
-        quote = find_index_quote(data)
-        if quote:
-            return {**quote, "source": "NSE"}
-        return google_finance_quote("NIFTY_50" if name == "NIFTY" else "NIFTY_BANK",
-                                   "INDEXNSE", index_name)
+        google_symbol = "NIFTY_50" if name == "NIFTY" else "NIFTY_BANK"
+        return google_finance_quote(google_symbol, "INDEXNSE", index_name)
     if sym.endswith(".NS"):
         symbol = sym[:-3].upper()
-        def find_quote(node, inherited_stamp=None):
-            if isinstance(node, dict):
-                stamp = next((node.get(k) for k in
-                              ("latestTimestamp", "timestamp", "nseTimestamp", "updatedAt")
-                              if node.get(k)), inherited_stamp)
-                price = next((node.get(k) for k in
-                              ("lastTradedPrice", "lastPrice", "ltp", "last")
-                              if node.get(k) is not None), None)
-                pct = next((node.get(k) for k in
-                            ("perChange", "changePercent", "pChange", "change_pct")
-                            if node.get(k) is not None), None)
-                if price is not None and stamp:
-                    return {"price": float(price), "stamp": stamp,
-                            "change_pct": float(pct) if pct is not None else None}
-                for value in node.values():
-                    found = find_quote(value, stamp)
-                    if found:
-                        return found
-            elif isinstance(node, list):
-                for value in node:
-                    found = find_quote(value, inherited_stamp)
-                    if found:
-                        return found
-            return None
-
-        def validate_stock_quote(quote):
-            if not quote:
-                return None
-            # Reject a grossly inconsistent NSE bulk row unless an independent
-            # Google Finance quote confirms it. This catches wrong-symbol rows
-            # such as an SBI quote returning a price far from SBIN's daily close.
-            baseline = _num(PRICE_CACHE.get(sym))
-            if baseline and baseline > 0:
-                gap = abs(float(quote["price"]) / baseline - 1)
-                if gap > 0.10:
-                    alternate = google_finance_quote(symbol, "NSE", symbol)
-                    if alternate:
-                        alt_gap_to_baseline = abs(float(alternate["price"]) / baseline - 1)
-                        alt_gap_to_nse = abs(float(alternate["price"]) / float(quote["price"]) - 1)
-                        if alt_gap_to_nse <= 0.02:
-                            return {**quote, "source": "NSE (Google Finance cross-check)"}
-                        if alt_gap_to_baseline <= 0.03:
-                            print(f"NSE {symbol} quote rejected: {quote['price']} differs {gap:.1%} from Yahoo daily close; using corroborated Google Finance {alternate['price']}")
-                            return alternate
-                    print(f"NSE {symbol} quote rejected: {quote['price']} differs {gap:.1%} from Yahoo daily close and could not be independently confirmed")
-                    return None
-            return {**quote, "source": "NSE"}
-
-        # First use one cached bulk NSE response for the entire watchlist.
-        universe = nse_stock_universe()
-        quote = find_quote(universe.get(symbol)) if isinstance(universe, dict) else None
-        if quote:
-            return validate_stock_quote(quote)
-
-        # If the cached bulk response omitted a watchlist symbol, request a
-        # symbol-filtered bulk snapshot. The individual quote tool returned HTTP 404.
-        data = nse_mcp_call("cm_get_equity_stocks", {"limit": 50, "symbolFilter": symbol})
-        quote = find_quote(data)
-        if quote:
-            return validate_stock_quote(quote)
-        return google_finance_quote(symbol, "NSE", symbol)
+        # Never accept an unlabelled bulk row for a different share.
+        # Use NSE's symbol-specific quote; Google Finance is the timestamped fallback.
+        return nse_direct_equity_quote(symbol) or google_finance_quote(symbol, "NSE", symbol)
     return None
 
 
@@ -935,31 +963,224 @@ def mcx_session_open(now=None):
     return now.weekday() < 5 and dt.time(9, 0) <= now.time() <= dt.time(23, 30)
 
 
-def mcx_reference_age_minutes(data):
+MCX_MARKET_PAGE_URL = "https://www.mcxindia.com/market-data/market-watch"
+MCX_MARKET_API_URL = "https://www.mcxindia.com/market-data/market-watch/GetMarketWatch?culture=en"
+MCX_HTTP = curl_requests.Session(impersonate="chrome124")
+MCX_HTTP_WARMED = False
+
+
+def mcx_reference_age_minutes(data, now=None):
     try:
         stamp = dt.datetime.strptime(str(data.get("source_time") or ""), "%Y-%m-%d %H:%M IST")
         ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
         stamp = stamp.replace(tzinfo=ist)
-        now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
-        return (now - stamp).total_seconds() / 60
+        current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+        if current.tzinfo is None:
+            current = current.replace(tzinfo=ist)
+        else:
+            current = current.astimezone(ist)
+        return (current - stamp).total_seconds() / 60
     except (TypeError, ValueError):
         return None
 
 
-def mcx_reference_is_fresh(data, max_age_minutes=45):
+def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
     """During MCX hours require a fresh quote; outside hours allow last session close."""
-    age = mcx_reference_age_minutes(data)
+    age = mcx_reference_age_minutes(data, now)
     if age is None:
         return False
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
-    now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
-    allowed_age = max_age_minutes if mcx_session_open(now) else 18 * 60
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ist)
+    else:
+        current = current.astimezone(ist)
+    allowed_age = max_age_minutes if mcx_session_open(current) else 18 * 60
     return -2 <= age <= allowed_age
 
 
-def mcx_reference_is_live(data):
-    age = mcx_reference_age_minutes(data)
-    return age is not None and -2 <= age <= 45
+def mcx_reference_is_live(data, now=None):
+    age = mcx_reference_age_minutes(data, now)
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ist)
+    else:
+        current = current.astimezone(ist)
+    return mcx_session_open(current) and age is not None and -2 <= age <= 45
+
+
+def fetch_mcx_market_watch_rows():
+    """Read MCX's own public Market Watch JSON after warming its browser-facing page."""
+    global MCX_HTTP_WARMED
+    headers = {
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-IN,en;q=0.9",
+        "Origin": "https://www.mcxindia.com",
+        "Referer": MCX_MARKET_PAGE_URL,
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+        "Cache-Control": "no-cache",
+    }
+    errors = []
+    if not MCX_HTTP_WARMED:
+        try:
+            page = MCX_HTTP.get(MCX_MARKET_PAGE_URL, headers=headers, timeout=20)
+            page.raise_for_status()
+            MCX_HTTP_WARMED = True
+        except Exception as exc:
+            errors.append("page warm-up: " + str(exc)[:120])
+
+    # Current Market Watch route first; legacy ASP.NET route is a compatibility fallback.
+    try:
+        response = MCX_HTTP.get(MCX_MARKET_API_URL, headers=headers, timeout=25)
+        response.raise_for_status()
+        payload = response.json()
+        rows = ((payload.get("data") or {}).get("Data") if isinstance(payload, dict) else None)
+        if not isinstance(rows, list) and isinstance(payload, dict):
+            rows = (payload.get("d") or {}).get("Data")
+        if isinstance(rows, list) and rows:
+            MCX_HTTP_WARMED = True
+            return rows
+        errors.append("current route returned no Data rows")
+    except Exception as exc:
+        errors.append("current route: " + str(exc)[:140])
+
+    try:
+        legacy_headers = dict(headers)
+        legacy_headers["Content-Type"] = "application/json"
+        response = MCX_HTTP.post(
+            "https://www.mcxindia.com/backpage.aspx/GetMarketWatch",
+            data="",
+            headers=legacy_headers,
+            timeout=25,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        rows = ((payload.get("d") or {}).get("Data") if isinstance(payload, dict) else None)
+        if isinstance(rows, list) and rows:
+            MCX_HTTP_WARMED = True
+            return rows
+        errors.append("legacy route returned no d.Data rows")
+    except Exception as exc:
+        errors.append("legacy route: " + str(exc)[:140])
+    raise ValueError("MCX Market Watch unavailable: " + " | ".join(errors))
+
+
+def parse_mcx_market_watch_rows(rows, now=None):
+    """Keep only timestamped MCX FUTCOM rows and select the highest-OI contract per commodity."""
+    if not isinstance(rows, list):
+        return {}
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ist)
+    else:
+        current = current.astimezone(ist)
+    bounds = {"GOLD": (50000, 500000), "SILVER": (50000, 500000), "CRUDEOIL": (3000, 30000)}
+    month_numbers = {"JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6,
+                     "JUL": 7, "AUG": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DEC": 12}
+    candidates = {key: [] for key in bounds}
+
+    for row in rows[:1000]:
+        if not isinstance(row, dict) or str(row.get("InstrumentName") or "").strip().upper() != "FUTCOM":
+            continue
+        symbol = str(row.get("Symbol") or "").strip().upper()
+        if symbol not in bounds:
+            continue
+        raw_price = _num(row.get("LTP"))
+        low, high = bounds[symbol]
+        if raw_price is None or not low <= raw_price <= high:
+            continue
+        raw_stamp = str(row.get("LTTValue") or row.get("LTT") or "").strip()
+        parsed_stamp = None
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M",
+                    "%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M"):
+            try:
+                parsed_stamp = dt.datetime.strptime(raw_stamp, fmt)
+                break
+            except ValueError:
+                pass
+        if parsed_stamp is None:
+            continue
+        if parsed_stamp.tzinfo is None:
+            parsed_stamp = parsed_stamp.replace(tzinfo=ist)
+        else:
+            parsed_stamp = parsed_stamp.astimezone(ist)
+
+        expiry_raw = str(row.get("ExpiryDate") or "").strip().upper()
+        match = re.fullmatch(r"(\d{2})([A-Z]{3})(\d{4})", expiry_raw)
+        if not match or match.group(2) not in month_numbers:
+            continue
+        try:
+            expiry = dt.date(int(match.group(3)), month_numbers[match.group(2)], int(match.group(1)))
+        except ValueError:
+            continue
+
+        oi = _num(row.get("OpenInterest")) or 0
+        previous = _num(row.get("PreviousClose"))
+        pct = _num(row.get("PercentChange"))
+        source_time = parsed_stamp.strftime("%Y-%m-%d %H:%M IST")
+        quote = {
+            "price": round(raw_price, 2),
+            "previous_close": round(previous, 2) if previous and previous > 0 else None,
+            "change_pct": round(pct, 2) if pct is not None else None,
+            "date": parsed_stamp.date().isoformat(),
+            "time": parsed_stamp.strftime("%I:%M %p IST").lstrip("0"),
+            "source_time": source_time,
+            "expiry": expiry.isoformat(),
+            "unit": str(row.get("Unit") or "").strip(),
+            "open_interest": int(oi),
+        }
+        if mcx_reference_is_fresh(quote, now=current):
+            candidates[symbol].append(quote)
+
+    selected = {}
+    for symbol, quotes in candidates.items():
+        if quotes:
+            quotes.sort(key=lambda item: (-item["open_interest"], item["expiry"]))
+            selected[symbol] = quotes[0]
+    return selected
+
+
+def refresh_mcx_market_watch_quotes():
+    """Refresh GOLD, SILVER and CRUDEOIL from the exchange's own FUTCOM Market Watch."""
+    try:
+        rows = fetch_mcx_market_watch_rows()
+        quotes = parse_mcx_market_watch_rows(rows)
+        files = {
+            "GOLD": (GOLD_MCX_FILE, "mcx_price_per_10g", "previous_mcx_price_per_10g"),
+            "SILVER": (MCX_SILVER_FILE, "mcx_price_per_kg", "previous_mcx_price_per_kg"),
+            "CRUDEOIL": (CRUDE_MCX_FILE, "mcx_price_per_bbl", "previous_mcx_price_per_bbl"),
+        }
+        updated_symbols = set()
+        for symbol, quote in quotes.items():
+            path, price_key, previous_key = files[symbol]
+            data = load_json(path, {})
+            data.update({
+                price_key: quote["price"],
+                previous_key: quote["previous_close"],
+                "change_pct": quote["change_pct"],
+                "date": quote["date"],
+                "time": quote["time"],
+                "source_time": quote["source_time"],
+                "source": "MCX India official Market Watch · FUTCOM",
+                "source_url": MCX_MARKET_PAGE_URL,
+                "contract_expiry": quote["expiry"],
+                "unit": quote["unit"],
+                "open_interest": quote["open_interest"],
+                "note": "Official MCX futures Market Watch quote. Gold/Silver display adds a separate 3% GST estimate.",
+            })
+            with open(path, "w", encoding="utf-8") as out:
+                json.dump(data, out, ensure_ascii=False, indent=2)
+            updated_symbols.add(symbol)
+            print(f"MCX official {symbol}: ₹{quote['price']:,.2f} ({quote['source_time']}, expiry={quote['expiry']}, OI={quote['open_interest']})")
+        if not updated_symbols:
+            print("MCX official Market Watch returned no fresh GOLD/SILVER/CRUDEOIL FUTCOM rows.")
+        return updated_symbols
+    except Exception as exc:
+        print(f"MCX official Market Watch refresh failed; trying timestamped public-page fallback: {str(exc)[:220]}")
+        return set()
 
 def refresh_mcx_silver_reference():
     """Fetch the timestamped MCX SILVER quote from Upstox; never substitute SI=F."""
@@ -3124,9 +3345,13 @@ def participant_changes(today, prev):
 
 def main():
     global SKIP_EVENTS
-    refresh_mcx_silver_reference()
-    refresh_mcx_gold_reference()
-    refresh_mcx_crude_reference()
+    mcx_updated = refresh_mcx_market_watch_quotes()
+    if "SILVER" not in mcx_updated:
+        refresh_mcx_silver_reference()
+    if "GOLD" not in mcx_updated:
+        refresh_mcx_gold_reference()
+    if "CRUDEOIL" not in mcx_updated:
+        refresh_mcx_crude_reference()
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
