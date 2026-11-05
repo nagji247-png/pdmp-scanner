@@ -865,43 +865,13 @@ def nse_cash_quote(name, sym):
         return bse_sensex_quote() or google_finance_sensex_quote()
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
-        # Actual Actions logs confirmed NSE MCP tools/list/tools/call return HTTP 404.
-        # Use NSE's public allIndices JSON endpoint; no guessed MCP parameters.
+        # NSE MCP index calls are unavailable; use the public NSE feed, then a
+        # separately timestamped Google Finance quote. Never walk an undefined MCP payload.
         quote = nse_web_indices_quote(index_name)
         if quote:
             return quote
-        def find_index_quote(node, inherited_stamp=None, matched=False):
-            if isinstance(node, dict):
-                labels = " ".join(str(node.get(k) or "") for k in
-                                  ("indexName", "name", "index", "symbol", "index_name")).upper()
-                target = index_name.upper()
-                is_match = matched or (target in labels if labels else False)
-                stamp = next((node.get(k) for k in
-                              ("nseTimestamp", "latestTimestamp", "updatedAt",
-                               "timestamp", "time", "lastUpdateTime")
-                              if node.get(k)), inherited_stamp)
-                price = next((node.get(k) for k in
-                              ("last", "lastValue", "lastPrice", "lastTradedPrice",
-                               "indexValue", "currentIndexValue", "ltp", "currentValue")
-                              if node.get(k) is not None), None)
-                if price is not None and stamp and (is_match or not labels):
-                    return {"price": float(price), "stamp": stamp}
-                for key, value in node.items():
-                    key_match = target in str(key).upper()
-                    found = find_index_quote(value, stamp, is_match or key_match)
-                    if found:
-                        return found
-            elif isinstance(node, list):
-                for value in node:
-                    found = find_index_quote(value, inherited_stamp, matched)
-                    if found:
-                        return found
-            return None
-        quote = find_index_quote(data)
-        if quote:
-            return {**quote, "source": "NSE"}
-        return google_finance_quote("NIFTY_50" if name == "NIFTY" else "NIFTY_BANK",
-                                   "INDEXNSE", index_name)
+        google_symbol = "NIFTY_50" if name == "NIFTY" else "NIFTY_BANK"
+        return google_finance_quote(google_symbol, "INDEXNSE", index_name)
     if sym.endswith(".NS"):
         symbol = sym[:-3].upper()
         # Never accept an unlabelled bulk row for a different share.
