@@ -4560,8 +4560,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": 1.44
   },
   {
     "key": "2026-11-04|EICHERMOT|div",
@@ -4770,8 +4770,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 5.86
   },
   {
     "key": "2026-11-04|NIFTY|div",
@@ -4896,8 +4896,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -8.73
   },
   {
     "key": "2026-11-04|BITCOIN|div",
@@ -5022,8 +5022,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 3.78
   },
   {
     "key": "2026-11-04|DJI|div",
@@ -5064,8 +5064,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 3.03
   },
   {
     "key": "2026-11-04|ADANIPORTS|div",
@@ -5276,5 +5276,131 @@
     ],
     "outcome": "sentiment",
     "next_change": 0.9
+  },
+  {
+    "key": "2026-11-05|GOLD|div",
+    "date": "2026-11-05",
+    "instrument": "GOLD",
+    "score": -1.0,
+    "price_change": 3.78,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Gold, Silver Rate Today Live Updates: Spot gold jumps 3% as dollar slides after Democratic sweep in US midterm polls",
+        "source": "The Times of India",
+        "link": "https://news.google.com/rss/articles/CBMi7AJBVV95cUxOT19WelItRFNFUUk2ZFZhTFFpWUhfOTZJWkdGa0cwcEQ1TTZTa2E1S00zbGNtZmhEMHZWRkJsWndwSmJ5M0t1VzF1WllET0xGdXJrdFpfWDdpUzNkMGdSR0t4dC1OVTEwc2ZpVnphQldtb25xaUZnZ1pBOWhLcmJBZ1JaNHFmb0IwdUwtQmRka2h5NFV5Nkxkd2Exa0Y0SGdVMWRQbFpGNUwtWFNRX19ZeE5hc0lMcDl1SElyeGNULS1JTjJzbUluNG5TNUdKYkx2MjVJUVAtc0ppZFhaWTZyM0xuZVZUVldLQWJaQ3RwS1E1M000dVRXWGhlVk8wUEhyZWE2UWpxQnRnZWs1WElpblZJdHBtU1hVT3dKa1o1d0hyVVlBWThuRElzZUhnRThsa1FGUHJ5cTNnUGZnUnhfQkFSajJBcDhqRjlNVjRxSXJGUmN1RmJTVzRRMVl3UjZtaTJnTkRyWDVoUVdN0gHyAkFVX3lxTE5Ib2hmbU1sdFBYSkNvaHhaclptb2t0WTl5cnpzTG12SFhBTXd4clg1WGhEcnlaMldURmphaXFXZFN0VkFSRzI4Sm4tLUI4b3RCWHNOQWxxUUJpTTVyQmZjTTFjZkVyYUxZMEIwd1E5eE5aMk9rMHVMSnNzTlMycXYzVU10dW0zdmRGMVItYXBZNFB4Uk84X24zUWVCZWJMV0ZNLW5WNnN4V3l5RmRRd1VxeU9Ha2NMTU9fUWlSQkVBSmJuZGgzVWVpNmhTM2tmbTJoanQ4SEVrQ2p5b1RJUDRqbnhDano1ZGlWMnVfcDIyckI1REh3LXYtWnVDV2hqWUhtczZ3LWx6eVZES1ZSallKNGF3Rll6dGkxd1J1dVdjVWFsUU9DREtPbFRtZ2U2YnFkWnlBbHUwb2JoM1hCd1RRMENEbTNDVkNHVGJzdG9NUThFd3pvODh4RElET2tBcnNFNjJMZEtaVEZZTnBOZmpOOEE?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold Steadies as Traders Track Iran Talk Prospects, US Midterms",
+        "source": "Bloomberg.com",
+        "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPWVB3Y2J3bG9Ed1BDRjVvY1dIZUFhd0JzRWJ6VTRtRWdLNm13R294UVNEejBhTVVuNkdvWXNQRzZzYTV5ZV9nRWwydHRjQ3BfaTJkMFFVSGNmcTNlQVlfNUtld2xjaDVHNHpKQkdXS19jQnZ0ZzNWTUxuejUzemVBOHNGOGktaExwaExwaXJ6bGd4eUZUWkw0a29OWkZMc1E1QVFVWFJVR1NaU1dLaC1NeUZsYw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold shines as dollar slips to 5-week low, investors await U.S. midterm election results",
+        "source": "The Hindu",
+        "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNbnYtdnRYT2pQak84eV8wVWpYZG12cVRzYjU4V1VvNmhKVVpCZnQ0aUU5b3c2b0prblRuUUZyWXdIOGZEa1NqNms1ZEc5SVlRVHJBZkxMa3VLdE1nT1lteVVUUXhsR3N1SmtfV2JYNWxxTTUzVGExRnBzc1pVcHZCUFhJM1dZWFBBMGNsUGswelNFUWVjTDFoQm5SSDZmcG14VlJrNHRPalJmQkZjLURlNG5aMG9FVG8zOTZjOVZocTdlYnR5ZURFRk5BbzFMRHFxZDBXdFhUMzFHZk9lRDlHM9IB5wFBVV95cUxQLWNQX3lCY0pRTHo3Z25nMlkta3FKMzE2WDNDX2xJcTdhajhnUUpDczNabHpfVzZXdmRsTjM5YjdGakJBTTBuLXlJekVab2N6Y3pPN3NvQmIzQkYyckxuTm1nVlR3SmdnMXpRVnpVRjU4S203dWQyR3E5ZElZQzJfc3ZONDlXakxuZG84dWFPWmlxc18yWjRSem9MUERNcFZ6Q2RCSTFKdVR3ZkpfbnZOc2ZLTUQwSERBa3l1Um9NRVVhRnRYUWp2TENQSVV1Q1hveW5PYTRnTEJIWUZqaW9DRXNLRThoaVk?oc=5",
+        "score": -1
+      },
+      {
+        "title": "Gold and silver prices today: Bought on Dhanteras 2025? Check what your ₹1 lakh investment is worth now",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxPNW5BZTFTTkhnNFRWUkMxQ1lDUVBrbERQcU9RR3REbU9MRDQ0dDBMOVA4VlUxSkJJclVaQndiYkJoUkpNVm5BSkVZaGZNQzFzTG9IV1kwUlFTc3JZTW9wMlNCRHRVZmFVeVJIa0FoanU4Tm1zRlpLbkRPUUdkdjBPXzJ6azlwVnFNU2JTd3hfZ3prZkVRRjg0Tkc3Ti1zTXhjdU1VTmVoYWNaWnpSUlZ4VTRiQllWWENQNVhkemhSZzhod0RvT002MVcxaVoxY1ZldWFDZGVDOUN0ZEU5ek9uZ003UlNTWlEzUDZ3a20xbmt1MlNLN2ZiREFwREPSAYICQVVfeXFMT0ZvSmJycUs2Nl9kamJ4N3BBcF9vTGQyWTNXNEJDYnMxeUtZcnJFT2NKcXVXcF9wNlJvbms4X2Zfb2RacG1iMUVXU3pyTDZLM3pZd254Z0hUTnJWVHg3dkNYbUdtTGRJTGx3cG41MXRLWWpweXhFTUdTYkRVUUgtRlpGQm8tSzFqU2FzclpXMTU0bWhLbEQ2SjFXZTBMa0N0NnhoMFBXMWI5MWdrZTQzUGprUFBTaGxodlZxRmJxSERnUnVtYUdVLTNoeGdXdjJZcnBsejE3WnRKZXkxemx0dXFjOW43OFFhZ3pSOWYzQVNMdGNLSDNoMzY5bHRaTkdsaDhR?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Gold price today: One analyst sees a slide to $3,500, two are watching friday's jobs report",
+        "source": "FXStreet",
+        "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNbkhsd2ZWVlVod01FSTN5U25tQV9Kdzh2eVpVcXFBZFhhY25BUlRHZUI1TEg5SWxXODYxUjlVY0Q1OU83d09GOG0xenNaaGgxRjRudkpLRXJzeHFKUFZrMGMybVVWdDlncnI2eEdVcXpEYXh4R2lLTGUzTGVISnpVYTBCbG94eGVEdU1Zd1A2NS1ra29UcnFUc2t1T014MzRtdERuTm02NFc3LTZrY2J4Ti1xcnVnQkpwZ3d6MGgydFl5MWx5T2h6aXJZeDZ3dkk?oc=5",
+        "score": -1
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-05|EICHERMOT|div",
+    "date": "2026-11-05",
+    "instrument": "EICHERMOT",
+    "score": 1.5,
+    "price_change": -0.27,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Eicher Motors Share Price - Live NSE: EICHERMOT Stock Price & Chart",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9pOTR6MUtLaU9iZ3l6QVAxNVpGYUdyaWI5TVFnRGVUQ1V4TVl5VGtsWklwV3JONHFqOW5fMlNsR2pEczQxaGVibnp0Z0xQYk9IeVVwNjBSQkc4YlNieFFLSktoR2Qwb2M?oc=5",
+        "score": 0
+      },
+      {
+        "title": "EICHERMOT Outlook for the Week",
+        "source": "Equitypandit",
+        "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9RMTByazV6Y2t1UUc4c0IxTWp3Nlg5Tm5ISXBhdjdPQjZvLU5zNzBBc2wtR2ZfLUFQc01kd0YyQ3VWNkFOVWlRM3lTd0Z4VGdOTkk0SnNvTGx6SmxMQk45b2tZUDgzM3R0ZXQ3Rw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Eicher Motors (NSEI:EICHERMOT) Stock Forecast & Analyst Predictions",
+        "source": "Simply Wall St",
+        "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQbE1RWXRZWlQxX0pkVUtHUDRubXRCRnJFanJ1cG1GQUpxLWNMaFZZdWVRd0RsNk0tX1ZnMkIwYUo3Y0x6ZmZnelR5b3FySFhUb0p5YXltRG85ek1EQ0dJVTB3X3Z3bV9HMjJGSV83TGN1VDFDamxtaEtOQUZ0UkF1U2dfQmtwRFBKd3A2VXBn?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Shares Of Eicher Motors Rise 3% To Hit 52-Week High On Strong Q1 Numbers",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxORzRBOG1hb3ZoQ0hqbHJONTJXZU9TTmFDN19xNlV4QUk2NnVqRmdVU2IzcDlLdHBNMVI0TERhc3dXa0VjNFJPdUpVLWtRT21yOFFoRkhVa2pUX2piYTVBellmREVGQUVQN3lodjZUNy1rU2ExYVczSnppc2NEaEZwQWkwMkdKR3VKVE9jczFrWFllRWFVVzFtbnBJVFVpcldEZDMtWE1iS3FSX0sxVGgyV01CLUIxNFR5ZUFpbkMxcGI1cVYzY3B2aHBlRms1dw?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Buy, Sell Or Hold: Eicher Motors, Mahindra, Pine Labs, Belrise Industries, Data Patterns, Crompton Greaves — Ask Profit",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxOalp5N2VPalBMXzlkcEhuWkxyejQ5aXNzVEZ3bUd1M0d1UlN0SF9hUlloVUJrYkJBZDJYN1hJQWRHRVVoV2x0dE9kTkNNR0tCUWlhWUdhc3dtTGk5TjhNcmN6UTdsMTAtTng3c2dHbDBxS0FzYjJxSUgyUFZqaUR2VEl0aWJPXzBuYVVnM1B4YWFDdW1UWDlFT1h5cm9fYXNwbWdrRHFqVURNN1VjZUFqdnBYWFdSQWsyb0xBMXR3bk9KWkpQYkpRa21lQ0hNNjRxQ1JJVFZLME03dmdKQmplU0J4Y0FLS3FTcFHSAfIBQVVfeXFMTXE5QnVyTk1DMVNFaFVWYldMeXFQY3BCa1ZzVV9KVFpGazVlMlpESkRUSVlEUHcwT3Q3NUZkNGdoY19rb2hXSnBKRDhVNWF5dm53QThYY2cyeGlHMFN1TWx1V1c5SXhhZllCTExLQjFsd2NFTDhsMk5CYU9kQXdhalJPajJwU0pwRHFMdkd3aTVyc0hUMHVRWWhEdXRZN1MtNWxyMlhIbThxLWhQQnRsS2ZfS2paODJYZnBvTWY2OU5yaEd3eFZoN2NkcU82SHFyMzZXWTdQSVRDSmlrNmYwS0dlenNCVHNzbXRtQmV0YjY0dnc?oc=5",
+        "score": 2
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-05|SBIN|div",
+    "date": "2026-11-05",
+    "instrument": "SBIN",
+    "score": 4.4,
+    "price_change": -1.7,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "SBI vs SBI Life vs SBI Cards: Which SBI Group stock emerged as the Q2 results 2026 winner? Check technical targets",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxNbjd1U1ktQmlFc2RWQVRkeWprcHJiaU9yclo2ZDJYWGFWOFlxOFlOM2lHdnVHWndwWlFhbDNYdVQ5SGcySk4ySk9UemVjemxEcHN6MzV1TG1fVURWNFRCTjhOTWN3Z0RxbUp0QWQ1RElDUHpqVUVadmJmSmtsaUxXeHV3UTZIbHFyV1ZUZG85eWNqZ1kwRmVxcVZzb3dqMGNLRUlJNVpuQ2x1bC1HWXRzWW5JS01HZWR3VUtqalpwa2lMd1R2aW5XVmY1cUx4c1d5azNTeExldGlNY2dzMmRmQnFVY2EyN3daRXgtTlZPd3NreU4yT0FsOEZ0Y1psSzFSZ1E5QnFFakI0MDZ60gGSAkFVX3lxTE5yanNjaURhOVBJZTc4SlZlWFdEd3dVcFM0V053R3o0aGlqRk1JenhhRkxpX3FJc0w5RlZNY0xFZ3B5cVFVSWF5aFZtWUdRbWVaejJIR2cwS0pjN0gtMmdKR2V2ZXJwc0Zxd3FIZmRMd2NqWm50S1BtNU9VMjRDSk11cVBwUkVEX01lOUJ2OE1oRXR1cHk3UU4xTERsYS1CdmhHa1R1VEphQnBhTUg3by1SRldCazVTRS02LUs4ZFJZV1BKMzczMjBnN2JZOGVqSkRJVjd5cno0dHdXZC1sQ2lMcWdXSV9aSHlWQjV5M1NrWU5TTmQ2bGxfM3N5YVRUQ2JVLW9wODVNcXFkWEdQM2oyMlE?oc=5",
+        "score": 0
+      },
+      {
+        "title": "SBI Life pure protection APE rose 26% as ULIP share fell",
+        "source": "Multibagg AI",
+        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOd3FWcUlZR2JhcmEtbEVLdWR5TWZxTzVKTS1MVTVSR1hPckRVRzgyUE1HbkwzZUJGaFFaTF85R1ZVMWkwY1BCbGhpaUlTem5tQnlJaVgtVktWb1VJSW1SSWh3RUdnS0lJdjRHT3pJd1hMWkN5WlhsV0Nka2dVb3lKcHZLN0VhT1BEN0NkREI1QlUtLThDdmtLQWxVTDM1czVSclhVLTdJZEdrc3hBS2ZpYzdB?oc=5",
+        "score": 0
+      },
+      {
+        "title": "SBI के शेयर में 34% तक तेजी की उम्मीद, जेफरीज और मोतीलाल ने दी बड़ी सलाह | The Lallantop",
+        "source": "The Lallantop",
+        "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNRk1ZSnFBYm5MR0t1Z2dlRGhjbFdfSzdlN0ZQQ3UtNE9fakU2WFlMVGRocXJyU2VrU2dTU0hXN1VQblVNZE8tZHNsMmJNNTFHNDhMOHBTUVA2bVlPelM4YURLcXAtbUpmcm9wQVhKelhtSGs3enNiVGYtWHhSeHZXN0hlVEpEVXBtY1FiVGhfUmFaMGJWUXJNMmktczdLblFobDhYTDdvUDVlSDhnNFRMT0JvcVZmd9IBuwFBVV95cUxNUXMxM3I1LVBwckdDb3Q3RWg3NkluM2IyS2xZT1BENVRBSkZQRHRtTi1na3RsdkgtalB1TlBUVU0tVXZrMXI1dmRYMlRDMnQxRzNlekVrQjZZTThLTm9DQk11OE9lSkdGMENOWDAxdkdlMmVjeDVWbHh6N3hvQURvX1daRUdEX3VYQms3d1UyTUpUbXFKQmVfSG8xeFVSWWIxU0NwWmJrcFJUMFZ6TkJrdVkyTThyRUZvSzFZ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "SBI shares: HSBC, UBS, Jefferies, Macquarie, Citi target prices post Q2 results",
+        "source": "Business Today",
+        "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPZF81bEQyZnBLZld3U2xSUXF4NjhJX21Zcy1TNVJXeC1nNGVYcXp6UEV0ME1nZ2FBUjVUS3hzcUs1TFVsd2lTY2x5SzNhN0pETXdoaDdER1BVNk5pQk9EdmI3UnlmQ29VR2E5a3BLeTZnaF9XbFNUSlNHMXlNUklSUVZJMmpEWUtnN3JjUm9NRldaRlI2c2FSTU95YmxkU043WkxUYktSYTc2d01MMDlxTjBZMFB6NEFUWG1CcXlOOV92cGRuX2NJS2RuTGh5aXJwSC0taURZZHrSAd4BQVVfeXFMTlZ5QjQzbkRQYV9iQlh4WnNZWE5zWHpuZjNjeTFfZWJYMXcwVlJhQW9RT053N29KYmxyYlNvOWtsQ0lLNGRSaUxubllhQXo2X0w3MzB0LXRKclpDdWt3SjBlVGtlNjAzbW8ta2E0Z0hKcW1RM0JrMDJ6WWJCa1VNUmQ0SW1OanhQZktQTmZxZVA2eFBpMWpYdHE0NWwwMEVNTlItcC0zSHV5QXpXXzlEVGo4bkVseEdXWmxaZnV6dmhCSW0xUFBRaWFHRnRTYk9NbUdaRmhpdjNmQXladmJ3?oc=5",
+        "score": 0
+      },
+      {
+        "title": "RBI forms markets panel with Citi, Morgan Stanley, SBI as members",
+        "source": "Business Standard",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNRzRPb1FPREQzMU91RzVyVHdDWFltdnN2UTcyV3RyRU9rOGF0YW5yS0paZ1RhazFLQ2ZWeVF0cURzUm1ZeFRqUC1CeUZrRVpDOGY5dHhJOHlyU3NLbU9LYUlTU2VYTnFkcW93UXltVDdDZDR4MG5LSks2djc5LXVFSGJhcFVLcHVuOXdHNFJfbzBpdnJnVlZyaUJuQWd3dVN4VkVVU2dJUng5RTdCbGt4RDdDdlYtRncxeFhxclA5WVRZZ2gtNlhyZzRn0gHPAUFVX3lxTFAtSTBhbVBjelZ4Z19uTFJaUFMyZlRkNEZKckpfTm56OExOOVQ4bVF2NVh1bXM5MGFDTVRQWTBvY1VOQ1F2Yjhyb3JFWlpLVThzNlBSSGhhcTFpb0dqbFVoX0RucS1RVWhTejZic19zM0REaHlIejBlQmpBMzJYUWRfUVRWYjktTmtVZy1oVzY3SVBzUXpCcUxHMWJvLVp2c3hfVzM2cDhwOVVhdzVGZXRvUk51cUtJbUNJRlp5SF9qOTFzd083RmRIR3JfU2kzNA?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
   }
 ]

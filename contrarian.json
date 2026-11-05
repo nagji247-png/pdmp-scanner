@@ -380,8 +380,8 @@
     "date": "2026-11-03",
     "instrument": "DJI",
     "score": -7.3,
-    "outcome": null,
-    "next_change": null
+    "outcome": "reversed",
+    "next_change": 3.03
   },
   {
     "key": "2026-11-04|NIFTY",
@@ -430,5 +430,25 @@
     "score": 7.0,
     "outcome": null,
     "next_change": null
+  },
+  {
+    "key": "2026-11-05|RELIANCE",
+    "date": "2026-11-05",
+    "instrument": "RELIANCE",
+    "score": 10.2,
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance completed 5-minute candles",
+    "after_30m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    },
+    "after_60m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    }
   }
 ]
