@@ -292,96 +292,159 @@ NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
 NSE_MCP_HTTP = requests.Session()
 NSE_MCP_SESSION_ID = None
+NSE_MCP_PROTOCOL_VERSION = "2025-03-26"
+NSE_MCP_TOOLS = {}
+NSE_MCP_REQUEST_ID = 0
+
+
+def _nse_mcp_headers(session=True):
+    headers = dict(NSE_MCP_HEADERS)
+    if session and NSE_MCP_SESSION_ID:
+        headers["Mcp-Session-Id"] = NSE_MCP_SESSION_ID
+        headers["MCP-Protocol-Version"] = NSE_MCP_PROTOCOL_VERSION
+    return headers
+
 
 def _nse_mcp_decode_response(response):
-    """Decode either JSON or the SSE-framed JSON-RPC response used by NSE MCP."""
-    content_type = response.headers.get("content-type", "") or ""
+    """Decode JSON or the JSON-RPC event from an SSE Streamable HTTP response."""
+    content_type = (response.headers.get("content-type", "") or "").lower()
     if "text/event-stream" in content_type:
-        data_lines = [line[len("data:"):].strip() for line in response.text.splitlines()
-                      if line.startswith("data:")]
-        if not data_lines:
-            raise RuntimeError("NSE MCP returned an empty SSE response")
-        return json.loads("".join(data_lines))
+        events = []
+        for block in response.text.split("\\n\\n"):
+            data = "\\n".join(
+                line[5:].lstrip() for line in block.splitlines()
+                if line.startswith("data:")
+            )
+            if data.strip():
+                events.append(data)
+        for data in reversed(events):
+            try:
+                return json.loads(data)
+            except (ValueError, TypeError):
+                continue
+        raise RuntimeError("NSE MCP returned no valid JSON-RPC event")
     try:
         return response.json()
     except (ValueError, TypeError):
-        data_lines = [line[len("data:"):].strip() for line in response.text.splitlines()
-                      if line.startswith("data:")]
-        if data_lines:
-            return json.loads("".join(data_lines))
-        raise RuntimeError(f"NSE MCP returned an unrecognized response (content-type={content_type!r})")
+        raise RuntimeError(
+            f"NSE MCP returned non-JSON response: HTTP {response.status_code}, "
+            f"content-type={content_type!r}, body={response.text[:180]!r}"
+        )
+
+
+def _nse_mcp_post(payload, timeout=30, session=True):
+    headers = _nse_mcp_headers(session=session)
+    response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=headers, json=payload, timeout=timeout)
+    if response.status_code not in (200, 202):
+        body = re.sub(r"\\s+", " ", response.text or "")[:180]
+        raise RuntimeError(
+            f"NSE MCP HTTP {response.status_code}; "
+            f"session={'yes' if headers.get('Mcp-Session-Id') else 'no'}; body={body!r}"
+        )
+    if response.status_code == 202 or not response.text.strip():
+        return {}
+    return _nse_mcp_decode_response(response)
 
 
 def _nse_mcp_initialize():
-    """Start an NSE MCP session and send the required initialized notification."""
-    global NSE_MCP_SESSION_ID
-    headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+    """Negotiate a Streamable HTTP session and discover the server's real tool schemas."""
+    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_PROTOCOL_VERSION, NSE_MCP_REQUEST_ID
+    NSE_MCP_SESSION_ID = None
+    NSE_MCP_TOOLS = {}
+    init_headers = dict(NSE_MCP_HEADERS)
     payload = {
         "jsonrpc": "2.0", "id": 1, "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": NSE_MCP_PROTOCOL_VERSION,
             "capabilities": {},
-            "clientInfo": {"name": "trinetra-pdmp-scanner", "version": "1.0"},
+            "clientInfo": {"name": "trinetra-pdmp-scanner", "version": "1.1"},
         },
     }
-    response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=headers, json=payload, timeout=30)
+    response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=init_headers, json=payload, timeout=30)
     if response.status_code != 200:
-        raise RuntimeError(f"NSE MCP initialize HTTP {response.status_code}")
+        body = re.sub(r"\\s+", " ", response.text or "")[:180]
+        raise RuntimeError(f"NSE MCP initialize HTTP {response.status_code}: {body}")
     envelope = _nse_mcp_decode_response(response)
     if envelope.get("error"):
         raise RuntimeError(f"NSE MCP initialize error: {envelope['error']}")
-    NSE_MCP_SESSION_ID = (response.headers.get("mcp-session-id")
-                          or response.headers.get("Mcp-Session-Id") or "")
-    notify_headers = dict(headers)
-    if NSE_MCP_SESSION_ID:
-        notify_headers["Mcp-Session-Id"] = NSE_MCP_SESSION_ID
-    try:
-        NSE_MCP_HTTP.post(
-            NSE_MCP_URL, headers=notify_headers,
-            json={"jsonrpc": "2.0", "method": "notifications/initialized"}, timeout=15
-        )
-    except requests.RequestException:
-        pass
+    result = envelope.get("result") or {}
+    negotiated = result.get("protocolVersion")
+    if negotiated:
+        NSE_MCP_PROTOCOL_VERSION = negotiated
+    NSE_MCP_SESSION_ID = (
+        response.headers.get("mcp-session-id")
+        or response.headers.get("Mcp-Session-Id") or ""
+    )
+    _nse_mcp_post(
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        timeout=15,
+    )
+    NSE_MCP_REQUEST_ID += 1
+    listed = _nse_mcp_post({
+        "jsonrpc": "2.0", "id": NSE_MCP_REQUEST_ID, "method": "tools/list",
+        "params": {},
+    })
+    tools = (listed.get("result") or {}).get("tools") or []
+    NSE_MCP_TOOLS = {
+        item.get("name"): item for item in tools
+        if isinstance(item, dict) and item.get("name")
+    }
+    if not NSE_MCP_TOOLS:
+        raise RuntimeError("NSE MCP tools/list returned no tools")
 
 
 def _nse_mcp_call_http(tool_name, arguments):
-    """Call an official NSE MCP tool using its documented HTTP session handshake."""
-    global NSE_MCP_SESSION_ID
-    base_headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+    """Call only a tool confirmed by tools/list, adapting arguments to its live schema."""
+    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_REQUEST_ID
     last_error = None
     for attempt in range(2):
         try:
-            if attempt == 1 or not NSE_MCP_SESSION_ID:
-                NSE_MCP_SESSION_ID = None
+            if attempt == 1 or not NSE_MCP_TOOLS:
                 _nse_mcp_initialize()
-            headers = dict(base_headers)
-            if NSE_MCP_SESSION_ID:
-                headers["Mcp-Session-Id"] = NSE_MCP_SESSION_ID
-            response = NSE_MCP_HTTP.post(
-                NSE_MCP_URL, headers=headers,
-                json={"jsonrpc": "2.0", "id": 3, "method": "tools/call",
-                      "params": {"name": tool_name, "arguments": arguments or {}}},
-                timeout=30,
-            )
-            if response.status_code in (401, 403, 404, 409, 502, 503) and attempt == 0:
-                last_error = RuntimeError(f"NSE MCP HTTP {response.status_code}; retrying new session")
-                NSE_MCP_SESSION_ID = None
-                continue
-            if response.status_code != 200:
-                raise RuntimeError(f"NSE MCP {tool_name} HTTP {response.status_code}")
-            envelope = _nse_mcp_decode_response(response)
+            tool = NSE_MCP_TOOLS.get(tool_name)
+            if not tool:
+                available = ", ".join(sorted(NSE_MCP_TOOLS)[:24])
+                raise RuntimeError(f"tool {tool_name!r} absent from tools/list; available: {available}")
+            supplied = dict(arguments or {})
+            properties = ((tool.get("inputSchema") or {}).get("properties") or {})
+            if properties:
+                aliases = {
+                    "indexName": ("indexName", "index", "name", "index_name", "symbol"),
+                    "symbol": ("symbol", "stockSymbol", "ticker"),
+                }
+                adapted = {}
+                for key, value in supplied.items():
+                    candidates = aliases.get(key, (key,))
+                    target = next((candidate for candidate in candidates if candidate in properties), None)
+                    if target:
+                        adapted[target] = value
+                required = (tool.get("inputSchema") or {}).get("required") or []
+                missing = [key for key in required if key not in adapted]
+                if missing:
+                    raise RuntimeError(
+                        f"{tool_name} requires {missing}; live schema properties: {list(properties)}"
+                    )
+                supplied = adapted
+            NSE_MCP_REQUEST_ID += 1
+            envelope = _nse_mcp_post({
+                "jsonrpc": "2.0", "id": NSE_MCP_REQUEST_ID, "method": "tools/call",
+                "params": {"name": tool_name, "arguments": supplied},
+            })
             rpc_error = envelope.get("error")
             if rpc_error:
                 message = str(rpc_error)
-                if "session terminated" in message.lower() and attempt == 0:
+                if "session" in message.lower() and attempt == 0:
                     last_error = RuntimeError(message)
                     NSE_MCP_SESSION_ID = None
+                    NSE_MCP_TOOLS = {}
                     continue
                 raise RuntimeError(f"NSE MCP {tool_name} JSON-RPC error: {message[:240]}")
             result = envelope.get("result") or {}
             content = result.get("content") or []
             item = next((part for part in content if part.get("type") == "text"), None)
             if item is None:
+                if "structuredContent" in result:
+                    return result["structuredContent"]
                 raise RuntimeError(f"NSE MCP {tool_name}: response has no text content")
             raw = item.get("text", "")
             try:
@@ -397,16 +460,17 @@ def _nse_mcp_call_http(tool_name, arguments):
             last_error = exc
             if attempt == 0:
                 NSE_MCP_SESSION_ID = None
+                NSE_MCP_TOOLS = {}
                 continue
     raise RuntimeError(f"NSE MCP {tool_name} failed: {last_error}")
 
 
 def nse_mcp_call(tool_name, arguments):
-    """Call NSE's no-auth live market MCP endpoint; never convert errors to fake data."""
+    """Call NSE's unauthenticated live MCP endpoint; errors never become synthetic quotes."""
     try:
         return _nse_mcp_call_http(tool_name, arguments)
     except Exception as exc:
-        print(f"NSE MCP {tool_name} unavailable: {str(exc)[:300]}")
+        print(f"NSE MCP {tool_name} unavailable: {str(exc)[:360]}")
         return None
 
 def nse_stock_universe():
@@ -567,20 +631,34 @@ def nse_cash_quote(name, sym):
     """Prefer official exchange quotes; use Google Finance only as a timestamp-validated backup."""
     if name == "SENSEX":
         return bse_sensex_quote() or google_finance_sensex_quote()
-    if name == "NIFTY":
-        data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
-        idx = (data or {}).get("index", {})
-        if idx.get("last") and data.get("nseTimestamp"):
-            return {"price": float(idx["last"]), "stamp": data["nseTimestamp"],
-                    "source": "NSE"}
-        return google_finance_quote("NIFTY_50", "INDEXNSE", "NIFTY 50")
-    if name == "BANKNIFTY":
-        data = nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY BANK"})
-        idx = (data or {}).get("index", {})
-        if idx.get("last") and data.get("nseTimestamp"):
-            return {"price": float(idx["last"]), "stamp": data["nseTimestamp"],
-                    "source": "NSE"}
-        return google_finance_quote("NIFTY_BANK", "INDEXNSE", "NIFTY BANK")
+    if name in ("NIFTY", "BANKNIFTY"):
+        index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
+        data = nse_mcp_call("cm_get_index_quote", {"indexName": index_name})
+        def find_index_quote(node):
+            if isinstance(node, dict):
+                price = next((node.get(k) for k in
+                              ("last", "lastValue", "lastPrice", "indexValue", "ltp", "currentValue")
+                              if node.get(k) is not None), None)
+                stamp = next((node.get(k) for k in
+                              ("nseTimestamp", "latestTimestamp", "updatedAt", "timestamp", "time")
+                              if node.get(k)), None)
+                if price is not None and stamp:
+                    return {"price": float(price), "stamp": stamp}
+                for value in node.values():
+                    found = find_index_quote(value)
+                    if found:
+                        return found
+            elif isinstance(node, list):
+                for value in node:
+                    found = find_index_quote(value)
+                    if found:
+                        return found
+            return None
+        quote = find_index_quote(data)
+        if quote:
+            return {**quote, "source": "NSE"}
+        return google_finance_quote("NIFTY_50" if name == "NIFTY" else "NIFTY_BANK",
+                                   "INDEXNSE", index_name)
     if sym.endswith(".NS"):
         symbol = sym[:-3].upper()
         data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
