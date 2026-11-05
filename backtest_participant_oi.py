@@ -64,18 +64,19 @@ def load_oi_records():
     return [by_date[d] for d in dates]
 
 
-def load_nifty_closes():
+def load_nifty_prices():
     history = yf.Ticker(SYMBOL).history(period="6mo", interval="1d", auto_adjust=False)
-    if history is None or history.empty or "Close" not in history:
-        raise RuntimeError("Yahoo Finance returned no NIFTY daily close history")
-    closes = {}
-    for stamp, value in history["Close"].dropna().items():
-        close = finite_number(value)
-        if close is not None and close > 0:
-            closes[stamp.date().isoformat()] = close
-    if len(closes) < 30:
-        raise RuntimeError(f"only {len(closes)} valid NIFTY daily closes returned")
-    return closes
+    if history is None or history.empty or not {"Open", "Close"}.issubset(history.columns):
+        raise RuntimeError("Yahoo Finance returned no NIFTY daily open/close history")
+    prices = {}
+    for stamp, row in history[["Open", "Close"]].dropna().iterrows():
+        open_price = finite_number(row["Open"])
+        close_price = finite_number(row["Close"])
+        if open_price is not None and close_price is not None and open_price > 0 and close_price > 0:
+            prices[stamp.date().isoformat()] = {"open": open_price, "close": close_price}
+    if len(prices) < 30:
+        raise RuntimeError(f"only {len(prices)} valid NIFTY daily OHLC sessions returned")
+    return prices
 
 
 def normalized_leg_change(current, previous, field, leg):
@@ -128,8 +129,8 @@ def metrics(rows, directional=False):
 
 def run():
     records = load_oi_records()
-    closes = load_nifty_closes()
-    price_dates = sorted(closes)
+    prices = load_nifty_prices()
+    price_dates = sorted(prices)
     price_index = {date: i for i, date in enumerate(price_dates)}
     rows_by_feature = {}
     aligned_dates = []
@@ -172,7 +173,12 @@ def run():
                         if target_idx >= len(price_dates):
                             continue
                         target_date = price_dates[target_idx]
-                        forward = (closes[target_date] / closes[date] - 1.0) * 100.0
+                        # OI is published after date t closes: enter at next session open,
+                    # then exit at the close of the horizon session (no same-day close entry).
+                    entry_date = price_dates[pidx + 1]
+                    entry_open = prices[entry_date]["open"]
+                    target_close = prices[target_date]["close"]
+                    forward = (target_close / entry_open - 1.0) * 100.0
                         if math.isfinite(forward):
                             bucket.append({
                                 "date": date, "target_date": target_date,
@@ -209,18 +215,19 @@ def run():
         "status": "exploratory_only",
         "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "oi_source": "NSE official participant-wise EOD OI CSV archive",
-        "price_source": "Yahoo Finance daily close (^NSEI)",
+        "price_source": "Yahoo Finance daily open and close (^NSEI)",
         "oi_first_date": records[0]["date"],
         "oi_last_date": records[-1]["date"],
         "oi_sessions": len(records),
-        "nifty_close_sessions": len(closes),
+        "nifty_ohlc_sessions": len(prices),
         "aligned_oi_dates": len(aligned_dates),
         "nonconsecutive_oi_pairs_skipped": nonconsecutive_oi_pairs_skipped,
         "aligned_first_date": min(aligned_dates),
         "aligned_last_date": max(aligned_dates),
         "target_definition": (
-            "OI change known after EOD on date t; forward return is NIFTY close "
-            "from date t to the close of the 1st, 3rd, or 5th subsequent trading session."
+            "OI change known after EOD on date t; entry is the next trading session open "
+            "and exit is that session close for horizon 1, or the close of the 3rd/5th "
+            "subsequent session for horizons 3/5. No same-day close entry."
         ),
         "normalization": (
             "Separate long and short leg changes, plus net change, each divided by "
