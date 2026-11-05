@@ -1,7 +1,7 @@
 name: PDMP Scan Watchdog
 
 on:
-  # Check every 10 minutes, but dispatch only if published scan data is stale.
+  # Schedule registration refresh: check every 10 minutes; dispatch only if published scan data is stale.
   # This keeps recovery ahead of the dashboard's 45-minute NO TRADE cutoff.
   schedule:
     - cron: "*/10 * * * *"
