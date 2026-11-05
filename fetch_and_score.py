@@ -654,6 +654,15 @@ def google_finance_quote(symbol, exchange, label):
         )
         change_text = html.unescape(re.sub(r"<[^>]+>", " ", change_tag.group(1))) if change_tag else ""
         pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", change_text)
+        if not pct_match:
+            # Google Finance can change the daily-change CSS class. Its quote
+            # header still places the signed 1D percentage immediately after
+            # the exact quote price; only inspect that short quote-header span,
+            # never the related-assets percentages elsewhere on the page.
+            quote_pos = page_text.find(price_match.group(1))
+            if quote_pos >= 0:
+                quote_header = page_text[quote_pos:quote_pos + 180]
+                pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", quote_header)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         source_label = "Google Finance direct " + label + " quote"
         if exchange not in ("INDEXNASDAQ", "INDEXDJX") and age_seconds > 15 * 60:
