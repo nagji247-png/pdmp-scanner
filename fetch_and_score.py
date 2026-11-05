@@ -1597,9 +1597,43 @@ def intraday_quote(sym):
                 stamp = stamp.astimezone(dt.timezone.utc)
             result = validate_and_format(float(ticker["price"]), stamp,
                                          "Coinbase BTC-USD latest executed trade")
-            if result:
-                return result
-            raise ValueError("Coinbase latest trade is older than 3 minutes or has an invalid timestamp")
+            if not result:
+                raise ValueError("Coinbase latest trade is older than 3 minutes or has an invalid timestamp")
+
+            # Compare the live Coinbase trade with Coinbase's own last completed
+            # UTC daily candle. Never use Yahoo's BTC-USD close as the baseline:
+            # exchanges can differ materially during volatile sessions.
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            today_utc = now_utc.date()
+            previous_day = today_utc - dt.timedelta(days=1)
+            start = dt.datetime.combine(previous_day, dt.time.min, tzinfo=dt.timezone.utc)
+            end = dt.datetime.combine(today_utc, dt.time.min, tzinfo=dt.timezone.utc)
+            candle_url = (
+                "https://api.exchange.coinbase.com/products/BTC-USD/candles"
+                f"?start={start.isoformat().replace('+00:00', 'Z')}"
+                f"&end={end.isoformat().replace('+00:00', 'Z')}&granularity=86400"
+            )
+            candle_response = requests.get(
+                candle_url,
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+                timeout=12
+            )
+            candle_response.raise_for_status()
+            candles = candle_response.json()
+            previous_candle = next(
+                (row for row in candles if isinstance(row, list) and len(row) >= 5
+                 and int(row[0]) == int(start.timestamp())),
+                None
+            )
+            if previous_candle is None:
+                raise ValueError("Coinbase previous UTC daily candle is missing")
+            previous_close = float(previous_candle[4])
+            if not math.isfinite(previous_close) or previous_close <= 0:
+                raise ValueError("Coinbase previous UTC daily close is invalid")
+            result["previous_close"] = previous_close
+            result["change_pct"] = round((result["price"] / previous_close - 1) * 100, 2)
+            result["previous_close_date"] = previous_day.isoformat()
+            return result
         except Exception as exc:
             print(f"Bitcoin latest-trade quote unavailable: {str(exc)[:160]}")
             return None
@@ -2204,9 +2238,10 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 
     # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
     nse_quote = nse_cash_quote(name, sym)
-    # SENSEX price must come only from the direct BSE index quote, never an OHLC candle.
+    # SENSEX uses BSE's direct quote first; Google Finance's timestamped direct
+    # index quote is the fallback. Never use an unvalidated daily OHLC candle.
     yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
-    global_quote = None
+    global_quote = google_finance_sensex_quote() if name == "SENSEX" and not nse_quote else None
     if not nse_quote and not yahoo_quote and name == "NASDAQ":
         global_quote = google_finance_quote(".IXIC", "INDEXNASDAQ", "NASDAQ")
     elif not nse_quote and not yahoo_quote and name == "DJI":
@@ -2231,9 +2266,12 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
             # Never carry yesterday's BTC percentage into a fresh quote.
             # Publish a change only when this run verifies the matching previous close.
             PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
-            prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
-            if prev_close and prev_close > 0:
-                PRICE_CACHE["BTC-USD_CHANGE_PCT"] = round((live_quote["price"] / prev_close - 1) * 100, 2)
+            verified_change = live_quote.get("change_pct")
+            PRICE_CACHE["BTC-USD_CHANGE_PCT"] = (
+                round(float(verified_change), 2)
+                if verified_change is not None and math.isfinite(float(verified_change))
+                else None
+            )
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
         elif global_quote:
