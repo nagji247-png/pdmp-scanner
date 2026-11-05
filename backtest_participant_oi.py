@@ -103,7 +103,13 @@ def normalized_net_change(current, previous, field):
 def correlation(x, y, method):
     if len(x) < 5:
         return None
-    value = pd.Series(x).corr(pd.Series(y), method=method)
+    left, right = pd.Series(x), pd.Series(y)
+    # Pandas Spearman delegates to SciPy, which is not installed in the free scan
+    # runner. Ranking first and then using Pearson is the equivalent calculation.
+    if method == "spearman":
+        left, right = left.rank(method="average"), right.rank(method="average")
+        method = "pearson"
+    value = left.corr(right, method=method)
     return round(float(value), 4) if pd.notna(value) else None
 
 
