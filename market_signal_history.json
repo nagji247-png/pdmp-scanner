@@ -5,108 +5,108 @@
   "records": [
     {
       "date": "2026-11-05",
-      "captured_at_utc": "2026-11-05T15:33Z",
-      "captured_at_ist": "2026-11-05T21:04+05:30",
+      "captured_at_utc": "2026-11-05T15:42Z",
+      "captured_at_ist": "2026-11-05T21:13+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-05T15:33Z",
+      "news_capture_time_utc": "2026-11-05T15:42Z",
       "trends": {
         "valid": true,
-        "as_of": "2026-11-05T15:28:00+00:00",
-        "source_data_time": "2026-11-05T15:28:00+00:00",
+        "as_of": "2026-11-05T15:00:00+00:00",
+        "source_data_time": "2026-11-05T15:00:00+00:00",
         "daily_label": "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग",
-        "crowd_bull_pct": 22.1,
-        "bull_score_pct": 0.6,
-        "bear_score_pct": 2.0,
-        "neutral_score_pct": 97.5,
+        "crowd_bull_pct": 78.1,
+        "bull_score_pct": 1.0,
+        "bear_score_pct": 0.3,
+        "neutral_score_pct": 98.7,
         "daily_complete": false
       },
       "market_news_context": {
         "ok": true,
-        "as_of": "2026-11-05T15:33Z",
+        "as_of": "2026-11-05T15:42Z",
         "items": [
           {
             "topic": "कच्चा तेल",
             "title": "Global crude oil prices rebound after steep losses in previous session",
             "source": "News On AIR",
             "score": 0,
-            "age_hours": 0.9
+            "age_hours": 1.1
           },
           {
             "topic": "कच्चा तेल",
             "title": "Current price of oil as of November 5, 2026",
             "source": "Fortune",
             "score": 0,
-            "age_hours": 3.6
+            "age_hours": 3.7
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Hewlett Packard Enterprise Stock And Other Global Trade Winners From Tariff Rollback Talk",
             "source": "Simply Wall St",
             "score": 0,
-            "age_hours": 4.0
-          },
-          {
-            "topic": "अमेरिकी Fed और ब्याज दर",
-            "title": "Fed’s Rate Hold Sends Bond Yields in Different Directions",
-            "source": "WSJ",
-            "score": 0,
-            "age_hours": 4.3
+            "age_hours": 4.1
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Today Rallies 2,009 Points | Nifty Above 24,500 | 3 Reasons Why Indian Share Markets Are Rising",
             "source": "Equitymaster",
             "score": 2,
-            "age_hours": 4.4
+            "age_hours": 4.5
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Today Highlights: BSE Sensex settles over 2,000 points higher, NSE Nifty50 ends session above 24,500",
             "source": "The Times of India",
             "score": 1,
-            "age_hours": 5.2
+            "age_hours": 5.3
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Today | Stock Market Live: Sensex erases 500 pts form day's high, Nifty at 23,800; IT stocks",
             "source": "IndiaIPO",
             "score": 0,
-            "age_hours": 6.2
+            "age_hours": 6.4
           },
           {
             "topic": "RBI नीति",
             "title": "Crude oil falls to $94, easing pressure on RBI ahead of December policy",
             "source": "Moneycontrol.com",
             "score": -1,
-            "age_hours": 7.3
+            "age_hours": 7.5
           },
           {
             "topic": "कच्चा तेल",
             "title": "Brent slides nearly 8.6% as traders bet on Iran war ending after Republican midterm losses",
             "source": "The Indian Express",
             "score": -2,
-            "age_hours": 8.5
+            "age_hours": 8.7
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Surges Over 1,500 Points, Nifty 50 Crosses 24,400: 5 Key Factors Driving the Stock Market Rally",
             "source": "Dalal Street Investment Journal",
             "score": 4,
-            "age_hours": 8.8
+            "age_hours": 8.9
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Today | Stock Market Live: Sensex surges over 1,500 pts, Nifty nears 24,400; auto jumps over",
             "source": "IndiaIPO",
             "score": 3,
-            "age_hours": 9.0
+            "age_hours": 9.1
           },
           {
             "topic": "कच्चा तेल",
             "title": "Oil Prices Continue to Fall as Democratic Sweep Shakes Energy Markets",
             "source": "Crude Oil Prices Today | OilPrice.com",
             "score": -1,
-            "age_hours": 9.1
+            "age_hours": 9.2
+          },
+          {
+            "topic": "सोना, डॉलर और रुपया",
+            "title": "Indian Rupee extends advance on weak US Dollar, lower oil prices",
+            "source": "www.tmgm.com",
+            "score": -1,
+            "age_hours": 9.6
           }
         ]
       },
@@ -115,9 +115,9 @@
           "close": 24536.6,
           "close_as_of": "05/11/2026",
           "day_change_pct": 2.4,
-          "headline_score": 8.7,
-          "experimental_news_score": 8.8,
-          "experimental_score": 1.7,
+          "headline_score": 7.2,
+          "experimental_news_score": 8.0,
+          "experimental_score": 5.8,
           "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
           "experimental_headline_count": 7,
           "experimental_excluded_old_or_unknown": 0,
@@ -125,56 +125,56 @@
           "headline_count": 8,
           "headlines": [
             {
+              "title": "Why Indian Listed Companies' M-Cap Hit Rs 500 Lakh Crore Despite Nifty Being 7% Below Highs",
+              "source": "NDTV Profit",
+              "score": 0,
+              "age_hours": 0.2
+            },
+            {
               "title": "Nifty Bounces Back to Beat All of Asia on Foreign Flows, Earnings",
               "source": "Bloomberg.com",
               "score": 1,
-              "age_hours": 1.0
+              "age_hours": 1.2
             },
             {
               "title": "Sensex Surges 2,009 Points, Nifty Crosses 24,500",
               "source": "HDFC Sky",
               "score": 2,
-              "age_hours": 4.5
+              "age_hours": 4.7
             },
             {
               "title": "India stocks higher at close of trade; Nifty 50 up 2.40%",
               "source": "Investing.com",
               "score": 1,
-              "age_hours": 4.9
+              "age_hours": 5.1
             },
             {
               "title": "Market wrap, Nov 5: Indices post biggest rally in 7 months; NIFTY50 ends at 24,536, m-cap surges ₹8 lakh crore to ₹497 L crore",
               "source": "Upstox",
               "score": 4,
-              "age_hours": 5.2
-            },
-            {
-              "title": "Broader markets join D-Street party: Nifty Midcap 100 up 1.87%, Nifty Smallcap 100 inches higher – Check...",
-              "source": "Moneycontrol.com",
-              "score": 1,
-              "age_hours": 5.2
+              "age_hours": 5.3
             },
             {
               "title": "Sensex Today | Stock Market Live: Sensex erases 500 pts form day's high, Nifty at 23,800; IT stocks",
               "source": "IndiaIPO",
               "score": 0,
-              "age_hours": 6.2
+              "age_hours": 6.4
             },
             {
-              "title": "NIFTY50 soars over 500 points, while midcap and smallcap indices lag; whats driving the underperformance?",
+              "title": "NIFTY50 soars over 500 points, while midcap and smallcap indices lag; what's driving the underperformance?",
               "source": "Upstox",
               "score": 0,
-              "age_hours": 6.3
+              "age_hours": 6.4
             },
             {
               "title": "BSE Share Price Live - Stock rallies 6% after Q2 FY27 | Net profit rises 45% to ₹809 Crore",
               "source": "India Infoline",
               "score": 4,
-              "age_hours": 8.1
+              "age_hours": 8.3
             }
           ],
           "client_retail_adjustment": 0.38,
-          "published_score": 2.1,
+          "published_score": 6.6,
           "published_score_mode": "news_crowd_client"
         },
         "SENSEX": {
@@ -183,7 +183,7 @@
           "day_change_pct": 2.6,
           "headline_score": 6.5,
           "experimental_news_score": 10.0,
-          "experimental_score": 2.1,
+          "experimental_score": 6.6,
           "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
           "experimental_headline_count": 7,
           "experimental_excluded_old_or_unknown": 1,
@@ -194,53 +194,53 @@
               "title": "Sensex Today Rallies 2,009 Points | Nifty Above 24,500 | 3 Reasons Why Indian Share Markets Are Rising",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 4.4
+              "age_hours": 4.5
             },
             {
               "title": "Sensex Today Rallies 1,484 Points | Nifty Above 24,400 | BSE Auto Index Up 3.5%",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 10.2
+              "age_hours": 10.4
             },
             {
               "title": "Sensex gains 2,000 points, investors richer by Rs 7 lakh crore: 3 reasons behind rally",
               "source": "India Today",
               "score": 3,
-              "age_hours": 11.2
+              "age_hours": 11.4
             },
             {
               "title": "Why Indian Stock Market Is Rising Today? Three Key Reasons Behind 2% Rally In Nifty 50, Sensex",
               "source": "NDTV Profit",
               "score": 2,
-              "age_hours": 11.5
+              "age_hours": 11.6
             },
             {
               "title": "SENSEX rallies over 1,600 pts; NIFTY50 jumps 1.8% as crude oil plummets; key factors behind today's stock market surge",
               "source": "Upstox",
               "score": 5,
-              "age_hours": 11.6
+              "age_hours": 11.7
             },
             {
               "title": "Stock market outlook today, 5 Nov: Sensex, Nifty prediction - DJIA, S&P, NASDAQ, GIFT Nifty, Kospi, Nikkei, Taiwan cues",
               "source": "Livemint",
               "score": 0,
-              "age_hours": 13.8
+              "age_hours": 13.9
             },
             {
               "title": "US Midterm Election Results 2026 impact: What Trump's loss mean for Sensex, Nifty, gold, silver rates? Experts' views",
               "source": "Livemint",
               "score": -1,
-              "age_hours": 14.4
+              "age_hours": 14.6
             },
             {
               "title": "Indian markets defy mixed Asian cues, Sensex and Nifty extend winning streak",
               "source": "The New Indian Express",
               "score": 0,
-              "age_hours": 27.4
+              "age_hours": 27.6
             }
           ],
           "client_retail_adjustment": 0.38,
-          "published_score": 2.1,
+          "published_score": 6.6,
           "published_score_mode": "news_crowd_client"
         },
         "BANKNIFTY": {
@@ -249,7 +249,7 @@
           "day_change_pct": 3.33,
           "headline_score": 7.0,
           "experimental_news_score": 10.0,
-          "experimental_score": 2.1,
+          "experimental_score": 6.6,
           "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
           "experimental_headline_count": 7,
           "experimental_excluded_old_or_unknown": 0,
@@ -257,56 +257,56 @@
           "headline_count": 8,
           "headlines": [
             {
-              "title": "Technical View: Nifty eyes 24,800 after biggest single-day rally since April, but consolidation risks...",
-              "source": "Moneycontrol.com",
+              "title": "Top Traded by Volume Today 05-Nov-2026: Banks and Auto Lead Rally",
+              "source": "Multibagg AI",
               "score": 2,
-              "age_hours": 3.9
+              "age_hours": 4.6
             },
             {
               "title": "Nifty Bank jumps 3%, Financials 4%: What's behind the rise? Explained",
               "source": "Business Standard",
               "score": 2,
-              "age_hours": 6.0
+              "age_hours": 6.1
             },
             {
               "title": "Sensex Today | Stock Market Live: Sensex erases 500 pts form day's high, Nifty at 23,800; IT stocks",
               "source": "IndiaIPO",
               "score": 0,
-              "age_hours": 6.2
+              "age_hours": 6.4
             },
             {
               "title": "NIFTY50 gains 7.6%, SENSEX up 5,755 points after sixth consecutive days of rally; will NIFTY be able to hit 25,000?",
               "source": "Upstox",
               "score": 3,
-              "age_hours": 8.4
+              "age_hours": 8.6
             },
             {
               "title": "Sensex Today | Stock Market Live: Sensex surges over 1,500 pts, Nifty nears 24,400; auto jumps over",
               "source": "IndiaIPO",
               "score": 3,
-              "age_hours": 9.0
+              "age_hours": 9.1
             },
             {
               "title": "US Midterm Election results lift banking, financial stocks - SBI Cards, Bajaj Finance, Axis, ICICI Bank surge up to 6%",
               "source": "Livemint",
               "score": 2,
-              "age_hours": 9.7
+              "age_hours": 9.8
             },
             {
               "title": "US Midterm Election results impact on oil and IT shares: Reliance, Indian Oil, TCS, Infosys - 10 stocks from experts",
               "source": "Livemint",
               "score": 0,
-              "age_hours": 10.0
+              "age_hours": 10.2
             },
             {
               "title": "Bank Nifty surges 2%, trades near 57,000; IndusInd, AU SFB lead gains: What lies ahead?",
               "source": "Moneycontrol.com",
               "score": 3,
-              "age_hours": 10.4
+              "age_hours": 10.5
             }
           ],
           "client_retail_adjustment": 0.38,
-          "published_score": 2.1,
+          "published_score": 6.6,
           "published_score_mode": "news_crowd_client"
         }
       },
@@ -436,10 +436,10 @@
         },
         "crowd_included": true,
         "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
-        "crowd_bull_pct": 22.1,
+        "crowd_bull_pct": 78.1,
         "client_included": true
       }
     }
   ],
-  "updated_at": "2026-11-05T15:33Z"
+  "updated_at": "2026-11-05T15:42Z"
 }
