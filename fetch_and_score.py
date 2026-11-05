@@ -1063,6 +1063,7 @@ def mcx_session_open(now=None):
 
 
 MCX_MARKET_PAGE_URL = "https://www.mcxindia.com/market-data/market-watch"
+MCX_BHAVCOPY_PAGE_URL = "https://www.mcxindia.com/market-data/bhavcopy"
 MCX_MARKET_API_URL = "https://www.mcxindia.com/market-data/market-watch/GetMarketWatch?culture=en"
 MCX_HTTP = curl_requests.Session(impersonate="chrome124")
 MCX_HTTP_WARMED = False
@@ -1163,7 +1164,114 @@ def fetch_mcx_market_watch_rows():
         errors.append("legacy route returned no d.Data rows")
     except Exception as exc:
         errors.append("legacy route: " + str(exc)[:140])
+
     raise ValueError("MCX Market Watch unavailable: " + " | ".join(errors))
+
+
+def fetch_mcx_bhavcopy_rows(trade_date):
+    """Fetch one date's contract-wise rows from MCX's official Bhavcopy endpoint."""
+    target_date = dt.date.fromisoformat(str(trade_date))
+    date_display = target_date.strftime("%d/%m/%Y")
+    headers = {
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-IN,en;q=0.9",
+        "Origin": "https://www.mcxindia.com",
+        "Referer": MCX_BHAVCOPY_PAGE_URL,
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+        "Cache-Control": "no-cache",
+    }
+    page = MCX_HTTP.get(MCX_BHAVCOPY_PAGE_URL, headers=headers, timeout=25)
+    page.raise_for_status()
+    meta = re.search(
+        r"<meta\b(?=[^>]*\bname\s*=\s*['\"]X-XSRF-Token['\"])[^>]*>",
+        page.text, re.I
+    )
+    token = ""
+    if meta:
+        content = re.search(r"\bcontent\s*=\s*(['\"])(.*?)\1", meta.group(0), re.I | re.S)
+        if content:
+            token_markup = html.unescape(content.group(2))
+            token_match = re.search(r"\bvalue\s*=\s*(['\"])(.*?)\1", token_markup, re.I | re.S)
+            token = token_match.group(2) if token_match else token_markup.strip()
+    if not token:
+        try:
+            token = MCX_HTTP.cookies.get("XSRF-TOKEN") or ""
+        except Exception:
+            token = ""
+    if not token:
+        raise ValueError("MCX Bhavcopy request-verification token missing")
+
+    api_headers = dict(headers)
+    api_headers["__requestverificationtoken"] = token
+    api_headers["Content-Type"] = "application/json"
+    endpoint = MCX_BHAVCOPY_PAGE_URL.rstrip("/") + "/GetDateWiseBhavCopy"
+    response = MCX_HTTP.get(
+        endpoint,
+        params={"InstrumentName": "ALL", "fromDate": date_display},
+        headers=api_headers,
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    box = payload.get("d") or payload.get("data") or payload
+    if isinstance(box, str):
+        box = json.loads(box)
+    rows = box.get("Data") if isinstance(box, dict) else None
+    if not isinstance(rows, list):
+        raise ValueError("MCX Bhavcopy returned no contract rows")
+    return rows
+
+
+def mcx_bhavcopy_contract_close(rows, symbol, expiry, trade_date):
+    """Return the official FUTCOM close for one exact symbol/expiry/date."""
+    target_expiry = dt.date.fromisoformat(str(expiry))
+    target_date = dt.date.fromisoformat(str(trade_date))
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("InstrumentName") or "").strip().upper() != "FUTCOM":
+            continue
+        if str(row.get("Symbol") or "").strip().upper() != str(symbol).upper():
+            continue
+        raw_expiry = str(row.get("ExpiryDate") or "").strip().upper()
+        parsed_expiry = None
+        for fmt in ("%d%b%Y", "%d%b%y", "%d-%b-%Y", "%d-%b-%y"):
+            try:
+                parsed_expiry = dt.datetime.strptime(raw_expiry, fmt).date()
+                break
+            except ValueError:
+                pass
+        if parsed_expiry != target_expiry:
+            continue
+
+        row_date = None
+        for raw_date in (row.get("DateDisplay"), row.get("Date")):
+            if raw_date in (None, ""):
+                continue
+            date_text = str(raw_date).strip()
+            for fmt in ("%d %b %Y", "%d %B %Y", "%d/%m/%Y", "%Y-%m-%d"):
+                try:
+                    row_date = dt.datetime.strptime(date_text, fmt).date()
+                    break
+                except ValueError:
+                    pass
+            if row_date is None:
+                epoch = re.search(r"/Date\((-?\d+)", date_text)
+                if epoch:
+                    row_date = dt.datetime.fromtimestamp(
+                        int(epoch.group(1)) / 1000, dt.timezone.utc
+                    ).astimezone(ist).date()
+            if row_date is not None:
+                break
+        if row_date is not None and row_date != target_date:
+            continue
+
+        close = _num(row.get("Close"))
+        if close is not None and math.isfinite(close) and close > 0:
+            return round(close, 2)
+    return None
 
 
 def parse_mcx_market_watch_rows(rows, now=None):
@@ -1253,42 +1361,59 @@ def refresh_mcx_market_watch_quotes():
             "CRUDEOIL": (CRUDE_MCX_FILE, "mcx_price_per_bbl", "previous_mcx_price_per_bbl"),
         }
         updated_symbols = set()
-        public_pages = {
-            "GOLD": (GOLD_PUBLIC_URL, 50000, 500000, "MCX GOLD"),
-            "SILVER": (MCX_PUBLIC_URL, 50000, 500000, "MCX SILVER"),
-            "CRUDEOIL": (CRUDE_PUBLIC_URL, 3000, 30000, "MCX CRUDEOIL"),
-        }
+        bhavcopy_cache = {}
+        bhavcopy_source = "MCX India official Bhavcopy · same FUTCOM contract"
         for symbol, quote in quotes.items():
             path, price_key, previous_key = files[symbol]
             data = load_json(path, {})
-            # MCX Market Watch's PreviousClose/PercentChange fields have, in
-            # observed rows, repeated the open/nearby tick rather than the
-            # previous session settlement. Verify the prior close independently
-            # from the historical row for this exact expiry before publishing %.
             verified_previous = None
             verified_change = None
             verified_previous_date = None
-            page_url, low, high, label = public_pages[symbol]
-            try:
-                response = requests.get(page_url, headers={
-                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
-                }, timeout=15)
-                response.raise_for_status()
-                reference = parse_upstox_mcx_quote(
-                    response.text, low, high, label, require_fresh=False
-                )
-                if reference["date"] != quote["date"] or reference["expiry"] != quote["expiry"]:
-                    raise ValueError("historical reference date/expiry does not match official MCX contract")
-                verified_previous = reference["previous_close"]
-                verified_previous_date = reference["previous_close_date"]
+
+            # एक ही quote-date और expiry के लिए सत्यापित close को reuse करें;
+            # इससे हर 30-मिनट स्कैन में Bhavcopy की अतिरिक्त request नहीं होगी।
+            cached_previous = _num(data.get(previous_key))
+            if (
+                data.get("date") == quote["date"]
+                and data.get("contract_expiry") == quote["expiry"]
+                and data.get("previous_close_source") == bhavcopy_source
+                and cached_previous is not None and cached_previous > 0
+                and data.get("previous_close_date")
+            ):
+                verified_previous = cached_previous
+                verified_previous_date = data.get("previous_close_date")
+            else:
+                target_date = dt.date.fromisoformat(quote["date"]) - dt.timedelta(days=1)
+                for _ in range(7):
+                    while target_date.weekday() >= 5:
+                        target_date -= dt.timedelta(days=1)
+                    date_key = target_date.isoformat()
+                    if date_key not in bhavcopy_cache:
+                        try:
+                            bhavcopy_cache[date_key] = fetch_mcx_bhavcopy_rows(date_key)
+                        except Exception as bhavcopy_error:
+                            bhavcopy_cache[date_key] = None
+                            print(f"MCX Bhavcopy {date_key} fetch failed: {str(bhavcopy_error)[:160]}")
+                    rows_for_date = bhavcopy_cache[date_key]
+                    if rows_for_date is None:
+                        break
+                    verified_previous = mcx_bhavcopy_contract_close(
+                        rows_for_date, symbol, quote["expiry"], date_key
+                    )
+                    if verified_previous is not None:
+                        verified_previous_date = date_key
+                        break
+                    target_date -= dt.timedelta(days=1)
+
+            if verified_previous is not None:
                 verified_change = round((quote["price"] / verified_previous - 1) * 100, 2)
-            except Exception as reference_error:
-                print(f"MCX {symbol} daily change withheld: previous close could not be verified: {str(reference_error)[:180]}")
+            else:
+                print(f"MCX {symbol} daily change withheld: official Bhavcopy has no verified prior close for the same FUTCOM expiry")
             data.update({
                 price_key: quote["price"],
                 previous_key: verified_previous,
                 "previous_close_date": verified_previous_date,
-                "previous_close_source": "Upstox historical table · same MCX expiry" if verified_previous is not None else None,
+                "previous_close_source": bhavcopy_source if verified_previous is not None else None,
                 "change_pct": verified_change,
                 "date": quote["date"],
                 "time": quote["time"],
@@ -1303,7 +1428,8 @@ def refresh_mcx_market_watch_quotes():
             with open(path, "w", encoding="utf-8") as out:
                 json.dump(data, out, ensure_ascii=False, indent=2)
             updated_symbols.add(symbol)
-            print(f"MCX official {symbol}: ₹{quote['price']:,.2f} ({quote['source_time']}, expiry={quote['expiry']}, OI={quote['open_interest']})")
+            change_label = f"{verified_change:+.2f}%" if verified_change is not None else "daily change unverified"
+            print(f"MCX official {symbol}: ₹{quote['price']:,.2f} ({quote['source_time']}, expiry={quote['expiry']}, {change_label}, OI={quote['open_interest']})")
         if not updated_symbols:
             print("MCX official Market Watch returned no fresh GOLD/SILVER/CRUDEOIL FUTCOM rows.")
         return updated_symbols
@@ -2297,16 +2423,23 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
                 if prev_close and prev_close > 0:
                     change = round((live_quote["price"] / prev_close - 1) * 100, 2)
         elif name == "SENSEX":
-            # After 15:45 IST daily_returns includes today's completed close.
-            # Do not divide the closing quote by today's close (which would
-            # incorrectly display 0.00%); use today's recorded daily return.
-            now_ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
-            if now_ist.weekday() < 5 and now_ist.time() >= dt.time(15, 45) and returns:
-                change = returns[max(returns)]
-            else:
-                prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
-                if prev_close and prev_close > 0:
-                    change = round((live_quote["price"] / prev_close - 1) * 100, 2)
+            # प्रतिशत केवल उसी तारीख के सत्यापित quote/candle से लें।
+            # आज का live quote अपना प्रतिशत न दे तो कल का Yahoo previous close
+            # लगाकर आज का बदलाव कभी न निकालें।
+            quote_date = live_quote.get("date")
+            if not quote_date and live_quote.get("stamp"):
+                try:
+                    quote_date = dt.datetime.strptime(
+                        str(live_quote["stamp"]), "%d-%b-%Y %H:%M:%S"
+                    ).date().isoformat()
+                except ValueError:
+                    quote_date = None
+            latest_return_date = max(returns) if returns else None
+            change = (
+                round(returns[latest_return_date], 2)
+                if latest_return_date and quote_date == latest_return_date
+                else None
+            )
         else:
             prev_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
             if prev_close and prev_close > 0:
@@ -3791,6 +3924,18 @@ def main():
             )
             if abs((_local_stamp - _expected).total_seconds()) > 3 * 60 * 60:
                 slot_state["slots"].pop(_key, None)
+                continue
+        if _record.get("status") == "success" and _key in slot_labels:
+            _local_stamp = _stamp.astimezone(ist_tz)
+            _expected = dt.datetime.combine(
+                _local_stamp.date(), dt.time.fromisoformat(slot_labels[_key]), tzinfo=ist_tz
+            )
+            # आख़िरी observation स्लॉट से 6 घंटे से ज़्यादा पुराना या
+            # स्लॉट के 15 मिनट से ज़्यादा आगे का हो तो success न गिनें।
+            observation_lag = (_expected - _local_stamp).total_seconds() / 60
+            if observation_lag < -15 or observation_lag > TRENDS_MAX_AGE_MINUTES:
+                slot_state["slots"].pop(_key, None)
+                continue
 
     if trends_scan and slot_id in slot_labels:
         if trends.get("ok") and trends.get("source_data_time") and all(
