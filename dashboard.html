@@ -547,7 +547,8 @@ function card(name, d, participantOI) {
   const shownScore = Number(d.score);
   let [cls, label] = classify(shownScore);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
-  const sign = d.change_pct >= 0 ? "+" : "";
+  const hasChange = d.change_pct != null && Number.isFinite(Number(d.change_pct));
+  const sign = hasChange && Number(d.change_pct) > 0 ? "+" : "";
   const sScore = (shownScore > 0 ? "+" : "") + shownScore;
 
   const allHeads = d.headlines || [];
@@ -656,7 +657,7 @@ function card(name, d, participantOI) {
         </div>
         <div class="hl">
           <div class="hl-title">कीमत का बदलाव</div>
-          <div class="hl-meta">${sign}${d.change_pct}% · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
+          <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
         </div>
       </details>` : ""}
     <details>
