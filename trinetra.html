@@ -58,7 +58,7 @@ async function loadCompanyUniverse(){
   document.getElementById("count-ipo").textContent="डेटा नहीं";
   document.getElementById("count-sources").textContent="2";
   renderSectors();renderStocks();renderNetwork();
-  document.querySelector(".warning").textContent="NSE सूची स्रोत से लोड हुई। Sector केवल मैप किए गए symbols के लिए है; कारोबारी संबंध सत्यापित डेटा आने तक नहीं दिखाए जाएँगे।";
+  document.querySelector(".warning").textContent="NSE सूची स्रोत से लोड हुई। Sector पहले NSE curated map, फिर Yahoo Finance company profile से भरा जाता है; जहाँ स्रोत उपलब्ध न हो वहाँ Unclassified रहेगा। कारोबारी संबंध अलग से सत्यापित होने पर ही दिखेंगे।";
  }catch(e){
   document.getElementById("count-companies").textContent="डेटा नहीं";
   document.getElementById("count-links").textContent="—";

@@ -60,6 +60,7 @@ def fundamentals(symbol):
             "profit_growth":None,"debt_to_equity":None,"dividend_yield":None,
             "operating_margin":None,"profit_margin":None,
             "held_pct_insiders":None,"held_pct_institutions":None,
+            "sector":None,"industry":None,
             # Promoter/FII/DII are not inferred from Yahoo insider/institutional fields.
             "promoter_pct":None,"fii_pct":None,"dii_pct":None,
             "currency":None,"source":"Yahoo Finance (best-effort)","as_of":None}
@@ -77,7 +78,10 @@ def fundamentals(symbol):
           "revenue_growth":num(info.get("revenueGrowth")),
           "profit_growth":num(info.get("earningsGrowth")),
           "debt_to_equity":num(info.get("debtToEquity")),
-          "dividend_yield":(num(info.get("dividendYield"))*100 if num(info.get("dividendYield")) is not None else None),
+          # yfinance 1.8.x supplies dividendYield in percentage points (e.g. 7.42 = 7.42%).
+          "dividend_yield":num(info.get("dividendYield")),
+          "sector":info.get("sector") or None,
+          "industry":info.get("industry") or None,
           "operating_margin":num(info.get("operatingMargins")),
           "profit_margin":num(info.get("profitMargins")),
           "held_pct_insiders":(num(info.get("heldPercentInsiders"))*100 if num(info.get("heldPercentInsiders")) is not None else None),
@@ -126,6 +130,23 @@ def main():
         c["fundamentals"]=old.get("fundamentals")
         if old.get("fundamentals_updated_at"):
             c["fundamentals_updated_at"]=old["fundamentals_updated_at"]
+        if old.get("sector_source"):
+            c["sector_source"]=old["sector_source"]
+        if old.get("industry"):
+            c["industry"]=old["industry"]
+        if c.get("sector") and not c.get("sector_source"):
+            c["sector_source"]="NSE curated mapping"
+
+    # One-time correction: older builds multiplied Yahoo dividendYield by 100.
+    # Stored values are percentage points already; convert old records once.
+    if previous.get("dividend_yield_scale_version") != 2:
+        for c in companies:
+            f=c.get("fundamentals")
+            if isinstance(f,dict):
+                old_yield=num(f.get("dividend_yield"))
+                if old_yield is not None:
+                    f["dividend_yield"]=round(old_yield/100,4)
+        previous["dividend_yield_scale_version"]=2
     batch_size=40
     progress=previous.get("fundamentals_progress") or {}
     last_symbol=str(progress.get("last_symbol") or "").upper()
@@ -140,21 +161,30 @@ def main():
     attempt_time=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     for index,c in enumerate(batch,1):
         print(f"Fundamentals batch {index}/{len(batch)}: {c['symbol']}",flush=True)
-        c["fundamentals"]=fundamentals(c["symbol"])
+        fresh=fundamentals(c["symbol"])
+        c["fundamentals"]=fresh
+        if not c.get("sector") and fresh.get("sector"):
+            c["sector"]=fresh["sector"]
+            c["sector_source"]="Yahoo Finance company profile"
+        elif c.get("sector") and not c.get("sector_source"):
+            c["sector_source"]="NSE curated mapping"
+        if not c.get("industry") and fresh.get("industry"):
+            c["industry"]=fresh["industry"]
         c["fundamentals_updated_at"]=attempt_time
     last_done=batch[-1]["symbol"] if batch else last_symbol
     previous_total=int(progress.get("total_attempts",0) or 0)
     total_attempts=previous_total+len(batch)
     data={"generated_at":dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-          "source":"NSE official listed equity CSV; Yahoo Finance best-effort fundamentals",
+          "dividend_yield_scale_version":2,
+          "source":"NSE official listed equity CSV; Yahoo Finance best-effort fundamentals and sector/industry",
           "companies_count":len(companies),"companies":companies,
           "fundamentals_progress":{
               "batch_size":batch_size,"last_symbol":last_done,
               "total_attempts":total_attempts,
               "estimated_batches":(len(companies)+batch_size-1)//batch_size,
-              "coverage_note":"40 symbols are refreshed per scheduled run; remaining values are preserved from the last successful fetch. Unavailable fields remain null."
+              "coverage_note":"40 symbols are refreshed per scheduled run. Sector/industry are filled from Yahoo company profiles when a symbol is refreshed; remaining values are preserved from the last successful fetch. Unavailable fields remain null."
           },
-          "disclaimer":"Sector is only populated for a curated mapping. Yahoo insider/institutional ownership is not promoter/FII/DII shareholding. Missing fundamentals/holdings are null, not zero. Business relationships are not inferred from sector."}
+          "disclaimer":"Sector comes from the NSE curated map or Yahoo Finance company profile; unclassified companies remain unclassified until a profile is fetched. Yahoo insider/institutional ownership is not promoter/FII/DII shareholding. Missing fundamentals/holdings are null, not zero. Business relationships are not inferred from sector."}
     with open(OUT,"w",encoding="utf-8") as f: json.dump(data,f,ensure_ascii=False,separators=(",",":"))
     print("Wrote",OUT,"with",len(companies),"NSE equity records; refreshed",len(batch),
           "fundamentals records; cumulative attempts",total_attempts,flush=True)
