@@ -183,7 +183,15 @@ jobs:
               }]
           }
           assert app.parse_nse_direct_equity_payload("SBIN", stale, now=during_session) is None
-          print("NSE symbol identity, source timestamp and stale-quote guards passed.")
+
+          from unittest.mock import patch
+          fallback = {"price": 22714.0, "stamp": "04-Nov-2026 15:30:00", "source": "Google Finance previous close"}
+          with patch.object(app, "nse_web_indices_quote", return_value=None):
+              with patch.object(app, "google_finance_quote", return_value=fallback) as google:
+                  index_quote = app.nse_cash_quote("NIFTY", "^NSEI")
+          assert index_quote == fallback, index_quote
+          google.assert_called_once_with("NIFTY_50", "INDEXNSE", "NIFTY 50")
+          print("NSE symbol identity, timestamp, index fallback and stale-quote guards passed.")
           PY
       - name: Verify official MCX Market Watch FUTCOM parsing
         run: |
