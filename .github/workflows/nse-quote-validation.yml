@@ -174,7 +174,7 @@ jobs:
 
           crude_history = history_html.replace("₹1,87,580.00", "₹8,381.00").replace(
               "Expiry: 4 December, 26", "Expiry: 19 November, 26"
-          ).replace("4 Dec, 26", "19 Nov, 26").replace("179888", "9078").replace(
+          ).replace("04 Dec, 26", "19 Nov, 26").replace("179888", "9078").replace(
               "188000", "9189").replace("177600", "8231").replace("187580", "8381").replace(
               "+7882 (4.39%)", "-723 (-7.94%)").replace("179420", "9120").replace(
               "180100", "9372").replace("178900", "8873").replace("179698", "9104")
