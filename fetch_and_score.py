@@ -3680,6 +3680,68 @@ def participant_changes(today, prev):
     return {"ok": bool(out), "prev_date": prev.get("date"), "by_group": out}
 
 
+PARTICIPANT_HISTORY_FILE = "participant_oi_history.json"
+PARTICIPANT_HISTORY_KEEP = 260
+
+
+def update_participant_oi_history(*snapshots):
+    """सत्यापित NSE EOD participant snapshots को तारीख-वार सुरक्षित रखें."""
+    try:
+        archive = load_json(PARTICIPANT_HISTORY_FILE, {})
+    except Exception as exc:
+        print(f"participant OI history read failed; starting safe archive: {exc}")
+        archive = {}
+    if not isinstance(archive, dict):
+        archive = {}
+    records = archive.get("records")
+    if not isinstance(records, list):
+        records = []
+
+    by_date = {}
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        date = record.get("date")
+        participants = record.get("participants")
+        if (isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date)
+                and isinstance(participants, dict) and participants):
+            by_date[date] = {
+                "date": date,
+                "source": record.get("source", "NSE participant-wise OI archive"),
+                "scope": record.get("scope", "Index F&O participant totals"),
+                "participants": participants,
+            }
+
+    added = 0
+    for snapshot in snapshots:
+        if not isinstance(snapshot, dict) or not snapshot.get("ok") or snapshot.get("stale"):
+            continue
+        date = snapshot.get("date")
+        participants = snapshot.get("participants")
+        if (not isinstance(date, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date)
+                or not isinstance(participants, dict)
+                or not all(group in participants for group in ("FII", "DII", "PRO", "CLIENT"))):
+            continue
+        if date not in by_date:
+            added += 1
+        by_date[date] = {
+            "date": date,
+            "source": snapshot.get("source", "NSE participant-wise OI archive"),
+            "scope": snapshot.get("scope", "Index F&O participant totals"),
+            "participants": participants,
+        }
+
+    ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
+    return {
+        "schema_version": 1,
+        "source": "NSE participant-wise Open Interest daily EOD CSV",
+        "retention_sessions": PARTICIPANT_HISTORY_KEEP,
+        "records": ordered,
+        "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes").replace("+00:00", "Z"),
+        "added_this_run": added,
+    }
+
+
 def main():
     global SKIP_EVENTS
     mcx_updated = refresh_mcx_market_watch_quotes()
@@ -3867,6 +3929,8 @@ def main():
     result["participant_oi_two_days_ago"] = prior_prior_snapshot
     result["participant_oi"]["changes"] = participant_changes(
         participant_today, prior_snapshot)
+    participant_oi_history = update_participant_oi_history(
+        participant_today, prior_snapshot, prior_prior_snapshot)
     adj, rinfo = retail_adjust(result["participant_oi"])
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
@@ -4168,6 +4232,9 @@ def main():
     div_events = clean(div_events)
     sig_state = clean(sig_state)
     sig_log = clean(sig_log)
+
+    with open(PARTICIPANT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(clean(participant_oi_history), f, ensure_ascii=False, indent=2, allow_nan=False)
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
