@@ -143,6 +143,46 @@ jobs:
           last_close = {"source_time": "2026-11-04 23:29 IST"}
           assert app.mcx_reference_is_fresh(last_close, now=after_close)
           assert not app.mcx_reference_is_live(last_close, now=after_close)
+
+          # Historical rows, not Open or a misleading quote-header PreviousClose,
+          # define the previous session close for the same expiry.
+          history_html = """
+          <div>₹1,87,580.00</div>
+          <div>Expiry: 4 December, 26</div>
+          <div>Last updated on 04 Nov, 2026 | 23:55 IST</div>
+          <table>
+            <tr><th>Date</th><th>Expiry</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Day Change</th></tr>
+            <tr><td>4 Nov, 26</td><td>04 Dec, 26</td><td>179888</td><td>188000</td><td>177600</td><td>187580</td><td>+7882 (4.39%)</td></tr>
+            <tr><td>3 Nov, 26</td><td>04 Dec, 26</td><td>179420</td><td>180100</td><td>178900</td><td>179698</td><td>-100 ( -0.06%)</td></tr>
+          </table>
+          """
+          corrected = app.parse_upstox_mcx_quote(history_html, 50000, 500000, "MCX SILVER", require_fresh=False)
+          assert corrected["previous_close"] == 179698.0, corrected
+          assert corrected["change_pct"] == 4.39, corrected
+          assert corrected["previous_close_date"] == "2026-11-03", corrected
+
+          gold_history = history_html.replace("₹1,87,580.00", "₹1,43,293.00").replace(
+              "Expiry: 4 December, 26", "Expiry: 4 December, 26"
+          ).replace("179888", "139408").replace("188000", "143420").replace(
+              "177600", "139177").replace("187580", "143293").replace(
+              "+7882 (4.39%)", "+3841 (2.75%)").replace(
+              "179420", "139420").replace("180100", "140415").replace(
+              "178900", "137863").replace("179698", "139452")
+          corrected_gold = app.parse_upstox_mcx_quote(gold_history, 50000, 500000, "MCX GOLD", require_fresh=False)
+          assert corrected_gold["previous_close"] == 139452.0, corrected_gold
+          assert corrected_gold["change_pct"] == 2.75, corrected_gold
+
+          crude_history = history_html.replace("₹1,87,580.00", "₹8,381.00").replace(
+              "Expiry: 4 December, 26", "Expiry: 19 November, 26"
+          ).replace("4 Dec, 26", "19 Nov, 26").replace("179888", "9078").replace(
+              "188000", "9189").replace("177600", "8231").replace("187580", "8381").replace(
+              "+7882 (4.39%)", "-723 (-7.94%)").replace("179420", "9120").replace(
+              "180100", "9372").replace("178900", "8873").replace("179698", "9104")
+          corrected_crude = app.parse_upstox_mcx_quote(crude_history, 3000, 30000, "MCX CRUDEOIL", require_fresh=False)
+          assert corrected_crude["previous_close"] == 9104.0, corrected_crude
+          assert corrected_crude["change_pct"] == -7.94, corrected_crude
+          print("Same-contract historical previous-close checks passed for SILVER +4.39%, GOLD +2.75%, CRUDEOIL -7.94%.")
+
           print("MCX quote parsing, freshness and live/closed labels passed.")
           PY
       - name: Verify symbol-specific NSE quote validation
