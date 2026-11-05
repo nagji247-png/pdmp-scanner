@@ -959,6 +959,8 @@ def _upstox_previous_session_close(page_html, quote_date, expiry):
             matching_rows.append((row_date, row))
     current_index = next((i for i, item in enumerate(matching_rows)
                           if item[0] == current_date), None)
+    if not parser.rows:
+        return None, None
     if current_index is None:
         raise ValueError("Upstox historical table has no row for the MCX quote date and selected expiry")
     for row_date, row in matching_rows[current_index + 1:]:
@@ -1002,23 +1004,28 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
     if require_fresh and (age_minutes < -2 or age_minutes > 45):
         raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
     expiry_match = re.search(
-        r"Expiry:\s*(\d{1,2})\s+([A-Za-z]+),?\s*(\d{2,4})", text, re.I
+        r"Expiry:\\s*(\\d{1,2})\\s+([A-Za-z]+),?\\s*(\\d{2,4})", text, re.I
     )
-    if not expiry_match:
-        raise ValueError(f"{label} selected contract expiry missing")
-    expiry_text = f"{expiry_match.group(1)} {expiry_match.group(2)} {expiry_match.group(3)}"
     expiry = None
-    for fmt in ("%d %B %y", "%d %B %Y", "%d %b %y", "%d %b %Y"):
-        try:
-            expiry = dt.datetime.strptime(expiry_text, fmt).date()
-            break
-        except ValueError:
-            pass
-    if expiry is None:
-        raise ValueError(f"{label} selected contract expiry is invalid")
-    previous_close, previous_close_date = _upstox_previous_session_close(
-        page_html, stamp.date().isoformat(), expiry.isoformat()
+    if expiry_match:
+        expiry_text = f"{expiry_match.group(1)} {expiry_match.group(2)} {expiry_match.group(3)}"
+        for fmt in ("%d %B %y", "%d %B %Y", "%d %b %y", "%d %b %Y"):
+            try:
+                expiry = dt.datetime.strptime(expiry_text, fmt).date()
+                break
+            except ValueError:
+                pass
+    previous_close, previous_close_date = (
+        _upstox_previous_session_close(page_html, stamp.date().isoformat(), expiry.isoformat())
+        if expiry else (None, None)
     )
+    if previous_close is None:
+        prev_match = re.search(r"Prev\\.?\\s*Close\\s*₹\\s*([\\d,]+(?:\\.\\d+)?)", text, re.I)
+        if not prev_match:
+            raise ValueError(f"{label} verified previous-session close missing")
+        previous_close = float(prev_match.group(1).replace(",", ""))
+        if previous_close <= 0:
+            raise ValueError(f"{label} previous close is invalid")
     change_pct = round((prices[0] / previous_close - 1) * 100, 2)
     return {
         "price": round(prices[0], 2), "previous_close": previous_close,
