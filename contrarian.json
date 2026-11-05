@@ -463,7 +463,11 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance completed 5-minute candles",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 24480.4492,
+      "time": "2026-11-05T07:50:00Z",
+      "change_pct": 0.16,
+      "outcome": "continued"
     },
     "after_60m": {
       "status": "pending"
@@ -478,6 +482,28 @@
     "next_change": null,
     "baseline_price": 293.05,
     "baseline_time": "2026-11-05T07:20:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance completed 5-minute candles",
+    "after_30m": {
+      "status": "complete",
+      "price": 295.65,
+      "time": "2026-11-05T07:50:00Z",
+      "change_pct": 0.89,
+      "outcome": "continued"
+    },
+    "after_60m": {
+      "status": "pending"
+    }
+  },
+  {
+    "key": "2026-11-05|HDFCBANK",
+    "date": "2026-11-05",
+    "instrument": "HDFCBANK",
+    "score": 7.1,
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 754.2,
+    "baseline_time": "2026-11-05T08:00:00Z",
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance completed 5-minute candles",
     "after_30m": {
