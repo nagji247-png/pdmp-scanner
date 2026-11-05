@@ -653,10 +653,12 @@ def google_finance_quote(symbol, exchange, label):
         change_text = html.unescape(re.sub(r"<[^>]+>", " ", change_tag.group(1))) if change_tag else ""
         pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", change_text)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
+        source_label = "Google Finance direct " + label + " quote"
+        if exchange not in ("INDEXNASDAQ", "INDEXDJX") and age_seconds > 15 * 60:
+            source_label += " · पिछला बंद भाव"
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "date": stamp.date().isoformat(), "time": time_label,
-                "source": "Google Finance direct " + label + " quote",
-                "change_pct": change_pct}
+                "source": source_label, "change_pct": change_pct}
     except Exception as exc:
         print(f"Google Finance {label} quote unavailable: {str(exc)[:160]}")
         return None
@@ -811,18 +813,41 @@ def nse_cash_quote(name, sym):
                         return found
             return None
 
+        def validate_stock_quote(quote):
+            if not quote:
+                return None
+            # Reject a grossly inconsistent NSE bulk row unless an independent
+            # Google Finance quote confirms it. This catches wrong-symbol rows
+            # such as an SBI quote returning a price far from SBIN's daily close.
+            baseline = _num(PRICE_CACHE.get(sym))
+            if baseline and baseline > 0:
+                gap = abs(float(quote["price"]) / baseline - 1)
+                if gap > 0.10:
+                    alternate = google_finance_quote(symbol, "NSE", symbol)
+                    if alternate:
+                        alt_gap_to_baseline = abs(float(alternate["price"]) / baseline - 1)
+                        alt_gap_to_nse = abs(float(alternate["price"]) / float(quote["price"]) - 1)
+                        if alt_gap_to_nse <= 0.02:
+                            return {**quote, "source": "NSE (Google Finance cross-check)"}
+                        if alt_gap_to_baseline <= 0.03:
+                            print(f"NSE {symbol} quote rejected: {quote['price']} differs {gap:.1%} from Yahoo daily close; using corroborated Google Finance {alternate['price']}")
+                            return alternate
+                    print(f"NSE {symbol} quote rejected: {quote['price']} differs {gap:.1%} from Yahoo daily close and could not be independently confirmed")
+                    return None
+            return {**quote, "source": "NSE"}
+
         # First use one cached bulk NSE response for the entire watchlist.
         universe = nse_stock_universe()
         quote = find_quote(universe.get(symbol)) if isinstance(universe, dict) else None
         if quote:
-            return {**quote, "source": "NSE"}
+            return validate_stock_quote(quote)
 
         # If the cached bulk response omitted a watchlist symbol, request a
         # symbol-filtered bulk snapshot. The individual quote tool returned HTTP 404.
         data = nse_mcp_call("cm_get_equity_stocks", {"limit": 50, "symbolFilter": symbol})
         quote = find_quote(data)
         if quote:
-            return {**quote, "source": "NSE"}
+            return validate_stock_quote(quote)
         return google_finance_quote(symbol, "NSE", symbol)
     return None
 
