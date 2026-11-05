@@ -18,6 +18,10 @@ on:
     - cron: "30 7 * * *"
     - cron: "30 13 * * *"
   workflow_dispatch:
+  # Watchdog only dispatches when published scan data is older than 45 minutes.
+  # This event does not run Google Trends; it is a normal recovery scan.
+  repository_dispatch:
+    types: [scan-watchdog]
 
 permissions:
   contents: write
