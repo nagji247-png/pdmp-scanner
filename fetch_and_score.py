@@ -564,8 +564,10 @@ def bse_sensex_quote():
         # After the cash market closes, the final exchange quote remains the
         # valid closing snapshot for today. Accept it only when its source
         # timestamp is from the final 15 minutes of today's session.
-        after_close = now_ist.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
-        max_age_seconds = 6 * 60 * 60 if after_close else 30 * 60
+        session_open = india_cash_session_open(now_ist)
+        if session_open and stamp.date() != now_ist.date():
+            raise ValueError(f"BSE quote is not from today's live session: {stamp_text}")
+        max_age_seconds = 30 * 60 if session_open else 18 * 60 * 60
         if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
             raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
@@ -622,11 +624,15 @@ def google_finance_quote(symbol, exchange, label):
                 raise ValueError("US index quote is older than the allowed 18-hour session window")
             time_label = stamp.strftime("%I:%M %p ET").lstrip("0")
         else:
-            after_close = now_exchange.time() >= dt.time(15, 30) and stamp.time() >= dt.time(15, 15)
-            max_age = 6 * 60 * 60 if after_close else 15 * 60
+            # During cash session require recent data; outside session accept
+            # the latest previous close for up to 18 hours, clearly labelled.
+            session_open = india_cash_session_open(now_exchange)
+            max_age = 15 * 60 if session_open else 18 * 60 * 60
             if age_seconds > max_age:
-                raise ValueError("Google Finance quote is outside the allowed freshness window")
+                raise ValueError("Google Finance quote is outside the live/previous-close window")
             time_label = stamp.strftime("%I:%M %p") + " " + ("IST" if offset_text == "+5:30" else "local")
+            if not session_open and age_seconds > 15 * 60:
+                time_label += " · पिछला बंद भाव"
         # Google Finance's current 2026 quote header uses N6SYTe for price
         # and ujg0He for the daily change. Never guess from unrelated page numbers.
         price_tag = re.search(
@@ -662,17 +668,92 @@ def google_finance_sensex_quote():
     return google_finance_quote("SENSEX", "INDEXBOM", "SENSEX")
 
 
+def nse_web_indices_quote(index_name):
+    """Read NSE's public all-indices feed with exchange timestamp validation."""
+    try:
+        for page_url in ("https://www.nseindia.com",
+                         "https://www.nseindia.com/market-data/live-market-indices"):
+            try:
+                NSE_MCP_HTTP.get(page_url, timeout=20)
+            except Exception:
+                pass
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.nseindia.com/market-data/live-market-indices",
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+            "Cache-Control": "no-cache",
+        }
+        response = NSE_MCP_HTTP.get("https://www.nseindia.com/api/allIndices",
+                                    headers=headers, timeout=20)
+        response.raise_for_status()
+        payload = response.json()
+        rows = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise ValueError("NSE allIndices response has no data array")
+        target = re.sub(r"[^A-Z0-9]", "", index_name.upper())
+        row = None
+        for item in rows:
+            if not isinstance(item, dict):
+                continue
+            label = next((item.get(k) for k in ("index", "indexName", "name", "index_name")
+                          if item.get(k)), "")
+            if re.sub(r"[^A-Z0-9]", "", str(label).upper()) == target:
+                row = item
+                break
+        if row is None:
+            raise ValueError(f"{index_name} not present in NSE allIndices response")
+        price = next((row.get(k) for k in ("last", "lastPrice", "lastValue", "indexValue")
+                      if row.get(k) not in (None, "")), None)
+        stamp = next((row.get(k) for k in ("timeVal", "timestamp", "lastUpdateTime",
+                                            "dateTime", "updatedAt")
+                      if row.get(k)), None) or payload.get("timestamp")
+        if price is None or stamp is None:
+            raise ValueError("NSE allIndices row is missing price or exchange timestamp")
+        parsed_stamp = None
+        for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M",
+                    "%d %b %Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+            try:
+                parsed_stamp = dt.datetime.strptime(str(stamp), fmt)
+                break
+            except ValueError:
+                pass
+        if parsed_stamp is None:
+            parsed_stamp = dt.datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
+        ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        if parsed_stamp.tzinfo is None:
+            parsed_stamp = parsed_stamp.replace(tzinfo=ist)
+        else:
+            parsed_stamp = parsed_stamp.astimezone(ist)
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+        age = (now_ist - parsed_stamp).total_seconds()
+        max_age = 15 * 60 if india_cash_session_open(now_ist) else 18 * 60 * 60
+        if age < -120 or age > max_age:
+            raise ValueError(f"NSE index timestamp outside live/previous-close window: {stamp}")
+        pct = next((row.get(k) for k in ("percentChange", "perChange", "changePercent")
+                    if row.get(k) not in (None, "")), None)
+        source = "NSE India allIndices API"
+        if not india_cash_session_open(now_ist) and age > 15 * 60:
+            source += " · पिछला बंद भाव"
+        return {"price": float(price), "stamp": parsed_stamp.strftime("%d-%b-%Y %H:%M:%S"),
+                "source": source,
+                "change_pct": float(pct) if pct not in (None, "") else None}
+    except Exception as exc:
+        print(f"NSE allIndices {index_name} quote unavailable: {str(exc)[:220]}")
+        return None
+
+
 def nse_cash_quote(name, sym):
     """Prefer official exchange quotes; use Google Finance only as a timestamp-validated backup."""
     if name == "SENSEX":
         return bse_sensex_quote() or google_finance_sensex_quote()
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
-        # Discover the exact cm_get_index_quote input schema from NSE tools/list
-        # on the live server, then call it with only schema-derived arguments.
-        tool_name = "cm_get_index_quote"
-        arguments = nse_index_quote_arguments(tool_name, index_name)
-        data = nse_mcp_call(tool_name, arguments) if arguments is not None else None
+        # Actual Actions logs confirmed NSE MCP tools/list/tools/call return HTTP 404.
+        # Use NSE's public allIndices JSON endpoint; no guessed MCP parameters.
+        quote = nse_web_indices_quote(index_name)
+        if quote:
+            return quote
         def find_index_quote(node, inherited_stamp=None, matched=False):
             if isinstance(node, dict):
                 labels = " ".join(str(node.get(k) or "") for k in
@@ -738,8 +819,9 @@ def nse_cash_quote(name, sym):
         if quote:
             return {**quote, "source": "NSE"}
 
-        # If the bulk endpoint did not include this symbol, try the individual quote.
-        data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
+        # If the cached bulk response omitted a watchlist symbol, request a
+        # symbol-filtered bulk snapshot. The individual quote tool returned HTTP 404.
+        data = nse_mcp_call("cm_get_equity_stocks", {"limit": 50, "symbolFilter": symbol})
         quote = find_quote(data)
         if quote:
             return {**quote, "source": "NSE"}
@@ -816,17 +898,45 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label):
     }
 
 
-def mcx_reference_is_fresh(data, max_age_minutes=45):
-    """Reject cached MCX quotes unless their source-page timestamp is recent."""
+def india_cash_session_open(now=None):
+    """NSE/BSE regular cash session, in IST."""
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    return now.weekday() < 5 and dt.time(9, 15) <= now.time() < dt.time(15, 30)
+
+
+def mcx_session_open(now=None):
+    """MCX weekday trading session, in IST."""
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    return now.weekday() < 5 and dt.time(9, 0) <= now.time() <= dt.time(23, 30)
+
+
+def mcx_reference_age_minutes(data):
     try:
         stamp = dt.datetime.strptime(str(data.get("source_time") or ""), "%Y-%m-%d %H:%M IST")
         ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
         stamp = stamp.replace(tzinfo=ist)
         now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
-        age = (now - stamp).total_seconds() / 60
-        return -2 <= age <= max_age_minutes
+        return (now - stamp).total_seconds() / 60
     except (TypeError, ValueError):
+        return None
+
+
+def mcx_reference_is_fresh(data, max_age_minutes=45):
+    """During MCX hours require a fresh quote; outside hours allow last session close."""
+    age = mcx_reference_age_minutes(data)
+    if age is None:
         return False
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    allowed_age = max_age_minutes if mcx_session_open(now) else 18 * 60
+    return -2 <= age <= allowed_age
+
+
+def mcx_reference_is_live(data):
+    age = mcx_reference_age_minutes(data)
+    return age is not None and -2 <= age <= 45
 
 def refresh_mcx_silver_reference():
     """Fetch the timestamped MCX SILVER quote from Upstox; never substitute SI=F."""
@@ -861,7 +971,8 @@ def silver_display_price(international_inr_per_kg=None):
         raw = mcx.get("mcx_price_per_kg")
         value = float(raw) if raw is not None else None
         if value is not None and math.isfinite(value) and value > 0 and mcx_reference_is_fresh(mcx):
-            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), "MCX quote + 3% GST Estimate"
+            label = "MCX live quote + 3% GST Estimate" if mcx_reference_is_live(mcx) else "MCX पिछला बंद भाव + 3% GST Estimate"
+            return round(value * (1 + GST_RATE), 2), str(mcx.get("date", "")), label
         if not mcx_reference_is_fresh(mcx):
             return None, "", "MCX SILVER quote पुराना है — नया भाव उपलब्ध नहीं"
     except Exception as exc:
@@ -905,7 +1016,8 @@ def gold_display_price():
         data = load_json(GOLD_MCX_FILE, {})
         value = float(data.get("mcx_price_per_10g"))
         if math.isfinite(value) and value > 0 and mcx_reference_is_fresh(data):
-            return round(value * (1 + GST_RATE), 2), str(data.get("date", "")), "MCX quote × 3% GST"
+            label = "MCX live quote × 3% GST" if mcx_reference_is_live(data) else "MCX पिछला बंद भाव × 3% GST Estimate"
+            return round(value * (1 + GST_RATE), 2), str(data.get("date", "")), label
         if not mcx_reference_is_fresh(data):
             return None, "", "MCX GOLD quote पुराना है — नया भाव उपलब्ध नहीं"
     except Exception as exc:
@@ -975,9 +1087,11 @@ def crude_display_quote():
             raise ValueError("invalid MCX crude quote")
         if not mcx_reference_is_fresh(data):
             raise ValueError("MCX CRUDEOIL source quote is older than 45 minutes")
+        source = str(data.get("source") or "MCX CRUDEOIL")
+        if not mcx_reference_is_live(data):
+            source = "MCX पिछला बंद भाव · " + source
         return (round(value, 2), str(data.get("date") or ""),
-                str(data.get("time") or ""), str(data.get("source") or "MCX CRUDEOIL"),
-                data.get("change_pct"))
+                str(data.get("time") or ""), source, data.get("change_pct"))
     except (TypeError, ValueError):
         return None, "", "", "MCX CRUDEOIL भाव उपलब्ध नहीं", None
 
