@@ -1004,7 +1004,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
     if require_fresh and (age_minutes < -2 or age_minutes > 45):
         raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
     expiry_match = re.search(
-        r"Expiry:\\s*(\\d{1,2})\\s+([A-Za-z]+),?\\s*(\\d{2,4})", text, re.I
+        r"Expiry:\s*(\d{1,2})\s+([A-Za-z]+),?\s*(\d{2,4})", text, re.I
     )
     expiry = None
     if expiry_match:
@@ -1020,7 +1020,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
         if expiry else (None, None)
     )
     if previous_close is None:
-        prev_match = re.search(r"Prev\\.?\\s*Close\\s*₹\\s*([\\d,]+(?:\\.\\d+)?)", text, re.I)
+        prev_match = re.search(r"Prev\.?\s*Close\s*₹\s*([\d,]+(?:\.\d+)?)", text, re.I)
         if not prev_match:
             raise ValueError(f"{label} verified previous-session close missing")
         previous_close = float(prev_match.group(1).replace(",", ""))
@@ -1032,7 +1032,7 @@ def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh
         "previous_close_date": previous_close_date,
         "change_pct": change_pct, "date": stamp.date().isoformat(),
         "time": stamp.strftime("%H:%M"), "source_time": stamp.strftime("%Y-%m-%d %H:%M IST"),
-        "expiry": expiry.isoformat(),
+        "expiry": expiry.isoformat() if expiry else None,
     }
 
 def india_cash_session_open(now=None):
@@ -1358,7 +1358,9 @@ def refresh_mcx_gold_reference():
             "mcx_price_per_10g": quote["price"],
             "previous_mcx_price_per_10g": quote["previous_close"],
             "change_pct": quote["change_pct"], "date": quote["date"],
-            "source_time": quote["source_time"],
+            "previous_close_date": quote["previous_close_date"],
+            "previous_close_source": "Upstox historical table · same MCX expiry",
+            "contract_expiry": quote["expiry"], "source_time": quote["source_time"],
             "source": "Upstox public MCX Gold quote; source timestamp validated; not exchange-certified",
             "source_url": GOLD_PUBLIC_URL,
             "note": "Public-page quote per 10g; dashboard display adds 3% GST estimate. Jewellery making charges are not included."
