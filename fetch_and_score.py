@@ -251,6 +251,50 @@ def weighted_score(heads):
         den += w
     return round(num / den * 5, 1) if den > 0 else 0.0
 
+def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKNIFTY")):
+    """Shadow-only score: verified <=24h headlines, cross-index duplicates excluded, no extra x2."""
+    eligible = {}
+    old_or_unknown = {}
+    for name in index_names:
+        item = instruments.get(name) or {}
+        eligible[name] = []
+        old_or_unknown[name] = 0
+        for h in item.get("headlines") or []:
+            age = _num(h.get("age_h"))
+            if age is None or age < 0 or age > 24:
+                old_or_unknown[name] += 1
+                continue
+            eligible[name].append(h)
+
+    # Exclude a story shared by different index searches from BOTH candidate scores.
+    shared = {name: set() for name in index_names}
+    for i, left in enumerate(index_names):
+        for right in index_names[i + 1:]:
+            for li, lh in enumerate(eligible[left]):
+                lt = _title_tokens(lh.get("title", ""))
+                if not lt:
+                    continue
+                for ri, rh in enumerate(eligible[right]):
+                    rt = _title_tokens(rh.get("title", ""))
+                    if not rt:
+                        continue
+                    similarity = len(lt & rt) / max(1, len(lt | rt))
+                    if similarity >= 0.6:
+                        shared[left].add(li)
+                        shared[right].add(ri)
+
+    output = {}
+    for name in index_names:
+        kept = [h for i, h in enumerate(eligible[name]) if i not in shared[name]]
+        output[name] = {
+            "news_score": max(-10.0, min(10.0, weighted_score(kept))),
+            "headline_count": len(kept),
+            "excluded_old_or_unknown": old_or_unknown[name],
+            "excluded_cross_index_duplicates": len(shared[name]),
+        }
+    return output
+
+
 def fetch_news(query):
     url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=en-IN&gl=IN&ceid=IN:en"
     feed = feedparser.parse(url)
@@ -3833,6 +3877,12 @@ def update_market_signal_history(result):
             "close_as_of": item.get("price_as_of"),
             "day_change_pct": item.get("change_pct"),
             "headline_score": item.get("headline_score"),
+            "experimental_news_score": item.get("experimental_news_score"),
+            "experimental_score": item.get("experimental_score"),
+            "experimental_score_mode": item.get("experimental_score_mode"),
+            "experimental_headline_count": item.get("experimental_headline_count"),
+            "experimental_excluded_old_or_unknown": item.get("experimental_excluded_old_or_unknown"),
+            "experimental_excluded_cross_index_duplicates": item.get("experimental_excluded_cross_index_duplicates"),
             "headline_count": len(headlines),
             "headlines": [
                 {
@@ -4368,6 +4418,30 @@ def main():
         and abs((crowd_total_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
+    # Shadow calculation only: the published production score is not changed.
+    experimental_news = experimental_news_scores(result["instruments"])
+    for _n, _exp in experimental_news.items():
+        _d = result["instruments"].get(_n)
+        if not _d:
+            continue
+        _exp_news = _exp["news_score"]
+        _exp_retail = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
+        if crowd_valid and retail_valid:
+            _exp_crowd = max(-10.0, min(10.0, (float(crowd_bull) - 50.0) / 50.0 * 10.0))
+            _exp_combined = _exp_news * 0.40 + _exp_crowd * 0.40 + _exp_retail * 0.20
+            _exp_mode = "shadow_news24h_dedup_crowd_client"
+        elif retail_valid:
+            _exp_combined = _exp_news * (40.0 / 60.0) + _exp_retail * (20.0 / 60.0)
+            _exp_mode = "shadow_news24h_dedup_client_only"
+        else:
+            _exp_combined = _exp_news
+            _exp_mode = "shadow_news24h_dedup_only"
+        _d["experimental_news_score"] = round(_exp_news, 1)
+        _d["experimental_score"] = round(max(-10.0, min(10.0, _exp_combined)), 1)
+        _d["experimental_score_mode"] = _exp_mode
+        _d["experimental_headline_count"] = _exp["headline_count"]
+        _d["experimental_excluded_old_or_unknown"] = _exp["excluded_old_or_unknown"]
+        _d["experimental_excluded_cross_index_duplicates"] = _exp["excluded_cross_index_duplicates"]
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
         if not _d:
