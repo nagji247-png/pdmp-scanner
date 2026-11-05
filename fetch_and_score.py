@@ -2275,7 +2275,17 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         if nse_quote and nse_quote.get("change_pct") is not None:
             change = round(nse_quote["change_pct"], 2)
         elif global_quote:
-            if global_quote.get("change_pct") is not None:
+            if name == "SENSEX":
+                # SENSEX must use the percentage supplied with the same
+                # timestamped Google Finance quote. Never borrow Yahoo's
+                # daily return or a cached previous close for this live quote.
+                pct = global_quote.get("change_pct")
+                change = (
+                    round(float(pct), 2)
+                    if pct is not None and math.isfinite(float(pct))
+                    else None
+                )
+            elif global_quote.get("change_pct") is not None:
                 change = round(global_quote["change_pct"], 2)
             elif returns and global_quote.get("date") == max(returns):
                 # Google Finance may publish the last US session close before
