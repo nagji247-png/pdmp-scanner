@@ -4094,6 +4094,7 @@ def main():
     # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
     fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
     crowd_bull = trends.get("crowd_bull_pct") if fresh_trends else None
+    crowd_total_bull = trends.get("bull_score_pct") if fresh_trends else None
     crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
     crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
     crowd_bull_sum = trends.get("bull_sum_pct") if fresh_trends else None
@@ -4104,9 +4105,9 @@ def main():
         and isinstance(crowd_bear_sum, (int, float)) and crowd_bear_sum > 0
         and all(
             isinstance(v, (int, float)) and 0 <= v <= 100
-            for v in (crowd_bull, crowd_bear, crowd_neutral)
+            for v in (crowd_total_bull, crowd_bear, crowd_neutral)
         )
-        and abs((crowd_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
+        and abs((crowd_total_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
@@ -4123,6 +4124,15 @@ def main():
             _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
             _d["score_mode"] = "news_crowd_client"
         else:
+            # Trends अमान्य/अनुपलब्ध हों तो News और CLIENT को उपलब्ध 60% भार पर
+            # normalize करें; पुराने scan का score गलती से carry forward न हो।
+            news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
+            retail_component = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
+            if retail_valid:
+                combined = news_component * (40.0 / 60.0) + retail_component * (20.0 / 60.0)
+            else:
+                combined = news_component
+            _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
             _d["score_mode"] = "news_client_only"
     result["index_score_method"] = {
         "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
