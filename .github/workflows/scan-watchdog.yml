@@ -2,7 +2,7 @@ name: PDMP Scan Watchdog
 
 on:
   # Normal scan is scheduled separately. This lightweight check only dispatches
-  # a recovery scan when the published data is older than 45 minutes.
+  # a recovery scan when the published data is older than 40 minutes.
   schedule:
     - cron: "20,50 * * * *"
   workflow_dispatch:
@@ -67,7 +67,7 @@ jobs:
               if age_minutes < 0:
                   print("Published data timestamp is in the future; recovery scan skipped.")
                   raise SystemExit(0)
-              if age_minutes <= 45:
+              if age_minutes <= 40:
                   print(f"Published data is fresh ({age_minutes:.1f} minutes old); no scan needed.")
                   raise SystemExit(0)
 
@@ -82,7 +82,7 @@ jobs:
 
               api(f"/repos/{repo}/dispatches", method="POST", payload={
                   "event_type": "scan-watchdog",
-                  "client_payload": {"reason": "published data older than 45 minutes"},
+                  "client_payload": {"reason": "published data older than 40 minutes"},
               })
               print(f"Recovery scan dispatched; published data was {age_minutes:.1f} minutes old.")
           except SystemExit:
