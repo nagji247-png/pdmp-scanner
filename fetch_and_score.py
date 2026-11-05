@@ -3745,7 +3745,11 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    if len(by_date) < 25 and (last_attempt is None or (now - last_attempt).total_seconds() >= 86400):
+    BACKFILL_VERSION = 2
+    retry_due = (backfill_state.get("version") != BACKFILL_VERSION
+                  or last_attempt is None
+                  or (now - last_attempt).total_seconds() >= 86400)
+    if len(by_date) < 25 and retry_due:
         anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
         for offset in range(0, 65):
             if len(by_date) >= 25:
@@ -3771,6 +3775,7 @@ def update_participant_oi_history(*snapshots):
             }
             backfilled += 1
         backfill_state = {
+            "version": BACKFILL_VERSION,
             "status": "complete" if len(by_date) >= 25 else "partial",
             "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
             "sessions_added": backfilled,
