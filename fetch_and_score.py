@@ -310,8 +310,8 @@ def _nse_mcp_decode_response(response):
     content_type = (response.headers.get("content-type", "") or "").lower()
     if "text/event-stream" in content_type:
         events = []
-        for block in response.text.split("\\n\\n"):
-            data = "\\n".join(
+        for block in response.text.split("\n\n"):
+            data = "\n".join(
                 line[5:].lstrip() for line in block.splitlines()
                 if line.startswith("data:")
             )
@@ -336,7 +336,7 @@ def _nse_mcp_post(payload, timeout=30, session=True):
     headers = _nse_mcp_headers(session=session)
     response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=headers, json=payload, timeout=timeout)
     if response.status_code not in (200, 202):
-        body = re.sub(r"\\s+", " ", response.text or "")[:180]
+        body = re.sub(r"\s+", " ", response.text or "")[:180]
         raise RuntimeError(
             f"NSE MCP HTTP {response.status_code}; "
             f"session={'yes' if headers.get('Mcp-Session-Id') else 'no'}; body={body!r}"
@@ -362,7 +362,7 @@ def _nse_mcp_initialize():
     }
     response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=init_headers, json=payload, timeout=30)
     if response.status_code != 200:
-        body = re.sub(r"\\s+", " ", response.text or "")[:180]
+        body = re.sub(r"\s+", " ", response.text or "")[:180]
         raise RuntimeError(f"NSE MCP initialize HTTP {response.status_code}: {body}")
     envelope = _nse_mcp_decode_response(response)
     if envelope.get("error"):
@@ -637,7 +637,7 @@ def nse_cash_quote(name, sym):
         def find_index_quote(node):
             if isinstance(node, dict):
                 price = next((node.get(k) for k in
-                              ("last", "lastValue", "lastPrice", "indexValue", "ltp", "currentValue")
+                              ("last", "lastValue", "lastPrice", "lastTradedPrice", "indexValue", "currentIndexValue", "ltp", "currentValue")
                               if node.get(k) is not None), None)
                 stamp = next((node.get(k) for k in
                               ("nseTimestamp", "latestTimestamp", "updatedAt", "timestamp", "time")
