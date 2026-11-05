@@ -310,7 +310,7 @@ def _nse_mcp_decode_response(response):
     content_type = (response.headers.get("content-type", "") or "").lower()
     if "text/event-stream" in content_type:
         events = []
-        for block in response.text.split("\n\n"):
+        for block in response.text.replace("\r\n", "\n").split("\n\n"):
             data = "\n".join(
                 line[5:].lstrip() for line in block.splitlines()
                 if line.startswith("data:")
