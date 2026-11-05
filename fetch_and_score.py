@@ -1031,7 +1031,13 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
 
 def mcx_reference_is_live(data, now=None):
     age = mcx_reference_age_minutes(data, now)
-    return age is not None and -2 <= age <= 45
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ist)
+    else:
+        current = current.astimezone(ist)
+    return mcx_session_open(current) and age is not None and -2 <= age <= 45
 
 
 def fetch_mcx_market_watch_rows():
