@@ -25,6 +25,7 @@ jobs:
       - name: Verify Google Trends fallbacks and NSE MCP handshake
         run: |
           python - <<'PY'
+          import json
           import sys
           import types
           from unittest.mock import patch
@@ -54,7 +55,7 @@ jobs:
                   self.status_code = status_code
                   self._payload = payload or {}
                   self.headers = headers or {"content-type": "application/json"}
-                  self.text = ""
+                  self.text = json.dumps(self._payload) if payload is not None else ""
               def json(self):
                   return self._payload
 
