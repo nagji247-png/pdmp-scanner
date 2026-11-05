@@ -1940,7 +1940,7 @@ def intraday_quote(sym):
         print("All Yahoo chart hosts failed for " + sym + ": " + " | ".join(errors))
     return None
 
-def fetch_participant_oi(base_date=None):
+def fetch_participant_oi(base_date=None, lookback_days=7):
     """NSE official participant-wise OI: daily EOD, not a live feed.
     base_date lets the caller fetch the latest archived snapshot on/before a target date."""
     headers = {"User-Agent": "Mozilla/5.0", "Accept": "text/csv,text/plain,*/*",
@@ -1950,7 +1950,7 @@ def fetch_participant_oi(base_date=None):
         base_date = dt.datetime.now(dt.timezone.utc).date()
     elif isinstance(base_date, str):
         base_date = dt.date.fromisoformat(base_date)
-    for offset in range(0, 8):
+    for offset in range(0, max(0, int(lookback_days)) + 1):
         day = base_date - dt.timedelta(days=offset)
         if day.weekday() >= 5:
             continue
@@ -3731,7 +3731,8 @@ def update_participant_oi_history(*snapshots):
             "participants": participants,
         }
 
-    # One-time, rate-limited backfill: seed up to 25 prior trading sessions.
+    # One-time, rate-limited backfill: expand the archive to 60 trading sessions.
+    # Historical dates use exact-date fetches (no 7-day fallback) to bound requests.
     # Never repeat on every 5-minute scan; retry only after 24 hours if incomplete.
     backfill_state = archive.get("backfill") if isinstance(archive.get("backfill"), dict) else {}
     now = dt.datetime.now(dt.timezone.utc)
@@ -3745,19 +3746,20 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 2
+    BACKFILL_VERSION = 3
     retry_due = (backfill_state.get("version") != BACKFILL_VERSION
                   or last_attempt is None
                   or (now - last_attempt).total_seconds() >= 86400)
-    if len(by_date) < 25 and retry_due:
+    BACKFILL_TARGET = 60
+    if len(by_date) < BACKFILL_TARGET and retry_due:
         anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
-        for offset in range(0, 65):
-            if len(by_date) >= 25:
+        for offset in range(0, 181):
+            if len(by_date) >= BACKFILL_TARGET:
                 break
             target_day = anchor_date - dt.timedelta(days=offset)
             if target_day.weekday() >= 5:
                 continue
-            historical = fetch_participant_oi(base_date=target_day)
+            historical = fetch_participant_oi(base_date=target_day, lookback_days=0)
             if not isinstance(historical, dict) or not historical.get("ok") or historical.get("stale"):
                 continue
             date = historical.get("date")
@@ -3776,10 +3778,10 @@ def update_participant_oi_history(*snapshots):
             backfilled += 1
         backfill_state = {
             "version": BACKFILL_VERSION,
-            "status": "complete" if len(by_date) >= 25 else "partial",
+            "status": "complete" if len(by_date) >= BACKFILL_TARGET else "partial",
             "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
             "sessions_added": backfilled,
-            "target_sessions": 25,
+            "target_sessions": BACKFILL_TARGET,
         }
 
     ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
