@@ -1155,13 +1155,9 @@ function renderTrends(t) {
     ${fearGreedBlock}
     <div class="sub" style="margin-top:8px">${hasCurrentMood ? "स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि" : "आज का अलग Google Trends डेटा उपलब्ध नहीं; पिछले 7 दिनों की खोजों को आज का मूड नहीं माना जा रहा।"}${t.as_of ? " · स्रोत समय: " + esc(istTime(t.as_of)) + " IST" : " · स्रोत समय उपलब्ध नहीं"}</div>
     ${daySummary}
-    <div style="margin-top:12px;font-weight:700">आज के सबसे अधिक दिखे ट्रैक किए गए शब्द</div>
-    <div style="margin-top:6px">${topRows || '<div class="sub">आज का शब्द-डेटा उपलब्ध नहीं</div>'}</div>
+    <div style="margin-top:12px;font-weight:700">Google Trends से मिले सभी ट्रैक किए गए शब्द</div>
+    <div style="margin-top:6px">${allRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
     <div class="sub" style="margin-top:10px">उभरती खोजें: ${spikes || 'कोई अलग rising-query सूची उपलब्ध नहीं'}</div>
-    <details style="margin-top:10px">
-      <summary>आज और कल के सभी Nifty/Sensex शब्द देखें</summary>
-      <div style="margin-top:6px">${allRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
-    </details>
     <div class="sub" style="margin-top:12px">महत्वपूर्ण: ये Google Trends के सापेक्ष रुचि-अनुपात हैं, वास्तविक लोगों की संख्या या सटीक search count नहीं। 0/डेटा नहीं कम खोज, नमूना सीमा या अनुपलब्ध डेटा की वजह से हो सकता है। यह retail search interest है; analyst/media sentiment अलग से समाचार शीर्षकों से मापा जाता है।</div>`;
 }
 
