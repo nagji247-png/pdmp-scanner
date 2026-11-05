@@ -470,7 +470,11 @@
       "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 24567.8496,
+      "time": "2026-11-05T08:20:00Z",
+      "change_pct": 0.51,
+      "outcome": "continued"
     }
   },
   {
@@ -492,7 +496,11 @@
       "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 295.7,
+      "time": "2026-11-05T08:20:00Z",
+      "change_pct": 0.9,
+      "outcome": "continued"
     }
   },
   {
@@ -507,10 +515,18 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance completed 5-minute candles",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 757.35,
+      "time": "2026-11-05T08:30:00Z",
+      "change_pct": 0.42,
+      "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 756.9,
+      "time": "2026-11-05T09:00:00Z",
+      "change_pct": 0.36,
+      "outcome": "continued"
     }
   }
 ]
