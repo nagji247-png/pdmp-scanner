@@ -48,7 +48,7 @@ jobs:
                   related_queries.assert_called_once_with(timeframe="now 1-d")
           print("Google Trends related-query fallback routing passed.")
 
-          # Exercise initialize -> initialized -> tools/list discovery -> tools/call.
+          # Exercise initialize -> fire-and-forget initialized notification -> tools/call.
           class FakeResponse:
               def __init__(self, status_code, payload=None, headers=None):
                   self.status_code = status_code
@@ -68,22 +68,11 @@ jobs:
                       return FakeResponse(200, {"jsonrpc": "2.0", "id": 1, "result": {}},
                                           {"content-type": "application/json", "mcp-session-id": "test-session"})
                   if method == "notifications/initialized":
-                      return FakeResponse(202)
-                  if method == "tools/list":
-                      return FakeResponse(200, {
-                          "jsonrpc": "2.0", "id": 1,
-                          "result": {"tools": [{
-                              "name": "cm_get_index_quote",
-                              "inputSchema": {
-                                  "type": "object",
-                                  "properties": {"indexName": {"type": "string"}},
-                                  "required": ["indexName"]
-                              }
-                          }]}
-                      })
+                      # The live NSE server may return HTTP 404 here; client must continue.
+                      return FakeResponse(404)
                   if method == "tools/call":
                       return FakeResponse(200, {
-                          "jsonrpc": "2.0", "id": 2,
+                          "jsonrpc": "2.0", "id": 1,
                           "result": {"content": [{"type": "text", "text": '{"ok":true}'}]}
                       })
                   raise AssertionError(f"Unexpected MCP method: {method}")
@@ -95,7 +84,7 @@ jobs:
                       payload = app.nse_mcp_call("cm_get_index_quote", {"indexName": "NIFTY 50"})
           assert payload == {"ok": True}, payload
           assert [call[2]["method"] for call in fake_session.calls] == [
-              "initialize", "notifications/initialized", "tools/list", "tools/call"
+              "initialize", "notifications/initialized", "tools/call"
           ]
           assert fake_session.calls[-1][1]["Mcp-Session-Id"] == "test-session"
           assert fake_session.calls[-1][2]["params"]["arguments"] == {"indexName": "NIFTY 50"}
