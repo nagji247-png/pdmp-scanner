@@ -82,7 +82,7 @@ jobs:
 
               api(f"/repos/{repo}/dispatches", method="POST", payload={
                   "event_type": "scan-watchdog",
-                  "client_payload": {"reason": "published data older than 40 minutes"},
+                  "client_payload": {"reason": "published data older than 35 minutes"},
               })
               print(f"Recovery scan dispatched; published data was {age_minutes:.1f} minutes old.")
           except SystemExit:
