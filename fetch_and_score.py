@@ -286,6 +286,7 @@ NSE_MCP_HEADERS = {
 NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
 NSE_MCP_HTTP = curl_requests.Session(impersonate="chrome124")
+NSE_MCP_WARMED = False
 NSE_MCP_SESSION_ID = None
 NSE_MCP_PROTOCOL_VERSION = "2024-11-05"
 NSE_MCP_TOOLS = {}
@@ -332,7 +333,7 @@ def _nse_mcp_post(payload, timeout=30, session=True):
     if response.status_code not in (200, 202):
         body = re.sub(r"\s+", " ", response.text or "")[:180]
         raise RuntimeError(
-            f"NSE MCP HTTP {response.status_code}; "
+            f"NSE MCP {payload.get('method')} HTTP {response.status_code}; "
             f"session={'yes' if headers.get('Mcp-Session-Id') else 'no'}; body={body!r}"
         )
     if response.status_code == 202 or not response.text.strip():
@@ -342,9 +343,23 @@ def _nse_mcp_post(payload, timeout=30, session=True):
 
 def _nse_mcp_initialize():
     """Negotiate a Streamable HTTP session and discover the server's real tool schemas."""
-    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_PROTOCOL_VERSION, NSE_MCP_REQUEST_ID
+    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_PROTOCOL_VERSION, NSE_MCP_REQUEST_ID, NSE_MCP_WARMED
     NSE_MCP_SESSION_ID = None
     NSE_MCP_TOOLS = {}
+    # Reuse the Chrome-impersonated session and warm its TLS/cookie context
+    # in the same way as the independently verified NSEPython server client.
+    if not NSE_MCP_WARMED:
+        for warm_url in (
+            "https://www.nseindia.com",
+            "https://www.nseindia.com/market-data/live-equity-market",
+            "https://www.nseindia.com/option-chain",
+        ):
+            try:
+                NSE_MCP_HTTP.get(warm_url, timeout=20)
+            except Exception as warm_exc:
+                print(f"NSE MCP session warm-up note: {str(warm_exc)[:120]}")
+            time.sleep(1.0)
+        NSE_MCP_WARMED = True
     init_headers = dict(NSE_MCP_HEADERS)
     payload = {
         "jsonrpc": "2.0", "id": 1, "method": "initialize",
