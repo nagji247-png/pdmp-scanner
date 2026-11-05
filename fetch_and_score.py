@@ -611,24 +611,35 @@ def nse_cash_quote(name, sym):
         return bse_sensex_quote() or google_finance_sensex_quote()
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
-        data = nse_mcp_call("cm_get_index_quote", {"indexName": index_name})
-        def find_index_quote(node):
+        # NSE's current live-indices tool is the batch endpoint; the older
+        # cm_get_index_quote route has returned HTTP 404 from the runner.
+        data = nse_mcp_call("cm_get_live_indices", {
+            "group": "", "nameFilter": index_name
+        })
+        def find_index_quote(node, inherited_stamp=None, matched=False):
             if isinstance(node, dict):
-                price = next((node.get(k) for k in
-                              ("last", "lastValue", "lastPrice", "lastTradedPrice", "indexValue", "currentIndexValue", "ltp", "currentValue")
-                              if node.get(k) is not None), None)
+                labels = " ".join(str(node.get(k) or "") for k in
+                                  ("indexName", "name", "index", "symbol", "index_name")).upper()
+                target = index_name.upper()
+                is_match = matched or (target in labels if labels else False)
                 stamp = next((node.get(k) for k in
-                              ("nseTimestamp", "latestTimestamp", "updatedAt", "timestamp", "time")
-                              if node.get(k)), None)
-                if price is not None and stamp:
+                              ("nseTimestamp", "latestTimestamp", "updatedAt",
+                               "timestamp", "time", "lastUpdateTime")
+                              if node.get(k)), inherited_stamp)
+                price = next((node.get(k) for k in
+                              ("last", "lastValue", "lastPrice", "lastTradedPrice",
+                               "indexValue", "currentIndexValue", "ltp", "currentValue")
+                              if node.get(k) is not None), None)
+                if price is not None and stamp and (is_match or not labels):
                     return {"price": float(price), "stamp": stamp}
-                for value in node.values():
-                    found = find_index_quote(value)
+                for key, value in node.items():
+                    key_match = target in str(key).upper()
+                    found = find_index_quote(value, stamp, is_match or key_match)
                     if found:
                         return found
             elif isinstance(node, list):
                 for value in node:
-                    found = find_index_quote(value)
+                    found = find_index_quote(value, inherited_stamp, matched)
                     if found:
                         return found
             return None
