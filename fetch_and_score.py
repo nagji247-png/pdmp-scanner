@@ -3731,7 +3731,7 @@ def update_participant_oi_history(*snapshots):
             "participants": participants,
         }
 
-    # One-time, rate-limited backfill: expand the archive to 60 trading sessions.
+    # One-time, rate-limited backfill: expand the archive to 120 trading sessions.
     # Historical dates use exact-date fetches (no 7-day fallback) to bound requests.
     # Never repeat on every 5-minute scan; retry only after 24 hours if incomplete.
     backfill_state = archive.get("backfill") if isinstance(archive.get("backfill"), dict) else {}
@@ -3746,11 +3746,11 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 3
+    BACKFILL_VERSION = 4
     retry_due = (backfill_state.get("version") != BACKFILL_VERSION
                   or last_attempt is None
                   or (now - last_attempt).total_seconds() >= 86400)
-    BACKFILL_TARGET = 60
+    BACKFILL_TARGET = 120
     if len(by_date) < BACKFILL_TARGET and retry_due:
         anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
         for offset in range(0, 181):
