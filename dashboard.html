@@ -566,6 +566,12 @@ function card(name, d, participantOI) {
     </div>`).join("");
 
   const isIndianIndex = INDIAN_INDEXES.includes(name);
+  const experimentalScoreLine = isIndianIndex && Number.isFinite(Number(d.experimental_score))
+    ? '<div style="margin-top:5px;font-size:11px;color:#9fb4cf">परीक्षण स्कोर (24h खबरें): <b>' +
+      (Number(d.experimental_score) > 0 ? "+" : "") + Number(d.experimental_score).toFixed(1) +
+      '</b> · खबरें ' + Number(d.experimental_headline_count || 0) +
+      ' · हटाई गई पुरानी/अज्ञात ' + Number(d.experimental_excluded_old_or_unknown || 0) +
+      ' · साझा ' + Number(d.experimental_excluded_cross_index_duplicates || 0) + '</div>' : "";
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
   const hTotal = posN + negN;
@@ -628,6 +634,7 @@ function card(name, d, participantOI) {
         <div class="last-price">${priceHtml}</div>
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
+      ${experimentalScoreLine}
     `}
     ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
