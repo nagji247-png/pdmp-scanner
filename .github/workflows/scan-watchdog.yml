@@ -1,10 +1,10 @@
 name: PDMP Scan Watchdog
 
 on:
-  # Normal scan is scheduled separately. This lightweight check only dispatches
-  # a recovery scan when the published data is older than 40 minutes.
+  # Check every 10 minutes, but dispatch only if published scan data is stale.
+  # This keeps recovery ahead of the dashboard's 45-minute NO TRADE cutoff.
   schedule:
-    - cron: "20,50 * * * *"
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -67,7 +67,7 @@ jobs:
               if age_minutes < 0:
                   print("Published data timestamp is in the future; recovery scan skipped.")
                   raise SystemExit(0)
-              if age_minutes <= 40:
+              if age_minutes <= 35:
                   print(f"Published data is fresh ({age_minutes:.1f} minutes old); no scan needed.")
                   raise SystemExit(0)
 
