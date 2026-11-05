@@ -5,10 +5,10 @@
   "records": [
     {
       "date": "2026-11-05",
-      "captured_at_utc": "2026-11-05T14:40Z",
-      "captured_at_ist": "2026-11-05T20:11+05:30",
+      "captured_at_utc": "2026-11-05T15:05Z",
+      "captured_at_ist": "2026-11-05T20:38+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-05T14:40Z",
+      "news_capture_time_utc": "2026-11-05T15:05Z",
       "trends": {
         "valid": false,
         "reason": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी"
@@ -108,180 +108,51 @@
           "close": 24536.6,
           "close_as_of": "05/11/2026",
           "day_change_pct": 2.4,
-          "headline_score": 9.2,
-          "headline_count": 8,
-          "headlines": [
-            {
-              "title": "Nifty Bounces Back to Beat All of Asia on Foreign Flows, Earnings",
-              "source": "Bloomberg.com",
-              "score": 1,
-              "age_hours": 0.1
-            },
-            {
-              "title": "Sensex Surges 2,009 Points, Nifty Crosses 24,500",
-              "source": "HDFC Sky",
-              "score": 2,
-              "age_hours": 3.7
-            },
-            {
-              "title": "India stocks higher at close of trade; Nifty 50 up 2.40%",
-              "source": "Investing.com",
-              "score": 1,
-              "age_hours": 4.1
-            },
-            {
-              "title": "Market wrap, Nov 5: Indices post biggest rally in 7 months; NIFTY50 ends at 24,536, m-cap surges ₹8 lakh crore to ₹497 L crore",
-              "source": "Upstox",
-              "score": 4,
-              "age_hours": 4.3
-            },
-            {
-              "title": "Sensex Today | Stock Market Live: Sensex erases 500 pts form day's high, Nifty at 23,800; IT stocks",
-              "source": "IndiaIPO",
-              "score": 0,
-              "age_hours": 5.4
-            },
-            {
-              "title": "NIFTY50 soars over 500 points, while midcap and smallcap indices lag; whats driving the underperformance?",
-              "source": "Upstox",
-              "score": 0,
-              "age_hours": 5.4
-            },
-            {
-              "title": "BSE Share Price Live - Stock rallies 6% after Q2 FY27 | Net profit rises 45% to ₹809 Crore",
-              "source": "India Infoline",
-              "score": 4,
-              "age_hours": 7.2
-            },
-            {
-              "title": "Sensex Surges Over 1,500 Points, Nifty 50 Crosses 24,400: 5 Key Factors Driving the Stock Market Rally",
-              "source": "Dalal Street Investment Journal",
-              "score": 4,
-              "age_hours": 7.9
-            }
-          ],
+          "headline_score": 0.0,
+          "experimental_news_score": 0.0,
+          "experimental_score": 0.6,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 0,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 0,
+          "headline_count": 0,
+          "headlines": [],
           "client_retail_adjustment": 0.38,
-          "published_score": 7.3,
+          "published_score": 0.6,
           "published_score_mode": "news_client_only"
         },
         "SENSEX": {
           "close": 79310.01,
           "close_as_of": "2026-11-05",
           "day_change_pct": 2.6,
-          "headline_score": 5.9,
-          "headline_count": 8,
-          "headlines": [
-            {
-              "title": "Sensex Today Rallies 1,484 Points | Nifty Above 24,400 | BSE Auto Index Up 3.5%",
-              "source": "Equitymaster",
-              "score": 2,
-              "age_hours": 9.3
-            },
-            {
-              "title": "Sensex gains 2,000 points, investors richer by Rs 7 lakh crore: 3 reasons behind rally",
-              "source": "India Today",
-              "score": 3,
-              "age_hours": 10.3
-            },
-            {
-              "title": "Why Indian Stock Market Is Rising Today? Three Key Reasons Behind 2% Rally In Nifty 50, Sensex",
-              "source": "NDTV Profit",
-              "score": 2,
-              "age_hours": 10.6
-            },
-            {
-              "title": "SENSEX rallies over 1,600 pts; NIFTY50 jumps 1.8% as crude oil plummets; key factors behind today's stock market surge",
-              "source": "Upstox",
-              "score": 5,
-              "age_hours": 10.7
-            },
-            {
-              "title": "Stock market outlook today, 5 Nov: Sensex, Nifty prediction - DJIA, S&P, NASDAQ, GIFT Nifty, Kospi, Nikkei, Taiwan cues",
-              "source": "Livemint",
-              "score": 0,
-              "age_hours": 12.9
-            },
-            {
-              "title": "US Midterm Election Results 2026 impact: What Trump's loss mean for Sensex, Nifty, gold, silver rates? Experts' views",
-              "source": "Livemint",
-              "score": -1,
-              "age_hours": 13.5
-            },
-            {
-              "title": "Indian markets defy mixed Asian cues, Sensex and Nifty extend winning streak",
-              "source": "The New Indian Express",
-              "score": 0,
-              "age_hours": 26.5
-            },
-            {
-              "title": "What will Trump losing US midterm elections mean for Sensex, Nifty? Explained",
-              "source": "The Times of India",
-              "score": 0,
-              "age_hours": 33.2
-            }
-          ],
+          "headline_score": 0.0,
+          "experimental_news_score": 0.0,
+          "experimental_score": 0.6,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 0,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 0,
+          "headline_count": 0,
+          "headlines": [],
           "client_retail_adjustment": 0.38,
-          "published_score": 7.3,
+          "published_score": 0.6,
           "published_score_mode": "news_client_only"
         },
         "BANKNIFTY": {
           "close": 57773.65,
           "close_as_of": "05/11/2026",
           "day_change_pct": 3.33,
-          "headline_score": 7.3,
-          "headline_count": 8,
-          "headlines": [
-            {
-              "title": "Technical View: Nifty eyes 24,800 after biggest single-day rally since April, but consolidation risks...",
-              "source": "Moneycontrol.com",
-              "score": 2,
-              "age_hours": 3.0
-            },
-            {
-              "title": "Nifty Bank jumps 3%, Financials 4%: What's behind the rise? Explained",
-              "source": "Business Standard",
-              "score": 2,
-              "age_hours": 5.1
-            },
-            {
-              "title": "Sensex Today | Stock Market Live: Sensex erases 500 pts form day's high, Nifty at 23,800; IT stocks",
-              "source": "IndiaIPO",
-              "score": 0,
-              "age_hours": 5.4
-            },
-            {
-              "title": "US Midterm Election results impact on oil and IT shares: Reliance, Indian Oil, TCS, Infosys - 10 stocks from experts",
-              "source": "TradingView",
-              "score": 0,
-              "age_hours": 5.9
-            },
-            {
-              "title": "NIFTY50 gains 7.6%, SENSEX up 5,755 points after sixth consecutive days of rally; will NIFTY be able to hit 25,000?",
-              "source": "Upstox",
-              "score": 3,
-              "age_hours": 7.5
-            },
-            {
-              "title": "Sensex Today | Stock Market Live: Sensex surges over 1,500 pts, Nifty nears 24,400; auto jumps over",
-              "source": "IndiaIPO",
-              "score": 3,
-              "age_hours": 8.1
-            },
-            {
-              "title": "US Midterm Election results lift banking, financial stocks - SBI Cards, Bajaj Finance, Axis, ICICI Bank surge up to 6%",
-              "source": "Livemint",
-              "score": 2,
-              "age_hours": 8.8
-            },
-            {
-              "title": "Bank Nifty surges 2%, trades near 57,000; IndusInd, AU SFB lead gains: What lies ahead?",
-              "source": "Moneycontrol.com",
-              "score": 3,
-              "age_hours": 9.5
-            }
-          ],
+          "headline_score": 0.0,
+          "experimental_news_score": 0.0,
+          "experimental_score": 0.6,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 0,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 0,
+          "headline_count": 0,
+          "headlines": [],
           "client_retail_adjustment": 0.38,
-          "published_score": 7.3,
+          "published_score": 0.6,
           "published_score_mode": "news_client_only"
         }
       },
@@ -416,5 +287,5 @@
       }
     }
   ],
-  "updated_at": "2026-11-05T14:40Z"
+  "updated_at": "2026-11-05T15:05Z"
 }
