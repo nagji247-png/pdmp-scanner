@@ -3731,11 +3731,58 @@ def update_participant_oi_history(*snapshots):
             "participants": participants,
         }
 
+    # One-time, rate-limited backfill: seed up to 25 prior trading sessions.
+    # Never repeat on every 5-minute scan; retry only after 24 hours if incomplete.
+    backfill_state = archive.get("backfill") if isinstance(archive.get("backfill"), dict) else {}
+    now = dt.datetime.now(dt.timezone.utc)
+    last_attempt = None
+    try:
+        raw_attempt = backfill_state.get("attempted_at")
+        last_attempt = dt.datetime.fromisoformat(raw_attempt.replace("Z", "+00:00")) if raw_attempt else None
+        if last_attempt and last_attempt.tzinfo is None:
+            last_attempt = last_attempt.replace(tzinfo=dt.timezone.utc)
+    except (TypeError, ValueError):
+        last_attempt = None
+
+    backfilled = 0
+    if len(by_date) < 25 and (last_attempt is None or (now - last_attempt).total_seconds() >= 86400):
+        anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
+        for offset in range(0, 65):
+            if len(by_date) >= 25:
+                break
+            target_day = anchor_date - dt.timedelta(days=offset)
+            if target_day.weekday() >= 5:
+                continue
+            historical = fetch_participant_oi(base_date=target_day)
+            if not isinstance(historical, dict) or not historical.get("ok") or historical.get("stale"):
+                continue
+            date = historical.get("date")
+            participants = historical.get("participants")
+            if (not isinstance(date, str) or not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", date)
+                    or not isinstance(participants, dict)
+                    or not all(group in participants for group in ("FII", "DII", "PRO", "CLIENT"))
+                    or date in by_date):
+                continue
+            by_date[date] = {
+                "date": date,
+                "source": historical.get("source", "NSE official participant-wise OI"),
+                "scope": historical.get("scope", "Index F&O participant totals"),
+                "participants": participants,
+            }
+            backfilled += 1
+        backfill_state = {
+            "status": "complete" if len(by_date) >= 25 else "partial",
+            "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
+            "sessions_added": backfilled,
+            "target_sessions": 25,
+        }
+
     ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
     return {
         "schema_version": 1,
         "source": "NSE participant-wise Open Interest daily EOD CSV",
         "retention_sessions": PARTICIPANT_HISTORY_KEEP,
+        "backfill": backfill_state,
         "records": ordered,
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes").replace("+00:00", "Z"),
         "added_this_run": added,
