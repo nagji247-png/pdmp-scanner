@@ -450,5 +450,23 @@
       "status": "unavailable",
       "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-05|NIFTY",
+    "date": "2026-11-05",
+    "instrument": "NIFTY",
+    "score": 7.6,
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 24442.3008,
+    "baseline_time": "2026-11-05T07:20:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance completed 5-minute candles",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    }
   }
 ]
