@@ -2,6 +2,7 @@ import json, csv, os, re, time, math, datetime as dt, html
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
 import requests
+from curl_cffi import requests as curl_requests
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -284,7 +285,7 @@ NSE_MCP_HEADERS = {
 }
 NSE_QUOTE_CACHE = {"stocks": None, "loaded_at": 0}
 
-NSE_MCP_HTTP = requests.Session()
+NSE_MCP_HTTP = curl_requests.Session(impersonate="chrome124")
 NSE_MCP_SESSION_ID = None
 NSE_MCP_PROTOCOL_VERSION = "2024-11-05"
 NSE_MCP_TOOLS = {}
