@@ -863,7 +863,15 @@ def nse_direct_equity_quote(symbol):
 def nse_cash_quote(name, sym):
     """Prefer official exchange quotes; use Google Finance only as a timestamp-validated backup."""
     if name == "SENSEX":
-        return bse_sensex_quote() or google_finance_sensex_quote()
+        quote = bse_sensex_quote()
+        if quote:
+            return quote
+        quote = google_finance_sensex_quote()
+        # Google Finance may expose yesterday's close as a quote. Do not
+        # publish it as today's SENSEX price when the cash session is open.
+        if quote and "पिछला बंद भाव" in str(quote.get("source") or ""):
+            return None
+        return quote
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
         # NSE MCP index calls are unavailable; use the public NSE feed, then a
@@ -2185,7 +2193,7 @@ def derive_card_indicator(name, sym, score, change):
 
 def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
     returns = {}
-    change = 0.0
+    change = None if name == "SENSEX" else 0.0
     try:
         returns = daily_returns(sym)
         if returns:
