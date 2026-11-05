@@ -134,9 +134,10 @@ jobs:
           assert silver["change_pct"] == 3.95, silver
           assert app.mcx_reference_is_fresh({"source_time": gold["source_time"]})
 
-          stale = now - dt.timedelta(minutes=46)
+          during_session = dt.datetime(2026, 11, 5, 12, 0, tzinfo=ist)
+          stale = during_session - dt.timedelta(minutes=46)
           stale_data = {"source_time": stale.strftime("%Y-%m-%d %H:%M IST")}
-          assert not app.mcx_reference_is_fresh(stale_data), stale_data
+          assert not app.mcx_reference_is_fresh(stale_data, now=during_session), stale_data
 
           after_close = dt.datetime(2026, 11, 4, 23, 40, tzinfo=ist)
           last_close = {"source_time": "2026-11-04 23:29 IST"}
