@@ -447,6 +447,63 @@ def nse_mcp_call(tool_name, arguments):
         print(f"NSE MCP {tool_name} unavailable: {str(exc)[:360]}")
         return None
 
+def nse_mcp_list_tool_schema(tool_name):
+    """Discover the live NSE tool schema; never infer input names from memory."""
+    try:
+        _nse_mcp_initialize()
+        envelope = _nse_mcp_post({
+            "jsonrpc": "2.0", "id": 4, "method": "tools/list", "params": {}
+        }, timeout=30)
+        tools = (envelope.get("result") or {}).get("tools") or []
+        tool = next((item for item in tools if item.get("name") == tool_name), None)
+        if not tool:
+            raise RuntimeError(f"{tool_name} is absent from live tools/list")
+        schema = tool.get("inputSchema") or {}
+        print(f"NSE MCP discovered schema {tool_name}: {json.dumps(schema, ensure_ascii=False)[:1800]}")
+        return schema
+    except Exception as exc:
+        print(f"NSE MCP tools/list discovery failed for {tool_name}: {str(exc)[:300]}")
+        return None
+
+
+def nse_index_quote_arguments(tool_name, index_name):
+    """Build arguments only from the live input schema returned by tools/list."""
+    schema = nse_mcp_list_tool_schema(tool_name)
+    if not isinstance(schema, dict):
+        return None
+    properties = schema.get("properties") or {}
+    if not properties:
+        return {} if not schema.get("required") else None
+    normalized_target = re.sub(r"[^A-Z0-9]", "", index_name.upper())
+    candidates = []
+    for key, spec in properties.items():
+        spec = spec if isinstance(spec, dict) else {}
+        description = str(spec.get("description") or "")
+        enum = spec.get("enum")
+        if isinstance(enum, list):
+            for value in enum:
+                normalized_value = re.sub(r"[^A-Z0-9]", "", str(value).upper())
+                if normalized_value == normalized_target:
+                    candidates.append((key, value, 3))
+                elif normalized_target in normalized_value or normalized_value in normalized_target:
+                    candidates.append((key, value, 2))
+        key_hint = re.sub(r"[^a-z]", "", key.lower())
+        desc_hint = (key_hint + " " + description).lower()
+        if any(token in desc_hint for token in ("index", "name", "symbol")):
+            candidates.append((key, index_name, 1))
+    if not candidates:
+        print(f"NSE MCP {tool_name}: no index input field identified from live schema")
+        return None
+    candidates.sort(key=lambda item: item[2], reverse=True)
+    key, value, _ = candidates[0]
+    args = {key: value}
+    required = schema.get("required") or []
+    if any(item not in args for item in required):
+        print(f"NSE MCP {tool_name}: schema has additional required fields {required}")
+        return None
+    print(f"NSE MCP {tool_name}: using schema-derived argument {key}={value}")
+    return args
+
 def nse_stock_universe():
     now = time.time()
     if NSE_QUOTE_CACHE["stocks"] is not None and now - NSE_QUOTE_CACHE["loaded_at"] < 240:
@@ -611,11 +668,11 @@ def nse_cash_quote(name, sym):
         return bse_sensex_quote() or google_finance_sensex_quote()
     if name in ("NIFTY", "BANKNIFTY"):
         index_name = "NIFTY 50" if name == "NIFTY" else "NIFTY BANK"
-        # NSE's current live-indices tool is the batch endpoint; the older
-        # cm_get_index_quote route has returned HTTP 404 from the runner.
-        data = nse_mcp_call("cm_get_live_indices", {
-            "group": "", "nameFilter": index_name
-        })
+        # Discover the exact cm_get_index_quote input schema from NSE tools/list
+        # on the live server, then call it with only schema-derived arguments.
+        tool_name = "cm_get_index_quote"
+        arguments = nse_index_quote_arguments(tool_name, index_name)
+        data = nse_mcp_call(tool_name, arguments) if arguments is not None else None
         def find_index_quote(node, inherited_stamp=None, matched=False):
             if isinstance(node, dict):
                 labels = " ".join(str(node.get(k) or "") for k in
