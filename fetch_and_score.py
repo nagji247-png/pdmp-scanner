@@ -342,10 +342,9 @@ def _nse_mcp_post(payload, timeout=30, session=True):
 
 
 def _nse_mcp_initialize():
-    """Negotiate a Streamable HTTP session and discover the server's real tool schemas."""
-    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_PROTOCOL_VERSION, NSE_MCP_REQUEST_ID, NSE_MCP_WARMED
+    """Initialize an NSE MCP session; the server's initialized notification is fire-and-forget."""
+    global NSE_MCP_SESSION_ID, NSE_MCP_PROTOCOL_VERSION, NSE_MCP_WARMED
     NSE_MCP_SESSION_ID = None
-    NSE_MCP_TOOLS = {}
     # Reuse the Chrome-impersonated session and warm its TLS/cookie context
     # in the same way as the independently verified NSEPython server client.
     if not NSE_MCP_WARMED:
@@ -360,7 +359,6 @@ def _nse_mcp_initialize():
                 print(f"NSE MCP session warm-up note: {str(warm_exc)[:120]}")
             time.sleep(1.0)
         NSE_MCP_WARMED = True
-    init_headers = dict(NSE_MCP_HEADERS)
     payload = {
         "jsonrpc": "2.0", "id": 1, "method": "initialize",
         "params": {
@@ -369,75 +367,46 @@ def _nse_mcp_initialize():
             "clientInfo": {"name": "trinetra-pdmp-scanner", "version": "1.1"},
         },
     }
-    response = NSE_MCP_HTTP.post(NSE_MCP_URL, headers=init_headers, json=payload, timeout=30)
+    response = NSE_MCP_HTTP.post(
+        NSE_MCP_URL, headers=dict(NSE_MCP_HEADERS), json=payload, timeout=30
+    )
     if response.status_code != 200:
-        body = re.sub(r"\s+", " ", response.text or "")[:180]
+        body = re.sub(r"\\s+", " ", response.text or "")[:180]
         raise RuntimeError(f"NSE MCP initialize HTTP {response.status_code}: {body}")
     envelope = _nse_mcp_decode_response(response)
     if envelope.get("error"):
         raise RuntimeError(f"NSE MCP initialize error: {envelope['error']}")
-    result = envelope.get("result") or {}
-    negotiated = result.get("protocolVersion")
+    negotiated = (envelope.get("result") or {}).get("protocolVersion")
     if negotiated:
         NSE_MCP_PROTOCOL_VERSION = negotiated
     NSE_MCP_SESSION_ID = (
         response.headers.get("mcp-session-id")
         or response.headers.get("Mcp-Session-Id") or ""
     )
-    _nse_mcp_post(
-        {"jsonrpc": "2.0", "method": "notifications/initialized"},
-        timeout=15,
-    )
-    NSE_MCP_REQUEST_ID += 1
-    listed = _nse_mcp_post({
-        "jsonrpc": "2.0", "id": NSE_MCP_REQUEST_ID, "method": "tools/list",
-        "params": {},
-    })
-    tools = (listed.get("result") or {}).get("tools") or []
-    NSE_MCP_TOOLS = {
-        item.get("name"): item for item in tools
-        if isinstance(item, dict) and item.get("name")
-    }
-    if not NSE_MCP_TOOLS:
-        raise RuntimeError("NSE MCP tools/list returned no tools")
+    # NSE's Streamable HTTP server may answer 404 to this notification.
+    # The verified NSEPython client deliberately treats it as fire-and-forget.
+    try:
+        NSE_MCP_HTTP.post(
+            NSE_MCP_URL, headers=_nse_mcp_headers(),
+            json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+            timeout=15,
+        )
+    except Exception:
+        pass
 
 
 def _nse_mcp_call_http(tool_name, arguments):
-    """Call only a tool confirmed by tools/list, adapting arguments to its live schema."""
-    global NSE_MCP_SESSION_ID, NSE_MCP_TOOLS, NSE_MCP_REQUEST_ID
+    """Call an NSE MCP tool using the server's verified initialize -> tools/call sequence."""
+    global NSE_MCP_SESSION_ID, NSE_MCP_REQUEST_ID
     last_error = None
     for attempt in range(2):
         try:
-            if attempt == 1 or not NSE_MCP_TOOLS:
+            if attempt == 1 or not NSE_MCP_SESSION_ID:
                 _nse_mcp_initialize()
-            tool = NSE_MCP_TOOLS.get(tool_name)
-            if not tool:
-                available = ", ".join(sorted(NSE_MCP_TOOLS)[:24])
-                raise RuntimeError(f"tool {tool_name!r} absent from tools/list; available: {available}")
-            supplied = dict(arguments or {})
-            properties = ((tool.get("inputSchema") or {}).get("properties") or {})
-            if properties:
-                aliases = {
-                    "indexName": ("indexName", "index", "name", "index_name", "symbol"),
-                    "symbol": ("symbol", "stockSymbol", "ticker"),
-                }
-                adapted = {}
-                for key, value in supplied.items():
-                    candidates = aliases.get(key, (key,))
-                    target = next((candidate for candidate in candidates if candidate in properties), None)
-                    if target:
-                        adapted[target] = value
-                required = (tool.get("inputSchema") or {}).get("required") or []
-                missing = [key for key in required if key not in adapted]
-                if missing:
-                    raise RuntimeError(
-                        f"{tool_name} requires {missing}; live schema properties: {list(properties)}"
-                    )
-                supplied = adapted
             NSE_MCP_REQUEST_ID += 1
             envelope = _nse_mcp_post({
                 "jsonrpc": "2.0", "id": NSE_MCP_REQUEST_ID, "method": "tools/call",
-                "params": {"name": tool_name, "arguments": supplied},
+                "params": {"name": tool_name, "arguments": arguments or {}},
             })
             rpc_error = envelope.get("error")
             if rpc_error:
@@ -445,7 +414,6 @@ def _nse_mcp_call_http(tool_name, arguments):
                 if "session" in message.lower() and attempt == 0:
                     last_error = RuntimeError(message)
                     NSE_MCP_SESSION_ID = None
-                    NSE_MCP_TOOLS = {}
                     continue
                 raise RuntimeError(f"NSE MCP {tool_name} JSON-RPC error: {message[:240]}")
             result = envelope.get("result") or {}
@@ -469,10 +437,8 @@ def _nse_mcp_call_http(tool_name, arguments):
             last_error = exc
             if attempt == 0:
                 NSE_MCP_SESSION_ID = None
-                NSE_MCP_TOOLS = {}
                 continue
     raise RuntimeError(f"NSE MCP {tool_name} failed: {last_error}")
-
 
 def nse_mcp_call(tool_name, arguments):
     """Call NSE's unauthenticated live MCP endpoint; errors never become synthetic quotes."""
