@@ -1601,12 +1601,13 @@ def daily_returns(sym):
     # Save the previous completed session close separately. After the market
     # closes, today's close may be included for display, but it must never
     # become the comparison base (otherwise index change incorrectly becomes 0%).
-    previous_session = [float(value) for stamp, value in closes.items()
+    previous_session = [(stamp.date().isoformat(), float(value)) for stamp, value in closes.items()
                         if stamp.date() < today_market_date and math.isfinite(float(value))]
-    previous_close = previous_session[-1] if previous_session else None
+    previous_close_date, previous_close = previous_session[-1] if previous_session else (None, None)
     keep = [(d.date() < today_market_date) or (indian_closed and d.date() == ist_now.date()) for d in closes.index]
     closes = closes[keep]
     last_close = float(closes.iloc[-1]) if len(closes) else None
+    last_close_date = closes.index[-1].date().isoformat() if len(closes) else None
     if last_close is not None and not math.isfinite(last_close):
         last_close = None
     # Yahoo GC=F और SI=F अमेरिकी डॉलर प्रति ट्रॉय औंस में हैं।
@@ -1628,6 +1629,9 @@ def daily_returns(sym):
     PRICE_CACHE[sym] = round(last_close, 2) if last_close is not None else None
     PRICE_CACHE[sym + "_PREV_CLOSE"] = (previous_close if indian_closed and previous_close is not None
                                          else last_close)
+    PRICE_CACHE[sym + "_PREV_CLOSE_DATE"] = (
+        previous_close_date if indian_closed and previous_close is not None else last_close_date
+    )
     if sym == "BZ=F":
         crude_price, crude_date, crude_time, crude_source, crude_change = crude_display_quote()
         PRICE_CACHE[sym] = crude_price
@@ -2419,11 +2423,25 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
                         except ValueError:
                             quote_date = None
                     latest_return_date = max(returns) if returns else None
-                    change = (
-                        round(returns[latest_return_date], 2)
-                        if latest_return_date and quote_date == latest_return_date
-                        else None
-                    )
+                    previous_close = PRICE_CACHE.get(sym + "_PREV_CLOSE")
+                    previous_close_date = PRICE_CACHE.get(sym + "_PREV_CLOSE_DATE")
+                    current_ist_date = (
+                        dt.datetime.now(dt.timezone.utc)
+                        + dt.timedelta(hours=5, minutes=30)
+                    ).date().isoformat()
+                    if latest_return_date and quote_date == latest_return_date:
+                        # Quote is the last completed session close.
+                        change = round(returns[latest_return_date], 2)
+                    elif (
+                        quote_date == current_ist_date
+                        and previous_close_date == latest_return_date
+                        and previous_close is not None
+                        and previous_close > 0
+                    ):
+                        # Intraday quote vs the exact previous completed BSE session close.
+                        change = round((live_quote["price"] / previous_close - 1) * 100, 2)
+                    else:
+                        change = None
             elif global_quote.get("change_pct") is not None:
                 change = round(global_quote["change_pct"], 2)
             elif returns and global_quote.get("date") == max(returns):
