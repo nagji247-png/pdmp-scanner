@@ -12,7 +12,7 @@ on:
     # सामान्य PDMP स्कैन हर 30 मिनट; Trends केवल तय चार स्लॉट पर।
     - cron: "7 * * * *"
     - cron: "37 0-4,6,8-12,14-23 * * *"
-    # Google Trends के चार स्लॉट (IST): 09:15, 11:00, 13:00, 19:00।
+    # Schedule registration refresh; Google Trends के चार स्लॉट (IST): 09:15, 11:00, 13:00, 19:00।
     - cron: "45 3 * * *"
     - cron: "30 5 * * *"
     - cron: "30 7 * * *"
