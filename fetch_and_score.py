@@ -4093,7 +4093,7 @@ def main():
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
     # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
     fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
-    crowd_bull = trends.get("bull_score_pct") if fresh_trends else None
+    crowd_bull = trends.get("crowd_bull_pct") if fresh_trends else None
     crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
     crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
     crowd_bull_sum = trends.get("bull_sum_pct") if fresh_trends else None
