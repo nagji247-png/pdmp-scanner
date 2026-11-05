@@ -297,10 +297,28 @@ def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKN
 
 def fetch_news(query):
     url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=en-IN&gl=IN&ceid=IN:en"
-    feed = feedparser.parse(url)
+    # Fetch explicitly with a browser-like User-Agent and timeout. feedparser.parse(url)
+    # can silently return an empty feed when the remote request is throttled or blocked.
+    response = requests.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; PDMPScanner/1.0)",
+                 "Accept": "application/rss+xml, application/xml, text/xml, */*"},
+        timeout=20,
+    )
+    response.raise_for_status()
+    feed = feedparser.parse(response.content)
+    entries = list(getattr(feed, "entries", []) or [])
+    if not entries:
+        parse_error = str(getattr(feed, "bozo_exception", "") or "")[:180]
+        print(f"NEWS_FETCH_EMPTY http={response.status_code} bytes={len(response.content)} "
+              f"bozo={bool(getattr(feed, 'bozo', False))} error={parse_error!r} "
+              f"query={query[:100]!r}")
+    else:
+        print(f"NEWS_FETCH_OK entries={len(entries)} http={response.status_code} "
+              f"query={query[:100]!r}")
     items = []
     now = time.time()
-    for e in feed.entries[:15]:
+    for e in entries[:15]:
         age_h = None
         if getattr(e, "published_parsed", None):
             age_h = round((now - time.mktime(e.published_parsed)) / 3600, 1)
