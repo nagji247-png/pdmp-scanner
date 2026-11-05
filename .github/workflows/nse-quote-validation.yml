@@ -1,4 +1,4 @@
-name: Validate NSE quote integration
+name: Validate NSE and MCX quote integration
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install runtime dependencies
-        run: pip install yfinance feedparser requests pytrends
+        run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py
       - name: Verify Google Trends fallbacks and NSE MCP handshake
@@ -90,6 +90,15 @@ jobs:
           assert fake_session.calls[-1][2]["params"]["arguments"] == {"indexName": "NIFTY 50"}
           print("NSE Streamable HTTP session and tool-call checks passed.")
           PY
+          python - <<'PY'
+          import fetch_and_score as app
+          try:
+              rows = app.fetch_mcx_market_watch_rows()
+              quotes = app.parse_mcx_market_watch_rows(rows)
+              print(f"MCX official endpoint: {len(rows)} rows; fresh tracked contracts={sorted(quotes)}")
+          except Exception as exc:
+              print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
+          PY
       - name: Verify NSE timestamp formatter
         run: |
           python - <<'PY'
@@ -138,6 +147,98 @@ jobs:
           assert not app.mcx_reference_is_fresh(stale_data), stale_data
           print("MCX quote parsing and stale-data checks passed.")
           PY
+      - name: Verify symbol-specific NSE quote validation
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import fetch_and_score as app
+
+          ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+          before_open = dt.datetime(2026, 11, 5, 7, 34, tzinfo=ist)
+          payload = {
+              "equityResponse": [{
+                  "metaData": {
+                      "symbol": "SBIN",
+                      "lastUpdateTime": "04-Nov-2026 16:00:27",
+                      "previousClose": 970.25,
+                      "pChange": 0.90,
+                  },
+                  "tradeInfo": {"lastPrice": 979.00},
+              }]
+          }
+          quote = app.parse_nse_direct_equity_payload("SBIN", payload, now=before_open)
+          assert quote and quote["price"] == 979.00, quote
+          assert quote["change_pct"] == 0.90, quote
+          assert quote["source"].endswith("पिछला बंद भाव"), quote
+
+          wrong_symbol = {
+              "equityResponse": [{
+                  "metaData": {"symbol": "OTHER", "lastUpdateTime": "04-Nov-2026 16:00:27"},
+                  "tradeInfo": {"lastPrice": 258.00},
+              }]
+          }
+          assert app.parse_nse_direct_equity_payload("SBIN", wrong_symbol, now=before_open) is None
+
+          during_session = dt.datetime(2026, 11, 5, 10, 0, tzinfo=ist)
+          stale = {
+              "equityResponse": [{
+                  "metaData": {"symbol": "SBIN", "lastUpdateTime": "05-Nov-2026 09:00:00"},
+                  "tradeInfo": {"lastPrice": 979.00},
+              }]
+          }
+          assert app.parse_nse_direct_equity_payload("SBIN", stale, now=during_session) is None
+          print("NSE symbol identity, source timestamp and stale-quote guards passed.")
+          PY
+      - name: Verify official MCX Market Watch FUTCOM parsing
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import fetch_and_score as app
+
+          ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+          before_open = dt.datetime(2026, 11, 5, 7, 34, tzinfo=ist)
+          rows = [
+              {
+                  "Symbol": "GOLD", "ExpiryDate": "04DEC2026", "Unit": "10 GRMS",
+                  "Open": 143000, "Low": 142900, "LTP": 143293, "High": 143500,
+                  "PreviousClose": 139452, "PercentChange": 2.75, "OpenInterest": 15955,
+                  "LTTValue": "2026-11-04 23:54:58", "InstrumentName": "FUTCOM",
+              },
+              {
+                  "Symbol": "GOLD", "ExpiryDate": "05NOV2026", "Unit": "10 GRMS",
+                  "Open": 142900, "Low": 142800, "LTP": 143000, "High": 143100,
+                  "PreviousClose": 139452, "PercentChange": 2.54, "OpenInterest": 900,
+                  "LTTValue": "2026-11-04 23:54:58", "InstrumentName": "FUTCOM",
+              },
+              {
+                  "Symbol": "SILVER", "ExpiryDate": "05DEC2026", "Unit": "1 KGS",
+                  "Open": 187000, "Low": 186900, "LTP": 187580, "High": 188000,
+                  "PreviousClose": 187735, "PercentChange": -0.08, "OpenInterest": 12000,
+                  "LTTValue": "2026-11-04 23:55:00", "InstrumentName": "FUTCOM",
+              },
+              {
+                  "Symbol": "CRUDEOIL", "ExpiryDate": "19NOV2026", "Unit": "1 BBL",
+                  "Open": 8360, "Low": 8300, "LTP": 8381, "High": 8400,
+                  "PreviousClose": 8305, "PercentChange": 0.20, "OpenInterest": 6000,
+                  "LTTValue": "2026-11-04 23:54:00", "InstrumentName": "FUTCOM",
+              },
+              {
+                  "Symbol": "GOLD", "ExpiryDate": "04DEC2026", "Unit": "10 GRMS",
+                  "LTP": 150250, "OpenInterest": 99999,
+                  "LTTValue": "2026-11-04 23:54:58", "InstrumentName": "OPTFUT",
+              },
+          ]
+          quotes = app.parse_mcx_market_watch_rows(rows, now=before_open)
+          assert quotes["GOLD"]["price"] == 143293, quotes
+          assert quotes["GOLD"]["expiry"] == "2026-12-04", quotes
+          assert quotes["GOLD"]["open_interest"] == 15955, quotes
+          assert quotes["SILVER"]["price"] == 187580, quotes
+          assert quotes["CRUDEOIL"]["price"] == 8381, quotes
+
+          during_session = dt.datetime(2026, 11, 5, 12, 0, tzinfo=ist)
+          assert app.parse_mcx_market_watch_rows(rows, now=during_session) == {}
+          print("MCX FUTCOM symbol, expiry, OI selection and 45-minute freshness checks passed.")
+          PY
       # External NSE endpoints can rate-limit or return 404 from GitHub runners.
       # Keep this diagnostic visible without blocking unrelated code validation.
       - name: Diagnostic NSE index and stock quote probe
@@ -145,7 +246,7 @@ jobs:
         run: |
           python - <<'PY'
           import fetch_and_score as app
-          for name, symbol in (("NIFTY", "^NSEI"), ("SENSEX", "^BSESN"), ("RELIANCE", "RELIANCE.NS")):
+          for name, symbol in (("NIFTY", "^NSEI"), ("SENSEX", "^BSESN"), ("RELIANCE", "RELIANCE.NS"), ("SBIN", "SBIN.NS")):
               quote = app.nse_cash_quote(name, symbol)
               if not quote:
                   print(f"NSE quote unavailable for {name}; external probe only.")
