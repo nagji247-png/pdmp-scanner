@@ -357,14 +357,14 @@ def _nse_mcp_initialize():
                 NSE_MCP_HTTP.get(warm_url, timeout=20)
             except Exception as warm_exc:
                 print(f"NSE MCP session warm-up note: {str(warm_exc)[:120]}")
-            time.sleep(1.0)
+            time.sleep(1.2)
         NSE_MCP_WARMED = True
     payload = {
         "jsonrpc": "2.0", "id": 1, "method": "initialize",
         "params": {
             "protocolVersion": NSE_MCP_PROTOCOL_VERSION,
             "capabilities": {},
-            "clientInfo": {"name": "trinetra-pdmp-scanner", "version": "1.1"},
+            "clientInfo": {"name": "nsepythonserver", "version": "2.101"},
         },
     }
     response = NSE_MCP_HTTP.post(
@@ -403,11 +403,10 @@ def _nse_mcp_call_http(tool_name, arguments):
         try:
             if attempt == 1 or not NSE_MCP_SESSION_ID:
                 _nse_mcp_initialize()
-            NSE_MCP_REQUEST_ID += 1
             envelope = _nse_mcp_post({
-                "jsonrpc": "2.0", "id": NSE_MCP_REQUEST_ID, "method": "tools/call",
+                "jsonrpc": "2.0", "id": 3, "method": "tools/call",
                 "params": {"name": tool_name, "arguments": arguments or {}},
-            })
+            }, timeout=60)
             rpc_error = envelope.get("error")
             if rpc_error:
                 message = str(rpc_error)
