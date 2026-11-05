@@ -78,19 +78,25 @@ def load_nifty_closes():
     return closes
 
 
+def normalized_leg_change(current, previous, field, leg):
+    key = f"{field}_{leg}"
+    current_value = finite_number(current.get(key))
+    previous_value = finite_number(previous.get(key))
+    previous_gross = (
+        finite_number(previous.get(f"{field}_long")) +
+        finite_number(previous.get(f"{field}_short"))
+    )
+    if current_value is None or previous_value is None or previous_gross <= 0:
+        return None
+    return (current_value - previous_value) / previous_gross * 100.0
+
+
 def normalized_net_change(current, previous, field):
-    long_key, short_key = f"{field}_long", f"{field}_short"
-    cl = finite_number(current.get(long_key))
-    cs = finite_number(current.get(short_key))
-    pl = finite_number(previous.get(long_key))
-    ps = finite_number(previous.get(short_key))
-    if None in (cl, cs, pl, ps):
+    long_change = normalized_leg_change(current, previous, field, "long")
+    short_change = normalized_leg_change(current, previous, field, "short")
+    if long_change is None or short_change is None:
         return None
-    previous_gross = pl + ps
-    if previous_gross <= 0:
-        return None
-    # Percentage points of prior gross OI; avoids comparing raw contract counts.
-    return ((cl - cs) - (pl - ps)) / previous_gross * 100.0
+    return long_change - short_change
 
 
 def correlation(x, y, method):
@@ -127,36 +133,52 @@ def run():
     price_index = {date: i for i, date in enumerate(price_dates)}
     rows_by_feature = {}
     aligned_dates = []
+    nonconsecutive_oi_pairs_skipped = 0
 
     for index in range(1, len(records)):
         current, previous = records[index], records[index - 1]
-        date = current["date"]
-        if date not in price_index:
+        date, previous_date = current["date"], previous["date"]
+        if date not in price_index or previous_date not in price_index:
+            continue
+        # Only call this a one-session OI change when the two archive dates
+        # are adjacent NIFTY trading sessions. Never silently span a missing day.
+        if price_index[date] - price_index[previous_date] != 1:
+            nonconsecutive_oi_pairs_skipped += 1
             continue
         aligned_dates.append(date)
         current_groups = current["participants"]
         previous_groups = previous["participants"]
+        pidx = price_index[date]
         for group in GROUPS:
             for field in FIELDS:
-                value = normalized_net_change(current_groups[group],
-                                               previous_groups[group], field)
-                if value is None:
-                    continue
-                feature = f"{group}.{field}_net_change_pct_prior_gross"
-                bucket = rows_by_feature.setdefault(feature, [])
-                pidx = price_index[date]
-                for horizon in HORIZONS:
-                    target_idx = pidx + horizon
-                    if target_idx >= len(price_dates):
-                        continue
-                    target_date = price_dates[target_idx]
-                    forward = (closes[target_date] / closes[date] - 1.0) * 100.0
-                    if math.isfinite(forward):
-                        bucket.append({
-                            "date": date, "target_date": target_date,
-                            "horizon": horizon, "signal": value,
-                            "forward_return_pct": forward,
-                        })
+                net_value = normalized_net_change(current_groups[group],
+                                                  previous_groups[group], field)
+                features = []
+                if net_value is not None:
+                    features.append((f"{field}_net_change_pct_prior_gross", net_value, 1))
+                for leg in ("long", "short"):
+                    leg_value = normalized_leg_change(current_groups[group],
+                                                      previous_groups[group], field, leg)
+                    if leg_value is not None:
+                        # Futures long additions are positive; short additions are bearish.
+                        direction = -1 if field == "future_index" and leg == "short" else 1
+                        features.append((f"{field}_{leg}_change_pct_prior_gross",
+                                         leg_value * direction, direction))
+                for feature_suffix, value, _direction in features:
+                    feature = f"{group}.{feature_suffix}"
+                    bucket = rows_by_feature.setdefault(feature, [])
+                    for horizon in HORIZONS:
+                        target_idx = pidx + horizon
+                        if target_idx >= len(price_dates):
+                            continue
+                        target_date = price_dates[target_idx]
+                        forward = (closes[target_date] / closes[date] - 1.0) * 100.0
+                        if math.isfinite(forward):
+                            bucket.append({
+                                "date": date, "target_date": target_date,
+                                "horizon": horizon, "signal": value,
+                                "forward_return_pct": forward,
+                            })
 
     if len(aligned_dates) < 20:
         raise RuntimeError(
@@ -193,6 +215,7 @@ def run():
         "oi_sessions": len(records),
         "nifty_close_sessions": len(closes),
         "aligned_oi_dates": len(aligned_dates),
+        "nonconsecutive_oi_pairs_skipped": nonconsecutive_oi_pairs_skipped,
         "aligned_first_date": min(aligned_dates),
         "aligned_last_date": max(aligned_dates),
         "target_definition": (
@@ -200,14 +223,15 @@ def run():
             "from date t to the close of the 1st, 3rd, or 5th subsequent trading session."
         ),
         "normalization": (
-            "Daily change in participant net OI divided by that participant/field's "
-            "previous-session gross OI (long + short), expressed as percent."
+            "Separate long and short leg changes, plus net change, each divided by "
+            "that participant/field's previous-session gross OI (long + short), in percent."
         ),
         "validation": {
             "chronological_split": "first 70% train; last 30% holdout, ordered by date",
             "directional_hit_rate": (
-                "reported only for futures net OI change; call/put OI is correlation-only "
-                "because long/short option positions are not a clean directional proxy."
+                "reported for futures net OI and futures long/short changes (short changes "
+                "are sign-inverted); call/put OI is correlation-only because option-side "
+                "long/short positions are not a clean directional proxy."
             ),
             "score_changed": False,
             "eligible_for_live_score": False,
