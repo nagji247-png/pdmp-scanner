@@ -38,12 +38,16 @@ def load_oi_records():
     if not isinstance(records, list):
         raise ValueError("archive records is not a list")
     by_date = {}
+    seen_dates = set()
     required = ("future_index_long", "future_index_short",
                 "index_call_long", "index_call_short",
                 "index_put_long", "index_put_short")
     for row in records:
         date = row.get("date")
         dt.date.fromisoformat(date)
+        if date in seen_dates:
+            raise ValueError(f"duplicate OI date: {date}")
+        seen_dates.add(date)
         participants = row.get("participants") or {}
         if not all(group in participants for group in GROUPS):
             raise ValueError(f"{date}: one or more participant groups are missing")
@@ -94,15 +98,6 @@ def correlation(x, y, method):
         return None
     value = pd.Series(x).corr(pd.Series(y), method=method)
     return round(float(value), 4) if pd.notna(value) else None
-
-
-def summarize(rows, horizon, split_name):
-    subset = [r for r in rows if r["horizon"] == horizon]
-    if split_name == "train":
-        subset = subset[: int(len(subset) * 0.70)]
-    elif split_name == "holdout":
-        subset = subset[int(len(subset) * 0.70):]
-    return subset
 
 
 def metrics(rows, directional=False):
