@@ -90,15 +90,6 @@ jobs:
           assert fake_session.calls[-1][2]["params"]["arguments"] == {"indexName": "NIFTY 50"}
           print("NSE Streamable HTTP session and tool-call checks passed.")
           PY
-          python - <<'PY'
-          import fetch_and_score as app
-          try:
-              rows = app.fetch_mcx_market_watch_rows()
-              quotes = app.parse_mcx_market_watch_rows(rows)
-              print(f"MCX official endpoint: {len(rows)} rows; fresh tracked contracts={sorted(quotes)}")
-          except Exception as exc:
-              print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
-          PY
       - name: Verify NSE timestamp formatter
         run: |
           python - <<'PY'
@@ -253,4 +244,17 @@ jobs:
                   continue
               date, clock = app.nse_stamp_fields(quote.get("stamp"))
               print(f"{name}: price={quote.get('price')} date={date} time={clock} source={quote.get('source')}")
+          PY
+
+      - name: Diagnostic official MCX Market Watch probe
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import fetch_and_score as app
+          try:
+              rows = app.fetch_mcx_market_watch_rows()
+              quotes = app.parse_mcx_market_watch_rows(rows)
+              print(f"MCX official endpoint: {len(rows)} rows; fresh tracked contracts={sorted(quotes)}")
+          except Exception as exc:
+              print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
           PY
