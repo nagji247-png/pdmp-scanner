@@ -174,11 +174,11 @@ def run():
                             continue
                         target_date = price_dates[target_idx]
                         # OI is published after date t closes: enter at next session open,
-                    # then exit at the close of the horizon session (no same-day close entry).
-                    entry_date = price_dates[pidx + 1]
-                    entry_open = prices[entry_date]["open"]
-                    target_close = prices[target_date]["close"]
-                    forward = (target_close / entry_open - 1.0) * 100.0
+                        # then exit at the close of the horizon session (no same-day close entry).
+                        entry_date = price_dates[pidx + 1]
+                        entry_open = prices[entry_date]["open"]
+                        target_close = prices[target_date]["close"]
+                        forward = (target_close / entry_open - 1.0) * 100.0
                         if math.isfinite(forward):
                             bucket.append({
                                 "date": date, "target_date": target_date,
