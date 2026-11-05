@@ -4096,10 +4096,18 @@ def main():
     crowd_bull = trends.get("bull_score_pct") if fresh_trends else None
     crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
     crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
-    crowd_valid = all(
-        isinstance(v, (int, float)) and 0 <= v <= 100
-        for v in (crowd_bull, crowd_bear, crowd_neutral)
-    ) and abs((crowd_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
+    crowd_bull_sum = trends.get("bull_sum_pct") if fresh_trends else None
+    crowd_bear_sum = trends.get("bear_sum_pct") if fresh_trends else None
+    crowd_valid = (
+        isinstance(crowd_bull, (int, float)) and 0 <= crowd_bull <= 100
+        and isinstance(crowd_bull_sum, (int, float)) and crowd_bull_sum > 0
+        and isinstance(crowd_bear_sum, (int, float)) and crowd_bear_sum > 0
+        and all(
+            isinstance(v, (int, float)) and 0 <= v <= 100
+            for v in (crowd_bull, crowd_bear, crowd_neutral)
+        )
+        and abs((crowd_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
+    )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
@@ -4107,7 +4115,9 @@ def main():
             continue
         if crowd_valid and retail_valid:
             news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
-            crowd_component = max(-10.0, min(10.0, float(crowd_bull - crowd_bear) / 100 * 10))
+            # Crowd score uses bullish share among directional searches (bull vs bear).
+            # 50% is neutral; 0..100% maps linearly to -10..+10.
+            crowd_component = max(-10.0, min(10.0, (float(crowd_bull) - 50.0) / 50.0 * 10.0))
             retail_component = max(-10.0, min(10.0, float(adj) * 5))
             combined = news_component * 0.40 + crowd_component * 0.40 + retail_component * 0.20
             _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
@@ -4118,6 +4128,8 @@ def main():
         "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
         "weights": {"news": 40, "crowd": 40, "client": 20},
         "crowd_included": bool(crowd_valid),
+        "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
+        "crowd_bull_pct": crowd_bull if crowd_valid else None,
         "client_included": bool(retail_valid),
     }
 
