@@ -457,7 +457,11 @@ def nse_stock_universe():
         NSE_QUOTE_CACHE["stocks"] = {str(x.get("symbol", "")).upper(): x for x in stocks}
         NSE_QUOTE_CACHE["loaded_at"] = now
         return NSE_QUOTE_CACHE["stocks"]
-    return NSE_QUOTE_CACHE["stocks"] or {}
+    # Cache a failed batch attempt briefly so each watchlist symbol does not
+    # repeat the same failing request; individual quote fallback remains available.
+    NSE_QUOTE_CACHE["stocks"] = {}
+    NSE_QUOTE_CACHE["loaded_at"] = now
+    return {}
 
 def bse_sensex_quote():
     """Return BSE's own SENSEX quote only when its exchange timestamp is for today."""
@@ -635,15 +639,14 @@ def nse_cash_quote(name, sym):
                                    "INDEXNSE", index_name)
     if sym.endswith(".NS"):
         symbol = sym[:-3].upper()
-        data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
-        def find_quote(node):
+        def find_quote(node, inherited_stamp=None):
             if isinstance(node, dict):
+                stamp = next((node.get(k) for k in
+                              ("latestTimestamp", "timestamp", "nseTimestamp", "updatedAt")
+                              if node.get(k)), inherited_stamp)
                 price = next((node.get(k) for k in
                               ("lastTradedPrice", "lastPrice", "ltp", "last")
                               if node.get(k) is not None), None)
-                stamp = next((node.get(k) for k in
-                              ("latestTimestamp", "timestamp", "nseTimestamp")
-                              if node.get(k)), None)
                 pct = next((node.get(k) for k in
                             ("perChange", "changePercent", "pChange", "change_pct")
                             if node.get(k) is not None), None)
@@ -651,15 +654,24 @@ def nse_cash_quote(name, sym):
                     return {"price": float(price), "stamp": stamp,
                             "change_pct": float(pct) if pct is not None else None}
                 for value in node.values():
-                    found = find_quote(value)
+                    found = find_quote(value, stamp)
                     if found:
                         return found
             elif isinstance(node, list):
                 for value in node:
-                    found = find_quote(value)
+                    found = find_quote(value, inherited_stamp)
                     if found:
                         return found
             return None
+
+        # First use one cached bulk NSE response for the entire watchlist.
+        universe = nse_stock_universe()
+        quote = find_quote(universe.get(symbol)) if isinstance(universe, dict) else None
+        if quote:
+            return {**quote, "source": "NSE"}
+
+        # If the bulk endpoint did not include this symbol, try the individual quote.
+        data = nse_mcp_call("cm_get_stock_quote", {"symbol": symbol})
         quote = find_quote(data)
         if quote:
             return {**quote, "source": "NSE"}
