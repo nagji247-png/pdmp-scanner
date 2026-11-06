@@ -270,3 +270,23 @@ For each symbol/side the official historical `foCPV` endpoint returned exactly o
 - Therefore `coverage_validated=false` remains deliberate. The UDiFF aggregates are real exchange-wide contract OI context, not CLIENT-only positions, and are not yet included in any index Final. Next gate: establish MII expiry/strike field encoding and perform a second dated UDiFF comparison with stable exact-contract keys before any score test.
 - On head `839d994ce8d6dd2ebe01f348e6e698af9cc174ac`, Component Score Validation #137, OI Research Validation #51 and NSE/MCX Integration #222 all passed. These validate parser/tests and diagnostic download/joins; they do not close the expiry/strike normalization or predictive-validation gates.
 - No production score, signal, dashboard layout, merge or deployment was changed.
+
+
+### NSE five-session exact-contract OI comparison — 6 Nov 2026
+
+- The official NSE UDiFF F&O Bhavcopy was downloaded successfully for 30-Oct, 2-Nov, 3-Nov, 4-Nov and 5-Nov 2026. Every file parsed with zero duplicate exact-contract keys and zero rejected NIFTY/BANKNIFTY option rows. The comparison key is exact UDiFF `(expiry, strike, CE/PE)`; only contracts present on both adjacent dates are compared.
+- All comparisons had zero lot-size mismatches. OI changes below are summed only over the common contract set; newly listed and removed contracts are reported separately. They are exchange-wide index-option positions, not CLIENT-only positions.
+- **NIFTY common-contract changes (CE / PE OI lots):**
+  - 5-Nov vs 4-Nov: 1,858 common; 192 new; 0 removed. CE +197,733.23 lots; PE +910,241.31 lots.
+  - 4-Nov vs 3-Nov: 1,716 common; 142 new; 246 removed. CE +979,748.77; PE +966,418.38.
+  - 3-Nov vs 2-Nov: 1,852 common; 110 new; 0 removed. CE +465,548.69; PE +1,165,115.15.
+  - 2-Nov vs 30-Oct: 1,694 common; 158 new; 0 removed. CE +436,801.54; PE +526,982.92.
+- **BANKNIFTY common-contract changes (CE / PE OI lots):**
+  - 5-Nov vs 4-Nov: 935 common; 40 new; 0 removed. CE +4,398 lots; PE +82,280 lots.
+  - 4-Nov vs 3-Nov: 925 common; 10 new; 0 removed. CE +15,617; PE +28,196.
+  - 3-Nov vs 2-Nov: 925 common; 0 new; 0 removed. CE +4,003; PE +9,664.
+  - 2-Nov vs 30-Oct: 925 common; 0 new; 0 removed. CE +21,698; PE +23,471.
+- For the latest 5-Nov vs 4-Nov pair, the contract-level close/OI regime counts were also recorded separately by CE and PE. These counts are descriptive only; price/OI regime is not treated as a verified long/short participant position.
+- This confirms that five dated NSE files can be retrieved and that adjacent-session OI deltas can be computed on exact common contract keys with lot-size consistency. Four intervals are still too few to validate predictive value, and the changing contract universe (new/removed contracts) must be handled explicitly. No NIFTY/BANKNIFTY OI score is enabled.
+- NSE/MCX Integration #224 passed with this five-session diagnostic. Component Score Validation #140 and OI Research Validation #53 also passed on code head `66c869c268aa062639fd43c79db8698b8ed33cf8`.
+- No production score, signal, dashboard layout, merge or deployment was changed.
