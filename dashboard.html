@@ -650,6 +650,13 @@ function renderComponentBreakdown(b) {
         ? '<div class="hl-meta">वर्गीकृत उदाहरण: ' + esc(search.terms.slice(0, 4).map(x => x.term + " (" + x.direction + ")").join(", ")) + '</div>' : '') +
       (Array.isArray(search.unclassified_terms) && search.unclassified_terms.length
         ? '<div class="hl-meta">Unclassified उदाहरण: ' + esc(search.unclassified_terms.slice(0, 3).map(x => x.term).join(", ")) + '</div>' : '') +
+      (search.rising_queries != null
+        ? '<div class="hl-meta"><b>Rising related queries (अलग diagnostic, Final Score में शामिल नहीं):</b> ' +
+          esc(search.rising_queries) + ' · Classified ' + esc(search.rising_classified_queries == null ? 0 : search.rising_classified_queries) +
+          ' · दिशा ' + esc(Object.entries(search.rising_direction_counts || {}).map(([k, v]) => k + ' ' + v).join(', ') || '—') +
+          (Array.isArray(search.rising_terms) && search.rising_terms.length
+            ? ' · उदाहरण: ' + esc(search.rising_terms.slice(0, 4).map(x => x.term + ' (' + x.value + ')').join(', ')) : '') +
+          '</div>' : '') +
       (!search.valid && search.reason ? '<div class="hl-meta">Reading: ' + esc(search.reason) + '</div>' : '') +
       '</div>'
     : "";
