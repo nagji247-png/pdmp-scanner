@@ -80,6 +80,14 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(classify("gold price today", "GOLD"), "neutral")
         self.assertEqual(classify("Nifty breakout today", "NIFTY"), "bull")
         self.assertEqual(classify("Nifty crash", "NIFTY"), "bear")
+        self.assertEqual(classify("Nifty price rise today", "NIFTY"), "bull")
+        self.assertEqual(classify("Nifty price fall today", "NIFTY"), "bear")
+        # Ambiguous analyst/navigation intent must not be promoted into mood.
+        self.assertEqual(classify("Nifty target today", "NIFTY"), "neutral")
+        self.assertEqual(classify("Nifty 52 week high", "NIFTY"), None)
+        self.assertIsNone(classify("Nifty buy", "NIFTY"))
+        self.assertIsNone(classify("Nifty not bullish", "NIFTY"))
+        self.assertIsNone(classify("Nifty rally crash", "NIFTY"))
         self.assertIsNone(classify("Sensex today", "NIFTY"))
         self.assertIsNone(classify("silver price today", "GOLD"))
 
