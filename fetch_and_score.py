@@ -1,6 +1,10 @@
 import json, csv, os, re, time, math, datetime as dt, html
 from html.parser import HTMLParser
 from urllib.parse import quote_plus
+from component_scoring import (
+    DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
+    search_component_from_snapshot, client_oi_context, is_fresh_timestamp,
+)
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -251,6 +255,20 @@ def weighted_score(heads):
         den += w
     return round(num / den * 5, 1) if den > 0 else 0.0
 
+def shadow_weighted_news_score(heads):
+    """Shadow component: retain the weighted mean of headline sentiment points.
+
+    Do not multiply the mean by five: that arbitrary amplifier saturates
+    modest positive headlines at +10 and is not part of the production score.
+    """
+    num = 0.0
+    den = 0.0
+    for h in heads:
+        w = source_weight(h.get("source")) * recency_weight(h.get("age_h"))
+        num += h["score"] * w
+        den += w
+    return round(num / den, 2) if den > 0 else 0.0
+
 def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKNIFTY")):
     """Shadow-only score: verified <=24h headlines, cross-index duplicates excluded, no extra x2."""
     eligible = {}
@@ -287,12 +305,212 @@ def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKN
     for name in index_names:
         kept = [h for i, h in enumerate(eligible[name]) if i not in shared[name]]
         output[name] = {
-            "news_score": max(-10.0, min(10.0, weighted_score(kept))),
+            "news_score": max(-10.0, min(10.0, shadow_weighted_news_score(kept))),
             "headline_count": len(kept),
             "excluded_old_or_unknown": old_or_unknown[name],
             "excluded_cross_index_duplicates": len(shared[name]),
         }
     return output
+
+
+def build_asset_component_breakdowns(
+    instruments, updated, now_utc, participant_today=None, participant_changes_data=None
+):
+    """Build per-asset shadow scores from dated, asset-scoped, verified inputs only.
+
+    This deliberately does not modify item['score']; the published PDMP score,
+    Auto Run, signals and stale-data guard remain independent.
+    """
+    index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
+    search_assets = set(index_names) | {"GOLD", "SILVER"}
+    index_news = experimental_news_scores(instruments)
+
+    try:
+        scan_stamp = dt.datetime.fromisoformat(str(updated).replace("Z", "+00:00"))
+        if scan_stamp.tzinfo is None:
+            scan_stamp = scan_stamp.replace(tzinfo=dt.timezone.utc)
+        news_source_date = scan_stamp.astimezone(
+            dt.timezone(dt.timedelta(hours=5, minutes=30))
+        ).date().isoformat()
+    except (TypeError, ValueError):
+        news_source_date = str(updated or "")[:10]
+
+    for name, item in (instruments or {}).items():
+        if not isinstance(item, dict):
+            continue
+        components = {}
+        excluded = {}
+        client_context = None
+
+        # News is per-card query output. Only timestamped headlines from the
+        # last 24 hours are eligible; cross-index duplicates are excluded.
+        if name in index_news:
+            news_info = index_news[name]
+            news_count = int(news_info.get("headline_count") or 0)
+            news_score = news_info.get("news_score") if news_count else None
+            newest_age = min(
+                (_num(h.get("age_h")) for h in (item.get("headlines") or [])
+                 if _num(h.get("age_h")) is not None and 0 <= _num(h.get("age_h")) <= 24),
+                default=None,
+            )
+            duplicate_note = "24h timestamped headlines; cross-index duplicates excluded"
+        else:
+            eligible_news = []
+            ages = []
+            for headline in item.get("headlines") or []:
+                if not isinstance(headline, dict):
+                    continue
+                age = _num(headline.get("age_h"))
+                score = _num(headline.get("score"))
+                if age is None or age < 0 or age > 24 or score is None:
+                    continue
+                copied = dict(headline)
+                copied["score"] = score
+                eligible_news.append(copied)
+                ages.append(age)
+            news_count = len(eligible_news)
+            news_score = shadow_weighted_news_score(eligible_news) if eligible_news else None
+            newest_age = min(ages) if ages else None
+            duplicate_note = "24h timestamped headlines; asset-specific card query"
+
+        if news_score is not None and news_count > 0 and news_source_date:
+            fresh_publishers = sorted({
+                str(h.get("source")).strip()
+                for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and h.get("source")
+                and _num(h.get("age_h")) is not None
+                and 0 <= _num(h.get("age_h")) <= 24
+            })
+            published_stamps = sorted(
+                str(h.get("published_at")).strip()
+                for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and h.get("published_at")
+                and _num(h.get("age_h")) is not None
+                and 0 <= _num(h.get("age_h")) <= 24
+            )
+            news_component = build_component(
+                news_score,
+                "Google News RSS · asset-specific card query",
+                news_source_date,
+                DEFAULT_COMPONENT_WEIGHTS["news"],
+                observed_at=updated,
+                newest_headline_published_at=(published_stamps[-1] if published_stamps else None),
+                oldest_headline_published_at=(published_stamps[0] if published_stamps else None),
+                evidence_count=news_count,
+                publishers=fresh_publishers[:10],
+                query=item.get("news_query"),
+                newest_headline_age_h=round(newest_age, 2) if newest_age is not None else None,
+                method="source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                note=duplicate_note,
+            )
+            if news_component:
+                components["news"] = news_component
+        else:
+            excluded["news"] = {
+                "applicable": True,
+                "included": False,
+                "reason": "24 घंटे के भीतर की तारीख़/age वाली asset-specific खबरें उपलब्ध नहीं",
+            }
+
+        search_diagnostic = None
+        # Search Score accepts only the asset's own one-day related-query seed.
+        # Preserve the classified mix even when a neutral-only reading is withheld from Final.
+        if name in search_assets:
+            search_snapshot = (
+                item.get("index_search_shadow") if name in index_names
+                else item.get("asset_search_shadow")
+            )
+            if isinstance(search_snapshot, dict):
+                diagnostic_fields = (
+                    "valid", "seed", "source", "timeframe", "source_data_time",
+                    "raw_queries", "classified_queries", "unclassified_queries",
+                    "classification_coverage_pct", "bull_pct", "bear_pct",
+                    "neutral_pct", "directional_bull_pct", "reason", "terms",
+                    "unclassified_terms", "rising_queries",
+                    "rising_classified_queries", "rising_direction_counts",
+                    "rising_terms",
+                )
+                search_diagnostic = {
+                    key: search_snapshot.get(key)
+                    for key in diagnostic_fields
+                    if key in search_snapshot
+                }
+            search_component, search_reason = search_component_from_snapshot(
+                search_snapshot,
+                now_utc=now_utc,
+                max_age_minutes=TRENDS_MAX_AGE_MINUTES,
+                weight=DEFAULT_COMPONENT_WEIGHTS["search"],
+            )
+            if search_component:
+                components["search"] = search_component
+            else:
+                excluded["search"] = {
+                    "applicable": True,
+                    "included": False,
+                    "reason": search_reason or "Asset-specific current Search reading unavailable",
+                }
+
+        if name in index_names:
+            excluded["eod_oi"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE option-chain symbol/expiry contract-level OI",
+                "reason": "इस snapshot में NIFTY/SENSEX/BANKNIFTY का verified symbol-specific EOD option-chain OI snapshot नहीं है; participant aggregate को इसका substitute नहीं बनाया गया।",
+            }
+            excluded["futures"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE index-futures contract data",
+                "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।",
+            }
+            excluded["stock_basket"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE Indices / BSE official constituent-and-weight files",
+                "reason": "इस run में सभी official constituents और उसी तारीख़ के weights का complete verified snapshot उपलब्ध नहीं; 9-stock watchlist को full index basket नहीं माना गया।",
+            }
+            client_context = client_oi_context(
+                participant_today, participant_changes_data
+            )
+        elif name in ("GOLD", "SILVER"):
+            excluded["eod_oi"] = {
+                "applicable": True,
+                "included": False,
+                "source": "MCX official category-wise EOD OI report",
+                "reason": "Dated MCX category-wise OI snapshot सत्यापित नहीं; MCX total contract OI को CLIENT category OI नहीं माना गया।",
+            }
+            excluded["futures"] = {
+                "applicable": True,
+                "included": False,
+                "source": "MCX FUTCOM same-expiry daily OI",
+                "reason": "Current contract OI का पिछले session के उसी expiry से verified comparison उपलब्ध नहीं; futures direction score withheld।",
+            }
+
+        final = combine_components(components, DEFAULT_COMPONENT_WEIGHTS)
+        item["component_breakdown"] = {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": DEFAULT_COMPONENT_WEIGHTS,
+            "components": components,
+            "excluded_components": excluded,
+            "search_diagnostic": search_diagnostic,
+            "client_market_context": client_context,
+            "final": final,
+            "formula": "sum(component_score × configured_weight) / sum(weights of included verified components)",
+        }
+
+    return {
+        "mode": "per_asset_verified_components_shadow",
+        "weights": DEFAULT_COMPONENT_WEIGHTS,
+        "score_range": "-10..+10",
+        "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
+        "news_rule": "Only timestamped asset-specific headlines no older than 24 hours; cross-index duplicate stories excluded.",
+        "participant_oi_scope": "NSE participant-wise CLIENT CE/PE/Futures is market-wide aggregate context, not index-specific and not included in index final scores.",
+        "published_score_changed": False,
+    }
 
 
 def fetch_news(query):
@@ -320,15 +538,21 @@ def fetch_news(query):
     now = time.time()
     for e in entries[:15]:
         age_h = None
+        published_at = None
         if getattr(e, "published_parsed", None):
-            age_h = round((now - time.mktime(e.published_parsed)) / 3600, 1)
+            published_dt = dt.datetime(
+                *e.published_parsed[:6], tzinfo=dt.timezone.utc
+            )
+            published_at = published_dt.isoformat().replace("+00:00", "Z")
+            age_h = round((now - published_dt.timestamp()) / 3600, 1)
         title = e.title
         source = ""
         if " - " in title:
             title, source = title.rsplit(" - ", 1)
         items.append({"title": title, "source": source,
                       "link": getattr(e, "link", "") or "",
-                      "score": headline_score(title), "age_h": age_h})
+                      "score": headline_score(title), "age_h": age_h,
+                      "published_at": published_at})
     items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
     return items
 
@@ -2590,6 +2814,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else ("Yahoo Finance · LAST CLOSING PRICE" if PRICE_CACHE.get(sym) is not None and sym != "INR=X" else None),
+        "news_query": query,
         "score": score,
         "headline_score": score,
         "headlines": heads[:8],
