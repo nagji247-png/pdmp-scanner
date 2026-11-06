@@ -1217,12 +1217,26 @@ jobs:
                   total_raw = sum(raw_weights.values(), Decimal("0"))
                   contributions = {}
                   basket_return = Decimal("0")
+                  advancing_weight = Decimal("0")
+                  declining_weight = Decimal("0")
+                  flat_weight = Decimal("0")
+                  advancers = decliners = flat_stocks = 0
                   for symbol in weights:
                       weight_at_prior = raw_weights[symbol] / total_raw
                       stock_return = cash_by_day[current_day][symbol] / prior_prices[symbol] - Decimal("1")
                       contribution = weight_at_prior * stock_return * Decimal("100")
                       contributions[symbol] = contribution
                       basket_return += contribution
+                      if stock_return > 0:
+                          advancing_weight += weight_at_prior
+                          advancers += 1
+                      elif stock_return < 0:
+                          declining_weight += weight_at_prior
+                          decliners += 1
+                      else:
+                          flat_weight += weight_at_prior
+                          flat_stocks += 1
+                  breadth_score = Decimal("10") * (advancing_weight - declining_weight)
                   spot = index_spots[index_name]
                   if previous_day not in spot or current_day not in spot:
                       print(f"{index_name} {previous_day}->{current_day}: official index spot unavailable")
@@ -1234,7 +1248,11 @@ jobs:
                       f"coverage={len(weights)}/{len(weights)}; "
                       f"basket_return={basket_return.quantize(Decimal('0.001')):+}%; "
                       f"official_index_return={index_return.quantize(Decimal('0.001')):+}%; "
-                      f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps"
+                      f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps; "
+                      f"breadth_score={breadth_score.quantize(Decimal('0.01')):+}; "
+                      f"advancers={advancers} ({(advancing_weight*100).quantize(Decimal('0.01'))}% weight); "
+                      f"decliners={decliners} ({(declining_weight*100).quantize(Decimal('0.01'))}% weight); "
+                      f"flat={flat_stocks} ({(flat_weight*100).quantize(Decimal('0.01'))}% weight)"
                   )
                   if current_day == "2026-11-05":
                       print("  top_positive_contributors_pp=" + repr([
