@@ -78,13 +78,13 @@ class ComponentScoringHelperTests(unittest.TestCase):
         from component_scoring import aggregate_nse_udiff_index_option_oi
 
         rows = [
-            {"FinInstrmTp": "OPTIDX", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
+            {"FinInstrmTp": "IDO", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
              "XpryDt": "2026-11-10", "OptnTp": "CE", "OpnIntrst": "1000",
              "ChngInOpnIntrst": "125"},
-            {"FinInstrmTp": "OPTIDX", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
+            {"FinInstrmTp": "IDO", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
              "XpryDt": "2026-11-10", "OptnTp": "PE", "OpnIntrst": "1500",
              "ChngInOpnIntrst": "-75"},
-            {"FinInstrmTp": "OPTIDX", "TckrSymb": "BANKNIFTY", "BizDt": "2026-11-05",
+            {"FinInstrmTp": "IDO", "TckrSymb": "BANKNIFTY", "BizDt": "2026-11-05",
              "XpryDt": "2026-11-10", "OptnTp": "CE", "OpnIntrst": "9000",
              "ChngInOpnIntrst": "900"},
         ]
@@ -102,10 +102,10 @@ class ComponentScoringHelperTests(unittest.TestCase):
         from component_scoring import aggregate_nse_udiff_index_option_oi
 
         rows = [
-            {"FinInstrmTp": "OPTIDX", "TckrSymb": "SENSEX", "BizDt": "2026-11-05",
+            {"FinInstrmTp": "IDO", "TckrSymb": "SENSEX", "BizDt": "2026-11-05",
              "XpryDt": "2026-11-12", "OptnTp": "CE", "OpnIntrst": "500",
              "ChngInOpnIntrst": "50"},
-            {"FinInstrmTp": "OPTIDX", "TckrSymb": "SENSEX", "BizDt": "2026-11-04",
+            {"FinInstrmTp": "IDO", "TckrSymb": "SENSEX", "BizDt": "2026-11-04",
              "XpryDt": "2026-11-12", "OptnTp": "PE", "OpnIntrst": "700",
              "ChngInOpnIntrst": "70"},
         ]
