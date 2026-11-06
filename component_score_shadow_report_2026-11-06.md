@@ -342,3 +342,29 @@ Flat-weight constituents contribute zero. This measures how broadly the constitu
 - **NIFTY Bank, 5-Nov:** breadth score **+10.00**; all 14/14 stocks advanced, representing 100% of index weight; none declined.
 - Prior-session breadth scores (30-Oct→2-Nov, 2→3-Nov, 3→4-Nov): NIFTY 50 +4.07, +6.13, +2.77; NIFTY Bank +1.04, +1.73, +2.77.
 - These are verified descriptive breadth values based on the full official constituent weights and dated EQ closes. They remain shadow/research-only until a longer historical breadth-score test is completed; they do not contribute to production or Final.
+
+
+### Weighted stock-basket breadth candidate and helper validation — 6 Nov 2026
+
+The full-basket diagnostic now also calculates a candidate score as:
+
+`10 × (advancing constituent prior-weight − declining constituent prior-weight)`
+
+Flat constituents contribute zero to the difference. This is bounded to [-10,+10]. It is explicitly a *candidate diagnostic*, not an included Final component.
+
+Four-session results from official NSE cash prices and official 30-Oct weights:
+
+| Session | NIFTY 50 candidate | NIFTY advance / decline weight | BANKNIFTY candidate | BANKNIFTY advance / decline weight |
+|---|---:|---:|---:|---:|
+| 30-Oct → 2-Nov | +4.07 | 70.35% / 29.65% | +1.04 | 53.63% / 43.26% (3.11% flat) |
+| 2-Nov → 3-Nov | +6.13 | 80.19% / 18.91% (0.90% flat) | +1.73 | 58.64% / 41.36% |
+| 3-Nov → 4-Nov | +2.77 | 63.87% / 36.13% | +2.77 | 63.84% / 36.16% |
+| 4-Nov → 5-Nov | +6.53 | 82.63% / 17.37% | +10.00 | 100.00% / 0.00% |
+
+Important interpretation:
+- NIFTY and BANKNIFTY are demonstrably different per session; the 3-Nov→4-Nov readings happen to be close, not copied.
+- BANKNIFTY's +10.00 on 5-Nov is a genuine ceiling result because all 14 constituents advanced; it is not a forecast or an overbought reading.
+- The weighted breadth score is not yet calibrated against next-session returns. Four sessions are source/coverage verification only, not evidence of predictive power.
+- A fail-closed reusable helper, `weighted_constituent_breadth_candidate()`, was added to `component_scoring.py`. It rejects missing/duplicate symbols, invalid prices/weights and incomplete weight totals; its output is always marked `included_in_asset_final=false`. Unit tests cover its arithmetic and rejection paths. The helper does not alter production scoring.
+- Component Score Validation #162 PASS on helper/test code. OI Research Validation #71 PASS. NSE/MCX Integration #242 was still running its historical-options diagnostic at report time.
+- SENSEX full 30-stock weights remain unverified: BSE's official roster endpoint exposes constituents but not weights; its monthly factsheet provides only top-10 weights. Third-party weight lists are not substituted for official dated source data.
