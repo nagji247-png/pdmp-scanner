@@ -272,6 +272,19 @@ class ComponentScoringTests(unittest.TestCase):
         breakdown = instruments["NIFTY"]["component_breakdown"]
         self.assertEqual(breakdown["search_diagnostic"]["neutral_pct"], 100.0)
         self.assertEqual(breakdown["search_diagnostic"]["classified_queries"], 7)
+        snapshot["rising_queries"] = 2
+        snapshot["rising_classified_queries"] = 1
+        snapshot["rising_direction_counts"] = {"bull": 1, "bear": 0, "neutral": 0, "unclassified": 1}
+        snapshot["rising_terms"] = [{"term": "Nifty breakout", "value": "Breakout"}]
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments,
+            "2026-11-06T05:22:00Z",
+            datetime(2026, 11, 6, 5, 22, tzinfo=timezone.utc),
+        )
+        diagnostic = instruments["NIFTY"]["component_breakdown"]["search_diagnostic"]
+        self.assertEqual(diagnostic["rising_queries"], 2)
+        self.assertEqual(diagnostic["rising_direction_counts"]["bull"], 1)
+        self.assertEqual(diagnostic["rising_terms"][0]["value"], "Breakout")
         self.assertNotIn("search", breakdown["components"])
         self.assertIn("search", breakdown["excluded_components"])
 
