@@ -72,3 +72,45 @@ A second isolated run completed successfully: [Run #18](https://github.com/nagji
 Search classification coverage on the second observation: NIFTY 85.5%, SENSEX 77.3%, BANKNIFTY 69.7%, GOLD 77.8%, SILVER 50.7%. The mix remained neutral-only; Search correctly stayed out of Final.
 
 The repeat run supports that the News result is stable across these two close observations, but it does **not** validate the News score as a predictive trading signal. The live shadow workflow is now manual-dispatch only to avoid repeated Google Trends requests on every PR update.
+
+
+## Exchange-specific EOD OI source audit — 6 Nov 2026
+
+This audit separates the three exchanges/sources so that a market-wide report is not mistaken for an index-specific or commodity-specific dataset.
+
+### NSE: NIFTY and BANKNIFTY candidate
+
+- NSE All Reports explicitly lists F&O - UDiFF Common Bhavcopy Final (zip) and identifies the older F&O Bhavcopy formats as discontinued from 8-Jul-2024.
+- This is the correct official daily contract-level candidate for NSE-listed index derivatives such as NIFTY and BANKNIFTY. It is distinct from the participant-wise CLIENT OI report.
+- Before enabling scoring, a dated ZIP must be downloaded and checked for exact OPTIDX/index symbol, expiry, strike, CE/PE, OpnIntrst, ChngInOpnIntrst, trade date and completeness. A single contract or a partial expiry is not the whole index option book.
+- NSE's live Option Chain page also exposes a CSV download, but it is a live UI surface and does not itself prove a durable historical EOD archive.
+
+### BSE: SENSEX candidate
+
+- SENSEX index options are a BSE product; the NSE F&O bhavcopy must not be used as a substitute for SENSEX.
+- BSE's published Equity Derivatives file-format document defines a Market Summary file MS_<yyyymmdd>-01.csv with Product Type IO for index options, Asset Code, Expiry Date, Strike Price, Option Type (CE/PE) and an Open Interest field.
+- BSE's current market-data portal describes Equity Derivatives data as an API product with plans/KYC/payment. The public format document proves the schema, not free public access to the daily file. A freely accessible dated daily SENSEX option OI file has not yet been verified.
+- Therefore SENSEX EOD OI remains excluded until a dated, complete, accessible source is verified.
+
+### MCX: GOLD and SILVER candidate
+
+- MCX's official Bhav Copy page and the existing code's fetch_mcx_bhavcopy_rows(trade_date) establish a dated contract-level Bhavcopy route. The current parser mcx_bhavcopy_contract_close() extracts only the exact FUTCOM contract's close; it does not currently validate or return OI fields.
+- MCX's official Historical Data page currently documents traded-contract quantity, total value, average daily turnover and premium value; those displayed summary/detail fields are not an OI history.
+- MCX's PRO/CLI Details page currently describes percentage of proprietary/client trades and ALGO/HFT trades by commodity. That is trade-value share, not participant-wise open interest. It cannot be relabelled as CLIENT OI.
+- Next technical gate: inspect one official dated MCX Bhav Copy response and verify the exact OI and change-in-OI field names, instrument type, commodity symbol, expiry, trade date and prior-session same-expiry match. Until then, no MCX OI/futures component is included.
+
+### Current decision
+
+- NIFTY/BANKNIFTY: official NSE daily contract-level OI is a viable candidate; schema and full-date coverage must be fixture-validated before use.
+- SENSEX: requires BSE daily contract-level data; schema is known, public/free daily access is not yet established.
+- GOLD/SILVER: MCX contract-level Bhav Copy is a candidate, but OI field mapping and same-expiry daily comparison remain unverified.
+- None of these sources changes the current shadow scores until the exact date, exchange, symbol, expiry and coverage checks pass. No score is inferred from a quote-only or participant-aggregate report.
+
+Official source references:
+- NSE F&O reports: https://www.nseindia.com/all-reports-derivatives
+- NSE EOD/historical data description: https://www.nseindia.com/static/market-data/eod-historical-data-subscription
+- BSE Equity Derivatives file format: https://www.bseindia.com/downloads1/File_Format_Equity_Derivatives.pdf
+- BSE market-data portal: https://marketdata.bseindia.com/
+- MCX Bhav Copy: https://www.mcxindia.com/market-data/bhavcopy
+- MCX Historical Data: https://www.mcxindia.com/market-data/historical-data
+- MCX PRO/CLI Details: https://www.mcxindia.com/market-data/pro-cli-details
