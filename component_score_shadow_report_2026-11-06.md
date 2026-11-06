@@ -368,3 +368,13 @@ Important interpretation:
 - A fail-closed reusable helper, `weighted_constituent_breadth_candidate()`, was added to `component_scoring.py`. It rejects missing/duplicate symbols, invalid prices/weights and incomplete weight totals; its output is always marked `included_in_asset_final=false`. Unit tests cover its arithmetic and rejection paths. The helper does not alter production scoring.
 - Component Score Validation #162 PASS on helper/test code. OI Research Validation #71 PASS. NSE/MCX Integration #242 was still running its historical-options diagnostic at report time.
 - SENSEX full 30-stock weights remain unverified: BSE's official roster endpoint exposes constituents but not weights; its monthly factsheet provides only top-10 weights. Third-party weight lists are not substituted for official dated source data.
+
+
+### SENSEX weight-source boundary and historical breadth retry — 6 Nov 2026
+
+- BSE's official SENSEX constituents endpoint returned the full 30-stock roster with its 30-Oct-2026 as-of date, but the returned fields are membership, scrip code, name and industry; no constituent weight field was present.
+- BSE's official SENSEX October factsheet is available as a PDF. Its published factsheet weight table is titled "Top Constituents by Weightage" and lists only the top ten, not all 30. BSE methodology confirms float-adjusted market-cap weighting; that methodology alone cannot reconstruct exact daily weights without the missing free-float inputs.
+- Third-party complete weight tables were found, but are not substituted for a dated official source. SENSEX breadth remains excluded rather than using equal weights, a NIFTY basket or guessed weights.
+- First 60-session breadth backtest attempt reached an NSE historical cash-file read timeout. The workflow had `continue-on-error`, so its step was marked success even though the diagnostic itself stopped before producing backtest statistics. No accuracy result is claimed from that run.
+- Corrected the diagnostic to catch and report each failed historical date, continue with other dates, and refuse to produce a backtest if fewer than 35 valid dated sessions are retrieved. Latest retry is Integration #244 on code head `2cfcd3441409203c0faffe244b6d003a2c4f2c34`.
+- Component Score Validation #165 PASS and OI Research Validation #73 PASS on that same code head. Integration #244 was queued/running at report update time.
