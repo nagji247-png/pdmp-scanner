@@ -242,3 +242,17 @@ This supersedes the earlier note that fresh validation after the recovery checkp
 - This confirms the official public MCX Bhav Copy contains usable exact-contract daily OI fields and that same-expiry multi-session comparisons are technically feasible. Four observations are still far too few for predictive validation; both MCX OI components remain excluded from asset Final.
 - On head `235fa1ae85e7060eb642c0b8536dcfb0803c99e9`, Component Score Validation #127, OI Research Validation #42 and NSE/MCX Integration #213 all completed PASS. Follow-up commit `a66b8efc77581b27dc3293d9ac7fcf1fd7b71c54` changes the historical strike selection to use the dated underlying; its three CI runs are pending at this report checkpoint.
 - No production score, signal, dashboard layout, merge or deployment was changed.
+
+
+### Corrected historical ATM strike validation — 6 Nov 2026
+
+The follow-up diagnostic on feature commit `a66b8efc77581b27dc3293d9ac7fcf1fd7b71c54` now uses the dated historical row's `FH_UNDERLYING_VALUE` to select the nearest strike from the full official chain strike list. This corrects the earlier current-spot selection; the two spot values were materially different on 5-Nov.
+
+| Asset | 6-Nov chain spot | 5-Nov historical spot | 5-Nov nearest strike | CE OI / change-in-OI | PE OI / change-in-OI |
+|---|---:|---:|---:|---:|---:|
+| NIFTY | 25,030.35 | 24,536.60 | 24,550 | 4,294,095 / +2,677,935 | 2,999,295 / +2,997,800 |
+| BANKNIFTY | 59,086.00 | 57,773.65 | 57,800 | 178,320 / +104,640 | 119,220 / +118,440 |
+
+For each symbol/side the official historical `foCPV` endpoint returned exactly one row dated 05-Nov-2026, matching the requested symbol, expiry, strike and CE/PE. The response also contained close, settlement, volume, OI, change-in-OI and the historical underlying value. NSE integration run #214 completed successfully, as did Component Score Validation #128 and OI Research Validation #43 on the diagnostic code commit.
+
+**Scope limit:** this is one historical ATM strike per index and both option sides, not the full expiry chain or full index OI. The four CE/PE values must not be aggregated into an index component score or mistaken for CLIENT-wide positions. The official daily UDiFF Bhavcopy plus same-date contract master are still required for complete contract inventory, row coverage and exact master reconciliation. No index OI component is enabled.
