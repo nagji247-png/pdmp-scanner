@@ -1,4 +1,4 @@
-import json, csv, os, re, time, math, unicodedata, datetime as dt, html
+import json, csv, os, re, time, math, datetime as dt, html
 from html.parser import HTMLParser
 from urllib.parse import quote_plus
 import feedparser, yfinance as yf
@@ -65,37 +65,6 @@ POS = {"rally": 2, "rallies": 2, "surge": 2, "record high": 2, "bullish": 2, "ga
 NEG = {"crash": 2, "slump": 2, "bearish": 2, "plunge": 2, "tumble": 2, "fall": 1, "fell": 1,
        "slid": 1, "slip": 1, "dip": 1, "drag": 1, "loss": 1, "drop": 1, "decline": 1,
        "weigh": 1, "lower": 1, "sell-off": 2, "selloff": 2, "downgrade": 2, "miss": 1}
-
-# ---- नए शब्द (शब्द की शुरुआत से मिलान; अकेले 'bull', 'bear', 'tank', 'rout' जानबूझकर नहीं) ----
-POS.update({
-    "soar": 2, "skyrocket": 2, "zoom": 2, "bull run": 2, "bull market": 2, "bulls": 1,
-    "recover": 1, "reclaim": 1, "boost": 1, "strong": 1, "optimis": 1, "outperform": 1,
-    "record profit": 2, "record inflow": 2, "risk-on": 1,
-    "growth": 1, "upside": 1, "ups target": 1, "raises target": 1, "hikes target": 1,
-})
-
-# ---- हिंदी शीर्षक (मिलान शब्द की शुरुआत से; हिंदी अक्षर के बीच का मिलान नहीं) ----
-# ध्यान: अभी खबरें अंग्रेज़ी फ़ीड (hl=en-IN) से आती हैं, इसलिए हिंदी शब्द तभी काम करेंगे जब हिंदी फ़ीड जोड़ी जाए।
-POS.update({
-    "तेज़ी": 2, "तेजी": 2, "उछाल": 2, "उछला": 2, "उछले": 2, "रैली": 2, "रिकॉर्ड हाई": 2,
-    "बढ़त": 1, "बढ़ा": 1, "बढ़े": 1, "चढ़": 1, "मज़बूत": 1, "मजबूत": 1, "मुनाफ़ा": 1, "मुनाफा": 1,
-    "राहत": 1, "खरीदारी": 1, "सुधार": 1, "हरे निशान": 1,
-})
-NEG.update({
-    "गिरावट": 2, "धड़ाम": 2, "लुढ़क": 2, "क्रैश": 2, "बिकवाली": 2, "मंदी": 2,
-    "गिरा": 1, "गिरे": 1, "टूटा": 1, "टूटे": 1, "फिसल": 1, "कमज़ोर": 1, "कमजोर": 1,
-    "नुकसान": 1, "घाटा": 1, "दबाव": 1, "चिंता": 1, "डर": 1, "लाल निशान": 1,
-})
-NEG.update({
-    "sink": 2, "plummet": 2, "tanks": 2, "tanked": 2, "tanking": 2, "bloodbath": 2,
-    "bear market": 2, "bears": 2, "record low": 2,
-    "worst": 2, "wipe": 2,
-    "weak": 1, "worry": 1, "worries": 1, "concern": 1, "panic": 1, "warn": 1, "erode": 1,
-    "lose": 1, "losing": 1, "worse": 1, "retreat": 1, "bulls retreat": 2, "correction": 1, "risk-off": 1,
-    "underperform": 1, "crisis": 1, "cuts target": 1,
-})
-# 'after/following/despite' के बाद वाली बात पिछली घटना है; उसका वज़न आधा
-CTX_RE = re.compile(r"\b(?:after|following|despite|even\s+as)\b")
 
 # Google Trends: डर-संबंधी खोजें (फ़ियर मेट्रिक के लिए, एक ही अनुरोध)
 FEAR_TERMS = ["nifty crash", "stock market crash", "sensex fall"]
@@ -179,8 +148,7 @@ CONTRARIAN_LIMIT = 6.0
 # बाज़ार बंद/छुट्टी होने पर नए इवेंट नहीं बनते (main में सेट होता है)
 SKIP_EVENTS = False
 # NSE की आधिकारिक छुट्टियाँ "YYYY-MM-DD" में यहाँ भरें (Google/आधिकारिक सूची से)
-# 2026 की बाकी वीकडे छुट्टियाँ (NSE इक्विटी/डेरिवेटिव)। 8 नवंबर (रविवार, मुहूर्त ट्रेडिंग) सप्ताहांत में आता है, इसलिए यहाँ नहीं।
-NSE_HOLIDAYS = {"2026-11-10", "2026-11-24", "2026-12-25"}
+NSE_HOLIDAYS = set()
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
 CROWD_FILE = "crowd_events.json"
@@ -239,54 +207,17 @@ def recency_weight(age_h):
     return 0.3
 
 
-_WB = r"(?<![a-z\u0900-\u097F])"  # शब्द की शुरुआत: पिछला अक्षर अंग्रेज़ी/देवनागरी अक्षर न हो
-
-
-def _nfd(x):
-    return unicodedata.normalize("NFD", x)
-
-
 def headline_score(text):
     """खबर का स्कोर। 'not/no/fails to' के बाद का शब्द उल्टा गिना जाता है।
-    'again' में 'gain' नहीं गिना जाता; शब्द की शुरुआत से मिलान होता है।
-    'after/following/despite' के बाद वाले शब्द आधे वज़न के (पिछली घटना की बात)।"""
-    t = _nfd(text.lower())
-    cut = CTX_RE.search(t)
-    cut_at = cut.start() if cut else len(t)
-    total = 0.0
+    'again' में 'gain' नहीं गिना जाता; शब्द की शुरुआत से मिलान होता है।"""
+    t = text.lower()
+    total = 0
     for words, sign in ((POS, 1), (NEG, -1)):
         for k, v in words.items():
-            for m in re.finditer(_WB + re.escape(_nfd(k)), t):
+            for m in re.finditer(r"(?<![a-z])" + re.escape(k), t):
                 negated = re.search(NEG_WORD_RE, t[:m.start()])
-                val = -sign * v if negated else sign * v
-                if m.start() >= cut_at:
-                    val *= 0.5
-                total += val
-    return round(total, 1)
-
-
-# ---- एक खबर, कई इंस्ट्रूमेंट: उसी इंस्ट्रूमेंट वाला हिस्सा गिनें ----
-ASSET_WORDS = {
-    "GOLD": ("gold",), "SILVER": ("silver",), "CRUDEOIL": ("crude", "brent"),
-    "BITCOIN": ("bitcoin", "btc", "crypto"), "NASDAQ": ("nasdaq",), "DJI": ("dow jones", "djia", "the dow", "dow "),
-    "SENSEX": ("sensex",), "NIFTY": ("nifty",), "USDINR": ("rupee", "usd/inr", "usd-inr"),
-}
-CONTRAST_RE = re.compile(r"\s*(?:;|,\s*but\b|\bbut\b|\bwhile\b|\bwhereas\b|\bhowever\b)\s*")
-
-
-def scoped_headline_score(name, title, base):
-    """सोने और चाँदी जैसी दोनों की बात करने वाली खबर में, 'but/while' से बँटे हिस्सों में से
-    सिर्फ़ वही हिस्सा गिनें जिसमें इस इंस्ट्रूमेंट का नाम हो। नाम किसी हिस्से में न हो तो 0।"""
-    own = ASSET_WORDS.get(name)
-    if not own:
-        return base
-    t = title.lower()
-    others = [w for k, ws in ASSET_WORDS.items() if k != name for w in ws]
-    if not any(re.search(r"(?<![a-z])" + re.escape(w), t) for w in others):
-        return base
-    parts = [p for p in CONTRAST_RE.split(t) if p]
-    mine = [p for p in parts if any(re.search(r"(?<![a-z])" + re.escape(w), p) for w in own)]
-    return headline_score(" ; ".join(mine)) if mine else 0
+                total += -sign * v if negated else sign * v
+    return total
 
 
 def _title_tokens(t):
@@ -2649,8 +2580,6 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         heads = []
 
     heads = dedupe_heads(heads)
-    for _h in heads:
-        _h["score"] = scoped_headline_score(name, _h["title"], _h["score"])
     score = weighted_score(heads)
 
     instruments[name] = {
