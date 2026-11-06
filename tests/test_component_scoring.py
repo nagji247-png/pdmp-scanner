@@ -169,6 +169,27 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertEqual(fetch_and_score._asset_search_direction("gold price today", "GOLD"), "neutral")
         self.assertEqual(fetch_and_score._asset_search_direction("gold sideways", "GOLD"), "neutral")
 
+    def test_rising_queries_are_diagnostic_only_and_keep_breakout_values(self):
+        import pandas as pd
+        import fetch_and_score
+
+        rising = pd.DataFrame([
+            {"query": "Nifty breakout", "value": "Breakout"},
+            {"query": "Nifty crash", "value": "Breakout"},
+            {"query": "Sensex today", "value": "1200%"},
+            {"query": "Bank Nifty rally", "value": "500%"},
+        ])
+        result = fetch_and_score._asset_rising_diagnostics(rising, "NIFTY")
+        self.assertEqual(result["rising_queries"], 4)
+        self.assertEqual(result["rising_classified_queries"], 2)
+        self.assertEqual(
+            result["rising_direction_counts"],
+            {"bull": 1, "bear": 1, "neutral": 0, "unclassified": 2},
+        )
+        self.assertTrue(result["rising_terms"][0]["breakout"])
+        self.assertEqual(result["rising_terms"][0]["value"], "Breakout")
+        self.assertNotIn("score", result)
+
     def test_asset_specific_information_queries_are_neutral_without_cross_asset_leakage(self):
         import fetch_and_score
 
