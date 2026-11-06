@@ -241,3 +241,103 @@ def client_oi_context(participant_today, changes):
     if not result["available"]:
         result["reason"] = "CLIENT की चार CE/PE बदलाव फ़ील्ड और Futures बदलाव उपलब्ध नहीं"
     return result
+
+
+def _parse_exchange_date(value):
+    """Parse UDiFF ISO dates plus common exchange display dates."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw = value.strip()
+    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%b-%y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(raw, fmt).date().isoformat()
+        except ValueError:
+            continue
+    return None
+
+
+def _exchange_integer(value):
+    """Parse integer OI fields without treating blanks or malformed text as zero."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        raw = str(value).replace(",", "").strip()
+        if not raw:
+            return None
+        number = float(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(number) or not number.is_integer():
+        return None
+    return int(number)
+
+
+def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
+    """Aggregate NSE UDiFF OPTIDX CE/PE OI for one index and one exact trade date.
+
+    This is exchange-file context only. It does not claim contract-master
+    completeness and is deliberately not converted into a directional score.
+    """
+    target_symbol = str(symbol or "").strip().upper()
+    target_date = _parse_exchange_date(str(trade_date or ""))
+    if not target_symbol or not target_date or not isinstance(rows, list):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "symbol/date/UDiFF rows missing or invalid"}
+
+    totals = {
+        "CE": {"open_interest": 0, "change_in_oi": 0, "contracts": 0},
+        "PE": {"open_interest": 0, "change_in_oi": 0, "contracts": 0},
+    }
+    expiries = set()
+    matched = 0
+    malformed = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("FinInstrmTp") or "").strip().upper() != "OPTIDX":
+            continue
+        if str(row.get("TckrSymb") or "").strip().upper() != target_symbol:
+            continue
+        row_date = _parse_exchange_date(str(row.get("BizDt") or ""))
+        if row_date != target_date:
+            malformed.append("trade_date_mismatch_or_missing")
+            continue
+        side = str(row.get("OptnTp") or "").strip().upper()
+        if side not in totals:
+            malformed.append("invalid_option_type")
+            continue
+        oi = _exchange_integer(row.get("OpnIntrst"))
+        change = _exchange_integer(row.get("ChngInOpnIntrst"))
+        expiry = _parse_exchange_date(str(row.get("XpryDt") or ""))
+        if oi is None or change is None or expiry is None:
+            malformed.append("missing_oi_change_or_expiry")
+            continue
+        totals[side]["open_interest"] += oi
+        totals[side]["change_in_oi"] += change
+        totals[side]["contracts"] += 1
+        expiries.add(expiry)
+        matched += 1
+
+    valid = (
+        matched > 0
+        and totals["CE"]["contracts"] > 0
+        and totals["PE"]["contracts"] > 0
+        and not malformed
+    )
+    return {
+        "available": valid,
+        "included_in_asset_final": False,
+        "source": "NSE F&O UDiFF Common Bhavcopy Final",
+        "source_date": target_date,
+        "exchange": "NSE",
+        "symbol": target_symbol,
+        "instrument_type": "OPTIDX",
+        "scope": "Observed CE/PE contracts across expiries in the dated exchange file; contract-master completeness not yet reconciled",
+        "call": totals["CE"],
+        "put": totals["PE"],
+        "expiry_count": len(expiries),
+        "matched_contract_rows": matched,
+        "coverage_validated": False,
+        "reason": None if valid else "दोनों CE/PE पक्षों का पूर्ण, साफ़ और तारीख़-मेल वाला UDiFF डेटा उपलब्ध नहीं",
+        "validation_warnings": sorted(set(malformed)),
+    }
