@@ -3799,9 +3799,33 @@ def _asset_search_direction(term, asset):
     else:
         return None
 
-    direction = tq_dir(text)
-    if direction in ("bull", "bear"):
-        return direction
+    # Shadow-only directional vocabulary is intentionally stricter than the
+    # legacy global crowd classifier. Ambiguous intent words such as
+    # "target", "high", "low", "buy" and "sell" must not become mood votes.
+    # Negated or mixed-direction phrases are left unclassified.
+    bullish_terms = {
+        "bull", "bullish", "rally", "surge", "gain", "breakout",
+        "recovery", "recover", "bounce", "uptrend", "rise", "rises",
+        "rising", "jump", "jumps", "teji", "tez", "badhega",
+        "badhegi", "upar", "chadhega", "chadhav",
+        "बुलिश", "तेज़ी", "तेजी", "उछाल", "बढ़ेगा", "बढ़ेगी",
+        "रिकवरी", "ब्रेकआउट", "रैली",
+    }
+    bearish_terms = {
+        "bear", "bearish", "crash", "drop", "fall", "falls",
+        "falling", "down", "downtrend", "selloff", "sell-off",
+        "correction", "correct", "slump", "decline", "weakness",
+        "girawat", "girega", "giregi", "neeche", "mandi",
+        "tutega", "गिरावट", "गिरेगा", "गिरेगी", "नीचे",
+        "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
+    }
+    negation_terms = {"not", "no", "without", "never", "नहीं", "मत", "बिना"}
+    if tokens & negation_terms:
+        return None
+    has_bull = bool(tokens & bullish_terms)
+    has_bear = bool(tokens & bearish_terms)
+    if has_bull != has_bear:
+        return "bull" if has_bull else "bear"
 
     # A neutral vote requires an explicit information-seeking term attached
     # to the correct asset. "price" by itself is not a neutral sentiment vote.
