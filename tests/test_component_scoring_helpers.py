@@ -116,6 +116,24 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertIn("trade_date_mismatch_or_missing", result["validation_warnings"])
 
 
+    def test_mcx_public_bhavcopy_compares_exact_contract(self):
+        from component_scoring import compare_mcx_bhavcopy_contract_oi
+        now = [{"InstrumentName":"FUTCOM", "Symbol":"GOLD", "DateDisplay":"05 Nov 2026", "ExpiryDate":"04DEC2026", "OptionType":"-", "OpenInterest":15716, "Close":144095}]
+        before = [{"InstrumentName":"FUTCOM", "Symbol":"GOLD", "DateDisplay":"04 Nov 2026", "ExpiryDate":"04DEC2026", "OptionType":"-", "OpenInterest":16095, "Close":143234}]
+        result = compare_mcx_bhavcopy_contract_oi(now, before, "GOLD", "2026-11-05", "2026-11-04", "2026-12-04")
+        self.assertTrue(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertEqual(result["change_in_oi_lots"], -379)
+        self.assertEqual(result["change_in_close"], 861.0)
+        self.assertEqual(result["price_oi_regime"], "price_up_oi_down")
+
+    def test_mcx_public_bhavcopy_rejects_duplicate_contract_rows(self):
+        from component_scoring import compare_mcx_bhavcopy_contract_oi
+        row = {"InstrumentName":"FUTCOM", "Symbol":"SILVER", "DateDisplay":"05 Nov 2026", "ExpiryDate":"04DEC2026", "OptionType":"-", "OpenInterest":100, "Close":180000}
+        prior = [{"InstrumentName":"FUTCOM", "Symbol":"SILVER", "DateDisplay":"04 Nov 2026", "ExpiryDate":"04DEC2026", "OptionType":"-", "OpenInterest":120, "Close":181000}]
+        result = compare_mcx_bhavcopy_contract_oi([row, dict(row)], prior, "SILVER", "2026-11-05", "2026-11-04", "2026-12-04")
+        self.assertFalse(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
     def test_mcx_udiff_futures_oi_requires_exact_symbol_expiry_date_and_fields(self):
         from component_scoring import aggregate_mcx_udiff_commodity_futures_oi
 
