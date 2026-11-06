@@ -324,12 +324,13 @@ jobs:
           import fetch_and_score as app
 
           expiry = "04DEC2026"
+          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
           snapshots = {}
-          for trade_date in ("2026-11-05", "2026-11-04"):
+          for trade_date in dates:
               try:
                   rows = app.fetch_mcx_bhavcopy_rows(trade_date)
                   print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
-                  snapshots[trade_date] = {}
+                  snapshots[trade_date] = rows
                   for symbol in ("GOLD", "SILVER"):
                       matches = [
                           row for row in rows
@@ -339,32 +340,40 @@ jobs:
                           and str(row.get("ExpiryDate") or "").strip().upper() == expiry
                           and str(row.get("OptionType") or "-").strip() in ("", "-")
                       ]
-                      print(f"{symbol} {expiry}: exact contract rows={len(matches)}")
                       if len(matches) == 1:
                           row = matches[0]
-                          snapshots[trade_date][symbol] = {
-                              "date": row.get("Date"),
-                              "expiry": row.get("ExpiryDate"),
-                              "close": row.get("Close"),
-                              "oi": row.get("OpenInterest"),
-                              "volume": row.get("Volume"),
-                          }
-                          print(f"{symbol} {expiry} data={snapshots[trade_date][symbol]}")
+                          print(
+                              f"{symbol} {expiry} {trade_date}: "
+                              f"close={row.get('Close')} OI={row.get('OpenInterest')} "
+                              f"volume={row.get('Volume')}"
+                          )
                       else:
-                          print(f"{symbol} {expiry}: rejected; expected exactly one row")
+                          print(f"{symbol} {expiry} {trade_date}: rejected; exact rows={len(matches)}")
               except Exception as exc:
                   print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
+                  snapshots[trade_date] = None
 
+          # Compare every adjacent available trading session for the same
+          # exact expiry; no nearest-contract substitution or score creation.
           for symbol in ("GOLD", "SILVER"):
-              newer = snapshots.get("2026-11-05", {}).get(symbol)
-              older = snapshots.get("2026-11-04", {}).get(symbol)
-              if newer and older:
-                  try:
-                      oi_change = float(newer["oi"]) - float(older["oi"])
-                      close_change = float(newer["close"]) - float(older["close"])
-                      print(f"{symbol} same-expiry 1D: OI change={oi_change:+g} lots; close change={close_change:+g} INR")
-                  except (TypeError, ValueError):
-                      print(f"{symbol} same-expiry comparison rejected: non-numeric OI/close")
-              else:
-                  print(f"{symbol} same-expiry comparison unavailable")
+              print(f"\\n{symbol} {expiry} multi-session same-contract comparison:")
+              for newer_date, older_date in zip(dates, dates[1:]):
+                  newer_rows = snapshots.get(newer_date)
+                  older_rows = snapshots.get(older_date)
+                  if not isinstance(newer_rows, list) or not isinstance(older_rows, list):
+                      print(f"{newer_date} vs {older_date}: unavailable (one dated file missing)")
+                      continue
+                  result = app.compare_mcx_bhavcopy_contract_oi(
+                      newer_rows, older_rows, symbol, newer_date, older_date, expiry
+                  )
+                  if not result.get("available"):
+                      print(f"{newer_date} vs {older_date}: rejected ({result.get('reason')})")
+                      continue
+                  print(
+                      f"{newer_date} vs {older_date}: "
+                      f"close_delta={result['change_in_close']:+g} INR; "
+                      f"OI_delta={result['change_in_oi_lots']:+g} lots; "
+                      f"regime={result['price_oi_regime']}; "
+                      f"in_final={result['included_in_asset_final']}"
+                  )
           PY
