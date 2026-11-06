@@ -211,6 +211,38 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertIsNone(component)
         self.assertIn("directional evidence", reason)
 
+    def test_neutral_trends_diagnostic_is_preserved_when_search_score_is_withheld(self):
+        import fetch_and_score
+
+        snapshot = {
+            "valid": True,
+            "scope": "asset_specific_google_related_queries_shadow",
+            "seed": "nifty",
+            "source": "Google Trends related_queries · India",
+            "timeframe": "now 1-d",
+            "source_data_time": "2026-11-06T05:22:00Z",
+            "raw_queries": 7,
+            "classified_queries": 7,
+            "unclassified_queries": 0,
+            "classification_coverage_pct": 100.0,
+            "bull_pct": 0.0,
+            "bear_pct": 0.0,
+            "neutral_pct": 100.0,
+            "directional_bull_pct": None,
+            "terms": [{"term": "nifty today", "direction": "neutral", "weight": 100}],
+        }
+        instruments = {"NIFTY": {"headlines": [], "index_search_shadow": snapshot}}
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments,
+            "2026-11-06T05:22:00Z",
+            datetime(2026, 11, 6, 5, 22, tzinfo=timezone.utc),
+        )
+        breakdown = instruments["NIFTY"]["component_breakdown"]
+        self.assertEqual(breakdown["search_diagnostic"]["neutral_pct"], 100.0)
+        self.assertEqual(breakdown["search_diagnostic"]["classified_queries"], 7)
+        self.assertNotIn("search", breakdown["components"])
+        self.assertIn("search", breakdown["excluded_components"])
+
     def test_shadow_news_score_does_not_use_fivefold_amplifier(self):
         import fetch_and_score
 
@@ -325,6 +357,8 @@ class ComponentScoringTests(unittest.TestCase):
 
         html = dashboard_path.read_text(encoding="utf-8")
         self.assertIn("function renderComponentBreakdown", html)
+        self.assertIn("Google Trends Crowd", html)
+        self.assertIn("search_diagnostic", html)
         self.assertIn("${componentBreakdown}", html)
 
 
