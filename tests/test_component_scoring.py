@@ -87,6 +87,7 @@ class ComponentScoringTests(unittest.TestCase):
             "source_data_time": "2026-11-06T01:40:00Z",
             "seed": "nifty",
             "neutral_aware_score": 4.0,
+            "directional_bull_pct": 50.0,
         }
         component, reason = search_component_from_snapshot(
             snapshot,
