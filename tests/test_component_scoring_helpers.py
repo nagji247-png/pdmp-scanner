@@ -112,7 +112,7 @@ class ComponentScoringHelperTests(unittest.TestCase):
         result = aggregate_nse_udiff_index_option_oi(rows, "SENSEX", "2026-11-05")
         self.assertFalse(result["available"])
         self.assertFalse(result["included_in_asset_final"])
-        self.assertIsNone(result["reason"] if result["available"] else None)
+        self.assertIsNotNone(result["reason"])
         self.assertIn("trade_date_mismatch_or_missing", result["validation_warnings"])
 
 
