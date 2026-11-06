@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "backtest_participant_oi.py"
+      - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
@@ -29,6 +30,6 @@ jobs:
       - name: Install research dependencies
         run: python -m pip install pandas yfinance
       - name: Validate Python syntax
-        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py tests/test_participant_oi_backtest.py
+        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py
       - name: Run OI research unit tests
         run: python -m unittest discover -s tests -v
