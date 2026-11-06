@@ -1313,6 +1313,7 @@ jobs:
       # Exploratory 60-session test of the verified weighted stock-basket
       # breadth score against the next session's reconstructed index return.
       - name: Diagnostic 60-session NIFTY stock-basket breadth backtest
+        if: github.event_name == 'workflow_dispatch'
         timeout-minutes: 15
         continue-on-error: true
         run: |
