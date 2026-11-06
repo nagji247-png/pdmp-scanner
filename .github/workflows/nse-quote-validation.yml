@@ -59,13 +59,13 @@ jobs:
               "nifty": [("nifty rally", 40), ("nifty target", 20), ("nifty fall", 30),
                         ("nifty crash", 10), ("nifty today", 10)],
               # Neutral-only seed must remain valid and must not abort the other four assets.
-              "sensex": [("sensex today", 40), ("sensex live", 20), ("sensex price", 10)],
+              "sensex": [("sensex sideways", 40), ("sensex flat", 20), ("sensex rangebound", 10)],
               "bank nifty": [("bank nifty rise", 35), ("bank nifty target", 25),
                              ("bank nifty fall", 25), ("bank nifty live", 15)],
               "gold price": [("gold price rise", 40), ("gold price fall", 35),
-                             ("gold price today", 25)],
+                             ("gold sideways", 25)],
               "silver price": [("silver price up", 40), ("silver price down", 35),
-                               ("silver rate today", 25)],
+                               ("silver flat", 25)],
           }
           class FakeTrendReq:
               def __init__(self, **kwargs):
