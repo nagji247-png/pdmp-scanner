@@ -4868,6 +4868,11 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
+    # Shadow-only component breakdown; does not change the published instrument score.
+    result["component_score_method"] = build_asset_component_breakdowns(
+        result["instruments"], updated, now_utc, participant_today,
+        result["participant_oi"].get("changes"),
+    )
 
     # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
