@@ -488,6 +488,117 @@ jobs:
           except Exception as exc:
               print(f"NSE historical OPTIDX diagnostic unavailable: {type(exc).__name__}: {str(exc)[:240]}")
           PY
+      # Research-only: download the official dated NSE F&O UDiFF Bhavcopy
+      # and same-date Contract Master, then inspect schema and exact IDs.
+      - name: Diagnostic NSE UDiFF Bhavcopy and Contract Master reconciliation
+        timeout-minutes: 5
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import csv
+          import gzip
+          import io
+          import zipfile
+          import requests
+          from component_scoring import aggregate_nse_udiff_index_option_oi
+
+          day = "20261105"
+          trade_date = "2026-11-05"
+          base = "https://nsearchives.nseindia.com/content/fo/"
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.nseindia.com/all-reports-derivatives",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+
+          def fetch(url, label):
+              response = session.get(url, timeout=60)
+              print(
+                  f"{label}: HTTP {response.status_code}; "
+                  f"bytes={len(response.content)}; "
+                  f"content-type={response.headers.get('Content-Type')}"
+              )
+              if response.status_code != 200 or not response.content:
+                  raise RuntimeError(f"{label} download failed")
+              return response.content
+
+          bhav_name = f"BhavCopy_NSE_FO_0_0_0_{day}_F_0000.csv.zip"
+          master_name = f"NSE_FO_contract_05112026.csv.gz"
+          bhav_bytes = fetch(base + bhav_name, "NSE UDiFF Bhavcopy")
+          if not bhav_bytes.startswith(b"PK"):
+              raise RuntimeError("NSE Bhavcopy response is not a ZIP archive")
+          with zipfile.ZipFile(io.BytesIO(bhav_bytes)) as archive:
+              csv_names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+              if len(csv_names) != 1:
+                  raise RuntimeError(f"Expected one CSV in Bhavcopy ZIP, found {csv_names[:5]}")
+              bhav_text = archive.read(csv_names[0]).decode("utf-8-sig")
+          bhav_rows = list(csv.DictReader(io.StringIO(bhav_text)))
+          if not bhav_rows:
+              raise RuntimeError("NSE UDiFF Bhavcopy CSV contains no rows")
+          bhav_columns = sorted(bhav_rows[0])
+          print(f"NSE UDiFF member={csv_names[0]} rows={len(bhav_rows)} columns={bhav_columns}")
+
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              symbol_rows = [
+                  row for row in bhav_rows
+                  if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                  and str(row.get("TckrSymb") or "").strip().upper() == symbol
+              ]
+              ce = sum(str(row.get("OptnTp") or "").strip().upper() == "CE" for row in symbol_rows)
+              pe = sum(str(row.get("OptnTp") or "").strip().upper() == "PE" for row in symbol_rows)
+              result = aggregate_nse_udiff_index_option_oi(bhav_rows, symbol, trade_date)
+              print(
+                  f"{symbol}: OPTIDX rows={len(symbol_rows)} CE_rows={ce} PE_rows={pe} "
+                  f"expiry_count={result.get('expiry_count')} "
+                  f"parser_available={result.get('available')} "
+                  f"CE_OI={result.get('call', {}).get('open_interest')} "
+                  f"CE_change={result.get('call', {}).get('change_in_oi')} "
+                  f"PE_OI={result.get('put', {}).get('open_interest')} "
+                  f"PE_change={result.get('put', {}).get('change_in_oi')} "
+                  f"coverage_validated={result.get('coverage_validated')}"
+              )
+
+          master_bytes = fetch(base + master_name, "NSE F&O Contract Master")
+          if not master_bytes.startswith(b"\x1f\x8b"):
+              raise RuntimeError("NSE Contract Master response is not gzip data")
+          master_text = gzip.decompress(master_bytes).decode("utf-8-sig")
+          master_rows = list(csv.DictReader(io.StringIO(master_text)))
+          if not master_rows:
+              raise RuntimeError("NSE Contract Master contains no rows")
+          master_columns = sorted(master_rows[0])
+          print(f"NSE Contract Master rows={len(master_rows)} columns={master_columns}")
+
+          if "FinInstrmId" not in bhav_columns or "FinInstrmId" not in master_columns:
+              print("Contract Master ID reconciliation: schema does not expose FinInstrmId on both files")
+          else:
+              for symbol in ("NIFTY", "BANKNIFTY"):
+                  bhav_symbol = [
+                      row for row in bhav_rows
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
+                  ]
+                  master_symbol = [
+                      row for row in master_rows
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
+                  ]
+                  master_ids = {str(row.get("FinInstrmId") or "").strip() for row in master_symbol}
+                  bhav_ids = {str(row.get("FinInstrmId") or "").strip() for row in bhav_symbol}
+                  master_ids.discard("")
+                  bhav_ids.discard("")
+                  missing = sorted(bhav_ids - master_ids)
+                  print(
+                      f"{symbol} Contract Master reconciliation: "
+                      f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
+                      f"master_OPTIDX_rows={len(master_symbol)} unique_ids={len(master_ids)}; "
+                      f"Bhavcopy_IDs_missing_from_master={len(missing)}"
+                  )
+                  if missing:
+                      print(f"  missing ID sample={missing[:10]}")
+          PY
       - name: Diagnostic official MCX Bhavcopy OI field probe
         timeout-minutes: 6
         continue-on-error: true
