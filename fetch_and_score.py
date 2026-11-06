@@ -383,12 +383,22 @@ def build_asset_component_breakdowns(
                 and _num(h.get("age_h")) is not None
                 and 0 <= _num(h.get("age_h")) <= 24
             })
+            published_stamps = sorted(
+                str(h.get("published_at")).strip()
+                for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and h.get("published_at")
+                and _num(h.get("age_h")) is not None
+                and 0 <= _num(h.get("age_h")) <= 24
+            )
             news_component = build_component(
                 news_score,
                 "Google News RSS · asset-specific card query",
                 news_source_date,
                 DEFAULT_COMPONENT_WEIGHTS["news"],
                 observed_at=updated,
+                newest_headline_published_at=(published_stamps[-1] if published_stamps else None),
+                oldest_headline_published_at=(published_stamps[0] if published_stamps else None),
                 evidence_count=news_count,
                 publishers=fresh_publishers[:10],
                 query=item.get("news_query"),
@@ -529,15 +539,23 @@ def fetch_news(query):
     now = time.time()
     for e in entries[:15]:
         age_h = None
+        published_at = None
         if getattr(e, "published_parsed", None):
-            age_h = round((now - time.mktime(e.published_parsed)) / 3600, 1)
+            # feedparser's published_parsed is UTC; avoid time.mktime(), which
+            # interprets the tuple in the runner's local timezone.
+            published_dt = dt.datetime(
+                *e.published_parsed[:6], tzinfo=dt.timezone.utc
+            )
+            published_at = published_dt.isoformat().replace("+00:00", "Z")
+            age_h = round((now - published_dt.timestamp()) / 3600, 1)
         title = e.title
         source = ""
         if " - " in title:
             title, source = title.rsplit(" - ", 1)
         items.append({"title": title, "source": source,
                       "link": getattr(e, "link", "") or "",
-                      "score": headline_score(title), "age_h": age_h})
+                      "score": headline_score(title), "age_h": age_h,
+                      "published_at": published_at})
     items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
     return items
 
