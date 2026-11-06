@@ -458,7 +458,7 @@ def build_asset_component_breakdowns(
                 "applicable": True,
                 "included": False,
                 "source": "NSE option-chain symbol/expiry contract-level OI",
-                "reason": "इस snapshot में NIFTY/SENSEX/BANKNIFTY का verified symbol-specific EOD option-chain OI snapshot नहीं है; participant aggregate को इसका substitute नहीं बनाया गया।",
+                "reason": "5-Nov-2026 के official NSE UDiFF और same-date MII Contract Master में NIFTY (2,050/2,050) तथा BANKNIFTY (975/975) contracts के ID, symbol, CE/PE, expiry और strike का exact reconciliation verify हुआ। लेकिन इस live scan में यह dated per-index snapshot wired नहीं और 60-session holdout में directional edge प्रमाणित नहीं; इसलिए EOD OI Final से बाहर है। Participant CLIENT OI अलग market-wide aggregate है, इसे index-specific CLIENT position नहीं माना गया।",
             }
             excluded["futures"] = {
                 "applicable": True,
