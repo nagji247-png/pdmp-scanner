@@ -982,6 +982,8 @@ jobs:
       # Research-only: official monthly NSE Indices constituent/weight archive.
       # Research-only: official monthly NSE Indices constituent/weight archive,
       # BSE SENSEX constituent feed, and dated NSE cash-market price file.
+      # Research-only: official monthly NSE Indices constituent/weight archive,
+      # BSE SENSEX roster, and reconstructed NSE index basket return.
       - name: Diagnostic official index constituent weights and cash prices
         timeout-minutes: 7
         continue-on-error: true
@@ -1000,6 +1002,13 @@ jobs:
           from decimal import Decimal, InvalidOperation
           import requests
 
+          def dec(value):
+              try:
+                  number = Decimal(str(value).strip())
+                  return number if number.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
           headers = {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
               "Accept": "*/*",
@@ -1016,23 +1025,28 @@ jobs:
           )
           if response.status_code != 200 or not response.content.startswith(b"PK"):
               raise RuntimeError("official NSE Indices monthly archive was not a ZIP")
-          triple = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s+([\d,]+)\s*$")
+
+          pair = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s*$")
           symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
           report_date_re = re.compile(r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
           furniture = re.compile(
-              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,3}$|Disclaimer|"
+              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,10}$|Disclaimer|"
               r"endeavors\.|and all liability|information contained|[A-Z][a-z]+ \d{1,2}, \d{4}$)"
           )
+          weights_by_index = {}
           with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
               pdfs = [name for name in archive.namelist() if name.lower().endswith(".pdf")]
               print(f"Archive PDF count={len(pdfs)}; names={pdfs}")
-              targets = [
-                  name for name in pdfs
-                  if name.lower() in ("nifty_50_oct2026.pdf", "nifty_bank_oct2026.pdf")
-              ]
-              for name in targets:
+              targets = {
+                  "NIFTY50": "NIFTY_50_Oct2026.pdf",
+                  "BANKNIFTY": "NIFTY_Bank_Oct2026.pdf",
+              }
+              for index_name, filename in targets.items():
+                  if filename not in pdfs:
+                      print(f"{index_name}: official monthly constituent PDF missing")
+                      continue
                   with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
-                      temp.write(archive.read(name))
+                      temp.write(archive.read(filename))
                       temp.flush()
                       extracted = subprocess.run(
                           ["pdftotext", "-raw", temp.name, "-"],
@@ -1040,51 +1054,52 @@ jobs:
                       ).stdout
                   title_match = re.search(r"Constituents of\s+([^\r\n]+)", extracted, re.I)
                   date_match = report_date_re.search(extracted)
-                  raw_lines = [line.strip() for line in extracted.splitlines() if triple.match(line.strip())]
-                  print(f"  raw_text_sample={repr(extracted[:2400])}")
-                  print(f"  numeric_triple_line_count={len(raw_lines)}; sample={raw_lines[:8]}")
-                  records, buffer = [], []
+                  records, buffer, rejected = [], [], []
                   for line in extracted.splitlines():
                       line = line.strip()
                       if not line or furniture.match(line):
                           continue
                       buffer.append(line)
-                      if not triple.match(line):
-                          continue
-                      whole = " ".join(buffer)
-                      buffer = []
-                      match = triple.match(whole)
+                      match = pair.match(" ".join(buffer))
                       if not match:
                           continue
                       head = match.group(1).split()
+                      buffer = []
                       if not head or not symbol_re.match(head[0]):
+                          rejected.append(head[0] if head else "")
                           continue
                       try:
-                          weight = Decimal(match.group(3).replace(",", ""))
                           close = Decimal(match.group(2).replace(",", ""))
+                          weight = Decimal(match.group(3).replace(",", ""))
                       except InvalidOperation:
+                          rejected.append(head[0])
                           continue
                       records.append({"symbol": head[0], "close": close, "weight": weight})
                   total_weight = sum((row["weight"] for row in records), Decimal("0"))
+                  duplicate_symbols = len(records) - len({row["symbol"] for row in records})
+                  report_date = date_match.group(1) if date_match else None
                   print(
-                      f"PDF={name}; title={title_match.group(1).strip() if title_match else None}; "
-                      f"report_date={date_match.group(1) if date_match else None}; "
-                      f"parsed_constituents={len(records)}; weight_sum={total_weight}"
+                      f"{index_name} PDF={filename}; title={title_match.group(1).strip() if title_match else None}; "
+                      f"report_date={report_date}; constituents={len(records)}; "
+                      f"weight_sum={total_weight}; duplicates={duplicate_symbols}; rejected={len(rejected)}"
                   )
                   print("  top10=" + repr([
                       (row["symbol"], str(row["weight"]))
                       for row in sorted(records, key=lambda x: x["weight"], reverse=True)[:10]
                   ]))
-                  print("  last5=" + repr([
-                      (row["symbol"], str(row["weight"]))
-                      for row in records[-5:]
-                  ]))
+                  if report_date == "October 30, 2026" and duplicate_symbols == 0 and abs(total_weight - Decimal("100")) <= Decimal("0.10"):
+                      weights_by_index[index_name] = {
+                          row["symbol"]: {"base_close": row["close"], "base_weight": row["weight"]}
+                          for row in records
+                      }
+                  else:
+                      print(f"  {index_name}: weight snapshot failed date/count/sum validation")
 
-          # BSE Index Services constituent endpoint: membership and as-of date,
-          # but this endpoint does not publish per-constituent weights.
-          bse_url = "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16"
+          # BSE SENSEX official roster; the endpoint provides membership/as-of
+          # date, not all 30 constituent weights.
           bse_headers = dict(headers)
           bse_headers["Referer"] = "https://www.bseindices.com/"
+          bse_url = "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16"
           bse = requests.get(bse_url, headers=bse_headers, timeout=45)
           print(f"BSE SENSEX constituents: HTTP {bse.status_code}; bytes={len(bse.content)}")
           if bse.status_code == 200:
@@ -1092,10 +1107,7 @@ jobs:
               table = payload.get("Table", []) if isinstance(payload, dict) else []
               dates = sorted({str(row.get("TransDate")) for row in table})
               print(f"BSE SENSEX roster rows={len(table)} as_of_dates={dates}")
-              print("  roster_sample=" + repr(table[:3]))
 
-          # BSE's official monthly factsheet publishes the top constituents by
-          # weight; it is not a complete 30-stock weight file.
           bse_fact_url = "https://www.bseindices.com/Downloads/Factsheet/Factsheet_BSESENSEX_Oct2026.pdf"
           bse_fact = requests.get(bse_fact_url, headers=bse_headers, timeout=45)
           print(
@@ -1106,31 +1118,115 @@ jobs:
               with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
                   temp.write(bse_fact.content)
                   temp.flush()
-                  text = subprocess.run(
+                  bse_text = subprocess.run(
                       ["pdftotext", "-raw", temp.name, "-"],
                       capture_output=True, text=True, check=True,
                   ).stdout
-              pos = text.lower().find("top constituents by weightage")
-              print("  BSE factsheet weight section=" + repr(text[pos:pos+1200] if pos >= 0 else text[:800]))
+              print(f"  BSE factsheet extracted_text_chars={len(bse_text)}; no full 30-stock weight table verified")
 
-          # Inspect the official daily NSE cash-market Bhavcopy schema and
-          # constituent coverage for the 5-Nov close.
-          cm_url = "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20261105_F_0000.csv.zip"
-          cm_headers = dict(headers)
-          cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
-          cm = requests.get(cm_url, headers=cm_headers, timeout=60)
-          print(
-              f"NSE CM Bhavcopy 2026-11-05: HTTP {cm.status_code}; "
-              f"bytes={len(cm.content)}; content-type={cm.headers.get('Content-Type')}"
-          )
-          if cm.status_code == 200 and cm.content.startswith(b"PK"):
+          # Dated NSE cash-market closes for all EQ-series constituents.
+          cash_by_day = {}
+          for day in ("2026-11-04", "2026-11-05"):
+              stamp = day.replace("-", "")
+              cm_url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
+              cm_headers = dict(headers)
+              cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
+              cm = requests.get(cm_url, headers=cm_headers, timeout=60)
+              print(f"NSE CM Bhavcopy {day}: HTTP {cm.status_code}; bytes={len(cm.content)}")
+              if cm.status_code != 200 or not cm.content.startswith(b"PK"):
+                  continue
               with zipfile.ZipFile(io.BytesIO(cm.content)) as archive:
                   members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
-                  if len(members) == 1:
-                      rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
-                      eq_rows = [row for row in rows if str(row.get("SctySrs") or "").strip().upper() == "EQ"]
-                      print(f"NSE CM member={members[0]}; rows={len(rows)}; EQ_rows={len(eq_rows)}; columns={sorted(rows[0]) if rows else []}")
-                      print("  EQ_sample=" + repr(eq_rows[0] if eq_rows else None))
+                  if len(members) != 1:
+                      continue
+                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              prices = {}
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "STK":
+                      continue
+                  if str(row.get("SctySrs") or "").strip().upper() != "EQ":
+                      continue
+                  price = dec(row.get("ClsPric"))
+                  symbol = str(row.get("TckrSymb") or "").strip().upper()
+                  if symbol and price is not None and price > 0:
+                      prices[symbol] = price
+              cash_by_day[day] = prices
+              print(f"  cash_EQ_symbols={len(prices)}")
+
+          # Official index underlying closes from the same dated UDiFF FO files.
+          index_spots = {"NIFTY50": {}, "BANKNIFTY": {}}
+          for day in ("2026-11-04", "2026-11-05"):
+              stamp = day.replace("-", "")
+              fo_url = f"https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
+              fo = requests.get(fo_url, headers=headers, timeout=60)
+              print(f"NSE FO UDiFF {day}: HTTP {fo.status_code}; bytes={len(fo.content)}")
+              if fo.status_code != 200 or not fo.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(fo.content)) as archive:
+                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(members) != 1:
+                      continue
+                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              for index_name, symbol in (("NIFTY50", "NIFTY"), ("BANKNIFTY", "BANKNIFTY")):
+                  values = [
+                      dec(row.get("UndrlygPric")) for row in rows
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
+                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
+                      and dec(row.get("UndrlygPric")) is not None
+                      and dec(row.get("UndrlygPric")) > 0
+                  ]
+                  if values:
+                      values.sort()
+                      index_spots[index_name][day] = values[len(values)//2]
+
+          # Reconstruct 4-Nov weights from the official 30-Oct snapshot and
+          # cash returns, then compare the full weighted 5-Nov basket with the
+          # official index underlying return. This is a reconstruction, not
+          # an official daily weight file.
+          for index_name, weights in weights_by_index.items():
+              if not all(day in cash_by_day for day in ("2026-11-04", "2026-11-05")):
+                  print(f"{index_name}: basket check unavailable; missing dated cash file")
+                  continue
+              missing = [
+                  symbol for symbol in weights
+                  if symbol not in cash_by_day["2026-11-04"] or symbol not in cash_by_day["2026-11-05"]
+              ]
+              if missing:
+                  print(f"{index_name}: basket coverage={len(weights)-len(missing)}/{len(weights)}; missing={missing}")
+                  continue
+              raw_weights = {
+                  symbol: data["base_weight"] * cash_by_day["2026-11-04"][symbol] / data["base_close"]
+                  for symbol, data in weights.items()
+              }
+              total_raw = sum(raw_weights.values(), Decimal("0"))
+              contributions = {}
+              basket_return = Decimal("0")
+              for symbol, data in weights.items():
+                  weight_at_4nov = raw_weights[symbol] / total_raw
+                  stock_return = cash_by_day["2026-11-05"][symbol] / cash_by_day["2026-11-04"][symbol] - Decimal("1")
+                  contribution = weight_at_4nov * stock_return * Decimal("100")
+                  contributions[symbol] = contribution
+                  basket_return += contribution
+              spot = index_spots[index_name]
+              if "2026-11-04" not in spot or "2026-11-05" not in spot:
+                  print(f"{index_name}: basket_return={basket_return}; official index spot unavailable")
+                  continue
+              index_return = (spot["2026-11-05"] / spot["2026-11-04"] - Decimal("1")) * Decimal("100")
+              difference_bps = (basket_return - index_return) * Decimal("100")
+              print(
+                  f"{index_name} reconstructed 5-Nov basket: coverage={len(weights)}/{len(weights)}; "
+                  f"base_snapshot=30-Oct-2026; basket_return={basket_return.quantize(Decimal('0.001')):+}%; "
+                  f"official_index_return={index_return.quantize(Decimal('0.001')):+}%; "
+                  f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps"
+              )
+              print("  top_positive_contributors_pp=" + repr([
+                  (symbol, str(value.quantize(Decimal("0.001"))))
+                  for symbol, value in sorted(contributions.items(), key=lambda item: item[1], reverse=True)[:5]
+              ]))
+              print("  top_negative_contributors_pp=" + repr([
+                  (symbol, str(value.quantize(Decimal("0.001"))))
+                  for symbol, value in sorted(contributions.items(), key=lambda item: item[1])[:5]
+              ]))
           PY
       # Research-only: MCX futures OI-weighted price breadth across
       # exact common expiries, with a chronological holdout.
