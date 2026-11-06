@@ -321,29 +321,50 @@ jobs:
         continue-on-error: true
         run: |
           python - <<'PY'
-          import datetime as dt
           import fetch_and_score as app
 
+          expiry = "04DEC2026"
+          snapshots = {}
           for trade_date in ("2026-11-05", "2026-11-04"):
               try:
                   rows = app.fetch_mcx_bhavcopy_rows(trade_date)
                   print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
+                  snapshots[trade_date] = {}
                   for symbol in ("GOLD", "SILVER"):
                       matches = [
                           row for row in rows
                           if isinstance(row, dict)
                           and str(row.get("InstrumentName") or "").strip().upper() == "FUTCOM"
                           and str(row.get("Symbol") or "").strip().upper() == symbol
-                          and str(row.get("ExpiryDate") or "").strip().upper() in ("04DEC2026", "05DEC2026")
+                          and str(row.get("ExpiryDate") or "").strip().upper() == expiry
+                          and str(row.get("OptionType") or "-").strip() in ("", "-")
                       ]
-                      for row in matches:
-                          selected = {
-                              k: row.get(k) for k in sorted(row)
-                              if any(token in k.lower() for token in ("oi", "interest", "close", "expiry", "date", "symbol", "instrument"))
+                      print(f"{symbol} {expiry}: exact contract rows={len(matches)}")
+                      if len(matches) == 1:
+                          row = matches[0]
+                          snapshots[trade_date][symbol] = {
+                              "date": row.get("Date"),
+                              "expiry": row.get("ExpiryDate"),
+                              "close": row.get("Close"),
+                              "oi": row.get("OpenInterest"),
+                              "volume": row.get("Volume"),
                           }
-                          print(f"{symbol} exact-row keys={sorted(row)} values={selected}")
-                  if not rows:
-                      print(f"No rows returned for {trade_date}")
+                          print(f"{symbol} {expiry} data={snapshots[trade_date][symbol]}")
+                      else:
+                          print(f"{symbol} {expiry}: rejected; expected exactly one row")
               except Exception as exc:
                   print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
+
+          for symbol in ("GOLD", "SILVER"):
+              newer = snapshots.get("2026-11-05", {}).get(symbol)
+              older = snapshots.get("2026-11-04", {}).get(symbol)
+              if newer and older:
+                  try:
+                      oi_change = float(newer["oi"]) - float(older["oi"])
+                      close_change = float(newer["close"]) - float(older["close"])
+                      print(f"{symbol} same-expiry 1D: OI change={oi_change:+g} lots; close change={close_change:+g} INR")
+                  except (TypeError, ValueError):
+                      print(f"{symbol} same-expiry comparison rejected: non-numeric OI/close")
+              else:
+                  print(f"{symbol} same-expiry comparison unavailable")
           PY
