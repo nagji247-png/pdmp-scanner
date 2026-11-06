@@ -3859,9 +3859,16 @@ def _asset_search_direction(term, asset):
 
     # A neutral vote requires an explicit information-seeking term attached
     # to the correct asset. "price" by itself is not a neutral sentiment vote.
+    # Search suggestions often include asset-identification / navigation queries
+    # (e.g. "Nifty 50", "gift nifty", "Sensex index", "MCX gold price").
+    # Treat these as neutral information intent only when the asset itself matched.
+    # Bare "gold price" / "silver rate" remain unclassified: they are not sentiment.
     neutral_intent = {
         "today", "live", "prediction", "predict", "option", "chain",
+        "50", "gift", "share", "chart", "index", "bse", "india",
+        "mcx", "coin", "carat",
         "आज", "लाइव", "भविष्यवाणी", "ऑप्शन", "चेन",
+        "भाव", "दाम", "कीमत", "चार्ट", "सूचकांक",
     }
     if tokens & neutral_intent:
         return "neutral"
