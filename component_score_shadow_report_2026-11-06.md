@@ -191,3 +191,11 @@ These CI results validate parser logic against synthetic fixtures and existing i
 - The four observed one-session regime readings per commodity are too small to validate a predictive edge. A quick next-session direction check on the first three available signals was mixed/poor (GOLD 1/3; SILVER 0/3). This tiny sample is explicitly descriptive, not a statistical backtest. No MCX OI score is enabled.
 - The workflow attempt that exposed the import bug: [NSE/MCX integration run 42207762537](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42207762537). The subsequent fix is on branch commit `8c00a1e8b790ee21fc7d0402cc9a036d36e361f6`; this GitHub App commit has not yet produced a new Actions run visible through the connected run listing, so the fix is not marked CI-verified here.
 - Production score, dashboard behavior and live signals remain unchanged.
+
+
+### Follow-up correction to the MCX comparator import fix — 6 Nov 2026
+
+- The first regression run after adding the import test exposed an unrelated test-environment failure: an earlier partial-file update had temporarily replaced `fetch_and_score.py` with only the import preamble. The failing run was `42210205914` (Component Score Validation), `42210205861` (OI Research Validation), and `42210205811` (NSE/MCX Integration); the affected tests could not find the existing scanner functions because the module had been truncated.
+- Restored the complete `fetch_and_score.py` from the last intact checkpoint commit `d1e1ffca90b01d0a6d8d04954bdf173bdea1304b`, then applied the comparator import to the full 236 KB file. Verified from the current branch file that `build_asset_component_breakdowns`, `_asset_search_direction`, and `compare_mcx_bhavcopy_contract_oi` are all present.
+- Latest restoration commit: `79e3915f7227ce2d8f88ee22e9d13c99aeab9c38`. The failed workflow runs above are against the temporary truncated-file commit and must not be treated as current-branch validation. A new Actions run for the restored head is not yet visible; do not mark the fix PASS until fresh workflows complete.
+- The feature branch only was affected; `main`/production was not changed. No merge, deployment, published score or signal change occurred.
