@@ -61,6 +61,12 @@ jobs:
               print("TRENDS:", {k: trends.get(k) for k in ("valid", "seed", "raw_queries", "classified_queries", "unclassified_queries", "classification_coverage_pct", "bull_pct", "bear_pct", "neutral_pct", "reason")})
               print("UNCLASSIFIED_SAMPLE:", trends.get("unclassified_terms", []))
               print("CLASSIFIED_SAMPLE:", trends.get("terms", []))
+              print("RISING_DIAGNOSTICS:", {
+                  "count": trends.get("rising_queries"),
+                  "classified": trends.get("rising_classified_queries"),
+                  "directions": trends.get("rising_direction_counts"),
+                  "terms": trends.get("rising_terms", []),
+              })
               if not breakdown:
                   failures.append(name + ": missing component_breakdown")
               if final.get("score") is not None and not final.get("included_components"):
