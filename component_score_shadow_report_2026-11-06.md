@@ -207,3 +207,11 @@ These CI results validate parser logic against synthetic fixtures and existing i
 - This is a stronger research route for historical index option contract records than relying only on the daily UDiFF download. Next validation must select `OPTIDX`, NIFTY and/or BANKNIFTY, and the relevant CE/PE expiries/date window; then compare returned contract rows and OI against dated UDiFF and the same-date NSE F&O Contract Master.
 - The archive page's UI presence is verified, but no downloaded options CSV, complete contract inventory, or actual historical OI sample has yet been validated in this checkpoint. It is a source-discovery result, not proof that the OI parser is complete. SENSEX remains BSE-only.
 - Official source: https://www.nseindia.com/report-detail/fo_eq_security (linked from https://www.nseindia.com/static/resources/historical-reports-capital-market-daily-monthly-archives).
+
+
+### SENSEX/BSE official derivative OI access check — 6 Nov 2026
+
+- BSE's official Equity Derivatives file-format document defines the daily Market Summary file as `MS_<yyyymmdd>-01.csv`. Its fields include Product Type `IO` (Index Options), Asset Code, Expiry Date, Strike Price, Option Type `CE`/`PE`, Close Price and Open Interest. This is structurally suitable for SENSEX option contract OI if the dated file is accessible and its SENSEX asset code/master mapping is validated.
+- The same official BSE document states the end-of-day member files are available in `member.bseindia.com`; this does not establish a freely downloadable public archive for the complete daily Market Summary. BSE's public Market Data portal describes Equity Derivatives API access through registration/KYC/data plans. No free, complete dated SENSEX market-summary file has been retrieved in this checkpoint.
+- Therefore SENSEX CE/PE OI remains excluded. Do not substitute NSE participant data or infer a SENSEX-specific signal from NIFTY options.
+- Official sources: https://www.bseindia.com/downloads1/File_Format_Equity_Derivatives.pdf and https://marketdata.bseindia.com/.
