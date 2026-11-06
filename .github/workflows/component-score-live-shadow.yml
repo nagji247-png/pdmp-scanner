@@ -56,6 +56,10 @@ jobs:
                   print("COMPONENT:", key, component.get("score"), component.get("source"), component.get("source_date"))
               for key, reason in (breakdown.get("excluded_components") or {}).items():
                   print("EXCLUDED:", key, reason.get("reason"))
+              trends = item.get("index_search_shadow") or item.get("asset_search_shadow") or {}
+              print("TRENDS:", {k: trends.get(k) for k in ("valid", "seed", "raw_queries", "classified_queries", "unclassified_queries", "classification_coverage_pct", "bull_pct", "bear_pct", "neutral_pct", "reason")})
+              print("UNCLASSIFIED_SAMPLE:", trends.get("unclassified_terms", []))
+              print("CLASSIFIED_SAMPLE:", trends.get("terms", []))
               if not breakdown:
                   failures.append(name + ": missing component_breakdown")
               if final.get("score") is not None and not final.get("included_components"):
