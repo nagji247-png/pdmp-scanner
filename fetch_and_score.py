@@ -3773,6 +3773,235 @@ def _trends_related_queries(timeframe="now 1-d"):
     }
 
 
+def _asset_search_direction(term, asset):
+    """Classify only queries that actually refer to this asset; generic info intent is neutral."""
+    text = str(term or "").lower()
+    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+
+    # Related-query payloads can contain neighboring assets. Never let those
+    # queries leak into another asset's sentiment denominator.
+    if asset == "NIFTY":
+        if "nifty" not in tokens or "bank" in tokens:
+            return None
+    elif asset == "SENSEX":
+        if "sensex" not in tokens or "nifty" in tokens:
+            return None
+    elif asset == "BANKNIFTY":
+        if not ({"bank", "nifty"} <= tokens):
+            return None
+    elif asset == "GOLD":
+        if "gold" not in tokens or "silver" in tokens:
+            return None
+    elif asset == "SILVER":
+        if "silver" not in tokens or "gold" in tokens:
+            return None
+    else:
+        return None
+
+    direction = tq_dir(text)
+    if direction in ("bull", "bear"):
+        return direction
+
+    # A neutral vote requires an explicit information-seeking term attached
+    # to the correct asset. "price" by itself is not a neutral sentiment vote.
+    # Search suggestions often include asset-identification / navigation queries
+    # (e.g. "Nifty 50", "gift nifty", "Sensex index", "MCX gold price").
+    # Treat these as neutral information intent only when the asset itself matched.
+    # Bare "gold price" / "silver rate" remain unclassified: they are not sentiment.
+    neutral_intent = {
+        "today", "live", "prediction", "predict", "option", "chain",
+        "50", "gift", "share", "chart", "index", "bse", "india",
+        "mcx", "coin", "carat",
+        "आज", "लाइव", "भविष्यवाणी", "ऑप्शन", "चेन",
+        "भाव", "दाम", "कीमत", "चार्ट", "सूचकांक",
+    }
+    if tokens & neutral_intent:
+        return "neutral"
+    return None
+
+
+
+def _asset_rising_diagnostics(rising, asset):
+    """Keep Google Trends rising queries as separate evidence, never as top-query weights."""
+    if rising is None or getattr(rising, "empty", True) or "query" not in rising:
+        return {
+            "rising_queries": 0,
+            "rising_classified_queries": 0,
+            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0},
+            "rising_terms": [],
+        }
+
+    counts = {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0}
+    terms = []
+    for _, row in rising.iterrows():
+        term = str(row.get("query", "")).strip()
+        if not term:
+            continue
+        direction = _asset_search_direction(term, asset)
+        category = direction if direction in ("bull", "bear", "neutral") else "unclassified"
+        counts[category] += 1
+        raw_value = row.get("value", "")
+        value = str(raw_value).strip()
+        terms.append({
+            "term": term,
+            "value": value,
+            "direction": category,
+            "breakout": value.lower() == "breakout",
+        })
+    terms.sort(key=lambda item: item["term"].lower())
+    return {
+        "rising_queries": len(terms),
+        "rising_classified_queries": counts["bull"] + counts["bear"] + counts["neutral"],
+        "rising_direction_counts": counts,
+        "rising_terms": terms[:10],
+    }
+
+
+def fetch_asset_trends_shadow():
+    """One batched 1-day Trends request for three indices plus Gold/Silver."""
+    from pytrends.request import TrendReq
+
+    seeds = {
+        "NIFTY": "nifty",
+        "SENSEX": "sensex",
+        "BANKNIFTY": "bank nifty",
+        "GOLD": "gold price",
+        "SILVER": "silver price",
+    }
+    source = "Google Trends related_queries · India"
+    output = {}
+    try:
+        py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+        py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
+        related = py.related_queries()
+        observed = py.interest_over_time()
+        source_data_time = _trends_observation_time(
+            observed, "Google Trends asset batch timestamp"
+        ).isoformat()
+        for asset, seed in seeds.items():
+            pack = (related or {}).get(seed) or {}
+            top = pack.get("top")
+            rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
+            totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
+            classified_terms = []
+            raw_query_count = 0
+            unclassified_count = 0
+            unclassified_weight = 0.0
+            unclassified_terms = []
+            if top is not None and not top.empty and "query" in top and "value" in top:
+                for _, row in top.iterrows():
+                    term = str(row.get("query", "")).strip()
+                    try:
+                        value = float(row.get("value", 0) or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if not term or not math.isfinite(value) or value <= 0:
+                        continue
+                    raw_query_count += 1
+                    direction = _asset_search_direction(term, asset)
+                    if direction is None:
+                        unclassified_count += 1
+                        unclassified_weight += value
+                        unclassified_terms.append({"term": term, "weight": round(value, 1)})
+                        continue
+                    totals[direction] += value
+                    classified_terms.append({
+                        "term": term,
+                        "direction": direction,
+                        "weight": round(value, 1),
+                    })
+            bull = totals["bull"]
+            bear = totals["bear"]
+            neutral = totals["neutral"]
+            total = bull + bear + neutral
+            # A valid one-sided crowd is still a valid observation. Do not
+            # require both bullish and bearish categories: an absent side is
+            # not missing data when >=3 independent queries were classified.
+            if len(classified_terms) < 3 or total <= 0:
+                output[asset] = {
+                    "valid": False,
+                    "scope": "asset_specific_google_related_queries_shadow",
+                    "seed": seed,
+                    "source": source,
+                    "timeframe": "now 1-d",
+                    "source_data_time": source_data_time,
+                    "raw_queries": raw_query_count,
+                    "classified_queries": len(classified_terms),
+                    "unclassified_queries": unclassified_count,
+                    "unclassified_weight": round(unclassified_weight, 1),
+                    "classification_coverage_pct": (
+                        round(total / (total + unclassified_weight) * 100.0, 1)
+                        if total + unclassified_weight > 0 else None
+                    ),
+                    "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+                    **rising_diagnostics,
+                    "reason": (
+                        f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
+                        f"(classified={len(classified_terms)}, total_weight={total:.1f})"
+                    ),
+                    "production_score_used": False,
+                }
+                continue
+            bull_pct = bull / total * 100.0
+            bear_pct = bear / total * 100.0
+            neutral_pct = neutral / total * 100.0
+            directional_total = bull + bear
+            # Neutral-only related queries are a valid neutral reading. There is
+            # no bullish-vs-bearish split in that case, so keep it null rather
+            # than dividing by zero and invalidating the entire five-asset batch.
+            directional_bull_pct = (
+                round(bull / directional_total * 100.0, 1)
+                if directional_total > 0 else None
+            )
+            output[asset] = {
+                "valid": True,
+                "scope": "asset_specific_google_related_queries_shadow",
+                "seed": seed,
+                "source": source,
+                "timeframe": "now 1-d",
+                "source_data_time": source_data_time,
+                "as_of": source_data_time,
+                "unit": "classified related-query relative-weight share",
+                "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+                "raw_queries": raw_query_count,
+                "classified_queries": len(classified_terms),
+                "unclassified_queries": unclassified_count,
+                "unclassified_weight": round(unclassified_weight, 1),
+                "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+                "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+                "bull_pct": round(bull_pct, 1),
+                "bear_pct": round(bear_pct, 1),
+                "neutral_pct": round(neutral_pct, 1),
+                "directional_bull_pct": directional_bull_pct,
+                "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2),
+                "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
+                **rising_diagnostics,
+                "production_score_used": False,
+            }
+    except Exception as exc:
+        reason = str(exc)[:240]
+        for asset, seed in seeds.items():
+            output[asset] = {
+                "valid": False,
+                "scope": "asset_specific_google_related_queries_shadow",
+                "seed": seed,
+                "source": source,
+                "timeframe": "now 1-d",
+                "reason": reason,
+                "production_score_used": False,
+            }
+    return output
+
+
+def fetch_index_trends_shadow():
+    """Backward-compatible wrapper; reuse the single five-seed one-day batch."""
+    all_assets = fetch_asset_trends_shadow()
+    return {
+        name: all_assets.get(name) or {"valid": False, "reason": "asset Search reading unavailable"}
+        for name in ("NIFTY", "SENSEX", "BANKNIFTY")
+    }
+
+
 def fetch_trends():
     """पहले 1-दिन/7-दिन hourly डेटा; विफल होने पर असली related searches से सीमित fallback."""
     try:
