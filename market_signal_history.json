@@ -439,7 +439,444 @@
         "crowd_bull_pct": 78.1,
         "client_included": true
       }
+    },
+    {
+      "date": "2026-11-06",
+      "captured_at_utc": "2026-11-06T14:32Z",
+      "captured_at_ist": "2026-11-06T20:05+05:30",
+      "price_source_note": "Index close must be dated to this trading session",
+      "news_capture_time_utc": "2026-11-06T14:32Z",
+      "trends": {
+        "valid": true,
+        "as_of": "2026-11-06T13:04:00+00:00",
+        "source_data_time": "2026-11-06T13:04:00+00:00",
+        "daily_label": "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग",
+        "crowd_bull_pct": 16.7,
+        "bull_score_pct": 0.2,
+        "bear_score_pct": 0.8,
+        "neutral_score_pct": 99.0,
+        "daily_complete": false
+      },
+      "market_news_context": {
+        "ok": true,
+        "as_of": "2026-11-06T14:32Z",
+        "items": [
+          {
+            "topic": "कच्चा तेल",
+            "title": "Current price of oil as of Nov. 6, 2026",
+            "source": "Fortune",
+            "score": 0,
+            "age_hours": 1.8
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Rs 29.57 lakh crore added to investor wealth! Why Sensex, Nifty had best week in over 5 years",
+            "source": "The Times of India",
+            "score": 0,
+            "age_hours": 2.0
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock Market Today: Sensex gains 543 points, Nifty rises",
+            "source": "Multibagg AI",
+            "score": 2,
+            "age_hours": 3.6
+          },
+          {
+            "topic": "अमेरिकी Fed और ब्याज दर",
+            "title": "The Fed Begins Transition to Holding Fewer Policy Meetings a Year",
+            "source": "Bloomberg.com",
+            "score": 0,
+            "age_hours": 3.6
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Closing Bell: Bulls' party continues on D-Street; Sensex rallies 1,718 pts, Nifty reclaims 25,000",
+            "source": "Moneycontrol.com",
+            "score": 2,
+            "age_hours": 3.9
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex Today Trades Flat | Nifty Above 24,550 | TCS & Infosys Top Gainers",
+            "source": "Equitymaster",
+            "score": 1,
+            "age_hours": 4.1
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex Today Rallies 1,718 Points | Nifty Above 25,000 | 5 Reasons Why Indian Share Markets Are Rising",
+            "source": "Equitymaster",
+            "score": 2,
+            "age_hours": 4.2
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Dhanteras bonanza on D-Street! Sensex jumps 1,718 points, Nifty tops 25,000",
+            "source": "ChiniMandi",
+            "score": 1,
+            "age_hours": 4.2
+          },
+          {
+            "topic": "सोना, डॉलर और रुपया",
+            "title": "Rupee Surges 54 Paise To 8-Month High, Breaks Below 94 Against US Dollar At 93.87",
+            "source": "News18",
+            "score": 2,
+            "age_hours": 5.7
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock market today: Diwali fireworks continue as Sensex rises over 1,000 points to cross 80,300; top reas",
+            "source": "The Times of India",
+            "score": 1,
+            "age_hours": 5.8
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Why Is Stock Market Rising Today? Sensex Reclaims 80,500, Nifty Nears 24,850: Four Reasons Explained",
+            "source": "NDTV Profit",
+            "score": 0,
+            "age_hours": 7.0
+          },
+          {
+            "topic": "सोना, डॉलर और रुपया",
+            "title": "Dhanteras Gold Price 2026: Gold Price Today, Rates & Outlook",
+            "source": "SMEStreet",
+            "score": 0,
+            "age_hours": 7.2
+          }
+        ]
+      },
+      "indices": {
+        "NIFTY": {
+          "close": 25030.35,
+          "close_as_of": "06/11/2026",
+          "day_change_pct": 2.01,
+          "headline_score": -1.2,
+          "experimental_news_score": -1.3,
+          "experimental_score": -2.9,
+          "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
+          "experimental_headline_count": 7,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 1,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Overbought Nifty May Find Fresh Fuel as AI Stocks Tumble Globally",
+              "source": "Bloomberg.com",
+              "score": -2,
+              "age_hours": 2.2
+            },
+            {
+              "title": "India stocks higher at close of trade; Nifty 50 up 2.01%",
+              "source": "Investing.com",
+              "score": 1,
+              "age_hours": 4.0
+            },
+            {
+              "title": "Sensex Reclaims 80,000 Mark; Nifty 50 Crosses 24,700 Despite Global Market Weakness",
+              "source": "Dalal Street Investment Journal",
+              "score": 0,
+              "age_hours": 4.7
+            },
+            {
+              "title": "Why Is Stock Market Rising Today? Sensex Reclaims 80,500, Nifty Nears 24,850: Four Reasons Explained",
+              "source": "NDTV Profit",
+              "score": 0,
+              "age_hours": 6.9
+            },
+            {
+              "title": "HDFC Bank and the Nifty are set to pull off a feat last seen five years ago; Details here",
+              "source": "CNBC TV18",
+              "score": 0,
+              "age_hours": 8.1
+            },
+            {
+              "title": "Nifty, Sensex open flat amid bloodbath in global markets",
+              "source": "cfo.economictimes.indiatimes.com",
+              "score": 0,
+              "age_hours": 8.2
+            },
+            {
+              "title": "Key Factors Behind Today’s Market Movement",
+              "source": "Equitypandit",
+              "score": 0,
+              "age_hours": 9.3
+            },
+            {
+              "title": "Sensex, Nifty Open Flat as Oil Rebounds, Asian Stocks Fall",
+              "source": "HDFC Sky",
+              "score": 0,
+              "age_hours": 9.8
+            }
+          ],
+          "client_retail_adjustment": 0.25,
+          "published_score": -3.4,
+          "published_score_mode": "news_crowd_client"
+        },
+        "SENSEX": {
+          "close": 81028.02,
+          "close_as_of": "2026-11-06",
+          "day_change_pct": 2.17,
+          "headline_score": 4.4,
+          "experimental_news_score": 3.0,
+          "experimental_score": -1.2,
+          "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
+          "experimental_headline_count": 5,
+          "experimental_excluded_old_or_unknown": 3,
+          "experimental_excluded_cross_index_duplicates": 0,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Midcap, smallcap stocks plunge up to 18% despite Sensex, Nifty gains; India VIX jumps 9%, market breadth...",
+              "source": "Moneycontrol.com",
+              "score": 0,
+              "age_hours": 7.6
+            },
+            {
+              "title": "Why did market rally today? Sensex ends 1,718 pts higher, Nifty reclaims 25,000 as D-Street concludes bump",
+              "source": "The Economic Times",
+              "score": 3,
+              "age_hours": 9.2
+            },
+            {
+              "title": "Sensex holds firm despite Wall Street crash, Nifty slips below 24,550",
+              "source": "India Today",
+              "score": -3,
+              "age_hours": 10.4
+            },
+            {
+              "title": "Stock market outlook today, 6 Nov: Sensex, Nifty prediction - DJIA, S&P, NASDAQ, GIFT Nifty, Kospi, Nikkei, Taiwan cues",
+              "source": "Livemint",
+              "score": 0,
+              "age_hours": 13.3
+            },
+            {
+              "title": "Indian Stock Markets Surge as Sensex Jumps 2,009 Points, Nifty Closes Above 24,500",
+              "source": "INDIA New England News",
+              "score": 3,
+              "age_hours": 22.3
+            },
+            {
+              "title": "Sensex Today Rallies 2,009 Points | Nifty Above 24,500 | 3 Reasons Why Indian Share Markets Are Rising",
+              "source": "Equitymaster",
+              "score": 2,
+              "age_hours": 27.4
+            },
+            {
+              "title": "Sensex Today Rallies 1,484 Points | Nifty Above 24,400 | BSE Auto Index Up 3.5%",
+              "source": "Equitymaster",
+              "score": 2,
+              "age_hours": 33.2
+            },
+            {
+              "title": "Sensex gains 2,000 points, investors richer by Rs 7 lakh crore: 3 reasons behind rally",
+              "source": "India Today",
+              "score": 3,
+              "age_hours": 34.2
+            }
+          ],
+          "client_retail_adjustment": 0.25,
+          "published_score": 1.1,
+          "published_score_mode": "news_crowd_client"
+        },
+        "BANKNIFTY": {
+          "close": 59086.0,
+          "close_as_of": "06/11/2026",
+          "day_change_pct": 2.27,
+          "headline_score": 4.7,
+          "experimental_news_score": 4.9,
+          "experimental_score": -0.5,
+          "experimental_score_mode": "shadow_news24h_dedup_crowd_client",
+          "experimental_headline_count": 6,
+          "experimental_excluded_old_or_unknown": 1,
+          "experimental_excluded_cross_index_duplicates": 1,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Diwali boom: Markets log longest winning streak in 3 years, Nifty ends above 25,000",
+              "source": "bfsi.economictimes.indiatimes.com",
+              "score": 0,
+              "age_hours": 2.5
+            },
+            {
+              "title": "Private Banks Lead Market Rally; Nifty Extends Winning Streak",
+              "source": "HDFC Sky",
+              "score": 2,
+              "age_hours": 2.7
+            },
+            {
+              "title": "Sensex, Nifty rally for 7th straight day: 3 reasons behind D-Street's winning streak",
+              "source": "IndiaIPO",
+              "score": 2,
+              "age_hours": 4.0
+            },
+            {
+              "title": "Samvat 2083: Bank Nifty Fell 4%, Federal Bank Gained 47%; 5 Stocks Offer Up To 32% Upside",
+              "source": "NDTV Profit",
+              "score": 0,
+              "age_hours": 6.1
+            },
+            {
+              "title": "Sensex touches 80,000 in Bull run on Dhanteras, IT and banks lead rally",
+              "source": "The Indian Express",
+              "score": 2,
+              "age_hours": 6.6
+            },
+            {
+              "title": "HDFC Bank and the Nifty are set to pull off a feat last seen five years ago; Details here",
+              "source": "CNBC TV18",
+              "score": 0,
+              "age_hours": 8.1
+            },
+            {
+              "title": "Trade Setup For Nov 6: Nifty Faces Key Test At 24,400 As Global Cues, GIFT Nifty Signal Bulls Retreat",
+              "source": "NDTV Profit",
+              "score": 0,
+              "age_hours": 20.7
+            },
+            {
+              "title": "Nifty Bank jumps 3%, Financials 4%: What's behind the rise? Explained",
+              "source": "Business Standard",
+              "score": 2,
+              "age_hours": 29.0
+            }
+          ],
+          "client_retail_adjustment": 0.25,
+          "published_score": 1.3,
+          "published_score_mode": "news_crowd_client"
+        }
+      },
+      "participant_oi": {
+        "date": "2026-11-06",
+        "source": "NSE official participant-wise OI",
+        "scope": "F&O participant totals; stock F&O is aggregate, not per individual stock",
+        "changes": {
+          "ok": true,
+          "prev_date": "2026-11-05",
+          "by_group": {
+            "FII": {
+              "future_index_long": -3381,
+              "future_index_short": -40403,
+              "index_call_long": 58450,
+              "index_call_short": 32326,
+              "index_put_long": 142512,
+              "index_put_short": 118856
+            },
+            "DII": {
+              "future_index_long": 87,
+              "future_index_short": 9677,
+              "index_call_long": 2235,
+              "index_call_short": -100,
+              "index_put_long": 536,
+              "index_put_short": 400
+            },
+            "PRO": {
+              "future_index_long": 858,
+              "future_index_short": 7430,
+              "index_call_long": 45617,
+              "index_call_short": -5435,
+              "index_put_long": 240356,
+              "index_put_short": 287025
+            },
+            "CLIENT": {
+              "future_index_long": -6612,
+              "future_index_short": 14248,
+              "index_call_long": 145968,
+              "index_call_short": 225479,
+              "index_put_long": 751994,
+              "index_put_short": 729117
+            }
+          }
+        },
+        "participants": {
+          "CLIENT": {
+            "future_index_long": 180828,
+            "future_index_short": 97047,
+            "index_call_long": 2906186,
+            "index_call_short": 2894792,
+            "index_put_long": 4070036,
+            "index_put_short": 4474207,
+            "future_stock_long": 3139917,
+            "future_stock_short": 320512,
+            "stock_call_long": 1644069,
+            "stock_call_short": 1040787,
+            "stock_put_long": 1096053,
+            "stock_put_short": 1050895,
+            "future_index_net": 83781,
+            "index_call_net": 11394,
+            "index_put_net": -404171,
+            "future_stock_net": 2819405
+          },
+          "DII": {
+            "future_index_long": 54004,
+            "future_index_short": 18468,
+            "index_call_long": 10818,
+            "index_call_short": 553,
+            "index_put_long": 104950,
+            "index_put_short": 1003,
+            "future_stock_long": 330049,
+            "future_stock_short": 4393321,
+            "stock_call_long": 2363,
+            "stock_call_short": 387014,
+            "stock_put_long": 41614,
+            "stock_put_short": 31515,
+            "future_index_net": 35536,
+            "index_call_net": 10265,
+            "index_put_net": 103947,
+            "future_stock_net": -4063272
+          },
+          "FII": {
+            "future_index_long": 48656,
+            "future_index_short": 149072,
+            "index_call_long": 861276,
+            "index_call_short": 988900,
+            "index_put_long": 1379216,
+            "index_put_short": 929475,
+            "future_stock_long": 3605434,
+            "future_stock_short": 2526231,
+            "stock_call_long": 310259,
+            "stock_call_short": 366244,
+            "stock_put_long": 386488,
+            "stock_put_short": 296547,
+            "future_index_net": -100416,
+            "index_call_net": -127624,
+            "index_put_net": 449741,
+            "future_stock_net": 1079203
+          },
+          "PRO": {
+            "future_index_long": 29551,
+            "future_index_short": 48452,
+            "index_call_long": 1141859,
+            "index_call_short": 1035893,
+            "index_put_long": 1529740,
+            "index_put_short": 1679258,
+            "future_stock_long": 684647,
+            "future_stock_short": 519983,
+            "stock_call_long": 1227563,
+            "stock_call_short": 1390209,
+            "stock_put_long": 984087,
+            "stock_put_short": 1129285,
+            "future_index_net": -18901,
+            "index_call_net": 105966,
+            "index_put_net": -149518,
+            "future_stock_net": 164664
+          }
+        }
+      },
+      "score_method": {
+        "mode": "news_crowd_client",
+        "weights": {
+          "news": 40,
+          "crowd": 40,
+          "client": 20
+        },
+        "crowd_included": true,
+        "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
+        "crowd_bull_pct": 16.7,
+        "client_included": true
+      }
     }
   ],
-  "updated_at": "2026-11-05T18:14Z"
+  "updated_at": "2026-11-06T15:17Z"
 }
