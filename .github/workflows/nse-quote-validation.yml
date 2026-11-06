@@ -315,72 +315,11 @@ jobs:
               print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
           PY
 
-      # Inspect the official public contract-wise Bhavcopy response for two
-      # consecutive sessions. This is diagnostic only and never changes scores.
-      - name: Diagnostic official MCX Bhavcopy OI field probe
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          import fetch_and_score as app
-
-          expiry = "04DEC2026"
-          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
-          snapshots = {}
-          for trade_date in dates:
-              try:
-                  rows = app.fetch_mcx_bhavcopy_rows(trade_date)
-                  print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
-                  snapshots[trade_date] = rows
-                  for symbol in ("GOLD", "SILVER"):
-                      matches = [
-                          row for row in rows
-                          if isinstance(row, dict)
-                          and str(row.get("InstrumentName") or "").strip().upper() == "FUTCOM"
-                          and str(row.get("Symbol") or "").strip().upper() == symbol
-                          and str(row.get("ExpiryDate") or "").strip().upper() == expiry
-                          and str(row.get("OptionType") or "-").strip() in ("", "-")
-                      ]
-                      if len(matches) == 1:
-                          row = matches[0]
-                          print(
-                              f"{symbol} {expiry} {trade_date}: "
-                              f"close={row.get('Close')} OI={row.get('OpenInterest')} "
-                              f"volume={row.get('Volume')}"
-                          )
-                      else:
-                          print(f"{symbol} {expiry} {trade_date}: rejected; exact rows={len(matches)}")
-              except Exception as exc:
-                  print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
-                  snapshots[trade_date] = None
-
-          # Compare every adjacent available trading session for the same
-          # exact expiry; no nearest-contract substitution or score creation.
-          for symbol in ("GOLD", "SILVER"):
-              print(f"\\n{symbol} {expiry} multi-session same-contract comparison:")
-              for newer_date, older_date in zip(dates, dates[1:]):
-                  newer_rows = snapshots.get(newer_date)
-                  older_rows = snapshots.get(older_date)
-                  if not isinstance(newer_rows, list) or not isinstance(older_rows, list):
-                      print(f"{newer_date} vs {older_date}: unavailable (one dated file missing)")
-                      continue
-                  result = app.compare_mcx_bhavcopy_contract_oi(
-                      newer_rows, older_rows, symbol, newer_date, older_date, expiry
-                  )
-                  if not result.get("available"):
-                      print(f"{newer_date} vs {older_date}: rejected ({result.get('reason')})")
-                      continue
-                  print(
-                      f"{newer_date} vs {older_date}: "
-                      f"close_delta={result['change_in_close']:+g} INR; "
-                      f"OI_delta={result['change_in_oi_lots']:+g} lots; "
-                      f"regime={result['price_oi_regime']}; "
-                      f"in_final={result['included_in_asset_final']}"
-                  )
-          PY
       # Research-only: verify NSE's historical index-option API with exact
       # contracts discovered from the official option-chain response.
       # This probe never writes scanner data or enables an OI score.
       - name: Diagnostic NSE historical OPTIDX CE/PE archive probe
+        timeout-minutes: 3
         continue-on-error: true
         run: |
           python - <<'PY'
@@ -473,4 +412,68 @@ jobs:
                           print(f"  response keys={sorted(payload) if isinstance(payload, dict) else type(payload).__name__}; no rows for this exact contract/date")
           except Exception as exc:
               print(f"NSE historical OPTIDX diagnostic unavailable: {type(exc).__name__}: {str(exc)[:240]}")
+          PY
+
+      # Inspect the official public contract-wise Bhavcopy response for two
+      # consecutive sessions. This is diagnostic only and never changes scores.
+      - name: Diagnostic official MCX Bhavcopy OI field probe
+        timeout-minutes: 3
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import fetch_and_score as app
+
+          expiry = "04DEC2026"
+          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
+          snapshots = {}
+          for trade_date in dates:
+              try:
+                  rows = app.fetch_mcx_bhavcopy_rows(trade_date)
+                  print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
+                  snapshots[trade_date] = rows
+                  for symbol in ("GOLD", "SILVER"):
+                      matches = [
+                          row for row in rows
+                          if isinstance(row, dict)
+                          and str(row.get("InstrumentName") or "").strip().upper() == "FUTCOM"
+                          and str(row.get("Symbol") or "").strip().upper() == symbol
+                          and str(row.get("ExpiryDate") or "").strip().upper() == expiry
+                          and str(row.get("OptionType") or "-").strip() in ("", "-")
+                      ]
+                      if len(matches) == 1:
+                          row = matches[0]
+                          print(
+                              f"{symbol} {expiry} {trade_date}: "
+                              f"close={row.get('Close')} OI={row.get('OpenInterest')} "
+                              f"volume={row.get('Volume')}"
+                          )
+                      else:
+                          print(f"{symbol} {expiry} {trade_date}: rejected; exact rows={len(matches)}")
+              except Exception as exc:
+                  print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
+                  snapshots[trade_date] = None
+
+          # Compare every adjacent available trading session for the same
+          # exact expiry; no nearest-contract substitution or score creation.
+          for symbol in ("GOLD", "SILVER"):
+              print(f"\\n{symbol} {expiry} multi-session same-contract comparison:")
+              for newer_date, older_date in zip(dates, dates[1:]):
+                  newer_rows = snapshots.get(newer_date)
+                  older_rows = snapshots.get(older_date)
+                  if not isinstance(newer_rows, list) or not isinstance(older_rows, list):
+                      print(f"{newer_date} vs {older_date}: unavailable (one dated file missing)")
+                      continue
+                  result = app.compare_mcx_bhavcopy_contract_oi(
+                      newer_rows, older_rows, symbol, newer_date, older_date, expiry
+                  )
+                  if not result.get("available"):
+                      print(f"{newer_date} vs {older_date}: rejected ({result.get('reason')})")
+                      continue
+                  print(
+                      f"{newer_date} vs {older_date}: "
+                      f"close_delta={result['change_in_close']:+g} INR; "
+                      f"OI_delta={result['change_in_oi_lots']:+g} lots; "
+                      f"regime={result['price_oi_regime']}; "
+                      f"in_final={result['included_in_asset_final']}"
+                  )
           PY
