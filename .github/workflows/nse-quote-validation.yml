@@ -337,11 +337,11 @@ jobs:
                           and str(row.get("ExpiryDate") or "").strip().upper() in ("04DEC2026", "05DEC2026")
                       ]
                       for row in matches:
-                          print(
-                              f"{symbol} exact-row keys={sorted(row)} "
-                              f"values={{k: row.get(k) for k in sorted(row) "
-                              f"if any(token in k.lower() for token in ('oi', 'interest', 'close', 'expiry', 'date', 'symbol', 'instrument'))}}"
-                          )
+                          selected = {
+                              k: row.get(k) for k in sorted(row)
+                              if any(token in k.lower() for token in ("oi", "interest", "close", "expiry", "date", "symbol", "instrument"))
+                          }
+                          print(f"{symbol} exact-row keys={sorted(row)} values={selected}")
                   if not rows:
                       print(f"No rows returned for {trade_date}")
               except Exception as exc:
