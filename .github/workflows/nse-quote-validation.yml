@@ -1386,14 +1386,20 @@ jobs:
               url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
               cm_headers = dict(headers)
               cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
-              response = session.get(url, headers=cm_headers, timeout=45)
-              if response.status_code != 200 or not response.content.startswith(b"PK"):
-                  continue
-              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
-                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
-                  if len(members) != 1:
+              try:
+                  response = session.get(url, headers=cm_headers, timeout=(10, 25))
+                  if response.status_code != 200 or not response.content.startswith(b"PK"):
+                      print(f"Cash {day}: skipped HTTP {response.status_code}; bytes={len(response.content)}")
                       continue
-                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+                  with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                      members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                      if len(members) != 1:
+                          print(f"Cash {day}: skipped; CSV members={members[:3]}")
+                          continue
+                      rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              except Exception as exc:
+                  print(f"Cash {day}: skipped {type(exc).__name__}: {str(exc)[:160]}")
+                  continue
               prices = {}
               for row in rows:
                   if str(row.get("FinInstrmTp") or "").strip().upper() != "STK":
@@ -1411,6 +1417,9 @@ jobs:
                   print(f"Cash {day}: matched_symbols={len(prices)}")
           ordered = sorted(cash_prices)
           print(f"Cash history valid_sessions={len(ordered)} from={ordered[0] if ordered else None} to={ordered[-1] if ordered else None}")
+          if len(ordered) < 35:
+              print("BREADTH BACKTEST NOT RUN: fewer than 35 valid dated cash sessions; no accuracy claim")
+              raise SystemExit(0)
 
           for index_name in ("NIFTY50", "BANKNIFTY"):
               snapshots = monthly[index_name]
