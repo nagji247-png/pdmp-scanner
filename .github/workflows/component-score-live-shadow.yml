@@ -8,6 +8,7 @@ on:
       - "fetch_and_score.py"
       - "component_scoring.py"
       - ".github/workflows/component-score-live-shadow.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -81,4 +82,4 @@ jobs:
           name: pdmp-component-shadow-scan
           path: data.json
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 14
