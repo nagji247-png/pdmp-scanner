@@ -622,9 +622,10 @@ function renderComponentBreakdown(b) {
       '<div class="hl-meta">' + esc(client.reason || "CE/PE direction और CLIENT Futures score validation पूरी होने तक withheld") + '</div>' +
       '</div>';
   }
+  const searchHasDirectionalEvidence = Number(search && search.bull_pct) > 0 || Number(search && search.bear_pct) > 0;
   const searchDiagnosticHtml = search && search.source
     ? '<div class="hl" style="margin-top:8px">' +
-      '<div class="hl-title"><b>Google Trends Crowd — ' + esc(search.seed || "asset seed") + '</b></div>' +
+      '<div class="hl-title"><b>Google Trends Related Searches — ' + esc(search.seed || "asset seed") + '</b></div>' +
       '<div class="hl-meta">Bullish ' + pct(search.bull_pct) +
       ' · Bearish ' + pct(search.bear_pct) +
       ' · Neutral ' + pct(search.neutral_pct) +
@@ -635,6 +636,7 @@ function renderComponentBreakdown(b) {
       ' · अवधि ' + esc(search.timeframe || "—") +
       ' · Observation ' + esc(search.source_data_time || "—") + '</div>' +
       '<div class="hl-meta">प्रतिशत केवल classified related-query weights के भीतर हैं; Coverage बताता है कि कुल query weight में से कितना वर्गीकृत हुआ।</div>' +
+      (!searchHasDirectionalEvidence ? '<div class="hl-meta"><b>स्थिति:</b> इस snapshot में bullish/bearish directional queries नहीं मिलीं; इसे वास्तविक crowd mood या 100% जनता की neutral सोच न समझें।</div>' : '') +
       (Array.isArray(search.terms) && search.terms.length
         ? '<div class="hl-meta">वर्गीकृत उदाहरण: ' + esc(search.terms.slice(0, 4).map(x => x.term + " (" + x.direction + ")").join(", ")) + '</div>' : '') +
       (Array.isArray(search.unclassified_terms) && search.unclassified_terms.length
