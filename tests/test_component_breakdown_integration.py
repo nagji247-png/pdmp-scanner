@@ -83,6 +83,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIsNone(classify("Nifty share price", "NIFTY"))
         self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
+        self.assertIsNone(classify("Nifty range", "NIFTY"))
+        self.assertIsNone(classify("Nifty trading range today", "NIFTY"))
         self.assertEqual(classify("Nifty स्थिर", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty breakout today", "NIFTY"), "bull")
         self.assertEqual(classify("Nifty crash", "NIFTY"), "bear")
