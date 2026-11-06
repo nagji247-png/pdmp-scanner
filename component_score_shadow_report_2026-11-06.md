@@ -434,3 +434,24 @@ The repository's official participant OI history is updated at `2026-11-06T13:09
 - All four CE/PE changes are retained separately; they are not collapsed into one guessed directional score.
 - The data is CLIENT participant-wise but market-wide across index F&O, not separately attributable to NIFTY, SENSEX or BANKNIFTY. It is context only, excluded from each asset Final.
 - No 6-Nov participant record is present in the repository history as of the 6-Nov 13:09Z update; the values above must be labelled 5-Nov, not live/current 6-Nov data.
+
+
+### CLIENT participant OI — 6-Nov-2026 record arrived after prior checkpoint
+
+The next automated main-branch scan appended the 6-Nov official NSE participant-wise OI record at 2026-11-06T14:35Z (commit `035c50dabb46fb78c0ec1cc8e2d41d963a58a3d8`). This supersedes the earlier statement above that the repository's latest record was 5-Nov; the 5-Nov comparison remains historically correct.
+
+CLIENT market-wide values, 5-Nov → 6-Nov:
+
+| CLIENT market-wide field | 5-Nov | 6-Nov | Change |
+|---|---:|---:|---:|
+| Index CE Long | 2,760,218 | 2,906,186 | +145,968 |
+| Index CE Short | 2,669,313 | 2,894,792 | +225,479 |
+| Index PE Long | 3,318,042 | 4,070,036 | +751,994 |
+| Index PE Short | 3,745,090 | 4,474,207 | +729,117 |
+| Index Futures Long | 187,440 | 180,828 | -6,612 |
+| Index Futures Short | 82,799 | 97,047 | +14,248 |
+
+- The four CE/PE Long/Short changes remain separate. The net changes can be inspected as context, but no single bullish/bearish label is inferred from gross OI additions alone.
+- CLIENT Index Futures net (Long minus Short) moved from +104,641 to +83,781, a deterioration of 20,860 contracts. This is market-wide context, not an index-specific futures position.
+- The record's explicit scope is participant totals across F&O. It does not identify separate CLIENT positions for NIFTY, SENSEX or BANKNIFTY; therefore it remains excluded from every per-asset Final.
+- This new dated record improves freshness of the context data only. It does not validate a predictive edge or authorize a score contribution.
