@@ -378,3 +378,24 @@ Important interpretation:
 - First 60-session breadth backtest attempt reached an NSE historical cash-file read timeout. The workflow had `continue-on-error`, so its step was marked success even though the diagnostic itself stopped before producing backtest statistics. No accuracy result is claimed from that run.
 - Corrected the diagnostic to catch and report each failed historical date, continue with other dates, and refuse to produce a backtest if fewer than 35 valid dated sessions are retrieved. Latest retry is Integration #244 on code head `2cfcd3441409203c0faffe244b6d003a2c4f2c34`.
 - Component Score Validation #165 PASS and OI Research Validation #73 PASS on that same code head. Integration #244 was queued/running at report update time.
+
+
+### 60-session full-basket breadth backtest — completed 6 Nov 2026
+
+The timeout-resilient workflow completed successfully using official NSE monthly constituent-weight PDFs and dated NSE cash-market Bhavcopies:
+- Four monthly weight snapshots verified (Jul/Aug/Sep/Oct 2026): NIFTY 50 had 50 constituents per snapshot; NIFTY Bank had 14. Published weights summed between 99.98% and 100.01%.
+- 67 dated cash sessions were downloaded from 3-Aug to 6-Nov; 3 individual dates were skipped after 25-second read timeouts. The workflow continued rather than aborting. Daily basket scores were available for 66 sessions, yielding 65 next-session observations.
+- Chronological split: 45 in-sample observations / 20 untouched holdout observations; no parameter tuning.
+
+| Index | In-sample direct | In-sample contrarian | In-sample correlation | Holdout direct | Holdout contrarian | Holdout correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| NIFTY 50 | 22/45 (48.9%) | 23/45 (51.1%) | -0.160 | 11/20 (55.0%) | 9/20 (45.0%) | -0.091 |
+| BANKNIFTY | 19/45 (42.2%) | 26/45 (57.8%) | -0.324 | 8/20 (40.0%) | 12/20 (60.0%) | -0.059 |
+
+Interpretation:
+- NIFTY holdout was slightly more often direct than contrarian; the basket-breadth score does not validate a contrarian NIFTY signal.
+- BANKNIFTY holdout favored contrarian direction 12/20, but correlation was only -0.059 and 20 observations are too few to establish a reliable edge.
+- Both holdout correlations are close to zero. Neither index's breadth candidate is admitted to Final. The 5-Nov descriptive readings remain NIFTY +6.53 and BANKNIFTY +10.00, but they are not trading recommendations or calibrated sentiment.
+- This completes a useful rejection gate: full official baskets are retrievable and reconstructable, but their tested short-horizon breadth direction has not earned a score contribution.
+
+Workflow Integration #244 completed successfully with the retry logic. The latest code-only follow-up head `e826b3b9f695560e67ba056b51ae577dde4e21af` also passed Component Score Validation #168 and OI Research Validation #75; Integration #246 is repeating the integration suite on that exact head.
