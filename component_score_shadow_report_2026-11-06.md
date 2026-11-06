@@ -290,3 +290,23 @@ For each symbol/side the official historical `foCPV` endpoint returned exactly o
 - This confirms that five dated NSE files can be retrieved and that adjacent-session OI deltas can be computed on exact common contract keys with lot-size consistency. Four intervals are still too few to validate predictive value, and the changing contract universe (new/removed contracts) must be handled explicitly. No NIFTY/BANKNIFTY OI score is enabled.
 - NSE/MCX Integration #224 passed with this five-session diagnostic. Component Score Validation #140 and OI Research Validation #53 also passed on code head `66c869c268aa062639fd43c79db8698b8ed33cf8`.
 - No production score, signal, dashboard layout, merge or deployment was changed.
+
+
+### 60-session NSE option OI candidate test — chronological holdout, 6 Nov 2026
+
+- The exploratory NSE option OI-weighted premium-direction proxy was expanded to 70 weekday candidates. The archive supplied 66 valid sessions from 4-Aug through 5-Nov-2026; 20-Oct and 6-Nov returned no file at the tested URL. This produced 64 next-session observations for each index.
+- Candidate formula (research only): exact common `(expiry, strike, CE/PE)` contracts across adjacent dates; require nonzero volume on both dates and unchanged lot size; weight each contract by absolute OI change in lots; CE premium up and PE premium down count as bullish, the reverse as bearish; normalize to -10…+10. This is a heuristic proxy, not participant-identified positions.
+- Chronological split: first 44 observations in-sample; final 20 observations held out. No formula parameters were tuned on the holdout.
+- NIFTY: in-sample direct 23/44 (52.3%), contrarian 21/44 (47.7%), Pearson -0.199; holdout direct 10/20 (50%), contrarian 10/20 (50%), Pearson +0.138.
+- BANKNIFTY: in-sample direct 16/44 (36.4%), contrarian 28/44 (63.6%), Pearson -0.277; holdout direct 8/20 (40%), contrarian 12/20 (60%), Pearson +0.037.
+- The holdout correlations are near zero and the hit-rate differences are not persuasive at 20 observations. This does not validate an OI-derived NIFTY or BANKNIFTY component. The 6-Nov UDiFF archive was not available at the checked URL, so the 5-Nov signal's next-session return could not be evaluated. No score is enabled.
+
+### MCX GOLD/SILVER OI breadth candidate test — 43 valid sessions
+
+- The official MCX Bhav Copy helper returned 43 valid sessions from 7-Sep through 5-Nov-2026; 2-Oct and 6-Nov had no contract rows at the tested endpoint.
+- The research proxy compared exact common FUTCOM expiries across adjacent sessions, weighted each expiry's price direction by absolute OI change, and benchmarked next-session movement on the nearest exact expiry available on both dates. This is a futures OI-weighted price-direction breadth proxy, not a verified long/short participant measure.
+- Chronological split: 28 in-sample observations and 13 holdout observations; no parameter tuning.
+- GOLD: in-sample direct 12/28 (42.9%), contrarian 16/28 (57.1%), Pearson -0.262; holdout direct 8/13 (61.5%), contrarian 5/13 (38.5%), Pearson +0.145.
+- SILVER: in-sample direct 13/28 (46.4%), contrarian 15/28 (53.6%), Pearson -0.095; holdout direct 5/13 (38.5%), contrarian 8/13 (61.5%), Pearson -0.013.
+- The small holdout samples and near-zero correlations do not establish a reliable edge. The gold holdout favoured the direct direction; the silver holdout's 61.5% contrarian hit rate had near-zero correlation and only 13 observations. Both MCX OI components remain excluded from Final.
+- On code head `15b39f58a2106cfa1e23a8ec53fc79cefb421ffc`, Component Score Validation #146, OI Research Validation #58 and NSE/MCX Integration #229 all PASS. The longer diagnostics are research-only and did not alter production scoring.
