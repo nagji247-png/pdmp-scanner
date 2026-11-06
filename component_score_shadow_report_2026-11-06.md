@@ -399,3 +399,20 @@ Interpretation:
 - This completes a useful rejection gate: full official baskets are retrievable and reconstructable, but their tested short-horizon breadth direction has not earned a score contribution.
 
 Workflow Integration #244 completed successfully with the retry logic. The latest code-only follow-up head `e826b3b9f695560e67ba056b51ae577dde4e21af` also passed Component Score Validation #168 and OI Research Validation #75; Integration #246 is repeating the integration suite on that exact head.
+
+
+### NSE UDiFF ↔ same-date MII Contract Master exact contract reconciliation — 6 Nov 2026
+
+The official NSE Masters Data v1.6 specification resolves the previously unexplained numeric encodings:
+- Master time fields are seconds elapsed from midnight 1-Jan-1980 (not Unix epoch).
+- F&O price fields are in paise; divide by 100 to obtain rupees.
+- The workflow now normalizes Contract Master expiry and strike using those published units and compares them with the ISO-date / rupee strike in the same-day UDiFF Bhavcopy.
+
+Official NSE 5-Nov-2026 source results:
+- UDiFF Bhavcopy: HTTP 200, 39,018 rows.
+- Same-date NSE F&O MII Contract Master: HTTP 200, 88,325 rows.
+- NIFTY OPTIDX: 2,050 / 2,050 unique instrument IDs matched; zero missing IDs, duplicate master IDs, symbol/side mismatches, expiry mismatches, expiry parse failures, strike mismatches or strike parse failures.
+- BANKNIFTY OPTIDX: 975 / 975 unique instrument IDs matched; zero missing IDs, duplicate master IDs, symbol/side mismatches, expiry mismatches, expiry parse failures, strike mismatches or strike parse failures.
+- Combined exact contract reconciliation: 3,025 / 3,025; all tested identity and expiry/strike fields match after applying NSE's documented units.
+- The parser's per-index exchange-wide CE/PE totals remain available as diagnostics. This does not identify CLIENT-only positions. The existing 60-session OI proxy holdout remains weak (NIFTY direct 10/20, contrarian 10/20, correlation +0.138; BANKNIFTY direct 8/20, contrarian 12/20, correlation +0.037), so no EOD OI directional component is enabled.
+- Integration #249 passed this normalized reconciliation on code head `4893eed7c2f4ff862b41e9809db4803b3c84d6f8`. The later manual-only workflow guard does not change the reconciliation logic.
