@@ -314,3 +314,36 @@ jobs:
           except Exception as exc:
               print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
           PY
+
+      # Inspect the official public contract-wise Bhavcopy response for two
+      # consecutive sessions. This is diagnostic only and never changes scores.
+      - name: Diagnostic official MCX Bhavcopy OI field probe
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import fetch_and_score as app
+
+          for trade_date in ("2026-11-05", "2026-11-04"):
+              try:
+                  rows = app.fetch_mcx_bhavcopy_rows(trade_date)
+                  print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
+                  for symbol in ("GOLD", "SILVER"):
+                      matches = [
+                          row for row in rows
+                          if isinstance(row, dict)
+                          and str(row.get("InstrumentName") or "").strip().upper() == "FUTCOM"
+                          and str(row.get("Symbol") or "").strip().upper() == symbol
+                          and str(row.get("ExpiryDate") or "").strip().upper() in ("04DEC2026", "05DEC2026")
+                      ]
+                      for row in matches:
+                          print(
+                              f"{symbol} exact-row keys={sorted(row)} "
+                              f"values={{k: row.get(k) for k in sorted(row) "
+                              f"if any(token in k.lower() for token in ('oi', 'interest', 'close', 'expiry', 'date', 'symbol', 'instrument'))}}"
+                          )
+                  if not rows:
+                      print(f"No rows returned for {trade_date}")
+              except Exception as exc:
+                  print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
+          PY
