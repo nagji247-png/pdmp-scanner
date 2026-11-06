@@ -310,3 +310,21 @@ For each symbol/side the official historical `foCPV` endpoint returned exactly o
 - SILVER: in-sample direct 13/28 (46.4%), contrarian 15/28 (53.6%), Pearson -0.095; holdout direct 5/13 (38.5%), contrarian 8/13 (61.5%), Pearson -0.013.
 - The small holdout samples and near-zero correlations do not establish a reliable edge. The gold holdout favoured the direct direction; the silver holdout's 61.5% contrarian hit rate had near-zero correlation and only 13 observations. Both MCX OI components remain excluded from Final.
 - On code head `15b39f58a2106cfa1e23a8ec53fc79cefb421ffc`, Component Score Validation #146, OI Research Validation #58 and NSE/MCX Integration #229 all PASS. The longer diagnostics are research-only and did not alter production scoring.
+
+
+### Full NIFTY 50 and NIFTY Bank basket reconstruction — 6 Nov 2026
+
+- Official NSE Indices monthly archive `indices_dataOct2026.zip` downloaded successfully. Its 30-Oct-2026 PDFs contain all constituents and weights:
+  - NIFTY 50: 50 symbols, weight sum 99.98% (rounding), zero duplicate symbols, zero rejected rows.
+  - NIFTY Bank: 14 symbols, weight sum 100.00%, zero duplicate symbols, zero rejected rows.
+- Official NSE cash-market UDiFF Bhavcopies for 2-Nov, 3-Nov, 4-Nov and 5-Nov were downloaded. Each date supplied all EQ-series symbols required by both baskets: 50/50 NIFTY 50 and 14/14 NIFTY Bank.
+- Starting from the official 30-Oct constituent weights and closing prices, daily weights were reconstructed by updating each constituent's weight in proportion to its price return. The weighted basket return was then compared with the official index underlying close from the same-date NSE F&O UDiFF file. This is a reconstructed daily weight series, not a claim that NSE publishes daily constituent weights in this archive.
+- Daily basket-vs-index validation:
+  - NIFTY 50: 30-Oct→2-Nov +1.681% vs index +1.682% (difference rounds to -0.0 bps); 2-Nov→3-Nov +1.493% vs +1.579% (-8.6 bps); 3-Nov→4-Nov +0.607% vs +0.629% (-2.2 bps); 4-Nov→5-Nov +2.404% vs +2.404% (-0.0 bps).
+  - NIFTY Bank: 30-Oct→2-Nov +0.576% vs +0.576%; 2-Nov→3-Nov +0.978% vs +0.978%; 3-Nov→4-Nov +0.673% vs +0.673%; 4-Nov→5-Nov +3.327% vs +3.327%. Differences round to 0.0 bps at displayed precision.
+- For 5-Nov, the largest positive NIFTY 50 contributors were ICICIBANK (+0.491 percentage points), HDFCBANK (+0.322), BAJFINANCE (+0.187), M&M (+0.134) and INFY (+0.125). The largest negative contributors were BHARTIARTL (-0.029), NTPC (-0.023), APOLLOHOSP (-0.021), ADANIPORTS (-0.018) and ONGC (-0.018).
+- For 5-Nov, the largest positive NIFTY Bank contributors were ICICIBANK (+0.796 pp), HDFCBANK (+0.598), AXISBANK (+0.385), SBIN (+0.277) and INDUSINDBK (+0.250). All 14 constituents were present; the five smallest contributions were positive, so there were no negative contributors in that basket on that date.
+- This closes the constituent/price data retrieval and basket-reconstruction gate for NIFTY 50 and NIFTY Bank over these four sessions. The 8.6 bps NIFTY difference on 3-Nov is retained transparently; no attempt was made to force a perfect fit. The raw basket return is a price/breadth component, not yet scaled into a -10…+10 sentiment score. Score scaling and historical validation are still required before it can enter Final.
+- **SENSEX remains incomplete:** BSE Index Services returned a 30-stock roster dated 30-Oct-2026 in one successful request, but its roster endpoint does not expose weights and a subsequent request returned an empty response. The official October factsheet PDF was downloaded but yielded no extractable text; a complete 30-stock weight file has not been verified. No equal-weight or NSE-proxy basket is substituted.
+- On code head `1c0a6243d6f39ef71ea4844b780a818c43cd2961`, Component Score Validation #154, OI Research Validation #65 and NSE/MCX Integration #236 all PASS. This workflow verifies the official monthly weights, full symbol coverage and four-session basket reconstruction; it does not add the basket to production Final.
+- No production score, signal, dashboard layout, merge or deployment was changed.
