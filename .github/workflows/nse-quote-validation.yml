@@ -780,6 +780,7 @@ jobs:
       # Exploratory backtest only: option premium/OI positioning score versus
       # next-session underlying return. It never feeds the production score.
       - name: Diagnostic NSE 60-session option OI positioning backtest
+        if: github.event_name == 'workflow_dispatch'
         timeout-minutes: 15
         continue-on-error: true
         run: |
@@ -979,69 +980,158 @@ jobs:
               summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
           PY
       # Research-only: official monthly NSE Indices constituent/weight archive.
-      - name: Diagnostic NSE Indices monthly constituent weight archive
-        timeout-minutes: 5
+      # Research-only: official monthly NSE Indices constituent/weight archive,
+      # BSE SENSEX constituent feed, and dated NSE cash-market price file.
+      - name: Diagnostic official index constituent weights and cash prices
+        timeout-minutes: 7
         continue-on-error: true
         run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
           python - <<'PY'
-          import datetime as dt
+          import csv
           import io
           import re
-          import shutil
           import subprocess
           import tempfile
           import zipfile
+          from decimal import Decimal, InvalidOperation
           import requests
 
-          url = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip"
           headers = {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
               "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
               "Referer": "https://www.niftyindices.com/",
           }
-          response = requests.get(url, headers=headers, timeout=90)
+          session = requests.Session()
+          session.headers.update(headers)
+          url = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip"
+          response = session.get(url, timeout=90)
           print(
               f"NSE Indices Oct-2026 monthly archive: HTTP {response.status_code}; "
               f"bytes={len(response.content)}; content-type={response.headers.get('Content-Type')}"
           )
           if response.status_code != 200 or not response.content.startswith(b"PK"):
               raise RuntimeError("official NSE Indices monthly archive was not a ZIP")
+          triple = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s+([\d,]+)\s*$")
+          symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
+          report_date_re = re.compile(r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
+          furniture = re.compile(
+              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,3}$|Disclaimer|"
+              r"endeavors\.|and all liability|information contained|[A-Z][a-z]+ \d{1,2}, \d{4}$)"
+          )
           with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
               pdfs = [name for name in archive.namelist() if name.lower().endswith(".pdf")]
-              print(f"Archive PDF count={len(pdfs)}")
-              print("Archive PDF names=" + repr(pdfs[:100]))
-              targets = []
-              for name in pdfs:
-                  low = name.lower().replace("_", "").replace("-", "").replace(" ", "")
-                  if any(token in low for token in ("nifty50", "niftybank", "banknifty")):
-                      targets.append(name)
-              print("NIFTY50/Bank candidate PDFs=" + repr(targets))
-              pdftotext = shutil.which("pdftotext")
-              if not pdftotext:
-                  print("pdftotext is unavailable; archive names recorded, PDF text parsing deferred")
-              else:
-                  for name in targets:
-                      with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
-                          temp.write(archive.read(name))
-                          temp.flush()
-                          extracted = subprocess.run(
-                              [pdftotext, "-raw", temp.name, "-"],
-                              capture_output=True, text=True, check=True,
-                          ).stdout
-                      title = re.search(r"Constituents of\s+([^\r\n]+)", extracted, re.I)
-                      report_date = re.search(
-                          r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})", extracted
-                      )
-                      print(
-                          f"PDF={name}; title={title.group(1).strip() if title else None}; "
-                          f"report_date={report_date.group(1) if report_date else None}; "
-                          f"text_chars={len(extracted)}"
-                      )
-                      print("  text_sample=" + repr(extracted[:700]))
+              print(f"Archive PDF count={len(pdfs)}; names={pdfs}")
+              targets = [
+                  name for name in pdfs
+                  if name.lower() in ("nifty_50_oct2026.pdf", "nifty_bank_oct2026.pdf")
+              ]
+              for name in targets:
+                  with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                      temp.write(archive.read(name))
+                      temp.flush()
+                      extracted = subprocess.run(
+                          ["pdftotext", "-raw", temp.name, "-"],
+                          capture_output=True, text=True, check=True,
+                      ).stdout
+                  title_match = re.search(r"Constituents of\s+([^\r\n]+)", extracted, re.I)
+                  date_match = report_date_re.search(extracted)
+                  records, buffer = [], []
+                  for line in extracted.splitlines():
+                      line = line.strip()
+                      if not line or furniture.match(line):
+                          continue
+                      buffer.append(line)
+                      if not triple.match(line):
+                          continue
+                      whole = " ".join(buffer)
+                      buffer = []
+                      match = triple.match(whole)
+                      if not match:
+                          continue
+                      head = match.group(1).split()
+                      if not head or not symbol_re.match(head[0]):
+                          continue
+                      try:
+                          weight = Decimal(match.group(3).replace(",", ""))
+                          close = Decimal(match.group(2).replace(",", ""))
+                      except InvalidOperation:
+                          continue
+                      records.append({"symbol": head[0], "close": close, "weight": weight})
+                  total_weight = sum((row["weight"] for row in records), Decimal("0"))
+                  print(
+                      f"PDF={name}; title={title_match.group(1).strip() if title_match else None}; "
+                      f"report_date={date_match.group(1) if date_match else None}; "
+                      f"parsed_constituents={len(records)}; weight_sum={total_weight}"
+                  )
+                  print("  top10=" + repr([
+                      (row["symbol"], str(row["weight"]))
+                      for row in sorted(records, key=lambda x: x["weight"], reverse=True)[:10]
+                  ]))
+                  print("  last5=" + repr([
+                      (row["symbol"], str(row["weight"]))
+                      for row in records[-5:]
+                  ]))
+
+          # BSE Index Services constituent endpoint: membership and as-of date,
+          # but this endpoint does not publish per-constituent weights.
+          bse_url = "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16"
+          bse_headers = dict(headers)
+          bse_headers["Referer"] = "https://www.bseindices.com/"
+          bse = requests.get(bse_url, headers=bse_headers, timeout=45)
+          print(f"BSE SENSEX constituents: HTTP {bse.status_code}; bytes={len(bse.content)}")
+          if bse.status_code == 200:
+              payload = bse.json()
+              table = payload.get("Table", []) if isinstance(payload, dict) else []
+              dates = sorted({str(row.get("TransDate")) for row in table})
+              print(f"BSE SENSEX roster rows={len(table)} as_of_dates={dates}")
+              print("  roster_sample=" + repr(table[:3]))
+
+          # BSE's official monthly factsheet publishes the top constituents by
+          # weight; it is not a complete 30-stock weight file.
+          bse_fact_url = "https://www.bseindices.com/Downloads/Factsheet/Factsheet_BSESENSEX_Oct2026.pdf"
+          bse_fact = requests.get(bse_fact_url, headers=bse_headers, timeout=45)
+          print(
+              f"BSE SENSEX Oct-2026 factsheet: HTTP {bse_fact.status_code}; "
+              f"bytes={len(bse_fact.content)}; content-type={bse_fact.headers.get('Content-Type')}"
+          )
+          if bse_fact.status_code == 200 and bse_fact.content.startswith(b"%PDF"):
+              with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                  temp.write(bse_fact.content)
+                  temp.flush()
+                  text = subprocess.run(
+                      ["pdftotext", "-raw", temp.name, "-"],
+                      capture_output=True, text=True, check=True,
+                  ).stdout
+              pos = text.lower().find("top constituents by weightage")
+              print("  BSE factsheet weight section=" + repr(text[pos:pos+1200] if pos >= 0 else text[:800]))
+
+          # Inspect the official daily NSE cash-market Bhavcopy schema and
+          # constituent coverage for the 5-Nov close.
+          cm_url = "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20261105_F_0000.csv.zip"
+          cm_headers = dict(headers)
+          cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
+          cm = requests.get(cm_url, headers=cm_headers, timeout=60)
+          print(
+              f"NSE CM Bhavcopy 2026-11-05: HTTP {cm.status_code}; "
+              f"bytes={len(cm.content)}; content-type={cm.headers.get('Content-Type')}"
+          )
+          if cm.status_code == 200 and cm.content.startswith(b"PK"):
+              with zipfile.ZipFile(io.BytesIO(cm.content)) as archive:
+                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(members) == 1:
+                      rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+                      print(f"NSE CM member={members[0]}; rows={len(rows)}; columns={sorted(rows[0]) if rows else []}")
+                      print("  sample=" + repr(rows[0] if rows else None))
           PY
       # Research-only: MCX futures OI-weighted price breadth across
       # exact common expiries, with a chronological holdout.
       - name: Diagnostic MCX 30-session futures OI breadth backtest
+        if: github.event_name == 'workflow_dispatch'
         timeout-minutes: 15
         continue-on-error: true
         run: |
