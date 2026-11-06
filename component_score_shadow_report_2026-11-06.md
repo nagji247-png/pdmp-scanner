@@ -328,3 +328,17 @@ For each symbol/side the official historical `foCPV` endpoint returned exactly o
 - **SENSEX remains incomplete:** BSE Index Services returned a 30-stock roster dated 30-Oct-2026 in one successful request, but its roster endpoint does not expose weights and a subsequent request returned an empty response. The official October factsheet PDF was downloaded but yielded no extractable text; a complete 30-stock weight file has not been verified. No equal-weight or NSE-proxy basket is substituted.
 - On code head `1c0a6243d6f39ef71ea4844b780a818c43cd2961`, Component Score Validation #154, OI Research Validation #65 and NSE/MCX Integration #236 all PASS. This workflow verifies the official monthly weights, full symbol coverage and four-session basket reconstruction; it does not add the basket to production Final.
 - No production score, signal, dashboard layout, merge or deployment was changed.
+
+
+### Weighted stock-basket breadth score — 5 Nov 2026
+
+A descriptive -10…+10 breadth measure was calculated from the reconstructed prior-day constituent weights:
+
+`breadth_score = 10 × (advancing_weight_fraction − declining_weight_fraction)`
+
+Flat-weight constituents contribute zero. This measures how broadly the constituent basket participated; it is not a crowd/participant position measure and is not yet a predictive signal.
+
+- **NIFTY 50, 5-Nov:** breadth score **+6.53**; 39/50 stocks advanced, representing 82.63% of index weight; 11/50 declined, representing 17.37%.
+- **NIFTY Bank, 5-Nov:** breadth score **+10.00**; all 14/14 stocks advanced, representing 100% of index weight; none declined.
+- Prior-session breadth scores (30-Oct→2-Nov, 2→3-Nov, 3→4-Nov): NIFTY 50 +4.07, +6.13, +2.77; NIFTY Bank +1.04, +1.73, +2.77.
+- These are verified descriptive breadth values based on the full official constituent weights and dated EQ closes. They remain shadow/research-only until a longer historical breadth-score test is completed; they do not contribute to production or Final.
