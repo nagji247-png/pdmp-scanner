@@ -148,3 +148,13 @@ Official source references:
 - The corresponding official archive URL pattern is `https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20261030_F_0000.csv.zip`. The browser retrieval path rejected the ZIP binary content type and the direct download attempt failed in this environment. Therefore, the actual CSV rows and the contract-master cross-check have **not** been inspected; this is source availability confirmation, not parser fixture validation.
 - Next gate remains unchanged: obtain both official dated files, inspect the actual headers/rows, reconcile every OPTIDX contract for NIFTY and BANKNIFTY (including expiry/strike/CE-PE identity), compare file counts and reject incomplete coverage before considering any OI component. SENSEX remains BSE-only.
 - Official listing evidence: https://www.nseindia.in/all-reports-derivatives
+
+### MCX UDiFF schema and public Bhav Copy re-check — 6 Nov 2026
+
+- MCX Clearing Corporation's official UDiFF page publishes a Bhavcopy format PDF and a separate sample-file link for the Commodity Derivatives segment. The PDF confirms the file name pattern `Bhavcopy_MCX_CO_0_0_0_yyyymmdd_F_0000.csv`, CSV with ISO headers, and exact fields: `TradDt`, `BizDt`, `Sgmt`, `Src`, `FinInstrmTp`, `TckrSymb`, `XpryDt`, `ClsPric`, `OpnIntrst`, and `ChngInOpnIntrst`.
+- MCX's official public Bhav Copy page search-indexed a dated 05-Nov-2026 table with instrument, commodity, expiry, close, volume and OI (Lots), confirming current daily public table visibility for commodity futures. This is useful as a cross-check surface, but it does not expose the UDiFF raw CSV headers/rows through the browser extraction.
+- The official sample CSV link currently returns an unsupported CSV content type in this environment. Thus the actual sample rows and current dated raw UDiFF CSV have not been inspected; the schema mapping is based on the official MCXCCL PDF, not a live-file fixture.
+- Added `aggregate_mcx_udiff_commodity_futures_oi()` as a diagnostic-only parser prototype. It isolates exact MCX/CO/FUTCOM/symbol/trade-date/expiry and requires one exact row with valid OI, change-in-OI and close. Duplicate rows, missing fields and ambiguous matches fail closed. It always reports `included_in_asset_final=false` and `coverage_validated=false`.
+- Added unit tests for exact symbol/expiry/date isolation, duplicate rejection and missing OI-change rejection. No GOLD/SILVER component score is enabled: actual raw-file fixture, complete daily-file checks, and same-expiry previous-session comparison are still required.
+- Official sources: https://www.mcxccl.com/all-circulars/unified-distilled-file-formats-%28udiff%29 and https://www.mcxindia.com/market-data/bhavcopy.
+
