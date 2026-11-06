@@ -7,7 +7,7 @@
 - Commit: `15b80a248cfd13332f1a4b023bc4a033ff2ae743`
 - Captured data timestamp: `2026-11-06T16:56Z` (22:26 IST)
 - Job: completed successfully; all six workflow steps passed.
-- Artifact: `component-score-live-shadow` (data.json; 98,112 bytes; expires 2026-11-09T16:59:42Z).
+- Artifact: `component-score-live-shadow` (data.json; 319,573 bytes; expires 2026-11-09T16:59:42Z).
 - Scope: isolated shadow run only. No production score, published signal, dashboard data, or repository data file was changed by this workflow.
 
 ## Per-asset verified component result
