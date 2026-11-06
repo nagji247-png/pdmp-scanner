@@ -140,3 +140,11 @@ Official source references:
 - NSE UDiFF formats: https://www.nseindia.com/static/resources/forms-formats-members
 - MCX category-wise participant OI disclosure: https://beta.mcxindia.com/market-operations/trading-surveillance/reports/disclosure-of-open-interest-and-turnover-for-various-categories-of-market-participants
 - MCX Datafeed (EOD Bhavcopy includes contract-wise OI): https://classic.mcxindia.com/technology/datafeed
+
+
+### NSE archive availability re-check — 6 Nov 2026
+
+- A fresh index of NSE's official All Reports page exposes a dated F&O UDiFF Common Bhavcopy Final ZIP named `BhavCopy_NSE_FO_0_0_0_20261030_F_0000.csv.zip` and the corresponding dated NSE F&O Contract File `NSE_FO_contract_30102026.csv.gz`. This confirms that the official report listing publishes both the daily bhavcopy and a same-date contract-master candidate.
+- The corresponding official archive URL pattern is `https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20261030_F_0000.csv.zip`. The browser retrieval path rejected the ZIP binary content type and the direct download attempt failed in this environment. Therefore, the actual CSV rows and the contract-master cross-check have **not** been inspected; this is source availability confirmation, not parser fixture validation.
+- Next gate remains unchanged: obtain both official dated files, inspect the actual headers/rows, reconcile every OPTIDX contract for NIFTY and BANKNIFTY (including expiry/strike/CE-PE identity), compare file counts and reject incomplete coverage before considering any OI component. SENSEX remains BSE-only.
+- Official listing evidence: https://www.nseindia.in/all-reports-derivatives
