@@ -55,3 +55,20 @@ CE/PE long/short changes are not treated as standalone bullish/bearish predictor
 - NSE/MCX quote integration validation: PASS.
 - Live shadow scan: PASS; artifact uploaded.
 - No merge or deployment performed.
+
+
+## Repeat shadow observation — 2026-11-06 09:09 UTC
+
+A second isolated run completed successfully: [Run #18](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42192860647). It produced the same News and final component scores:
+
+| Asset | First final | Second final | Search mix on second run |
+|---|---:|---:|---|
+| NIFTY | +0.71 | +0.71 | 0 / 0 / 100% |
+| SENSEX | +1.20 | +1.20 | 0 / 0 / 100% |
+| BANKNIFTY | +0.89 | +0.89 | 0 / 0 / 100% |
+| GOLD | -0.26 | -0.26 | 0 / 0 / 100% |
+| SILVER | -0.08 | -0.08 | 0 / 0 / 100% |
+
+Search classification coverage on the second observation: NIFTY 85.5%, SENSEX 77.3%, BANKNIFTY 69.7%, GOLD 77.8%, SILVER 50.7%. The mix remained neutral-only; Search correctly stayed out of Final.
+
+The repeat run supports that the News result is stable across these two close observations, but it does **not** validate the News score as a predictive trading signal. The live shadow workflow is now manual-dispatch only to avoid repeated Google Trends requests on every PR update.
