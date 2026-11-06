@@ -248,7 +248,7 @@ def _parse_exchange_date(value):
     if not isinstance(value, str) or not value.strip():
         return None
     raw = value.strip()
-    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%b-%y", "%d/%m/%Y"):
+    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%b-%y", "%d/%m/%Y", "%m/%d/%Y", "%d %b %Y"):
         try:
             return datetime.strptime(raw, fmt).date().isoformat()
         except ValueError:
@@ -341,6 +341,85 @@ def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
         "reason": None if valid else "दोनों CE/PE पक्षों का पूर्ण, साफ़ और तारीख़-मेल वाला UDiFF डेटा उपलब्ध नहीं",
         "validation_warnings": sorted(set(malformed)),
     }
+
+def compare_mcx_bhavcopy_contract_oi(current_rows, previous_rows, symbol, trade_date, previous_trade_date, expiry):
+    """Compare one exact MCX FUTCOM contract across two dated public Bhav Copies.
+
+    The comparison is diagnostic only. It reports price/OI changes without
+    converting the conventional price-OI regime into a directional score.
+    """
+    target_symbol = str(symbol or "").strip().upper()
+    target_date = _parse_exchange_date(str(trade_date or ""))
+    prior_date = _parse_exchange_date(str(previous_trade_date or ""))
+    target_expiry = _parse_exchange_date(str(expiry or ""))
+    if (not target_symbol or not target_date or not prior_date or not target_expiry
+            or not isinstance(current_rows, list) or not isinstance(previous_rows, list)):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "symbol, dates, expiry or dated Bhav Copy rows missing"}
+
+    def exact_contract(rows, expected_date):
+        matches = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("InstrumentName") or "").strip().upper() != "FUTCOM":
+                continue
+            if str(row.get("Symbol") or "").strip().upper() != target_symbol:
+                continue
+            if _parse_exchange_date(str(row.get("DateDisplay") or row.get("Date") or "")) != expected_date:
+                continue
+            if _parse_exchange_date(str(row.get("ExpiryDate") or "")) != target_expiry:
+                continue
+            if str(row.get("OptionType") or "-").strip() not in ("", "-"):
+                continue
+            oi = _exchange_integer(row.get("OpenInterest"))
+            close = finite_number(row.get("Close"))
+            if oi is None or close is None or close <= 0:
+                return None, "missing_or_invalid_oi_or_close"
+            matches.append({"open_interest_lots": oi, "close": round(close, 6)})
+        if len(matches) != 1:
+            return None, "exact_contract_row_count_not_one"
+        return matches[0], None
+
+    current, current_error = exact_contract(current_rows, target_date)
+    previous, previous_error = exact_contract(previous_rows, prior_date)
+    valid = current is not None and previous is not None
+    if not valid:
+        return {
+            "available": False, "included_in_asset_final": False,
+            "source": "MCX India public contract-wise Bhav Copy",
+            "symbol": target_symbol, "expiry": target_expiry,
+            "source_date": target_date, "previous_source_date": prior_date,
+            "reason": current_error or previous_error,
+            "current": current, "previous": previous,
+        }
+    oi_change = current["open_interest_lots"] - previous["open_interest_lots"]
+    close_change = round(current["close"] - previous["close"], 6)
+    if close_change > 0 and oi_change > 0:
+        regime = "price_up_oi_up"
+    elif close_change > 0 and oi_change < 0:
+        regime = "price_up_oi_down"
+    elif close_change < 0 and oi_change > 0:
+        regime = "price_down_oi_up"
+    elif close_change < 0 and oi_change < 0:
+        regime = "price_down_oi_down"
+    else:
+        regime = "mixed_or_unchanged"
+    return {
+        "available": True, "included_in_asset_final": False,
+        "coverage_validated": False,
+        "source": "MCX India public contract-wise Bhav Copy",
+        "symbol": target_symbol, "instrument_type": "FUTCOM",
+        "expiry": target_expiry, "source_date": target_date,
+        "previous_source_date": prior_date,
+        "current": current, "previous": previous,
+        "change_in_oi_lots": oi_change,
+        "change_in_close": close_change,
+        "price_oi_regime": regime,
+        "interpretation": "diagnostic_only_not_directional_signal",
+        "reason": None,
+    }
+
 
 def aggregate_mcx_udiff_commodity_futures_oi(rows, symbol, trade_date, expiry):
     """Read one exact MCX FUTCOM symbol/expiry/date from official UDiFF rows.
