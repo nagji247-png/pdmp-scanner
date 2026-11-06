@@ -1,13 +1,7 @@
 name: Component Score Live Shadow Scan
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
-    paths:
-      - "fetch_and_score.py"
-      - "component_scoring.py"
-      - ".github/workflows/component-score-live-shadow.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
