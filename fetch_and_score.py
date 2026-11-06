@@ -419,7 +419,9 @@ def build_asset_component_breakdowns(
                     "raw_queries", "classified_queries", "unclassified_queries",
                     "classification_coverage_pct", "bull_pct", "bear_pct",
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
-                    "unclassified_terms",
+                    "unclassified_terms", "rising_queries",
+                    "rising_classified_queries", "rising_direction_counts",
+                    "rising_terms",
                 )
                 search_diagnostic = {
                     key: search_snapshot.get(key)
