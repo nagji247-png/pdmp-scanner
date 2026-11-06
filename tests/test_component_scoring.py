@@ -163,8 +163,9 @@ class ComponentScoringTests(unittest.TestCase):
     def test_gold_generic_price_search_is_not_neutral_sentiment(self):
         import fetch_and_score
 
-        self.assertIsNone(fetch_and_score._asset_search_direction("gold price today", "GOLD"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price", "GOLD"))
         self.assertIsNone(fetch_and_score._asset_search_direction("silver rate", "SILVER"))
+        self.assertEqual(fetch_and_score._asset_search_direction("gold price today", "GOLD"), "neutral")
         self.assertEqual(fetch_and_score._asset_search_direction("gold sideways", "GOLD"), "neutral")
 
     def test_asset_specific_information_queries_are_neutral_without_cross_asset_leakage(self):
