@@ -4659,6 +4659,7 @@ def main():
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
     trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
+    component_shadow_scan = os.getenv("COMPONENT_SHADOW_SCAN", "false").lower() == "true"
 
     if trends_scan:
         # हर निर्धारित स्लॉट पर नया Google Trends अनुरोध करें; पुराने सफल डेटा से स्लॉट पूरा न मानें।
@@ -4860,7 +4861,9 @@ def main():
         "GOLD": "asset_search_shadow",
         "SILVER": "asset_search_shadow",
     }
-    if trends_scan:
+    if trends_scan or component_shadow_scan:
+        # Shadow-only validation must not run the legacy four-stage Crowd fetch.
+        # One batched five-asset related-query request is enough for this isolated test.
         asset_search_shadow = fetch_asset_trends_shadow()
         for _asset_name, _field in search_assets.items():
             _asset_data = result["instruments"].get(_asset_name)
