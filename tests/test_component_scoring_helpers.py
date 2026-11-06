@@ -74,5 +74,47 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertIn("not index-specific", context["scope"])
 
 
+    def test_nse_udiff_index_option_oi_is_separate_and_fail_closed(self):
+        from component_scoring import aggregate_nse_udiff_index_option_oi
+
+        rows = [
+            {"FinInstrmTp": "OPTIDX", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
+             "XpryDt": "2026-11-10", "OptnTp": "CE", "OpnIntrst": "1000",
+             "ChngInOpnIntrst": "125"},
+            {"FinInstrmTp": "OPTIDX", "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
+             "XpryDt": "2026-11-10", "OptnTp": "PE", "OpnIntrst": "1500",
+             "ChngInOpnIntrst": "-75"},
+            {"FinInstrmTp": "OPTIDX", "TckrSymb": "BANKNIFTY", "BizDt": "2026-11-05",
+             "XpryDt": "2026-11-10", "OptnTp": "CE", "OpnIntrst": "9000",
+             "ChngInOpnIntrst": "900"},
+        ]
+        result = aggregate_nse_udiff_index_option_oi(rows, "NIFTY", "2026-11-05")
+        self.assertTrue(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertEqual(result["call"]["open_interest"], 1000)
+        self.assertEqual(result["call"]["change_in_oi"], 125)
+        self.assertEqual(result["put"]["open_interest"], 1500)
+        self.assertEqual(result["put"]["change_in_oi"], -75)
+        self.assertEqual(result["matched_contract_rows"], 2)
+        self.assertEqual(result["symbol"], "NIFTY")
+
+    def test_nse_udiff_oi_rejects_missing_side_and_bad_date(self):
+        from component_scoring import aggregate_nse_udiff_index_option_oi
+
+        rows = [
+            {"FinInstrmTp": "OPTIDX", "TckrSymb": "SENSEX", "BizDt": "2026-11-05",
+             "XpryDt": "2026-11-12", "OptnTp": "CE", "OpnIntrst": "500",
+             "ChngInOpnIntrst": "50"},
+            {"FinInstrmTp": "OPTIDX", "TckrSymb": "SENSEX", "BizDt": "2026-11-04",
+             "XpryDt": "2026-11-12", "OptnTp": "PE", "OpnIntrst": "700",
+             "ChngInOpnIntrst": "70"},
+        ]
+        result = aggregate_nse_udiff_index_option_oi(rows, "SENSEX", "2026-11-05")
+        self.assertFalse(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertIsNone(result["reason"] if result["available"] else None)
+        self.assertIn("trade_date_mismatch_or_missing", result["validation_warnings"])
+
+
 if __name__ == "__main__":
     unittest.main()
