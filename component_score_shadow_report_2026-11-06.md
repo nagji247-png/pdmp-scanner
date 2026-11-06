@@ -158,3 +158,12 @@ Official source references:
 - Added unit tests for exact symbol/expiry/date isolation, duplicate rejection and missing OI-change rejection. No GOLD/SILVER component score is enabled: actual raw-file fixture, complete daily-file checks, and same-expiry previous-session comparison are still required.
 - Official sources: https://www.mcxccl.com/all-circulars/unified-distilled-file-formats-%28udiff%29 and https://www.mcxindia.com/market-data/bhavcopy.
 
+### Latest validation after MCX UDiFF parser tests — 6 Nov 2026
+
+All three workflows passed on commit `6e5137aeb6e96ab21c34b93ddf46990a5d3c60ca`:
+- Component Score Validation: [run 42197522607](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42197522607) — Python syntax, 23 unit/integration tests (including both new MCX UDiFF tests), and dashboard JavaScript syntax all passed.
+- NSE/MCX Quote Integration: [run 42197522507](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42197522507) — existing quote, timestamp, MCX Market Watch and NSE diagnostics passed. This workflow does not claim raw UDiFF fixture validation.
+- OI Research Validation: [run 42197522504](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42197522504) — OI research syntax and tests passed.
+
+These CI results validate parser logic against synthetic fixtures and existing integration checks only. They do not replace a real official dated UDiFF CSV fixture, daily-file completeness audit, or consecutive-session OI/price study. Therefore NSE and MCX OI components remain excluded from all asset final scores.
+
