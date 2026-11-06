@@ -256,3 +256,17 @@ The follow-up diagnostic on feature commit `a66b8efc77581b27dc3293d9ac7fcf1fd7b7
 For each symbol/side the official historical `foCPV` endpoint returned exactly one row dated 05-Nov-2026, matching the requested symbol, expiry, strike and CE/PE. The response also contained close, settlement, volume, OI, change-in-OI and the historical underlying value. NSE integration run #214 completed successfully, as did Component Score Validation #128 and OI Research Validation #43 on the diagnostic code commit.
 
 **Scope limit:** this is one historical ATM strike per index and both option sides, not the full expiry chain or full index OI. The four CE/PE values must not be aggregated into an index component score or mistaken for CLIENT-wide positions. The official daily UDiFF Bhavcopy plus same-date contract master are still required for complete contract inventory, row coverage and exact master reconciliation. No index OI component is enabled.
+
+
+### Official NSE UDiFF + same-date MII Contract Master audit — 6 Nov 2026
+
+- The GitHub Actions runner downloaded the official 5-Nov-2026 F&O UDiFF Bhavcopy ZIP (1,247,678 bytes) and decompressed its CSV: 39,018 rows, with the expected UDiFF columns including `FinInstrmId`, `FinInstrmTp`, `TckrSymb`, `XpryDt`, `StrkPric`, `OptnTp`, `OpnIntrst` and `ChngInOpnIntrst`.
+- The real NSE UDiFF instrument code for index options is `IDO` (legacy normalized name: `OPTIDX`). The parser and tests were corrected to recognize the official `IDO` value; the earlier zero-row result was caused by filtering on the legacy label against the raw UDiFF file.
+- Parser output for 5-Nov-2026:
+  - NIFTY: 2,050 OPTIDX/IDO rows (1,017 CE; 1,033 PE), 18 expiries; CE OI 266,006,225, CE change +17,581,085; PE OI 343,683,325, PE change +59,165,685.
+  - BANKNIFTY: 975 rows (487 CE; 488 PE), 6 expiries; CE OI 15,271,860, CE change +131,940; PE OI 17,720,640, PE change +2,468,400.
+- The same-date NSE F&O Contract Master GZ downloaded successfully (1,934,461 bytes; 88,325 rows). Exact `FinInstrmId` join results: NIFTY 2,050/2,050 IDs matched, BANKNIFTY 975/975 matched; zero missing IDs and zero duplicate master IDs. Symbol and CE/PE side also matched for every joined row.
+- **Remaining contract-master caveat:** the MII master file's `XpryDt` and `StrkPric` are not in the same representation as the UDiFF Bhavcopy fields. For example, one joined contract has UDiFF expiry `2027-01-25` and strike `23450.00`, while the MII row carries `XpryDt=1485354600` and `StrkPric=2345000`; `DcmlLctr` is blank. The direct date/strike conversion is not yet documented or validated. The exact ID + symbol + side join is strong evidence, but it is not yet a complete expiry/strike identity reconciliation.
+- Therefore `coverage_validated=false` remains deliberate. The UDiFF aggregates are real exchange-wide contract OI context, not CLIENT-only positions, and are not yet included in any index Final. Next gate: establish MII expiry/strike field encoding and perform a second dated UDiFF comparison with stable exact-contract keys before any score test.
+- On head `839d994ce8d6dd2ebe01f348e6e698af9cc174ac`, Component Score Validation #137, OI Research Validation #51 and NSE/MCX Integration #222 all passed. These validate parser/tests and diagnostic download/joins; they do not close the expiry/strike normalization or predictive-validation gates.
+- No production score, signal, dashboard layout, merge or deployment was changed.
