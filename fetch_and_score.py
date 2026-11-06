@@ -3875,6 +3875,43 @@ def _asset_search_direction(term, asset):
     return None
 
 
+
+def _asset_rising_diagnostics(rising, asset):
+    """Keep Google Trends rising queries as separate evidence, never as top-query weights."""
+    if rising is None or getattr(rising, "empty", True) or "query" not in rising:
+        return {
+            "rising_queries": 0,
+            "rising_classified_queries": 0,
+            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0},
+            "rising_terms": [],
+        }
+
+    counts = {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0}
+    terms = []
+    for _, row in rising.iterrows():
+        term = str(row.get("query", "")).strip()
+        if not term:
+            continue
+        direction = _asset_search_direction(term, asset)
+        category = direction if direction in ("bull", "bear", "neutral") else "unclassified"
+        counts[category] += 1
+        raw_value = row.get("value", "")
+        value = str(raw_value).strip()
+        terms.append({
+            "term": term,
+            "value": value,
+            "direction": category,
+            "breakout": value.lower() == "breakout",
+        })
+    terms.sort(key=lambda item: item["term"].lower())
+    return {
+        "rising_queries": len(terms),
+        "rising_classified_queries": counts["bull"] + counts["bear"] + counts["neutral"],
+        "rising_direction_counts": counts,
+        "rising_terms": terms[:10],
+    }
+
+
 def fetch_asset_trends_shadow():
     """One batched 1-day Trends request for three indices plus Gold/Silver."""
     from pytrends.request import TrendReq
@@ -3899,6 +3936,7 @@ def fetch_asset_trends_shadow():
         for asset, seed in seeds.items():
             pack = (related or {}).get(seed) or {}
             top = pack.get("top")
+            rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
             totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
             classified_terms = []
             raw_query_count = 0
@@ -3951,6 +3989,7 @@ def fetch_asset_trends_shadow():
                         if total + unclassified_weight > 0 else None
                     ),
                     "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+                    **rising_diagnostics,
                     "reason": (
                         f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
                         f"(classified={len(classified_terms)}, total_weight={total:.1f})"
@@ -3991,6 +4030,7 @@ def fetch_asset_trends_shadow():
                 "directional_bull_pct": directional_bull_pct,
                 "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2),
                 "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
+                **rising_diagnostics,
                 "production_score_used": False,
             }
     except Exception as exc:
