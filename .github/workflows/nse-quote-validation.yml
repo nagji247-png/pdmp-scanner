@@ -496,9 +496,11 @@ jobs:
         run: |
           python - <<'PY'
           import csv
+          import datetime as dt
           import gzip
           import io
           import zipfile
+          from decimal import Decimal, InvalidOperation
           import requests
           from component_scoring import aggregate_nse_udiff_index_option_oi
 
@@ -599,23 +601,44 @@ jobs:
                   matched = [(b, m) for b, m in matched if m is not None]
                   missing = sorted(bhav_ids - set(master_by_id))
                   mismatch_counts = {key: 0 for key in ("TckrSymb", "XpryDt", "StrkPric", "OptnTp")}
+                  def master_expiry_date(value):
+                      raw = str(value or "").strip()
+                      if raw.isdigit():
+                          return dt.datetime.fromtimestamp(int(raw), tz=dt.timezone.utc).date().isoformat()
+                      return raw
+                  def master_strike_value(row):
+                      raw = str(row.get("StrkPric") or "").strip()
+                      locator = str(row.get("DcmlLctr") or "").strip()
+                      try:
+                          if not locator:
+                              return None
+                          return Decimal(raw) / (Decimal(10) ** int(locator))
+                      except (InvalidOperation, ValueError, OverflowError):
+                          return None
                   for b_row, m_row in matched:
-                      for key in mismatch_counts:
-                          left = str(b_row.get(key) or "").strip().upper()
-                          right = str(m_row.get(key) or "").strip().upper()
-                          if left != right:
-                              mismatch_counts[key] += 1
+                      if str(b_row.get("TckrSymb") or "").strip().upper() != str(m_row.get("TckrSymb") or "").strip().upper():
+                          mismatch_counts["TckrSymb"] += 1
+                      if str(b_row.get("XpryDt") or "").strip() != master_expiry_date(m_row.get("XpryDt")):
+                          mismatch_counts["XpryDt"] += 1
+                      try:
+                          bhav_strike = Decimal(str(b_row.get("StrkPric") or "").strip())
+                      except InvalidOperation:
+                          bhav_strike = None
+                      if bhav_strike is None or master_strike_value(m_row) != bhav_strike:
+                          mismatch_counts["StrkPric"] += 1
+                      if str(b_row.get("OptnTp") or "").strip().upper() != str(m_row.get("OptnTp") or "").strip().upper():
+                          mismatch_counts["OptnTp"] += 1
                   print(
                       f"{symbol} Contract Master ID reconciliation: "
                       f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
                       f"matched_IDs={len(matched)}; missing_IDs={len(missing)}; "
                       f"duplicate_master_IDs={len(duplicate_master_ids)}; "
-                      f"identity_field_mismatches={mismatch_counts}"
+                      f"normalized_identity_field_mismatches={mismatch_counts}"
                   )
                   if matched:
                       b_row, m_row = matched[0]
-                      fields = ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp")
-                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in fields}))
+                      fields = ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp", "DcmlLctr")
+                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in fields if key != "DcmlLctr"}))
                       print("  sample ContractMaster=" + repr({key: m_row.get(key) for key in fields}))
                   if missing:
                       print(f"  missing ID sample={missing[:10]}")
