@@ -341,3 +341,65 @@ def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
         "reason": None if valid else "दोनों CE/PE पक्षों का पूर्ण, साफ़ और तारीख़-मेल वाला UDiFF डेटा उपलब्ध नहीं",
         "validation_warnings": sorted(set(malformed)),
     }
+
+def aggregate_mcx_udiff_commodity_futures_oi(rows, symbol, trade_date, expiry):
+    """Read one exact MCX FUTCOM symbol/expiry/date from official UDiFF rows.
+
+    This parser is diagnostic only: it does not infer direction from OI and
+    never enables the component final until consecutive-session and full-file
+    coverage checks have been completed.
+    """
+    target_symbol = str(symbol or "").strip().upper()
+    target_date = _parse_exchange_date(str(trade_date or ""))
+    target_expiry = _parse_exchange_date(str(expiry or ""))
+    if not target_symbol or not target_date or not target_expiry or not isinstance(rows, list):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "symbol/trade date/expiry/UDiFF rows missing or invalid"}
+
+    matches = []
+    rejected = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("Sgmt") or "").strip().upper() != "CO":
+            continue
+        if str(row.get("Src") or "").strip().upper() != "MCX":
+            continue
+        if str(row.get("FinInstrmTp") or "").strip().upper() != "FUTCOM":
+            continue
+        if str(row.get("TckrSymb") or "").strip().upper() != target_symbol:
+            continue
+        row_date = _parse_exchange_date(str(row.get("BizDt") or row.get("TradDt") or ""))
+        row_expiry = _parse_exchange_date(str(row.get("XpryDt") or ""))
+        if row_date != target_date or row_expiry != target_expiry:
+            continue
+        oi = _exchange_integer(row.get("OpnIntrst"))
+        change = _exchange_integer(row.get("ChngInOpnIntrst"))
+        close = finite_number(row.get("ClsPric"))
+        if oi is None or change is None:
+            rejected.append("missing_or_malformed_oi_change")
+            continue
+        if close is None or close <= 0:
+            rejected.append("missing_or_invalid_close")
+            continue
+        matches.append({"open_interest": oi, "change_in_oi": change, "close": round(close, 6)})
+
+    valid = len(matches) == 1 and not rejected
+    return {
+        "available": valid,
+        "included_in_asset_final": False,
+        "source": "MCXCCL UDiFF Commodity Derivatives Bhavcopy",
+        "exchange": "MCX",
+        "source_date": target_date,
+        "symbol": target_symbol,
+        "instrument_type": "FUTCOM",
+        "expiry": target_expiry,
+        "open_interest": matches[0]["open_interest"] if len(matches) == 1 else None,
+        "change_in_oi": matches[0]["change_in_oi"] if len(matches) == 1 else None,
+        "close": matches[0]["close"] if len(matches) == 1 else None,
+        "matched_contract_rows": len(matches),
+        "coverage_validated": False,
+        "reason": None if valid else "एक exact MCX FUTCOM symbol/expiry/date row with valid OI, change-in-OI and close is not available",
+        "validation_warnings": sorted(set(rejected)),
+    }
+
