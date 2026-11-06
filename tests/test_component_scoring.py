@@ -404,6 +404,8 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertIn("function renderComponentBreakdown", html)
         self.assertIn("Google Trends Crowd", html)
         self.assertIn("search_diagnostic", html)
+        self.assertIn("Rising related queries", html)
+        self.assertIn("rising_direction_counts", html)
         self.assertIn("${componentBreakdown}", html)
 
 
