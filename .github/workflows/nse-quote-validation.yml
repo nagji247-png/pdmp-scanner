@@ -544,7 +544,7 @@ jobs:
           for symbol in ("NIFTY", "BANKNIFTY"):
               symbol_rows = [
                   row for row in bhav_rows
-                  if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                  if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
                   and str(row.get("TckrSymb") or "").strip().upper() == symbol
               ]
               ce = sum(str(row.get("OptnTp") or "").strip().upper() == "CE" for row in symbol_rows)
@@ -577,12 +577,12 @@ jobs:
               for symbol in ("NIFTY", "BANKNIFTY"):
                   bhav_symbol = [
                       row for row in bhav_rows
-                      if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
                       and str(row.get("TckrSymb") or "").strip().upper() == symbol
                   ]
                   master_symbol = [
                       row for row in master_rows
-                      if str(row.get("FinInstrmTp") or "").strip().upper() == "OPTIDX"
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
                       and str(row.get("TckrSymb") or "").strip().upper() == symbol
                   ]
                   master_ids = {str(row.get("FinInstrmId") or "").strip() for row in master_symbol}
