@@ -631,6 +631,152 @@ jobs:
                   if missing:
                       print(f"  missing ID sample={missing[:10]}")
           PY
+      # Research-only: compare exact NSE index-option contracts across
+      # five dated official UDiFF files. No directional score is produced.
+      - name: Diagnostic NSE five-session index option OI comparison
+        timeout-minutes: 6
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import csv
+          import io
+          import zipfile
+          from collections import Counter
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
+          base = "https://nsearchives.nseindia.com/content/fo/"
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.nseindia.com/all-reports-derivatives",
+          })
+
+          def load_day(day):
+              stamp = day.replace("-", "")
+              url = base + f"BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
+              response = session.get(url, timeout=60)
+              print(f"NSE UDiFF {day}: HTTP {response.status_code}; bytes={len(response.content)}")
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  raise RuntimeError(f"invalid official UDiFF ZIP for {day}")
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(names) != 1:
+                      raise RuntimeError(f"{day}: expected one CSV member, got {names[:5]}")
+                  raw = archive.read(names[0]).decode("utf-8-sig")
+              rows = list(csv.DictReader(io.StringIO(raw)))
+              if not rows:
+                  raise RuntimeError(f"{day}: empty UDiFF CSV")
+              return rows
+
+          def number(value):
+              try:
+                  result = Decimal(str(value).strip())
+                  return result if result.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          snapshots = {}
+          for day in dates:
+              try:
+                  snapshots[day] = load_day(day)
+              except Exception as exc:
+                  print(f"NSE UDiFF {day} unavailable: {type(exc).__name__}: {str(exc)[:200]}")
+                  snapshots[day] = None
+
+          def contract_map(rows, symbol, day):
+              result = {}
+              duplicates = 0
+              rejected = 0
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "IDO":
+                      continue
+                  if str(row.get("TckrSymb") or "").strip().upper() != symbol:
+                      continue
+                  if str(row.get("BizDt") or "").strip() != day:
+                      rejected += 1
+                      continue
+                  side = str(row.get("OptnTp") or "").strip().upper()
+                  if side not in ("CE", "PE"):
+                      rejected += 1
+                      continue
+                  expiry = str(row.get("XpryDt") or "").strip()
+                  strike = str(row.get("StrkPric") or "").strip()
+                  oi = number(row.get("OpnIntrst"))
+                  close = number(row.get("ClsPric"))
+                  lot = number(row.get("NewBrdLotQty"))
+                  if not expiry or not strike or oi is None or close is None or lot is None or lot <= 0:
+                      rejected += 1
+                      continue
+                  key = (expiry, strike, side)
+                  if key in result:
+                      duplicates += 1
+                      continue
+                  result[key] = {"oi": oi, "close": close, "lot": lot}
+              return result, duplicates, rejected
+
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              print(f"\n{symbol} exact-contract five-session OI comparison (exchange-wide, diagnostic only):")
+              maps = {}
+              for day in dates:
+                  rows = snapshots.get(day)
+                  if not isinstance(rows, list):
+                      maps[day] = None
+                      continue
+                  current, duplicates, rejected = contract_map(rows, symbol, day)
+                  maps[day] = current
+                  ce = sum(key[2] == "CE" for key in current)
+                  pe = sum(key[2] == "PE" for key in current)
+                  print(
+                      f"{day}: exact_contracts={len(current)} CE={ce} PE={pe} "
+                      f"duplicate_keys={duplicates} rejected_rows={rejected}"
+                  )
+              for newer, older in zip(dates, dates[1:]):
+                  newer_map, older_map = maps.get(newer), maps.get(older)
+                  if not isinstance(newer_map, dict) or not isinstance(older_map, dict):
+                      print(f"{newer} vs {older}: unavailable (dated file missing)")
+                      continue
+                  common = set(newer_map) & set(older_map)
+                  added = set(newer_map) - set(older_map)
+                  removed = set(older_map) - set(newer_map)
+                  print(
+                      f"{newer} vs {older}: common={len(common)} "
+                      f"new={len(added)} removed={len(removed)}"
+                  )
+                  for side in ("CE", "PE"):
+                      keys = [key for key in common if key[2] == side]
+                      delta_oi_units = Decimal("0")
+                      delta_oi_lots = Decimal("0")
+                      regimes = Counter()
+                      lot_mismatch = 0
+                      for key in keys:
+                          now, before = newer_map[key], older_map[key]
+                          delta = now["oi"] - before["oi"]
+                          delta_oi_units += delta
+                          if now["lot"] != before["lot"]:
+                              lot_mismatch += 1
+                              continue
+                          delta_oi_lots += delta / now["lot"]
+                          price_delta = now["close"] - before["close"]
+                          if delta > 0 and price_delta > 0:
+                              regimes["price_up_oi_up"] += 1
+                          elif delta > 0 and price_delta < 0:
+                              regimes["price_down_oi_up"] += 1
+                          elif delta < 0 and price_delta > 0:
+                              regimes["price_up_oi_down"] += 1
+                          elif delta < 0 and price_delta < 0:
+                              regimes["price_down_oi_down"] += 1
+                          else:
+                              regimes["flat_or_unchanged"] += 1
+                      print(
+                          f"  {side}: common={len(keys)} delta_OI_units={delta_oi_units} "
+                          f"delta_OI_lots={delta_oi_lots.quantize(Decimal('0.01'))} "
+                          f"lot_size_mismatches={lot_mismatch} price_OI_regimes={dict(regimes)}"
+                      )
+          PY
       - name: Diagnostic official MCX Bhavcopy OI field probe
         timeout-minutes: 6
         continue-on-error: true
