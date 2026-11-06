@@ -587,6 +587,8 @@ function renderComponentBreakdown(b) {
     const extras = [];
     if (component.evidence_count != null) extras.push("खबरें " + component.evidence_count);
     if (component.newest_headline_age_h != null) extras.push("नई खबर " + Number(component.newest_headline_age_h).toFixed(1) + "h");
+    if (component.newest_headline_published_at) extras.push("नई खबर प्रकाशित (UTC): " + component.newest_headline_published_at);
+    if (component.oldest_headline_published_at) extras.push("पुरानी eligible खबर (UTC): " + component.oldest_headline_published_at);
     if (component.seed) extras.push("Seed: " + component.seed);
     if (component.query) extras.push("News query: " + component.query);
     if (component.classified_queries != null) extras.push("वर्गीकृत खोजें " + component.classified_queries);
