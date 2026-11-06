@@ -451,6 +451,8 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertIn("search_diagnostic", html)
         self.assertIn("Rising related queries", html)
         self.assertIn("rising_direction_counts", html)
+        self.assertIn("newest_headline_published_at", html)
+        self.assertIn("oldest_headline_published_at", html)
         self.assertIn("${componentBreakdown}", html)
 
 
