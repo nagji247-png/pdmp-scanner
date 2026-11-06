@@ -3831,7 +3831,7 @@ def _asset_search_direction(term, asset):
     # are NOT neutral crowd sentiment. Only explicit flat/range-bound language
     # earns a neutral vote; otherwise leave the query unclassified.
     neutral_intent = {
-        "sideways", "sideway", "rangebound", "range-bound", "range", "flat",
+        "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
         "स्थिर", "सपाट", "सीमित", "दायरे", "साइडवेज",
     }
