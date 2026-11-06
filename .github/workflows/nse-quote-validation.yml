@@ -377,3 +377,100 @@ jobs:
                       f"in_final={result['included_in_asset_final']}"
                   )
           PY
+      # Research-only: verify NSE's historical index-option API with exact
+      # contracts discovered from the official option-chain response.
+      # This probe never writes scanner data or enables an OI score.
+      - name: Diagnostic NSE historical OPTIDX CE/PE archive probe
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import requests
+
+          base = "https://www.nseindia.com"
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "application/json, text/plain, */*",
+              "Accept-Language": "en-US,en;q=0.9",
+          })
+          try:
+              warm = session.get(base + "/report-detail/fo_eq_security", timeout=20)
+              print(f"NSE historical archive page: HTTP {warm.status_code}")
+              session.headers["Referer"] = base + "/option-chain"
+              trade_date = dt.date(2026, 11, 5)
+              for symbol in ("NIFTY", "BANKNIFTY"):
+                  chain_response = session.get(
+                      base + "/api/option-chain-indices",
+                      params={"symbol": symbol},
+                      timeout=20,
+                  )
+                  print(f"{symbol} option chain: HTTP {chain_response.status_code}")
+                  if chain_response.status_code != 200:
+                      print(chain_response.text[:180])
+                      continue
+                  chain = chain_response.json()
+                  records = chain.get("records") or {}
+                  expiries = []
+                  for value in records.get("expiryDates") or []:
+                      try:
+                          expiry_date = dt.datetime.strptime(value, "%d-%b-%Y").date()
+                      except (TypeError, ValueError):
+                          continue
+                      if expiry_date >= trade_date:
+                          expiries.append((expiry_date, value))
+                  if not expiries:
+                      print(f"{symbol}: no eligible expiry in official option-chain response")
+                      continue
+                  expiry_date, expiry = min(expiries)
+                  rows = [
+                      row for row in (records.get("data") or [])
+                      if row.get("expiryDate") == expiry
+                  ]
+                  underlying = records.get("underlyingValue")
+                  if underlying is None:
+                      underlying = next((
+                          leg.get("underlyingValue")
+                          for row in rows for leg in (row.get("CE"), row.get("PE"))
+                          if isinstance(leg, dict) and leg.get("underlyingValue") is not None
+                      ), None)
+                  if not rows or underlying is None:
+                      print(f"{symbol} {expiry}: no strike rows/underlying value; cannot select a contract")
+                      continue
+                  selected = min(rows, key=lambda row: abs(float(row.get("strikePrice", 0)) - float(underlying)))
+                  strike = int(float(selected["strikePrice"]))
+                  print(f"{symbol}: historical date={trade_date}, expiry={expiry}, ATM strike={strike}, underlying={underlying}")
+                  for option_type in ("CE", "PE"):
+                      if not isinstance(selected.get(option_type), dict):
+                          print(f"{symbol} {expiry} {strike} {option_type}: absent in official option chain")
+                          continue
+                      response = session.get(
+                          base + "/api/historicalOR/foCPV",
+                          params={
+                              "from": trade_date.strftime("%d-%m-%Y"),
+                              "to": trade_date.strftime("%d-%m-%Y"),
+                              "instrumentType": "OPTIDX",
+                              "symbol": symbol,
+                              "year": str(expiry_date.year),
+                              "expiryDate": expiry,
+                              "optionType": option_type,
+                              "strikePrice": str(strike),
+                          },
+                          headers={"Accept": "application/json, text/javascript, */*; q=0.01"},
+                          timeout=25,
+                      )
+                      print(f"{symbol} {expiry} {strike} {option_type}: HTTP {response.status_code}")
+                      if response.status_code != 200:
+                          print(response.text[:180])
+                          continue
+                      payload = response.json()
+                      data = payload.get("data") if isinstance(payload, dict) else None
+                      if isinstance(data, list) and data:
+                          print(f"  rows={len(data)} columns={sorted(data[0])}")
+                          print("  sample=" + json.dumps(data[0], default=str)[:1000])
+                      else:
+                          print(f"  response keys={sorted(payload) if isinstance(payload, dict) else type(payload).__name__}; no rows for this exact contract/date")
+          except Exception as exc:
+              print(f"NSE historical OPTIDX diagnostic unavailable: {type(exc).__name__}: {str(exc)[:240]}")
+          PY
