@@ -77,13 +77,19 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         classify = fetch_and_score._asset_search_direction
         self.assertIsNone(classify("gold price", "GOLD"))
         self.assertIsNone(classify("silver rate", "SILVER"))
-        self.assertEqual(classify("gold price today", "GOLD"), "neutral")
+        # Navigation / price lookup is informational, not neutral crowd mood.
+        self.assertIsNone(classify("gold price today", "GOLD"))
+        self.assertIsNone(classify("Nifty live", "NIFTY"))
+        self.assertIsNone(classify("Nifty share price", "NIFTY"))
+        self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
+        self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
+        self.assertEqual(classify("Nifty स्थिर", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty breakout today", "NIFTY"), "bull")
         self.assertEqual(classify("Nifty crash", "NIFTY"), "bear")
         self.assertEqual(classify("Nifty price rise today", "NIFTY"), "bull")
         self.assertEqual(classify("Nifty price fall today", "NIFTY"), "bear")
         # Ambiguous analyst/navigation intent must not be promoted into mood.
-        self.assertEqual(classify("Nifty target today", "NIFTY"), "neutral")
+        self.assertIsNone(classify("Nifty target today", "NIFTY"))
         self.assertEqual(classify("Nifty 52 week high", "NIFTY"), None)
         self.assertIsNone(classify("Nifty buy", "NIFTY"))
         self.assertIsNone(classify("Nifty not bullish", "NIFTY"))
