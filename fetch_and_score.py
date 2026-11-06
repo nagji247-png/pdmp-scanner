@@ -405,13 +405,27 @@ def build_asset_component_breakdowns(
                 "reason": "24 घंटे के भीतर की तारीख़/age वाली asset-specific खबरें उपलब्ध नहीं",
             }
 
+        search_diagnostic = None
         # Search Score accepts only the asset's own one-day related-query seed.
-        # The shared/global NIFTY Trends series and all 7-day fallbacks are excluded.
+        # Preserve the classified mix even when a neutral-only reading is withheld from Final.
         if name in search_assets:
             search_snapshot = (
                 item.get("index_search_shadow") if name in index_names
                 else item.get("asset_search_shadow")
             )
+            if isinstance(search_snapshot, dict):
+                diagnostic_fields = (
+                    "valid", "seed", "source", "timeframe", "source_data_time",
+                    "raw_queries", "classified_queries", "unclassified_queries",
+                    "classification_coverage_pct", "bull_pct", "bear_pct",
+                    "neutral_pct", "directional_bull_pct", "reason", "terms",
+                    "unclassified_terms",
+                )
+                search_diagnostic = {
+                    key: search_snapshot.get(key)
+                    for key in diagnostic_fields
+                    if key in search_snapshot
+                }
             search_component, search_reason = search_component_from_snapshot(
                 search_snapshot,
                 now_utc=now_utc,
@@ -471,6 +485,7 @@ def build_asset_component_breakdowns(
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
             "components": components,
             "excluded_components": excluded,
+            "search_diagnostic": search_diagnostic,
             "client_market_context": client_context,
             "final": final,
             "formula": "sum(component_score × configured_weight) / sum(weights of included verified components)",
