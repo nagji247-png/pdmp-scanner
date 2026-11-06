@@ -165,6 +165,7 @@ class ComponentScoringTests(unittest.TestCase):
 
         self.assertIsNone(fetch_and_score._asset_search_direction("gold price", "GOLD"))
         self.assertIsNone(fetch_and_score._asset_search_direction("silver rate", "SILVER"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("silver rate", "SILVER"))
         self.assertEqual(fetch_and_score._asset_search_direction("gold price today", "GOLD"), "neutral")
         self.assertEqual(fetch_and_score._asset_search_direction("gold sideways", "GOLD"), "neutral")
 
@@ -174,10 +175,19 @@ class ComponentScoringTests(unittest.TestCase):
         cases = [
             ("Nifty 50 today", "NIFTY", "neutral"),
             ("gift nifty live", "NIFTY", "neutral"),
+            ("nifty share price", "NIFTY", "neutral"),
+            ("nifty chart", "NIFTY", "neutral"),
             ("Sensex today", "SENSEX", "neutral"),
+            ("BSE Sensex", "SENSEX", "neutral"),
+            ("Sensex index", "SENSEX", "neutral"),
             ("Bank Nifty live", "BANKNIFTY", "neutral"),
+            ("Bank Nifty 50", "BANKNIFTY", "neutral"),
+            ("Bank Nifty chart", "BANKNIFTY", "neutral"),
             ("gold price today", "GOLD", "neutral"),
+            ("gold price India", "GOLD", "neutral"),
+            ("MCX gold price", "GOLD", "neutral"),
             ("silver price today", "SILVER", "neutral"),
+            ("silver coin price", "SILVER", "neutral"),
         ]
         for phrase, asset, expected in cases:
             with self.subTest(phrase=phrase, asset=asset):
