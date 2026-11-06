@@ -3814,35 +3814,41 @@ def _trends_related_queries_for_index(seed, index_name):
 
 
 def _asset_search_direction(term, asset):
-    direction = tq_dir(term)
+    """Classify only queries that actually refer to this asset; generic info intent is neutral."""
+    text = str(term or "").lower()
+    tokens = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
+
+    # Related-query payloads can contain neighboring assets. Never let those
+    # queries leak into another asset's sentiment denominator.
+    if asset == "NIFTY":
+        if "nifty" not in tokens or "bank" in tokens:
+            return None
+    elif asset == "SENSEX":
+        if "sensex" not in tokens or "nifty" in tokens:
+            return None
+    elif asset == "BANKNIFTY":
+        if not ({"bank", "nifty"} <= tokens):
+            return None
+    elif asset == "GOLD":
+        if "gold" not in tokens or "silver" in tokens:
+            return None
+    elif asset == "SILVER":
+        if "silver" not in tokens or "gold" in tokens:
+            return None
+    else:
+        return None
+
+    direction = tq_dir(text)
     if direction is not None:
         return direction
-    if asset not in ("GOLD", "SILVER"):
-        return None
-    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", str(term).lower()))
-    bull_words = {
-        "rise", "rises", "rising", "up", "higher", "increase", "increased",
-        "increasing", "gain", "gains", "surge", "rally", "bullish", "teji",
-        "tez", "badhega", "badhegi", "upar", "chadhav", "तेजी", "तेज़ी",
-        "बढ़ेगा", "बढ़ेगी", "बढ़ा", "बढ़े", "बढ़ोतरी", "ऊपर", "महंगा",
+
+    # A neutral vote requires an explicit information-seeking term attached
+    # to the correct asset. "price" by itself is not a neutral sentiment vote.
+    neutral_intent = {
+        "today", "live", "prediction", "predict", "option", "chain",
+        "आज", "लाइव", "भविष्यवाणी", "ऑप्शन", "चेन",
     }
-    bear_words = {
-        "fall", "falls", "falling", "down", "lower", "decrease", "decreased",
-        "drop", "crash", "decline", "slump", "bearish", "girawat", "girega",
-        "giregi", "neeche", "mandi", "गिरावट", "गिरेगा", "गिरेगी", "नीचे",
-        "मंदी", "सस्ता", "कम",
-    }
-    has_bull = bool(tokens & bull_words)
-    has_bear = bool(tokens & bear_words)
-    if has_bull and not has_bear:
-        return "bull"
-    if has_bear and not has_bull:
-        return "bear"
-    if not has_bull and not has_bear and tokens & {
-        "sideways", "sideway", "flat", "rangebound", "range-bound",
-        "consolidation", "stable", "stability", "unchanged", "steady",
-        "स्थिर", "सपाट", "दायरे", "सीमित",
-    }:
+    if tokens & neutral_intent:
         return "neutral"
     return None
 
