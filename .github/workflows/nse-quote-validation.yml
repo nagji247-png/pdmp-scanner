@@ -574,28 +574,49 @@ jobs:
           if "FinInstrmId" not in bhav_columns or "FinInstrmId" not in master_columns:
               print("Contract Master ID reconciliation: schema does not expose FinInstrmId on both files")
           else:
+              master_by_id = {}
+              duplicate_master_ids = set()
+              for row in master_rows:
+                  key = str(row.get("FinInstrmId") or "").strip()
+                  if not key:
+                      continue
+                  if key in master_by_id:
+                      duplicate_master_ids.add(key)
+                  master_by_id[key] = row
+              print(
+                  "Contract Master FinInstrmTp values="
+                  + repr(sorted({str(row.get("FinInstrmTp") or "").strip() for row in master_rows})[:30])
+              )
               for symbol in ("NIFTY", "BANKNIFTY"):
                   bhav_symbol = [
                       row for row in bhav_rows
                       if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
                       and str(row.get("TckrSymb") or "").strip().upper() == symbol
                   ]
-                  master_symbol = [
-                      row for row in master_rows
-                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
-                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
-                  ]
-                  master_ids = {str(row.get("FinInstrmId") or "").strip() for row in master_symbol}
                   bhav_ids = {str(row.get("FinInstrmId") or "").strip() for row in bhav_symbol}
-                  master_ids.discard("")
                   bhav_ids.discard("")
-                  missing = sorted(bhav_ids - master_ids)
+                  matched = [(row, master_by_id.get(str(row.get("FinInstrmId") or "").strip())) for row in bhav_symbol]
+                  matched = [(b, m) for b, m in matched if m is not None]
+                  missing = sorted(bhav_ids - set(master_by_id))
+                  mismatch_counts = {key: 0 for key in ("TckrSymb", "XpryDt", "StrkPric", "OptnTp")}
+                  for b_row, m_row in matched:
+                      for key in mismatch_counts:
+                          left = str(b_row.get(key) or "").strip().upper()
+                          right = str(m_row.get(key) or "").strip().upper()
+                          if left != right:
+                              mismatch_counts[key] += 1
                   print(
-                      f"{symbol} Contract Master reconciliation: "
+                      f"{symbol} Contract Master ID reconciliation: "
                       f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
-                      f"master_OPTIDX_rows={len(master_symbol)} unique_ids={len(master_ids)}; "
-                      f"Bhavcopy_IDs_missing_from_master={len(missing)}"
+                      f"matched_IDs={len(matched)}; missing_IDs={len(missing)}; "
+                      f"duplicate_master_IDs={len(duplicate_master_ids)}; "
+                      f"identity_field_mismatches={mismatch_counts}"
                   )
+                  if matched:
+                      b_row, m_row = matched[0]
+                      fields = ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp")
+                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in fields}))
+                      print("  sample ContractMaster=" + repr({key: m_row.get(key) for key in fields}))
                   if missing:
                       print(f"  missing ID sample={missing[:10]}")
           PY
