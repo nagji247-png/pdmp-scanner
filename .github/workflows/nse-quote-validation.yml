@@ -978,6 +978,67 @@ jobs:
               summarize("IN_SAMPLE", train)
               summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
           PY
+      # Research-only: official monthly NSE Indices constituent/weight archive.
+      - name: Diagnostic NSE Indices monthly constituent weight archive
+        timeout-minutes: 5
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import io
+          import re
+          import shutil
+          import subprocess
+          import tempfile
+          import zipfile
+          import requests
+
+          url = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip"
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Referer": "https://www.niftyindices.com/",
+          }
+          response = requests.get(url, headers=headers, timeout=90)
+          print(
+              f"NSE Indices Oct-2026 monthly archive: HTTP {response.status_code}; "
+              f"bytes={len(response.content)}; content-type={response.headers.get('Content-Type')}"
+          )
+          if response.status_code != 200 or not response.content.startswith(b"PK"):
+              raise RuntimeError("official NSE Indices monthly archive was not a ZIP")
+          with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+              pdfs = [name for name in archive.namelist() if name.lower().endswith(".pdf")]
+              print(f"Archive PDF count={len(pdfs)}")
+              print("Archive PDF names=" + repr(pdfs[:100]))
+              targets = []
+              for name in pdfs:
+                  low = name.lower().replace("_", "").replace("-", "").replace(" ", "")
+                  if any(token in low for token in ("nifty50", "niftybank", "banknifty")):
+                      targets.append(name)
+              print("NIFTY50/Bank candidate PDFs=" + repr(targets))
+              pdftotext = shutil.which("pdftotext")
+              if not pdftotext:
+                  print("pdftotext is unavailable; archive names recorded, PDF text parsing deferred")
+              else:
+                  for name in targets:
+                      with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                          temp.write(archive.read(name))
+                          temp.flush()
+                          extracted = subprocess.run(
+                              [pdftotext, "-raw", temp.name, "-"],
+                              capture_output=True, text=True, check=True,
+                          ).stdout
+                      title = re.search(r"Constituents of\\s+([^\\r\\n]+)", extracted, re.I)
+                      report_date = re.search(
+                          r"([A-Z][a-z]+\\s+\\d{1,2},\\s+\\d{4})", extracted
+                      )
+                      print(
+                          f"PDF={name}; title={title.group(1).strip() if title else None}; "
+                          f"report_date={report_date.group(1) if report_date else None}; "
+                          f"text_chars={len(extracted)}"
+                      )
+                      print("  text_sample=" + repr(extracted[:700]))
+          PY
       # Research-only: MCX futures OI-weighted price breadth across
       # exact common expiries, with a chronological holdout.
       - name: Diagnostic MCX 30-session futures OI breadth backtest
