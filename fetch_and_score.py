@@ -4684,8 +4684,13 @@ def main():
         previous_trends.get(k) is not None
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
-    trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
     component_shadow_scan = os.getenv("COMPONENT_SHADOW_SCAN", "false").lower() == "true"
+    # A component shadow run already makes one batched five-asset Trends request below.
+    # Do not also execute the legacy four-stage Crowd fetch (up to four extra requests).
+    trends_scan = (
+        os.getenv("TRENDS_SCAN", "false").lower() == "true"
+        and not component_shadow_scan
+    )
 
     if trends_scan:
         # हर निर्धारित स्लॉट पर नया Google Trends अनुरोध करें; पुराने सफल डेटा से स्लॉट पूरा न मानें।
