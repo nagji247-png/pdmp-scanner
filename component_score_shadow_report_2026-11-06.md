@@ -215,3 +215,14 @@ These CI results validate parser logic against synthetic fixtures and existing i
 - The same official BSE document states the end-of-day member files are available in `member.bseindia.com`; this does not establish a freely downloadable public archive for the complete daily Market Summary. BSE's public Market Data portal describes Equity Derivatives API access through registration/KYC/data plans. No free, complete dated SENSEX market-summary file has been retrieved in this checkpoint.
 - Therefore SENSEX CE/PE OI remains excluded. Do not substitute NSE participant data or infer a SENSEX-specific signal from NIFTY options.
 - Official sources: https://www.bseindia.com/downloads1/File_Format_Equity_Derivatives.pdf and https://marketdata.bseindia.com/.
+
+
+### Fresh full-branch CI verification on latest checkpoint — 6 Nov 2026
+
+The latest feature-branch head `f7cc8a717492da47ed2d3a99d42a915809e3a47a` was associated with three completed GitHub Actions runs, all successful:
+
+- Component Score Validation #119: [run 42211993671](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42211993671). Job steps confirm Python syntax validation, unit/integration tests, dashboard JavaScript extraction and syntax validation all passed.
+- NSE/MCX Quote Integration #208: [run 42211993676](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42211993676). Job steps confirm Python syntax, Google Trends/NSE handshake and fallback checks, NSE timestamp and symbol validation, MCX source/freshness parsing, MCX Market Watch parsing, and diagnostic NSE/MCX probes all passed.
+- OI Research Validation #37: [run 42211993672](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42211993672). Job steps confirm OI research Python syntax and OI research unit tests passed.
+
+This supersedes the earlier note that fresh validation after the recovery checkpoint was not yet visible. These runs validate the current branch code and tests. They do **not** establish complete official NSE OPTIDX historical CSV coverage, real-file Contract Master reconciliation, predictive validity of any OI signal, or permission to include OI in an asset Final. NSE/MCX OI gates remain closed pending those separate data validations. No production scores or signals were changed.
