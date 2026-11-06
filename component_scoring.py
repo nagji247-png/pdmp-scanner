@@ -248,7 +248,7 @@ def _parse_exchange_date(value):
     if not isinstance(value, str) or not value.strip():
         return None
     raw = value.strip()
-    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%b-%y", "%d/%m/%Y", "%m/%d/%Y", "%d %b %Y"):
+    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%b-%y", "%d/%m/%Y", "%m/%d/%Y", "%d %b %Y", "%d%b%Y"):
         try:
             return datetime.strptime(raw, fmt).date().isoformat()
         except ValueError:
