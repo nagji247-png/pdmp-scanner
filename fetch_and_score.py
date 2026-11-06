@@ -470,7 +470,7 @@ def build_asset_component_breakdowns(
                 "applicable": True,
                 "included": False,
                 "source": "NSE Indices / BSE official constituent-and-weight files",
-                "reason": "इस run में सभी official constituents और उसी तारीख़ के weights का complete verified snapshot उपलब्ध नहीं; 9-stock watchlist को full index basket नहीं माना गया।",
+                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।",
             }
             client_context = client_oi_context(
                 participant_today, participant_changes_data
