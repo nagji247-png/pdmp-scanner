@@ -589,6 +589,30 @@ jobs:
                   "Contract Master FinInstrmTp values="
                   + repr(sorted({str(row.get("FinInstrmTp") or "").strip() for row in master_rows})[:30])
               )
+
+              # NSE Masters Data v1.6: contract expiry is seconds from
+              # 1980-01-01; F&O price fields (including strike) are in paise.
+              def master_expiry_date(value):
+                  try:
+                      seconds = int(Decimal(str(value).strip()))
+                      return (dt.datetime(1980, 1, 1) + dt.timedelta(seconds=seconds)).date().isoformat()
+                  except (InvalidOperation, ValueError, TypeError, OverflowError):
+                      return None
+
+              def master_strike_rupees(value):
+                  try:
+                      raw = Decimal(str(value).strip())
+                      return raw / Decimal("100") if raw.is_finite() else None
+                  except (InvalidOperation, ValueError, TypeError):
+                      return None
+
+              def bhav_strike_rupees(value):
+                  try:
+                      raw = Decimal(str(value).strip())
+                      return raw if raw.is_finite() else None
+                  except (InvalidOperation, ValueError, TypeError):
+                      return None
+
               for symbol in ("NIFTY", "BANKNIFTY"):
                   bhav_symbol = [
                       row for row in bhav_rows
@@ -601,19 +625,41 @@ jobs:
                   matched = [(b, m) for b, m in matched if m is not None]
                   missing = sorted(bhav_ids - set(master_by_id))
                   identity_mismatches = {key: 0 for key in ("TckrSymb", "OptnTp")}
+                  expiry_mismatches = strike_mismatches = 0
+                  expiry_unparsed = strike_unparsed = 0
+                  mismatch_samples = []
                   for b_row, m_row in matched:
                       if str(b_row.get("TckrSymb") or "").strip().upper() != str(m_row.get("TckrSymb") or "").strip().upper():
                           identity_mismatches["TckrSymb"] += 1
                       if str(b_row.get("OptnTp") or "").strip().upper() != str(m_row.get("OptnTp") or "").strip().upper():
                           identity_mismatches["OptnTp"] += 1
+                      bhav_expiry = str(b_row.get("XpryDt") or "").strip()
+                      master_expiry = master_expiry_date(m_row.get("XpryDt"))
+                      if not master_expiry:
+                          expiry_unparsed += 1
+                      elif master_expiry != bhav_expiry:
+                          expiry_mismatches += 1
+                          if len(mismatch_samples) < 5:
+                              mismatch_samples.append(("expiry", b_row.get("FinInstrmId"), bhav_expiry, master_expiry))
+                      bhav_strike = bhav_strike_rupees(b_row.get("StrkPric"))
+                      master_strike = master_strike_rupees(m_row.get("StrkPric"))
+                      if bhav_strike is None or master_strike is None:
+                          strike_unparsed += 1
+                      elif master_strike != bhav_strike:
+                          strike_mismatches += 1
+                          if len(mismatch_samples) < 5:
+                              mismatch_samples.append(("strike", b_row.get("FinInstrmId"), str(bhav_strike), str(master_strike)))
                   print(
                       f"{symbol} Contract Master ID reconciliation: "
                       f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
                       f"matched_IDs={len(matched)}; missing_IDs={len(missing)}; "
                       f"duplicate_master_IDs={len(duplicate_master_ids)}; "
                       f"symbol_side_mismatches={identity_mismatches}; "
-                      "expiry/strike encoding requires separate normalization"
+                      f"expiry_mismatches={expiry_mismatches}; expiry_unparsed={expiry_unparsed}; "
+                      f"strike_mismatches={strike_mismatches}; strike_unparsed={strike_unparsed}"
                   )
+                  if mismatch_samples:
+                      print(f"  normalized mismatch samples={mismatch_samples}")
                   if matched:
                       b_row, m_row = matched[0]
                       fields = (
