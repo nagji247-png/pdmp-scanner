@@ -11,19 +11,31 @@ OUTPUT = ROOT / "participant_oi_backtest_summary.json"
 
 TRAIN = "train_first_70pct"
 HOLDOUT = "chronological_holdout_last_30pct"
-METRIC_FIELDS = (
-    "n", "pearson_r", "spearman_r", "avg_forward_return_pct",
-    "positive_return_rate_pct", "signal_coverage_pct",
-    "directional_signal_count", "directional_observation_count",
-    "correct_signals", "false_signals", "false_bullish_signals",
-    "false_bearish_signals", "false_signal_rate_pct",
-    "directional_hit_rate_pct", "bullish_signal_avg_return_pct",
-    "bearish_signal_avg_return_pct", "bull_bear_return_spread_pct",
+BASE_FIELDS = (
+    "n", "avg_forward_return_pct", "positive_return_rate_pct",
+    "pearson_r", "spearman_r",
+)
+DIRECTIONAL_FIELDS = (
+    "signal_coverage_pct", "directional_signal_count",
+    "directional_observation_count", "correct_signals", "false_signals",
+    "false_bullish_signals", "false_bearish_signals",
+    "false_signal_rate_pct", "directional_hit_rate_pct",
+    "bullish_signal_avg_return_pct", "bearish_signal_avg_return_pct",
+    "bull_bear_return_spread_pct",
+)
+REGIME_DIRECTIONAL_FIELDS = (
+    "n", "directional_observation_count", "directional_hit_rate_pct",
+    "false_signals", "false_signal_rate_pct", "avg_forward_return_pct",
 )
 
 
-def metric_view(item):
-    return {key: item.get(key) for key in METRIC_FIELDS}
+def metric_view(item, directional, regime=False):
+    if item is None:
+        return None
+    fields = BASE_FIELDS
+    if directional:
+        fields += REGIME_DIRECTIONAL_FIELDS[1:] if regime else DIRECTIONAL_FIELDS
+    return {key: item.get(key) for key in fields}
 
 
 def summarize_index(name, index):
@@ -52,15 +64,21 @@ def summarize_index(name, index):
         train = samples.get(TRAIN)
         field = holdout.get("field") or feature.split(".", 1)[-1]
         is_directional = field.startswith("future_index")
+        raw_regimes = holdout.get("regime_metrics") or {}
+        regimes = {
+            regime: metric_view(metrics, is_directional, regime=True)
+            for regime, metrics in raw_regimes.items()
+            if isinstance(metrics, dict)
+        }
         features.append({
             "feature": feature,
             "participant": holdout.get("participant") or feature.split(".", 1)[0],
             "field": field,
             "horizon_sessions": horizon,
             "directional_futures": is_directional,
-            "train": metric_view(train) if train else None,
-            "holdout": metric_view(holdout),
-            "holdout_regimes": holdout.get("regime_metrics") or {},
+            "train": metric_view(train, is_directional),
+            "holdout": metric_view(holdout, is_directional),
+            "holdout_regimes": regimes,
         })
 
     futures = [
@@ -111,7 +129,8 @@ def summarize_index(name, index):
 def build_summary(report):
     status = report.get("status", "unavailable")
     base = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "summary_format": "compact_v2",
         "status": status,
         "generated_at_utc": report.get("generated_at_utc"),
         "oi_source": report.get("oi_source"),
@@ -149,15 +168,18 @@ def main():
         raise FileNotFoundError(f"missing input report: {INPUT}")
     report = json.loads(INPUT.read_text(encoding="utf-8"))
     summary = build_summary(report)
-    OUTPUT.write_text(
-        json.dumps(summary, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
-        encoding="utf-8",
+    encoded = json.dumps(
+        summary, ensure_ascii=False, separators=(",", ":"), allow_nan=False
     )
+    OUTPUT.write_text(encoded + "\n", encoding="utf-8")
     counts = ", ".join(
         f"{name}={item['feature_horizon_count']} feature/horizon rows"
         for name, item in summary.get("indices", {}).items()
     ) or "no index metrics"
-    print(f"OI compact summary written: status={summary['status']}; {counts}")
+    print(
+        f"OI compact summary written: status={summary['status']}; "
+        f"bytes={len(encoded.encode('utf-8'))}; {counts}"
+    )
 
 
 if __name__ == "__main__":

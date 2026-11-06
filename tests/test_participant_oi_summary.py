@@ -67,7 +67,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual(future["holdout_regimes"]["sideways"]["n"], 4)
         self.assertEqual(nifty["best_holdout_futures_exploratory_only"][0]["feature"], futures)
         option = next(x for x in nifty["features"] if not x["directional_futures"])
-        self.assertIsNone(option["holdout"]["directional_hit_rate_pct"])
+        self.assertIsNone(option["holdout"].get("directional_hit_rate_pct"))
         self.assertFalse(result["score_changed"])
         self.assertFalse(result["eligible_for_live_score"])
 
