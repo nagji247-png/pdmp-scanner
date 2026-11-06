@@ -779,8 +779,8 @@ jobs:
           PY
       # Exploratory backtest only: option premium/OI positioning score versus
       # next-session underlying return. It never feeds the production score.
-      - name: Diagnostic NSE 20-session option OI positioning backtest
-        timeout-minutes: 8
+      - name: Diagnostic NSE 60-session option OI positioning backtest
+        timeout-minutes: 15
         continue-on-error: true
         run: |
           python - <<'PY'
@@ -795,7 +795,7 @@ jobs:
           end = dt.date(2026, 11, 6)
           candidates = []
           cursor = end
-          while len(candidates) < 25:
+          while len(candidates) < 70:
               if cursor.weekday() < 5:
                   candidates.append(cursor)
               cursor -= dt.timedelta(days=1)
@@ -881,8 +881,8 @@ jobs:
               except Exception as exc:
                   print(f"{day}: skip {type(exc).__name__}: {str(exc)[:160]}")
 
-          if len(raw_by_day) < 12:
-              print(f"Backtest skipped: only {len(raw_by_day)} valid dated files; need at least 12")
+          if len(raw_by_day) < 40:
+              print(f"Backtest skipped: only {len(raw_by_day)} valid dated files; need at least 40")
               raise SystemExit(0)
 
           ordered_days = sorted(raw_by_day)
@@ -948,13 +948,35 @@ jobs:
                       corr = statistics.correlation(scores, returns)
                   except statistics.StatisticsError:
                       corr = None
+              split = max(1, int(len(directional) * 0.70))
+              train = directional[:split]
+              holdout = directional[split:]
+              def summarize(label, sample):
+                  direct_hits = sum((item[1] > 0) == (item[2] > 0) for item in sample)
+                  inverse_hits = len(sample) - direct_hits
+                  correlation = None
+                  if len(sample) >= 3:
+                      try:
+                          correlation = statistics.correlation(
+                              [float(item[1]) for item in sample],
+                              [float(item[2]) for item in sample],
+                          )
+                      except statistics.StatisticsError:
+                          correlation = None
+                  print(
+                      f"{symbol} {label}: n={len(sample)} "
+                      f"direct={direct_hits}/{len(sample)} "
+                      f"contrarian={inverse_hits}/{len(sample)} "
+                      f"pearson={correlation}"
+                  )
               print(
-                  f"{symbol} BACKTEST SUMMARY: observations={len(observations)} "
-                  f"nonzero_directional={len(directional)} "
-                  f"direct_hits={direct}/{len(directional)} "
-                  f"contrarian_hits={contrarian}/{len(directional)} "
-                  f"pearson_score_next_return={corr}; research_only=True; in_final=False"
+                  f"{symbol} BACKTEST SUMMARY: downloaded_sessions={len(ordered_days)} "
+                  f"observations={len(observations)} nonzero_directional={len(directional)} "
+                  "split=chronological_70pct_train_30pct_holdout; "
+                  "fixed_formula_no_parameter_tuning=True; research_only=True; in_final=False"
               )
+              summarize("IN_SAMPLE", train)
+              summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
           PY
       - name: Diagnostic official MCX Bhavcopy OI field probe
         timeout-minutes: 6
