@@ -167,6 +167,29 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertIsNone(fetch_and_score._asset_search_direction("silver rate", "SILVER"))
         self.assertEqual(fetch_and_score._asset_search_direction("gold sideways", "GOLD"), "neutral")
 
+    def test_asset_specific_information_queries_are_neutral_without_cross_asset_leakage(self):
+        import fetch_and_score
+
+        cases = [
+            ("Nifty 50 today", "NIFTY", "neutral"),
+            ("gift nifty live", "NIFTY", "neutral"),
+            ("Sensex today", "SENSEX", "neutral"),
+            ("Bank Nifty live", "BANKNIFTY", "neutral"),
+            ("gold price today", "GOLD", "neutral"),
+            ("silver price today", "SILVER", "neutral"),
+        ]
+        for phrase, asset, expected in cases:
+            with self.subTest(phrase=phrase, asset=asset):
+                self.assertEqual(
+                    fetch_and_score._asset_search_direction(phrase, asset), expected
+                )
+
+        self.assertIsNone(fetch_and_score._asset_search_direction("Sensex today", "NIFTY"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("Bank Nifty live", "NIFTY"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("silver price today", "GOLD"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price today", "SILVER"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price", "GOLD"))
+
     def test_neutral_only_trends_is_not_added_as_zero_final_component(self):
         snapshot = {
             "valid": True,
