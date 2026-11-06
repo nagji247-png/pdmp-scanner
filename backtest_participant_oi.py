@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Exploratory point-in-time backtest of NSE participant OI against three index returns.
+"""Exploratory point-in-time NSE participant OI diagnostics; never changes live scores.
 
-NSE participant-wise OI is an aggregate Index F&O participant dataset, not OI
-reported separately for NIFTY, SENSEX, or BANKNIFTY. The same aggregate features
-are therefore tested against each index's own OHLC series. This script never
-changes a live trading score.
+NSE participant OI is aggregate Index F&O data, not separate NIFTY/SENSEX/BANKNIFTY OI.
+The same participant features are tested against each index's own daily OHLC series.
 """
 from __future__ import annotations
 
 import datetime as dt
 import json
 import math
+from collections import Counter
 from pathlib import Path
 
 import pandas as pd
@@ -19,14 +18,13 @@ import yfinance as yf
 ROOT = Path(__file__).resolve().parent
 ARCHIVE = ROOT / "participant_oi_history.json"
 OUTPUT = ROOT / "participant_oi_backtest.json"
-INDEXES = {
-    "NIFTY": "^NSEI",
-    "SENSEX": "^BSESN",
-    "BANKNIFTY": "^NSEBANK",
-}
+INDEXES = {"NIFTY": "^NSEI", "SENSEX": "^BSESN", "BANKNIFTY": "^NSEBANK"}
 HORIZONS = (1, 3, 5)
 GROUPS = ("FII", "DII", "PRO", "CLIENT")
 FIELDS = ("future_index", "index_call", "index_put")
+REGIMES = ("bull", "bear", "sideways", "unknown")
+RESEARCH_TARGET_SESSIONS = 250
+MIN_VALID_OI_SESSIONS = 20
 
 
 def finite_number(value):
@@ -37,55 +35,168 @@ def finite_number(value):
         return None
 
 
-def load_oi_records():
-    payload = json.loads(ARCHIVE.read_text(encoding="utf-8"))
-    records = payload.get("records", [])
+def validate_oi_records(records):
+    """Reject duplicate/incomplete OI dates and report original ordering."""
     if not isinstance(records, list):
         raise ValueError("archive records is not a list")
-    by_date = {}
-    seen_dates = set()
-    required = ("future_index_long", "future_index_short",
-                "index_call_long", "index_call_short",
-                "index_put_long", "index_put_short")
-    for row in records:
+    required = (
+        "future_index_long", "future_index_short",
+        "index_call_long", "index_call_short",
+        "index_put_long", "index_put_short",
+    )
+    seen = set()
+    duplicates = set()
+    invalid = []
+    out_of_order = 0
+    previous_date = None
+    valid = []
+
+    for row_number, row in enumerate(records, start=1):
+        if not isinstance(row, dict):
+            invalid.append(f"row {row_number}: not an object")
+            continue
         date = row.get("date")
-        dt.date.fromisoformat(date)
-        if date in seen_dates:
-            raise ValueError(f"duplicate OI date: {date}")
-        seen_dates.add(date)
-        participants = row.get("participants") or {}
-        if not all(group in participants for group in GROUPS):
-            raise ValueError(f"{date}: one or more participant groups are missing")
-        for group in GROUPS:
-            for key in required:
-                if finite_number(participants[group].get(key)) is None:
-                    raise ValueError(f"{date}: invalid {group}.{key}")
-        by_date[date] = row
-    dates = sorted(by_date)
-    if len(dates) != len(set(dates)):
-        raise ValueError("duplicate OI dates")
-    if len(dates) < 20:
-        raise ValueError(f"only {len(dates)} valid OI sessions; at least 20 required")
-    return [by_date[d] for d in dates]
+        try:
+            dt.date.fromisoformat(date)
+        except (TypeError, ValueError):
+            invalid.append(f"row {row_number}: invalid ISO date")
+            continue
+        if date in seen:
+            duplicates.add(date)
+        seen.add(date)
+        if previous_date is not None and date < previous_date:
+            out_of_order += 1
+        previous_date = date
+
+        participants = row.get("participants")
+        row_errors = []
+        if not isinstance(participants, dict):
+            row_errors.append("participants missing")
+        else:
+            for group in GROUPS:
+                participant = participants.get(group)
+                if not isinstance(participant, dict):
+                    row_errors.append(f"{group} missing")
+                    continue
+                for key in required:
+                    if finite_number(participant.get(key)) is None:
+                        row_errors.append(f"{group}.{key} invalid")
+        if row_errors:
+            invalid.append(f"{date}: " + ", ".join(row_errors))
+        else:
+            valid.append(row)
+
+    if duplicates:
+        raise ValueError("duplicate OI dates: " + ", ".join(sorted(duplicates)))
+    if invalid:
+        raise ValueError("invalid OI rows: " + "; ".join(invalid[:8]))
+    ordered = sorted(valid, key=lambda row: row["date"])
+    if len(ordered) < MIN_VALID_OI_SESSIONS:
+        raise ValueError(
+            f"only {len(ordered)} valid OI sessions; "
+            f"at least {MIN_VALID_OI_SESSIONS} required for diagnostics"
+        )
+    return ordered, {
+        "archive_rows": len(records),
+        "valid_oi_sessions": len(ordered),
+        "duplicate_oi_dates": 0,
+        "out_of_order_rows": out_of_order,
+        "invalid_rows": 0,
+        "first_date": ordered[0]["date"],
+        "last_date": ordered[-1]["date"],
+    }
+
+
+def load_oi_records():
+    payload = json.loads(ARCHIVE.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("OI archive root is not an object")
+    return validate_oi_records(payload.get("records", []))
 
 
 def load_index_prices(symbol):
-    history = yf.Ticker(symbol).history(period="1y", interval="1d", auto_adjust=False)
+    history = yf.Ticker(symbol).history(period="2y", interval="1d", auto_adjust=False)
     if history is None or history.empty:
         raise RuntimeError(f"Yahoo Finance returned no daily OHLC history for {symbol}")
     if isinstance(history.columns, pd.MultiIndex):
         history.columns = history.columns.get_level_values(0)
     if not {"Open", "Close"}.issubset(history.columns):
         raise RuntimeError(f"Yahoo Finance daily Open/Close missing for {symbol}")
+
     prices = {}
-    for stamp, row in history[["Open", "Close"]].dropna().iterrows():
+    seen = set()
+    duplicates = set()
+    invalid_rows = 0
+    for stamp, row in history.iterrows():
+        date = stamp.date().isoformat()
+        if date in seen:
+            duplicates.add(date)
+            continue
+        seen.add(date)
         open_price = finite_number(row["Open"])
         close_price = finite_number(row["Close"])
-        if open_price is not None and close_price is not None and open_price > 0 and close_price > 0:
-            prices[stamp.date().isoformat()] = {"open": open_price, "close": close_price}
+        if open_price is None or close_price is None or open_price <= 0 or close_price <= 0:
+            invalid_rows += 1
+            continue
+        prices[date] = {"open": open_price, "close": close_price}
+
+    if duplicates:
+        raise RuntimeError(
+            f"duplicate daily OHLC dates for {symbol}: " + ", ".join(sorted(duplicates)[:8])
+        )
     if len(prices) < 30:
         raise RuntimeError(f"only {len(prices)} valid OHLC sessions returned for {symbol}")
-    return prices
+    return prices, {
+        "duplicate_ohlc_dates": 0,
+        "invalid_ohlc_rows": invalid_rows,
+        "ohlc_sessions": len(prices),
+        "ohlc_first_date": min(prices),
+        "ohlc_last_date": max(prices),
+    }
+
+
+def summarize_date_alignment(price_dates, oi_dates):
+    """Count OI dates absent from prices and price sessions absent from OI."""
+    price_set, oi_set = set(price_dates), set(oi_dates)
+    if not oi_set:
+        raise ValueError("OI date set is empty")
+    first_date, last_date = min(oi_set), max(oi_set)
+    expected = sorted(date for date in price_set if first_date <= date <= last_date)
+    missing = sorted(set(expected) - oi_set)
+    unmatched = sorted(oi_set - price_set)
+    matched = len(oi_set & price_set)
+    return {
+        "price_sessions_in_oi_date_range": len(expected),
+        "oi_dates_matching_price_calendar": matched,
+        "missing_oi_sessions_inside_price_range": len(missing),
+        "missing_oi_dates_sample": missing[:20],
+        "oi_dates_without_price": len(unmatched),
+        "oi_dates_without_price_sample": unmatched[:20],
+        "oi_to_price_date_match_pct": round(matched / len(oi_set) * 100.0, 2),
+    }
+
+
+def classify_regimes(prices):
+    """Signal-date-only regime: close vs SMA20 and SMA20 slope over five sessions."""
+    dates = sorted(prices)
+    closes = pd.Series(
+        [prices[date]["close"] for date in dates], index=dates, dtype="float64"
+    )
+    sma = closes.rolling(20, min_periods=20).mean()
+    prior_sma = sma.shift(5)
+    result = {}
+    for date in dates:
+        current_sma, old_sma = sma.loc[date], prior_sma.loc[date]
+        close = closes.loc[date]
+        if pd.isna(current_sma) or pd.isna(old_sma):
+            result[date] = "unknown"
+        elif close > current_sma and current_sma > old_sma:
+            result[date] = "bull"
+        elif close < current_sma and current_sma < old_sma:
+            result[date] = "bear"
+        else:
+            result[date] = "sideways"
+    return result
 
 
 def normalized_leg_change(current, previous, field, leg):
@@ -123,128 +234,203 @@ def correlation(x, y, method):
 
 def calculate_metrics(rows, directional=False):
     if not rows:
-        return {"n": 0, "pearson_r": None, "spearman_r": None,
-                "avg_forward_return_pct": None, "positive_return_rate_pct": None,
-                "directional_hit_rate_pct": None}
-    x = [r["signal"] for r in rows]
-    y = [r["forward_return_pct"] for r in rows]
-    nonzero = [(a, b) for a, b in zip(x, y) if a != 0 and b != 0]
-    hit = (sum(1 for a, b in nonzero if (a > 0) == (b > 0)) / len(nonzero) * 100
-           if directional and nonzero else None)
+        return {
+            "n": 0, "pearson_r": None, "spearman_r": None,
+            "avg_forward_return_pct": None, "positive_return_rate_pct": None,
+            "signal_coverage_pct": None, "directional_signal_count": 0 if directional else None,
+            "directional_observation_count": 0 if directional else None,
+            "correct_signals": 0 if directional else None,
+            "false_signals": 0 if directional else None,
+            "false_bullish_signals": 0 if directional else None,
+            "false_bearish_signals": 0 if directional else None,
+            "false_signal_rate_pct": None, "directional_hit_rate_pct": None,
+            "bullish_signal_avg_return_pct": None, "bearish_signal_avg_return_pct": None,
+            "bull_bear_return_spread_pct": None,
+        }
+
+    signals = [row["signal"] for row in rows]
+    returns = [row["forward_return_pct"] for row in rows]
+    nonzero = [row for row in rows if row["signal"] != 0]
+    scored = [row for row in nonzero if row["forward_return_pct"] != 0] if directional else []
+    correct = sum(
+        1 for row in scored
+        if (row["signal"] > 0) == (row["forward_return_pct"] > 0)
+    )
+    false_bullish = sum(
+        1 for row in scored if row["signal"] > 0 and row["forward_return_pct"] < 0
+    )
+    false_bearish = sum(
+        1 for row in scored if row["signal"] < 0 and row["forward_return_pct"] > 0
+    )
+    false_count = false_bullish + false_bearish
+    bullish_returns = [
+        row["forward_return_pct"] for row in nonzero if row["signal"] > 0
+    ] if directional else []
+    bearish_returns = [
+        row["forward_return_pct"] for row in nonzero if row["signal"] < 0
+    ] if directional else []
+    bullish_avg = sum(bullish_returns) / len(bullish_returns) if bullish_returns else None
+    bearish_avg = sum(bearish_returns) / len(bearish_returns) if bearish_returns else None
+    count = len(scored)
+
     return {
         "n": len(rows),
-        "pearson_r": correlation(x, y, "pearson"),
-        "spearman_r": correlation(x, y, "spearman"),
-        "avg_forward_return_pct": round(sum(y) / len(y), 4),
-        "positive_return_rate_pct": round(sum(1 for v in y if v > 0) / len(y) * 100, 2),
-        "directional_hit_rate_pct": round(hit, 2) if hit is not None else None,
+        "pearson_r": correlation(signals, returns, "pearson"),
+        "spearman_r": correlation(signals, returns, "spearman"),
+        "avg_forward_return_pct": round(sum(returns) / len(returns), 4),
+        "positive_return_rate_pct": round(
+            sum(1 for value in returns if value > 0) / len(returns) * 100.0, 2
+        ),
+        "signal_coverage_pct": round(len(nonzero) / len(rows) * 100.0, 2) if directional else None,
+        "directional_signal_count": len(nonzero) if directional else None,
+        "directional_observation_count": count if directional else None,
+        "correct_signals": correct if directional else None,
+        "false_signals": false_count if directional else None,
+        "false_bullish_signals": false_bullish if directional else None,
+        "false_bearish_signals": false_bearish if directional else None,
+        "false_signal_rate_pct": round(false_count / count * 100.0, 2) if directional and count else None,
+        "directional_hit_rate_pct": round(correct / count * 100.0, 2) if directional and count else None,
+        "bullish_signal_avg_return_pct": round(bullish_avg, 4) if bullish_avg is not None else None,
+        "bearish_signal_avg_return_pct": round(bearish_avg, 4) if bearish_avg is not None else None,
+        "bull_bear_return_spread_pct": (
+            round(bullish_avg - bearish_avg, 4)
+            if bullish_avg is not None and bearish_avg is not None else None
+        ),
     }
 
 
 def analyze_index(index_name, symbol, records):
-    prices = load_index_prices(symbol)
+    prices, price_validation = load_index_prices(symbol)
     price_dates = sorted(prices)
     price_index = {date: i for i, date in enumerate(price_dates)}
+    oi_dates = [row["date"] for row in records]
+    alignment = summarize_date_alignment(price_dates, oi_dates)
+    regimes = classify_regimes(prices)
     rows_by_feature = {}
     aligned_dates = []
     nonconsecutive_skipped = 0
+    unmatched_pairs_skipped = 0
 
     for index in range(1, len(records)):
         current, previous = records[index], records[index - 1]
         date, previous_date = current["date"], previous["date"]
         if date not in price_index or previous_date not in price_index:
+            unmatched_pairs_skipped += 1
             continue
         if price_index[date] - price_index[previous_date] != 1:
             nonconsecutive_skipped += 1
             continue
         aligned_dates.append(date)
-        current_groups = current["participants"]
-        previous_groups = previous["participants"]
-        pidx = price_index[date]
+        current_groups, previous_groups = current["participants"], previous["participants"]
+        price_position = price_index[date]
+
         for group in GROUPS:
             for field in FIELDS:
                 features = []
-                net_value = normalized_net_change(current_groups[group],
-                                                  previous_groups[group], field)
+                net_value = normalized_net_change(current_groups[group], previous_groups[group], field)
                 if net_value is not None:
                     features.append((f"{field}_net_change_pct_prior_gross", net_value))
                 for leg in ("long", "short"):
-                    leg_value = normalized_leg_change(current_groups[group],
-                                                      previous_groups[group], field, leg)
+                    leg_value = normalized_leg_change(current_groups[group], previous_groups[group], field, leg)
                     if leg_value is not None:
-                        # Futures short additions are bearish; options remain correlation-only.
                         if field == "future_index" and leg == "short":
                             leg_value *= -1
                         features.append((f"{field}_{leg}_change_pct_prior_gross", leg_value))
+
                 for suffix, value in features:
-                    feature = f"{group}.{suffix}"
-                    bucket = rows_by_feature.setdefault(feature, [])
+                    bucket = rows_by_feature.setdefault(f"{group}.{suffix}", [])
                     for horizon in HORIZONS:
-                        target_idx = pidx + horizon
-                        if target_idx >= len(price_dates):
+                        target_position = price_position + horizon
+                        if target_position >= len(price_dates):
                             continue
-                        entry_date = price_dates[pidx + 1]
-                        target_date = price_dates[target_idx]
-                        entry_open = prices[entry_date]["open"]
-                        target_close = prices[target_date]["close"]
-                        forward = (target_close / entry_open - 1.0) * 100.0
+                        entry_date = price_dates[price_position + 1]
+                        target_date = price_dates[target_position]
+                        forward = (
+                            prices[target_date]["close"] / prices[entry_date]["open"] - 1.0
+                        ) * 100.0
                         if math.isfinite(forward):
                             bucket.append({
                                 "date": date, "entry_date": entry_date,
                                 "target_date": target_date, "horizon": horizon,
                                 "signal": value, "forward_return_pct": forward,
+                                "regime": regimes.get(date, "unknown"),
                             })
 
-    if len(aligned_dates) < 20:
+    if len(aligned_dates) < MIN_VALID_OI_SESSIONS:
         raise RuntimeError(
-            f"only {len(aligned_dates)} OI dates aligned to {index_name}; need at least 20"
+            f"only {len(aligned_dates)} OI dates aligned to {index_name}; "
+            f"need at least {MIN_VALID_OI_SESSIONS}"
         )
 
     results = []
     for feature, observations in sorted(rows_by_feature.items()):
         group, field_feature = feature.split(".", 1)
-        is_futures = field_feature.startswith("future_index")
+        futures_directional = field_feature.startswith("future_index")
         for horizon in HORIZONS:
-            horizon_rows = [r for r in observations if r["horizon"] == horizon]
-            cut = int(len(horizon_rows) * 0.70)
+            sample_rows = [row for row in observations if row["horizon"] == horizon]
+            cut = int(len(sample_rows) * 0.70)
             for split, sample in (
-                ("all", horizon_rows),
-                ("train_first_70pct", horizon_rows[:cut]),
-                ("chronological_holdout_last_30pct", horizon_rows[cut:]),
+                ("all", sample_rows),
+                ("train_first_70pct", sample_rows[:cut]),
+                ("chronological_holdout_last_30pct", sample_rows[cut:]),
             ):
-                item = {"feature": feature, "participant": group,
-                        "field": field_feature, "horizon_sessions": horizon,
-                        "sample": split}
-                item.update(calculate_metrics(sample, directional=is_futures))
+                item = {
+                    "feature": feature, "participant": group, "field": field_feature,
+                    "horizon_sessions": horizon, "sample": split,
+                }
+                item.update(calculate_metrics(sample, directional=futures_directional))
+                if split == "chronological_holdout_last_30pct":
+                    item["regime_metrics"] = {
+                        regime: calculate_metrics(
+                            [row for row in sample if row["regime"] == regime],
+                            directional=futures_directional,
+                        )
+                        for regime in REGIMES
+                    }
                 results.append(item)
 
+    regime_counts = Counter(regimes.get(date, "unknown") for date in aligned_dates)
     return {
         "symbol": symbol,
-        "price_source": f"Yahoo Finance daily open and close ({symbol})",
-        "ohlc_sessions": len(prices),
+        "price_source": f"Yahoo Finance daily Open/Close ({symbol}), 2-year window",
+        **price_validation,
+        **alignment,
         "aligned_oi_dates": len(aligned_dates),
         "nonconsecutive_oi_pairs_skipped": nonconsecutive_skipped,
+        "unmatched_oi_pairs_skipped": unmatched_pairs_skipped,
         "aligned_first_date": min(aligned_dates),
         "aligned_last_date": max(aligned_dates),
+        "regime_definition": (
+            "As of signal date t: bull if close > SMA20 and SMA20(t) > SMA20(t-5); "
+            "bear if close < SMA20 and SMA20(t) < SMA20(t-5); otherwise sideways. "
+            "Only data available through t is used."
+        ),
+        "regime_counts_on_aligned_dates": {
+            regime: regime_counts.get(regime, 0) for regime in REGIMES
+        },
         "target_definition": (
-            "OI change known after EOD on date t; entry is next trading session open; "
-            "exit is the close of session 1, 3, or 5 counted from that next session. "
+            "OI known after EOD on date t; entry next trading session open; exit at "
+            "the close of session 1, 3, or 5 counted from that next session. "
             "No same-day close entry."
+        ),
+        "false_signal_definition": (
+            "For futures only, every non-zero signed feature is a raw directional call. "
+            "Bullish signal followed by a negative return or bearish signal followed by "
+            "a positive return is false. Zero-return observations are excluded; no "
+            "optimized signal threshold is fitted."
         ),
         "metrics": results,
     }
 
 
 def run():
-    records = load_oi_records()
-    index_results = {}
-    errors = {}
-    for index_name, symbol in INDEXES.items():
+    records, archive_validation = load_oi_records()
+    index_results, errors = {}, {}
+    for name, symbol in INDEXES.items():
         try:
-            index_results[index_name] = analyze_index(index_name, symbol, records)
+            index_results[name] = analyze_index(name, symbol, records)
         except Exception as exc:
-            errors[index_name] = str(exc)[:300]
-
+            errors[name] = str(exc)[:300]
     if not index_results:
         raise RuntimeError("all index backtests failed: " + json.dumps(errors, ensure_ascii=False))
 
@@ -257,27 +443,39 @@ def run():
             "separate NIFTY/SENSEX/BANKNIFTY participant OI. The same aggregate OI "
             "features are tested independently against each index price series."
         ),
-        "oi_first_date": records[0]["date"],
-        "oi_last_date": records[-1]["date"],
-        "oi_sessions": len(records),
+        "oi_first_date": records[0]["date"], "oi_last_date": records[-1]["date"],
+        "oi_sessions": len(records), "archive_validation": archive_validation,
+        "data_adequacy": {
+            "research_target_sessions": RESEARCH_TARGET_SESSIONS,
+            "target_met": len(records) >= RESEARCH_TARGET_SESSIONS,
+            "status": "expanded_exploratory_sample" if len(records) >= RESEARCH_TARGET_SESSIONS else "limited_sample",
+            "note": (
+                "250 sessions is approximately one trading year and a broader "
+                "exploratory coverage target, not a statistical guarantee. A live score "
+                "still requires stable out-of-sample incremental value."
+            ),
+        },
         "validation": {
             "chronological_split": "first 70% train; last 30% holdout, ordered by date",
             "directional_hit_rate": (
-                "reported for futures net OI and futures long/short changes (short "
-                "changes sign-inverted); option-side long/short is correlation-only."
+                "Futures net OI and futures long/short changes only; futures short "
+                "changes are sign-inverted. Options remain correlation-only."
             ),
-            "score_changed": False,
-            "eligible_for_live_score": False,
+            "false_signal_rate": (
+                "Non-zero futures feature sign versus forward return sign; zero-return "
+                "observations excluded; no optimized threshold."
+            ),
+            "regime_method": "signal-date-only SMA20 and its five-session slope",
+            "score_changed": False, "eligible_for_live_score": False,
             "reason": (
-                "Exploratory sample only. No OI weight or trading score is assigned. "
-                "Require longer history and stable chronological holdout performance "
-                "across indices before considering any live score contribution."
+                "Exploratory OI diagnostics only. No OI weight or trading score is "
+                "assigned; aggregate scope, sample size and incremental value remain "
+                "limiting factors."
             ),
         },
-        "indices": index_results,
-        "index_errors": errors,
+        "indices": index_results, "index_errors": errors,
     }
-    # Keep legacy top-level NIFTY summary fields available for existing readers.
+
     if "NIFTY" in index_results:
         nifty = index_results["NIFTY"]
         report.update({
@@ -290,11 +488,15 @@ def run():
             "target_definition": nifty["target_definition"],
             "metrics": nifty["metrics"],
         })
-    OUTPUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-                      encoding="utf-8")
+
+    OUTPUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         "OI multi-index backtest written: "
-        + ", ".join(f"{name}={data['aligned_oi_dates']} aligned" for name, data in index_results.items())
+        + ", ".join(
+            f"{name}={data['aligned_oi_dates']} aligned, "
+            f"{data['missing_oi_sessions_inside_price_range']} OI gaps"
+            for name, data in index_results.items()
+        )
     )
     if errors:
         print("Some index diagnostics unavailable: " + json.dumps(errors, ensure_ascii=False))
@@ -307,9 +509,7 @@ if __name__ == "__main__":
         failure = {
             "status": "unavailable",
             "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-            "score_changed": False,
-            "reason": str(exc),
+            "score_changed": False, "reason": str(exc),
         }
-        OUTPUT.write_text(json.dumps(failure, ensure_ascii=False, indent=2) + "\n",
-                          encoding="utf-8")
+        OUTPUT.write_text(json.dumps(failure, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"OI backtest diagnostics unavailable: {exc}")
