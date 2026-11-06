@@ -440,7 +440,7 @@ def build_asset_component_breakdowns(
             search_component, search_reason = search_component_from_snapshot(
                 search_snapshot,
                 now_utc=now_utc,
-                max_age_minutes=TRENDS_MAX_AGE_MINUTES,
+                max_age_minutes=120,
                 weight=DEFAULT_COMPONENT_WEIGHTS["search"],
             )
             if search_component:
