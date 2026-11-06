@@ -186,8 +186,9 @@ class ComponentScoringTests(unittest.TestCase):
             result["rising_direction_counts"],
             {"bull": 1, "bear": 1, "neutral": 0, "unclassified": 2},
         )
-        self.assertTrue(result["rising_terms"][0]["breakout"])
-        self.assertEqual(result["rising_terms"][0]["value"], "Breakout")
+        breakout = next(item for item in result["rising_terms"] if item["term"] == "Nifty breakout")
+        self.assertTrue(breakout["breakout"])
+        self.assertEqual(breakout["value"], "Breakout")
         self.assertNotIn("score", result)
 
     def test_asset_specific_information_queries_are_neutral_without_cross_asset_leakage(self):
