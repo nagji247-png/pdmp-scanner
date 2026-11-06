@@ -12,6 +12,7 @@ on:
     branches: [main]
     paths:
       - "backtest_participant_oi.py"
+      - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
