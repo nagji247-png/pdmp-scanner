@@ -116,5 +116,50 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertIn("trade_date_mismatch_or_missing", result["validation_warnings"])
 
 
+    def test_mcx_udiff_futures_oi_requires_exact_symbol_expiry_date_and_fields(self):
+        from component_scoring import aggregate_mcx_udiff_commodity_futures_oi
+
+        rows = [
+            {"Sgmt": "CO", "Src": "MCX", "FinInstrmTp": "FUTCOM",
+             "TckrSymb": "GOLD", "BizDt": "2026-11-05", "XpryDt": "2026-12-05",
+             "OpnIntrst": "12500", "ChngInOpnIntrst": "850", "ClsPric": "154000"},
+            {"Sgmt": "CO", "Src": "MCX", "FinInstrmTp": "FUTCOM",
+             "TckrSymb": "SILVER", "BizDt": "2026-11-05", "XpryDt": "2026-12-05",
+             "OpnIntrst": "99999", "ChngInOpnIntrst": "-10", "ClsPric": "180000"},
+            {"Sgmt": "CO", "Src": "MCX", "FinInstrmTp": "FUTCOM",
+             "TckrSymb": "GOLD", "BizDt": "2026-11-05", "XpryDt": "2027-01-05",
+             "OpnIntrst": "77777", "ChngInOpnIntrst": "20", "ClsPric": "155000"},
+        ]
+        result = aggregate_mcx_udiff_commodity_futures_oi(
+            rows, "GOLD", "2026-11-05", "2026-12-05"
+        )
+        self.assertTrue(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertFalse(result["coverage_validated"])
+        self.assertEqual(result["open_interest"], 12500)
+        self.assertEqual(result["change_in_oi"], 850)
+        self.assertEqual(result["close"], 154000.0)
+        self.assertEqual(result["matched_contract_rows"], 1)
+
+    def test_mcx_udiff_futures_oi_rejects_duplicate_or_incomplete_exact_rows(self):
+        from component_scoring import aggregate_mcx_udiff_commodity_futures_oi
+
+        base = {"Sgmt": "CO", "Src": "MCX", "FinInstrmTp": "FUTCOM",
+                "TckrSymb": "SILVER", "BizDt": "2026-11-05", "XpryDt": "2026-12-05",
+                "OpnIntrst": "500", "ChngInOpnIntrst": "50", "ClsPric": "180000"}
+        duplicate = aggregate_mcx_udiff_commodity_futures_oi(
+            [base, dict(base)], "SILVER", "2026-11-05", "2026-12-05"
+        )
+        self.assertFalse(duplicate["available"])
+        self.assertFalse(duplicate["included_in_asset_final"])
+        incomplete = dict(base)
+        incomplete["ChngInOpnIntrst"] = ""
+        rejected = aggregate_mcx_udiff_commodity_futures_oi(
+            [incomplete], "SILVER", "2026-11-05", "2026-12-05"
+        )
+        self.assertFalse(rejected["available"])
+        self.assertIsNotNone(rejected["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()
