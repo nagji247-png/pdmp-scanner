@@ -1028,9 +1028,9 @@ jobs:
                               [pdftotext, "-raw", temp.name, "-"],
                               capture_output=True, text=True, check=True,
                           ).stdout
-                      title = re.search(r"Constituents of\\s+([^\\r\\n]+)", extracted, re.I)
+                      title = re.search(r"Constituents of\s+([^\r\n]+)", extracted, re.I)
                       report_date = re.search(
-                          r"([A-Z][a-z]+\\s+\\d{1,2},\\s+\\d{4})", extracted
+                          r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})", extracted
                       )
                       print(
                           f"PDF={name}; title={title.group(1).strip() if title else None}; "
