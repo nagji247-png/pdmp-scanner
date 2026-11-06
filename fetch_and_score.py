@@ -1,6 +1,10 @@
 import json, csv, os, re, time, math, datetime as dt, html
 from html.parser import HTMLParser
 from urllib.parse import quote_plus
+from component_scoring import (
+    DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
+    search_component_from_snapshot, client_oi_context, is_fresh_timestamp,
+)
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -98,7 +102,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
-TRENDS_MAX_AGE_MINUTES = 360  # 30 मिनट से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
+TRENDS_MAX_AGE_MINUTES = 120  # 2 घंटे से पुरानी one-day observation Search/Crowd score में शामिल नहीं होगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -251,6 +255,20 @@ def weighted_score(heads):
         den += w
     return round(num / den * 5, 1) if den > 0 else 0.0
 
+def shadow_weighted_news_score(heads):
+    """Shadow component: retain the weighted mean of headline sentiment points.
+
+    Do not multiply the mean by five: that arbitrary amplifier saturates
+    modest positive headlines at +10 and is not part of the production score.
+    """
+    num = 0.0
+    den = 0.0
+    for h in heads:
+        w = source_weight(h.get("source")) * recency_weight(h.get("age_h"))
+        num += h["score"] * w
+        den += w
+    return round(num / den, 2) if den > 0 else 0.0
+
 def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKNIFTY")):
     """Shadow-only score: verified <=24h headlines, cross-index duplicates excluded, no extra x2."""
     eligible = {}
@@ -287,12 +305,213 @@ def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKN
     for name in index_names:
         kept = [h for i, h in enumerate(eligible[name]) if i not in shared[name]]
         output[name] = {
-            "news_score": max(-10.0, min(10.0, weighted_score(kept))),
+            "news_score": max(-10.0, min(10.0, shadow_weighted_news_score(kept))),
             "headline_count": len(kept),
             "excluded_old_or_unknown": old_or_unknown[name],
             "excluded_cross_index_duplicates": len(shared[name]),
         }
     return output
+
+
+
+def build_asset_component_breakdowns(
+    instruments, updated, now_utc, participant_today=None, participant_changes_data=None
+):
+    """Build per-asset shadow scores from dated, asset-scoped, verified inputs only.
+
+    This deliberately does not modify item['score']; the published PDMP score,
+    Auto Run, signals and stale-data guard remain independent.
+    """
+    index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
+    search_assets = set(index_names) | {"GOLD", "SILVER"}
+    index_news = experimental_news_scores(instruments)
+
+    try:
+        scan_stamp = dt.datetime.fromisoformat(str(updated).replace("Z", "+00:00"))
+        if scan_stamp.tzinfo is None:
+            scan_stamp = scan_stamp.replace(tzinfo=dt.timezone.utc)
+        news_source_date = scan_stamp.astimezone(
+            dt.timezone(dt.timedelta(hours=5, minutes=30))
+        ).date().isoformat()
+    except (TypeError, ValueError):
+        news_source_date = str(updated or "")[:10]
+
+    for name, item in (instruments or {}).items():
+        if not isinstance(item, dict):
+            continue
+        components = {}
+        excluded = {}
+        client_context = None
+
+        # News is per-card query output. Only timestamped headlines from the
+        # last 24 hours are eligible; cross-index duplicates are excluded.
+        if name in index_news:
+            news_info = index_news[name]
+            news_count = int(news_info.get("headline_count") or 0)
+            news_score = news_info.get("news_score") if news_count else None
+            newest_age = min(
+                (_num(h.get("age_h")) for h in (item.get("headlines") or [])
+                 if _num(h.get("age_h")) is not None and 0 <= _num(h.get("age_h")) <= 24),
+                default=None,
+            )
+            duplicate_note = "24h timestamped headlines; cross-index duplicates excluded"
+        else:
+            eligible_news = []
+            ages = []
+            for headline in item.get("headlines") or []:
+                if not isinstance(headline, dict):
+                    continue
+                age = _num(headline.get("age_h"))
+                score = _num(headline.get("score"))
+                if age is None or age < 0 or age > 24 or score is None:
+                    continue
+                copied = dict(headline)
+                copied["score"] = score
+                eligible_news.append(copied)
+                ages.append(age)
+            news_count = len(eligible_news)
+            news_score = shadow_weighted_news_score(eligible_news) if eligible_news else None
+            newest_age = min(ages) if ages else None
+            duplicate_note = "24h timestamped headlines; asset-specific card query"
+
+        if news_score is not None and news_count > 0 and news_source_date:
+            fresh_publishers = sorted({
+                str(h.get("source")).strip()
+                for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and h.get("source")
+                and _num(h.get("age_h")) is not None
+                and 0 <= _num(h.get("age_h")) <= 24
+            })
+            published_stamps = sorted(
+                str(h.get("published_at")).strip()
+                for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and h.get("published_at")
+                and _num(h.get("age_h")) is not None
+                and 0 <= _num(h.get("age_h")) <= 24
+            )
+            news_component = build_component(
+                news_score,
+                "Google News RSS · asset-specific card query",
+                news_source_date,
+                DEFAULT_COMPONENT_WEIGHTS["news"],
+                observed_at=updated,
+                newest_headline_published_at=(published_stamps[-1] if published_stamps else None),
+                oldest_headline_published_at=(published_stamps[0] if published_stamps else None),
+                evidence_count=news_count,
+                publishers=fresh_publishers[:10],
+                query=item.get("news_query"),
+                newest_headline_age_h=round(newest_age, 2) if newest_age is not None else None,
+                method="source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                note=duplicate_note,
+            )
+            if news_component:
+                components["news"] = news_component
+        else:
+            excluded["news"] = {
+                "applicable": True,
+                "included": False,
+                "reason": "24 घंटे के भीतर की तारीख़/age वाली asset-specific खबरें उपलब्ध नहीं",
+            }
+
+        search_diagnostic = None
+        # Search Score accepts only the asset's own one-day related-query seed.
+        # Preserve the classified mix even when a neutral-only reading is withheld from Final.
+        if name in search_assets:
+            search_snapshot = (
+                item.get("index_search_shadow") if name in index_names
+                else item.get("asset_search_shadow")
+            )
+            if isinstance(search_snapshot, dict):
+                diagnostic_fields = (
+                    "valid", "seed", "source", "timeframe", "source_data_time",
+                    "raw_queries", "classified_queries", "unclassified_queries",
+                    "classification_coverage_pct", "bull_pct", "bear_pct",
+                    "neutral_pct", "directional_bull_pct", "reason", "terms",
+                    "unclassified_terms", "rising_queries",
+                    "rising_classified_queries", "rising_direction_counts",
+                    "rising_terms",
+                )
+                search_diagnostic = {
+                    key: search_snapshot.get(key)
+                    for key in diagnostic_fields
+                    if key in search_snapshot
+                }
+            search_component, search_reason = search_component_from_snapshot(
+                search_snapshot,
+                now_utc=now_utc,
+                max_age_minutes=TRENDS_MAX_AGE_MINUTES,
+                weight=DEFAULT_COMPONENT_WEIGHTS["search"],
+            )
+            if search_component:
+                components["search"] = search_component
+            else:
+                excluded["search"] = {
+                    "applicable": True,
+                    "included": False,
+                    "reason": search_reason or "Asset-specific current Search reading unavailable",
+                }
+
+        if name in index_names:
+            excluded["eod_oi"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE option-chain symbol/expiry contract-level OI",
+                "reason": "इस snapshot में NIFTY/SENSEX/BANKNIFTY का verified symbol-specific EOD option-chain OI snapshot नहीं है; participant aggregate को इसका substitute नहीं बनाया गया।",
+            }
+            excluded["futures"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE index-futures contract data",
+                "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।",
+            }
+            excluded["stock_basket"] = {
+                "applicable": True,
+                "included": False,
+                "source": "NSE Indices / BSE official constituent-and-weight files",
+                "reason": "इस run में सभी official constituents और उसी तारीख़ के weights का complete verified snapshot उपलब्ध नहीं; 9-stock watchlist को full index basket नहीं माना गया।",
+            }
+            client_context = client_oi_context(
+                participant_today, participant_changes_data
+            )
+        elif name in ("GOLD", "SILVER"):
+            excluded["eod_oi"] = {
+                "applicable": True,
+                "included": False,
+                "source": "MCX official category-wise EOD OI report",
+                "reason": "Dated MCX category-wise OI snapshot सत्यापित नहीं; MCX total contract OI को CLIENT category OI नहीं माना गया।",
+            }
+            excluded["futures"] = {
+                "applicable": True,
+                "included": False,
+                "source": "MCX FUTCOM same-expiry daily OI",
+                "reason": "Current contract OI का पिछले session के उसी expiry से verified comparison उपलब्ध नहीं; futures direction score withheld।",
+            }
+
+        final = combine_components(components, DEFAULT_COMPONENT_WEIGHTS)
+        item["component_breakdown"] = {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": DEFAULT_COMPONENT_WEIGHTS,
+            "components": components,
+            "excluded_components": excluded,
+            "search_diagnostic": search_diagnostic,
+            "client_market_context": client_context,
+            "final": final,
+            "formula": "sum(component_score × configured_weight) / sum(weights of included verified components)",
+        }
+
+    return {
+        "mode": "per_asset_verified_components_shadow",
+        "weights": DEFAULT_COMPONENT_WEIGHTS,
+        "score_range": "-10..+10",
+        "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
+        "news_rule": "Only timestamped asset-specific headlines no older than 24 hours; cross-index duplicate stories excluded.",
+        "participant_oi_scope": "NSE participant-wise CLIENT CE/PE/Futures is market-wide aggregate context, not index-specific and not included in index final scores.",
+        "published_score_changed": False,
+    }
 
 
 def fetch_news(query):
@@ -320,15 +539,23 @@ def fetch_news(query):
     now = time.time()
     for e in entries[:15]:
         age_h = None
+        published_at = None
         if getattr(e, "published_parsed", None):
-            age_h = round((now - time.mktime(e.published_parsed)) / 3600, 1)
+            # feedparser's published_parsed is UTC; avoid time.mktime(), which
+            # interprets the tuple in the runner's local timezone.
+            published_dt = dt.datetime(
+                *e.published_parsed[:6], tzinfo=dt.timezone.utc
+            )
+            published_at = published_dt.isoformat().replace("+00:00", "Z")
+            age_h = round((now - published_dt.timestamp()) / 3600, 1)
         title = e.title
         source = ""
         if " - " in title:
             title, source = title.rsplit(" - ", 1)
         items.append({"title": title, "source": source,
                       "link": getattr(e, "link", "") or "",
-                      "score": headline_score(title), "age_h": age_h})
+                      "score": headline_score(title), "age_h": age_h,
+                      "published_at": published_at})
     items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
     return items
 
@@ -2590,6 +2817,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "price_as_of": quote_date if nse_quote else live_quote["date"] if live_quote else PRICE_CACHE.get("BZ=F_DATE") if sym == "BZ=F" else PRICE_CACHE.get("GC=F_DATE") if sym == "GC=F" else (PRICE_CACHE.get("SI=F_DATE") or max(returns)) if sym == "SI=F" and (PRICE_CACHE.get("SI=F_DATE") or returns) else PRICE_CACHE.get("BTC-USD_DATE") if sym == "BTC-USD" else (max(returns) if returns else None),
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else ("Yahoo Finance · LAST CLOSING PRICE" if PRICE_CACHE.get(sym) is not None and sym != "INR=X" else None),
+        "news_query": query,
         "score": score,
         "headline_score": score,
         "headlines": heads[:8],
@@ -3255,12 +3483,9 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन", "गिरावट"]
-# सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
-TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
-                    "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
-                    "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
-                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
-                    "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
+# Neutral केवल स्पष्ट sideways/flat mood phrases हैं; generic खोज-वाक्य sentiment नहीं हैं।
+TQ_NEUTRAL_WORDS = ["sideways", "sideway", "flat", "rangebound", "range-bound", "consolidation",
+                    "stable", "stability", "unchanged", "steady", "स्थिर", "सपाट", "दायरे", "सीमित"]
 TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero reading स्वीकार; शून्य/अनुपलब्ध डेटा अस्वीकार
 
 
@@ -3515,12 +3740,19 @@ def _trends_related_queries(timeframe="now 1-d"):
             f"Google Trends में दोनों दिशाओं की पर्याप्त खोज नहीं "
             f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
         )
-    if bull_pct >= CROWD_EXTREME:
+    # crowd_bull_pct का अर्थ anchor-relative path जैसा ही रखें:
+    # bullish share among directional (bull + bear) searches; neutral अलग रहेगा।
+    directional_total = bull_pct + bear_pct
+    if directional_total <= 0:
+        raise ValueError("Google Trends related searches में directional data शून्य है")
+    directional_bull_pct = bull_pct / directional_total * 100
+    directional_bear_pct = bear_pct / directional_total * 100
+    if directional_bull_pct >= CROWD_EXTREME:
         label, sentiment = "EXTREMELY BULLISH", "BULLISH"
-    elif bear_pct >= CROWD_EXTREME:
+    elif directional_bear_pct >= CROWD_EXTREME:
         label, sentiment = "EXTREMELY BEARISH", "BEARISH"
     else:
-        label, sentiment = "NEUTRAL", "NEUTRAL"
+        label = sentiment = "NEUTRAL"
 
     terms = []
     for item in all_terms.values():
@@ -3533,18 +3765,315 @@ def _trends_related_queries(timeframe="now 1-d"):
 
     return {
         "ok": True, "unit": "Google Trends related-query share (%)",
-        "crowd_bull_pct": round(bull_pct), "crowd_label": label,
+        "crowd_bull_pct": round(directional_bull_pct, 1), "crowd_label": label,
         "bull_sum_pct": bull_pct, "bear_sum_pct": bear_pct,
         "min_side_pct": None, "crowd_terms": terms[:20],
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
         "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
-        "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
+        "today_bull_pct": round(directional_bull_pct, 1), "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी related searches",
         "today_basis": "now_1d_related_queries" if timeframe == "now 1-d" else "related_queries_other",
         "source_timeframe": timeframe + " related queries",
         "source_data_time": source_data_time,
         "fallback_used": True, "queries_total": len(all_terms),
         "related_seed_count": len(per_seed)
+    }
+
+
+def _trends_related_queries_for_index(seed, index_name):
+    """एक इंडेक्स के अपने seed की 1-दिन related searches; केवल shadow diagnostic."""
+    from pytrends.request import TrendReq
+
+    py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+    py.build_payload([seed], timeframe="now 1-d", geo="IN")
+    related = py.related_queries()
+    observed = py.interest_over_time()
+    source_data_time = _trends_observation_time(observed, f"Google Trends {index_name} timestamp").isoformat()
+
+    pack = (related or {}).get(seed) or {}
+    top = pack.get("top")
+    if top is None or top.empty or "query" not in top or "value" not in top:
+        raise ValueError(f"{index_name}: अपनी related searches उपलब्ध नहीं")
+
+    totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
+    classified = 0
+    terms = []
+    for _, row in top.iterrows():
+        term = str(row.get("query", "")).strip()
+        if not term:
+            continue
+        try:
+            weight = float(row.get("value", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if weight <= 0:
+            continue
+        direction = tq_dir(term)
+        if direction is None:
+            continue
+        totals[direction] += weight
+        classified += 1
+        terms.append({"term": term, "direction": direction, "weight": round(weight, 1)})
+
+    directional = totals["bull"] + totals["bear"]
+    total = directional + totals["neutral"]
+    if classified < 3 or totals["bull"] <= 0 or totals["bear"] <= 0 or total <= 0:
+        raise ValueError(
+            f"{index_name}: पर्याप्त स्वतंत्र डेटा नहीं "
+            f"(classified={classified}, bull={totals['bull']:.1f}, bear={totals['bear']:.1f})"
+        )
+
+    bull_pct = totals["bull"] / total * 100
+    bear_pct = totals["bear"] / total * 100
+    neutral_pct = totals["neutral"] / total * 100
+    directional_bull_pct = totals["bull"] / directional * 100
+    neutral_aware_score = max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0))
+    return {
+        "valid": True,
+        "scope": "index_specific_google_related_queries_shadow",
+        "seed": seed,
+        "source": "Google Trends related_queries · India",
+        "timeframe": "now 1-d",
+        "source_data_time": source_data_time,
+        "as_of": source_data_time,
+        "classified_queries": classified,
+        "bull_pct": round(bull_pct, 1),
+        "bear_pct": round(bear_pct, 1),
+        "neutral_pct": round(neutral_pct, 1),
+        "directional_bull_pct": round(directional_bull_pct, 1),
+        "neutral_aware_score": round(neutral_aware_score, 2),
+        "terms": sorted(terms, key=lambda x: x["weight"], reverse=True)[:8],
+        "production_score_used": False,
+    }
+
+
+
+def _asset_search_direction(term, asset):
+    """Classify only queries that actually refer to this asset; generic info intent is neutral."""
+    text = str(term or "").lower()
+    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+
+    # Related-query payloads can contain neighboring assets. Never let those
+    # queries leak into another asset's sentiment denominator.
+    if asset == "NIFTY":
+        if "nifty" not in tokens or "bank" in tokens:
+            return None
+    elif asset == "SENSEX":
+        if "sensex" not in tokens or "nifty" in tokens:
+            return None
+    elif asset == "BANKNIFTY":
+        if not ({"bank", "nifty"} <= tokens):
+            return None
+    elif asset == "GOLD":
+        if "gold" not in tokens or "silver" in tokens:
+            return None
+    elif asset == "SILVER":
+        if "silver" not in tokens or "gold" in tokens:
+            return None
+    else:
+        return None
+
+    direction = tq_dir(text)
+    if direction is not None:
+        return direction
+
+    # A neutral vote requires an explicit information-seeking term attached
+    # to the correct asset. "price" by itself is not a neutral sentiment vote.
+    # Search suggestions often include asset-identification / navigation queries
+    # (e.g. "Nifty 50", "gift nifty", "Sensex index", "MCX gold price").
+    # Treat these as neutral information intent only when the asset itself matched.
+    # Bare "gold price" / "silver rate" remain unclassified: they are not sentiment.
+    neutral_intent = {
+        "today", "live", "prediction", "predict", "option", "chain",
+        "50", "gift", "share", "chart", "index", "bse", "india",
+        "mcx", "coin", "carat",
+        "आज", "लाइव", "भविष्यवाणी", "ऑप्शन", "चेन",
+        "भाव", "दाम", "कीमत", "चार्ट", "सूचकांक",
+    }
+    if tokens & neutral_intent:
+        return "neutral"
+    return None
+
+
+
+def _asset_rising_diagnostics(rising, asset):
+    """Keep Google Trends rising queries as separate evidence, never as top-query weights."""
+    if rising is None or getattr(rising, "empty", True) or "query" not in rising:
+        return {
+            "rising_queries": 0,
+            "rising_classified_queries": 0,
+            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0},
+            "rising_terms": [],
+        }
+
+    counts = {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0}
+    terms = []
+    for _, row in rising.iterrows():
+        term = str(row.get("query", "")).strip()
+        if not term:
+            continue
+        direction = _asset_search_direction(term, asset)
+        category = direction if direction in ("bull", "bear", "neutral") else "unclassified"
+        counts[category] += 1
+        raw_value = row.get("value", "")
+        value = str(raw_value).strip()
+        terms.append({
+            "term": term,
+            "value": value,
+            "direction": category,
+            "breakout": value.lower() == "breakout",
+        })
+    terms.sort(key=lambda item: item["term"].lower())
+    return {
+        "rising_queries": len(terms),
+        "rising_classified_queries": counts["bull"] + counts["bear"] + counts["neutral"],
+        "rising_direction_counts": counts,
+        "rising_terms": terms[:10],
+    }
+
+
+def fetch_asset_trends_shadow():
+    """One batched 1-day Trends request for three indices plus Gold/Silver."""
+    from pytrends.request import TrendReq
+
+    seeds = {
+        "NIFTY": "nifty",
+        "SENSEX": "sensex",
+        "BANKNIFTY": "bank nifty",
+        "GOLD": "gold price",
+        "SILVER": "silver price",
+    }
+    source = "Google Trends related_queries · India"
+    output = {}
+    try:
+        py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+        py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
+        related = py.related_queries()
+        observed = py.interest_over_time()
+        source_data_time = _trends_observation_time(
+            observed, "Google Trends asset batch timestamp"
+        ).isoformat()
+        for asset, seed in seeds.items():
+            pack = (related or {}).get(seed) or {}
+            top = pack.get("top")
+            rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
+            totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
+            classified_terms = []
+            raw_query_count = 0
+            unclassified_count = 0
+            unclassified_weight = 0.0
+            unclassified_terms = []
+            if top is not None and not top.empty and "query" in top and "value" in top:
+                for _, row in top.iterrows():
+                    term = str(row.get("query", "")).strip()
+                    try:
+                        value = float(row.get("value", 0) or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if not term or not math.isfinite(value) or value <= 0:
+                        continue
+                    raw_query_count += 1
+                    direction = _asset_search_direction(term, asset)
+                    if direction is None:
+                        unclassified_count += 1
+                        unclassified_weight += value
+                        unclassified_terms.append({"term": term, "weight": round(value, 1)})
+                        continue
+                    totals[direction] += value
+                    classified_terms.append({
+                        "term": term,
+                        "direction": direction,
+                        "weight": round(value, 1),
+                    })
+            bull = totals["bull"]
+            bear = totals["bear"]
+            neutral = totals["neutral"]
+            total = bull + bear + neutral
+            # A valid one-sided crowd is still a valid observation. Do not
+            # require both bullish and bearish categories: an absent side is
+            # not missing data when >=3 independent queries were classified.
+            if len(classified_terms) < 3 or total <= 0:
+                output[asset] = {
+                    "valid": False,
+                    "scope": "asset_specific_google_related_queries_shadow",
+                    "seed": seed,
+                    "source": source,
+                    "timeframe": "now 1-d",
+                    "source_data_time": source_data_time,
+                    "raw_queries": raw_query_count,
+                    "classified_queries": len(classified_terms),
+                    "unclassified_queries": unclassified_count,
+                    "unclassified_weight": round(unclassified_weight, 1),
+                    "classification_coverage_pct": (
+                        round(total / (total + unclassified_weight) * 100.0, 1)
+                        if total + unclassified_weight > 0 else None
+                    ),
+                    "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+                    **rising_diagnostics,
+                    "reason": (
+                        f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
+                        f"(classified={len(classified_terms)}, total_weight={total:.1f})"
+                    ),
+                    "production_score_used": False,
+                }
+                continue
+            bull_pct = bull / total * 100.0
+            bear_pct = bear / total * 100.0
+            neutral_pct = neutral / total * 100.0
+            directional_total = bull + bear
+            # Neutral-only related queries are a valid neutral reading. There is
+            # no bullish-vs-bearish split in that case, so keep it null rather
+            # than dividing by zero and invalidating the entire five-asset batch.
+            directional_bull_pct = (
+                round(bull / directional_total * 100.0, 1)
+                if directional_total > 0 else None
+            )
+            output[asset] = {
+                "valid": True,
+                "scope": "asset_specific_google_related_queries_shadow",
+                "seed": seed,
+                "source": source,
+                "timeframe": "now 1-d",
+                "source_data_time": source_data_time,
+                "as_of": source_data_time,
+                "unit": "classified related-query relative-weight share",
+                "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+                "raw_queries": raw_query_count,
+                "classified_queries": len(classified_terms),
+                "unclassified_queries": unclassified_count,
+                "unclassified_weight": round(unclassified_weight, 1),
+                "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+                "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+                "bull_pct": round(bull_pct, 1),
+                "bear_pct": round(bear_pct, 1),
+                "neutral_pct": round(neutral_pct, 1),
+                "directional_bull_pct": directional_bull_pct,
+                "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2),
+                "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
+                **rising_diagnostics,
+                "production_score_used": False,
+            }
+    except Exception as exc:
+        reason = str(exc)[:240]
+        for asset, seed in seeds.items():
+            output[asset] = {
+                "valid": False,
+                "scope": "asset_specific_google_related_queries_shadow",
+                "seed": seed,
+                "source": source,
+                "timeframe": "now 1-d",
+                "reason": reason,
+                "production_score_used": False,
+            }
+    return output
+
+
+def fetch_index_trends_shadow():
+    """Backward-compatible wrapper; reuse the single five-seed one-day batch."""
+    all_assets = fetch_asset_trends_shadow()
+    return {
+        name: all_assets.get(name) or {"valid": False, "reason": "asset Search reading unavailable"}
+        for name in ("NIFTY", "SENSEX", "BANKNIFTY")
     }
 
 
@@ -4222,7 +4751,13 @@ def main():
         previous_trends.get(k) is not None
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
-    trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
+    component_shadow_scan = os.getenv("COMPONENT_SHADOW_SCAN", "false").lower() == "true"
+    # A component shadow run already makes one batched five-asset Trends request below.
+    # Do not also execute the legacy four-stage Crowd fetch (up to four extra requests).
+    trends_scan = (
+        os.getenv("TRENDS_SCAN", "false").lower() == "true"
+        and not component_shadow_scan
+    )
 
     if trends_scan:
         # हर निर्धारित स्लॉट पर नया Google Trends अनुरोध करें; पुराने सफल डेटा से स्लॉट पूरा न मानें।
@@ -4415,6 +4950,53 @@ def main():
 
     result["trends"] = trends
 
+    # NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER के अलग seeds एक ही one-day batch में।
+    # यह global NIFTY crowd reading से अलग है और production score को नहीं बदलता।
+    search_assets = {
+        "NIFTY": "index_search_shadow",
+        "SENSEX": "index_search_shadow",
+        "BANKNIFTY": "index_search_shadow",
+        "GOLD": "asset_search_shadow",
+        "SILVER": "asset_search_shadow",
+    }
+    if trends_scan or component_shadow_scan:
+        # Shadow-only validation must not run the legacy four-stage Crowd fetch.
+        # One batched five-asset related-query request is enough for this isolated test.
+        asset_search_shadow = fetch_asset_trends_shadow()
+        for _asset_name, _field in search_assets.items():
+            _asset_data = result["instruments"].get(_asset_name)
+            if _asset_data is not None:
+                _asset_data[_field] = asset_search_shadow.get(_asset_name) or {
+                    "valid": False, "timeframe": "now 1-d",
+                    "reason": "इस asset की अलग Google Trends reading नहीं मिली",
+                    "production_score_used": False,
+                }
+    else:
+        # तय Trends slots के बीच केवल वास्तविक observation timestamp से ताज़गी जाँचें।
+        _prior_shadow = previous.get("instruments") or {}
+        for _asset_name, _field in search_assets.items():
+            _old = (_prior_shadow.get(_asset_name) or {}).get(_field)
+            _asset_data = result["instruments"].get(_asset_name)
+            if _asset_data is None:
+                continue
+            if isinstance(_old, dict) and _old.get("valid"):
+                _shadow_stamp = _old.get("source_data_time") or _old.get("as_of")
+                if is_fresh_timestamp(
+                    _shadow_stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES
+                ):
+                    _cached_shadow = dict(_old)
+                    _cached_shadow["cached"] = True
+                    _asset_data[_field] = _cached_shadow
+                else:
+                    _asset_data[_field] = {
+                        "valid": False, "seed": _old.get("seed"),
+                        "timeframe": "now 1-d",
+                        "reason": "पिछली asset-specific one-day Search reading stale है",
+                        "production_score_used": False,
+                    }
+            elif isinstance(_old, dict):
+                _asset_data[_field] = _old
+
     # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
     # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
@@ -4426,7 +5008,8 @@ def main():
     crowd_bull_sum = trends.get("bull_sum_pct") if fresh_trends else None
     crowd_bear_sum = trends.get("bear_sum_pct") if fresh_trends else None
     crowd_valid = (
-        isinstance(crowd_bull, (int, float)) and 0 <= crowd_bull <= 100
+        trends.get("today_basis") in ("now_1d_anchor_relative", "now_1d_related_queries")
+        and isinstance(crowd_bull, (int, float)) and 0 <= crowd_bull <= 100
         and isinstance(crowd_bull_sum, (int, float)) and crowd_bull_sum > 0
         and isinstance(crowd_bear_sum, (int, float)) and crowd_bear_sum > 0
         and all(
@@ -4490,8 +5073,30 @@ def main():
         "crowd_included": bool(crowd_valid),
         "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
         "crowd_bull_pct": crowd_bull if crowd_valid else None,
+        "crowd_directional_component_shadow": (
+            round(max(-10.0, min(10.0, (float(crowd_bull) - 50.0) / 50.0 * 10.0)), 2)
+            if crowd_valid else None
+        ),
+        "crowd_neutral_aware_component_shadow": (
+            round(max(-10.0, min(10.0, (float(crowd_total_bull) - float(crowd_bear)) / 100.0 * 10.0)), 2)
+            if crowd_valid else None
+        ),
+        "crowd_shadow_note": "Neutral-aware shadow = (bull share - bear share) / 100 * 10; observation only, not production score",
+        "crowd_scope": "shared broad India market search basket; not asset-specific",
         "client_included": bool(retail_valid),
+        "client_scope": "NSE participant-wise market-wide Index F&O aggregate; not NIFTY/SENSEX/BANKNIFTY-specific",
+        "client_date": participant_today.get("date") if retail_valid else None,
+        "client_previous_date": prior_snapshot.get("date") if retail_valid else None,
     }
+
+    # Source-aware component score is shadow-only. It never changes d["score"].
+    result["component_score_method"] = build_asset_component_breakdowns(
+        result["instruments"],
+        updated,
+        now_utc,
+        participant_today,
+        result["participant_oi"].get("changes"),
+    )
 
     # अब signal history भी इसी अंतिम स्कोर से बनेगी।
     update_signals(result["instruments"], sig_state, sig_log, updated)
@@ -4501,7 +5106,8 @@ def main():
         "watch": list(SIGNAL_WATCH.keys()),
     }
 
-    crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
+    # 7-दिन fallback display/reference के लिए रह सकता है, लेकिन आज की crowd history में नहीं।
+    crowd_pct = trends.get("crowd_bull_pct") if crowd_valid else None
     nifty_ret = all_returns.get("NIFTY") or {}
     update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
     done = [e for e in crowd_events if e.get("outcome")]

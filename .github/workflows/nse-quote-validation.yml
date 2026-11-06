@@ -2,6 +2,7 @@ name: Validate NSE and MCX quote integration
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     paths:
       - "fetch_and_score.py"
       - "trinetra_data.py"
@@ -22,7 +23,7 @@ jobs:
       - name: Install runtime dependencies
         run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Check Python syntax
-        run: python -m py_compile fetch_and_score.py trinetra_data.py backtest_participant_oi.py
+        run: python -m py_compile fetch_and_score.py trinetra_data.py backtest_participant_oi.py component_scoring.py
       - name: Verify Google Trends fallbacks and NSE MCP handshake
         run: |
           python - <<'PY'
@@ -49,6 +50,61 @@ jobs:
                   assert hourly.call_count == 2
                   related_queries.assert_called_once_with(timeframe="now 1-d")
           print("Google Trends related-query fallback routing passed.")
+          # Five asset-specific one-day seeds share one batch; a weak seed must not invalidate others.
+          import datetime as dt
+          import pandas as pd
+          fake_parent = types.ModuleType("pytrends")
+          fake_request = types.ModuleType("pytrends.request")
+          rows_by_seed = {
+              "nifty": [("nifty rally", 40), ("nifty target", 20), ("nifty fall", 30),
+                        ("nifty crash", 10), ("nifty today", 10)],
+              # Neutral-only seed must remain valid and must not abort the other four assets.
+              "sensex": [("sensex sideways", 40), ("sensex flat", 20), ("sensex rangebound", 10)],
+              "bank nifty": [("bank nifty rise", 35), ("bank nifty target", 25),
+                             ("bank nifty fall", 25), ("bank nifty live", 15)],
+              "gold price": [("gold price rise", 40), ("gold price fall", 35),
+                             ("gold sideways", 25)],
+              "silver price": [("silver price up", 40), ("silver price down", 35),
+                               ("silver flat", 25)],
+          }
+          class FakeTrendReq:
+              def __init__(self, **kwargs):
+                  self.seeds = []
+              def build_payload(self, terms, timeframe, geo):
+                  assert terms == list(rows_by_seed.keys()), terms
+                  assert timeframe == "now 1-d" and geo == "IN"
+                  self.seeds = terms
+              def related_queries(self):
+                  return {
+                      seed: {"top": pd.DataFrame(rows_by_seed[seed], columns=["query", "value"])}
+                      for seed in self.seeds
+                  }
+              def interest_over_time(self):
+                  return pd.DataFrame(
+                      {seed: [50] for seed in self.seeds},
+                      index=pd.DatetimeIndex([dt.datetime.now(dt.timezone.utc)])
+                  )
+          fake_request.TrendReq = FakeTrendReq
+          fake_parent.request = fake_request
+          with patch.dict(sys.modules, {"pytrends": fake_parent, "pytrends.request": fake_request}):
+              shadows = app.fetch_asset_trends_shadow()
+          assert shadows["NIFTY"]["valid"], shadows
+          assert shadows["SENSEX"]["valid"], shadows
+          assert shadows["SENSEX"]["bear_pct"] == 0.0, shadows
+          assert shadows["SENSEX"]["bull_pct"] == 0.0, shadows
+          assert shadows["SENSEX"]["neutral_pct"] == 100.0, shadows
+          assert shadows["SENSEX"]["directional_bull_pct"] is None, shadows
+          assert shadows["SENSEX"]["neutral_aware_score"] == 0.0, shadows
+          assert shadows["BANKNIFTY"]["valid"], shadows
+          assert shadows["GOLD"]["valid"], shadows
+          assert shadows["SILVER"]["valid"], shadows
+          for name in ("NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"):
+              item = shadows[name]
+              assert abs(item["bull_pct"] + item["bear_pct"] + item["neutral_pct"] - 100) <= 0.2, item
+              assert item["source_data_time"] and item["production_score_used"] is False, item
+              assert item["timeframe"] == "now 1-d", item
+              assert "same seed" in item["denominator"], item
+          print("Batched five-asset Google Trends isolation, timeframe and denominator checks passed.")
 
           # Exercise initialize -> fire-and-forget initialized notification -> tools/call.
           class FakeResponse:
