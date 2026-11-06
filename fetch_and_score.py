@@ -4676,7 +4676,11 @@ def main():
         previous_trends.get(k) is not None
         for k in ("bull_score_pct", "bear_score_pct", "neutral_score_pct")
     )
-    trends_scan = os.getenv("TRENDS_SCAN", "false").lower() == "true"
+    component_shadow_scan = os.getenv("COMPONENT_SHADOW_SCAN", "false").lower() == "true"
+    trends_scan = (
+        os.getenv("TRENDS_SCAN", "false").lower() == "true"
+        and not component_shadow_scan
+    )
 
     if trends_scan:
         # हर निर्धारित स्लॉट पर नया Google Trends अनुरोध करें; पुराने सफल डेटा से स्लॉट पूरा न मानें।
@@ -4868,6 +4872,48 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
+    # Fetch one separate five-asset Trends batch only on an explicit shadow scan.
+    # Normal 30-minute runs reuse a fresh saved reading and make no extra Trends request.
+    search_assets = {
+        "NIFTY": "index_search_shadow",
+        "SENSEX": "index_search_shadow",
+        "BANKNIFTY": "index_search_shadow",
+        "GOLD": "asset_search_shadow",
+        "SILVER": "asset_search_shadow",
+    }
+    if component_shadow_scan:
+        asset_search_shadow = fetch_asset_trends_shadow()
+        for _asset_name, _field in search_assets.items():
+            _asset_data = result["instruments"].get(_asset_name)
+            if _asset_data is not None:
+                _asset_data[_field] = asset_search_shadow.get(_asset_name) or {
+                    "valid": False, "timeframe": "now 1-d",
+                    "reason": "इस asset की अलग Google Trends reading नहीं मिली",
+                    "production_score_used": False,
+                }
+    else:
+        _prior_shadow = previous.get("instruments") or {}
+        for _asset_name, _field in search_assets.items():
+            _old = (_prior_shadow.get(_asset_name) or {}).get(_field)
+            _asset_data = result["instruments"].get(_asset_name)
+            if _asset_data is None:
+                continue
+            if isinstance(_old, dict) and _old.get("valid"):
+                _stamp = _old.get("source_data_time") or _old.get("as_of")
+                if is_fresh_timestamp(_stamp, now_utc, max_age_minutes=120):
+                    _cached = dict(_old)
+                    _cached["cached"] = True
+                    _asset_data[_field] = _cached
+                else:
+                    _asset_data[_field] = {
+                        "valid": False, "seed": _old.get("seed"),
+                        "timeframe": "now 1-d",
+                        "reason": "पिछली asset-specific one-day Search reading stale है",
+                        "production_score_used": False,
+                    }
+            elif isinstance(_old, dict):
+                _asset_data[_field] = _old
+
     # Shadow-only component breakdown; does not change the published instrument score.
     result["component_score_method"] = build_asset_component_breakdowns(
         result["instruments"], updated, now_utc, participant_today,
