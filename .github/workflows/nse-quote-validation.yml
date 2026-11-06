@@ -600,46 +600,34 @@ jobs:
                   matched = [(row, master_by_id.get(str(row.get("FinInstrmId") or "").strip())) for row in bhav_symbol]
                   matched = [(b, m) for b, m in matched if m is not None]
                   missing = sorted(bhav_ids - set(master_by_id))
-                  mismatch_counts = {key: 0 for key in ("TckrSymb", "XpryDt", "StrkPric", "OptnTp")}
-                  def master_expiry_date(value):
-                      raw = str(value or "").strip()
-                      if raw.isdigit():
-                          return dt.datetime.fromtimestamp(int(raw), tz=dt.timezone.utc).date().isoformat()
-                      return raw
-                  def master_strike_value(row):
-                      raw = str(row.get("StrkPric") or "").strip()
-                      locator = str(row.get("DcmlLctr") or "").strip()
-                      try:
-                          if not locator:
-                              return None
-                          return Decimal(raw) / (Decimal(10) ** int(locator))
-                      except (InvalidOperation, ValueError, OverflowError):
-                          return None
+                  identity_mismatches = {key: 0 for key in ("TckrSymb", "OptnTp")}
                   for b_row, m_row in matched:
                       if str(b_row.get("TckrSymb") or "").strip().upper() != str(m_row.get("TckrSymb") or "").strip().upper():
-                          mismatch_counts["TckrSymb"] += 1
-                      if str(b_row.get("XpryDt") or "").strip() != master_expiry_date(m_row.get("XpryDt")):
-                          mismatch_counts["XpryDt"] += 1
-                      try:
-                          bhav_strike = Decimal(str(b_row.get("StrkPric") or "").strip())
-                      except InvalidOperation:
-                          bhav_strike = None
-                      if bhav_strike is None or master_strike_value(m_row) != bhav_strike:
-                          mismatch_counts["StrkPric"] += 1
+                          identity_mismatches["TckrSymb"] += 1
                       if str(b_row.get("OptnTp") or "").strip().upper() != str(m_row.get("OptnTp") or "").strip().upper():
-                          mismatch_counts["OptnTp"] += 1
+                          identity_mismatches["OptnTp"] += 1
                   print(
                       f"{symbol} Contract Master ID reconciliation: "
                       f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
                       f"matched_IDs={len(matched)}; missing_IDs={len(missing)}; "
                       f"duplicate_master_IDs={len(duplicate_master_ids)}; "
-                      f"normalized_identity_field_mismatches={mismatch_counts}"
+                      f"symbol_side_mismatches={identity_mismatches}; "
+                      "expiry/strike encoding requires separate normalization"
                   )
                   if matched:
                       b_row, m_row = matched[0]
-                      fields = ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp", "DcmlLctr")
-                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in fields if key != "DcmlLctr"}))
+                      fields = (
+                          "FinInstrmId", "FinInstrmTp", "FinInstrmClssfctn", "CtrctTp",
+                          "TckrSymb", "XpryDt", "OrgnlXpryDt", "MtrtyDt", "InstrmEndDtTm",
+                          "StrkPric", "DcmlLctr", "PricDnmtr", "PricNmrtr", "OptnTp",
+                          "FinInstrmNm", "FinInstrmGnlAttrbts", "UndrlygInstrm",
+                      )
+                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp")}))
                       print("  sample ContractMaster=" + repr({key: m_row.get(key) for key in fields}))
+                      from collections import Counter
+                      for field in ("FinInstrmTp", "FinInstrmClssfctn", "CtrctTp"):
+                          counts = Counter(str(row.get(field) or "").strip() for _, row in matched)
+                          print(f"  matched master {field} values={counts.most_common(8)}")
                   if missing:
                       print(f"  missing ID sample={missing[:10]}")
           PY
