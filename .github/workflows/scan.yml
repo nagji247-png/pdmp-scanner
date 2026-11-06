@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Validate Python syntax
-        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py
+        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py component_scoring.py
       - run: pip install yfinance feedparser requests pytrends
       - name: Run PDMP scan
         env:
