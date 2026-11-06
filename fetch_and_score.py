@@ -3794,9 +3794,8 @@ def update_participant_oi_history(*snapshots):
             "participants": participants,
         }
 
-    # One-time, rate-limited backfill: expand the archive to 120 trading sessions.
-    # Historical dates use exact-date fetches (no 7-day fallback) to bound requests.
-    # Never repeat on every 5-minute scan; retry only after 24 hours if incomplete.
+    # One-time, rate-limited backfill toward 250 official NSE trading sessions.
+    # Exact-date archive requests only; retry at most once per 24 hours if incomplete.
     backfill_state = archive.get("backfill") if isinstance(archive.get("backfill"), dict) else {}
     now = dt.datetime.now(dt.timezone.utc)
     last_attempt = None
@@ -3809,14 +3808,15 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 4
+    BACKFILL_VERSION = 5
     retry_due = (backfill_state.get("version") != BACKFILL_VERSION
                   or last_attempt is None
                   or (now - last_attempt).total_seconds() >= 86400)
-    BACKFILL_TARGET = 120
+    BACKFILL_TARGET = 250
     if len(by_date) < BACKFILL_TARGET and retry_due:
         anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
-        for offset in range(0, 181):
+        # 420 calendar days allow for weekends/holidays; stop immediately at target.
+        for offset in range(0, 421):
             if len(by_date) >= BACKFILL_TARGET:
                 break
             target_day = anchor_date - dt.timedelta(days=offset)
