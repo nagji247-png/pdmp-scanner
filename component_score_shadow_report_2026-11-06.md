@@ -226,3 +226,19 @@ The latest feature-branch head `f7cc8a717492da47ed2d3a99d42a915809e3a47a` was as
 - OI Research Validation #37: [run 42211993672](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42211993672). Job steps confirm OI research Python syntax and OI research unit tests passed.
 
 This supersedes the earlier note that fresh validation after the recovery checkpoint was not yet visible. These runs validate the current branch code and tests. They do **not** establish complete official NSE OPTIDX historical CSV coverage, real-file Contract Master reconciliation, predictive validity of any OI signal, or permission to include OI in an asset Final. NSE/MCX OI gates remain closed pending those separate data validations. No production scores or signals were changed.
+
+
+
+### Fresh NSE historical OPTIDX + MCX five-session diagnostic — 6 Nov 2026
+
+- On feature head `235fa1ae85e7060eb642c0b8536dcfb0803c99e9`, the NSE/MCX Integration workflow completed successfully (run #213). Its NSE session bootstrap now visits both `/option-chain` and the official historical F&O report page `/report-detail/fo_eq_security`, then applies the report-page Referer and browser request headers.
+- NSE `option-chain-contract-info`, `option-chain-v3`, and `historicalOR/foCPV` returned JSON/HTTP 200 for both NIFTY and BANKNIFTY. The historical endpoint returned one dated 5-Nov-2026 row for each tested CE and PE contract, including `FH_OPEN_INT`, `FH_CHANGE_IN_OI`, `FH_TIMESTAMP`, expiry, strike, symbol and option side.
+- Important correction: the first diagnostic selected the nearest strike to the **current** option-chain underlying while querying a past date. That is not necessarily the historical ATM strike. These four responses prove the historical API and schema are reachable, but they are not treated as verified historical-ATM samples or complete index OI coverage. A follow-up diagnostic now obtains `FH_UNDERLYING_VALUE` from the dated historical response first and then chooses the nearest strike from the official chain strike list. This corrected selection is pending fresh CI and log verification.
+- MCX official Bhav Copy fetch succeeded for all five sessions in the same run: 30-Oct (15,913 rows), 2-Nov (16,296), 3-Nov (16,318), 4-Nov (16,350), 5-Nov (16,402). Exact GOLD and SILVER FUTCOM contracts, expiry 04DEC2026, were uniquely found on all five dates.
+- GOLD same-expiry close/OI (₹ / lots): 30-Oct 138,485 / 16,368; 2-Nov 140,186 / 16,142; 3-Nov 139,452 / 16,282; 4-Nov 143,234 / 16,095; 5-Nov 144,095 / 15,716.
+- SILVER same-expiry close/OI (₹ / lots): 30-Oct 179,132 / 18,105; 2-Nov 183,779 / 16,933; 3-Nov 179,698 / 16,830; 4-Nov 187,735 / 17,143; 5-Nov 187,140 / 16,701.
+- Four adjacent-session diagnostic regimes for GOLD: 5-Nov price-up/OI-down (+₹861, -379 lots); 4-Nov price-up/OI-down (+₹3,782, -187); 3-Nov price-down/OI-up (-₹734, +140); 2-Nov price-up/OI-down (+₹1,701, -226).
+- Four adjacent-session diagnostic regimes for SILVER: 5-Nov price-down/OI-down (-₹595, -442 lots); 4-Nov price-up/OI-up (+₹8,037, +313); 3-Nov price-down/OI-down (-₹4,081, -103); 2-Nov price-up/OI-down (+₹4,647, -1,172).
+- This confirms the official public MCX Bhav Copy contains usable exact-contract daily OI fields and that same-expiry multi-session comparisons are technically feasible. Four observations are still far too few for predictive validation; both MCX OI components remain excluded from asset Final.
+- On head `235fa1ae85e7060eb642c0b8536dcfb0803c99e9`, Component Score Validation #127, OI Research Validation #42 and NSE/MCX Integration #213 all completed PASS. Follow-up commit `a66b8efc77581b27dc3293d9ac7fcf1fd7b71c54` changes the historical strike selection to use the dated underlying; its three CI runs are pending at this report checkpoint.
+- No production score, signal, dashboard layout, merge or deployment was changed.
