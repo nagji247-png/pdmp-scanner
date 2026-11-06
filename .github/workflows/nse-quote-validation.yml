@@ -1264,6 +1264,249 @@ jobs:
                           for symbol, value in sorted(contributions.items(), key=lambda item: item[1])[:5]
                       ]))
           PY
+      # Exploratory 60-session test of the verified weighted stock-basket
+      # breadth score against the next session's reconstructed index return.
+      - name: Diagnostic 60-session NIFTY stock-basket breadth backtest
+        timeout-minutes: 15
+        continue-on-error: true
+        run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
+          python - <<'PY'
+          import csv
+          import datetime as dt
+          import io
+          import re
+          import statistics
+          import subprocess
+          import tempfile
+          import zipfile
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          def dec(value):
+              try:
+                  number = Decimal(str(value).strip())
+                  return number if number.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.niftyindices.com/",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+          pair = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s*$")
+          symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
+          date_re = re.compile(r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
+          furniture = re.compile(
+              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,10}$|Disclaimer|"
+              r"endeavors\.|and all liability|information contained|[A-Z][a-z]+ \d{1,2}, \d{4}$)"
+          )
+          monthly = {"NIFTY50": [], "BANKNIFTY": []}
+          base = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_data%s.zip"
+          for label in ("Jul2026", "Aug2026", "Sep2026", "Oct2026"):
+              response = session.get(base % label, timeout=90)
+              print(f"NSE Indices archive {label}: HTTP {response.status_code}; bytes={len(response.content)}")
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  names = set(archive.namelist())
+                  for index_name, filename in (
+                      ("NIFTY50", f"NIFTY_50_{label}.pdf"),
+                      ("BANKNIFTY", f"NIFTY_Bank_{label}.pdf"),
+                  ):
+                      if filename not in names:
+                          print(f"  {index_name}: missing {filename}")
+                          continue
+                      with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                          temp.write(archive.read(filename))
+                          temp.flush()
+                          text = subprocess.run(
+                              ["pdftotext", "-raw", temp.name, "-"],
+                              capture_output=True, text=True, check=True,
+                          ).stdout
+                      match_date = date_re.search(text)
+                      if not match_date:
+                          print(f"  {index_name}: report date missing")
+                          continue
+                      report_date = dt.datetime.strptime(match_date.group(1), "%B %d, %Y").date()
+                      records, buffer = {}, []
+                      for line in text.splitlines():
+                          line = line.strip()
+                          if not line or furniture.match(line):
+                              continue
+                          buffer.append(line)
+                          match = pair.match(" ".join(buffer))
+                          if not match:
+                              continue
+                          head = match.group(1).split()
+                          buffer = []
+                          if not head or not symbol_re.match(head[0]):
+                              continue
+                          close = dec(match.group(2).replace(",", ""))
+                          weight = dec(match.group(3).replace(",", ""))
+                          if close is None or weight is None or close <= 0 or weight <= 0:
+                              continue
+                          records[head[0]] = {"base_close": close, "base_weight": weight}
+                      total_weight = sum((row["base_weight"] for row in records.values()), Decimal("0"))
+                      expected = 50 if index_name == "NIFTY50" else 14
+                      print(
+                          f"  {index_name} report_date={report_date}; constituents={len(records)}; "
+                          f"weight_sum={total_weight}; expected={expected}"
+                      )
+                      if len(records) == expected and abs(total_weight - Decimal("100")) <= Decimal("0.10"):
+                          monthly[index_name].append({"date": report_date, "constituents": records})
+
+          for index_name in monthly:
+              monthly[index_name].sort(key=lambda item: item["date"])
+              print(f"{index_name} valid monthly weight snapshots={[item['date'].isoformat() for item in monthly[index_name]]}")
+
+          end = dt.date(2026, 11, 6)
+          candidates, cursor = [], end
+          while len(candidates) < 70:
+              if cursor.weekday() < 5:
+                  candidates.append(cursor)
+              cursor -= dt.timedelta(days=1)
+          candidates.sort()
+          universe = {
+              index_name: set().union(*(set(snapshot["constituents"]) for snapshot in snapshots))
+              if snapshots else set()
+              for index_name, snapshots in monthly.items()
+          }
+          all_symbols = set().union(*universe.values())
+          cash_prices = {}
+          for day in candidates:
+              stamp = day.strftime("%Y%m%d")
+              url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
+              cm_headers = dict(headers)
+              cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
+              response = session.get(url, headers=cm_headers, timeout=45)
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(members) != 1:
+                      continue
+                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              prices = {}
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "STK":
+                      continue
+                  if str(row.get("SctySrs") or "").strip().upper() != "EQ":
+                      continue
+                  symbol = str(row.get("TckrSymb") or "").strip().upper()
+                  if symbol not in all_symbols:
+                      continue
+                  price = dec(row.get("ClsPric"))
+                  if price is not None and price > 0:
+                      prices[symbol] = price
+              if prices:
+                  cash_prices[day] = prices
+                  print(f"Cash {day}: matched_symbols={len(prices)}")
+          ordered = sorted(cash_prices)
+          print(f"Cash history valid_sessions={len(ordered)} from={ordered[0] if ordered else None} to={ordered[-1] if ordered else None}")
+
+          for index_name in ("NIFTY50", "BANKNIFTY"):
+              snapshots = monthly[index_name]
+              daily = {}
+              for i in range(1, len(ordered)):
+                  previous_day, current_day = ordered[i-1], ordered[i]
+                  eligible = [snapshot for snapshot in snapshots if snapshot["date"] <= previous_day]
+                  if not eligible:
+                      continue
+                  snapshot = eligible[-1]
+                  weights = snapshot["constituents"]
+                  if previous_day == snapshot["date"]:
+                      previous_prices = {symbol: row["base_close"] for symbol, row in weights.items()}
+                  else:
+                      previous_prices = cash_prices.get(previous_day, {})
+                  current_prices = cash_prices[current_day]
+                  missing = [
+                      symbol for symbol in weights
+                      if symbol not in previous_prices or symbol not in current_prices
+                  ]
+                  if missing:
+                      continue
+                  raw_weights = {
+                      symbol: row["base_weight"] * previous_prices[symbol] / row["base_close"]
+                      for symbol, row in weights.items()
+                  }
+                  total_raw = sum(raw_weights.values(), Decimal("0"))
+                  advancing = declining = flat = Decimal("0")
+                  basket_return = Decimal("0")
+                  advancers = decliners = flat_count = 0
+                  for symbol in weights:
+                      weight = raw_weights[symbol] / total_raw
+                      stock_return = current_prices[symbol] / previous_prices[symbol] - Decimal("1")
+                      basket_return += weight * stock_return * Decimal("100")
+                      if stock_return > 0:
+                          advancing += weight
+                          advancers += 1
+                      elif stock_return < 0:
+                          declining += weight
+                          decliners += 1
+                      else:
+                          flat += weight
+                          flat_count += 1
+                  score = Decimal("10") * (advancing - declining)
+                  daily[current_day] = {
+                      "score": score,
+                      "basket_return": basket_return,
+                      "advancers": advancers,
+                      "decliners": decliners,
+                      "flat": flat_count,
+                      "snapshot_date": snapshot["date"],
+                      "coverage": len(weights),
+                  }
+              observations = []
+              for i in range(1, len(ordered) - 1):
+                  signal_day, next_day = ordered[i], ordered[i+1]
+                  signal = daily.get(signal_day)
+                  following = daily.get(next_day)
+                  if signal is None or following is None:
+                      continue
+                  observations.append((signal_day, signal["score"], following["basket_return"]))
+              directional = [item for item in observations if item[1] != 0 and item[2] != 0]
+              split = max(1, int(len(directional) * 0.70))
+              train, holdout = directional[:split], directional[split:]
+              def summarize(label, sample):
+                  direct_hits = sum((item[1] > 0) == (item[2] > 0) for item in sample)
+                  inverse_hits = len(sample) - direct_hits
+                  correlation = None
+                  if len(sample) >= 3:
+                      try:
+                          correlation = statistics.correlation(
+                              [float(item[1]) for item in sample],
+                              [float(item[2]) for item in sample],
+                          )
+                      except statistics.StatisticsError:
+                          correlation = None
+                  print(
+                      f"{index_name} {label}: n={len(sample)} direct={direct_hits}/{len(sample)} "
+                      f"contrarian={inverse_hits}/{len(sample)} pearson={correlation}"
+                  )
+              print(
+                  f"{index_name} BREADTH BACKTEST: daily_sessions={len(daily)} "
+                  f"observations={len(observations)} nonzero={len(directional)} "
+                  "chronological_split=70/30; no_tuning=True; research_only=True; in_final=False"
+              )
+              summarize("IN_SAMPLE", train)
+              summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
+              if dt.date(2026, 11, 5) in daily:
+                  latest = daily[dt.date(2026, 11, 5)]
+                  print(
+                      f"{index_name} 2026-11-05 breadth_score={latest['score'].quantize(Decimal('0.01')):+}; "
+                      f"advancers={latest['advancers']}; decliners={latest['decliners']}; "
+                      f"flat={latest['flat']}; weight_snapshot={latest['snapshot_date']}; "
+                      f"coverage={latest['coverage']}"
+                  )
+          PY
       # Research-only: MCX futures OI-weighted price breadth across
       # exact common expiries, with a chronological holdout.
       - name: Diagnostic MCX 30-session futures OI breadth backtest
