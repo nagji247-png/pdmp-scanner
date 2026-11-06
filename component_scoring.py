@@ -273,7 +273,7 @@ def _exchange_integer(value):
 
 
 def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
-    """Aggregate NSE UDiFF OPTIDX CE/PE OI for one index and one exact trade date.
+    """Aggregate NSE UDiFF IDO (index-option) CE/PE OI for one exact trade date.
 
     This is exchange-file context only. It does not claim contract-master
     completeness and is deliberately not converted into a directional score.
@@ -294,7 +294,9 @@ def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
     for row in rows:
         if not isinstance(row, dict):
             continue
-        if str(row.get("FinInstrmTp") or "").strip().upper() != "OPTIDX":
+        # UDiFF uses IDO for index options; OPTIDX is the legacy
+        # normalized name retained for synthetic/older normalized inputs.
+        if str(row.get("FinInstrmTp") or "").strip().upper() not in ("IDO", "OPTIDX"):
             continue
         if str(row.get("TckrSymb") or "").strip().upper() != target_symbol:
             continue
