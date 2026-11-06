@@ -82,6 +82,95 @@ def build_component(score, source, source_date, weight, **metadata):
     return component
 
 
+
+def weighted_constituent_breadth_candidate(
+    constituents, source, source_date, weight_sum_tolerance_pct=0.10
+):
+    """Calculate a full-coverage, weighted advance/decline candidate in [-10,+10].
+
+    Each item must contain a unique symbol, positive prior constituent weight,
+    and positive prior/current close. This is a diagnostic candidate only:
+    it is deliberately not marked included and must not enter asset Final
+    until multi-session historical validation and freshness checks pass.
+    """
+    if not isinstance(constituents, list) or not constituents:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "constituent rows missing"}
+    if not str(source or "").strip() or not isinstance(source_date, str) or not source_date.strip():
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "source or source date missing"}
+    tolerance = finite_number(weight_sum_tolerance_pct)
+    if tolerance is None or tolerance < 0:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "weight-sum tolerance invalid"}
+
+    seen = set()
+    rows = []
+    for item in constituents:
+        if not isinstance(item, dict):
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "malformed constituent row"}
+        symbol = str(item.get("symbol") or "").strip().upper()
+        weight = finite_number(item.get("weight_pct"))
+        previous_close = finite_number(item.get("previous_close"))
+        current_close = finite_number(item.get("current_close"))
+        if not symbol or symbol in seen:
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "missing or duplicate constituent symbol"}
+        if weight is None or weight <= 0 or previous_close is None or previous_close <= 0:
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "invalid constituent weight or previous close"}
+        if current_close is None or current_close <= 0:
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "invalid constituent current close"}
+        seen.add(symbol)
+        rows.append((symbol, weight, previous_close, current_close))
+
+    total_weight = sum(row[1] for row in rows)
+    if abs(total_weight - 100.0) > tolerance:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "constituent weights do not sum to 100% within tolerance",
+                "weight_sum_pct": round(total_weight, 6),
+                "constituent_count": len(rows)}
+
+    advancing_weight = declining_weight = flat_weight = 0.0
+    advancers = decliners = flat = 0
+    weighted_return_pct = 0.0
+    for _, weight, previous_close, current_close in rows:
+        normalized_weight = weight / total_weight
+        change = current_close / previous_close - 1.0
+        weighted_return_pct += normalized_weight * change * 100.0
+        if change > 0:
+            advancing_weight += normalized_weight
+            advancers += 1
+        elif change < 0:
+            declining_weight += normalized_weight
+            decliners += 1
+        else:
+            flat_weight += normalized_weight
+            flat += 1
+
+    score = clamp_score(10.0 * (advancing_weight - declining_weight))
+    return {
+        "available": score is not None,
+        "included_in_asset_final": False,
+        "candidate_score": score,
+        "source": str(source).strip(),
+        "source_date": source_date.strip(),
+        "scope": "पूर्ण आधिकारिक constituent basket; prior-session weight; weighted advancing minus declining weight",
+        "constituent_count": len(rows),
+        "weight_sum_pct": round(total_weight, 6),
+        "advancers": advancers,
+        "decliners": decliners,
+        "flat": flat,
+        "advancing_weight_pct": round(advancing_weight * 100.0, 4),
+        "declining_weight_pct": round(declining_weight * 100.0, 4),
+        "flat_weight_pct": round(flat_weight * 100.0, 4),
+        "weighted_return_pct": round(weighted_return_pct, 6),
+        "reason": None,
+    }
+
+
 def search_component_from_snapshot(
     snapshot, now_utc=None, max_age_minutes=120, weight=40.0
 ):
