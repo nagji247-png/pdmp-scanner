@@ -416,3 +416,21 @@ Official NSE 5-Nov-2026 source results:
 - Combined exact contract reconciliation: 3,025 / 3,025; all tested identity and expiry/strike fields match after applying NSE's documented units.
 - The parser's per-index exchange-wide CE/PE totals remain available as diagnostics. This does not identify CLIENT-only positions. The existing 60-session OI proxy holdout remains weak (NIFTY direct 10/20, contrarian 10/20, correlation +0.138; BANKNIFTY direct 8/20, contrarian 12/20, correlation +0.037), so no EOD OI directional component is enabled.
 - Integration #249 passed this normalized reconciliation on code head `4893eed7c2f4ff862b41e9809db4803b3c84d6f8`. The later manual-only workflow guard does not change the reconciliation logic.
+
+
+### CLIENT CE/PE Long/Short and Index Futures — latest dated market-wide context
+
+The repository's official participant OI history is updated at `2026-11-06T13:09Z`, but its latest available participant record is still 5-Nov-2026. Comparing 5-Nov with 4-Nov for the CLIENT category:
+
+| CLIENT market-wide field | 4-Nov | 5-Nov | Change |
+|---|---:|---:|---:|
+| Index CE Long | 2,705,660 | 2,760,218 | +54,558 |
+| Index CE Short | 2,613,755 | 2,669,313 | +55,558 |
+| Index PE Long | 2,681,228 | 3,318,042 | +636,814 |
+| Index PE Short | 3,179,458 | 3,745,090 | +565,632 |
+| Index Futures Long | 215,941 | 187,440 | -28,501 |
+| Index Futures Short | 66,148 | 82,799 | +16,651 |
+
+- All four CE/PE changes are retained separately; they are not collapsed into one guessed directional score.
+- The data is CLIENT participant-wise but market-wide across index F&O, not separately attributable to NIFTY, SENSEX or BANKNIFTY. It is context only, excluded from each asset Final.
+- No 6-Nov participant record is present in the repository history as of the 6-Nov 13:09Z update; the values above must be labelled 5-Nov, not live/current 6-Nov data.
