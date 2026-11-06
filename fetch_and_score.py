@@ -3936,8 +3936,13 @@ def fetch_asset_trends_shadow():
                     "timeframe": "now 1-d",
                     "source_data_time": source_data_time,
                     "raw_queries": raw_query_count,
+                    "classified_queries": len(classified_terms),
                     "unclassified_queries": unclassified_count,
                     "unclassified_weight": round(unclassified_weight, 1),
+                    "classification_coverage_pct": (
+                        round(total / (total + unclassified_weight) * 100.0, 1)
+                        if total + unclassified_weight > 0 else None
+                    ),
                     "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
                     "reason": (
                         f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
