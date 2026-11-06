@@ -5316,8 +5316,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.05
   },
   {
     "key": "2026-11-05|EICHERMOT|div",
@@ -5568,8 +5568,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -5.52
   },
   {
     "key": "2026-11-05|DJI|div",
@@ -5610,8 +5610,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -3.44
   },
   {
     "key": "2026-11-05|APOLLOHOSP|div",
@@ -5654,5 +5654,173 @@
     ],
     "outcome": "price",
     "next_change": -2.66
+  },
+  {
+    "key": "2026-11-06|SILVER|div",
+    "date": "2026-11-06",
+    "instrument": "SILVER",
+    "score": 1.2,
+    "price_change": -0.68,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Gold 10 gm or Silver 1 kg? What to buy on Dhanteras 2026? Which shopping will offer best returns over next 1, 3, 5 years",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMikgJBVV95cUxOZmIyQ3pTaHhMTWJ1bzVCcEFWU3RLelNxRDdmRHhabDJqMkJycVFXVS1MWnlCdEVtX3l0Z2xyMUJfOTdzQkdxRlFfb2o2RzM4dUpsUUNyeEo3dFNiNzhxOUMyR1pLa2FoQ3cyRXpHS0k4M180SnpoYldxREw0UmwzbDBramhITDgtNzRiQTBmd0l6OVRNVnE0c2ROZUx0OS1tc0taU2FucFpNOGg1MlhVeUJBZVNZbTFVUHNjV3BySlZnMTU5VGtwQzlqbmhWa1hqVmxZbXktSkJrREZPTksxQjRDNnp6M3Yxb0c1MDNWQ3R0U0x4VzhKa0poT1ZxNjBNd3JLS2lhYnpuTnlTNm4taktR0gGXAkFVX3lxTE9BQTQzM0E1OTFNUkhxQlRHQU93a252dzdpTHZmOFJOcnhGNTh1UE5sUlhEUGNTUGduLWxSX2JTYkt1NW1lelN1cDJNQlBNVERmWlJJSXliSXoyZnU5Sm1veDZLLUhZVFNLZGJoeHdrOEI4M2pBQXJKWE9HNklUWnZpOWp1RGswTWRqWE5YQmdCdkFkNktVM2VXZE14RDk4YzY1QTVFc2lUNVZxTGd1Y0JOWEFLU0luTXI5NE1vT0VfY2c3RnhIQnBubVRHRFkzUHRBSWRYYkZvRnFmOU5DTVdHcUlyZzBxa2lkQ29XeDIwSG5uYkNKWHlVSVlDMElPNk9KYTFQVXdoRnE4aGlEVENLaFRDNFdobw?oc=5",
+        "score": 1.0
+      },
+      {
+        "title": "Why the Silver Price Case Now Rests on Investors",
+        "source": "FXEmpire",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQc1BQX0VNandwZTJiMVc4a05tVUpJVnhzb0h4bF9WQ2F5WDI1ZXFHQXIzMTF4NDJaTHUtdjg0MjFQOXNtaWdGWWFBT0VNTFNYQk4zYXR1RmthUkRXQ1J5VW41TEh2Q0FTVzg0c0FYTDVhYlg3elVDb3p6d3ZlemsyVVducndWRG5pQmdLaXE2Ykw4RHRzQ1dCRlpoNmdCMUpW?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Silver price forecast: $53.93 resistance in focus as XAG trades flat",
+        "source": "Traders Union",
+        "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPSXFxMTJaOXdmZ0VpUEl6MFp4UnR6MjRfaF9xcVZHTURGcDBjNkVkb0p6dExxSF9hRUhkOEpyZTFXR3VNSmxBcktHMXZQQ25EamtoVldENmFMUEJiU2JyQmduV3NrdV9CRGJ6QW0wTVItdDVib3NUT0hTNFM2Z3MzaFJtRE12OE11X20w?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Gold vs silver: Which precious metal should you invest in this Diwali?",
+        "source": "CNBC TV18",
+        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQVTE0V0VCRnYzOUtOcEJtNWx3U1hBVjJfN0U1LVZGa3YzZHJvaHl2RjFXbzZEcG9UVHhHQzNfcTQ0SHE0czRwSEpkN29rVXZLQVIwT3lyZG1WWDVRajR4MkhJNUZucXRidUJqaEx4Y0w0eldOSWdYVHV1bVdIVFhEd1JPOE0tWl9oNnJxTGZoQ3ZvMW5rWGfSAZsBQVVfeXFMTUFOS0F1Y2dWcFJVYl9OZkxEMzdNVVE1RkJaMHJQSllfZ1NUY2dNMTlVdTlMOEtsUmh3aXZ6Z0E1dXFjS01Ec1RwNmVYOGNVQnhtbi1Ub1dFVTVXUFRZMFh3ekdPdmlWeWxib3lFR3N5ZjRZV3VsY1FQV2xVMjUxUzFVWFJudTFid0x3ZGpfU3lVY0szdzlNM3VGZzA?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Gold climbs above $4,100 as falling yields, softer labor costs support bullion - Kitco AM Report",
+        "source": "Kitco",
+        "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQQV9YbzIxUFFZcGF6M3U2Q2NBUkNUckVoSHBXbHZEVXVabldjcFpyYW9oQ0tZazZMNnV1V3JWLW1EV0pSSUp5UmVFOFNQY25UdGRRVGZJUWtzNG5KLWlvUDlJcGF4dm5tTE5IV0VaUk9PWWpWcHNpVnlNYXZwRnhhUnhqLTUtSlVuVDBxem1Pbmd1T1BUOVlSbmo3TmdoeEFuTWNlOHh1MWNsTjY2dVpvSHR0eVNXUGhCenc?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-06|CRUDEOIL|div",
+    "date": "2026-11-06",
+    "instrument": "CRUDEOIL",
+    "score": -1.5,
+    "price_change": 5.2,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Crude Oil Futures Rise Amid Positive Global Trends",
+        "source": "Rediff MoneyWiz",
+        "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNWUUyWFR4bHdIYTZhUFJwUVhsbllHNGxkbktOcXdvcXNnYzZId05XRHc1RWM5VlAtS0RFeGU0VEVRQm1JZzZVSEtYcl9lY2QyMUV6aElkNnVPdW5SSkNRN0dZOFdPclJZandxMUo3RU1fNVB0c2RiLUNmU1RPZlBwNi1aYU9RQ0pUd3ZjTk53QS1HR0NpWXFOZ0JYQ3d1V0kzZ3RvV9IBqgFBVV95cUxNNFRLSlNoeDFYSlVhTm02RnpCR1daZ2ZjSDM3cjdnc3pvMzBveTBYaWVpa2Z2cG9jTFowdnhERGlERHhkMlNoOWxJRXU0WHFfUWpUVHU4eFV4LTl1R0RyR2FaMnFCejRVQ0FDYUh2aHdLTHlHQnRVcUc1Z3hGdTFRdEZ0TG9WLUotSVUwOFhpckI3YmdPdzQ4LVNDa3FPTF85bnVQRXdleG9BZw?oc=5",
+        "score": 1.0
+      },
+      {
+        "title": "November 2026 F&O Monthly Expiry",
+        "source": "Groww",
+        "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1MbDhrd01qWkVHejFJaHhvNHhRQ21SRVVxUnNPWlkxRXZzQnp6WTZSRnNSTHhTeEdYVUxmT2RJX2l4c1U3ZjVtcWtLNU1WUjZ2Y3V3TktiVQ?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Crude Oil Falls Nearly 1% to ₹8,565 on MCX as Global Prices Ease",
+        "source": "HDFC Sky",
+        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPVTB0azVWOW1zNWNseVoyUVhvTjNJVXVWV2hvOVpZLV94NjFoclNOUks0aUg2bkpjWkw3RE1HVE81ckNQbU45RjUtWks1OGZ5R0hfLXhqaXgzQXFVTzdoVTAtZGJ0ZGxSZExCS01rRFhYNUZ4TnhSOWRYbVpvUGhDXzJVZC1Cc3Voanpoa1NncVhoakdqZjlYNVhxWEhMN19BTlY0NGVRWTM?oc=5",
+        "score": -1.0
+      },
+      {
+        "title": "Crude Oil Futures Decline: Brent Below $96, WTI Down",
+        "source": "Rediff MoneyWiz",
+        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOXzQ2cmd5dnlxY2lxbm9GNW9GUHFmd2oyb3BUcVp1WjMxVEM3QU95elJUYk5TTnRmdkw0ZTF1dTljSkFvSTFVSDduRkJZRWlOOTdQY1JPQnR2UXQyUEc0ZGVHMXVleUNvZWZlbTUxSmdBT2JvYm84RFlYX1JKQUR0VkRDeTZIc2xhZTh4U3RXalFSU1VTTkRZWEl2VnljSHhSSDZF0gGoAUFVX3lxTE5ZOG9aSDh0ajNkR2RSTlhvdFd3RnEtVlVnZ2VhQW5wMzVIQTc4YTJkaWoxS09lbHZ6ano0bjFBdlhsTUZqaU83aWhKVzdkNDQ4UGoyZWJuLXZSWnVrUGZBVFR1aEt2bE91bjJhZEh2Um1US08zLTdVdnYwWU1DTzJyWk1ZUHBEdm82Z3ZVanBWbmJEVndvaUdWNkE0VVJsNUpMQ21OZjh2Wg?oc=5",
+        "score": -1.0
+      },
+      {
+        "title": "Crude Oil Trading on MCX Explained - Contracts, Prices & Factors",
+        "source": "ICICI Direct",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQeFhfQlc4RE5kRjF3NlA5SW9fNXB1RjMzS2tYYnJYdmFrN0t4OEl6VXlXU24tbkZrSkI1V0phbm1OLUFZSUNiWEZXcXBGR3FRVHBtZlFaREVuRUNxS041SVlPTnU2X3lBVnlHSUhJeEE5ckoteE1QOEhENlhzSnVGSnZzYVpOSzVlTEhpMndVUmlCeUZ2WlI1ZXd1UjlfVjQzT1E?oc=5",
+        "score": 0.0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-06|ADANIPORTS|div",
+    "date": "2026-11-06",
+    "instrument": "ADANIPORTS",
+    "score": 5.0,
+    "price_change": -1.33,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Adani Ports - Marico among 10 stocks hitting 52-week highs; rally up to 14% in a month",
+        "source": "The Economic Times",
+        "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNM3A0aTY2ekpfaGo0OXZ1UlBaejE5QWpMcFFwSENWNXJySU9QMWc3SFZKaFJ5MFhkU0ppNTQxSnRRdnd6MDFLaTJ5VnN6dlp0WXRDNlVPdU5JWnlMV1Z2MFQtR040X0dvZTVXZjRYMmFZeFRNNlBWN2RvU1FKUHF4YlhHeG5yRWxsVHNiLXVqSGFZdUhaZ1NWUmJHSmx0ams5dF9CMTNUeC1TOG5Ia3c5QVdIZHdYZTNPV0R1TklZT19GOVM2RGQ0RGU3U0xmblZuTmdRb1R2cnRuOERSdnd6UGhRb05hSjlrVlE?oc=5",
+        "score": 2.0
+      },
+      {
+        "title": "Adani Ports to buy European liquid storage operator Evos for 2.56 billion euros",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNeWdGS0Q2VVdXMDhYbW1Ea0VUQTRWeUxpRnhIblhCX2VaOXpnQWZadDd1bUF0RkxWa095X1lnLWZDRFY0dTFvRUQyVldUOTljYTFxN2VhMGtFT29OVlczZEZLbkZoTTdXclN2RF9JN2pyYkdCRHZIbHhVOURubldMclJxVVEzWkFyTnlYdVViZllZWERKRzVSXzJ6MXFvOV9aS2Zma3N4cUFzSHBuZ0hFS0Z3M001THhyVjVoSzQ3a3hQZ3U0dHVDTmo1aXMta0hTODNDVldkNXlOaTU2TnZWT1ln?oc=5",
+        "score": 1.0
+      },
+      {
+        "title": "Adani Ports to enter Europe with €2.56 billion buyout of Evos",
+        "source": "Livemint",
+        "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPZUM2cG1CUUtaZHhWQUJvbUVvelNTa1FueVpUTlIzVjhrNG40b0tDWjhLTEZrajdnRGZyZUk5VkVfMjZ3WHB5dTJoQ3FZMDVSSGMzMnhpRUJSYlh5NTNick1wbGRlcVdEZjBUcjFEcHYwOVhyQncxNmN1Y1dWNVlRc1FYZ3p5ek11NkRtbktkdHZDMWlYSXBOWUlFX3k1VnFycnhOOU1ZS3FIT3dMMnNFVnJSQ0pGYTB0VVlYbdIBwgFBVV95cUxNZDFKSlVtbElGdDJMUjZ6dE44SmhzTklwR1VRYTFTSmtEdzdWa244RExIVGNYekxJUlFaWG1PajhoYmpaa1Rua21LZHZTd1JIVGtCNmV2QmR4dnAtSFJ2N19keGhnRVN4MFNBNElBdGdDNGNFV2dMbW9CYVVyQ0xTQzVkQlhPclA1M1JES3RYb2FIMkhaMzVjYXF3ZnVmUHU4NER4WUFMMnBSNmNUQS1lcFVQVEEwQmlXOEJnZnpvUm1oZw?oc=5",
+        "score": 1.0
+      },
+      {
+        "title": "Adani Ports to acquire 100% stake in Netherlands-based Evos for USD 2.88 billion",
+        "source": "TradingView",
+        "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNR1lCM2VBcUhSUkdBUWFjcENSalRzWEdQTjJPQm5GanJkb2dvdzZxNjRVNkptUzBjQ21BV3U2WlVvbmdDcmdoWW54ZVdOcjBqcWFsejVrOUZuSXdOc0JYZmhXVV9oTWN4V1dSWVJjSHN5UDBFWjAyeEFyNEFZZFJpMGR2d1dZaFJNZ3RVbkpyNmJkOXNUWWhYb1ZKR1hNX3R3R24yU0M1TWJCSW5XamxMSGF1SnRkWnBRTjh2NVB5Y2Y0RHpKQ0JxZnJNcGxSdWlnblE?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Adani Ports to acquire Europe's second-largest liquid storage operator Evos, add 8 European terminals",
+        "source": "Business Today",
+        "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxPMFhXRW9rcVlSenRTYUw4OGtUUUZWZXNQTTI4QlhIVDI1bkxubENKSWpJUk5jZUNmZUJ4dnFidlMzMkNDWTNJdDJqeUsydTdBN3dWRFBVRWtIM0g2YjJ6c1BTOGdZV0pMS3UxUWJia3RDSHNLOV9UeUdSMTdzeDM1ZWlmQnpxTUJCLWJPWWRXNTdmUFJmYzVUb0dOdEhHZTk2Q3JRUGF5QWZXay1GUXNmOG5ueENTOWdHOGI2MENLZm1ic3ZNZmlXRkVnR2tRRUtqX2VKR05ZSVMyQUlPbElIOGRZVlJLZVA3ZUxiamR4LUI2S2JTRGQyTll2VHdZQdIBgwJBVV95cUxQUGFtZTdpSG9Pbm1GMExoaDF3dWJBdzVHaFA5bFZ6YllLWm12M2ZmcERoOWV1N3JReW9QMjJVSTd1SHR5NG9RVzBRTXptZTZKa1VDNjRSdmVoTkZMUktpTDlOdFJjdFg2YUZNRHpDVWN0TExwYjlsYW1tUVQ3NlVEeWg4cVlDVldaVXhrdWo3alBLWW1NM25OTW1wT0t1Ymd1SFNiYUlXWXBJa19hN05TbVgzMkNFNWNKNHlwbWVWVGlnekFHQVFlQmNoWHBFYjlPaXlGQ1FFRjc3WGxGTlVXWjM5MV8wckhuYTdZb0FXSTN2TzJpajR5SVR6TGlpX25pcUxn?oc=5",
+        "score": 0.0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-06|COALINDIA|div",
+    "date": "2026-11-06",
+    "instrument": "COALINDIA",
+    "score": 1.6,
+    "price_change": -1.34,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Dividend stocks: Coal India, TCS, HUDCO, HCL Tech, GAIL among top 10 dividend paying stocks - Check yield, annual return",
+        "source": "TradingView",
+        "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxPallqczZRNXVmRTdSdm1ZMmdVVE82ZzEyYVd1VTV1ZVBiTkFMNGxYOVE3M0Fld0s4RHZESWZuMUtWaTMxUGRnd2kxWVB4X2tBeXpyZjNrRm51OU94ZVVYZmdtb2VHWVJ4cnhRdUV3aGxzN2pPVUlVZzJCcENLbGxQUGdvR1dqY21XdWNxZFpVckZXOGtKblZJTWs3MC1PWGZ5ZmNraDJ1QTVtbmg1d2xJVTllVS1kSjdvSllHWFRBejVKWXRGU1BkVWlvSDBMMnQtVElzVzNkUWw5bW9GWXR6aktCTkU1YmdBd1pBVC1LMF9PNm5lbC1HTnQ0aTRCdw?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Coal India October Supplies Rise 19% to Record 70.3 mn t",
+        "source": "Construction World",
+        "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNNGJVSExYLVZNNkUxbkMxNFI0bFJMMVRsakJhbkZBWmVZVU0zWUY5NWpoOWJzOWYtUDBQZ0JTVXhUYzdacnBPQ3FoMGtGWjhVWXpzOUc5ejMwRGRHVXZDRTlkWWhWbHcwVzFPQ2FxZHZzVmViZHpRQUZrNkJiN0o5d2pUZnFrU1ZUTDdlS2J0WTZSRE5KMGJwSzFRemdhQ0l6enVxc1lYcmdUeHJnWmQzcFpnbXBUZ2UxcXBoRFZLcHNVLWJSV2hiM1ljLUk?oc=5",
+        "score": 1.0
+      },
+      {
+        "title": "SEBI Clears Mahanadi Coalfields IPO, a Coal India Subsidiary",
+        "source": "energynews.pro",
+        "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNMTZaeTIwZFI1REZySmdKbTVNMU1IQ3FLckc5OVpfV1Z4U2RSc1UycHhDUGVuR3A3eWFoa1lEV3NnRlBuOE5DWEEyMk5RSmU1YWFBSEFGRFFQM1hDaGFqZVZWcktrS3FYWWhKdlp3dDBKRVp2Tk1LMjJBdXlkNHpVTjhkUEY4OTNFdWt2SzR3?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "Mahanadi Coalfields gets Sebi approval for IPO; Coal India to offload 66.18 crore shares via OFS",
+        "source": "Fortune India",
+        "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxOR2cwSXQ3THdvS19jckNCMGJaLUxWWWttVDNhNlZWS0lqdUVMSGhhMU5Xc3J4NHRoM2JxUHY4YmhYTjltakNlS3h0SFdWWHJWTGJPQk1qeEtCVXVyWUxsTFluQmhCcEJCelJsd0Z2aFFhWE5EM3cyWG83RnM2UWpYMHh5Y1p4TVFmSDczV3F0aDF1YTlLLXRWLTV5OTFjT1VscnF5bGlzSEx3Q01Pb3VoR2d3aGMwdWs4RHBuU2dra0tDM3RWNnZNSG5yTXhjWFZTYXoyMnVvYnM2d9IB5wFBVV95cUxPSHVhSXpaQTRWaUlxWkV0MGtEbHhGNzJjcklpQjJTNlVfdW1iV0NydjB0T0FjQjRxamhMT3EzcFh2RXE0Y1YyekNycS1JSE5sRVVhVm9pU1RkVmhETnN4OEJ0YUJtaXU5R0VQZGxlem5aNzRFcUxMWmpUMy1HU2dIT0hzbzFsU2NlZjQ1NlZYY09MbndNRVB1SExKWXAtRnVSN2xzcllhZHVjcVpaeG9GMWZOVERTdWZ4UzhNWFJRV1lTRlJGZXYtRTM0MzhWUU1NYUMxMk1FQmE4LTBDcS1hQlBSdlRoY2c?oc=5",
+        "score": 0.0
+      },
+      {
+        "title": "India's markets regulator approves Coal India unit Mahanadi Coalfields IPO",
+        "source": "Reuters",
+        "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxONlRGYTloXzAzYlNtcUxMajFGd0EwVEdRaEZuTUFDNWFJcTBkY0J6WkhSTzk1bGk2SUk1azhPeWJSQzN0WjVkVE1JMU1TcmV1UUxod0ZqS2c5NXRIOVJfcmhqbkpaNkZjZWJRS3AtMG5RcGZDNHI3LXBfMDRkdnM0UlhsTW1DNWFNUzZ4YUdmQUZJSWk2dWswVEdlT1lhT0stY0JjVzBlZElvdnBSNUtGVDMydVk3aHJNSmZfX3hEMDQ2QlE?oc=5",
+        "score": 0.0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
   }
 ]
