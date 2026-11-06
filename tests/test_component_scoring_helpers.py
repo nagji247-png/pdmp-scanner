@@ -8,10 +8,42 @@ from component_scoring import (
     client_oi_context,
     is_fresh_timestamp,
     search_component_from_snapshot,
+    weighted_constituent_breadth_candidate,
 )
 
 
 class ComponentScoringHelperTests(unittest.TestCase):
+    def test_full_weighted_constituent_breadth_candidate_is_diagnostic_only(self):
+        rows = [
+            {"symbol": "AAA", "weight_pct": 60, "previous_close": 100, "current_close": 110},
+            {"symbol": "BBB", "weight_pct": 40, "previous_close": 100, "current_close": 90},
+        ]
+        result = weighted_constituent_breadth_candidate(
+            rows, "NSE official monthly weights + dated cash Bhavcopy", "2026-11-05"
+        )
+        self.assertTrue(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertEqual(result["candidate_score"], 2.0)
+        self.assertEqual(result["advancing_weight_pct"], 60.0)
+        self.assertEqual(result["declining_weight_pct"], 40.0)
+        self.assertEqual(result["weighted_return_pct"], 2.0)
+
+    def test_weighted_breadth_rejects_missing_duplicate_or_partial_baskets(self):
+        base = [
+            {"symbol": "AAA", "weight_pct": 60, "previous_close": 100, "current_close": 110},
+            {"symbol": "BBB", "weight_pct": 40, "previous_close": 100, "current_close": 90},
+        ]
+        duplicate = [base[0], dict(base[1], symbol="AAA")]
+        partial = [base[0]]
+        self.assertFalse(weighted_constituent_breadth_candidate(
+            duplicate, "official", "2026-11-05"
+        )["available"])
+        result = weighted_constituent_breadth_candidate(
+            partial, "official", "2026-11-05"
+        )
+        self.assertFalse(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+
     def test_clamp_and_reject_non_finite_values(self):
         self.assertEqual(clamp_score(15), 10.0)
         self.assertEqual(clamp_score(-15), -10.0)
