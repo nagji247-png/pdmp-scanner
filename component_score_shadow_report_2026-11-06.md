@@ -178,3 +178,16 @@ All three workflows passed on commit `6e5137aeb6e96ab21c34b93ddf46990a5d3c60ca`:
 
 These CI results validate parser logic against synthetic fixtures and existing integration checks only. They do not replace a real official dated UDiFF CSV fixture, daily-file completeness audit, or consecutive-session OI/price study. Therefore NSE and MCX OI components remain excluded from all asset final scores.
 
+
+
+### MCX five-session same-expiry raw data check and diagnostic fix — 6 Nov 2026
+
+- Expanded the official MCX Bhav Copy probe to five available sessions (30-Oct, 2-Nov, 3-Nov, 4-Nov, 5-Nov 2026) for the exact FUTCOM 04DEC2026 contracts.
+- The runner successfully retrieved all five dated exchange responses: 15,913; 16,296; 16,318; 16,350; and 16,402 rows respectively. Exactly one GOLD and one SILVER 04DEC2026 row were found per date.
+- Observed GOLD close/OI (₹ / lots): 30-Oct 138,485 / 16,368; 2-Nov 140,186 / 16,142; 3-Nov 139,452 / 16,282; 4-Nov 143,234 / 16,095; 5-Nov 144,095 / 15,716.
+- Observed SILVER close/OI (₹ / lots): 30-Oct 179,132 / 18,105; 2-Nov 183,779 / 16,933; 3-Nov 179,698 / 16,830; 4-Nov 187,735 / 17,143; 5-Nov 187,140 / 16,701.
+- The five raw dated fetches succeeded, but the comparison step in that workflow attempt failed because `fetch_and_score.py` had not imported `compare_mcx_bhavcopy_contract_oi` from `component_scoring.py`. This is an integration/import defect, not an exchange-data failure.
+- Fixed the missing import and added an integration regression test that verifies the function is exported by `fetch_and_score` and correctly compares the real GOLD 5-Nov vs 4-Nov sample (close +₹861; OI -379 lots; diagnostic-only).
+- The four observed one-session regime readings per commodity are too small to validate a predictive edge. A quick next-session direction check on the first three available signals was mixed/poor (GOLD 1/3; SILVER 0/3). This tiny sample is explicitly descriptive, not a statistical backtest. No MCX OI score is enabled.
+- The workflow attempt that exposed the import bug: [NSE/MCX integration run 42207762537](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42207762537). The subsequent fix is on branch commit `8c00a1e8b790ee21fc7d0402cc9a036d36e361f6`; this GitHub App commit has not yet produced a new Actions run visible through the connected run listing, so the fix is not marked CI-verified here.
+- Production score, dashboard behavior and live signals remain unchanged.
