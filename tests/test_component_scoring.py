@@ -288,6 +288,46 @@ class ComponentScoringTests(unittest.TestCase):
         self.assertNotIn("search", breakdown["components"])
         self.assertIn("search", breakdown["excluded_components"])
 
+    def test_news_component_preserves_actual_headline_publication_timestamps(self):
+        import fetch_and_score
+
+        instruments = {
+            "NIFTY": {
+                "news_query": "Nifty 50",
+                "headlines": [
+                    {
+                        "title": "Nifty rises on broad market buying",
+                        "source": "Reuters",
+                        "score": 4.0,
+                        "age_h": 1.0,
+                        "published_at": "2026-11-06T06:00:00Z",
+                    },
+                    {
+                        "title": "Nifty banks gain in afternoon trade",
+                        "source": "Bloomberg",
+                        "score": 2.0,
+                        "age_h": 0.5,
+                        "published_at": "2026-11-06T06:30:00Z",
+                    },
+                ],
+            }
+        }
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments,
+            "2026-11-06T07:00:00Z",
+            datetime(2026, 11, 6, 7, 0, tzinfo=timezone.utc),
+        )
+        component = instruments["NIFTY"]["component_breakdown"]["components"]["news"]
+        self.assertEqual(
+            component["newest_headline_published_at"], "2026-11-06T06:30:00Z"
+        )
+        self.assertEqual(
+            component["oldest_headline_published_at"], "2026-11-06T06:00:00Z"
+        )
+        # source_date remains the scan's IST evidence date; publication times
+        # are retained separately rather than being mislabelled as scan time.
+        self.assertEqual(component["source_date"], "2026-11-06")
+
     def test_shadow_news_score_does_not_use_fivefold_amplifier(self):
         import fetch_and_score
 
