@@ -114,3 +114,29 @@ Official source references:
 - MCX Bhav Copy: https://www.mcxindia.com/market-data/bhavcopy
 - MCX Historical Data: https://www.mcxindia.com/market-data/historical-data
 - MCX PRO/CLI Details: https://www.mcxindia.com/market-data/pro-cli-details
+
+
+## Follow-up implementation checkpoint — 6 Nov 2026
+
+### NSE UDiFF parser prototype
+
+- Added `aggregate_nse_udiff_index_option_oi()` in `component_scoring.py` for the official NSE F&O UDiFF field names: `FinInstrmTp=OPTIDX`, `TckrSymb`, `BizDt`, `XpryDt`, `OptnTp`, `OpnIntrst`, and `ChngInOpnIntrst`.
+- The helper aggregates CE and PE open interest and change-in-OI separately for one exact symbol and trade date. It rejects mismatched dates, missing expiry/OI/change fields, malformed option sides, and snapshots missing either CE or PE.
+- It explicitly sets `included_in_asset_final=false` and `coverage_validated=false`. This is a parser/diagnostic prototype, not a production data feed and not a directional score. Full contract-master reconciliation and a real dated exchange-file fixture are still required.
+- Unit tests added for symbol isolation, CE/PE aggregation, and fail-closed date/side handling.
+
+### MCX category OI source clarification
+
+- MCX's official disclosure page states that its category-wise Open Interest and Turnover report is at commodity level, including all variants of the same commodity; options positions use the directional method. It may be useful as commodity-participant context for GOLD/SILVER, but it is not contract/expiry-specific and cannot replace daily Bhavcopy OI by exact contract.
+- MCX's official Datafeed page confirms that end-of-day Bhav Copy includes contract-wise open interest. The remaining engineering gate is to inspect a real dated MCX file/API response and map the exact OI keys, then compare the same symbol and expiry across consecutive trading dates.
+- No MCX participant report or Bhavcopy OI has been added to the asset score.
+
+### Main branch movement
+
+- `main` advanced by one unrelated GitHub Actions commit refreshing `trinetra-data.json` after this feature branch's base point. The feature branch is now 21 commits ahead and 1 behind `main`; this data-only commit does not overlap the component files. No automatic merge/rebase was attempted.
+
+Official source references:
+- NSE reports page (lists F&O UDiFF Bhavcopy and COM category-wise OI reports): https://www.nseindia.com/all-reports-derivatives
+- NSE UDiFF formats: https://www.nseindia.com/static/resources/forms-formats-members
+- MCX category-wise participant OI disclosure: https://beta.mcxindia.com/market-operations/trading-surveillance/reports/disclosure-of-open-interest-and-turnover-for-various-categories-of-market-participants
+- MCX Datafeed (EOD Bhavcopy includes contract-wise OI): https://classic.mcxindia.com/technology/datafeed
