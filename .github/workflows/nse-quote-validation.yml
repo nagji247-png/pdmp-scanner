@@ -338,10 +338,20 @@ jobs:
               "Connection": "keep-alive",
           })
           try:
-              for page in ("/", "/option-chain"):
+              for page in ("/option-chain", "/report-detail/fo_eq_security"):
                   warm = session.get(base + page, timeout=15)
                   print(f"NSE session warm {page}: HTTP {warm.status_code}")
-              session.headers["Referer"] = base + "/option-chain"
+              # Historical F&O report page is the documented cookie bootstrap for foCPV.
+              session.headers.update({
+                  "Referer": base + "/report-detail/fo_eq_security",
+                  "Accept": "application/json, text/javascript, */*; q=0.01",
+                  "Accept-Encoding": "gzip, deflate",
+                  "Pragma": "no-cache",
+                  "Cache-Control": "no-cache",
+                  "Sec-Fetch-Dest": "empty",
+                  "Sec-Fetch-Mode": "cors",
+                  "Sec-Fetch-Site": "same-origin",
+              })
               trade_date = dt.date(2026, 11, 5)
               for symbol in ("NIFTY", "BANKNIFTY"):
                   meta = session.get(
@@ -349,11 +359,19 @@ jobs:
                       params={"symbol": symbol},
                       timeout=15,
                   )
-                  print(f"{symbol} contract-info: HTTP {meta.status_code}")
+                  print(
+                      f"{symbol} contract-info: HTTP {meta.status_code}; "
+                      f"content-type={meta.headers.get('Content-Type')}; "
+                      f"bytes={len(meta.content)}"
+                  )
                   if meta.status_code != 200:
-                      print(meta.text[:180])
+                      print(meta.text[:240])
                       continue
-                  meta_payload = meta.json()
+                  try:
+                      meta_payload = meta.json()
+                  except ValueError:
+                      print("  non-JSON body=" + repr(meta.text[:300]))
+                      continue
                   expiries = []
                   for value in meta_payload.get("expiryDates") or []:
                       try:
@@ -371,11 +389,19 @@ jobs:
                       params={"type": "Indices", "symbol": symbol, "expiry": expiry},
                       timeout=20,
                   )
-                  print(f"{symbol} {expiry} option-chain-v3: HTTP {chain_response.status_code}")
+                  print(
+                      f"{symbol} {expiry} option-chain-v3: HTTP {chain_response.status_code}; "
+                      f"content-type={chain_response.headers.get('Content-Type')}; "
+                      f"bytes={len(chain_response.content)}"
+                  )
                   if chain_response.status_code != 200:
-                      print(chain_response.text[:180])
+                      print(chain_response.text[:240])
                       continue
-                  chain = chain_response.json()
+                  try:
+                      chain = chain_response.json()
+                  except ValueError:
+                      print("  non-JSON chain body=" + repr(chain_response.text[:300]))
+                      continue
                   records = chain.get("records") or {}
                   rows = records.get("data") or chain.get("filtered", {}).get("data") or []
                   underlying = records.get("underlyingValue")
@@ -425,7 +451,7 @@ jobs:
               print(f"NSE historical OPTIDX diagnostic unavailable: {type(exc).__name__}: {str(exc)[:240]}")
           PY
       - name: Diagnostic official MCX Bhavcopy OI field probe
-        timeout-minutes: 3
+        timeout-minutes: 6
         continue-on-error: true
         run: |
           python - <<'PY'
