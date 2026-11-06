@@ -399,6 +399,11 @@ class ComponentScoringTests(unittest.TestCase):
                 breakdown["client_market_context"]["included_in_asset_final"]
             )
             self.assertIn("not index-specific", breakdown["client_market_context"]["scope"])
+            # A partial watchlist, public membership-only CSV, or top-10 factsheet
+            # must never masquerade as a complete weighted index basket.
+            self.assertNotIn("stock_basket", breakdown["components"])
+            self.assertIn("stock_basket", breakdown["excluded_components"])
+            self.assertFalse(breakdown["excluded_components"]["stock_basket"]["included"])
 
         html = dashboard_path.read_text(encoding="utf-8")
         self.assertIn("function renderComponentBreakdown", html)
