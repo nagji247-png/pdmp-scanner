@@ -1126,7 +1126,7 @@ jobs:
 
           # Dated NSE cash-market closes for all EQ-series constituents.
           cash_by_day = {}
-          for day in ("2026-11-04", "2026-11-05"):
+          for day in ("2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05"):
               stamp = day.replace("-", "")
               cm_url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
               cm_headers = dict(headers)
@@ -1155,7 +1155,7 @@ jobs:
 
           # Official index underlying closes from the same dated UDiFF FO files.
           index_spots = {"NIFTY50": {}, "BANKNIFTY": {}}
-          for day in ("2026-11-04", "2026-11-05"):
+          for day in ("2026-10-30", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05"):
               stamp = day.replace("-", "")
               fo_url = f"https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
               fo = requests.get(fo_url, headers=headers, timeout=60)
@@ -1179,54 +1179,72 @@ jobs:
                       values.sort()
                       index_spots[index_name][day] = values[len(values)//2]
 
-          # Reconstruct 4-Nov weights from the official 30-Oct snapshot and
-          # cash returns, then compare the full weighted 5-Nov basket with the
-          # official index underlying return. This is a reconstruction, not
-          # an official daily weight file.
+          # Reconstruct daily weights from the official 30-Oct snapshot and
+          # cash prices, then compare each full weighted basket return with
+          # the official index underlying return. This is a reconstruction,
+          # not an official daily weight file.
+          pairs = (
+              ("2026-10-30", "2026-11-02"),
+              ("2026-11-02", "2026-11-03"),
+              ("2026-11-03", "2026-11-04"),
+              ("2026-11-04", "2026-11-05"),
+          )
           for index_name, weights in weights_by_index.items():
-              if not all(day in cash_by_day for day in ("2026-11-04", "2026-11-05")):
-                  print(f"{index_name}: basket check unavailable; missing dated cash file")
-                  continue
-              missing = [
-                  symbol for symbol in weights
-                  if symbol not in cash_by_day["2026-11-04"] or symbol not in cash_by_day["2026-11-05"]
-              ]
-              if missing:
-                  print(f"{index_name}: basket coverage={len(weights)-len(missing)}/{len(weights)}; missing={missing}")
-                  continue
-              raw_weights = {
-                  symbol: data["base_weight"] * cash_by_day["2026-11-04"][symbol] / data["base_close"]
-                  for symbol, data in weights.items()
-              }
-              total_raw = sum(raw_weights.values(), Decimal("0"))
-              contributions = {}
-              basket_return = Decimal("0")
-              for symbol, data in weights.items():
-                  weight_at_4nov = raw_weights[symbol] / total_raw
-                  stock_return = cash_by_day["2026-11-05"][symbol] / cash_by_day["2026-11-04"][symbol] - Decimal("1")
-                  contribution = weight_at_4nov * stock_return * Decimal("100")
-                  contributions[symbol] = contribution
-                  basket_return += contribution
-              spot = index_spots[index_name]
-              if "2026-11-04" not in spot or "2026-11-05" not in spot:
-                  print(f"{index_name}: basket_return={basket_return}; official index spot unavailable")
-                  continue
-              index_return = (spot["2026-11-05"] / spot["2026-11-04"] - Decimal("1")) * Decimal("100")
-              difference_bps = (basket_return - index_return) * Decimal("100")
-              print(
-                  f"{index_name} reconstructed 5-Nov basket: coverage={len(weights)}/{len(weights)}; "
-                  f"base_snapshot=30-Oct-2026; basket_return={basket_return.quantize(Decimal('0.001')):+}%; "
-                  f"official_index_return={index_return.quantize(Decimal('0.001')):+}%; "
-                  f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps"
-              )
-              print("  top_positive_contributors_pp=" + repr([
-                  (symbol, str(value.quantize(Decimal("0.001"))))
-                  for symbol, value in sorted(contributions.items(), key=lambda item: item[1], reverse=True)[:5]
-              ]))
-              print("  top_negative_contributors_pp=" + repr([
-                  (symbol, str(value.quantize(Decimal("0.001"))))
-                  for symbol, value in sorted(contributions.items(), key=lambda item: item[1])[:5]
-              ]))
+              for previous_day, current_day in pairs:
+                  if current_day not in cash_by_day:
+                      print(f"{index_name} {current_day}: basket check unavailable; missing cash file")
+                      continue
+                  if previous_day != "2026-10-30" and previous_day not in cash_by_day:
+                      print(f"{index_name} {current_day}: basket check unavailable; missing prior cash file")
+                      continue
+                  missing = [
+                      symbol for symbol in weights
+                      if (previous_day != "2026-10-30" and symbol not in cash_by_day[previous_day])
+                      or symbol not in cash_by_day[current_day]
+                  ]
+                  if missing:
+                      print(f"{index_name} {previous_day}->{current_day}: coverage={len(weights)-len(missing)}/{len(weights)}; missing={missing}")
+                      continue
+                  prior_prices = {
+                      symbol: data["base_close"] if previous_day == "2026-10-30"
+                      else cash_by_day[previous_day][symbol]
+                      for symbol, data in weights.items()
+                  }
+                  raw_weights = {
+                      symbol: data["base_weight"] * prior_prices[symbol] / data["base_close"]
+                      for symbol, data in weights.items()
+                  }
+                  total_raw = sum(raw_weights.values(), Decimal("0"))
+                  contributions = {}
+                  basket_return = Decimal("0")
+                  for symbol in weights:
+                      weight_at_prior = raw_weights[symbol] / total_raw
+                      stock_return = cash_by_day[current_day][symbol] / prior_prices[symbol] - Decimal("1")
+                      contribution = weight_at_prior * stock_return * Decimal("100")
+                      contributions[symbol] = contribution
+                      basket_return += contribution
+                  spot = index_spots[index_name]
+                  if previous_day not in spot or current_day not in spot:
+                      print(f"{index_name} {previous_day}->{current_day}: official index spot unavailable")
+                      continue
+                  index_return = (spot[current_day] / spot[previous_day] - Decimal("1")) * Decimal("100")
+                  difference_bps = (basket_return - index_return) * Decimal("100")
+                  print(
+                      f"{index_name} reconstructed basket {previous_day}->{current_day}: "
+                      f"coverage={len(weights)}/{len(weights)}; "
+                      f"basket_return={basket_return.quantize(Decimal('0.001')):+}%; "
+                      f"official_index_return={index_return.quantize(Decimal('0.001')):+}%; "
+                      f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps"
+                  )
+                  if current_day == "2026-11-05":
+                      print("  top_positive_contributors_pp=" + repr([
+                          (symbol, str(value.quantize(Decimal("0.001"))))
+                          for symbol, value in sorted(contributions.items(), key=lambda item: item[1], reverse=True)[:5]
+                      ]))
+                      print("  top_negative_contributors_pp=" + repr([
+                          (symbol, str(value.quantize(Decimal("0.001"))))
+                          for symbol, value in sorted(contributions.items(), key=lambda item: item[1])[:5]
+                      ]))
           PY
       # Research-only: MCX futures OI-weighted price breadth across
       # exact common expiries, with a chronological holdout.
