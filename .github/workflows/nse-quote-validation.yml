@@ -414,13 +414,51 @@ jobs:
                   if not rows or underlying is None:
                       print(f"{symbol} {expiry}: chain rows/underlying unavailable; keys={sorted(chain)}")
                       continue
-                  selected = min(rows, key=lambda row: abs(float(row.get("strikePrice", 0)) - float(underlying)))
-                  strike = int(float(selected["strikePrice"]))
                   expiry_api = expiry_date.strftime("%d-%b-%Y").upper()
-                  print(f"{symbol}: trade_date={trade_date}, expiry={expiry_api}, ATM strike={strike}, underlying={underlying}")
+                  # First query a chain-nearby CE only to obtain the historical
+                  # underlying value. The chain's current spot must not be used
+                  # to label a past session's ATM strike.
+                  probe_row = min(rows, key=lambda row: abs(float(row.get("strikePrice", 0)) - float(underlying)))
+                  probe_strike = int(float(probe_row["strikePrice"]))
+                  probe_response = session.get(
+                      base + "/api/historicalOR/foCPV",
+                      params={
+                          "from": trade_date.strftime("%d-%m-%Y"),
+                          "to": trade_date.strftime("%d-%m-%Y"),
+                          "instrumentType": "OPTIDX",
+                          "symbol": symbol,
+                          "year": str(expiry_date.year),
+                          "expiryDate": expiry_api,
+                          "optionType": "CE",
+                          "strikePrice": str(probe_strike),
+                      },
+                      timeout=20,
+                  )
+                  if probe_response.status_code != 200:
+                      print(f"{symbol} historical-underlying probe HTTP {probe_response.status_code}")
+                      continue
+                  probe_payload = probe_response.json()
+                  probe_data = probe_payload.get("data") if isinstance(probe_payload, dict) else None
+                  if not isinstance(probe_data, list) or not probe_data:
+                      print(f"{symbol}: historical-underlying probe returned no rows")
+                      continue
+                  historical_underlying = probe_data[0].get("FH_UNDERLYING_VALUE")
+                  if historical_underlying is None:
+                      print(f"{symbol}: historical underlying missing from dated OPTIDX row")
+                      continue
+                  selected = min(
+                      rows,
+                      key=lambda row: abs(float(row.get("strikePrice", 0)) - float(historical_underlying)),
+                  )
+                  strike = int(float(selected["strikePrice"]))
+                  print(
+                      f"{symbol}: trade_date={trade_date}, expiry={expiry_api}, "
+                      f"chain_underlying={underlying}, historical_underlying={historical_underlying}, "
+                      f"historical_nearest_strike={strike}, chain_rows={len(rows)}"
+                  )
                   for option_type in ("CE", "PE"):
                       if not isinstance(selected.get(option_type), dict):
-                          print(f"{symbol} {expiry_api} {strike} {option_type}: absent from current official chain")
+                          print(f"{symbol} {expiry_api} {strike} {option_type}: absent from official chain strike list")
                           continue
                       response = session.get(
                           base + "/api/historicalOR/foCPV",
