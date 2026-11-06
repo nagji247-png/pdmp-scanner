@@ -3876,6 +3876,7 @@ def fetch_asset_trends_shadow():
             raw_query_count = 0
             unclassified_count = 0
             unclassified_weight = 0.0
+            unclassified_terms = []
             if top is not None and not top.empty and "query" in top and "value" in top:
                 for _, row in top.iterrows():
                     term = str(row.get("query", "")).strip()
@@ -3890,6 +3891,7 @@ def fetch_asset_trends_shadow():
                     if direction is None:
                         unclassified_count += 1
                         unclassified_weight += value
+                        unclassified_terms.append({"term": term, "weight": round(value, 1)})
                         continue
                     totals[direction] += value
                     classified_terms.append({
@@ -3915,6 +3917,7 @@ def fetch_asset_trends_shadow():
                     "raw_queries": raw_query_count,
                     "unclassified_queries": unclassified_count,
                     "unclassified_weight": round(unclassified_weight, 1),
+                    "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
                     "reason": (
                         f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
                         f"(classified={len(classified_terms)}, total_weight={total:.1f})"
@@ -3947,6 +3950,7 @@ def fetch_asset_trends_shadow():
                 "classified_queries": len(classified_terms),
                 "unclassified_queries": unclassified_count,
                 "unclassified_weight": round(unclassified_weight, 1),
+                "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
                 "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
                 "bull_pct": round(bull_pct, 1),
                 "bear_pct": round(bear_pct, 1),
