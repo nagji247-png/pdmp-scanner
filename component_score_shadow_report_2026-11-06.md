@@ -158,6 +158,17 @@ Official source references:
 - Added unit tests for exact symbol/expiry/date isolation, duplicate rejection and missing OI-change rejection. No GOLD/SILVER component score is enabled: actual raw-file fixture, complete daily-file checks, and same-expiry previous-session comparison are still required.
 - Official sources: https://www.mcxccl.com/all-circulars/unified-distilled-file-formats-%28udiff%29 and https://www.mcxindia.com/market-data/bhavcopy.
 
+### MCX public Bhav Copy: actual same-expiry GOLD/SILVER comparison — 6 Nov 2026
+
+- The GitHub Actions runner successfully fetched the official MCX public Bhav Copy endpoint for 5-Nov-2026 (16,402 rows) and 4-Nov-2026 (16,350 rows). Exact FUTCOM rows were isolated for the same 04-Dec-2026 expiry for both commodities.
+- GOLD: 4-Nov close ₹143,234, OI 16,095 lots; 5-Nov close ₹144,095, OI 15,716 lots. One-session change: close +₹861, OI -379 lots (price-up/OI-down regime).
+- SILVER: 4-Nov close ₹187,735, OI 17,143 lots; 5-Nov close ₹187,140, OI 16,701 lots. One-session change: close -₹595, OI -442 lots (price-down/OI-down regime).
+- These are genuine dated exchange records, not synthetic fixtures. They establish that the public Bhav Copy endpoint exposes contract-wise OI and close and that same-expiry two-session comparison is feasible.
+- Added `compare_mcx_bhavcopy_contract_oi()` with strict exact symbol/FUTCOM/expiry/date matching, one-row-per-session requirement, numeric OI/close checks, and duplicate rejection. It reports price/OI regime as diagnostic context only and hard-codes `included_in_asset_final=false` and `coverage_validated=false`.
+- Added unit tests for the GOLD observed delta and duplicate-row rejection; compact MCX expiry dates (e.g. `04DEC2026`) are now parsed.
+- Important limit: this is one expiry and one adjacent-session pair only. It is not a validated predictive signal. Need broader multi-session history, contract roll/expiry controls, data completeness and out-of-sample price/OI regime study before assigning any GOLD/SILVER score. No component score has been added to asset finals.
+- Runner evidence: [MCX Bhav Copy diagnostic run 42204349281](https://github.com/nagji247-png/pdmp-scanner/actions/runs/42204349281).
+
 ### Latest validation after MCX UDiFF parser tests — 6 Nov 2026
 
 All three workflows passed on commit `6e5137aeb6e96ab21c34b93ddf46990a5d3c60ca`:
