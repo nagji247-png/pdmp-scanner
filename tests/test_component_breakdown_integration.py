@@ -83,6 +83,31 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIsNone(classify("Sensex today", "NIFTY"))
         self.assertIsNone(classify("silver price today", "GOLD"))
 
+    def test_mcx_bhavcopy_comparator_is_imported_for_diagnostic_workflow(self):
+        from component_scoring import compare_mcx_bhavcopy_contract_oi
+
+        self.assertIs(
+            fetch_and_score.compare_mcx_bhavcopy_contract_oi,
+            compare_mcx_bhavcopy_contract_oi,
+        )
+        current = [{
+            "InstrumentName": "FUTCOM", "Symbol": "GOLD",
+            "DateDisplay": "05 Nov 2026", "ExpiryDate": "04DEC2026",
+            "OptionType": "-", "OpenInterest": 15716, "Close": 144095,
+        }]
+        previous = [{
+            "InstrumentName": "FUTCOM", "Symbol": "GOLD",
+            "DateDisplay": "04 Nov 2026", "ExpiryDate": "04DEC2026",
+            "OptionType": "-", "OpenInterest": 16095, "Close": 143234,
+        }]
+        result = fetch_and_score.compare_mcx_bhavcopy_contract_oi(
+            current, previous, "GOLD", "2026-11-05", "2026-11-04", "2026-12-04"
+        )
+        self.assertTrue(result["available"])
+        self.assertEqual(result["change_in_oi_lots"], -379)
+        self.assertEqual(result["change_in_close"], 861.0)
+        self.assertFalse(result["included_in_asset_final"])
+
 
 if __name__ == "__main__":
     unittest.main()
