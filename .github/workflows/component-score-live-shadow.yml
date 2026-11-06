@@ -1,0 +1,38 @@
+name: Component Score Live Shadow Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - "fetch_and_score.py"
+      - "component_scoring.py"
+      - ".github/workflows/component-score-live-shadow.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install scan dependencies
+        run: python -m pip install yfinance feedparser requests pytrends curl_cffi pandas
+      - name: Run one isolated five-asset shadow scan
+        env:
+          COMPONENT_SHADOW_SCAN: "true"
+          TRENDS_SCAN: "false"
+        run: python fetch_and_score.py
+      - name: Upload shadow result only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-score-live-shadow
+          path: data.json
+          if-no-files-found: warn
+          retention-days: 3
