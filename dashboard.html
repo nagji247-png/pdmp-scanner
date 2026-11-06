@@ -559,6 +559,9 @@ function renderParticipantOI(oi) {
 function renderComponentBreakdown(b) {
   if (!b || typeof b !== "object") return "";
   const final = b.final || {};
+  const search = b.search_diagnostic || null;
+  const pct = value => value == null || !Number.isFinite(Number(value))
+    ? "—" : Number(value).toFixed(1) + "%";
   const labels = {
     news: "News Score",
     search: "Search Score",
@@ -630,6 +633,26 @@ function renderComponentBreakdown(b) {
       '<div class="hl-meta">' + esc(client.reason || "CE/PE direction और CLIENT Futures score validation पूरी होने तक withheld") + '</div>' +
       '</div>';
   }
+  const searchDiagnosticHtml = search && search.source
+    ? '<div class="hl" style="margin-top:8px">' +
+      '<div class="hl-title"><b>Google Trends Crowd — ' + esc(search.seed || "asset seed") + '</b></div>' +
+      '<div class="hl-meta">Bullish ' + pct(search.bull_pct) +
+      ' · Bearish ' + pct(search.bear_pct) +
+      ' · Neutral ' + pct(search.neutral_pct) +
+      ' · Coverage ' + pct(search.classification_coverage_pct) + '</div>' +
+      '<div class="hl-meta">वर्गीकृत queries ' + (search.classified_queries == null ? "—" : esc(search.classified_queries)) +
+      ' / कुल ' + (search.raw_queries == null ? "—" : esc(search.raw_queries)) +
+      ' · Unclassified ' + (search.unclassified_queries == null ? "—" : esc(search.unclassified_queries)) +
+      ' · अवधि ' + esc(search.timeframe || "—") +
+      ' · Observation ' + esc(search.source_data_time || "—") + '</div>' +
+      '<div class="hl-meta">प्रतिशत केवल classified related-query weights के भीतर हैं; Coverage बताता है कि कुल query weight में से कितना वर्गीकृत हुआ।</div>' +
+      (Array.isArray(search.terms) && search.terms.length
+        ? '<div class="hl-meta">वर्गीकृत उदाहरण: ' + esc(search.terms.slice(0, 4).map(x => x.term + " (" + x.direction + ")").join(", ")) + '</div>' : '') +
+      (Array.isArray(search.unclassified_terms) && search.unclassified_terms.length
+        ? '<div class="hl-meta">Unclassified उदाहरण: ' + esc(search.unclassified_terms.slice(0, 3).map(x => x.term).join(", ")) + '</div>' : '') +
+      (!search.valid && search.reason ? '<div class="hl-meta">Reading: ' + esc(search.reason) + '</div>' : '') +
+      '</div>'
+    : "";
   const finalText = final.score == null
     ? "Final Score: डेटा उपलब्ध नहीं"
     : "Final Score: " + signedScore(final.score) + "/10";
@@ -642,6 +665,7 @@ function renderComponentBreakdown(b) {
     (rows || '<div class="hl-meta" style="margin-top:7px">कोई सत्यापित component score उपलब्ध नहीं।</div>') +
     (weightText ? '<div class="hl-meta" style="margin-top:7px"><b>सामान्यीकृत Final weights:</b> ' + esc(weightText) + '</div>' : '') +
     (excludedRows ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>डेटा उपलब्ध नहीं / Final से बाहर</b></div>' + excludedRows + '</div>' : '') +
+    searchDiagnosticHtml +
     clientHtml +
     '<div class="hl-meta" style="margin-top:7px">Formula: उपलब्ध सत्यापित component scores × उनके configured weights का योग ÷ केवल शामिल weights का योग। Missing/stale component को zero नहीं माना जाता।</div>' +
     '</details>';
