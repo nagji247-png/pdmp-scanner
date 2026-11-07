@@ -1,0 +1,56 @@
+name: Consolidated Component Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "component_scoring.py"
+      - "component_shadow_scan.py"
+      - "fetch_and_score.py"
+      - "data.json"
+      - "tests/**"
+      - "component_score_consolidated_verify.py"
+      - ".github/workflows/component-score-consolidated.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "component_scoring.py"
+      - "component_shadow_scan.py"
+      - "fetch_and_score.py"
+      - "data.json"
+      - "tests/**"
+      - "component_score_consolidated_verify.py"
+      - ".github/workflows/component-score-consolidated.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: component-score-consolidated-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  consolidated-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install existing scan dependencies
+        run: python -m pip install yfinance feedparser requests pytrends curl_cffi pandas
+      - name: Python syntax validation
+        run: python -m py_compile fetch_and_score.py component_scoring.py component_score_consolidated_verify.py tests/*.py
+      - name: Run complete existing regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Verify all five asset component scores in one offline batch
+        run: python component_score_consolidated_verify.py
+      - name: Upload one consolidated verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consolidated-component-verification
+          path: component-score-consolidated-verification.json
+          if-no-files-found: error
+          retention-days: 14
