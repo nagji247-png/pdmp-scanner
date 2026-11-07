@@ -345,6 +345,74 @@ def experimental_news_scores(
     return output
 
 
+def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fresh_results=None):
+    """Attach each asset's own one-day Trends snapshot without extra polling.
+
+    fresh_results is supplied only by a successful scheduled Trends slot (or
+    the explicitly isolated shadow workflow). Ordinary 30-minute scans only
+    reuse a still-fresh saved snapshot and never call Google Trends here.
+    """
+    search_assets = {
+        "NIFTY": "index_search_shadow",
+        "SENSEX": "index_search_shadow",
+        "BANKNIFTY": "index_search_shadow",
+        "GOLD": "asset_search_shadow",
+        "SILVER": "asset_search_shadow",
+    }
+    previous_instruments = previous_instruments or {}
+    for asset, field in search_assets.items():
+        item = (instruments or {}).get(asset)
+        if not isinstance(item, dict):
+            continue
+        if fresh_results is not None:
+            item[field] = fresh_results.get(asset) or {
+                "valid": False,
+                "seed": {
+                    "NIFTY": "nifty",
+                    "SENSEX": "sensex",
+                    "BANKNIFTY": "bank nifty",
+                    "GOLD": "gold price",
+                    "SILVER": "silver price",
+                }[asset],
+                "timeframe": "now 1-d",
+                "reason": "इस निर्धारित Trends स्लॉट में asset-specific reading नहीं मिली",
+                "production_score_used": False,
+            }
+            continue
+
+        old = (previous_instruments.get(asset) or {}).get(field)
+        if isinstance(old, dict) and old.get("valid"):
+            stamp = old.get("source_data_time") or old.get("as_of")
+            if is_fresh_timestamp(stamp, now_utc, max_age_minutes=120):
+                cached = dict(old)
+                cached["cached"] = True
+                item[field] = cached
+            else:
+                item[field] = {
+                    "valid": False,
+                    "seed": old.get("seed"),
+                    "timeframe": "now 1-d",
+                    "reason": "पिछली asset-specific one-day Search reading stale है",
+                    "production_score_used": False,
+                }
+        elif isinstance(old, dict):
+            item[field] = old
+        else:
+            item[field] = {
+                "valid": False,
+                "seed": {
+                    "NIFTY": "nifty",
+                    "SENSEX": "sensex",
+                    "BANKNIFTY": "bank nifty",
+                    "GOLD": "gold price",
+                    "SILVER": "silver price",
+                }[asset],
+                "timeframe": "now 1-d",
+                "reason": "अभी तक कोई asset-specific Trends reading सेव नहीं है",
+                "production_score_used": False,
+            }
+
+
 def build_asset_component_breakdowns(
     instruments, updated, now_utc, participant_today=None, participant_changes_data=None
 ):
@@ -5146,47 +5214,20 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
-    # Fetch one separate five-asset Trends batch only on an explicit shadow scan.
-    # Normal 30-minute runs reuse a fresh saved reading and make no extra Trends request.
-    search_assets = {
-        "NIFTY": "index_search_shadow",
-        "SENSEX": "index_search_shadow",
-        "BANKNIFTY": "index_search_shadow",
-        "GOLD": "asset_search_shadow",
-        "SILVER": "asset_search_shadow",
-    }
+    # Asset-specific Trends are refreshed only in a scheduled Trends slot,
+    # and only after the existing crowd Trends request succeeded. This adds one
+    # five-seed batch per successful slot, never on ordinary 30-minute scans.
+    _previous_asset_instruments = previous.get("instruments") or {}
+    _fresh_asset_search = None
     if component_shadow_scan:
-        asset_search_shadow = fetch_asset_trends_shadow()
-        for _asset_name, _field in search_assets.items():
-            _asset_data = result["instruments"].get(_asset_name)
-            if _asset_data is not None:
-                _asset_data[_field] = asset_search_shadow.get(_asset_name) or {
-                    "valid": False, "timeframe": "now 1-d",
-                    "reason": "इस asset की अलग Google Trends reading नहीं मिली",
-                    "production_score_used": False,
-                }
-    else:
-        _prior_shadow = previous.get("instruments") or {}
-        for _asset_name, _field in search_assets.items():
-            _old = (_prior_shadow.get(_asset_name) or {}).get(_field)
-            _asset_data = result["instruments"].get(_asset_name)
-            if _asset_data is None:
-                continue
-            if isinstance(_old, dict) and _old.get("valid"):
-                _stamp = _old.get("source_data_time") or _old.get("as_of")
-                if is_fresh_timestamp(_stamp, now_utc, max_age_minutes=120):
-                    _cached = dict(_old)
-                    _cached["cached"] = True
-                    _asset_data[_field] = _cached
-                else:
-                    _asset_data[_field] = {
-                        "valid": False, "seed": _old.get("seed"),
-                        "timeframe": "now 1-d",
-                        "reason": "पिछली asset-specific one-day Search reading stale है",
-                        "production_score_used": False,
-                    }
-            elif isinstance(_old, dict):
-                _asset_data[_field] = _old
+        _fresh_asset_search = fetch_asset_trends_shadow()
+    elif trends_scan and trends.get("ok"):
+        print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
+        _fresh_asset_search = fetch_asset_trends_shadow()
+    attach_asset_search_snapshots(
+        result["instruments"], _previous_asset_instruments, now_utc,
+        fresh_results=_fresh_asset_search,
+    )
 
     # Shadow-only component breakdown; does not change the published instrument score.
     result["component_score_method"] = build_asset_component_breakdowns(
