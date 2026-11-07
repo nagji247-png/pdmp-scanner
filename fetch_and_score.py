@@ -3107,32 +3107,66 @@ def _num(x):
         return None
 
 
-def fetch_usdinr_reference():
-    """Daily USD/INR reference rate only; never label it as an intraday quote."""
-    try:
-        response = requests.get(
-            "https://api.frankfurter.dev/v2/rate/usd/inr",
-            headers={"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"},
-            timeout=12
-        )
-        response.raise_for_status()
-        payload = response.json()
-        if payload.get("base") != "USD" or payload.get("quote") != "INR":
-            raise ValueError("Unexpected Frankfurter currency pair")
-        rate = float(payload.get("rate"))
-        rate_date = dt.date.fromisoformat(str(payload.get("date")))
-        age_days = (dt.datetime.now(dt.timezone.utc).date() - rate_date).days
-        if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 3:
-            raise ValueError("Frankfurter daily reference rate is invalid or too old")
-        print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
-        return {
-            "reference_price": round(rate, 4),
-            "reference_date": rate_date.isoformat(),
-            "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)"
-        }
-    except Exception as exc:
-        print(f"USDINR daily reference unavailable: {str(exc)[:160]}")
-        return {"reference_price": None, "reference_date": None, "reference_source": None}
+def fetch_usdinr_reference(previous=None):
+    """Daily USD/INR reference only; use two free Frankfurter routes, then a dated cache."""
+    today = dt.datetime.now(dt.timezone.utc).date()
+    headers = {"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"}
+    endpoints = (
+        ("https://api.frankfurter.dev/v2/rate/USD/INR", "v2"),
+        ("https://api.frankfurter.dev/v1/latest?from=USD&to=INR", "v1"),
+    )
+    errors = []
+    for url, version in endpoints:
+        try:
+            response = requests.get(url, headers=headers, timeout=12)
+            response.raise_for_status()
+            payload = response.json()
+            if version == "v2":
+                if str(payload.get("base", "")).upper() != "USD" or str(payload.get("quote", "")).upper() != "INR":
+                    raise ValueError("Unexpected Frankfurter currency pair")
+                raw_rate = payload.get("rate")
+                raw_date = payload.get("date")
+            else:
+                if str(payload.get("base", "")).upper() != "USD":
+                    raise ValueError("Unexpected Frankfurter base currency")
+                raw_rate = (payload.get("rates") or {}).get("INR")
+                raw_date = payload.get("date")
+            rate = float(raw_rate)
+            rate_date = dt.date.fromisoformat(str(raw_date))
+            age_days = (today - rate_date).days
+            if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 4:
+                raise ValueError("Frankfurter daily reference rate is invalid or too old")
+            print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
+            return {
+                "reference_price": round(rate, 4),
+                "reference_date": rate_date.isoformat(),
+                "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)",
+                "reference_stale": False,
+            }
+        except Exception as exc:
+            errors.append(str(exc)[:120])
+
+    # Keep the last verified daily reference visible over weekends/API outages.
+    # It is date-checked and always labelled as a non-live cached reference.
+    if isinstance(previous, dict):
+        try:
+            rate = float(previous.get("reference_price"))
+            rate_date = dt.date.fromisoformat(str(previous.get("reference_date")))
+            age_days = (today - rate_date).days
+            if math.isfinite(rate) and rate > 0 and 0 <= age_days <= 4:
+                return {
+                    "reference_price": round(rate, 4),
+                    "reference_date": rate_date.isoformat(),
+                    "reference_source": "Frankfurter · सुरक्षित पिछली दैनिक संदर्भ दर (लाइव नहीं)",
+                    "reference_stale": True,
+                }
+        except (TypeError, ValueError):
+            pass
+    print("USDINR daily reference unavailable: " + " | ".join(errors)[:200])
+    return {
+        "reference_price": None, "reference_date": None,
+        "reference_source": None, "reference_stale": False,
+    }
 
 
 def summarise_fundamentals(info, price):
@@ -4716,7 +4750,7 @@ def main():
     # Add a clearly separate daily reference rate when the intraday FX quote is unavailable.
     # The live price field remains null unless a validated intraday quote exists.
     if "USDINR" in result["instruments"]:
-        result["instruments"]["USDINR"].update(fetch_usdinr_reference())
+        result["instruments"]["USDINR"].update(fetch_usdinr_reference((previous.get("instruments") or {}).get("USDINR")))
 
     # सक्रिय वॉचलिस्ट से हटे शेयरों के पुराने Pending रिकॉर्ड भी अगले पूरे
     # कारोबारी दिन के Yahoo daily close से मिलाएँ; नए Dashboard कार्ड न बनाएँ।
