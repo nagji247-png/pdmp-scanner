@@ -3481,7 +3481,7 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
-        "गिरा", "कमजोर", "कमज़ोर", "सस्ता", "सस्ती", "गिरावट"]
+        "गिरा", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "सस्ता", "सस्ती", "गिरावट"]
 # सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
 TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
                     "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
