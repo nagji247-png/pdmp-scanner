@@ -102,7 +102,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
     def test_asset_directional_trends_phrase_diagnostic_is_not_a_score(self):
         import pandas as pd
 
-        now = pd.Timestamp.now(tz="UTC").floor("h")
+        now = pd.Timestamp.now(tz="UTC")
         index = pd.date_range(end=now, periods=24, freq="h")
         frame = pd.DataFrame({
             "nifty": [100] * 24,
@@ -125,7 +125,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "bull": 57.1, "bear": 28.6, "neutral": 14.3
         })
         self.assertNotIn("score", result)
-        self.assertIn("not included", result["interpretation"])
+        self.assertIn("शामिल नहीं", result["interpretation"])
 
     def test_asset_directional_trends_rejects_zero_or_missing_data(self):
         import pandas as pd
