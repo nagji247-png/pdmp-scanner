@@ -5221,7 +5221,7 @@ def main():
     _fresh_asset_search = None
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
-    elif trends_scan and trends.get("ok"):
+    elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
         print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
         _fresh_asset_search = fetch_asset_trends_shadow()
     attach_asset_search_snapshots(
