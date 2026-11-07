@@ -115,7 +115,7 @@ def main():
             "completion_status": (
                 "COMPLETE" if not failures and all(
                     item["status"] == "SCORED"
-                    and {"news", "search"}.issubset(set(item["included_components"]))
+                    and item["excluded_component_count"] == 0
                     for item in report_assets.values()
                 ) else "PARTIAL" if not failures else "BLOCKED"
             ),
