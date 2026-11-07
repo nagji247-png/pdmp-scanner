@@ -470,7 +470,7 @@ def build_asset_component_breakdowns(
                 "applicable": True,
                 "included": False,
                 "source": "NSE Indices / BSE official constituent-and-weight files",
-                "reason": "NIFTY 50 और NIFTY Bank की official constituent CSV download links पहचानी गई हैं, लेकिन CSV bytes, exact current member set और dated full-basket weights अभी इस scan में parse/verify नहीं हुए। NSE reports में NIFTY 50/NIFTY Next 50 के Market Capitalisation-Weightage report का link दिखता है, पर उसका dated output अभी validate नहीं हुआ; NIFTY Bank और SENSEX के complete official dated weights भी verify नहीं हैं। इसलिए full-basket daily snapshot और 60-session validation pending हैं; कोई 9-stock proxy या अनुमान Final में शामिल नहीं।",
+                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।",
             }
             client_context = client_oi_context(
                 participant_today, participant_changes_data
