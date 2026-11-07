@@ -39,8 +39,14 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         result = aggregate_nse_udiff_index_option_oi(
             rows, "NIFTY", "2026-11-06"
         )
+        # The two valid NIFTY rows still aggregate; the wrong-symbol row
+        # is ignored and the wrong-date NIFTY row invalidates availability
+        # without contributing to either side.
         self.assertFalse(result["available"])
-        self.assertEqual(result["matched_contract_rows"], 1)
+        self.assertEqual(result["matched_contract_rows"], 2)
+        self.assertEqual(result["call"]["open_interest"], 1000)
+        self.assertEqual(result["put"]["open_interest"], 2000)
+        self.assertIn("trade_date_mismatch_or_missing", result["validation_warnings"])
 
     def test_missing_one_side_fails_closed(self):
         result = aggregate_nse_udiff_index_option_oi(
