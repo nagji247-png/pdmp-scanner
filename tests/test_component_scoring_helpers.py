@@ -182,6 +182,24 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertEqual(context["client_index_futures"]["long_change"], None)
         self.assertFalse(context["included_in_asset_final"])
 
+    def test_client_oi_rejects_missing_same_day_or_future_comparison_date(self):
+        participant = {"ok": True, "stale": False, "date": "2026-11-06"}
+        client_row = {"index_call_long": 100, "index_call_short": 200,
+                      "index_put_long": 300, "index_put_short": 400,
+                      "future_index_long": 500, "future_index_short": 600}
+        for previous_date in (None, "2026-11-06", "2026-11-07", "bad-date"):
+            with self.subTest(previous_date=previous_date):
+                context = client_oi_context(
+                    participant,
+                    {"ok": True, "prev_date": previous_date,
+                     "by_group": {"CLIENT": client_row}},
+                )
+                self.assertFalse(context["available"])
+                self.assertTrue(context["reason"])
+                self.assertIsNone(context["ce_build_up"]["call_long_change"])
+                self.assertIsNone(context["client_index_futures"]["long_change"])
+                self.assertFalse(context["included_in_asset_final"])
+
 
     def test_nse_udiff_index_option_oi_is_separate_and_fail_closed(self):
         from component_scoring import aggregate_nse_udiff_index_option_oi
