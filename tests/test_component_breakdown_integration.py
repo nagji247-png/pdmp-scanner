@@ -5,6 +5,44 @@ import fetch_and_score
 
 
 class ComponentBreakdownIntegrationTests(unittest.TestCase):
+    def test_optional_trends_phrase_diagnostics_are_off_by_default(self):
+        seeds = {
+            "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
+            "GOLD": "gold price", "SILVER": "silver price",
+        }
+        output = {}
+        with unittest.mock.patch.object(
+            fetch_and_score, "fetch_asset_directional_trends_diagnostics",
+            side_effect=AssertionError("extra Trends calls must be opt-in"),
+        ):
+            result = fetch_and_score._attach_asset_directional_trends_diagnostics(
+                output, seeds
+            )
+        self.assertEqual(set(result), set(seeds))
+        self.assertTrue(all(
+            item["directional_query_diagnostic"]["available"] is False
+            for item in result.values()
+        ))
+        self.assertTrue(all(
+            "अतिरिक्त Google Trends अनुरोध" in item["directional_query_diagnostic"]["reason"]
+            for item in result.values()
+        ))
+
+    def test_optional_trends_phrase_diagnostics_can_be_enabled_explicitly(self):
+        seeds = {"NIFTY": "nifty"}
+        expected = {"NIFTY": {"available": True, "diagnostic_only": True}}
+        with unittest.mock.patch.object(
+            fetch_and_score, "fetch_asset_directional_trends_diagnostics",
+            return_value=expected,
+        ) as fetch:
+            result = fetch_and_score._attach_asset_directional_trends_diagnostics(
+                {}, seeds, enabled=True
+            )
+        fetch.assert_called_once_with()
+        self.assertEqual(
+            result["NIFTY"]["directional_query_diagnostic"], expected["NIFTY"]
+        )
+
     def test_news_only_final_is_normalized_and_does_not_change_live_score(self):
         instruments = {
             "NIFTY": {
