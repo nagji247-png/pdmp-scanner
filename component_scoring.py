@@ -314,6 +314,20 @@ def client_oi_context(participant_today, changes):
     if not change_data.get("ok"):
         result["reason"] = "पिछले उपलब्ध EOD snapshot से CLIENT बदलाव सत्यापित नहीं"
         return result
+    # A change is meaningful only when its comparison snapshot is explicitly
+    # dated before the current EOD snapshot. Reject missing, same-day, future,
+    # or malformed dates instead of displaying an untraceable delta.
+    current_date = today.get("date")
+    previous_date = change_data.get("prev_date")
+    try:
+        current_day = datetime.strptime(str(current_date), "%Y-%m-%d").date()
+        previous_day = datetime.strptime(str(previous_date), "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        result["reason"] = "CLIENT बदलाव की आज/पिछली EOD तारीख़ मान्य नहीं"
+        return result
+    if previous_day >= current_day:
+        result["reason"] = "CLIENT बदलाव के लिए पिछली EOD तारीख़ आज की तारीख़ से पहले नहीं है"
+        return result
     client = ((change_data.get("by_group") or {}).get("CLIENT") or {})
     if not client:
         result["reason"] = "NSE report में CLIENT participant row उपलब्ध नहीं"
