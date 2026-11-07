@@ -5150,7 +5150,7 @@ def main():
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
     # Shadow calculation only: the published production score is not changed.
-    experimental_news = experimental_news_scores(result["instruments"])
+    experimental_news = experimental_news_scores(result["instruments"], now_utc=now_utc)
     for _n, _exp in experimental_news.items():
         _d = result["instruments"].get(_n)
         if not _d:
