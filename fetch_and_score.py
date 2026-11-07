@@ -364,8 +364,27 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
         item = (instruments or {}).get(asset)
         if not isinstance(item, dict):
             continue
+        old = (previous_instruments.get(asset) or {}).get(field)
         if fresh_results is not None:
-            item[field] = fresh_results.get(asset) or {
+            fresh = fresh_results.get(asset)
+            # A failed/under-covered refresh must not erase a still-fresh
+            # verified snapshot. Keep its original observation timestamp and
+            # expose the failed refresh separately; never extend its lifetime.
+            if not (isinstance(fresh, dict) and fresh.get("valid")):
+                stamp = old.get("source_data_time") or old.get("as_of") if isinstance(old, dict) else None
+                if isinstance(old, dict) and old.get("valid") and is_fresh_timestamp(
+                    stamp, now_utc, max_age_minutes=120
+                ):
+                    cached = dict(old)
+                    cached["cached"] = True
+                    cached["refresh_attempted_at"] = now_utc.isoformat()
+                    cached["refresh_error"] = (
+                        fresh.get("reason") if isinstance(fresh, dict)
+                        else "इस निर्धारित Trends स्लॉट में asset-specific reading नहीं मिली"
+                    )
+                    item[field] = cached
+                    continue
+            item[field] = fresh or {
                 "valid": False,
                 "seed": {
                     "NIFTY": "nifty",
@@ -380,7 +399,6 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             }
             continue
 
-        old = (previous_instruments.get(asset) or {}).get(field)
         if isinstance(old, dict) and old.get("valid"):
             stamp = old.get("source_data_time") or old.get("as_of")
             if is_fresh_timestamp(stamp, now_utc, max_age_minutes=120):
