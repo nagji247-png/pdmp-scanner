@@ -156,6 +156,9 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(classify("चांदी में कमजोरी", "SILVER"), "bear")
         self.assertEqual(classify("सोने में कमज़ोरी", "GOLD"), "bear")
         self.assertIsNone(classify("चांदी में तेजी", "GOLD"))
+        self.assertEqual(classify("गोल्ड में तेजी", "GOLD"), "bull")
+        self.assertEqual(classify("सिल्वर में गिरावट", "SILVER"), "bear")
+        self.assertEqual(classify("रजत में तेजी", "SILVER"), "bull")
 
     def test_asset_directional_trends_phrase_diagnostic_is_not_a_score(self):
         import pandas as pd
