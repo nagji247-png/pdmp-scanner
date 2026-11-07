@@ -111,7 +111,14 @@ def main():
             "assets_with_final_score": sum(1 for item in report_assets.values() if item["status"] == "SCORED"),
             "assets_without_final_score": sum(1 for item in report_assets.values() if item["status"] != "SCORED"),
             "component_integrity_failures": failures,
-            "result": "PASS" if not failures else "FAIL",
+            "integrity_result": "PASS" if not failures else "FAIL",
+            "completion_status": (
+                "COMPLETE" if not failures and all(
+                    item["status"] == "SCORED"
+                    and {"news", "search"}.issubset(set(item["included_components"]))
+                    for item in report_assets.values()
+                ) else "PARTIAL" if not failures else "BLOCKED"
+            ),
         },
         "assets": report_assets,
         "limitations": [
@@ -137,6 +144,7 @@ def main():
                 f"source={component['source']} date={component['source_date']}"
             )
     print("SUMMARY", json.dumps(report["summary"], ensure_ascii=False))
+    print("COMPLETION_STATUS", report["summary"]["completion_status"])
     print(f"REPORT_READY {OUTPUT}")
     if failures:
         raise SystemExit(1)
