@@ -130,9 +130,20 @@ class ComponentScoringHelperTests(unittest.TestCase):
         )
         self.assertTrue(context["available"])
         self.assertFalse(context["included_in_asset_final"])
-        self.assertEqual(context["ce_build_up"]["call_long_change"], 11)
-        self.assertEqual(context["pe_build_up"]["put_short_change"], -14)
+        self.assertEqual(context["ce_build_up"], {
+            "call_long_change": 11,
+            "call_short_change": -12,
+        })
+        self.assertEqual(context["pe_build_up"], {
+            "put_long_change": 13,
+            "put_short_change": -14,
+        })
+        self.assertEqual(context["client_index_futures"], {
+            "long_change": 15,
+            "short_change": -16,
+        })
         self.assertIn("not index-specific", context["scope"])
+        self.assertFalse(context["included_in_asset_final"])
 
 
     def test_nse_udiff_index_option_oi_is_separate_and_fail_closed(self):
