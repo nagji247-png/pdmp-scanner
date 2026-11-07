@@ -1,0 +1,78 @@
+import unittest
+from datetime import datetime, timedelta, timezone
+from unittest import mock
+
+import fetch_and_score
+
+
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+class WeekendPriceSourceRegressionTests(unittest.TestCase):
+    def test_friday_mcx_close_remains_visible_on_saturday_evening(self):
+        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
+        quote = {"source_time": "2026-11-06 23:54 IST"}
+        self.assertTrue(fetch_and_score.mcx_reference_is_fresh(quote, now=now))
+        self.assertFalse(fetch_and_score.mcx_reference_is_live(quote, now=now))
+
+    def test_mcx_quote_older_than_four_days_is_rejected(self):
+        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
+        quote = {"source_time": "2026-11-02 10:00 IST"}
+        self.assertFalse(fetch_and_score.mcx_reference_is_fresh(quote, now=now))
+
+    def test_nse_equity_friday_close_remains_valid_on_saturday_evening(self):
+        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
+        payload = {
+            "equityResponse": [{
+                "metaData": {
+                    "symbol": "RELIANCE",
+                    "lastPrice": "1320.00",
+                    "lastUpdateTime": "06-Nov-2026 15:30:00",
+                    "previousClose": "1300.00",
+                },
+                "tradeInfo": {"lastPrice": "1320.00"},
+            }]
+        }
+        quote = fetch_and_score.parse_nse_direct_equity_payload(
+            "RELIANCE", payload, now=now
+        )
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["price"], 1320.0)
+        self.assertIn("पिछला बंद भाव", quote["source"])
+
+    def test_nse_equity_quote_older_than_four_days_is_rejected(self):
+        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
+        payload = {
+            "equityResponse": [{
+                "metaData": {
+                    "symbol": "RELIANCE",
+                    "lastPrice": "1320.00",
+                    "lastUpdateTime": "02-Nov-2026 15:30:00",
+                    "previousClose": "1300.00",
+                },
+                "tradeInfo": {"lastPrice": "1320.00"},
+            }]
+        }
+        self.assertIsNone(fetch_and_score.parse_nse_direct_equity_payload(
+            "RELIANCE", payload, now=now
+        ))
+
+    def test_usdinr_uses_recent_cached_reference_if_free_api_is_unavailable(self):
+        today = datetime.now(timezone.utc).date()
+        previous = {
+            "reference_price": 93.89,
+            "reference_date": (today - timedelta(days=1)).isoformat(),
+        }
+        with mock.patch.object(
+            fetch_and_score.requests, "get",
+            side_effect=RuntimeError("offline"),
+        ) as request:
+            result = fetch_and_score.fetch_usdinr_reference(previous)
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual(result["reference_price"], 93.89)
+        self.assertTrue(result["reference_stale"])
+        self.assertIn("लाइव नहीं", result["reference_source"])
+
+
+if __name__ == "__main__":
+    unittest.main()
