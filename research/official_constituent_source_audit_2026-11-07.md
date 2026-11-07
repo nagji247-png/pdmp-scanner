@@ -87,3 +87,15 @@ The later integration validation run #271 (job 128262468817) confirmed additiona
 - NSE MCP handshake, MCX quote parsing/freshness, MCX FUTCOM symbol/expiry selection, and related parser checks passed. Workflow success indicates the diagnostic checks completed; it does not mean each candidate source is validated for directional scoring.
 
 No live scoring, production scan schedule, or dashboard signal was changed by this follow-up.
+
+## Latest CI run #272 — additional qualification (2026-11-07)
+
+Run #272 completed successfully, but three optional historical diagnostics were explicitly **skipped**: the 60-session NSE option-OI positioning backtest, the 60-session NIFTY basket breadth backtest, and the 30-session MCX futures-OI breadth backtest. Therefore this run adds no new historical directional validation for those components. A successful workflow status must not be reported as a successful backtest.
+
+The MCX same-expiry FUTCOM probe did retrieve five dated observations for GOLD 04DEC2026 and SILVER 04DEC2026 (2026-10-30 to 2026-11-05). Across four adjacent sessions:
+- GOLD regimes: price-up/OI-down on three intervals; price-down/OI-up on one.
+- SILVER regimes: price-down/OI-down on two intervals, price-up/OI-up on one, and price-up/OI-down on one.
+
+These mixed observations are descriptive only. They do not validate a repeatable directional signal and are not CLIENT category OI. Gold/Silver futures OI therefore remain excluded from the asset Final score.
+
+CI #272 passed syntax, source parsing, contract-master reconciliation, constituent-file parsing, and the MCX exact-symbol/expiry checks. It does not close the historical-validation gate. Production score and normal scan cadence remain unchanged.
