@@ -965,15 +965,15 @@ def google_finance_quote(symbol, exchange, label):
         if age_seconds < -120:
             raise ValueError("Google Finance quote timestamp is in the future")
         if exchange == "INDEXNASDAQ" or exchange == "INDEXDJX":
-            # US indices: accept a same-session close overnight, but never a
-            # quote older than 18 hours (weekends/holidays naturally expire).
+            # US indices: retain the dated last close across weekends, but reject
+            # any quote older than the four-day closed-market safety window.
             max_age = 96 * 60 * 60
             if age_seconds > max_age:
-                raise ValueError("US index quote is older than the allowed 18-hour session window")
+                raise ValueError("US index quote is older than the allowed four-day closed-market window")
             time_label = stamp.strftime("%I:%M %p ET").lstrip("0")
         else:
             # During cash session require recent data; outside session accept
-            # the latest previous close for up to 18 hours, clearly labelled.
+            # the dated previous close for up to four days, clearly labelled.
             session_open = india_cash_session_open(now_exchange)
             max_age = 15 * 60 if session_open else 96 * 60 * 60
             if age_seconds > max_age:
@@ -2726,7 +2726,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
     nse_quote = nse_cash_quote(name, sym)
     # SENSEX uses BSE's direct quote first; Google Finance's timestamped direct
-    # index quote is the fallback. Never use an unvalidated daily OHLC candle.
+    # quote is a fallback. Yahoo intraday is deliberately not a cash quote fallback.
     yahoo_quote = intraday_quote(sym) if name in ("USDINR", "BITCOIN") else None
     global_quote = google_finance_sensex_quote() if name == "SENSEX" and not nse_quote else None
     if not nse_quote and not yahoo_quote and name == "NASDAQ":
@@ -3113,7 +3113,7 @@ def fetch_usdinr_reference(previous=None):
     headers = {"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"}
     endpoints = (
         ("https://api.frankfurter.dev/v2/rate/USD/INR", "v2"),
-        ("https://api.frankfurter.dev/v1/latest?from=USD&to=INR", "v1"),
+        ("https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR", "v1"),
     )
     errors = []
     for url, version in endpoints:
