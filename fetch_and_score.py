@@ -3782,8 +3782,9 @@ def _asset_search_direction(term, asset):
 
     # Match common Hindi names as well as English asset names. Normalize
     # nukta/chandrabindu variants first; keep neighboring assets isolated.
-    nifty_name = "nifty" in tokens or "निफ्टी" in tokens
-    bank_name = "bank" in tokens or "बैंक" in tokens
+    bank_compound = "banknifty" in tokens or "बैंकनिफ्टी" in tokens
+    nifty_name = "nifty" in tokens or "निफ्टी" in tokens or bank_compound
+    bank_name = "bank" in tokens or "बैंक" in tokens or bank_compound
     sensex_name = "sensex" in tokens or "सेंसेक्स" in tokens
     gold_name = bool(tokens & {"gold", "सोना", "सोने", "स्वर्ण"})
     silver_name = bool(tokens & {"silver", "चांदी"})
