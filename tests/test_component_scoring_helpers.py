@@ -19,7 +19,8 @@ class ComponentScoringHelperTests(unittest.TestCase):
             {"symbol": "BBB", "weight_pct": 40, "previous_close": 100, "current_close": 90},
         ]
         result = weighted_constituent_breadth_candidate(
-            rows, "NSE official monthly weights + dated cash Bhavcopy", "2026-11-05"
+            rows, "NSE official monthly weights + dated cash Bhavcopy", "2026-11-05",
+            expected_symbols=["AAA", "BBB"],
         )
         self.assertTrue(result["available"])
         self.assertFalse(result["included_in_asset_final"])
@@ -36,13 +37,41 @@ class ComponentScoringHelperTests(unittest.TestCase):
         duplicate = [base[0], dict(base[1], symbol="AAA")]
         partial = [base[0]]
         self.assertFalse(weighted_constituent_breadth_candidate(
-            duplicate, "official", "2026-11-05"
+            duplicate, "official", "2026-11-05", expected_symbols=["AAA", "BBB"]
         )["available"])
         result = weighted_constituent_breadth_candidate(
-            partial, "official", "2026-11-05"
+            partial, "official", "2026-11-05", expected_symbols=["AAA", "BBB"]
         )
         self.assertFalse(result["available"])
         self.assertFalse(result["included_in_asset_final"])
+
+
+    def test_weighted_breadth_rejects_100_percent_partial_or_substituted_roster(self):
+        partial_with_renormalized_weight = [
+            {"symbol": "AAA", "weight_pct": 100, "previous_close": 100, "current_close": 110},
+        ]
+        substituted = [
+            {"symbol": "AAA", "weight_pct": 60, "previous_close": 100, "current_close": 110},
+            {"symbol": "ZZZ", "weight_pct": 40, "previous_close": 100, "current_close": 90},
+        ]
+        missing_roster = weighted_constituent_breadth_candidate(
+            partial_with_renormalized_weight, "official", "2026-11-05"
+        )
+        self.assertFalse(missing_roster["available"])
+        self.assertIn("expected constituent roster", missing_roster["reason"])
+        partial = weighted_constituent_breadth_candidate(
+            partial_with_renormalized_weight, "official", "2026-11-05",
+            expected_symbols=["AAA", "BBB"],
+        )
+        self.assertFalse(partial["available"])
+        self.assertEqual(partial["missing_symbols"], ["BBB"])
+        replacement = weighted_constituent_breadth_candidate(
+            substituted, "official", "2026-11-05",
+            expected_symbols=["AAA", "BBB"],
+        )
+        self.assertFalse(replacement["available"])
+        self.assertEqual(replacement["missing_symbols"], ["BBB"])
+        self.assertEqual(replacement["unexpected_symbols"], ["ZZZ"])
 
     def test_clamp_and_reject_non_finite_values(self):
         self.assertEqual(clamp_score(15), 10.0)
