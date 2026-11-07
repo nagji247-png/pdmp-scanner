@@ -3480,9 +3480,7 @@ TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
-                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
-        "गिरा", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "सस्ता", "सस्ती",
-        "गिरा", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "सस्ता", "सस्ती", "गिरावट"]
+                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन"]
 # सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
 TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
                     "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
@@ -3828,6 +3826,7 @@ def _asset_search_direction(term, asset):
         "girawat", "girega", "giregi", "neeche", "mandi",
         "tutega", "गिरावट", "गिरेगा", "गिरेगी", "नीचे",
         "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
+        "गिरा", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "सस्ता", "सस्ती",
     }
     negation_terms = {"not", "no", "without", "never", "नहीं", "मत", "बिना"}
     if tokens & negation_terms:
