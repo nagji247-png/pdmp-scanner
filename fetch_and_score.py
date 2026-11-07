@@ -3902,7 +3902,15 @@ def _asset_search_direction(term, asset):
     neutral_intent = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
-        "स्थिर", "सपाट", "सीमित", "दायरे", "साइडवेज",
+        # Informational/navigation searches are neutral, not directional votes.
+        "today", "live", "price", "chart", "index", "market", "share",
+        "prediction", "predictions", "forecast", "forecasts",
+        "option", "options", "chain", "expiry", "weekly", "monthly",
+        "analysis", "technical", "support", "resistance", "level", "levels",
+        "news", "tomorrow", "trading", "स्थिर", "सपाट", "सीमित",
+        "दायरे", "साइडवेज", "आज", "लाइव", "भाव", "कीमत", "चार्ट",
+        "अनुमान", "भविष्यवाणी", "ऑप्शन", "चेन", "एक्सपायरी",
+        "विश्लेषण", "समाचार", "कल",
     }
     if tokens & neutral_intent:
         return "neutral"
