@@ -331,6 +331,10 @@ def experimental_news_scores(
             "headline_count": len(kept),
             "excluded_old_or_unknown": old_or_unknown[name],
             "excluded_cross_index_duplicates": len(shared[name]),
+            "eligible_published_at": sorted(
+                str(h.get("published_at")).strip()
+                for h in kept if h.get("published_at")
+            ),
         }
     return output
 
@@ -371,8 +375,8 @@ def build_asset_component_breakdowns(
             news_count = int(news_info.get("headline_count") or 0)
             news_score = news_info.get("news_score") if news_count else None
             newest_age = min(
-                (_num(h.get("age_h")) for h in (item.get("headlines") or [])
-                 if _num(h.get("age_h")) is not None and 0 <= _num(h.get("age_h")) <= 24),
+                (age for h in (item.get("headlines") or [])
+                 if (age := _timestamped_news_age_hours(h, now_utc)) is not None),
                 default=None,
             )
             duplicate_note = "24h timestamped headlines; cross-index duplicates excluded"
@@ -406,9 +410,12 @@ def build_asset_component_breakdowns(
                 str(h.get("source")).strip()
                 for h in eligible_headlines if h.get("source")
             })
-            published_stamps = sorted(
-                parse_utc_timestamp(h.get("published_at")).isoformat().replace("+00:00", "Z")
-                for h in eligible_headlines
+            published_stamps = (
+                sorted(news_info.get("eligible_published_at") or [])
+                if name in index_news else sorted(
+                    parse_utc_timestamp(h.get("published_at")).isoformat().replace("+00:00", "Z")
+                    for h in eligible_headlines
+                )
             )
             newest_published = parse_utc_timestamp(published_stamps[-1])
             component_source_date = newest_published.astimezone(
