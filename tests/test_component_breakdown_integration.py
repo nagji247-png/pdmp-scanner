@@ -76,6 +76,49 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("search", breakdown["excluded_components"])
         self.assertNotIn("search", breakdown["components"])
 
+    def test_each_asset_search_component_rejects_another_assets_seed(self):
+        now = datetime(2026, 11, 6, 7, 0, tzinfo=timezone.utc)
+        seeds = {
+            "NIFTY": "nifty",
+            "SENSEX": "sensex",
+            "BANKNIFTY": "bank nifty",
+            "GOLD": "gold price",
+            "SILVER": "silver price",
+        }
+        instruments = {}
+        for name, seed in seeds.items():
+            instruments[name] = {
+                "score": 0.0,
+                "headlines": [],
+                "index_search_shadow" if name in ("NIFTY", "SENSEX", "BANKNIFTY") else "asset_search_shadow": {
+                    "valid": True,
+                    "seed": seed,
+                    "source": "Google Trends related_queries · India",
+                    "timeframe": "now 1-d",
+                    "source_data_time": now.isoformat(),
+                    "bull_pct": 70.0,
+                    "bear_pct": 20.0,
+                    "neutral_pct": 10.0,
+                    "directional_bull_pct": 77.8,
+                    "neutral_aware_score": 5.0,
+                    "classified_queries": 5,
+                },
+            }
+        # Deliberately copy NIFTY's seed into SENSEX: it must never be scored.
+        instruments["SENSEX"]["index_search_shadow"]["seed"] = "nifty"
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments, now.isoformat(), now
+        )
+        for name in ("NIFTY", "BANKNIFTY", "GOLD", "SILVER"):
+            self.assertEqual(
+                instruments[name]["component_breakdown"]["components"]["search"]["seed"],
+                seeds[name],
+            )
+        sensex = instruments["SENSEX"]["component_breakdown"]
+        self.assertNotIn("search", sensex["components"])
+        self.assertIn("seed mismatch", sensex["excluded_components"]["search"]["reason"])
+        self.assertEqual(sensex["final"]["status"], "unavailable")
+
     def test_neutral_only_asset_search_is_visible_but_not_scored(self):
         snapshot = {
             "valid": True,
