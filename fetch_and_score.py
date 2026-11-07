@@ -3778,7 +3778,7 @@ def _trends_related_queries(timeframe="now 1-d"):
 def _asset_search_direction(term, asset):
     """Classify only queries that actually refer to this asset; generic info intent is neutral."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
-    tokens = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
+    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
 
     # Match common Hindi names as well as English asset names. Normalize
     # nukta/chandrabindu variants first; keep neighboring assets isolated.
