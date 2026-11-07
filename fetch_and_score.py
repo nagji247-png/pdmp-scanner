@@ -4,6 +4,7 @@ from urllib.parse import quote_plus
 from component_scoring import (
     DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
     search_component_from_snapshot, client_oi_context, is_fresh_timestamp,
+    parse_utc_timestamp,
     compare_mcx_bhavcopy_contract_oi,
 )
 import feedparser, yfinance as yf
@@ -270,8 +271,26 @@ def shadow_weighted_news_score(heads):
         den += w
     return round(num / den, 2) if den > 0 else 0.0
 
-def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKNIFTY")):
-    """Shadow-only score: verified <=24h headlines, cross-index duplicates excluded, no extra x2."""
+def _timestamped_news_age_hours(headline, now_utc):
+    """Derive news age from publisher timestamp; never trust cached age_h alone."""
+    if not isinstance(headline, dict):
+        return None
+    published = parse_utc_timestamp(headline.get("published_at"))
+    if published is None:
+        return None
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    age_h = (now.astimezone(dt.timezone.utc) - published).total_seconds() / 3600.0
+    if age_h < -5.0 / 60.0 or age_h > 24.0:
+        return None
+    return max(0.0, age_h)
+
+
+def experimental_news_scores(
+    instruments, index_names=("NIFTY", "SENSEX", "BANKNIFTY"), now_utc=None
+):
+    """Shadow-only score: publisher-timestamped <=24h headlines; cross-index duplicates excluded."""
     eligible = {}
     old_or_unknown = {}
     for name in index_names:
@@ -279,11 +298,13 @@ def experimental_news_scores(instruments, index_names=("NIFTY", "SENSEX", "BANKN
         eligible[name] = []
         old_or_unknown[name] = 0
         for h in item.get("headlines") or []:
-            age = _num(h.get("age_h"))
-            if age is None or age < 0 or age > 24:
+            age = _timestamped_news_age_hours(h, now_utc)
+            if age is None:
                 old_or_unknown[name] += 1
                 continue
-            eligible[name].append(h)
+            copied = dict(h)
+            copied["age_h"] = age
+            eligible[name].append(copied)
 
     # Exclude a story shared by different index searches from BOTH candidate scores.
     shared = {name: set() for name in index_names}
@@ -324,7 +345,7 @@ def build_asset_component_breakdowns(
     """
     index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
     search_assets = set(index_names) | {"GOLD", "SILVER"}
-    index_news = experimental_news_scores(instruments)
+    index_news = experimental_news_scores(instruments, now_utc=now_utc)
 
     try:
         scan_stamp = dt.datetime.fromisoformat(str(updated).replace("Z", "+00:00"))
@@ -361,12 +382,13 @@ def build_asset_component_breakdowns(
             for headline in item.get("headlines") or []:
                 if not isinstance(headline, dict):
                     continue
-                age = _num(headline.get("age_h"))
+                age = _timestamped_news_age_hours(headline, now_utc)
                 score = _num(headline.get("score"))
-                if age is None or age < 0 or age > 24 or score is None:
+                if age is None or score is None:
                     continue
                 copied = dict(headline)
                 copied["score"] = score
+                copied["age_h"] = age
                 eligible_news.append(copied)
                 ages.append(age)
             news_count = len(eligible_news)
@@ -374,31 +396,33 @@ def build_asset_component_breakdowns(
             newest_age = min(ages) if ages else None
             duplicate_note = "24h timestamped headlines; asset-specific card query"
 
-        if news_score is not None and news_count > 0 and news_source_date:
+        if news_score is not None and news_count > 0:
+            eligible_headlines = [
+                h for h in (item.get("headlines") or [])
+                if isinstance(h, dict)
+                and _timestamped_news_age_hours(h, now_utc) is not None
+            ]
             fresh_publishers = sorted({
                 str(h.get("source")).strip()
-                for h in (item.get("headlines") or [])
-                if isinstance(h, dict)
-                and h.get("source")
-                and _num(h.get("age_h")) is not None
-                and 0 <= _num(h.get("age_h")) <= 24
+                for h in eligible_headlines if h.get("source")
             })
             published_stamps = sorted(
-                str(h.get("published_at")).strip()
-                for h in (item.get("headlines") or [])
-                if isinstance(h, dict)
-                and h.get("published_at")
-                and _num(h.get("age_h")) is not None
-                and 0 <= _num(h.get("age_h")) <= 24
+                parse_utc_timestamp(h.get("published_at")).isoformat().replace("+00:00", "Z")
+                for h in eligible_headlines
             )
+            newest_published = parse_utc_timestamp(published_stamps[-1])
+            component_source_date = newest_published.astimezone(
+                dt.timezone(dt.timedelta(hours=5, minutes=30))
+            ).date().isoformat()
             news_component = build_component(
                 news_score,
                 "Google News RSS · asset-specific card query",
-                news_source_date,
+                component_source_date,
                 DEFAULT_COMPONENT_WEIGHTS["news"],
                 observed_at=updated,
-                newest_headline_published_at=(published_stamps[-1] if published_stamps else None),
-                oldest_headline_published_at=(published_stamps[0] if published_stamps else None),
+                newest_headline_published_at=published_stamps[-1],
+                oldest_headline_published_at=published_stamps[0],
+                source_date_basis="newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 evidence_count=news_count,
                 publishers=fresh_publishers[:10],
                 query=item.get("news_query"),
@@ -526,7 +550,7 @@ def build_asset_component_breakdowns(
         "weights": DEFAULT_COMPONENT_WEIGHTS,
         "score_range": "-10..+10",
         "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
-        "news_rule": "Only timestamped asset-specific headlines no older than 24 hours; cross-index duplicate stories excluded.",
+        "news_rule": "Only publisher-timestamped asset-specific headlines no older than 24 hours; age is recomputed from published_at; source_date is newest eligible headline date in IST; cross-index duplicate stories excluded.",
         "participant_oi_scope": "NSE participant-wise CLIENT CE/PE/Futures is market-wide aggregate context, not index-specific and not included in index final scores.",
         "published_score_changed": False,
     }
