@@ -100,6 +100,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(news["source_date_basis"],
                          "newest eligible publisher timestamp converted to IST; observed_at is scan time")
         self.assertEqual(news["newest_headline_published_at"], "2026-11-07T06:30:00Z")
+        self.assertEqual(news["newest_headline_age_h"], 0.5)
         self.assertEqual(news["observed_at"], "2026-11-07T07:00:00Z")
         self.assertEqual(instruments["NIFTY"]["score"], 4.0)
 
