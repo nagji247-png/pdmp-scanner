@@ -119,6 +119,21 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertIsNone(component)
         self.assertIn("directional evidence", reason)
 
+    def test_legacy_neutral_zero_search_score_is_rejected(self):
+        snapshot = {
+            "valid": True, "timeframe": "now 1-d",
+            "source_data_time": "2026-11-06T01:00:00Z",
+            "neutral_aware_score": 0,
+            "directional_bull_pct": 0,
+            "bull_pct": 0,
+            "bear_pct": 0,
+        }
+        component, reason = search_component_from_snapshot(
+            snapshot, now_utc=datetime(2026, 11, 6, 2, 0, tzinfo=timezone.utc)
+        )
+        self.assertIsNone(component)
+        self.assertIn("directional evidence", reason)
+
     def test_client_oi_is_market_wide_context_not_asset_final(self):
         context = client_oi_context(
             {"ok": True, "stale": False, "date": "2026-11-05"},
