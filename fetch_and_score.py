@@ -3877,6 +3877,86 @@ def _asset_rising_diagnostics(rising, asset):
     }
 
 
+ASSET_DIRECTIONAL_TRENDS_QUERIES = {
+    # Search-interest diagnostics only. Query volume is not proof of trader positioning.
+    "NIFTY": {"seed": "nifty", "bull": "nifty breakout", "bear": "nifty crash", "neutral": "nifty sideways"},
+    "SENSEX": {"seed": "sensex", "bull": "sensex rally", "bear": "sensex crash", "neutral": "sensex sideways"},
+    "BANKNIFTY": {"seed": "bank nifty", "bull": "bank nifty breakout", "bear": "bank nifty crash", "neutral": "bank nifty sideways"},
+    "GOLD": {"seed": "gold price", "bull": "gold price rise", "bear": "gold price fall", "neutral": "gold price stable"},
+    "SILVER": {"seed": "silver price", "bull": "silver price rise", "bear": "silver price fall", "neutral": "silver price stable"},
+}
+
+
+def _summarize_asset_directional_trends(df, asset, spec):
+    """Summarize asset-specific directional phrase interest; diagnostic only, never a crowd score."""
+    if df is None or getattr(df, "empty", True):
+        raise ValueError("Google Trends hourly directional-query data is empty")
+    stamp = _trends_observation_time(df, f"Google Trends {asset} directional-query timestamp")
+    seed = spec["seed"]
+    required = (seed, spec["bull"], spec["bear"], spec["neutral"])
+    missing = [term for term in required if term not in df.columns]
+    if missing:
+        raise ValueError("Google Trends columns missing: " + ", ".join(missing))
+    ratios = {}
+    for direction in ("bull", "bear", "neutral"):
+        recent_ratio, _ = _ratio(df, spec[direction], recent_points=24)
+        ratios[direction] = round(max(0.0, recent_ratio) * 100.0, 2)
+    total = sum(ratios.values())
+    if not math.isfinite(total) or total <= 0:
+        raise ValueError("तीनों asset-specific directional phrases का ताज़ा search-interest शून्य है")
+    mix = {key: round(value / total * 100.0, 1) for key, value in ratios.items()}
+    return {
+        "available": True,
+        "diagnostic_only": True,
+        "asset": asset,
+        "seed": seed,
+        "source": "Google Trends interest_over_time · India",
+        "timeframe": "now 1-d",
+        "source_data_time": stamp.isoformat(),
+        "anchor_relative_interest_pct": ratios,
+        "query_interest_mix_pct": mix,
+        "query_terms": {key: spec[key] for key in ("bull", "bear", "neutral")},
+        "interpretation": (
+            "ये तीन चुने हुए search phrases की seed-relative खोज-रुचि है; "
+            "यह सभी traders/खोजों का प्रतिशत या वास्तविक position नहीं है। "
+            "इसे component Final में शामिल नहीं किया जाता।"
+        ),
+    }
+
+
+def fetch_asset_directional_trends_diagnostics():
+    """One fresh, asset-scoped phrase batch per asset; called only by manual shadow scans."""
+    from pytrends.request import TrendReq
+
+    output = {}
+    try:
+        py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+    except Exception as exc:
+        reason = str(exc)[:200]
+        return {
+            asset: {"available": False, "diagnostic_only": True, "reason": reason}
+            for asset in ASSET_DIRECTIONAL_TRENDS_QUERIES
+        }
+
+    for asset, spec in ASSET_DIRECTIONAL_TRENDS_QUERIES.items():
+        try:
+            terms = [spec["seed"], spec["bull"], spec["bear"], spec["neutral"]]
+            py.build_payload(terms, timeframe="now 1-d", geo="IN")
+            frame = py.interest_over_time()
+            output[asset] = _summarize_asset_directional_trends(frame, asset, spec)
+        except Exception as exc:
+            output[asset] = {
+                "available": False,
+                "diagnostic_only": True,
+                "asset": asset,
+                "seed": spec["seed"],
+                "source": "Google Trends interest_over_time · India",
+                "timeframe": "now 1-d",
+                "reason": str(exc)[:220],
+            }
+    return output
+
+
 def fetch_asset_trends_shadow():
     """One batched 1-day Trends request for three indices plus Gold/Silver."""
     from pytrends.request import TrendReq
@@ -4010,6 +4090,20 @@ def fetch_asset_trends_shadow():
                 "reason": reason,
                 "production_score_used": False,
             }
+    # Manual component-shadow scans only: one extra asset-specific phrase batch per
+    # asset. Ordinary 30-minute production scans never execute these five requests.
+    directional_diagnostics = fetch_asset_directional_trends_diagnostics()
+    for asset in seeds:
+        record = output.setdefault(asset, {
+            "valid": False, "scope": "asset_specific_google_related_queries_shadow",
+            "seed": seeds[asset], "source": source, "timeframe": "now 1-d",
+            "reason": "Related-query snapshot unavailable",
+            "production_score_used": False,
+        })
+        record["directional_query_diagnostic"] = directional_diagnostics.get(asset, {
+            "available": False, "diagnostic_only": True,
+            "reason": "Directional diagnostic result missing",
+        })
     return output
 
 
