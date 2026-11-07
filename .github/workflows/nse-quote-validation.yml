@@ -315,3 +315,1538 @@ jobs:
           except Exception as exc:
               print(f"MCX official endpoint unavailable on this runner; fallback remains enabled: {str(exc)[:220]}")
           PY
+
+      # Research-only: verify NSE's historical index-option API with exact
+      # contracts discovered from the official option-chain response.
+      # This probe never writes scanner data or enables an OI score.
+      - name: Diagnostic NSE historical OPTIDX CE/PE archive probe
+        timeout-minutes: 3
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import requests
+
+          base = "https://www.nseindia.com"
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "application/json, text/plain, */*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Accept-Encoding": "gzip, deflate, br",
+              "X-Requested-With": "XMLHttpRequest",
+              "Connection": "keep-alive",
+          })
+          try:
+              for page in ("/option-chain", "/report-detail/fo_eq_security"):
+                  warm = session.get(base + page, timeout=15)
+                  print(f"NSE session warm {page}: HTTP {warm.status_code}")
+              # Historical F&O report page is the documented cookie bootstrap for foCPV.
+              session.headers.update({
+                  "Referer": base + "/report-detail/fo_eq_security",
+                  "Accept": "application/json, text/javascript, */*; q=0.01",
+                  "Accept-Encoding": "gzip, deflate",
+                  "Pragma": "no-cache",
+                  "Cache-Control": "no-cache",
+                  "Sec-Fetch-Dest": "empty",
+                  "Sec-Fetch-Mode": "cors",
+                  "Sec-Fetch-Site": "same-origin",
+              })
+              trade_date = dt.date(2026, 11, 5)
+              for symbol in ("NIFTY", "BANKNIFTY"):
+                  meta = session.get(
+                      base + "/api/option-chain-contract-info",
+                      params={"symbol": symbol},
+                      timeout=15,
+                  )
+                  print(
+                      f"{symbol} contract-info: HTTP {meta.status_code}; "
+                      f"content-type={meta.headers.get('Content-Type')}; "
+                      f"bytes={len(meta.content)}"
+                  )
+                  if meta.status_code != 200:
+                      print(meta.text[:240])
+                      continue
+                  try:
+                      meta_payload = meta.json()
+                  except ValueError:
+                      print("  non-JSON body=" + repr(meta.text[:300]))
+                      continue
+                  expiries = []
+                  for value in meta_payload.get("expiryDates") or []:
+                      try:
+                          expiry_date = dt.datetime.strptime(value.title(), "%d-%b-%Y").date()
+                      except (TypeError, ValueError):
+                          continue
+                      if expiry_date >= trade_date:
+                          expiries.append((expiry_date, value))
+                  if not expiries:
+                      print(f"{symbol}: no expiry at/after {trade_date} in official contract-info")
+                      continue
+                  expiry_date, expiry = min(expiries)
+                  chain_response = session.get(
+                      base + "/api/option-chain-v3",
+                      params={"type": "Indices", "symbol": symbol, "expiry": expiry},
+                      timeout=20,
+                  )
+                  print(
+                      f"{symbol} {expiry} option-chain-v3: HTTP {chain_response.status_code}; "
+                      f"content-type={chain_response.headers.get('Content-Type')}; "
+                      f"bytes={len(chain_response.content)}"
+                  )
+                  if chain_response.status_code != 200:
+                      print(chain_response.text[:240])
+                      continue
+                  try:
+                      chain = chain_response.json()
+                  except ValueError:
+                      print("  non-JSON chain body=" + repr(chain_response.text[:300]))
+                      continue
+                  records = chain.get("records") or {}
+                  rows = records.get("data") or chain.get("filtered", {}).get("data") or []
+                  underlying = records.get("underlyingValue")
+                  if underlying is None:
+                      underlying = next((
+                          leg.get("underlyingValue")
+                          for row in rows for leg in (row.get("CE"), row.get("PE"))
+                          if isinstance(leg, dict) and leg.get("underlyingValue") is not None
+                      ), None)
+                  if not rows or underlying is None:
+                      print(f"{symbol} {expiry}: chain rows/underlying unavailable; keys={sorted(chain)}")
+                      continue
+                  expiry_api = expiry_date.strftime("%d-%b-%Y").upper()
+                  # First query a chain-nearby CE only to obtain the historical
+                  # underlying value. The chain's current spot must not be used
+                  # to label a past session's ATM strike.
+                  probe_row = min(rows, key=lambda row: abs(float(row.get("strikePrice", 0)) - float(underlying)))
+                  probe_strike = int(float(probe_row["strikePrice"]))
+                  probe_response = session.get(
+                      base + "/api/historicalOR/foCPV",
+                      params={
+                          "from": trade_date.strftime("%d-%m-%Y"),
+                          "to": trade_date.strftime("%d-%m-%Y"),
+                          "instrumentType": "OPTIDX",
+                          "symbol": symbol,
+                          "year": str(expiry_date.year),
+                          "expiryDate": expiry_api,
+                          "optionType": "CE",
+                          "strikePrice": str(probe_strike),
+                      },
+                      timeout=20,
+                  )
+                  if probe_response.status_code != 200:
+                      print(f"{symbol} historical-underlying probe HTTP {probe_response.status_code}")
+                      continue
+                  probe_payload = probe_response.json()
+                  probe_data = probe_payload.get("data") if isinstance(probe_payload, dict) else None
+                  if not isinstance(probe_data, list) or not probe_data:
+                      print(f"{symbol}: historical-underlying probe returned no rows")
+                      continue
+                  historical_underlying = probe_data[0].get("FH_UNDERLYING_VALUE")
+                  if historical_underlying is None:
+                      print(f"{symbol}: historical underlying missing from dated OPTIDX row")
+                      continue
+                  selected = min(
+                      rows,
+                      key=lambda row: abs(float(row.get("strikePrice", 0)) - float(historical_underlying)),
+                  )
+                  strike = int(float(selected["strikePrice"]))
+                  print(
+                      f"{symbol}: trade_date={trade_date}, expiry={expiry_api}, "
+                      f"chain_underlying={underlying}, historical_underlying={historical_underlying}, "
+                      f"historical_nearest_strike={strike}, chain_rows={len(rows)}"
+                  )
+                  for option_type in ("CE", "PE"):
+                      if not isinstance(selected.get(option_type), dict):
+                          print(f"{symbol} {expiry_api} {strike} {option_type}: absent from official chain strike list")
+                          continue
+                      response = session.get(
+                          base + "/api/historicalOR/foCPV",
+                          params={
+                              "from": trade_date.strftime("%d-%m-%Y"),
+                              "to": trade_date.strftime("%d-%m-%Y"),
+                              "instrumentType": "OPTIDX",
+                              "symbol": symbol,
+                              "year": str(expiry_date.year),
+                              "expiryDate": expiry_api,
+                              "optionType": option_type,
+                              "strikePrice": str(strike),
+                          },
+                          timeout=20,
+                      )
+                      print(f"{symbol} {expiry_api} {strike} {option_type} history: HTTP {response.status_code}")
+                      if response.status_code != 200:
+                          print(response.text[:180])
+                          continue
+                      payload = response.json()
+                      data = payload.get("data") if isinstance(payload, dict) else None
+                      if isinstance(data, list) and data:
+                          print(f"  rows={len(data)} columns={sorted(data[0])}")
+                          print("  sample=" + json.dumps(data[0], default=str)[:1000])
+                      else:
+                          print(f"  response keys={sorted(payload) if isinstance(payload, dict) else type(payload).__name__}; no rows for exact contract/date")
+          except Exception as exc:
+              print(f"NSE historical OPTIDX diagnostic unavailable: {type(exc).__name__}: {str(exc)[:240]}")
+          PY
+      # Research-only: download the official dated NSE F&O UDiFF Bhavcopy
+      # and same-date Contract Master, then inspect schema and exact IDs.
+      - name: Diagnostic NSE UDiFF Bhavcopy and Contract Master reconciliation
+        timeout-minutes: 5
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import csv
+          import datetime as dt
+          import gzip
+          import io
+          import zipfile
+          from decimal import Decimal, InvalidOperation
+          import requests
+          from component_scoring import aggregate_nse_udiff_index_option_oi
+
+          day = "20261105"
+          trade_date = "2026-11-05"
+          base = "https://nsearchives.nseindia.com/content/fo/"
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.nseindia.com/all-reports-derivatives",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+
+          def fetch(url, label):
+              response = session.get(url, timeout=60)
+              print(
+                  f"{label}: HTTP {response.status_code}; "
+                  f"bytes={len(response.content)}; "
+                  f"content-type={response.headers.get('Content-Type')}"
+              )
+              if response.status_code != 200 or not response.content:
+                  raise RuntimeError(f"{label} download failed")
+              return response.content
+
+          bhav_name = f"BhavCopy_NSE_FO_0_0_0_{day}_F_0000.csv.zip"
+          master_name = f"NSE_FO_contract_05112026.csv.gz"
+          bhav_bytes = fetch(base + bhav_name, "NSE UDiFF Bhavcopy")
+          if not bhav_bytes.startswith(b"PK"):
+              raise RuntimeError("NSE Bhavcopy response is not a ZIP archive")
+          with zipfile.ZipFile(io.BytesIO(bhav_bytes)) as archive:
+              csv_names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+              if len(csv_names) != 1:
+                  raise RuntimeError(f"Expected one CSV in Bhavcopy ZIP, found {csv_names[:5]}")
+              bhav_text = archive.read(csv_names[0]).decode("utf-8-sig")
+          bhav_rows = list(csv.DictReader(io.StringIO(bhav_text)))
+          if not bhav_rows:
+              raise RuntimeError("NSE UDiFF Bhavcopy CSV contains no rows")
+          bhav_columns = sorted(bhav_rows[0])
+          print(f"NSE UDiFF member={csv_names[0]} rows={len(bhav_rows)} columns={bhav_columns}")
+
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              symbol_rows = [
+                  row for row in bhav_rows
+                  if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
+                  and str(row.get("TckrSymb") or "").strip().upper() == symbol
+              ]
+              ce = sum(str(row.get("OptnTp") or "").strip().upper() == "CE" for row in symbol_rows)
+              pe = sum(str(row.get("OptnTp") or "").strip().upper() == "PE" for row in symbol_rows)
+              result = aggregate_nse_udiff_index_option_oi(bhav_rows, symbol, trade_date)
+              print(
+                  f"{symbol}: OPTIDX rows={len(symbol_rows)} CE_rows={ce} PE_rows={pe} "
+                  f"expiry_count={result.get('expiry_count')} "
+                  f"parser_available={result.get('available')} "
+                  f"CE_OI={result.get('call', {}).get('open_interest')} "
+                  f"CE_change={result.get('call', {}).get('change_in_oi')} "
+                  f"PE_OI={result.get('put', {}).get('open_interest')} "
+                  f"PE_change={result.get('put', {}).get('change_in_oi')} "
+                  f"coverage_validated={result.get('coverage_validated')}"
+              )
+
+          master_bytes = fetch(base + master_name, "NSE F&O Contract Master")
+          if not master_bytes.startswith(b"\x1f\x8b"):
+              raise RuntimeError("NSE Contract Master response is not gzip data")
+          master_text = gzip.decompress(master_bytes).decode("utf-8-sig")
+          master_rows = list(csv.DictReader(io.StringIO(master_text)))
+          if not master_rows:
+              raise RuntimeError("NSE Contract Master contains no rows")
+          master_columns = sorted(master_rows[0])
+          print(f"NSE Contract Master rows={len(master_rows)} columns={master_columns}")
+
+          if "FinInstrmId" not in bhav_columns or "FinInstrmId" not in master_columns:
+              print("Contract Master ID reconciliation: schema does not expose FinInstrmId on both files")
+          else:
+              master_by_id = {}
+              duplicate_master_ids = set()
+              for row in master_rows:
+                  key = str(row.get("FinInstrmId") or "").strip()
+                  if not key:
+                      continue
+                  if key in master_by_id:
+                      duplicate_master_ids.add(key)
+                  master_by_id[key] = row
+              print(
+                  "Contract Master FinInstrmTp values="
+                  + repr(sorted({str(row.get("FinInstrmTp") or "").strip() for row in master_rows})[:30])
+              )
+
+              # NSE Masters Data v1.6: contract expiry is seconds from
+              # 1980-01-01; F&O price fields (including strike) are in paise.
+              def master_expiry_date(value):
+                  try:
+                      seconds = int(Decimal(str(value).strip()))
+                      return (dt.datetime(1980, 1, 1) + dt.timedelta(seconds=seconds)).date().isoformat()
+                  except (InvalidOperation, ValueError, TypeError, OverflowError):
+                      return None
+
+              def master_strike_rupees(value):
+                  try:
+                      raw = Decimal(str(value).strip())
+                      return raw / Decimal("100") if raw.is_finite() else None
+                  except (InvalidOperation, ValueError, TypeError):
+                      return None
+
+              def bhav_strike_rupees(value):
+                  try:
+                      raw = Decimal(str(value).strip())
+                      return raw if raw.is_finite() else None
+                  except (InvalidOperation, ValueError, TypeError):
+                      return None
+
+              for symbol in ("NIFTY", "BANKNIFTY"):
+                  bhav_symbol = [
+                      row for row in bhav_rows
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
+                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
+                  ]
+                  bhav_ids = {str(row.get("FinInstrmId") or "").strip() for row in bhav_symbol}
+                  bhav_ids.discard("")
+                  matched = [(row, master_by_id.get(str(row.get("FinInstrmId") or "").strip())) for row in bhav_symbol]
+                  matched = [(b, m) for b, m in matched if m is not None]
+                  missing = sorted(bhav_ids - set(master_by_id))
+                  identity_mismatches = {key: 0 for key in ("TckrSymb", "OptnTp")}
+                  expiry_mismatches = strike_mismatches = 0
+                  expiry_unparsed = strike_unparsed = 0
+                  mismatch_samples = []
+                  for b_row, m_row in matched:
+                      if str(b_row.get("TckrSymb") or "").strip().upper() != str(m_row.get("TckrSymb") or "").strip().upper():
+                          identity_mismatches["TckrSymb"] += 1
+                      if str(b_row.get("OptnTp") or "").strip().upper() != str(m_row.get("OptnTp") or "").strip().upper():
+                          identity_mismatches["OptnTp"] += 1
+                      bhav_expiry = str(b_row.get("XpryDt") or "").strip()
+                      master_expiry = master_expiry_date(m_row.get("XpryDt"))
+                      if not master_expiry:
+                          expiry_unparsed += 1
+                      elif master_expiry != bhav_expiry:
+                          expiry_mismatches += 1
+                          if len(mismatch_samples) < 5:
+                              mismatch_samples.append(("expiry", b_row.get("FinInstrmId"), bhav_expiry, master_expiry))
+                      bhav_strike = bhav_strike_rupees(b_row.get("StrkPric"))
+                      master_strike = master_strike_rupees(m_row.get("StrkPric"))
+                      if bhav_strike is None or master_strike is None:
+                          strike_unparsed += 1
+                      elif master_strike != bhav_strike:
+                          strike_mismatches += 1
+                          if len(mismatch_samples) < 5:
+                              mismatch_samples.append(("strike", b_row.get("FinInstrmId"), str(bhav_strike), str(master_strike)))
+                  print(
+                      f"{symbol} Contract Master ID reconciliation: "
+                      f"Bhavcopy_OPTIDX_rows={len(bhav_symbol)} unique_ids={len(bhav_ids)}; "
+                      f"matched_IDs={len(matched)}; missing_IDs={len(missing)}; "
+                      f"duplicate_master_IDs={len(duplicate_master_ids)}; "
+                      f"symbol_side_mismatches={identity_mismatches}; "
+                      f"expiry_mismatches={expiry_mismatches}; expiry_unparsed={expiry_unparsed}; "
+                      f"strike_mismatches={strike_mismatches}; strike_unparsed={strike_unparsed}"
+                  )
+                  if mismatch_samples:
+                      print(f"  normalized mismatch samples={mismatch_samples}")
+                  if matched:
+                      b_row, m_row = matched[0]
+                      fields = (
+                          "FinInstrmId", "FinInstrmTp", "FinInstrmClssfctn", "CtrctTp",
+                          "TckrSymb", "XpryDt", "OrgnlXpryDt", "MtrtyDt", "InstrmEndDtTm",
+                          "StrkPric", "DcmlLctr", "PricDnmtr", "PricNmrtr", "OptnTp",
+                          "FinInstrmNm", "FinInstrmGnlAttrbts", "UndrlygInstrm",
+                      )
+                      print("  sample Bhavcopy=" + repr({key: b_row.get(key) for key in ("FinInstrmId", "FinInstrmTp", "TckrSymb", "XpryDt", "StrkPric", "OptnTp")}))
+                      print("  sample ContractMaster=" + repr({key: m_row.get(key) for key in fields}))
+                      from collections import Counter
+                      for field in ("FinInstrmTp", "FinInstrmClssfctn", "CtrctTp"):
+                          counts = Counter(str(row.get(field) or "").strip() for _, row in matched)
+                          print(f"  matched master {field} values={counts.most_common(8)}")
+                  if missing:
+                      print(f"  missing ID sample={missing[:10]}")
+          PY
+      # Research-only: compare exact NSE index-option contracts across
+      # five dated official UDiFF files. No directional score is produced.
+      - name: Diagnostic NSE five-session index option OI comparison
+        timeout-minutes: 6
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import csv
+          import io
+          import zipfile
+          from collections import Counter
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
+          base = "https://nsearchives.nseindia.com/content/fo/"
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.nseindia.com/all-reports-derivatives",
+          })
+
+          def load_day(day):
+              stamp = day.replace("-", "")
+              url = base + f"BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
+              response = session.get(url, timeout=60)
+              print(f"NSE UDiFF {day}: HTTP {response.status_code}; bytes={len(response.content)}")
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  raise RuntimeError(f"invalid official UDiFF ZIP for {day}")
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(names) != 1:
+                      raise RuntimeError(f"{day}: expected one CSV member, got {names[:5]}")
+                  raw = archive.read(names[0]).decode("utf-8-sig")
+              rows = list(csv.DictReader(io.StringIO(raw)))
+              if not rows:
+                  raise RuntimeError(f"{day}: empty UDiFF CSV")
+              return rows
+
+          def number(value):
+              try:
+                  result = Decimal(str(value).strip())
+                  return result if result.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          snapshots = {}
+          for day in dates:
+              try:
+                  snapshots[day] = load_day(day)
+              except Exception as exc:
+                  print(f"NSE UDiFF {day} unavailable: {type(exc).__name__}: {str(exc)[:200]}")
+                  snapshots[day] = None
+
+          def contract_map(rows, symbol, day):
+              result = {}
+              duplicates = 0
+              rejected = 0
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "IDO":
+                      continue
+                  if str(row.get("TckrSymb") or "").strip().upper() != symbol:
+                      continue
+                  if str(row.get("BizDt") or "").strip() != day:
+                      rejected += 1
+                      continue
+                  side = str(row.get("OptnTp") or "").strip().upper()
+                  if side not in ("CE", "PE"):
+                      rejected += 1
+                      continue
+                  expiry = str(row.get("XpryDt") or "").strip()
+                  strike = str(row.get("StrkPric") or "").strip()
+                  oi = number(row.get("OpnIntrst"))
+                  close = number(row.get("ClsPric"))
+                  lot = number(row.get("NewBrdLotQty"))
+                  if not expiry or not strike or oi is None or close is None or lot is None or lot <= 0:
+                      rejected += 1
+                      continue
+                  key = (expiry, strike, side)
+                  if key in result:
+                      duplicates += 1
+                      continue
+                  result[key] = {"oi": oi, "close": close, "lot": lot}
+              return result, duplicates, rejected
+
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              print(f"\n{symbol} exact-contract five-session OI comparison (exchange-wide, diagnostic only):")
+              maps = {}
+              for day in dates:
+                  rows = snapshots.get(day)
+                  if not isinstance(rows, list):
+                      maps[day] = None
+                      continue
+                  current, duplicates, rejected = contract_map(rows, symbol, day)
+                  maps[day] = current
+                  ce = sum(key[2] == "CE" for key in current)
+                  pe = sum(key[2] == "PE" for key in current)
+                  print(
+                      f"{day}: exact_contracts={len(current)} CE={ce} PE={pe} "
+                      f"duplicate_keys={duplicates} rejected_rows={rejected}"
+                  )
+              for newer, older in zip(dates, dates[1:]):
+                  newer_map, older_map = maps.get(newer), maps.get(older)
+                  if not isinstance(newer_map, dict) or not isinstance(older_map, dict):
+                      print(f"{newer} vs {older}: unavailable (dated file missing)")
+                      continue
+                  common = set(newer_map) & set(older_map)
+                  added = set(newer_map) - set(older_map)
+                  removed = set(older_map) - set(newer_map)
+                  print(
+                      f"{newer} vs {older}: common={len(common)} "
+                      f"new={len(added)} removed={len(removed)}"
+                  )
+                  for side in ("CE", "PE"):
+                      keys = [key for key in common if key[2] == side]
+                      delta_oi_units = Decimal("0")
+                      delta_oi_lots = Decimal("0")
+                      regimes = Counter()
+                      lot_mismatch = 0
+                      for key in keys:
+                          now, before = newer_map[key], older_map[key]
+                          delta = now["oi"] - before["oi"]
+                          delta_oi_units += delta
+                          if now["lot"] != before["lot"]:
+                              lot_mismatch += 1
+                              continue
+                          delta_oi_lots += delta / now["lot"]
+                          price_delta = now["close"] - before["close"]
+                          if delta > 0 and price_delta > 0:
+                              regimes["price_up_oi_up"] += 1
+                          elif delta > 0 and price_delta < 0:
+                              regimes["price_down_oi_up"] += 1
+                          elif delta < 0 and price_delta > 0:
+                              regimes["price_up_oi_down"] += 1
+                          elif delta < 0 and price_delta < 0:
+                              regimes["price_down_oi_down"] += 1
+                          else:
+                              regimes["flat_or_unchanged"] += 1
+                      print(
+                          f"  {side}: common={len(keys)} delta_OI_units={delta_oi_units} "
+                          f"delta_OI_lots={delta_oi_lots.quantize(Decimal('0.01'))} "
+                          f"lot_size_mismatches={lot_mismatch} price_OI_regimes={dict(regimes)}"
+                      )
+          PY
+      # Exploratory backtest only: option premium/OI positioning score versus
+      # next-session underlying return. It never feeds the production score.
+      - name: Diagnostic NSE 60-session option OI positioning backtest
+        if: github.event_name == 'workflow_dispatch'
+        timeout-minutes: 15
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import csv
+          import datetime as dt
+          import io
+          import statistics
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
+          import zipfile
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          end = dt.date(2026, 11, 6)
+          candidates = []
+          cursor = end
+          while len(candidates) < 70:
+              if cursor.weekday() < 5:
+                  candidates.append(cursor)
+              cursor -= dt.timedelta(days=1)
+          candidates.sort()
+          base = "https://nsearchives.nseindia.com/content/fo/"
+          session = requests.Session()
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          session.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          session.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("NSE FO request pacing: 1.0s between dates; retrying 429/5xx with backoff.")
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.nseindia.com/all-reports-derivatives",
+          })
+
+          def dec(value):
+              try:
+                  number = Decimal(str(value).strip())
+                  return number if number.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          def fetch_day(day):
+              stamp = day.strftime("%Y%m%d")
+              url = base + f"BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
+              response = session.get(url, timeout=45)
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  print(f"{day}: skip HTTP {response.status_code} bytes={len(response.content)}")
+                  return None
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(names) != 1:
+                      print(f"{day}: skip unexpected ZIP members={names[:4]}")
+                      return None
+                  raw = archive.read(names[0]).decode("utf-8-sig")
+              rows = list(csv.DictReader(io.StringIO(raw)))
+              if not rows:
+                  print(f"{day}: skip empty CSV")
+                  return None
+              return rows
+
+          def build_snapshot(rows, symbol, day):
+              contracts = {}
+              underlying_values = []
+              duplicates = 0
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "IDO":
+                      continue
+                  if str(row.get("TckrSymb") or "").strip().upper() != symbol:
+                      continue
+                  if str(row.get("BizDt") or "").strip() != day.isoformat():
+                      continue
+                  underlying = dec(row.get("UndrlygPric"))
+                  if underlying is not None and underlying > 0:
+                      underlying_values.append(underlying)
+                  side = str(row.get("OptnTp") or "").strip().upper()
+                  if side not in ("CE", "PE"):
+                      continue
+                  expiry = str(row.get("XpryDt") or "").strip()
+                  strike = str(row.get("StrkPric") or "").strip()
+                  oi = dec(row.get("OpnIntrst"))
+                  close = dec(row.get("ClsPric"))
+                  lot = dec(row.get("NewBrdLotQty"))
+                  volume = dec(row.get("TtlTradgVol"))
+                  if not expiry or not strike or oi is None or close is None or lot is None or lot <= 0 or volume is None:
+                      continue
+                  key = (expiry, strike, side)
+                  if key in contracts:
+                      duplicates += 1
+                      continue
+                  contracts[key] = {"oi": oi, "close": close, "lot": lot, "volume": volume}
+              underlying = None
+              if underlying_values:
+                  underlying_values.sort()
+                  underlying = underlying_values[len(underlying_values) // 2]
+              return {"contracts": contracts, "underlying": underlying, "duplicates": duplicates}
+
+          raw_by_day = {}
+          for day in candidates:
+              time.sleep(1.0)
+              try:
+                  rows = fetch_day(day)
+                  if rows is not None:
+                      raw_by_day[day] = rows
+                      print(f"{day}: downloaded {len(rows)} rows")
+              except Exception as exc:
+                  print(f"{day}: skip {type(exc).__name__}: {str(exc)[:160]}")
+
+          if len(raw_by_day) < 40:
+              print(f"Backtest skipped: only {len(raw_by_day)} valid dated files; need at least 40")
+              raise SystemExit(0)
+
+          ordered_days = sorted(raw_by_day)
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              snapshots = {
+                  day: build_snapshot(raw_by_day[day], symbol, day)
+                  for day in ordered_days
+              }
+              observations = []
+              print(f"\n{symbol} candidate OI positioning score vs next-session return")
+              for i in range(1, len(ordered_days) - 1):
+                  previous_day, signal_day, next_day = ordered_days[i-1], ordered_days[i], ordered_days[i+1]
+                  prev = snapshots[previous_day]
+                  curr = snapshots[signal_day]
+                  nxt = snapshots[next_day]
+                  common = set(prev["contracts"]) & set(curr["contracts"])
+                  bullish_weight = Decimal("0")
+                  bearish_weight = Decimal("0")
+                  classified = 0
+                  lot_mismatches = 0
+                  for key in common:
+                      before = prev["contracts"][key]
+                      now = curr["contracts"][key]
+                      if before["lot"] != now["lot"]:
+                          lot_mismatches += 1
+                          continue
+                      if before["volume"] <= 0 or now["volume"] <= 0 or before["close"] <= 0 or now["close"] <= 0:
+                          continue
+                      oi_delta_lots = (now["oi"] - before["oi"]) / now["lot"]
+                      price_delta = now["close"] - before["close"]
+                      if oi_delta_lots == 0 or price_delta == 0:
+                          continue
+                      side = key[2]
+                      weight = abs(oi_delta_lots)
+                      if side == "CE":
+                          is_bullish = price_delta > 0
+                      else:
+                          is_bullish = price_delta < 0
+                      if is_bullish:
+                          bullish_weight += weight
+                      else:
+                          bearish_weight += weight
+                      classified += 1
+                  total_weight = bullish_weight + bearish_weight
+                  if total_weight <= 0 or curr["underlying"] is None or nxt["underlying"] is None:
+                      continue
+                  score = Decimal("10") * (bullish_weight - bearish_weight) / total_weight
+                  next_return = (nxt["underlying"] / curr["underlying"] - Decimal("1")) * Decimal("100")
+                  observations.append((signal_day, score, next_return, len(common), classified, lot_mismatches))
+                  print(
+                      f"{signal_day}: score={score.quantize(Decimal('0.01')):+} "
+                      f"next={next_day} return={next_return.quantize(Decimal('0.001')):+}% "
+                      f"common={len(common)} classified={classified} lot_mismatches={lot_mismatches}"
+                  )
+              directional = [item for item in observations if item[1] != 0 and item[2] != 0]
+              direct = sum((item[1] > 0) == (item[2] > 0) for item in directional)
+              contrarian = len(directional) - direct
+              corr = None
+              if len(directional) >= 3:
+                  scores = [float(item[1]) for item in directional]
+                  returns = [float(item[2]) for item in directional]
+                  try:
+                      corr = statistics.correlation(scores, returns)
+                  except statistics.StatisticsError:
+                      corr = None
+              split = max(1, int(len(directional) * 0.70))
+              train = directional[:split]
+              holdout = directional[split:]
+              def summarize(label, sample):
+                  direct_hits = sum((item[1] > 0) == (item[2] > 0) for item in sample)
+                  inverse_hits = len(sample) - direct_hits
+                  correlation = None
+                  if len(sample) >= 3:
+                      try:
+                          correlation = statistics.correlation(
+                              [float(item[1]) for item in sample],
+                              [float(item[2]) for item in sample],
+                          )
+                      except statistics.StatisticsError:
+                          correlation = None
+                  print(
+                      f"{symbol} {label}: n={len(sample)} "
+                      f"direct={direct_hits}/{len(sample)} "
+                      f"contrarian={inverse_hits}/{len(sample)} "
+                      f"pearson={correlation}"
+                  )
+              print(
+                  f"{symbol} BACKTEST SUMMARY: downloaded_sessions={len(ordered_days)} "
+                  f"observations={len(observations)} nonzero_directional={len(directional)} "
+                  "split=chronological_70pct_train_30pct_holdout; "
+                  "fixed_formula_no_parameter_tuning=True; research_only=True; in_final=False"
+              )
+              summarize("IN_SAMPLE", train)
+              summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
+          PY
+      # Research-only: official monthly NSE Indices constituent/weight archive.
+      # Research-only: official monthly NSE Indices constituent/weight archive,
+      # BSE SENSEX constituent feed, and dated NSE cash-market price file.
+      # Research-only: official monthly NSE Indices constituent/weight archive,
+      # BSE SENSEX roster, and reconstructed NSE index basket return.
+      - name: Diagnostic official index constituent weights and cash prices
+        timeout-minutes: 7
+        continue-on-error: true
+        run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
+          python - <<'PY'
+          import csv
+          import io
+          import re
+          import subprocess
+          import tempfile
+          import zipfile
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          def dec(value):
+              try:
+                  number = Decimal(str(value).strip())
+                  return number if number.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.niftyindices.com/",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+          url = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip"
+          response = session.get(url, timeout=90)
+          print(
+              f"NSE Indices Oct-2026 monthly archive: HTTP {response.status_code}; "
+              f"bytes={len(response.content)}; content-type={response.headers.get('Content-Type')}"
+          )
+          if response.status_code != 200 or not response.content.startswith(b"PK"):
+              raise RuntimeError("official NSE Indices monthly archive was not a ZIP")
+
+          pair = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s*$")
+          symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
+          report_date_re = re.compile(r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
+          furniture = re.compile(
+              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,10}$|Disclaimer|"
+              r"endeavors\.|and all liability|information contained|[A-Z][a-z]+ \d{1,2}, \d{4}$)"
+          )
+          weights_by_index = {}
+          with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+              pdfs = [name for name in archive.namelist() if name.lower().endswith(".pdf")]
+              print(f"Archive PDF count={len(pdfs)}; names={pdfs}")
+              targets = {
+                  "NIFTY50": "NIFTY_50_Oct2026.pdf",
+                  "BANKNIFTY": "NIFTY_Bank_Oct2026.pdf",
+              }
+              for index_name, filename in targets.items():
+                  if filename not in pdfs:
+                      print(f"{index_name}: official monthly constituent PDF missing")
+                      continue
+                  with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                      temp.write(archive.read(filename))
+                      temp.flush()
+                      extracted = subprocess.run(
+                          ["pdftotext", "-raw", temp.name, "-"],
+                          capture_output=True, text=True, check=True,
+                      ).stdout
+                  title_match = re.search(r"Constituents of\s+([^\r\n]+)", extracted, re.I)
+                  date_match = report_date_re.search(extracted)
+                  records, buffer, rejected = [], [], []
+                  for line in extracted.splitlines():
+                      line = line.strip()
+                      if not line or furniture.match(line):
+                          continue
+                      buffer.append(line)
+                      match = pair.match(" ".join(buffer))
+                      if not match:
+                          continue
+                      head = match.group(1).split()
+                      buffer = []
+                      if not head or not symbol_re.match(head[0]):
+                          rejected.append(head[0] if head else "")
+                          continue
+                      try:
+                          close = Decimal(match.group(2).replace(",", ""))
+                          weight = Decimal(match.group(3).replace(",", ""))
+                      except InvalidOperation:
+                          rejected.append(head[0])
+                          continue
+                      records.append({"symbol": head[0], "close": close, "weight": weight})
+                  total_weight = sum((row["weight"] for row in records), Decimal("0"))
+                  duplicate_symbols = len(records) - len({row["symbol"] for row in records})
+                  report_date = date_match.group(1) if date_match else None
+                  print(
+                      f"{index_name} PDF={filename}; title={title_match.group(1).strip() if title_match else None}; "
+                      f"report_date={report_date}; constituents={len(records)}; "
+                      f"weight_sum={total_weight}; duplicates={duplicate_symbols}; rejected={len(rejected)}"
+                  )
+                  print("  top10=" + repr([
+                      (row["symbol"], str(row["weight"]))
+                      for row in sorted(records, key=lambda x: x["weight"], reverse=True)[:10]
+                  ]))
+                  if report_date == "October 30, 2026" and duplicate_symbols == 0 and abs(total_weight - Decimal("100")) <= Decimal("0.10"):
+                      weights_by_index[index_name] = {
+                          row["symbol"]: {"base_close": row["close"], "base_weight": row["weight"]}
+                          for row in records
+                      }
+                  else:
+                      print(f"  {index_name}: weight snapshot failed date/count/sum validation")
+
+          # BSE SENSEX official roster; the endpoint provides membership/as-of
+          # date, not all 30 constituent weights.
+          bse_headers = dict(headers)
+          bse_headers["Referer"] = "https://www.bseindices.com/"
+          bse_url = "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16"
+          bse = requests.get(bse_url, headers=bse_headers, timeout=45)
+          print(f"BSE SENSEX constituents: HTTP {bse.status_code}; bytes={len(bse.content)}")
+          if bse.status_code == 200:
+              payload = bse.json()
+              table = payload.get("Table", []) if isinstance(payload, dict) else []
+              dates = sorted({str(row.get("TransDate")) for row in table})
+              print(f"BSE SENSEX roster rows={len(table)} as_of_dates={dates}")
+
+          bse_fact_url = "https://www.bseindices.com/Downloads/Factsheet/Factsheet_BSESENSEX_Oct2026.pdf"
+          bse_fact = requests.get(bse_fact_url, headers=bse_headers, timeout=45)
+          print(
+              f"BSE SENSEX Oct-2026 factsheet: HTTP {bse_fact.status_code}; "
+              f"bytes={len(bse_fact.content)}; content-type={bse_fact.headers.get('Content-Type')}"
+          )
+          if bse_fact.status_code == 200 and bse_fact.content.startswith(b"%PDF"):
+              with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                  temp.write(bse_fact.content)
+                  temp.flush()
+                  bse_text = subprocess.run(
+                      ["pdftotext", "-raw", temp.name, "-"],
+                      capture_output=True, text=True, check=True,
+                  ).stdout
+              print(f"  BSE factsheet extracted_text_chars={len(bse_text)}; no full 30-stock weight table verified")
+
+          # Dated NSE cash-market closes for all EQ-series constituents.
+          cash_by_day = {}
+          for day in ("2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05"):
+              stamp = day.replace("-", "")
+              cm_url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
+              cm_headers = dict(headers)
+              cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
+              cm = requests.get(cm_url, headers=cm_headers, timeout=60)
+              print(f"NSE CM Bhavcopy {day}: HTTP {cm.status_code}; bytes={len(cm.content)}")
+              if cm.status_code != 200 or not cm.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(cm.content)) as archive:
+                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(members) != 1:
+                      continue
+                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              prices = {}
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "STK":
+                      continue
+                  if str(row.get("SctySrs") or "").strip().upper() != "EQ":
+                      continue
+                  price = dec(row.get("ClsPric"))
+                  symbol = str(row.get("TckrSymb") or "").strip().upper()
+                  if symbol and price is not None and price > 0:
+                      prices[symbol] = price
+              cash_by_day[day] = prices
+              print(f"  cash_EQ_symbols={len(prices)}")
+
+          # Official index underlying closes from the same dated UDiFF FO files.
+          index_spots = {"NIFTY50": {}, "BANKNIFTY": {}}
+          for day in ("2026-10-30", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05"):
+              stamp = day.replace("-", "")
+              fo_url = f"https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{stamp}_F_0000.csv.zip"
+              fo = requests.get(fo_url, headers=headers, timeout=60)
+              print(f"NSE FO UDiFF {day}: HTTP {fo.status_code}; bytes={len(fo.content)}")
+              if fo.status_code != 200 or not fo.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(fo.content)) as archive:
+                  members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                  if len(members) != 1:
+                      continue
+                  rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              for index_name, symbol in (("NIFTY50", "NIFTY"), ("BANKNIFTY", "BANKNIFTY")):
+                  values = [
+                      dec(row.get("UndrlygPric")) for row in rows
+                      if str(row.get("FinInstrmTp") or "").strip().upper() == "IDO"
+                      and str(row.get("TckrSymb") or "").strip().upper() == symbol
+                      and dec(row.get("UndrlygPric")) is not None
+                      and dec(row.get("UndrlygPric")) > 0
+                  ]
+                  if values:
+                      values.sort()
+                      index_spots[index_name][day] = values[len(values)//2]
+
+          # Reconstruct daily weights from the official 30-Oct snapshot and
+          # cash prices, then compare each full weighted basket return with
+          # the official index underlying return. This is a reconstruction,
+          # not an official daily weight file.
+          pairs = (
+              ("2026-10-30", "2026-11-02"),
+              ("2026-11-02", "2026-11-03"),
+              ("2026-11-03", "2026-11-04"),
+              ("2026-11-04", "2026-11-05"),
+          )
+          for index_name, weights in weights_by_index.items():
+              for previous_day, current_day in pairs:
+                  if current_day not in cash_by_day:
+                      print(f"{index_name} {current_day}: basket check unavailable; missing cash file")
+                      continue
+                  if previous_day != "2026-10-30" and previous_day not in cash_by_day:
+                      print(f"{index_name} {current_day}: basket check unavailable; missing prior cash file")
+                      continue
+                  missing = [
+                      symbol for symbol in weights
+                      if (previous_day != "2026-10-30" and symbol not in cash_by_day[previous_day])
+                      or symbol not in cash_by_day[current_day]
+                  ]
+                  if missing:
+                      print(f"{index_name} {previous_day}->{current_day}: coverage={len(weights)-len(missing)}/{len(weights)}; missing={missing}")
+                      continue
+                  prior_prices = {
+                      symbol: data["base_close"] if previous_day == "2026-10-30"
+                      else cash_by_day[previous_day][symbol]
+                      for symbol, data in weights.items()
+                  }
+                  raw_weights = {
+                      symbol: data["base_weight"] * prior_prices[symbol] / data["base_close"]
+                      for symbol, data in weights.items()
+                  }
+                  total_raw = sum(raw_weights.values(), Decimal("0"))
+                  contributions = {}
+                  basket_return = Decimal("0")
+                  advancing_weight = Decimal("0")
+                  declining_weight = Decimal("0")
+                  flat_weight = Decimal("0")
+                  advancers = decliners = flat_stocks = 0
+                  for symbol in weights:
+                      weight_at_prior = raw_weights[symbol] / total_raw
+                      stock_return = cash_by_day[current_day][symbol] / prior_prices[symbol] - Decimal("1")
+                      contribution = weight_at_prior * stock_return * Decimal("100")
+                      contributions[symbol] = contribution
+                      basket_return += contribution
+                      if stock_return > 0:
+                          advancing_weight += weight_at_prior
+                          advancers += 1
+                      elif stock_return < 0:
+                          declining_weight += weight_at_prior
+                          decliners += 1
+                      else:
+                          flat_weight += weight_at_prior
+                          flat_stocks += 1
+                  breadth_score = Decimal("10") * (advancing_weight - declining_weight)
+                  spot = index_spots[index_name]
+                  if previous_day not in spot or current_day not in spot:
+                      print(f"{index_name} {previous_day}->{current_day}: official index spot unavailable")
+                      continue
+                  index_return = (spot[current_day] / spot[previous_day] - Decimal("1")) * Decimal("100")
+                  difference_bps = (basket_return - index_return) * Decimal("100")
+                  print(
+                      f"{index_name} reconstructed basket {previous_day}->{current_day}: "
+                      f"coverage={len(weights)}/{len(weights)}; "
+                      f"basket_return={basket_return.quantize(Decimal('0.001')):+}%; "
+                      f"official_index_return={index_return.quantize(Decimal('0.001')):+}%; "
+                      f"basket_minus_index={difference_bps.quantize(Decimal('0.1')):+} bps; "
+                      f"breadth_score={breadth_score.quantize(Decimal('0.01')):+}; "
+                      f"advancers={advancers} ({(advancing_weight*100).quantize(Decimal('0.01'))}% weight); "
+                      f"decliners={decliners} ({(declining_weight*100).quantize(Decimal('0.01'))}% weight); "
+                      f"flat={flat_stocks} ({(flat_weight*100).quantize(Decimal('0.01'))}% weight)"
+                  )
+                  if current_day == "2026-11-05":
+                      print("  top_positive_contributors_pp=" + repr([
+                          (symbol, str(value.quantize(Decimal("0.001"))))
+                          for symbol, value in sorted(contributions.items(), key=lambda item: item[1], reverse=True)[:5]
+                      ]))
+                      print("  top_negative_contributors_pp=" + repr([
+                          (symbol, str(value.quantize(Decimal("0.001"))))
+                          for symbol, value in sorted(contributions.items(), key=lambda item: item[1])[:5]
+                      ]))
+          PY
+      # Exploratory 60-session test of the verified weighted stock-basket
+      # breadth score against the next session's reconstructed index return.
+      - name: Diagnostic 60-session NIFTY stock-basket breadth backtest
+        if: github.event_name == 'workflow_dispatch'
+        timeout-minutes: 15
+        continue-on-error: true
+        run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
+          python - <<'PY'
+          import csv
+          import datetime as dt
+          import io
+          import re
+          import statistics
+          import subprocess
+          import tempfile
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
+          import zipfile
+          from decimal import Decimal, InvalidOperation
+          import requests
+
+          def dec(value):
+              try:
+                  number = Decimal(str(value).strip())
+                  return number if number.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
+              "Accept": "*/*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": "https://www.niftyindices.com/",
+          }
+          session = requests.Session()
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          session.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          session.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("NSE Indices/CM request pacing: 1.0s between archives; retrying 429/5xx with backoff.")
+          session.headers.update(headers)
+          pair = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s*$")
+          symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
+          date_re = re.compile(r"([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
+          furniture = re.compile(
+              r"^(Symbol\b|Constituents of|\(Rs\.|Weightage|\(%\)|\d{1,10}$|Disclaimer|"
+              r"endeavors\.|and all liability|information contained|[A-Z][a-z]+ \d{1,2}, \d{4}$)"
+          )
+          monthly = {"NIFTY50": [], "BANKNIFTY": []}
+          base = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_data%s.zip"
+          for label in ("Jul2026", "Aug2026", "Sep2026", "Oct2026"):
+              time.sleep(1.0)
+              response = session.get(base % label, timeout=90)
+              print(f"NSE Indices archive {label}: HTTP {response.status_code}; bytes={len(response.content)}")
+              if response.status_code != 200 or not response.content.startswith(b"PK"):
+                  continue
+              with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                  names = set(archive.namelist())
+                  for index_name, filename in (
+                      ("NIFTY50", f"NIFTY_50_{label}.pdf"),
+                      ("BANKNIFTY", f"NIFTY_Bank_{label}.pdf"),
+                  ):
+                      if filename not in names:
+                          print(f"  {index_name}: missing {filename}")
+                          continue
+                      with tempfile.NamedTemporaryFile(suffix=".pdf") as temp:
+                          temp.write(archive.read(filename))
+                          temp.flush()
+                          text = subprocess.run(
+                              ["pdftotext", "-raw", temp.name, "-"],
+                              capture_output=True, text=True, check=True,
+                          ).stdout
+                      match_date = date_re.search(text)
+                      if not match_date:
+                          print(f"  {index_name}: report date missing")
+                          continue
+                      report_date = dt.datetime.strptime(match_date.group(1), "%B %d, %Y").date()
+                      records, buffer = {}, []
+                      for line in text.splitlines():
+                          line = line.strip()
+                          if not line or furniture.match(line):
+                              continue
+                          buffer.append(line)
+                          match = pair.match(" ".join(buffer))
+                          if not match:
+                              continue
+                          head = match.group(1).split()
+                          buffer = []
+                          if not head or not symbol_re.match(head[0]):
+                              continue
+                          close = dec(match.group(2).replace(",", ""))
+                          weight = dec(match.group(3).replace(",", ""))
+                          if close is None or weight is None or close <= 0 or weight <= 0:
+                              continue
+                          records[head[0]] = {"base_close": close, "base_weight": weight}
+                      total_weight = sum((row["base_weight"] for row in records.values()), Decimal("0"))
+                      expected = 50 if index_name == "NIFTY50" else 14
+                      print(
+                          f"  {index_name} report_date={report_date}; constituents={len(records)}; "
+                          f"weight_sum={total_weight}; expected={expected}"
+                      )
+                      if len(records) == expected and abs(total_weight - Decimal("100")) <= Decimal("0.10"):
+                          monthly[index_name].append({"date": report_date, "constituents": records})
+
+          for index_name in monthly:
+              monthly[index_name].sort(key=lambda item: item["date"])
+              print(f"{index_name} valid monthly weight snapshots={[item['date'].isoformat() for item in monthly[index_name]]}")
+
+          end = dt.date(2026, 11, 6)
+          candidates, cursor = [], end
+          while len(candidates) < 70:
+              if cursor.weekday() < 5:
+                  candidates.append(cursor)
+              cursor -= dt.timedelta(days=1)
+          candidates.sort()
+          universe = {
+              index_name: set().union(*(set(snapshot["constituents"]) for snapshot in snapshots))
+              if snapshots else set()
+              for index_name, snapshots in monthly.items()
+          }
+          all_symbols = set().union(*universe.values())
+          cash_prices = {}
+          for day in candidates:
+              time.sleep(1.0)
+              stamp = day.strftime("%Y%m%d")
+              url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
+              cm_headers = dict(headers)
+              cm_headers["Referer"] = "https://www.nseindia.com/all-reports"
+              try:
+                  response = session.get(url, headers=cm_headers, timeout=(10, 25))
+                  if response.status_code != 200 or not response.content.startswith(b"PK"):
+                      print(f"Cash {day}: skipped HTTP {response.status_code}; bytes={len(response.content)}")
+                      continue
+                  with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                      members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+                      if len(members) != 1:
+                          print(f"Cash {day}: skipped; CSV members={members[:3]}")
+                          continue
+                      rows = list(csv.DictReader(io.StringIO(archive.read(members[0]).decode("utf-8-sig"))))
+              except Exception as exc:
+                  print(f"Cash {day}: skipped {type(exc).__name__}: {str(exc)[:160]}")
+                  continue
+              prices = {}
+              for row in rows:
+                  if str(row.get("FinInstrmTp") or "").strip().upper() != "STK":
+                      continue
+                  if str(row.get("SctySrs") or "").strip().upper() != "EQ":
+                      continue
+                  symbol = str(row.get("TckrSymb") or "").strip().upper()
+                  if symbol not in all_symbols:
+                      continue
+                  price = dec(row.get("ClsPric"))
+                  if price is not None and price > 0:
+                      prices[symbol] = price
+              if prices:
+                  cash_prices[day] = prices
+                  print(f"Cash {day}: matched_symbols={len(prices)}")
+          ordered = sorted(cash_prices)
+          print(f"Cash history valid_sessions={len(ordered)} from={ordered[0] if ordered else None} to={ordered[-1] if ordered else None}")
+          if len(ordered) < 35:
+              print("BREADTH BACKTEST NOT RUN: fewer than 35 valid dated cash sessions; no accuracy claim")
+              raise SystemExit(0)
+
+          for index_name in ("NIFTY50", "BANKNIFTY"):
+              snapshots = monthly[index_name]
+              daily = {}
+              for i in range(1, len(ordered)):
+                  previous_day, current_day = ordered[i-1], ordered[i]
+                  eligible = [snapshot for snapshot in snapshots if snapshot["date"] <= previous_day]
+                  if not eligible:
+                      continue
+                  snapshot = eligible[-1]
+                  weights = snapshot["constituents"]
+                  if previous_day == snapshot["date"]:
+                      previous_prices = {symbol: row["base_close"] for symbol, row in weights.items()}
+                  else:
+                      previous_prices = cash_prices.get(previous_day, {})
+                  current_prices = cash_prices[current_day]
+                  missing = [
+                      symbol for symbol in weights
+                      if symbol not in previous_prices or symbol not in current_prices
+                  ]
+                  if missing:
+                      continue
+                  raw_weights = {
+                      symbol: row["base_weight"] * previous_prices[symbol] / row["base_close"]
+                      for symbol, row in weights.items()
+                  }
+                  total_raw = sum(raw_weights.values(), Decimal("0"))
+                  advancing = declining = flat = Decimal("0")
+                  basket_return = Decimal("0")
+                  advancers = decliners = flat_count = 0
+                  for symbol in weights:
+                      weight = raw_weights[symbol] / total_raw
+                      stock_return = current_prices[symbol] / previous_prices[symbol] - Decimal("1")
+                      basket_return += weight * stock_return * Decimal("100")
+                      if stock_return > 0:
+                          advancing += weight
+                          advancers += 1
+                      elif stock_return < 0:
+                          declining += weight
+                          decliners += 1
+                      else:
+                          flat += weight
+                          flat_count += 1
+                  score = Decimal("10") * (advancing - declining)
+                  daily[current_day] = {
+                      "score": score,
+                      "basket_return": basket_return,
+                      "advancers": advancers,
+                      "decliners": decliners,
+                      "flat": flat_count,
+                      "snapshot_date": snapshot["date"],
+                      "coverage": len(weights),
+                  }
+              observations = []
+              for i in range(1, len(ordered) - 1):
+                  signal_day, next_day = ordered[i], ordered[i+1]
+                  signal = daily.get(signal_day)
+                  following = daily.get(next_day)
+                  if signal is None or following is None:
+                      continue
+                  observations.append((signal_day, signal["score"], following["basket_return"]))
+              directional = [item for item in observations if item[1] != 0 and item[2] != 0]
+              split = max(1, int(len(directional) * 0.70))
+              train, holdout = directional[:split], directional[split:]
+              def summarize(label, sample):
+                  direct_hits = sum((item[1] > 0) == (item[2] > 0) for item in sample)
+                  inverse_hits = len(sample) - direct_hits
+                  correlation = None
+                  if len(sample) >= 3:
+                      try:
+                          correlation = statistics.correlation(
+                              [float(item[1]) for item in sample],
+                              [float(item[2]) for item in sample],
+                          )
+                      except statistics.StatisticsError:
+                          correlation = None
+                  print(
+                      f"{index_name} {label}: n={len(sample)} direct={direct_hits}/{len(sample)} "
+                      f"contrarian={inverse_hits}/{len(sample)} pearson={correlation}"
+                  )
+              print(
+                  f"{index_name} BREADTH BACKTEST: daily_sessions={len(daily)} "
+                  f"observations={len(observations)} nonzero={len(directional)} "
+                  "chronological_split=70/30; no_tuning=True; research_only=True; in_final=False"
+              )
+              summarize("IN_SAMPLE", train)
+              summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
+              if dt.date(2026, 11, 5) in daily:
+                  latest = daily[dt.date(2026, 11, 5)]
+                  print(
+                      f"{index_name} 2026-11-05 breadth_score={latest['score'].quantize(Decimal('0.01')):+}; "
+                      f"advancers={latest['advancers']}; decliners={latest['decliners']}; "
+                      f"flat={latest['flat']}; weight_snapshot={latest['snapshot_date']}; "
+                      f"coverage={latest['coverage']}"
+                  )
+          PY
+      # Research-only: MCX futures OI-weighted price breadth across
+      # exact common expiries, with a chronological holdout.
+      - name: Diagnostic MCX 30-session futures OI breadth backtest
+        if: github.event_name == 'workflow_dispatch'
+        timeout-minutes: 15
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import datetime as dt
+          import statistics
+          import time
+          from decimal import Decimal, InvalidOperation
+          import fetch_and_score as app
+
+          _mcx_original_get = app.MCX_HTTP.get
+          def _mcx_get_with_backoff(*args, **kwargs):
+              for attempt in range(4):
+                  try:
+                      response = _mcx_original_get(*args, **kwargs)
+                      if response.status_code not in (429, 500, 502, 503, 504) or attempt == 3:
+                          return response
+                      retry_after = response.headers.get("Retry-After")
+                      try:
+                          delay = max(float(retry_after), 2 ** attempt) if retry_after else 2 ** attempt
+                      except (TypeError, ValueError):
+                          delay = 2 ** attempt
+                  except Exception:
+                      if attempt == 3:
+                          raise
+                      delay = 2 ** attempt
+                  print(f"MCX transient request failure; retry {attempt + 1}/3 after {delay}s")
+                  time.sleep(delay)
+          app.MCX_HTTP.get = _mcx_get_with_backoff
+
+          end = dt.date(2026, 11, 6)
+          candidates = []
+          cursor = end
+          while len(candidates) < 45:
+              if cursor.weekday() < 5:
+                  candidates.append(cursor)
+              cursor -= dt.timedelta(days=1)
+          candidates.sort()
+
+          def dec(value):
+              try:
+                  result = Decimal(str(value).strip())
+                  return result if result.is_finite() else None
+              except (InvalidOperation, ValueError, TypeError):
+                  return None
+
+          snapshots = {}
+          for day in candidates:
+              time.sleep(1.0)
+              day_text = day.isoformat()
+              try:
+                  rows = app.fetch_mcx_bhavcopy_rows(day_text)
+                  current = {"GOLD": {}, "SILVER": {}}
+                  for row in rows:
+                      if not isinstance(row, dict):
+                          continue
+                      if str(row.get("InstrumentName") or "").strip().upper() != "FUTCOM":
+                          continue
+                      symbol = str(row.get("Symbol") or "").strip().upper()
+                      if symbol not in current:
+                          continue
+                      if str(row.get("OptionType") or "-").strip() not in ("", "-"):
+                          continue
+                      expiry = str(row.get("ExpiryDate") or "").strip().upper()
+                      try:
+                          expiry_date = dt.datetime.strptime(expiry, "%d%b%Y").date()
+                      except ValueError:
+                          continue
+                      close = dec(row.get("Close"))
+                      oi = dec(row.get("OpenInterest"))
+                      volume = dec(row.get("Volume"))
+                      if close is None or oi is None or volume is None or close <= 0:
+                          continue
+                      current[symbol][expiry] = {
+                          "expiry_date": expiry_date,
+                          "close": close,
+                          "oi": oi,
+                          "volume": volume,
+                      }
+                  if any(current[symbol] for symbol in current):
+                      snapshots[day] = current
+                      print(
+                          f"MCX {day_text}: GOLD_contracts={len(current['GOLD'])} "
+                          f"SILVER_contracts={len(current['SILVER'])}"
+                      )
+                  else:
+                      print(f"MCX {day_text}: no exact GOLD/SILVER FUTCOM rows")
+              except Exception as exc:
+                  print(f"MCX {day_text}: skip {type(exc).__name__}: {str(exc)[:160]}")
+
+          ordered = sorted(snapshots)
+          print(f"MCX backtest valid sessions={len(ordered)} from={ordered[0] if ordered else None} to={ordered[-1] if ordered else None}")
+          if len(ordered) < 25:
+              print("MCX backtest skipped: fewer than 25 valid sessions")
+              raise SystemExit(0)
+
+          for symbol in ("GOLD", "SILVER"):
+              observations = []
+              for i in range(1, len(ordered) - 1):
+                  previous_day, signal_day, next_day = ordered[i-1], ordered[i], ordered[i+1]
+                  previous = snapshots[previous_day][symbol]
+                  current = snapshots[signal_day][symbol]
+                  following = snapshots[next_day][symbol]
+                  common = set(previous) & set(current)
+                  bullish = Decimal("0")
+                  bearish = Decimal("0")
+                  used = 0
+                  for expiry in common:
+                      before = previous[expiry]
+                      now = current[expiry]
+                      if before["volume"] <= 0 or now["volume"] <= 0:
+                          continue
+                      oi_delta = now["oi"] - before["oi"]
+                      price_delta = now["close"] - before["close"]
+                      if oi_delta == 0 or price_delta == 0:
+                          continue
+                      weight = abs(oi_delta)
+                      if price_delta > 0:
+                          bullish += weight
+                      else:
+                          bearish += weight
+                      used += 1
+                  total = bullish + bearish
+                  if total <= 0:
+                      continue
+                  # Benchmark with the nearest exact expiry available on both
+                  # the signal date and the next date; no expiry substitution.
+                  eligible = [expiry for expiry in current if expiry in following]
+                  if not eligible:
+                      continue
+                  front = min(eligible, key=lambda expiry: current[expiry]["expiry_date"])
+                  current_close = current[front]["close"]
+                  next_close = following[front]["close"]
+                  if current_close <= 0 or next_close <= 0:
+                      continue
+                  score = Decimal("10") * (bullish - bearish) / total
+                  next_return = (next_close / current_close - Decimal("1")) * Decimal("100")
+                  observations.append((signal_day, score, next_return, len(common), used, front))
+              directional = [item for item in observations if item[1] != 0 and item[2] != 0]
+              split = max(1, int(len(directional) * 0.70))
+              train, holdout = directional[:split], directional[split:]
+              def summarize(label, sample):
+                  direct_hits = sum((item[1] > 0) == (item[2] > 0) for item in sample)
+                  inverse_hits = len(sample) - direct_hits
+                  correlation = None
+                  if len(sample) >= 3:
+                      try:
+                          correlation = statistics.correlation(
+                              [float(item[1]) for item in sample],
+                              [float(item[2]) for item in sample],
+                          )
+                      except statistics.StatisticsError:
+                          correlation = None
+                  print(
+                      f"{symbol} {label}: n={len(sample)} "
+                      f"direct={direct_hits}/{len(sample)} "
+                      f"contrarian={inverse_hits}/{len(sample)} pearson={correlation}"
+                  )
+              print(
+                  f"{symbol} MCX OI BREADTH SUMMARY: observations={len(observations)} "
+                  f"nonzero_directional={len(directional)} "
+                  "fixed_formula_no_parameter_tuning=True; research_only=True; in_final=False"
+              )
+              summarize("IN_SAMPLE", train)
+              summarize("OUT_OF_SAMPLE_HOLDOUT", holdout)
+              for item in observations[-5:]:
+                  print(
+                      f"  {item[0]} score={item[1].quantize(Decimal('0.01')):+} "
+                      f"next_return={item[2].quantize(Decimal('0.001')):+}% "
+                      f"common_expiries={item[3]} used={item[4]} benchmark_expiry={item[5]}"
+                  )
+          PY
+      - name: Diagnostic official MCX Bhavcopy OI field probe
+        timeout-minutes: 6
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import fetch_and_score as app
+
+          _mcx_original_get = app.MCX_HTTP.get
+          def _mcx_get_with_backoff(*args, **kwargs):
+              for attempt in range(4):
+                  try:
+                      response = _mcx_original_get(*args, **kwargs)
+                      if response.status_code not in (429, 500, 502, 503, 504) or attempt == 3:
+                          return response
+                      retry_after = response.headers.get("Retry-After")
+                      try:
+                          delay = max(float(retry_after), 2 ** attempt) if retry_after else 2 ** attempt
+                      except (TypeError, ValueError):
+                          delay = 2 ** attempt
+                  except Exception:
+                      if attempt == 3:
+                          raise
+                      delay = 2 ** attempt
+                  print(f"MCX transient request failure; retry {attempt + 1}/3 after {delay}s")
+                  time.sleep(delay)
+          app.MCX_HTTP.get = _mcx_get_with_backoff
+          import time
+
+          expiry = "04DEC2026"
+          dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
+          snapshots = {}
+          for trade_date in dates:
+              time.sleep(1.0)
+              try:
+                  rows = app.fetch_mcx_bhavcopy_rows(trade_date)
+                  print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
+                  snapshots[trade_date] = rows
+                  for symbol in ("GOLD", "SILVER"):
+                      matches = [
+                          row for row in rows
+                          if isinstance(row, dict)
+                          and str(row.get("InstrumentName") or "").strip().upper() == "FUTCOM"
+                          and str(row.get("Symbol") or "").strip().upper() == symbol
+                          and str(row.get("ExpiryDate") or "").strip().upper() == expiry
+                          and str(row.get("OptionType") or "-").strip() in ("", "-")
+                      ]
+                      if len(matches) == 1:
+                          row = matches[0]
+                          print(
+                              f"{symbol} {expiry} {trade_date}: "
+                              f"close={row.get('Close')} OI={row.get('OpenInterest')} "
+                              f"volume={row.get('Volume')}"
+                          )
+                      else:
+                          print(f"{symbol} {expiry} {trade_date}: rejected; exact rows={len(matches)}")
+              except Exception as exc:
+                  print(f"MCX Bhavcopy diagnostic unavailable for {trade_date}: {type(exc).__name__}: {str(exc)[:240]}")
+                  snapshots[trade_date] = None
+
+          # Compare every adjacent available trading session for the same
+          # exact expiry; no nearest-contract substitution or score creation.
+          for symbol in ("GOLD", "SILVER"):
+              print(f"\\n{symbol} {expiry} multi-session same-contract comparison:")
+              for newer_date, older_date in zip(dates, dates[1:]):
+                  newer_rows = snapshots.get(newer_date)
+                  older_rows = snapshots.get(older_date)
+                  if not isinstance(newer_rows, list) or not isinstance(older_rows, list):
+                      print(f"{newer_date} vs {older_date}: unavailable (one dated file missing)")
+                      continue
+                  result = app.compare_mcx_bhavcopy_contract_oi(
+                      newer_rows, older_rows, symbol, newer_date, older_date, expiry
+                  )
+                  if not result.get("available"):
+                      print(f"{newer_date} vs {older_date}: rejected ({result.get('reason')})")
+                      continue
+                  print(
+                      f"{newer_date} vs {older_date}: "
+                      f"close_delta={result['change_in_close']:+g} INR; "
+                      f"OI_delta={result['change_in_oi_lots']:+g} lots; "
+                      f"regime={result['price_oi_regime']}; "
+                      f"in_final={result['included_in_asset_final']}"
+                  )
+          PY

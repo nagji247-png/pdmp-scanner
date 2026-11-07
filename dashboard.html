@@ -543,6 +543,133 @@ function renderParticipantOI(oi) {
     (rows || '<div class="hl-meta">NSE participant rows नहीं मिले।</div>');
 }
 
+function renderComponentBreakdown(b) {
+  if (!b || typeof b !== "object") return "";
+  const final = b.final || {};
+  const search = b.search_diagnostic || null;
+  const pct = value => value == null || !Number.isFinite(Number(value))
+    ? "—" : Number(value).toFixed(1) + "%";
+  const labels = {
+    news: "News Score",
+    search: "Search Score",
+    eod_oi: "EOD OI Score",
+    futures: "Futures Score",
+    stock_basket: "Stock Basket Score"
+  };
+  const signedScore = value => {
+    if (value == null || !Number.isFinite(Number(value))) return "—";
+    const n = Number(value);
+    return (n > 0 ? "+" : "") + n.toFixed(2);
+  };
+  const signedChange = value => {
+    if (value == null || !Number.isFinite(Number(value))) return "डेटा नहीं";
+    const n = Number(value);
+    return (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-IN");
+  };
+  const normalized = final.normalized_weights_pct || {};
+  const rows = Object.entries(b.components || {}).map(([key, component]) => {
+    const label = labels[key] || key;
+    const weight = normalized[key] == null ? "" : " · Final weight " + Number(normalized[key]).toFixed(1) + "%";
+    const details = component.details || {};
+    const extras = [];
+    if (component.evidence_count != null) extras.push("खबरें " + component.evidence_count);
+    if (component.newest_headline_age_h != null) extras.push("नई खबर " + Number(component.newest_headline_age_h).toFixed(1) + "h");
+    if (component.newest_headline_published_at) extras.push("नई खबर प्रकाशित (UTC): " + component.newest_headline_published_at);
+    if (component.oldest_headline_published_at) extras.push("पुरानी eligible खबर (UTC): " + component.oldest_headline_published_at);
+    if (component.seed) extras.push("Seed: " + component.seed);
+    if (component.query) extras.push("News query: " + component.query);
+    if (component.classified_queries != null) extras.push("वर्गीकृत खोजें " + component.classified_queries);
+    if (component.timeframe) extras.push("अवधि " + component.timeframe);
+    if (Array.isArray(component.publishers) && component.publishers.length) {
+      extras.push("प्रकाशक: " + component.publishers.slice(0, 5).join(", "));
+    }
+    if (component.denominator) extras.push(component.denominator);
+    if (component.scope) extras.push("Scope: " + component.scope);
+    if (Array.isArray(component.terms) && component.terms.length) {
+      extras.push("शब्द: " + component.terms.slice(0, 5).map(x => x.term).filter(Boolean).join(", "));
+    }
+    return '<div class="hl" style="margin-top:7px">' +
+      '<div class="hl-title"><b>' + esc(label) + '</b> · <b>' + signedScore(component.score) + '/10</b></div>' +
+      '<div class="hl-meta">स्रोत: ' + esc(component.source || "—") +
+      ' · तारीख़: ' + esc(component.source_date || "—") + weight + '</div>' +
+      (component.observed_at ? '<div class="hl-meta">Observation: ' + esc(String(component.observed_at).replace("T", " ").replace("Z", " UTC")) + '</div>' : '') +
+      (extras.length ? '<div class="hl-meta">' + esc(extras.join(" · ")) + '</div>' : '') +
+      '</div>';
+  }).join("");
+  const excludedRows = Object.entries(b.excluded_components || {}).map(([key, item]) =>
+    '<div class="hl-meta" style="margin-top:5px"><b>' + esc(labels[key] || key) +
+    ' — Final में शामिल नहीं:</b> ' + esc((item && item.reason) || "डेटा उपलब्ध नहीं") +
+    (item && item.source ? ' · स्रोत: ' + esc(item.source) : '') + '</div>'
+  ).join("");
+  const client = b.client_market_context;
+  let clientHtml = "";
+  if (client) {
+    const ce = client.ce_build_up || {};
+    const pe = client.pe_build_up || {};
+    const fut = client.client_index_futures || {};
+    clientHtml = '<div class="hl" style="margin-top:8px">' +
+      '<div class="hl-title"><b>CLIENT CE / PE और Futures — market-wide context, Final Score में शामिल नहीं</b></div>' +
+      '<div class="hl-meta">स्रोत: ' + esc(client.source || "NSE participant-wise OI") +
+      ' · तारीख़: ' + esc(client.source_date || "—") +
+      ' · पिछली तारीख़: ' + esc(client.previous_date || "—") + '</div>' +
+      '<div class="hl-meta"><b>CLIENT CE Build-up:</b> Call Long Δ ' + signedChange(ce.call_long_change) +
+      ' · Call Short Δ ' + signedChange(ce.call_short_change) + '</div>' +
+      '<div class="hl-meta"><b>CLIENT PE Build-up:</b> Put Long Δ ' + signedChange(pe.put_long_change) +
+      ' · Put Short Δ ' + signedChange(pe.put_short_change) + '</div>' +
+      '<div class="hl-meta"><b>CLIENT Index Futures:</b> Long Δ ' + signedChange(fut.long_change) +
+      ' · Short Δ ' + signedChange(fut.short_change) + '</div>' +
+      '<div class="hl-meta">Scope: ' + esc(client.scope || "Market-wide aggregate; not index-specific") + '</div>' +
+      '<div class="hl-meta">' + esc(client.reason || "CE/PE direction और CLIENT Futures score validation पूरी होने तक withheld") + '</div>' +
+      '</div>';
+  }
+  const searchHasDirectionalEvidence = Number(search && search.bull_pct) > 0 || Number(search && search.bear_pct) > 0;
+  const searchDiagnosticHtml = search && search.source
+    ? '<div class="hl" style="margin-top:8px">' +
+      '<div class="hl-title"><b>Google Trends Related Searches — ' + esc(search.seed || "asset seed") + '</b></div>' +
+      '<div class="hl-meta">Bullish ' + pct(search.bull_pct) +
+      ' · Bearish ' + pct(search.bear_pct) +
+      ' · Neutral ' + pct(search.neutral_pct) +
+      ' · Coverage ' + pct(search.classification_coverage_pct) + '</div>' +
+      '<div class="hl-meta">वर्गीकृत queries ' + (search.classified_queries == null ? "—" : esc(search.classified_queries)) +
+      ' / कुल ' + (search.raw_queries == null ? "—" : esc(search.raw_queries)) +
+      ' · Unclassified ' + (search.unclassified_queries == null ? "—" : esc(search.unclassified_queries)) +
+      ' · अवधि ' + esc(search.timeframe || "—") +
+      ' · Observation ' + esc(search.source_data_time || "—") + '</div>' +
+      '<div class="hl-meta">प्रतिशत केवल classified related-query weights के भीतर हैं; Coverage बताता है कि कुल query weight में से कितना वर्गीकृत हुआ।</div>' +
+      (!searchHasDirectionalEvidence ? '<div class="hl-meta"><b>स्थिति:</b> इस snapshot में bullish/bearish directional queries नहीं मिलीं; इसे वास्तविक crowd mood या 100% जनता की neutral सोच न समझें।</div>' : '') +
+      (Array.isArray(search.terms) && search.terms.length
+        ? '<div class="hl-meta">वर्गीकृत उदाहरण: ' + esc(search.terms.slice(0, 4).map(x => x.term + " (" + x.direction + ")").join(", ")) + '</div>' : '') +
+      (Array.isArray(search.unclassified_terms) && search.unclassified_terms.length
+        ? '<div class="hl-meta">Unclassified उदाहरण: ' + esc(search.unclassified_terms.slice(0, 3).map(x => x.term).join(", ")) + '</div>' : '') +
+      (search.rising_queries != null
+        ? '<div class="hl-meta"><b>Rising related queries (अलग diagnostic, Final Score में शामिल नहीं):</b> ' +
+          esc(search.rising_queries) + ' · Classified ' + esc(search.rising_classified_queries == null ? 0 : search.rising_classified_queries) +
+          ' · दिशा ' + esc(Object.entries(search.rising_direction_counts || {}).map(([k, v]) => k + ' ' + v).join(', ') || '—') +
+          (Array.isArray(search.rising_terms) && search.rising_terms.length
+            ? ' · उदाहरण: ' + esc(search.rising_terms.slice(0, 4).map(x => x.term + ' (' + x.value + ')').join(', ')) : '') +
+          '</div>' : '') +
+      (!search.valid && search.reason ? '<div class="hl-meta">Reading: ' + esc(search.reason) + '</div>' : '') +
+      '</div>'
+    : "";
+  const finalText = final.score == null
+    ? "Final Score: डेटा उपलब्ध नहीं"
+    : "Final Score: " + signedScore(final.score) + "/10";
+  const weightText = Object.entries(normalized).map(([key, value]) =>
+    (labels[key] || key) + " " + Number(value).toFixed(1) + "%"
+  ).join(" · ");
+  return '<details style="margin-top:8px">' +
+    '<summary><b>घटक-आधारित ' + esc(finalText) + ' · हिसाब देखें</b></summary>' +
+    '<div class="hl-meta" style="margin-top:7px">यह अलग परीक्षण गणना है; ऊपर का प्रकाशित PDMP score और signals नहीं बदले।</div>' +
+    (rows || '<div class="hl-meta" style="margin-top:7px">कोई सत्यापित component score उपलब्ध नहीं।</div>') +
+    (weightText ? '<div class="hl-meta" style="margin-top:7px"><b>सामान्यीकृत Final weights:</b> ' + esc(weightText) + '</div>' : '') +
+    (excludedRows ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>डेटा उपलब्ध नहीं / Final से बाहर</b></div>' + excludedRows + '</div>' : '') +
+    searchDiagnosticHtml +
+    clientHtml +
+    '<div class="hl-meta" style="margin-top:7px">Formula: उपलब्ध सत्यापित component scores × उनके configured weights का योग ÷ केवल शामिल weights का योग। Missing/stale component को zero नहीं माना जाता।</div>' +
+    '</details>';
+}
+
+
 function card(name, d, participantOI) {
   const shownScore = Number(d.score);
   let [cls, label] = classify(shownScore);
@@ -572,6 +699,7 @@ function card(name, d, participantOI) {
       '</b> · खबरें ' + Number(d.experimental_headline_count || 0) +
       ' · हटाई गई पुरानी/अज्ञात ' + Number(d.experimental_excluded_old_or_unknown || 0) +
       ' · साझा ' + Number(d.experimental_excluded_cross_index_duplicates || 0) + '</div>' : "";
+  const componentBreakdown = renderComponentBreakdown(d.component_breakdown);
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
   const hTotal = posN + negN;
@@ -636,6 +764,7 @@ function card(name, d, participantOI) {
       <div class="lbl" style="color:${color}">${label}</div>
       ${experimentalScoreLine}
     `}
+    ${componentBreakdown}
     ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
     ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
     ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}

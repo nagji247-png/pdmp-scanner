@@ -1,0 +1,108 @@
+# Official constituent-source audit — 2026-11-07
+
+Scope: identify free, official constituent sources for the Trinetra/PDMP stock-basket research component. This is source discovery only; no basket component is enabled in Final.
+
+## Verified official NSE Indices download endpoints
+
+The official NIFTY 50 index page exposes an "Index Constituent" download. Its resolved CSV endpoint is:
+
+- NIFTY 50: https://www.niftyindices.com/IndexConstituent/ind_nifty50list.csv
+
+The official Nifty Bank index page exposes the same download control. Its resolved CSV endpoint is:
+
+- NIFTY BANK: https://www.niftyindices.com//IndexConstituent/ind_niftybanklist.csv
+
+Both download links were resolved from the official NSE Indices site. The web preview cannot render the CSV because the server returns an application/octet-stream download; this is not evidence that the file is invalid. The pages identify the official index pages and constituent-download controls.
+
+Official index pages:
+- NIFTY 50: https://www.niftyindices.com/indices/equity/broad-based-indices/nifty--50
+- NIFTY BANK: https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-bank
+
+Important distinction: constituent membership CSV is not automatically a daily constituent-weight file. Before calculating weighted breadth, the pipeline must verify that the source contains the exact effective date, symbols and investible weights; otherwise it must fail closed. Do not estimate missing weights from market cap or from the top-10 list.
+
+## SENSEX source finding
+
+The official BSE SENSEX October-2026 factsheet was retrieved in CI, but its PDF text extraction did not expose a complete 30-stock weight table. The same probe separately retrieved the official BSE SENSEX roster with 30 rows as of 2026-10-30. Membership is therefore verified for that date; complete official weights remain unresolved. An older January 2026 factsheet had a reported constituent-count discrepancy and should not be used as the current membership snapshot.
+
+Official BSE factsheet URL:
+- https://www.bseindices.com/Downloads/Factsheet/Factsheet_BSESENSEX_Jan2026.pdf
+
+The partial top-10 weight table is not a complete basket. Do not use these ten weights as if they represented the full index.
+
+## Verified official monthly weights and dated cash coverage (CI evidence, 2026-11-06)
+
+The NSE/MCX Integration workflow #260 downloaded and parsed the official NSE Indices monthly archive:
+
+- Archive: https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip
+- Report date: **October 30, 2026**
+- NIFTY 50 PDF: `NIFTY_50_Oct2026.pdf` — 50 constituents, weight sum 99.98%, zero duplicate symbols, zero rejected rows.
+- NIFTY Bank PDF: `NIFTY_Bank_Oct2026.pdf` — 14 constituents, weight sum 100.00%, zero duplicate symbols, zero rejected rows.
+- Dated NSE cash EQ bhavcopy coverage was complete for the 50/50 and 14/14 member sets in the four observed sessions from Oct 30 through Nov 5, 2026.
+
+The same workflow reconstructed daily prior-session weights from the Oct 30 official monthly snapshot and cash prices. Reconstructed basket returns matched the official index returns closely: NIFTY 50 deviations were 0.0, -8.6, -2.2 and 0.0 bps across the four checked sessions; NIFTY Bank deviations were 0.0 bps at displayed precision for all four. This confirms source parsing and short-window index replication, not a 60-session directional edge.
+
+The workflow's 60-session chronological directional holdout is separately reported in the PR: NIFTY direct 11/20 vs contrarian 9/20 (correlation -0.091); BANKNIFTY direct 8/20 vs contrarian 12/20 (correlation -0.059). This evidence remains weak and descriptive; the basket component is still excluded from Final pending broader validation and live snapshot wiring.
+
+The NSE All Reports catalogue also lists “Market Capitalisation, Weightage, Beta for NIFTY 50 & NIFTY Next 50”, a potential additional official route, but the already-verified October archive above is the evidence used here. The official monthly archive itself contains NIFTY 50 and NIFTY Bank PDFs.
+
+Official catalogue lead: https://betanseapi.nseindia.com/all-reports
+
+## SENSEX remains a separate unresolved source
+
+The same CI probe retrieved the BSE SENSEX roster (30 rows, as-of 2026-10-30), but the October 2026 BSE factsheet PDF text extraction yielded no complete 30-stock weight table. Therefore SENSEX membership is known for that date, but complete official constituent weights are not yet verified. Do not infer weights from the top-10 factsheet, use a third-party table, or substitute NIFTY data.
+
+## Secondary source caution
+
+Non-official index summaries may list all Nifty Bank members or top-10 weights, but they are not accepted as authoritative weight snapshots for live scoring. Use official NSE Indices/BSE sources only for the basket's membership and effective weights.
+
+## Implementation gate
+
+A future loader may fetch these free public files, but the stock-basket component must remain excluded from Final until all of the following pass:
+1. Official source identity and successful HTTP/file parse.
+2. Effective date present and within the allowed session-age window.
+3. Exact expected member count and unique, non-empty exchange symbols.
+4. Positive weights and total weight within a strict tolerance of 100%.
+5. Every constituent has a valid previous/current close for the same trading dates.
+6. No duplicate/missing symbols, stale quote rows, or partial fallback basket.
+7. Chronological out-of-sample validation demonstrates useful directional value beyond the index/news baseline.
+
+The existing helper `weighted_constituent_breadth_candidate` correctly keeps its output diagnostic-only (`included_in_asset_final=false`). This audit does not change that gate.
+
+## User-facing safety invariants
+
+- Never substitute the 9-stock watchlist for any index's full constituent basket.
+- Never substitute NIFTY data for SENSEX or BANKNIFTY.
+- Never infer all weights from top-10 factsheet data.
+- Never enable the component merely because a CSV download succeeds.
+- No production score, dashboard layout, ordinary 30-minute scan cadence, or live signal is changed by this audit.
+
+## Follow-up NSE/MCX validation — CI workflow #271 (2026-11-07)
+
+The later integration validation run #271 (job 128262468817) confirmed additional source parsing, but did not promote these observations into scored components:
+
+- NSE UDiFF option bhavcopy and the same-date MII contract master reconciled all 2,050 NIFTY and 975 BANKNIFTY contract IDs with no missing IDs, duplicate IDs, or symbol/side/expiry/strike mismatches on 2026-11-05. Five dated sessions were parsed with zero duplicate keys or rejected rows. Contract counts changed between sessions, so a fixed-contract universe or partial-history assumption must not be treated as complete coverage.
+- Aggregate exchange-wide index-option OI changes were mixed across CE and PE and across sessions. These are exchange-wide contract aggregates, not NSE participant CLIENT positions. Raw CE/PE OI growth alone does not establish bullish or bearish direction; no OI score is enabled.
+- MCX official bhavcopy was retrieved for 2026-10-30 through 2026-11-05. Exact same-expiry FUTCOM rows were available for GOLD 04DEC2026 and SILVER 04DEC2026 on all five observed sessions. GOLD price/OI regimes included price-up/OI-down and price-down/OI-up; SILVER also showed mixed regimes. This is useful contract-level research evidence, but it is not a category-wise CLIENT OI report and does not establish a directional rule. Both MCX OI candidates remain excluded from Final.
+- BSE SENSEX membership remained 30/30 as of 2026-10-30, but the October factsheet PDF yielded only two extracted text characters in the CI runner. Complete official weights are still unverified. The independent SENSEX quote probe returned HTTP 403; do not interpret this diagnostic failure as proof that the dashboard's fallback quote path is broken.
+- NSE MCP handshake, MCX quote parsing/freshness, MCX FUTCOM symbol/expiry selection, and related parser checks passed. Workflow success indicates the diagnostic checks completed; it does not mean each candidate source is validated for directional scoring.
+
+No live scoring, production scan schedule, or dashboard signal was changed by this follow-up.
+
+## Latest CI run #272 — additional qualification (2026-11-07)
+
+Run #272 completed successfully, but three optional historical diagnostics were explicitly **skipped**: the 60-session NSE option-OI positioning backtest, the 60-session NIFTY basket breadth backtest, and the 30-session MCX futures-OI breadth backtest. Therefore this run adds no new historical directional validation for those components. A successful workflow status must not be reported as a successful backtest.
+
+The MCX same-expiry FUTCOM probe did retrieve five dated observations for GOLD 04DEC2026 and SILVER 04DEC2026 (2026-10-30 to 2026-11-05). Across four adjacent sessions:
+- GOLD regimes: price-up/OI-down on three intervals; price-down/OI-up on one.
+- SILVER regimes: price-down/OI-down on two intervals, price-up/OI-up on one, and price-up/OI-down on one.
+
+These mixed observations are descriptive only. They do not validate a repeatable directional signal and are not CLIENT category OI. Gold/Silver futures OI therefore remain excluded from the asset Final score.
+
+CI #272 passed syntax, source parsing, contract-master reconciliation, constituent-file parsing, and the MCX exact-symbol/expiry checks. It does not close the historical-validation gate. Production score and normal scan cadence remain unchanged.
+
+
+## Historical diagnostic dispatch gate — root cause and correction (2026-11-07)
+
+The three optional historical diagnostics in CI run #272 were skipped because each step is guarded by `if: github.event_name == 'workflow_dispatch'`, while the workflow previously declared only a `pull_request` trigger. Run #272 was a `pull_request` event, so the guard correctly skipped those steps; this was not evidence of missing historical data or a failed backtest.
+
+Correction: the workflow now declares a `workflow_dispatch` trigger in addition to its existing path-filtered `pull_request` trigger (commit `b76c1fcb83ced8217b7a1ad1e48ffa1493e6a562`). This makes the optional diagnostics manually runnable from GitHub Actions without adding them to ordinary pull-request CI or changing the production scheduled scan cadence. No manual dispatch or historical data download was started as part of this correction. Backtests remain unrun until deliberately dispatched; no new accuracy claim is made.
