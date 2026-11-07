@@ -729,7 +729,7 @@ function card(name, d, participantOI) {
   })();
   const referenceMeta = name === "USDINR" && d.reference_price != null
     ? '<br><span style="color:#aab2c5">दैनिक संदर्भ दर: ₹' + Number(d.reference_price).toFixed(4) +
-      ' · ' + esc(d.reference_date || "") + ' · Frankfurter · लाइव नहीं</span>'
+      ' · ' + esc(d.reference_date || "") + ' · ' + esc(d.reference_source || "दैनिक संदर्भ दर") + '</span>'
     : "";
   const priceMeta = (d.price_source ? esc(d.price_source) : "") +
     (priceDate ? (d.price_source ? "<br>" : "") + esc(priceDate) : "") +
