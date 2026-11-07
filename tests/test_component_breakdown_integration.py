@@ -358,5 +358,26 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(item["score"], 1.25)
 
 
+    def test_partial_watchlist_never_enters_index_stock_basket_final(self):
+        instruments = {
+            name: {"score": 1.25, "headlines": []}
+            for name in ("NIFTY", "SENSEX", "BANKNIFTY")
+        }
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments,
+            "2026-11-06T10:00:00Z",
+            datetime(2026, 11, 6, 10, 0, tzinfo=timezone.utc),
+        )
+        for name, item in instruments.items():
+            breakdown = item["component_breakdown"]
+            self.assertNotIn("stock_basket", breakdown["components"])
+            excluded = breakdown["excluded_components"]["stock_basket"]
+            self.assertTrue(excluded["applicable"])
+            self.assertFalse(excluded["included"])
+            self.assertIn("full-basket daily snapshot", excluded["reason"])
+            self.assertIn("60-session directional validation", excluded["reason"])
+            self.assertEqual(item["score"], 1.25)
+
+
 if __name__ == "__main__":
     unittest.main()
