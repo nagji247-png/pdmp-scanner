@@ -4108,7 +4108,10 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
                 "bear_pct": round(bear_pct, 1),
                 "neutral_pct": round(neutral_pct, 1),
                 "directional_bull_pct": directional_bull_pct,
-                "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2),
+                "neutral_aware_score": (
+                    round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2)
+                    if directional_total > 0 else None
+                ),
                 "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
                 **rising_diagnostics,
                 "production_score_used": False,
