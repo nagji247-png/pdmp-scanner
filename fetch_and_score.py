@@ -3962,8 +3962,38 @@ def fetch_asset_directional_trends_diagnostics():
     return output
 
 
-def fetch_asset_trends_shadow():
-    """One batched 1-day Trends request for three indices plus Gold/Silver."""
+def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
+    """Attach optional phrase diagnostics without extra Trends calls by default."""
+    directional_diagnostics = (
+        fetch_asset_directional_trends_diagnostics() if enabled else {}
+    )
+    for asset in seeds:
+        record = output.setdefault(asset, {
+            "valid": False, "scope": "asset_specific_google_related_queries_shadow",
+            "seed": seeds[asset], "source": "Google Trends related_queries · India",
+            "timeframe": "now 1-d", "reason": "Related-query snapshot unavailable",
+            "production_score_used": False,
+        })
+        if enabled:
+            record["directional_query_diagnostic"] = directional_diagnostics.get(asset, {
+                "available": False, "diagnostic_only": True,
+                "reason": "Directional diagnostic result missing",
+            })
+        else:
+            record["directional_query_diagnostic"] = {
+                "available": False,
+                "diagnostic_only": True,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है",
+            }
+    return output
+
+
+def fetch_asset_trends_shadow(include_directional_diagnostics=False):
+    """One batched 1-day Trends request for three indices plus Gold/Silver.
+
+    The five additional per-asset phrase batches are opt-in only because they
+    are diagnostic-only and can increase Google Trends throttling/429 risk.
+    """
     from pytrends.request import TrendReq
 
     seeds = {
@@ -4095,21 +4125,10 @@ def fetch_asset_trends_shadow():
                 "reason": reason,
                 "production_score_used": False,
             }
-    # Manual component-shadow scans only: one extra asset-specific phrase batch per
-    # asset. Ordinary 30-minute production scans never execute these five requests.
-    directional_diagnostics = fetch_asset_directional_trends_diagnostics()
-    for asset in seeds:
-        record = output.setdefault(asset, {
-            "valid": False, "scope": "asset_specific_google_related_queries_shadow",
-            "seed": seeds[asset], "source": source, "timeframe": "now 1-d",
-            "reason": "Related-query snapshot unavailable",
-            "production_score_used": False,
-        })
-        record["directional_query_diagnostic"] = directional_diagnostics.get(asset, {
-            "available": False, "diagnostic_only": True,
-            "reason": "Directional diagnostic result missing",
-        })
-    return output
+    # Optional only: five extra payloads, one per asset. Keep disabled by default.
+    return _attach_asset_directional_trends_diagnostics(
+        output, seeds, enabled=include_directional_diagnostics
+    )
 
 
 def fetch_index_trends_shadow():
