@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 from datetime import datetime, timezone
 
 import fetch_and_score
@@ -11,7 +12,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "GOLD": "gold price", "SILVER": "silver price",
         }
         output = {}
-        with unittest.mock.patch.object(
+        with mock.patch.object(
             fetch_and_score, "fetch_asset_directional_trends_diagnostics",
             side_effect=AssertionError("extra Trends calls must be opt-in"),
         ):
