@@ -99,6 +99,66 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIsNone(classify("Sensex today", "NIFTY"))
         self.assertIsNone(classify("silver price today", "GOLD"))
 
+    def test_asset_directional_trends_phrase_diagnostic_is_not_a_score(self):
+        import pandas as pd
+
+        now = pd.Timestamp.now(tz="UTC").floor("h")
+        index = pd.date_range(end=now, periods=24, freq="h")
+        frame = pd.DataFrame({
+            "nifty": [100] * 24,
+            "nifty breakout": [20] * 24,
+            "nifty crash": [10] * 24,
+            "nifty sideways": [5] * 24,
+        }, index=index)
+        spec = {
+            "seed": "nifty",
+            "bull": "nifty breakout",
+            "bear": "nifty crash",
+            "neutral": "nifty sideways",
+        }
+        result = fetch_and_score._summarize_asset_directional_trends(
+            frame, "NIFTY", spec
+        )
+        self.assertTrue(result["available"])
+        self.assertTrue(result["diagnostic_only"])
+        self.assertEqual(result["query_interest_mix_pct"], {
+            "bull": 57.1, "bear": 28.6, "neutral": 14.3
+        })
+        self.assertNotIn("score", result)
+        self.assertIn("not included", result["interpretation"])
+
+    def test_asset_directional_trends_rejects_zero_or_missing_data(self):
+        import pandas as pd
+
+        now = pd.Timestamp.now(tz="UTC").floor("h")
+        index = pd.date_range(end=now, periods=24, freq="h")
+        spec = {
+            "seed": "gold price",
+            "bull": "gold price rise",
+            "bear": "gold price fall",
+            "neutral": "gold price stable",
+        }
+        zero = pd.DataFrame({key: [0] * 24 for key in spec.values()}, index=index)
+        with self.assertRaisesRegex(ValueError, "search-interest शून्य"):
+            fetch_and_score._summarize_asset_directional_trends(zero, "GOLD", spec)
+        missing = zero.drop(columns=["gold price fall"])
+        with self.assertRaisesRegex(ValueError, "columns missing"):
+            fetch_and_score._summarize_asset_directional_trends(missing, "GOLD", spec)
+
+    def test_asset_directional_trends_are_scoped_to_each_asset(self):
+        expected = {
+            "NIFTY": "nifty breakout",
+            "SENSEX": "sensex rally",
+            "BANKNIFTY": "bank nifty breakout",
+            "GOLD": "gold price rise",
+            "SILVER": "silver price rise",
+        }
+        self.assertEqual(
+            {asset: spec["bull"] for asset, spec in
+             fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES.items()},
+            expected,
+        )
+
     def test_mcx_bhavcopy_comparator_is_imported_for_diagnostic_workflow(self):
         from component_scoring import compare_mcx_bhavcopy_contract_oi
 
