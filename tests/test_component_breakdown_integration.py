@@ -141,6 +141,18 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIsNone(classify("Sensex today", "NIFTY"))
         self.assertIsNone(classify("silver price today", "GOLD"))
 
+        # Hindi asset names and sentiment phrases must be classified too.
+        self.assertEqual(classify("निफ़्टी ऊपर", "NIFTY"), "bull")
+        self.assertEqual(classify("निफ्टी में गिरावट", "NIFTY"), "bear")
+        self.assertEqual(classify("बैंक निफ्टी में तेजी", "BANKNIFTY"), "bull")
+        self.assertIsNone(classify("बैंक निफ्टी में तेजी", "NIFTY"))
+        self.assertEqual(classify("सेंसेक्स में उछाल", "SENSEX"), "bull")
+        self.assertEqual(classify("सोने में तेजी", "GOLD"), "bull")
+        self.assertEqual(classify("सोने में गिरावट", "GOLD"), "bear")
+        self.assertEqual(classify("चाँदी में तेजी", "SILVER"), "bull")
+        self.assertEqual(classify("चांदी में कमजोरी", "SILVER"), "bear")
+        self.assertIsNone(classify("चांदी में तेजी", "GOLD"))
+
     def test_asset_directional_trends_phrase_diagnostic_is_not_a_score(self):
         import pandas as pd
 
