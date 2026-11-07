@@ -3936,23 +3936,30 @@ def _asset_search_direction(term, asset):
     if has_bull != has_bear:
         return "bull" if has_bull else "bear"
 
-    # Information/navigation searches (today, live, share price, chart, etc.)
-    # are NOT neutral crowd sentiment. Only explicit flat/range-bound language
-    # earns a neutral vote; otherwise leave the query unclassified.
-    neutral_intent = {
+    # Explicit flat/range-bound language is neutral crowd intent. Pure
+    # information/navigation searches are also counted as Neutral (not Bull/Bear),
+    # while ambiguous targets or an unqualified "range" stay unclassified.
+    explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
-        # Informational/navigation searches are neutral, not directional votes.
-        "today", "live", "price", "chart", "index", "market", "share",
-        "prediction", "predictions", "forecast", "forecasts",
-        "option", "options", "chain", "expiry", "weekly", "monthly",
-        "analysis", "technical", "support", "resistance", "level", "levels",
-        "news", "tomorrow", "trading", "स्थिर", "सपाट", "सीमित",
-        "दायरे", "साइडवेज", "आज", "लाइव", "भाव", "कीमत", "चार्ट",
-        "अनुमान", "भविष्यवाणी", "ऑप्शन", "चेन", "एक्सपायरी",
-        "विश्लेषण", "समाचार", "कल",
+        "स्थिर", "सपाट", "सीमित", "दायरे", "साइडवेज",
     }
-    if tokens & neutral_intent:
+    if tokens & explicit_neutral:
+        return "neutral"
+    ambiguous = {"range", "target", "targets", "high", "low", "52"}
+    if tokens & ambiguous:
+        return None
+    informational = {
+        "today", "live", "price", "prices", "rate", "rates", "spot", "quote",
+        "value", "current", "chart", "index", "market", "share", "prediction",
+        "predictions", "forecast", "forecasts", "option", "options", "chain",
+        "expiry", "weekly", "monthly", "analysis", "technical", "support",
+        "resistance", "level", "levels", "news", "tomorrow", "trading",
+        "आज", "लाइव", "भाव", "कीमत", "दाम", "रेट", "मूल्य", "वर्तमान",
+        "चार्ट", "अनुमान", "भविष्यवाणी", "ऑप्शन", "चेन", "एक्सपायरी",
+        "विश्लेषण", "समाचार", "कल", "स्पॉट",
+    }
+    if tokens & informational:
         return "neutral"
     return None
 
