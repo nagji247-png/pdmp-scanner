@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install research dependencies
-        run: python -m pip install pandas yfinance
+        run: python -m pip install pandas yfinance feedparser requests
       - name: Validate Python syntax
         run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py validate_market_signal_history.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py tests/test_market_signal_history.py
       - name: Run OI research unit tests
