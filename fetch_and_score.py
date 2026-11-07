@@ -914,7 +914,7 @@ def bse_sensex_quote():
         session_open = india_cash_session_open(now_ist)
         if session_open and stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not from today's live session: {stamp_text}")
-        max_age_seconds = 30 * 60 if session_open else 18 * 60 * 60
+        max_age_seconds = 30 * 60 if session_open else 96 * 60 * 60
         if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
             raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
         source = "BSE" if session_open or (now_ist - stamp).total_seconds() <= 15 * 60 else "BSE · पिछला बंद भाव"
@@ -967,7 +967,7 @@ def google_finance_quote(symbol, exchange, label):
         if exchange == "INDEXNASDAQ" or exchange == "INDEXDJX":
             # US indices: accept a same-session close overnight, but never a
             # quote older than 18 hours (weekends/holidays naturally expire).
-            max_age = 18 * 60 * 60
+            max_age = 96 * 60 * 60
             if age_seconds > max_age:
                 raise ValueError("US index quote is older than the allowed 18-hour session window")
             time_label = stamp.strftime("%I:%M %p ET").lstrip("0")
@@ -975,7 +975,7 @@ def google_finance_quote(symbol, exchange, label):
             # During cash session require recent data; outside session accept
             # the latest previous close for up to 18 hours, clearly labelled.
             session_open = india_cash_session_open(now_exchange)
-            max_age = 15 * 60 if session_open else 18 * 60 * 60
+            max_age = 15 * 60 if session_open else 96 * 60 * 60
             if age_seconds > max_age:
                 raise ValueError("Google Finance quote is outside the live/previous-close window")
             time_label = stamp.strftime("%I:%M %p") + " " + ("IST" if offset_text == "+5:30" else "local")
@@ -1013,7 +1013,7 @@ def google_finance_quote(symbol, exchange, label):
                 pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", quote_header)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         source_label = "Google Finance direct " + label + " quote"
-        if exchange not in ("INDEXNASDAQ", "INDEXDJX") and age_seconds > 15 * 60:
+        if age_seconds > 15 * 60:
             source_label += " · पिछला बंद भाव"
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "date": stamp.date().isoformat(), "time": time_label,
@@ -1086,7 +1086,7 @@ def nse_web_indices_quote(index_name):
             parsed_stamp = parsed_stamp.astimezone(ist)
         now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist)
         age = (now_ist - parsed_stamp).total_seconds()
-        max_age = 15 * 60 if india_cash_session_open(now_ist) else 18 * 60 * 60
+        max_age = 15 * 60 if india_cash_session_open(now_ist) else 96 * 60 * 60
         if age < -120 or age > max_age:
             raise ValueError(f"NSE index timestamp outside live/previous-close window: {stamp}")
         pct = next((row.get(k) for k in ("percentChange", "perChange", "changePercent")
@@ -1157,7 +1157,7 @@ def parse_nse_direct_equity_payload(symbol, payload, now=None):
             parsed_stamp = parsed_stamp.astimezone(ist)
 
         age_seconds = (current - parsed_stamp).total_seconds()
-        max_age = 15 * 60 if india_cash_session_open(current) else 18 * 60 * 60
+        max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
         if age_seconds < -120 or age_seconds > max_age:
             continue
 
@@ -1452,7 +1452,7 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
         current = current.replace(tzinfo=ist)
     else:
         current = current.astimezone(ist)
-    allowed_age = max_age_minutes if mcx_session_open(current) else 18 * 60
+    allowed_age = max_age_minutes if mcx_session_open(current) else 96 * 60
     return -2 <= age <= allowed_age
 
 
@@ -2727,7 +2727,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     nse_quote = nse_cash_quote(name, sym)
     # SENSEX uses BSE's direct quote first; Google Finance's timestamped direct
     # index quote is the fallback. Never use an unvalidated daily OHLC candle.
-    yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
+    yahoo_quote = intraday_quote(sym) if name in ("USDINR", "BITCOIN") else None
     global_quote = google_finance_sensex_quote() if name == "SENSEX" and not nse_quote else None
     if not nse_quote and not yahoo_quote and name == "NASDAQ":
         global_quote = google_finance_quote(".IXIC", "INDEXNASDAQ", "NASDAQ")
@@ -2839,8 +2839,14 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         PRICE_CACHE["BTC-USD_SOURCE"] = None
         PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     elif sym == "INR=X":
-        # USD/INR must have a fresh intraday quote; a daily Yahoo close is not
-        # presented as today's live exchange rate when the quote feed is absent.
+        # USD/INR must have a fresh intraday quote; its separately dated daily
+        # reference is attached later and is never promoted to a live price.
+        PRICE_CACHE[sym] = None
+        change = None
+    elif sym.endswith(".NS") or sym in ("^NSEI", "^NSEBANK"):
+        # Daily Yahoo candles remain available to historical indicators only.
+        # Never publish Yahoo as the cash quote when the exchange/validated
+        # direct quote path failed; leave the card explicitly unavailable.
         PRICE_CACHE[sym] = None
         change = None
     elif name == "SENSEX":
