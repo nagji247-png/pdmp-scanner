@@ -204,19 +204,15 @@ def search_component_from_snapshot(
     # descriptive 100% neutral mix in the snapshot, but do not inject a fake
     # zero into the weighted asset Final Score.
     directional_bull_pct = finite_number(snapshot.get("directional_bull_pct"))
-    if directional_bull_pct is None:
-        return None, "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
-    # A neutral-only related-query mix has no bullish-vs-bearish evidence.
-    # Reject legacy/incorrect snapshots that encode this case as a numeric zero.
-    directional_bull_pct = finite_number(snapshot.get("directional_bull_pct"))
     bull_pct = finite_number(snapshot.get("bull_pct"))
     bear_pct = finite_number(snapshot.get("bear_pct"))
+    # A neutral-only or empty directional mix has no bullish-vs-bearish
+    # evidence, even if an older snapshot incorrectly stores score=0.
     if (
         directional_bull_pct is None
-        and bull_pct == 0
-        and bear_pct == 0
+        or (bull_pct == 0 and bear_pct == 0)
     ):
-        return None, "केवल NEUTRAL खोजें मिलीं; directional evidence उपलब्ध नहीं"
+        return None, "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
     score = clamp_score(snapshot.get("neutral_aware_score"))
     if score is None:
         return None, "Google Trends directional score उपलब्ध नहीं"
