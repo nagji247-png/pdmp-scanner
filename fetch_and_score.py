@@ -3480,7 +3480,8 @@ TQ_BULL_WORDS = ["target", "rally", "rise", "up", "high", "record", "buy", "bull
 TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearish", "slump",
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
-                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन", "गिरावट"]
+                 "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
+        "गिरा", "कमजोर", "कमज़ोर", "सस्ता", "सस्ती", "गिरावट"]
 # सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
 TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
                     "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
@@ -3776,25 +3777,31 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 def _asset_search_direction(term, asset):
     """Classify only queries that actually refer to this asset; generic info intent is neutral."""
-    text = str(term or "").lower()
-    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+    text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
+    tokens = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
 
-    # Related-query payloads can contain neighboring assets. Never let those
-    # queries leak into another asset's sentiment denominator.
+    # Match common Hindi names as well as English asset names. Normalize
+    # nukta/chandrabindu variants first; keep neighboring assets isolated.
+    nifty_name = "nifty" in tokens or "निफ्टी" in tokens
+    bank_name = "bank" in tokens or "बैंक" in tokens
+    sensex_name = "sensex" in tokens or "सेंसेक्स" in tokens
+    gold_name = bool(tokens & {"gold", "सोना", "सोने", "स्वर्ण"})
+    silver_name = bool(tokens & {"silver", "चांदी"})
+
     if asset == "NIFTY":
-        if "nifty" not in tokens or "bank" in tokens:
+        if not nifty_name or bank_name:
             return None
     elif asset == "SENSEX":
-        if "sensex" not in tokens or "nifty" in tokens:
+        if not sensex_name or nifty_name:
             return None
     elif asset == "BANKNIFTY":
-        if not ({"bank", "nifty"} <= tokens):
+        if not (bank_name and nifty_name):
             return None
     elif asset == "GOLD":
-        if "gold" not in tokens or "silver" in tokens:
+        if not gold_name or silver_name:
             return None
     elif asset == "SILVER":
-        if "silver" not in tokens or "gold" in tokens:
+        if not silver_name or gold_name:
             return None
     else:
         return None
@@ -3809,6 +3816,7 @@ def _asset_search_direction(term, asset):
         "rising", "jump", "jumps", "teji", "tez", "badhega",
         "badhegi", "upar", "chadhega", "chadhav",
         "बुलिश", "तेज़ी", "तेजी", "उछाल", "बढ़ेगा", "बढ़ेगी",
+        "ऊपर", "बढ़त", "चढ़ा", "चढ़ेगा", "महंगा", "महंगी",
         "रिकवरी", "ब्रेकआउट", "रैली",
     }
     bearish_terms = {
