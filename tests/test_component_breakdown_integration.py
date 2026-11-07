@@ -107,6 +107,35 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertFalse(snapshot["valid"])
         self.assertIn("stale", snapshot["reason"])
 
+    def test_failed_refresh_preserves_only_still_fresh_asset_search_snapshot(self):
+        now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
+        instruments = {"NIFTY": {"score": 1.0}, "SENSEX": {"score": 2.0}}
+        previous = {
+            "NIFTY": {"index_search_shadow": {
+                "valid": True, "seed": "nifty", "timeframe": "now 1-d",
+                "source_data_time": "2026-11-07T12:45:00Z", "neutral_aware_score": 2.0,
+            }},
+            "SENSEX": {"index_search_shadow": {
+                "valid": True, "seed": "sensex", "timeframe": "now 1-d",
+                "source_data_time": "2026-11-07T10:00:00Z",
+            }},
+        }
+        failed = {
+            "NIFTY": {"valid": False, "seed": "nifty", "reason": "temporary Trends response error"},
+            "SENSEX": {"valid": False, "seed": "sensex", "reason": "temporary Trends response error"},
+        }
+        fetch_and_score.attach_asset_search_snapshots(
+            instruments, previous, now, fresh_results=failed
+        )
+        kept = instruments["NIFTY"]["index_search_shadow"]
+        self.assertTrue(kept["valid"])
+        self.assertTrue(kept["cached"])
+        self.assertEqual(kept["source_data_time"], "2026-11-07T12:45:00Z")
+        self.assertEqual(kept["refresh_error"], "temporary Trends response error")
+        rejected = instruments["SENSEX"]["index_search_shadow"]
+        self.assertFalse(rejected["valid"])
+        self.assertIn("temporary Trends response error", rejected["reason"])
+
     def test_news_only_final_is_normalized_and_does_not_change_live_score(self):
         instruments = {
             "NIFTY": {
