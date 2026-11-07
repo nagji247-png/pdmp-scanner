@@ -22,24 +22,34 @@ Important distinction: constituent membership CSV is not automatically a daily c
 
 ## SENSEX source finding
 
-The official BSE SENSEX factsheet currently discovered in this audit is dated 30-Jan-2026 and shows only the top 10 constituent weights in its extracted content, not all constituent weights. It reports the number of constituents as 31 on that dated factsheet, which conflicts with the commonly referenced 30-stock SENSEX description and may reflect an index event/transition or source-version difference. This must be resolved against a current official BSE constituent/weight download before using a basket.
+The official BSE SENSEX October-2026 factsheet was retrieved in CI, but its PDF text extraction did not expose a complete 30-stock weight table. The same probe separately retrieved the official BSE SENSEX roster with 30 rows as of 2026-10-30. Membership is therefore verified for that date; complete official weights remain unresolved. An older January 2026 factsheet had a reported constituent-count discrepancy and should not be used as the current membership snapshot.
 
 Official BSE factsheet URL:
 - https://www.bseindices.com/Downloads/Factsheet/Factsheet_BSESENSEX_Jan2026.pdf
 
-Its top 10 weights sum to 65.68%; the remaining constituent weights cannot be inferred safely from this partial list. Do not use these ten weights as if they represented the full index.
+The partial top-10 weight table is not a complete basket. Do not use these ten weights as if they represented the full index.
 
-## Additional official weight-report lead (2026-11-07)
+## Verified official monthly weights and dated cash coverage (CI evidence, 2026-11-06)
 
-The NSE India All Reports catalogue exposes a report named **“Market Capitalisation, Weightage, Beta for NIFTY 50 & NIFTY Next 50”**. This is a useful official lead for obtaining dated NIFTY 50 constituent weights, but the report output itself has not yet been downloaded, parsed, date-checked, or reconciled against all 50 members. It does not establish NIFTY BANK weights.
+The NSE/MCX Integration workflow #260 downloaded and parsed the official NSE Indices monthly archive:
 
-Official catalogue: https://betanseapi.nseindia.com/all-reports
+- Archive: https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_dataOct2026.zip
+- Report date: **October 30, 2026**
+- NIFTY 50 PDF: `NIFTY_50_Oct2026.pdf` — 50 constituents, weight sum 99.98%, zero duplicate symbols, zero rejected rows.
+- NIFTY Bank PDF: `NIFTY_Bank_Oct2026.pdf` — 14 constituents, weight sum 100.00%, zero duplicate symbols, zero rejected rows.
+- Dated NSE cash EQ bhavcopy coverage was complete for the 50/50 and 14/14 member sets in the four observed sessions from Oct 30 through Nov 5, 2026.
 
-The public NIFTY 50 index page confirms the index uses free-float market-cap weighting and offers an Index Constituent download, while the NIFTY BANK page likewise offers a member CSV. A member list is still not a complete weight snapshot. The NSE Indices Daily Reports page currently exposes Daily Snapshot CSV links; this audit did not establish that those snapshots contain complete constituent weights.
+The same workflow reconstructed daily prior-session weights from the Oct 30 official monthly snapshot and cash prices. Reconstructed basket returns matched the official index returns closely: NIFTY 50 deviations were 0.0, -8.6, -2.2 and 0.0 bps across the four checked sessions; NIFTY Bank deviations were 0.0 bps at displayed precision for all four. This confirms source parsing and short-window index replication, not a 60-session directional edge.
 
-For SENSEX, the BSE official site identifies the benchmark and its float-adjusted methodology, but this search did not retrieve a current, complete, dated official 30-member weight file. Third-party tables are not accepted as an official substitute.
+The workflow's 60-session chronological directional holdout is separately reported in the PR: NIFTY direct 11/20 vs contrarian 9/20 (correlation -0.091); BANKNIFTY direct 8/20 vs contrarian 12/20 (correlation -0.059). This evidence remains weak and descriptive; the basket component is still excluded from Final pending broader validation and live snapshot wiring.
 
-**Status correction:** Earlier shadow diagnostic wording that said NIFTY 50 and NIFTY Bank monthly weights had been verified was too strong. Only official constituent-download endpoints were identified. No complete dated weights for these indices have been parsed and validated yet. The component remains excluded from Final.
+The NSE All Reports catalogue also lists “Market Capitalisation, Weightage, Beta for NIFTY 50 & NIFTY Next 50”, a potential additional official route, but the already-verified October archive above is the evidence used here. The official monthly archive itself contains NIFTY 50 and NIFTY Bank PDFs.
+
+Official catalogue lead: https://betanseapi.nseindia.com/all-reports
+
+## SENSEX remains a separate unresolved source
+
+The same CI probe retrieved the BSE SENSEX roster (30 rows, as-of 2026-10-30), but the October 2026 BSE factsheet PDF text extraction yielded no complete 30-stock weight table. Therefore SENSEX membership is known for that date, but complete official constituent weights are not yet verified. Do not infer weights from the top-10 factsheet, use a third-party table, or substitute NIFTY data.
 
 ## Secondary source caution
 
