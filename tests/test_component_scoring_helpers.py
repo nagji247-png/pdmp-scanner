@@ -146,6 +146,43 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertFalse(context["included_in_asset_final"])
 
 
+    def test_client_oi_preserves_missing_fields_as_unavailable_not_zero(self):
+        context = client_oi_context(
+            {"ok": True, "stale": False, "date": "2026-11-06"},
+            {"ok": True, "prev_date": "2026-11-05", "by_group": {"CLIENT": {
+                "index_call_long": 125,
+                "index_call_short": None,
+                "index_put_long": "",
+                "index_put_short": -75,
+                "future_index_long": 0,
+                "future_index_short": None,
+            }}},
+        )
+        self.assertTrue(context["available"])
+        self.assertEqual(context["ce_build_up"]["call_long_change"], 125)
+        self.assertIsNone(context["ce_build_up"]["call_short_change"])
+        self.assertIsNone(context["pe_build_up"]["put_long_change"])
+        self.assertEqual(context["pe_build_up"]["put_short_change"], -75)
+        self.assertEqual(context["client_index_futures"]["long_change"], 0)
+        self.assertIsNone(context["client_index_futures"]["short_change"])
+        self.assertFalse(context["included_in_asset_final"])
+
+    def test_stale_client_oi_snapshot_is_rejected_without_values(self):
+        context = client_oi_context(
+            {"ok": True, "stale": True, "date": "2026-11-04"},
+            {"ok": True, "prev_date": "2026-11-03", "by_group": {"CLIENT": {
+                "index_call_long": 100, "index_call_short": 200,
+                "index_put_long": 300, "index_put_short": 400,
+                "future_index_long": 500, "future_index_short": 600,
+            }}},
+        )
+        self.assertFalse(context["available"])
+        self.assertIn("ताज़ा", context["reason"])
+        self.assertEqual(context["ce_build_up"]["call_long_change"], None)
+        self.assertEqual(context["client_index_futures"]["long_change"], None)
+        self.assertFalse(context["included_in_asset_final"])
+
+
     def test_nse_udiff_index_option_oi_is_separate_and_fail_closed(self):
         from component_scoring import aggregate_nse_udiff_index_option_oi
 
