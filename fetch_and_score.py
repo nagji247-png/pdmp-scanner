@@ -3897,10 +3897,15 @@ def _summarize_asset_directional_trends(df, asset, spec):
     missing = [term for term in required if term not in df.columns]
     if missing:
         raise ValueError("Google Trends columns missing: " + ", ".join(missing))
+    anchor_recent = float(df[seed].tail(24).mean())
+    if not math.isfinite(anchor_recent) or anchor_recent <= 0:
+        raise ValueError(f"Google Trends {asset} anchor का ताज़ा search-interest शून्य है")
     ratios = {}
     for direction in ("bull", "bear", "neutral"):
-        recent_ratio, _ = _ratio(df, spec[direction], recent_points=24)
-        ratios[direction] = round(max(0.0, recent_ratio) * 100.0, 2)
+        term_recent = float(df[spec[direction]].tail(24).mean())
+        if not math.isfinite(term_recent) or term_recent < 0:
+            raise ValueError(f"Google Trends {asset} {direction} phrase का डेटा अमान्य है")
+        ratios[direction] = round((term_recent / anchor_recent) * 100.0, 2)
     total = sum(ratios.values())
     if not math.isfinite(total) or total <= 0:
         raise ValueError("तीनों asset-specific directional phrases का ताज़ा search-interest शून्य है")
