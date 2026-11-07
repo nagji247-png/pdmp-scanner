@@ -84,18 +84,28 @@ def build_component(score, source, source_date, weight, **metadata):
 
 
 def weighted_constituent_breadth_candidate(
-    constituents, source, source_date, weight_sum_tolerance_pct=0.10
+    constituents, source, source_date, weight_sum_tolerance_pct=0.10,
+    expected_symbols=None,
 ):
     """Calculate a full-coverage, weighted advance/decline candidate in [-10,+10].
 
     Each item must contain a unique symbol, positive prior constituent weight,
-    and positive prior/current close. This is a diagnostic candidate only:
-    it is deliberately not marked included and must not enter asset Final
+    and positive prior/current close. The authoritative expected_symbols roster
+    is mandatory: a partial or substituted basket must never pass merely because
+    its remaining weights happen to sum to 100%. This remains diagnostic-only
     until multi-session historical validation and freshness checks pass.
     """
     if not isinstance(constituents, list) or not constituents:
         return {"available": False, "included_in_asset_final": False,
                 "reason": "constituent rows missing"}
+    if not isinstance(expected_symbols, (list, tuple, set)) or not expected_symbols:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "authoritative expected constituent roster missing"}
+    expected = [str(symbol or "").strip().upper() for symbol in expected_symbols]
+    if any(not symbol for symbol in expected) or len(set(expected)) != len(expected):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "authoritative expected constituent roster invalid or duplicated"}
+    expected_set = set(expected)
     if not str(source or "").strip() or not isinstance(source_date, str) or not source_date.strip():
         return {"available": False, "included_in_asset_final": False,
                 "reason": "source or source date missing"}
@@ -126,6 +136,14 @@ def weighted_constituent_breadth_candidate(
         seen.add(symbol)
         rows.append((symbol, weight, previous_close, current_close))
 
+    actual_set = {row[0] for row in rows}
+    if actual_set != expected_set:
+        missing = sorted(expected_set - actual_set)
+        unexpected = sorted(actual_set - expected_set)
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "constituent roster does not exactly match authoritative membership",
+                "expected_count": len(expected_set), "actual_count": len(actual_set),
+                "missing_symbols": missing, "unexpected_symbols": unexpected}
     total_weight = sum(row[1] for row in rows)
     if abs(total_weight - 100.0) > tolerance:
         return {"available": False, "included_in_asset_final": False,
