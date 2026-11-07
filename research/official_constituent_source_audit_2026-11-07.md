@@ -75,3 +75,15 @@ The existing helper `weighted_constituent_breadth_candidate` correctly keeps its
 - Never infer all weights from top-10 factsheet data.
 - Never enable the component merely because a CSV download succeeds.
 - No production score, dashboard layout, ordinary 30-minute scan cadence, or live signal is changed by this audit.
+
+## Follow-up NSE/MCX validation — CI workflow #271 (2026-11-07)
+
+The later integration validation run #271 (job 128262468817) confirmed additional source parsing, but did not promote these observations into scored components:
+
+- NSE UDiFF option bhavcopy and the same-date MII contract master reconciled all 2,050 NIFTY and 975 BANKNIFTY contract IDs with no missing IDs, duplicate IDs, or symbol/side/expiry/strike mismatches on 2026-11-05. Five dated sessions were parsed with zero duplicate keys or rejected rows. Contract counts changed between sessions, so a fixed-contract universe or partial-history assumption must not be treated as complete coverage.
+- Aggregate exchange-wide index-option OI changes were mixed across CE and PE and across sessions. These are exchange-wide contract aggregates, not NSE participant CLIENT positions. Raw CE/PE OI growth alone does not establish bullish or bearish direction; no OI score is enabled.
+- MCX official bhavcopy was retrieved for 2026-10-30 through 2026-11-05. Exact same-expiry FUTCOM rows were available for GOLD 04DEC2026 and SILVER 04DEC2026 on all five observed sessions. GOLD price/OI regimes included price-up/OI-down and price-down/OI-up; SILVER also showed mixed regimes. This is useful contract-level research evidence, but it is not a category-wise CLIENT OI report and does not establish a directional rule. Both MCX OI candidates remain excluded from Final.
+- BSE SENSEX membership remained 30/30 as of 2026-10-30, but the October factsheet PDF yielded only two extracted text characters in the CI runner. Complete official weights are still unverified. The independent SENSEX quote probe returned HTTP 403; do not interpret this diagnostic failure as proof that the dashboard's fallback quote path is broken.
+- NSE MCP handshake, MCX quote parsing/freshness, MCX FUTCOM symbol/expiry selection, and related parser checks passed. Workflow success indicates the diagnostic checks completed; it does not mean each candidate source is validated for directional scoring.
+
+No live scoring, production scan schedule, or dashboard signal was changed by this follow-up.
