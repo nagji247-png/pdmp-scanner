@@ -47,7 +47,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             [self.rows()[0]], "NIFTY", "2026-11-06"
         )
         self.assertFalse(result["available"])
-        self.assertIsNone(result["reason"])
+        self.assertIsNotNone(result["reason"])
         self.assertFalse(result["included_in_asset_final"])
 
     def test_malformed_oi_or_expiry_is_not_silently_zeroed(self):
