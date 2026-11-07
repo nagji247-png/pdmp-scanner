@@ -92,6 +92,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "bear_pct": 0.0,
             "neutral_pct": 100.0,
             "directional_bull_pct": None,
+            # Reproduce the legacy bug: neutral-only snapshots must not carry a zero score.
+            "neutral_aware_score": 0.0,
             "terms": [{"term": "nifty today", "direction": "neutral", "weight": 100}],
         }
         instruments = {
@@ -110,6 +112,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(breakdown["search_diagnostic"]["neutral_pct"], 100.0)
         self.assertNotIn("search", breakdown["components"])
         self.assertIn("directional evidence", breakdown["excluded_components"]["search"]["reason"])
+        self.assertIsNone(breakdown["search_diagnostic"]["directional_bull_pct"])
         self.assertEqual(instruments["NIFTY"]["score"], 1.0)
 
     def test_asset_search_classifier_blocks_cross_asset_and_bare_price_queries(self):
