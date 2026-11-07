@@ -3787,8 +3787,8 @@ def _asset_search_direction(term, asset):
     nifty_name = "nifty" in tokens or "निफ्टी" in tokens or bank_compound
     bank_name = "bank" in tokens or "बैंक" in tokens or bank_compound
     sensex_name = "sensex" in tokens or "सेंसेक्स" in tokens
-    gold_name = bool(tokens & {"gold", "सोना", "सोने", "स्वर्ण"})
-    silver_name = bool(tokens & {"silver", "चांदी"})
+    gold_name = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
+    silver_name = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
 
     if asset == "NIFTY":
         if not nifty_name or bank_name:
