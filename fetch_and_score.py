@@ -380,9 +380,11 @@ def build_asset_component_breakdowns(
             news_info = index_news[name]
             news_count = int(news_info.get("headline_count") or 0)
             news_score = news_info.get("news_score") if news_count else None
+            # Keep the displayed age aligned with the same deduplicated,
+            # timestamp-verified headlines that actually contributed to News.
             newest_age = min(
-                (age for h in (item.get("headlines") or [])
-                 if (age := _timestamped_news_age_hours(h, now_utc)) is not None),
+                (age for age in (news_info.get("eligible_ages_h") or [])
+                 if isinstance(age, (int, float)) and math.isfinite(age)),
                 default=None,
             )
             duplicate_note = "24h timestamped headlines; cross-index duplicates excluded"
