@@ -76,6 +76,33 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("search", breakdown["excluded_components"])
         self.assertNotIn("search", breakdown["components"])
 
+    def test_news_requires_real_publisher_timestamp_and_uses_headline_date(self):
+        now = datetime(2026, 11, 7, 7, 0, tzinfo=timezone.utc)
+        instruments = {
+            "NIFTY": {
+                "score": 4.0,
+                "headlines": [
+                    {"title": "Nifty rises on broad buying", "source": "Reuters",
+                     "score": 2.0, "age_h": 1.0},
+                    {"title": "Nifty gains after strong results", "source": "Bloomberg",
+                     "score": 3.0, "age_h": 0.1,
+                     "published_at": "2026-11-07T06:30:00Z"},
+                ],
+            }
+        }
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments, "2026-11-07T07:00:00Z", now
+        )
+        breakdown = instruments["NIFTY"]["component_breakdown"]
+        news = breakdown["components"]["news"]
+        self.assertEqual(news["evidence_count"], 1)
+        self.assertEqual(news["source_date"], "2026-11-07")
+        self.assertEqual(news["source_date_basis"],
+                         "newest eligible publisher timestamp converted to IST; observed_at is scan time")
+        self.assertEqual(news["newest_headline_published_at"], "2026-11-07T06:30:00Z")
+        self.assertEqual(news["observed_at"], "2026-11-07T07:00:00Z")
+        self.assertEqual(instruments["NIFTY"]["score"], 4.0)
+
     def test_each_asset_search_component_rejects_another_assets_seed(self):
         now = datetime(2026, 11, 6, 7, 0, tzinfo=timezone.utc)
         seeds = {
