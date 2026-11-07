@@ -44,6 +44,69 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             result["NIFTY"]["directional_query_diagnostic"], expected["NIFTY"]
         )
 
+    def test_asset_search_snapshots_are_saved_for_all_five_assets(self):
+        now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
+        seeds = {
+            "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
+            "GOLD": "gold price", "SILVER": "silver price",
+        }
+        instruments = {name: {"score": 2.5} for name in seeds}
+        fresh = {
+            name: {
+                "valid": True, "seed": seed, "timeframe": "now 1-d",
+                "source_data_time": now.isoformat(), "production_score_used": False,
+            }
+            for name, seed in seeds.items()
+        }
+        fetch_and_score.attach_asset_search_snapshots(
+            instruments, {}, now, fresh_results=fresh
+        )
+        for name, seed in seeds.items():
+            field = ("index_search_shadow" if name in ("NIFTY", "SENSEX", "BANKNIFTY")
+                     else "asset_search_shadow")
+            self.assertEqual(instruments[name][field]["seed"], seed)
+            self.assertTrue(instruments[name][field]["valid"])
+            self.assertEqual(instruments[name]["score"], 2.5)
+
+    def test_ordinary_scan_reuses_fresh_asset_search_without_refetching(self):
+        now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
+        seeds = {
+            "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
+            "GOLD": "gold price", "SILVER": "silver price",
+        }
+        previous = {}
+        instruments = {}
+        for name, seed in seeds.items():
+            field = ("index_search_shadow" if name in ("NIFTY", "SENSEX", "BANKNIFTY")
+                     else "asset_search_shadow")
+            previous[name] = {field: {
+                "valid": True, "seed": seed, "timeframe": "now 1-d",
+                "source_data_time": now.isoformat(),
+            }}
+            instruments[name] = {"score": 1.0}
+        fetch_and_score.attach_asset_search_snapshots(
+            instruments, previous, now, fresh_results=None
+        )
+        for name, seed in seeds.items():
+            field = ("index_search_shadow" if name in ("NIFTY", "SENSEX", "BANKNIFTY")
+                     else "asset_search_shadow")
+            self.assertEqual(instruments[name][field]["seed"], seed)
+            self.assertTrue(instruments[name][field]["cached"])
+
+    def test_stale_asset_search_is_not_reused_by_ordinary_scan(self):
+        now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
+        instruments = {"NIFTY": {"score": 1.0}}
+        previous = {"NIFTY": {"index_search_shadow": {
+            "valid": True, "seed": "nifty", "timeframe": "now 1-d",
+            "source_data_time": "2026-11-07T10:00:00Z",
+        }}}
+        fetch_and_score.attach_asset_search_snapshots(
+            instruments, previous, now, fresh_results=None
+        )
+        snapshot = instruments["NIFTY"]["index_search_shadow"]
+        self.assertFalse(snapshot["valid"])
+        self.assertIn("stale", snapshot["reason"])
+
     def test_news_only_final_is_normalized_and_does_not_change_live_score(self):
         instruments = {
             "NIFTY": {
