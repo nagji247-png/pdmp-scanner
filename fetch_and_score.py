@@ -3931,8 +3931,17 @@ def _asset_search_direction(term, asset):
     negation_terms = {"not", "no", "without", "never", "नहीं", "मत", "बिना"}
     if tokens & negation_terms:
         return None
-    has_bull = bool(tokens & bullish_terms)
-    has_bear = bool(tokens & bearish_terms)
+    # A dated asset-specific "all-time/record/new high" query is directional
+    # bullish intent; the corresponding low phrase is bearish. Keep bare
+    # "high", "low", and "52 week high" ambiguous to avoid false positives.
+    bullish_record_phrases = ("all time high", "record high", "new high", "lifetime high")
+    bearish_record_phrases = ("all time low", "record low", "new low", "lifetime low")
+    has_bull = bool(tokens & bullish_terms) or any(
+        phrase in text for phrase in bullish_record_phrases
+    )
+    has_bear = bool(tokens & bearish_terms) or any(
+        phrase in text for phrase in bearish_record_phrases
+    )
     if has_bull != has_bear:
         return "bull" if has_bull else "bear"
 

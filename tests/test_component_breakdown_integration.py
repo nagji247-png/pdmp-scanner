@@ -206,6 +206,14 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         # Ambiguous analyst/navigation intent must not be promoted into mood.
         self.assertIsNone(classify("Nifty target today", "NIFTY"))
         self.assertEqual(classify("Nifty 52 week high", "NIFTY"), None)
+        # Explicit record-price phrases are directional; bare high/low remain ambiguous.
+        self.assertEqual(classify("Nifty all time high", "NIFTY"), "bull")
+        self.assertEqual(classify("Sensex record high", "SENSEX"), "bull")
+        self.assertEqual(classify("BankNifty new high", "BANKNIFTY"), "bull")
+        self.assertEqual(classify("gold record high", "GOLD"), "bull")
+        self.assertEqual(classify("silver all time low", "SILVER"), "bear")
+        self.assertIsNone(classify("Nifty all time high crash", "NIFTY"))
+        self.assertIsNone(classify("Nifty record low", "SENSEX"))
         self.assertIsNone(classify("Nifty buy", "NIFTY"))
         self.assertIsNone(classify("Nifty not bullish", "NIFTY"))
         self.assertIsNone(classify("Nifty rally crash", "NIFTY"))
