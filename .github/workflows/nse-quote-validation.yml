@@ -836,6 +836,9 @@ jobs:
           import datetime as dt
           import io
           import statistics
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
           import zipfile
           from decimal import Decimal, InvalidOperation
           import requests
@@ -850,6 +853,15 @@ jobs:
           candidates.sort()
           base = "https://nsearchives.nseindia.com/content/fo/"
           session = requests.Session()
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          session.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          session.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("NSE FO request pacing: 1.0s between dates; retrying 429/5xx with backoff.")
           session.headers.update({
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0.0.0 Safari/537.36",
               "Accept": "*",
@@ -921,6 +933,7 @@ jobs:
 
           raw_by_day = {}
           for day in candidates:
+              time.sleep(1.0)
               try:
                   rows = fetch_day(day)
                   if rows is not None:
@@ -1330,6 +1343,9 @@ jobs:
           import statistics
           import subprocess
           import tempfile
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
           import zipfile
           from decimal import Decimal, InvalidOperation
           import requests
@@ -1348,6 +1364,15 @@ jobs:
               "Referer": "https://www.niftyindices.com/",
           }
           session = requests.Session()
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          session.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          session.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("NSE Indices/CM request pacing: 1.0s between archives; retrying 429/5xx with backoff.")
           session.headers.update(headers)
           pair = re.compile(r"^(.*?)\s+([\d,]+\.\d{1,2})\s+([\d,]+\.\d{1,2})\s*$")
           symbol_re = re.compile(r"^[A-Z][A-Z0-9&]([A-Z0-9&.\-]{0,18})$")
@@ -1359,6 +1384,7 @@ jobs:
           monthly = {"NIFTY50": [], "BANKNIFTY": []}
           base = "https://www.niftyindices.com/Indices_-_Market_Capitalisation_and_Weightage/indices_data%s.zip"
           for label in ("Jul2026", "Aug2026", "Sep2026", "Oct2026"):
+              time.sleep(1.0)
               response = session.get(base % label, timeout=90)
               print(f"NSE Indices archive {label}: HTTP {response.status_code}; bytes={len(response.content)}")
               if response.status_code != 200 or not response.content.startswith(b"PK"):
@@ -1430,6 +1456,7 @@ jobs:
           all_symbols = set().union(*universe.values())
           cash_prices = {}
           for day in candidates:
+              time.sleep(1.0)
               stamp = day.strftime("%Y%m%d")
               url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
               cm_headers = dict(headers)
@@ -1574,8 +1601,20 @@ jobs:
           python - <<'PY'
           import datetime as dt
           import statistics
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
           from decimal import Decimal, InvalidOperation
           import fetch_and_score as app
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          app.MCX_HTTP.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          app.MCX_HTTP.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("MCX diagnostic pacing: 1.0s between dates; retrying 429/5xx with backoff.")
 
           end = dt.date(2026, 11, 6)
           candidates = []
@@ -1595,6 +1634,7 @@ jobs:
 
           snapshots = {}
           for day in candidates:
+              time.sleep(1.0)
               day_text = day.isoformat()
               try:
                   rows = app.fetch_mcx_bhavcopy_rows(day_text)
@@ -1724,11 +1764,24 @@ jobs:
         run: |
           python - <<'PY'
           import fetch_and_score as app
+          import time
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
+          retry_policy = Retry(
+              total=3, connect=3, read=3, status=3, backoff_factor=1.0,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset(("GET",)),
+              respect_retry_after_header=True,
+          )
+          app.MCX_HTTP.mount("https://", HTTPAdapter(max_retries=retry_policy))
+          app.MCX_HTTP.mount("http://", HTTPAdapter(max_retries=retry_policy))
+          print("MCX field-probe pacing: 1.0s between dates; retrying 429/5xx with backoff.")
 
           expiry = "04DEC2026"
           dates = ("2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02", "2026-10-30")
           snapshots = {}
           for trade_date in dates:
+              time.sleep(1.0)
               try:
                   rows = app.fetch_mcx_bhavcopy_rows(trade_date)
                   print(f"MCX Bhavcopy {trade_date}: rows={len(rows)}")
