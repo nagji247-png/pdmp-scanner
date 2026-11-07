@@ -1,11 +1,17 @@
 name: OI Research Validation
 
 on:
+  schedule:
+    # Read-only archive audit after the daily EOD scan/backtest (21:15 IST).
+    - cron: "45 15 * * *"
+  workflow_dispatch:
   pull_request:
+    branches: [main]
     paths:
       - "backtest_participant_oi.py"
       - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
+      - "validate_market_signal_history.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
   push:
@@ -14,6 +20,7 @@ on:
       - "backtest_participant_oi.py"
       - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
+      - "validate_market_signal_history.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
 
@@ -31,6 +38,8 @@ jobs:
       - name: Install research dependencies
         run: python -m pip install pandas yfinance
       - name: Validate Python syntax
-        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py
+        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py validate_market_signal_history.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py tests/test_market_signal_history.py
       - name: Run OI research unit tests
         run: python -m unittest discover -s tests -v
+      - name: Audit point-in-time combined-signal archive
+        run: python validate_market_signal_history.py --min-sessions 120 --target-sessions 250
