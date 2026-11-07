@@ -914,7 +914,7 @@ def bse_sensex_quote():
         session_open = india_cash_session_open(now_ist)
         if session_open and stamp.date() != now_ist.date():
             raise ValueError(f"BSE quote is not from today's live session: {stamp_text}")
-        max_age_seconds = 30 * 60 if session_open else 18 * 60 * 60
+        max_age_seconds = 30 * 60 if session_open else 96 * 60 * 60
         if (now_ist - stamp).total_seconds() > max_age_seconds or stamp > now_ist + dt.timedelta(minutes=2):
             raise ValueError(f"BSE quote timestamp outside allowed session window: {stamp_text}")
         source = "BSE" if session_open or (now_ist - stamp).total_seconds() <= 15 * 60 else "BSE · पिछला बंद भाव"
@@ -965,17 +965,17 @@ def google_finance_quote(symbol, exchange, label):
         if age_seconds < -120:
             raise ValueError("Google Finance quote timestamp is in the future")
         if exchange == "INDEXNASDAQ" or exchange == "INDEXDJX":
-            # US indices: accept a same-session close overnight, but never a
-            # quote older than 18 hours (weekends/holidays naturally expire).
-            max_age = 18 * 60 * 60
+            # US indices: retain the dated last close across weekends, but reject
+            # any quote older than the four-day closed-market safety window.
+            max_age = 96 * 60 * 60
             if age_seconds > max_age:
-                raise ValueError("US index quote is older than the allowed 18-hour session window")
+                raise ValueError("US index quote is older than the allowed four-day closed-market window")
             time_label = stamp.strftime("%I:%M %p ET").lstrip("0")
         else:
             # During cash session require recent data; outside session accept
-            # the latest previous close for up to 18 hours, clearly labelled.
+            # the dated previous close for up to four days, clearly labelled.
             session_open = india_cash_session_open(now_exchange)
-            max_age = 15 * 60 if session_open else 18 * 60 * 60
+            max_age = 15 * 60 if session_open else 96 * 60 * 60
             if age_seconds > max_age:
                 raise ValueError("Google Finance quote is outside the live/previous-close window")
             time_label = stamp.strftime("%I:%M %p") + " " + ("IST" if offset_text == "+5:30" else "local")
@@ -1013,7 +1013,7 @@ def google_finance_quote(symbol, exchange, label):
                 pct_match = re.search(r"([+-]\s*\d+(?:\.\d+)?\s*%)", quote_header)
         change_pct = float(pct_match.group(1).replace("%", "").replace(" ", "")) if pct_match else None
         source_label = "Google Finance direct " + label + " quote"
-        if exchange not in ("INDEXNASDAQ", "INDEXDJX") and age_seconds > 15 * 60:
+        if age_seconds > 15 * 60:
             source_label += " · पिछला बंद भाव"
         return {"price": price, "stamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
                 "date": stamp.date().isoformat(), "time": time_label,
@@ -1086,7 +1086,7 @@ def nse_web_indices_quote(index_name):
             parsed_stamp = parsed_stamp.astimezone(ist)
         now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist)
         age = (now_ist - parsed_stamp).total_seconds()
-        max_age = 15 * 60 if india_cash_session_open(now_ist) else 18 * 60 * 60
+        max_age = 15 * 60 if india_cash_session_open(now_ist) else 96 * 60 * 60
         if age < -120 or age > max_age:
             raise ValueError(f"NSE index timestamp outside live/previous-close window: {stamp}")
         pct = next((row.get(k) for k in ("percentChange", "perChange", "changePercent")
@@ -1157,7 +1157,7 @@ def parse_nse_direct_equity_payload(symbol, payload, now=None):
             parsed_stamp = parsed_stamp.astimezone(ist)
 
         age_seconds = (current - parsed_stamp).total_seconds()
-        max_age = 15 * 60 if india_cash_session_open(current) else 18 * 60 * 60
+        max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
         if age_seconds < -120 or age_seconds > max_age:
             continue
 
@@ -1452,7 +1452,7 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
         current = current.replace(tzinfo=ist)
     else:
         current = current.astimezone(ist)
-    allowed_age = max_age_minutes if mcx_session_open(current) else 18 * 60
+    allowed_age = max_age_minutes if mcx_session_open(current) else 96 * 60
     return -2 <= age <= allowed_age
 
 
@@ -2726,8 +2726,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     # NSE official quote is primary for Indian cash indices/stocks; Yahoo is backup.
     nse_quote = nse_cash_quote(name, sym)
     # SENSEX uses BSE's direct quote first; Google Finance's timestamped direct
-    # index quote is the fallback. Never use an unvalidated daily OHLC candle.
-    yahoo_quote = intraday_quote(sym) if not nse_quote and name != "SENSEX" else None
+    # quote is a fallback. Yahoo intraday is deliberately not a cash quote fallback.
+    yahoo_quote = intraday_quote(sym) if name in ("USDINR", "BITCOIN") else None
     global_quote = google_finance_sensex_quote() if name == "SENSEX" and not nse_quote else None
     if not nse_quote and not yahoo_quote and name == "NASDAQ":
         global_quote = google_finance_quote(".IXIC", "INDEXNASDAQ", "NASDAQ")
@@ -2839,8 +2839,14 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         PRICE_CACHE["BTC-USD_SOURCE"] = None
         PRICE_CACHE["BTC-USD_CHANGE_PCT"] = None
     elif sym == "INR=X":
-        # USD/INR must have a fresh intraday quote; a daily Yahoo close is not
-        # presented as today's live exchange rate when the quote feed is absent.
+        # USD/INR must have a fresh intraday quote; its separately dated daily
+        # reference is attached later and is never promoted to a live price.
+        PRICE_CACHE[sym] = None
+        change = None
+    elif sym.endswith(".NS") or sym in ("^NSEI", "^NSEBANK"):
+        # Daily Yahoo candles remain available to historical indicators only.
+        # Never publish Yahoo as the cash quote when the exchange/validated
+        # direct quote path failed; leave the card explicitly unavailable.
         PRICE_CACHE[sym] = None
         change = None
     elif name == "SENSEX":
@@ -3101,32 +3107,66 @@ def _num(x):
         return None
 
 
-def fetch_usdinr_reference():
-    """Daily USD/INR reference rate only; never label it as an intraday quote."""
-    try:
-        response = requests.get(
-            "https://api.frankfurter.dev/v2/rate/usd/inr",
-            headers={"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"},
-            timeout=12
-        )
-        response.raise_for_status()
-        payload = response.json()
-        if payload.get("base") != "USD" or payload.get("quote") != "INR":
-            raise ValueError("Unexpected Frankfurter currency pair")
-        rate = float(payload.get("rate"))
-        rate_date = dt.date.fromisoformat(str(payload.get("date")))
-        age_days = (dt.datetime.now(dt.timezone.utc).date() - rate_date).days
-        if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 3:
-            raise ValueError("Frankfurter daily reference rate is invalid or too old")
-        print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
-        return {
-            "reference_price": round(rate, 4),
-            "reference_date": rate_date.isoformat(),
-            "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)"
-        }
-    except Exception as exc:
-        print(f"USDINR daily reference unavailable: {str(exc)[:160]}")
-        return {"reference_price": None, "reference_date": None, "reference_source": None}
+def fetch_usdinr_reference(previous=None):
+    """Daily USD/INR reference only; use two free Frankfurter routes, then a dated cache."""
+    today = dt.datetime.now(dt.timezone.utc).date()
+    headers = {"User-Agent": "PDMP-Scanner/1.0", "Accept": "application/json"}
+    endpoints = (
+        ("https://api.frankfurter.dev/v2/rate/USD/INR", "v2"),
+        ("https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR", "v1"),
+    )
+    errors = []
+    for url, version in endpoints:
+        try:
+            response = requests.get(url, headers=headers, timeout=12)
+            response.raise_for_status()
+            payload = response.json()
+            if version == "v2":
+                if str(payload.get("base", "")).upper() != "USD" or str(payload.get("quote", "")).upper() != "INR":
+                    raise ValueError("Unexpected Frankfurter currency pair")
+                raw_rate = payload.get("rate")
+                raw_date = payload.get("date")
+            else:
+                if str(payload.get("base", "")).upper() != "USD":
+                    raise ValueError("Unexpected Frankfurter base currency")
+                raw_rate = (payload.get("rates") or {}).get("INR")
+                raw_date = payload.get("date")
+            rate = float(raw_rate)
+            rate_date = dt.date.fromisoformat(str(raw_date))
+            age_days = (today - rate_date).days
+            if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 4:
+                raise ValueError("Frankfurter daily reference rate is invalid or too old")
+            print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
+            return {
+                "reference_price": round(rate, 4),
+                "reference_date": rate_date.isoformat(),
+                "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)",
+                "reference_stale": False,
+            }
+        except Exception as exc:
+            errors.append(str(exc)[:120])
+
+    # Keep the last verified daily reference visible over weekends/API outages.
+    # It is date-checked and always labelled as a non-live cached reference.
+    if isinstance(previous, dict):
+        try:
+            rate = float(previous.get("reference_price"))
+            rate_date = dt.date.fromisoformat(str(previous.get("reference_date")))
+            age_days = (today - rate_date).days
+            if math.isfinite(rate) and rate > 0 and 0 <= age_days <= 4:
+                return {
+                    "reference_price": round(rate, 4),
+                    "reference_date": rate_date.isoformat(),
+                    "reference_source": "Frankfurter · सुरक्षित पिछली दैनिक संदर्भ दर (लाइव नहीं)",
+                    "reference_stale": True,
+                }
+        except (TypeError, ValueError):
+            pass
+    print("USDINR daily reference unavailable: " + " | ".join(errors)[:200])
+    return {
+        "reference_price": None, "reference_date": None,
+        "reference_source": None, "reference_stale": False,
+    }
 
 
 def summarise_fundamentals(info, price):
@@ -3896,15 +3936,30 @@ def _asset_search_direction(term, asset):
     if has_bull != has_bear:
         return "bull" if has_bull else "bear"
 
-    # Information/navigation searches (today, live, share price, chart, etc.)
-    # are NOT neutral crowd sentiment. Only explicit flat/range-bound language
-    # earns a neutral vote; otherwise leave the query unclassified.
-    neutral_intent = {
+    # Explicit flat/range-bound language is neutral crowd intent. Pure
+    # information/navigation searches are also counted as Neutral (not Bull/Bear),
+    # while ambiguous targets or an unqualified "range" stay unclassified.
+    explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
         "स्थिर", "सपाट", "सीमित", "दायरे", "साइडवेज",
     }
-    if tokens & neutral_intent:
+    if tokens & explicit_neutral:
+        return "neutral"
+    ambiguous = {"range", "target", "targets", "high", "low", "52"}
+    if tokens & ambiguous:
+        return None
+    informational = {
+        "today", "live", "price", "prices", "rate", "rates", "spot", "quote",
+        "value", "current", "chart", "index", "market", "share", "prediction",
+        "predictions", "forecast", "forecasts", "option", "options", "chain",
+        "expiry", "weekly", "monthly", "analysis", "technical", "support",
+        "resistance", "level", "levels", "news", "tomorrow", "trading",
+        "आज", "लाइव", "भाव", "कीमत", "दाम", "रेट", "मूल्य", "वर्तमान",
+        "चार्ट", "अनुमान", "भविष्यवाणी", "ऑप्शन", "चेन", "एक्सपायरी",
+        "विश्लेषण", "समाचार", "कल", "स्पॉट",
+    }
+    if tokens & informational:
         return "neutral"
     return None
 
@@ -4702,7 +4757,7 @@ def main():
     # Add a clearly separate daily reference rate when the intraday FX quote is unavailable.
     # The live price field remains null unless a validated intraday quote exists.
     if "USDINR" in result["instruments"]:
-        result["instruments"]["USDINR"].update(fetch_usdinr_reference())
+        result["instruments"]["USDINR"].update(fetch_usdinr_reference((previous.get("instruments") or {}).get("USDINR")))
 
     # सक्रिय वॉचलिस्ट से हटे शेयरों के पुराने Pending रिकॉर्ड भी अगले पूरे
     # कारोबारी दिन के Yahoo daily close से मिलाएँ; नए Dashboard कार्ड न बनाएँ।
