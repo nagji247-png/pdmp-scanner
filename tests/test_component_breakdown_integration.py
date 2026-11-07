@@ -224,5 +224,46 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertFalse(result["included_in_asset_final"])
 
 
+    def test_client_market_wide_context_never_enters_any_index_final(self):
+        instruments = {
+            name: {"score": 1.25, "headlines": []}
+            for name in ("NIFTY", "SENSEX", "BANKNIFTY")
+        }
+        participant_today = {
+            "ok": True, "stale": False, "date": "2026-11-06",
+            "source": "NSE official participant-wise OI",
+        }
+        participant_changes = {
+            "ok": True, "prev_date": "2026-11-05",
+            "by_group": {"CLIENT": {
+                "index_call_long": 10, "index_call_short": -20,
+                "index_put_long": 30, "index_put_short": -40,
+                "future_index_long": 50, "future_index_short": -60,
+            }},
+        }
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments,
+            "2026-11-06T10:00:00Z",
+            datetime(2026, 11, 6, 10, 0, tzinfo=timezone.utc),
+            participant_today=participant_today,
+            participant_changes_data=participant_changes,
+        )
+        for name, item in instruments.items():
+            breakdown = item["component_breakdown"]
+            context = breakdown["client_market_context"]
+            self.assertTrue(context["available"])
+            self.assertFalse(context["included_in_asset_final"])
+            self.assertIn("not index-specific", context["scope"])
+            self.assertEqual(context["ce_build_up"]["call_long_change"], 10)
+            self.assertEqual(context["ce_build_up"]["call_short_change"], -20)
+            self.assertEqual(context["pe_build_up"]["put_long_change"], 30)
+            self.assertEqual(context["pe_build_up"]["put_short_change"], -40)
+            self.assertEqual(context["client_index_futures"]["long_change"], 50)
+            self.assertEqual(context["client_index_futures"]["short_change"], -60)
+            self.assertEqual(breakdown["final"]["status"], "unavailable")
+            self.assertEqual(breakdown["final"]["included_components"], [])
+            self.assertEqual(item["score"], 1.25)
+
+
 if __name__ == "__main__":
     unittest.main()
