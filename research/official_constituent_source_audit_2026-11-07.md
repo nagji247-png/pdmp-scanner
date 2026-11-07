@@ -99,3 +99,10 @@ The MCX same-expiry FUTCOM probe did retrieve five dated observations for GOLD 0
 These mixed observations are descriptive only. They do not validate a repeatable directional signal and are not CLIENT category OI. Gold/Silver futures OI therefore remain excluded from the asset Final score.
 
 CI #272 passed syntax, source parsing, contract-master reconciliation, constituent-file parsing, and the MCX exact-symbol/expiry checks. It does not close the historical-validation gate. Production score and normal scan cadence remain unchanged.
+
+
+## Historical diagnostic dispatch gate — root cause and correction (2026-11-07)
+
+The three optional historical diagnostics in CI run #272 were skipped because each step is guarded by `if: github.event_name == 'workflow_dispatch'`, while the workflow previously declared only a `pull_request` trigger. Run #272 was a `pull_request` event, so the guard correctly skipped those steps; this was not evidence of missing historical data or a failed backtest.
+
+Correction: the workflow now declares a `workflow_dispatch` trigger in addition to its existing path-filtered `pull_request` trigger (commit `b76c1fcb83ced8217b7a1ad1e48ffa1493e6a562`). This makes the optional diagnostics manually runnable from GitHub Actions without adding them to ordinary pull-request CI or changing the production scheduled scan cadence. No manual dispatch or historical data download was started as part of this correction. Backtests remain unrun until deliberately dispatched; no new accuracy claim is made.
