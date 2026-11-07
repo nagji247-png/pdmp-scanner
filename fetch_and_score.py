@@ -438,12 +438,30 @@ def build_asset_component_breakdowns(
                     for key in diagnostic_fields
                     if key in search_snapshot
                 }
-            search_component, search_reason = search_component_from_snapshot(
-                search_snapshot,
-                now_utc=now_utc,
-                max_age_minutes=120,
-                weight=DEFAULT_COMPONENT_WEIGHTS["search"],
+            expected_search_seeds = {
+                "NIFTY": "nifty",
+                "SENSEX": "sensex",
+                "BANKNIFTY": "bank nifty",
+                "GOLD": "gold price",
+                "SILVER": "silver price",
+            }
+            expected_seed = expected_search_seeds.get(name)
+            actual_seed = (
+                str(search_snapshot.get("seed") or "").strip().lower()
+                if isinstance(search_snapshot, dict) else ""
             )
+            if expected_seed and actual_seed != expected_seed:
+                search_component, search_reason = (
+                    None,
+                    f"Asset seed mismatch: {name} के लिए '{expected_seed}' चाहिए, मिला '{actual_seed or 'missing'}'; cross-asset Search data Final से बाहर",
+                )
+            else:
+                search_component, search_reason = search_component_from_snapshot(
+                    search_snapshot,
+                    now_utc=now_utc,
+                    max_age_minutes=120,
+                    weight=DEFAULT_COMPONENT_WEIGHTS["search"],
+                )
             if search_component:
                 components["search"] = search_component
             else:
