@@ -335,6 +335,12 @@ def experimental_news_scores(
                 str(h.get("published_at")).strip()
                 for h in kept if h.get("published_at")
             ),
+            "eligible_publishers": sorted({
+                str(h.get("source")).strip() for h in kept if h.get("source")
+            }),
+            "eligible_ages_h": [
+                _timestamped_news_age_hours(h, now_utc) for h in kept
+            ],
         }
     return output
 
@@ -406,10 +412,13 @@ def build_asset_component_breakdowns(
                 if isinstance(h, dict)
                 and _timestamped_news_age_hours(h, now_utc) is not None
             ]
-            fresh_publishers = sorted({
-                str(h.get("source")).strip()
-                for h in eligible_headlines if h.get("source")
-            })
+            fresh_publishers = (
+                news_info.get("eligible_publishers") or []
+                if name in index_news else sorted({
+                    str(h.get("source")).strip()
+                    for h in eligible_headlines if h.get("source")
+                })
+            )
             published_stamps = (
                 sorted(news_info.get("eligible_published_at") or [])
                 if name in index_news else sorted(
