@@ -29,6 +29,18 @@ Official BSE factsheet URL:
 
 Its top 10 weights sum to 65.68%; the remaining constituent weights cannot be inferred safely from this partial list. Do not use these ten weights as if they represented the full index.
 
+## Additional official weight-report lead (2026-11-07)
+
+The NSE India All Reports catalogue exposes a report named **“Market Capitalisation, Weightage, Beta for NIFTY 50 & NIFTY Next 50”**. This is a useful official lead for obtaining dated NIFTY 50 constituent weights, but the report output itself has not yet been downloaded, parsed, date-checked, or reconciled against all 50 members. It does not establish NIFTY BANK weights.
+
+Official catalogue: https://betanseapi.nseindia.com/all-reports
+
+The public NIFTY 50 index page confirms the index uses free-float market-cap weighting and offers an Index Constituent download, while the NIFTY BANK page likewise offers a member CSV. A member list is still not a complete weight snapshot. The NSE Indices Daily Reports page currently exposes Daily Snapshot CSV links; this audit did not establish that those snapshots contain complete constituent weights.
+
+For SENSEX, the BSE official site identifies the benchmark and its float-adjusted methodology, but this search did not retrieve a current, complete, dated official 30-member weight file. Third-party tables are not accepted as an official substitute.
+
+**Status correction:** Earlier shadow diagnostic wording that said NIFTY 50 and NIFTY Bank monthly weights had been verified was too strong. Only official constituent-download endpoints were identified. No complete dated weights for these indices have been parsed and validated yet. The component remains excluded from Final.
+
 ## Secondary source caution
 
 Non-official index summaries may list all Nifty Bank members or top-10 weights, but they are not accepted as authoritative weight snapshots for live scoring. Use official NSE Indices/BSE sources only for the basket's membership and effective weights.
