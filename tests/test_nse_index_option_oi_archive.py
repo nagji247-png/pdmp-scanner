@@ -2,6 +2,7 @@ import io
 import unittest
 import zipfile
 
+from component_scoring import aggregate_nse_udiff_index_option_oi
 from nse_index_option_oi_archive import (
     aggregate_udiff_rows,
     append_archive,
@@ -107,6 +108,41 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
                 archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
                 b"changed bytes", symbols, "2026-11-06T14:02:00Z"
             )
+
+
+class ExistingNSEIndexOIComponentAggregationTests(unittest.TestCase):
+    def test_exact_symbol_and_date_aggregate_both_option_sides(self):
+        common = {
+            "FinInstrmTp": "IDO", "TckrSymb": "NIFTY",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "1000", "ChngInOpnIntrst": "125",
+        }
+        rows = [
+            {**common, "OptnTp": "CE"},
+            {**common, "OptnTp": "PE", "OpnIntrst": "2000", "ChngInOpnIntrst": "-50"},
+        ]
+        result = aggregate_nse_udiff_index_option_oi(rows, "NIFTY", "2026-11-06")
+        self.assertTrue(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertFalse(result["coverage_validated"])
+        self.assertEqual(result["call"]["open_interest"], 1000)
+        self.assertEqual(result["put"]["change_in_oi"], -50)
+
+    def test_wrong_date_missing_side_and_malformed_rows_fail_closed(self):
+        common = {
+            "FinInstrmTp": "IDO", "TckrSymb": "NIFTY",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "1000", "ChngInOpnIntrst": "125",
+        }
+        rows = [{**common, "OptnTp": "CE"}, {**common, "OptnTp": "PE"}]
+        wrong_date = [{**rows[0], "BizDt": "2026-11-05"}, rows[1]]
+        self.assertFalse(aggregate_nse_udiff_index_option_oi(
+            wrong_date, "NIFTY", "2026-11-06")["available"])
+        self.assertFalse(aggregate_nse_udiff_index_option_oi(
+            rows[:1], "NIFTY", "2026-11-06")["available"])
+        malformed = [rows[0], {**rows[1], "OpnIntrst": "", "XpryDt": ""}]
+        self.assertFalse(aggregate_nse_udiff_index_option_oi(
+            malformed, "NIFTY", "2026-11-06")["available"])
 
 
 if __name__ == "__main__":
