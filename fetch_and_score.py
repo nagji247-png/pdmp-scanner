@@ -4130,14 +4130,14 @@ def _asset_search_direction(term, asset):
     if tokens & ambiguous:
         return None
     informational = {
-        "today", "live", "price", "prices", "rate", "rates", "spot", "quote",
-        "value", "current", "chart", "index", "market", "share", "prediction",
+        # Explicit navigation/time/analysis intent. Bare price/rate/quote terms
+        # are deliberately excluded: "gold price" alone is not a mood vote.
+        "today", "live", "current", "chart", "index", "market", "prediction",
         "predictions", "forecast", "forecasts", "option", "options", "chain",
         "expiry", "weekly", "monthly", "analysis", "technical", "support",
         "resistance", "level", "levels", "news", "tomorrow", "trading",
-        "आज", "लाइव", "भाव", "कीमत", "दाम", "रेट", "मूल्य", "वर्तमान",
-        "चार्ट", "अनुमान", "भविष्यवाणी", "ऑप्शन", "चेन", "एक्सपायरी",
-        "विश्लेषण", "समाचार", "कल", "स्पॉट",
+        "आज", "लाइव", "वर्तमान", "चार्ट", "अनुमान", "भविष्यवाणी",
+        "ऑप्शन", "चेन", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
     if tokens & informational:
         return "neutral"
