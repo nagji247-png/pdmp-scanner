@@ -22,6 +22,9 @@ on:
       - "data.json"
       - "tests/**"
       - "component_score_consolidated_verify.py"
+      - "archive_component_diagnostics.py"
+      - "nse_index_option_oi.json"
+      - "mcx_bhavcopy_archive.json"
       - ".github/workflows/component-score-consolidated.yml"
 
 permissions:
@@ -48,7 +51,9 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Verify all five asset component scores in one offline batch
         run: python component_score_consolidated_verify.py
-      - name: Build offline NSE and MCX archive diagnostics (no provider requests)\n        run: python archive_component_diagnostics.py\n      - name: Upload archive component diagnostics\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: archive-component-diagnostics\n          path: archive-component-diagnostics.json\n          if-no-files-found: error\n          retention-days: 14\n      - name: Upload one consolidated verification report
+      - name: Build offline NSE and MCX archive diagnostics (no provider requests)
+        run: python archive_component_diagnostics.py
+      - name: Upload archive component diagnostics\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: archive-component-diagnostics\n          path: archive-component-diagnostics.json\n          if-no-files-found: error\n          retention-days: 14\n      - name: Upload one consolidated verification report
         if: always()
         uses: actions/upload-artifact@v4
         with:
