@@ -159,5 +159,50 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertIn("GOLD", report["by_asset"])
 
 
+    def test_real_component_writer_output_is_accepted_by_archive_backtest(self):
+        from datetime import datetime, timezone
+        from fetch_and_score import build_asset_component_breakdowns
+
+        updated = "2026-11-06T14:05:00Z"
+        now_utc = datetime(2026, 11, 6, 14, 5, tzinfo=timezone.utc)
+        instruments = {
+            "NIFTY": {
+                "news_query": "Nifty index India",
+                "headlines": [{
+                    "title": "Nifty rallies strongly",
+                    "source": "Reuters",
+                    "score": 2,
+                    "published_at": "2026-11-06T14:00:00Z",
+                }],
+            }
+        }
+        build_asset_component_breakdowns(instruments, updated, now_utc)
+        breakdown = instruments["NIFTY"]["component_breakdown"]
+        self.assertEqual(breakdown["final"]["status"], "available")
+        self.assertEqual(breakdown["final"]["included_components"], ["news"])
+        self.assertTrue(breakdown["components"]["news"]["included"])
+        self.assertEqual(breakdown["components"]["news"]["observed_at"], updated)
+
+        archive = {"records": [{
+            "date": "2026-11-06",
+            "captured_at_ist": "2026-11-06T20:05+05:30",
+            "indices": {
+                "NIFTY": {
+                    "close": 25000,
+                    "close_as_of": "2026-11-06",
+                    "close_valid": True,
+                    "price_source": "NSE dated index close",
+                    "component_breakdown": breakdown,
+                }
+            },
+        }]}
+        signals, closes, audit = build_archive_inputs(archive)
+        self.assertEqual(len(signals), 1)
+        self.assertEqual(len(closes), 1)
+        self.assertEqual(audit["invalid_component_evidence"], 0)
+        self.assertEqual(signals[0]["score"], breakdown["final"]["score"])
+
+
+
 if __name__ == "__main__":
     unittest.main()
