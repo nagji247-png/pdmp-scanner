@@ -23,6 +23,8 @@ on:
       - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
       - "validate_market_signal_history.py"
+      - "market_signal_archive_backtest.py"
+      - "offline_contrarian_market_backtest.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
 
