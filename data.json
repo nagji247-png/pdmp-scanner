@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-08T18:24Z",
+  "updated": "2026-11-08T18:25Z",
   "instruments": {
     "NIFTY": {
       "type": "index",
@@ -88,17 +88,19 @@
       ],
       "retail_adj": 0.25,
       "index_search_shadow": {
-        "valid": false,
+        "valid": true,
         "scope": "asset_specific_google_related_queries_shadow",
         "seed": "nifty",
         "source": "Google Trends related_queries · India",
         "timeframe": "now 1-d",
-        "source_data_time": "2026-11-08T14:16:00+00:00",
+        "source_data_time": "2026-11-08T18:16:00+00:00",
+        "as_of": "2026-11-08T18:16:00+00:00",
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
         "raw_queries": 25,
-        "classified_queries": 0,
-        "unclassified_queries": 25,
-        "unclassified_weight": 375.0,
-        "classification_coverage_pct": 0.0,
+        "classified_queries": 13,
+        "unclassified_queries": 12,
+        "unclassified_weight": 234.0,
         "unclassified_terms": [
           {
             "term": "nifty 50",
@@ -106,112 +108,159 @@
           },
           {
             "term": "gift nifty",
-            "weight": 41.0
-          },
-          {
-            "term": "today nifty",
-            "weight": 38.0
+            "weight": 40.0
           },
           {
             "term": "nifty share",
             "weight": 25.0
           },
           {
-            "term": "nifty live",
-            "weight": 22.0
-          },
-          {
             "term": "nifty share price",
-            "weight": 21.0
+            "weight": 19.0
           },
           {
-            "term": "gift nifty live",
-            "weight": 12.0
-          },
-          {
-            "term": "nifty chart",
-            "weight": 10.0
+            "term": "sgx nifty",
+            "weight": 9.0
           },
           {
             "term": "sensex",
             "weight": 9.0
           },
           {
-            "term": "sgx nifty",
+            "term": "nifty 50 share price",
+            "weight": 8.0
+          },
+          {
+            "term": "nifty bank",
+            "weight": 8.0
+          },
+          {
+            "term": "nse nifty",
+            "weight": 5.0
+          },
+          {
+            "term": "nse",
+            "weight": 5.0
+          }
+        ],
+        "classification_coverage_pct": 35.0,
+        "bull_pct": 0.0,
+        "bear_pct": 0.0,
+        "neutral_pct": 100.0,
+        "directional_bull_pct": null,
+        "neutral_aware_score": null,
+        "terms": [
+          {
+            "term": "nifty today",
+            "direction": "neutral",
+            "weight": 35.0
+          },
+          {
+            "term": "nifty live",
+            "direction": "neutral",
+            "weight": 21.0
+          },
+          {
+            "term": "gift nifty live",
+            "direction": "neutral",
+            "weight": 11.0
+          },
+          {
+            "term": "nifty chart",
+            "direction": "neutral",
             "weight": 9.0
+          },
+          {
+            "term": "nifty muhurat trading",
+            "direction": "neutral",
+            "weight": 8.0
+          },
+          {
+            "term": "nifty 50 today",
+            "direction": "neutral",
+            "weight": 8.0
+          },
+          {
+            "term": "nifty index",
+            "direction": "neutral",
+            "weight": 7.0
+          },
+          {
+            "term": "today gift nifty",
+            "direction": "neutral",
+            "weight": 6.0
           }
         ],
         "rising_queries": 17,
-        "rising_classified_queries": 0,
+        "rising_classified_queries": 4,
         "rising_direction_counts": {
           "bull": 0,
           "bear": 0,
-          "neutral": 0,
-          "unclassified": 17
+          "neutral": 4,
+          "unclassified": 13
         },
         "rising_terms": [
           {
-            "term": "bse sensex",
-            "value": "50",
+            "term": "bel share price",
+            "value": "190",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "eternal share price",
-            "value": "90",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "jio platforms share price",
+            "term": "hdfc bank share price",
             "value": "80",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "jio share price",
-            "value": "60",
+            "term": "jio platforms share price",
+            "value": "100",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "mcx share price",
+            "value": "110",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "nifty 50 muhurat trading",
-            "value": "300",
-            "direction": "unclassified",
+            "value": "200",
+            "direction": "neutral",
             "breakout": false
           },
           {
             "term": "nifty 50 share price",
-            "value": "40",
+            "value": "50",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "nifty bank share price",
-            "value": "60",
+            "value": "100",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "nifty muhurat trading",
-            "value": "170",
-            "direction": "unclassified",
+            "value": "100",
+            "direction": "neutral",
             "breakout": false
           },
           {
             "term": "nifty muhurat trading time 2026",
-            "value": "250",
-            "direction": "unclassified",
+            "value": "180",
+            "direction": "neutral",
             "breakout": false
           },
           {
-            "term": "nifty option chain",
+            "term": "nifty share",
             "value": "40",
             "direction": "unclassified",
             "breakout": false
           }
         ],
-        "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
         "production_score_used": false,
         "directional_query_diagnostic": {
           "available": false,
@@ -237,7 +286,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T14:49:26Z",
             "oldest_headline_published_at": "2026-11-08T10:37:53Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -250,7 +299,7 @@
               "The Federal"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 3.59,
+            "newest_headline_age_h": 3.6,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -259,7 +308,7 @@
           "search": {
             "applicable": true,
             "included": false,
-            "reason": "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
+            "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
           },
           "eod_oi": {
             "applicable": true,
@@ -289,16 +338,61 @@
           "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
         },
         "search_diagnostic": {
-          "valid": false,
+          "valid": true,
           "seed": "nifty",
           "source": "Google Trends related_queries · India",
           "timeframe": "now 1-d",
-          "source_data_time": "2026-11-08T14:16:00+00:00",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
           "raw_queries": 25,
-          "classified_queries": 0,
-          "unclassified_queries": 25,
-          "classification_coverage_pct": 0.0,
-          "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
+          "classified_queries": 13,
+          "unclassified_queries": 12,
+          "classification_coverage_pct": 35.0,
+          "bull_pct": 0.0,
+          "bear_pct": 0.0,
+          "neutral_pct": 100.0,
+          "directional_bull_pct": null,
+          "terms": [
+            {
+              "term": "nifty today",
+              "direction": "neutral",
+              "weight": 35.0
+            },
+            {
+              "term": "nifty live",
+              "direction": "neutral",
+              "weight": 21.0
+            },
+            {
+              "term": "gift nifty live",
+              "direction": "neutral",
+              "weight": 11.0
+            },
+            {
+              "term": "nifty chart",
+              "direction": "neutral",
+              "weight": 9.0
+            },
+            {
+              "term": "nifty muhurat trading",
+              "direction": "neutral",
+              "weight": 8.0
+            },
+            {
+              "term": "nifty 50 today",
+              "direction": "neutral",
+              "weight": 8.0
+            },
+            {
+              "term": "nifty index",
+              "direction": "neutral",
+              "weight": 7.0
+            },
+            {
+              "term": "today gift nifty",
+              "direction": "neutral",
+              "weight": 6.0
+            }
+          ],
           "unclassified_terms": [
             {
               "term": "nifty 50",
@@ -306,106 +400,106 @@
             },
             {
               "term": "gift nifty",
-              "weight": 41.0
-            },
-            {
-              "term": "today nifty",
-              "weight": 38.0
+              "weight": 40.0
             },
             {
               "term": "nifty share",
               "weight": 25.0
             },
             {
-              "term": "nifty live",
-              "weight": 22.0
-            },
-            {
               "term": "nifty share price",
-              "weight": 21.0
+              "weight": 19.0
             },
             {
-              "term": "gift nifty live",
-              "weight": 12.0
-            },
-            {
-              "term": "nifty chart",
-              "weight": 10.0
+              "term": "sgx nifty",
+              "weight": 9.0
             },
             {
               "term": "sensex",
               "weight": 9.0
             },
             {
-              "term": "sgx nifty",
-              "weight": 9.0
+              "term": "nifty 50 share price",
+              "weight": 8.0
+            },
+            {
+              "term": "nifty bank",
+              "weight": 8.0
+            },
+            {
+              "term": "nse nifty",
+              "weight": 5.0
+            },
+            {
+              "term": "nse",
+              "weight": 5.0
             }
           ],
           "rising_queries": 17,
-          "rising_classified_queries": 0,
+          "rising_classified_queries": 4,
           "rising_direction_counts": {
             "bull": 0,
             "bear": 0,
-            "neutral": 0,
-            "unclassified": 17
+            "neutral": 4,
+            "unclassified": 13
           },
           "rising_terms": [
             {
-              "term": "bse sensex",
-              "value": "50",
+              "term": "bel share price",
+              "value": "190",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "eternal share price",
-              "value": "90",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "jio platforms share price",
+              "term": "hdfc bank share price",
               "value": "80",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "jio share price",
-              "value": "60",
+              "term": "jio platforms share price",
+              "value": "100",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "mcx share price",
+              "value": "110",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "nifty 50 muhurat trading",
-              "value": "300",
-              "direction": "unclassified",
+              "value": "200",
+              "direction": "neutral",
               "breakout": false
             },
             {
               "term": "nifty 50 share price",
-              "value": "40",
+              "value": "50",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "nifty bank share price",
-              "value": "60",
+              "value": "100",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "nifty muhurat trading",
-              "value": "170",
-              "direction": "unclassified",
+              "value": "100",
+              "direction": "neutral",
               "breakout": false
             },
             {
               "term": "nifty muhurat trading time 2026",
-              "value": "250",
-              "direction": "unclassified",
+              "value": "180",
+              "direction": "neutral",
               "breakout": false
             },
             {
-              "term": "nifty option chain",
+              "term": "nifty share",
               "value": "40",
               "direction": "unclassified",
               "breakout": false
@@ -539,25 +633,23 @@
       "neg_n": 1,
       "retail_adj": 0.25,
       "index_search_shadow": {
-        "valid": false,
+        "valid": true,
         "scope": "asset_specific_google_related_queries_shadow",
         "seed": "sensex",
         "source": "Google Trends related_queries · India",
         "timeframe": "now 1-d",
-        "source_data_time": "2026-11-08T14:16:00+00:00",
+        "source_data_time": "2026-11-08T18:16:00+00:00",
+        "as_of": "2026-11-08T18:16:00+00:00",
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
         "raw_queries": 25,
-        "classified_queries": 0,
-        "unclassified_queries": 25,
-        "unclassified_weight": 327.0,
-        "classification_coverage_pct": 0.0,
+        "classified_queries": 9,
+        "unclassified_queries": 16,
+        "unclassified_weight": 181.0,
         "unclassified_terms": [
           {
-            "term": "today sensex",
-            "weight": 100.0
-          },
-          {
             "term": "bse",
-            "weight": 39.0
+            "weight": 40.0
           },
           {
             "term": "bse sensex",
@@ -569,100 +661,151 @@
           },
           {
             "term": "sensex share price",
-            "weight": 20.0
+            "weight": 22.0
           },
           {
             "term": "nifty",
             "weight": 15.0
           },
           {
-            "term": "live sensex",
+            "term": "nifty 50",
+            "weight": 6.0
+          },
+          {
+            "term": "bse share price",
+            "weight": 6.0
+          },
+          {
+            "term": "nifty today",
+            "weight": 5.0
+          },
+          {
+            "term": "nse",
+            "weight": 4.0
+          },
+          {
+            "term": "nse sensex",
+            "weight": 4.0
+          }
+        ],
+        "classification_coverage_pct": 45.3,
+        "bull_pct": 0.0,
+        "bear_pct": 0.0,
+        "neutral_pct": 100.0,
+        "directional_bull_pct": null,
+        "neutral_aware_score": null,
+        "terms": [
+          {
+            "term": "today sensex",
+            "direction": "neutral",
+            "weight": 100.0
+          },
+          {
+            "term": "sensex live",
+            "direction": "neutral",
             "weight": 15.0
           },
           {
-            "term": "live sensex today",
-            "weight": 12.0
+            "term": "sensex today live",
+            "direction": "neutral",
+            "weight": 11.0
           },
           {
             "term": "bse sensex today",
+            "direction": "neutral",
             "weight": 8.0
           },
           {
-            "term": "nifty 50",
-            "weight": 6.0
+            "term": "sensex index",
+            "direction": "neutral",
+            "weight": 5.0
+          },
+          {
+            "term": "sensex today india",
+            "direction": "neutral",
+            "weight": 4.0
+          },
+          {
+            "term": "sensex news",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "sensex chart",
+            "direction": "neutral",
+            "weight": 2.0
           }
         ],
-        "rising_queries": 20,
-        "rising_classified_queries": 0,
+        "rising_queries": 25,
+        "rising_classified_queries": 1,
         "rising_direction_counts": {
           "bull": 0,
           "bear": 0,
-          "neutral": 0,
-          "unclassified": 20
+          "neutral": 1,
+          "unclassified": 24
         },
         "rising_terms": [
           {
-            "term": "bse share price",
-            "value": "150",
+            "term": "adani power share price",
+            "value": "250",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "canara bank share price",
+            "term": "bel share price",
+            "value": "300",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "bse share price",
+            "value": "200",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "hal share price",
             "value": "250",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "hdfc bank share",
-            "value": "140",
+            "value": "180",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "hdfc bank share price",
+            "value": "250",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "hdfc share price",
-            "value": "120",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "ireda share price",
-            "value": "400",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "jio finance share price",
-            "value": "150",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "jio platforms share price",
-            "value": "130",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "jio share price",
-            "value": "140",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "mrf share price",
             "value": "160",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "nifty share price",
-            "value": "70",
+            "term": "hfcl share price",
+            "value": "350",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "infosys share",
+            "value": "250",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "infosys share price",
+            "value": "250",
             "direction": "unclassified",
             "breakout": false
           }
         ],
-        "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
         "production_score_used": false,
         "directional_query_diagnostic": {
           "available": false,
@@ -688,7 +831,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T10:12:57Z",
             "oldest_headline_published_at": "2026-11-08T03:00:05Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -699,7 +842,7 @@
               "Upstox"
             ],
             "query": "\"BSE Sensex\" OR Sensex index India",
-            "newest_headline_age_h": 8.19,
+            "newest_headline_age_h": 8.21,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -708,7 +851,7 @@
           "search": {
             "applicable": true,
             "included": false,
-            "reason": "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
+            "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
           },
           "eod_oi": {
             "applicable": true,
@@ -738,24 +881,65 @@
           "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
         },
         "search_diagnostic": {
-          "valid": false,
+          "valid": true,
           "seed": "sensex",
           "source": "Google Trends related_queries · India",
           "timeframe": "now 1-d",
-          "source_data_time": "2026-11-08T14:16:00+00:00",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
           "raw_queries": 25,
-          "classified_queries": 0,
-          "unclassified_queries": 25,
-          "classification_coverage_pct": 0.0,
-          "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
-          "unclassified_terms": [
+          "classified_queries": 9,
+          "unclassified_queries": 16,
+          "classification_coverage_pct": 45.3,
+          "bull_pct": 0.0,
+          "bear_pct": 0.0,
+          "neutral_pct": 100.0,
+          "directional_bull_pct": null,
+          "terms": [
             {
               "term": "today sensex",
+              "direction": "neutral",
               "weight": 100.0
             },
             {
+              "term": "sensex live",
+              "direction": "neutral",
+              "weight": 15.0
+            },
+            {
+              "term": "sensex today live",
+              "direction": "neutral",
+              "weight": 11.0
+            },
+            {
+              "term": "bse sensex today",
+              "direction": "neutral",
+              "weight": 8.0
+            },
+            {
+              "term": "sensex index",
+              "direction": "neutral",
+              "weight": 5.0
+            },
+            {
+              "term": "sensex today india",
+              "direction": "neutral",
+              "weight": 4.0
+            },
+            {
+              "term": "sensex news",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "sensex chart",
+              "direction": "neutral",
+              "weight": 2.0
+            }
+          ],
+          "unclassified_terms": [
+            {
               "term": "bse",
-              "weight": 39.0
+              "weight": 40.0
             },
             {
               "term": "bse sensex",
@@ -767,95 +951,99 @@
             },
             {
               "term": "sensex share price",
-              "weight": 20.0
+              "weight": 22.0
             },
             {
               "term": "nifty",
               "weight": 15.0
             },
             {
-              "term": "live sensex",
-              "weight": 15.0
-            },
-            {
-              "term": "live sensex today",
-              "weight": 12.0
-            },
-            {
-              "term": "bse sensex today",
-              "weight": 8.0
-            },
-            {
               "term": "nifty 50",
               "weight": 6.0
+            },
+            {
+              "term": "bse share price",
+              "weight": 6.0
+            },
+            {
+              "term": "nifty today",
+              "weight": 5.0
+            },
+            {
+              "term": "nse",
+              "weight": 4.0
+            },
+            {
+              "term": "nse sensex",
+              "weight": 4.0
             }
           ],
-          "rising_queries": 20,
-          "rising_classified_queries": 0,
+          "rising_queries": 25,
+          "rising_classified_queries": 1,
           "rising_direction_counts": {
             "bull": 0,
             "bear": 0,
-            "neutral": 0,
-            "unclassified": 20
+            "neutral": 1,
+            "unclassified": 24
           },
           "rising_terms": [
             {
-              "term": "bse share price",
-              "value": "150",
+              "term": "adani power share price",
+              "value": "250",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "canara bank share price",
+              "term": "bel share price",
+              "value": "300",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "bse share price",
+              "value": "200",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "hal share price",
               "value": "250",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "hdfc bank share",
-              "value": "140",
+              "value": "180",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "hdfc bank share price",
+              "value": "250",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "hdfc share price",
-              "value": "120",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "ireda share price",
-              "value": "400",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "jio finance share price",
-              "value": "150",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "jio platforms share price",
-              "value": "130",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "jio share price",
-              "value": "140",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "mrf share price",
               "value": "160",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "nifty share price",
-              "value": "70",
+              "term": "hfcl share price",
+              "value": "350",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "infosys share",
+              "value": "250",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "infosys share price",
+              "value": "250",
               "direction": "unclassified",
               "breakout": false
             }
@@ -948,7 +1136,7 @@
           "source": "Liquide Blog",
           "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQdzhEN1RyYnhBb1hQSmZPdDRPUDlHT25idDJMR1hudUptYVR5UWNzSmZxaVZyTUFTLXpieGtNb1dUaFhMaHZxSktnR3Z3UHVSekJ2a2xHM3ItdXkxNTAwUjlpdjFHYVRVUloxbEU4SFpwV0V3N3Z4R0hIY1FveGQybWxlbG9ZT0pqZjZMRDhZX0dsdW5fdzN4eUJ3?oc=5",
           "score": 0,
-          "age_h": 26.0,
+          "age_h": 26.1,
           "published_at": "2026-11-07T16:21:45Z"
         },
         {
@@ -988,60 +1176,98 @@
       "neg_n": 1,
       "retail_adj": 0.25,
       "index_search_shadow": {
-        "valid": false,
+        "valid": true,
         "scope": "asset_specific_google_related_queries_shadow",
         "seed": "bank nifty",
         "source": "Google Trends related_queries · India",
         "timeframe": "now 1-d",
-        "source_data_time": "2026-11-08T14:16:00+00:00",
-        "raw_queries": 6,
-        "classified_queries": 0,
-        "unclassified_queries": 6,
-        "unclassified_weight": 279.0,
-        "classification_coverage_pct": 0.0,
+        "source_data_time": "2026-11-08T18:16:00+00:00",
+        "as_of": "2026-11-08T18:16:00+00:00",
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+        "raw_queries": 8,
+        "classified_queries": 3,
+        "unclassified_queries": 5,
+        "unclassified_weight": 328.0,
         "unclassified_terms": [
           {
             "term": "bank nifty share",
             "weight": 100.0
           },
           {
+            "term": "nifty share price",
+            "weight": 84.0
+          },
+          {
             "term": "bank nifty 50",
-            "weight": 67.0
+            "weight": 65.0
           },
           {
             "term": "nifty 50",
-            "weight": 66.0
+            "weight": 65.0
+          },
+          {
+            "term": "nifty 50 today",
+            "weight": 14.0
+          }
+        ],
+        "classification_coverage_pct": 18.8,
+        "bull_pct": 0.0,
+        "bear_pct": 0.0,
+        "neutral_pct": 100.0,
+        "directional_bull_pct": null,
+        "neutral_aware_score": null,
+        "terms": [
+          {
+            "term": "bank nifty today",
+            "direction": "neutral",
+            "weight": 46.0
           },
           {
             "term": "bank nifty live",
+            "direction": "neutral",
             "weight": 17.0
           },
           {
-            "term": "bank nifty index",
-            "weight": 16.0
-          },
-          {
             "term": "bank nifty chart",
+            "direction": "neutral",
             "weight": 13.0
           }
         ],
-        "rising_queries": 1,
-        "rising_classified_queries": 0,
+        "rising_queries": 4,
+        "rising_classified_queries": 1,
         "rising_direction_counts": {
           "bull": 0,
           "bear": 0,
-          "neutral": 0,
-          "unclassified": 1
+          "neutral": 1,
+          "unclassified": 3
         },
         "rising_terms": [
           {
             "term": "bank nifty share",
-            "value": "40",
+            "value": "80",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "bank nifty today",
+            "value": "70",
+            "direction": "neutral",
+            "breakout": false
+          },
+          {
+            "term": "nifty 50 today",
+            "value": "100",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "nifty share price",
+            "value": "90",
             "direction": "unclassified",
             "breakout": false
           }
         ],
-        "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
         "production_score_used": false,
         "directional_query_diagnostic": {
           "available": false,
@@ -1067,7 +1293,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T13:15:32Z",
             "oldest_headline_published_at": "2026-11-08T05:07:28Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -1078,7 +1304,7 @@
               "Upstox"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 5.15,
+            "newest_headline_age_h": 5.17,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -1087,7 +1313,7 @@
           "search": {
             "applicable": true,
             "included": false,
-            "reason": "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
+            "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
           },
           "eod_oi": {
             "applicable": true,
@@ -1117,54 +1343,88 @@
           "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
         },
         "search_diagnostic": {
-          "valid": false,
+          "valid": true,
           "seed": "bank nifty",
           "source": "Google Trends related_queries · India",
           "timeframe": "now 1-d",
-          "source_data_time": "2026-11-08T14:16:00+00:00",
-          "raw_queries": 6,
-          "classified_queries": 0,
-          "unclassified_queries": 6,
-          "classification_coverage_pct": 0.0,
-          "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
+          "raw_queries": 8,
+          "classified_queries": 3,
+          "unclassified_queries": 5,
+          "classification_coverage_pct": 18.8,
+          "bull_pct": 0.0,
+          "bear_pct": 0.0,
+          "neutral_pct": 100.0,
+          "directional_bull_pct": null,
+          "terms": [
+            {
+              "term": "bank nifty today",
+              "direction": "neutral",
+              "weight": 46.0
+            },
+            {
+              "term": "bank nifty live",
+              "direction": "neutral",
+              "weight": 17.0
+            },
+            {
+              "term": "bank nifty chart",
+              "direction": "neutral",
+              "weight": 13.0
+            }
+          ],
           "unclassified_terms": [
             {
               "term": "bank nifty share",
               "weight": 100.0
             },
             {
+              "term": "nifty share price",
+              "weight": 84.0
+            },
+            {
               "term": "bank nifty 50",
-              "weight": 67.0
+              "weight": 65.0
             },
             {
               "term": "nifty 50",
-              "weight": 66.0
+              "weight": 65.0
             },
             {
-              "term": "bank nifty live",
-              "weight": 17.0
-            },
-            {
-              "term": "bank nifty index",
-              "weight": 16.0
-            },
-            {
-              "term": "bank nifty chart",
-              "weight": 13.0
+              "term": "nifty 50 today",
+              "weight": 14.0
             }
           ],
-          "rising_queries": 1,
-          "rising_classified_queries": 0,
+          "rising_queries": 4,
+          "rising_classified_queries": 1,
           "rising_direction_counts": {
             "bull": 0,
             "bear": 0,
-            "neutral": 0,
-            "unclassified": 1
+            "neutral": 1,
+            "unclassified": 3
           },
           "rising_terms": [
             {
               "term": "bank nifty share",
-              "value": "40",
+              "value": "80",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "bank nifty today",
+              "value": "70",
+              "direction": "neutral",
+              "breakout": false
+            },
+            {
+              "term": "nifty 50 today",
+              "value": "100",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "nifty share price",
+              "value": "90",
               "direction": "unclassified",
               "breakout": false
             }
@@ -1347,9 +1607,17 @@
       "price_unit": "₹/10g",
       "price_source": "MCX पिछला बंद भाव × 3% GST Estimate",
       "news_query": "gold price",
-      "score": -0.8,
-      "headline_score": -0.8,
+      "score": 0.7,
+      "headline_score": 0.7,
       "headlines": [
+        {
+          "title": "Jewellery craftsman vanishes with 276g of gold worth ₹27.6L",
+          "source": "The Times of India",
+          "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxOekppcGNIU3lIS05qdjBkTFlJMllReTcwZG0tMllrMUxTWi0yaUwyeWNnR0FSa3JvWFlIa25iVU42RkZucVNuUjhzdkhXUXZSNVJMWmdyeDVIcWlTdTBTOVR1ektHX2RRaXUtQW8ybDBrM2ZkaDdHSkJyUlRFSTRyME5YaGxXRHhDVGdaejZwanhMUFVpNWJVT0U3QUNTdGctYW8xNFdKSXp0NzJjTDI0OXFaa2d4UXhNVTR5cklzRzVma1o1YWktSjJ4TDNPVV850gHWAUFVX3lxTE1md19mRFBaM2J1N3FXZUJDb3FTLWZTTUJKU0xPWHJvMUctMHVTekFPdnR4SktrX21jdkkwNllUWTBSbEVoNE05VEVtemdJLWJkVnJOTm1ERXd0c01hTGVodDNXMTJnZ3NTbmNycVU1Wkx3cjRKU3E3dXFLRXV3WUhpWnFvWVhaQTJfOEZYQU1qOVpIemtiXzZRVkxycW03ZW83UnBnRmt5dzUwRDY2WEYtN1FmU1dybVc4NldiT2RLODVsRkowYldlSEJHcGszR2Q2SEVubHc?oc=5",
+          "score": 0,
+          "age_h": 2.4,
+          "published_at": "2026-11-08T16:01:00Z"
+        },
         {
           "title": "TSL Expects to Report Major Profit Rebound in First Half",
           "source": "Rapaport",
@@ -1357,22 +1625,6 @@
           "score": 2,
           "age_h": 7.3,
           "published_at": "2026-11-08T11:08:50Z"
-        },
-        {
-          "title": "Gold prices crash 24% globally but fall only 20% in India: Why domestic buyers aren't seeing the full price correction",
-          "source": "Livemint",
-          "link": "https://news.google.com/rss/articles/CBMijwJBVV95cUxOVVBIVzR0UmhvWlJoTzkzNjZvcEE4NzNPTlNLVDlsdmtueWVmNy1PYW9GZzZnam10QnpWbjZmd2c2azVrMnh5emVacFNvNVdEN3luVXNLLUxEMWkxVC16cTVYekhZV0RvSGxPbGQ4OGJWemVPblgxLS1YUFBpYUFsTzZKQmUzRXRIaFRpYjg0ZWRIc2FXWjZuY2dWb2toMkduNGxJS3ZzZkdrVk1NOUNMS3hWSExUR3o5WlB0REVUdFg5VHhJc3VmRkY1VnQwcFRqeVNnVHBBT2ZoMWc4cGNMN0Y1UjRTeUVvRWozTnVOQV9FUkFsT0dXRy14WmlIS2VGYWFGbFdodHdVeHJ2enMw0gGUAkFVX3lxTFBLWlVWQWtacHNzTXpFa3VLbUtMZmZRYy1WTlA2c0RsX0dKdUtBSjFTV25kNWhxbnZXX3J2WDcyQlY5bC1iWUFkQUo3b1hhZjZFRGZhenF2UExQSHRLVld2dVFaUElNWmNHcTRNYi11dXFoOEhRU0Rjb21kM19Yci1BNE9oel9nS1FsM0xNTVZYSTlFVXFoYWpYTXd6dGxoa1h4eXljSFVJb1Bob1hzclkxMzFDU2lHNFFwZ0loUGgzbjBrSVE5WjVTUzdYcFZrSXBaa2p5X2paSzNKQm1XZUNzTXhaZXl5RUItTWM1eWRUbHVSeDBuaFphRFZzX2syRnRuenp6bGJhamhNYnhwZHJVYnhVaQ?oc=5",
-          "score": -2,
-          "age_h": 8.7,
-          "published_at": "2026-11-08T09:44:11Z"
-        },
-        {
-          "title": "Gold rate on Diwali: 24K at ₹1,43,570 per 10g, check prices in Delhi, Mumbai, Bengaluru, others | Business News",
-          "source": "Hindustan Times",
-          "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPQWxCSDM5T3dfaEVrY0YydEhKYkJRZE90SzBPTU5uODdYcmZfRW5vLWdrVUdSTDZWTmNaNDZoQ2hUV3gyU3B2c1lMb3pheEFXci15TmlZLXBTcnRPUlNUd056ODRSRHBHeU1zYkltZzdWWmpkUVNBVkRUNUE5cWJVbF9CNmZHa2UzZS1mR1Jrd1A4ZTZWa3Y5X0owVHItTzFSN1FpbEF2aDJLWmhYdlgwbXZNT0tsZzBTbDlhelAyZTBVWFBVRC0ySjBib0JWRkVRdUlMMUFXdHY0QmxMY0pZYTVDSEZvckRl0gHuAUFVX3lxTE9Sb2NpXzBEc25xS0NHM3Q3d2FFVlBHQVFtS05qZVJ6YXN1ay1kU1R6clBwVkJfdndpeERKUm40eGowSktVQVh1dTgyYkE2dFVoem1qanp3QTZYMy1XMmpiejkzUjFhNjB5MFlLbXpiUnM5VzliUHUtM2k1VUF4dUtudWhMeTFhQmpqVUJjSkJ6Sk1yUlN1d1VTWEJVZ2xrNkxYTHFUbkU2eG1JaXQ4ZDdCc1E5NzJDWFhUWFd3VzgxUFNLTU81VG5FZjFzaWJ5RmZWRTlkMkpsV21CaXVVbkN6Znh0ZDQtcEhwSEJ4dVE?oc=5",
-          "score": 0,
-          "age_h": 9.9,
-          "published_at": "2026-11-08T08:32:50Z"
         },
         {
           "title": "Gold Rate Today November 8: Check latest Gold prices in Delhi, Mumbai, Kolkata, Chennai, Bengaluru, Hyderabad, Pune & Other Cities",
@@ -1383,57 +1635,63 @@
           "published_at": "2026-11-08T08:01:02Z"
         },
         {
-          "title": "Gold and silver rates today 8 Nov stable in Bengaluru and Chennai, check gold prices of 18K, 22K, 24K",
-          "source": "The Hans India",
-          "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQU3Nzd0V5blhWUFZreDdoZEduQ29xRWlrLUZMSF9CYW84Uzk2QlVzMk12Qk9Nc05KclhzUzB0TlBqaUVoZk1YUWhLYTFaTF9QZFMwb3BwRlJtYU5TZFB6TlBIclZXQ3pkcGdjczE5YUZoWkVMRDZXbXpTQjBtb29YYm0xdFZlSEViY2cxcFl4VXNJV2tDWmhRaHJGMHB6aS01SF83SlZmU3F5OFZmOXVMcmxzYnFkS3BGQkl1UWFWcUVJNHlvN0paa0o4QXZHVlJWNlpETC1mS3lJSG9V?oc=5",
+          "title": "Gold Rate Today November 8: Check latest Gold prices in Coimbatore, Nagpur, Visakhapatnam, Surat, Jaipur, Lucknow, Chandigarh & Other Cities",
+          "source": "BusinessLine",
+          "link": "https://news.google.com/rss/articles/CBMiogJBVV95cUxNbHRPMGo2Z1dPNnlsLUxRc1N4aDVNMUZoZ3o0UWNNMFBkb2FRLWUxSXJOM3lhVFlwTjVIZ0dwUjVoOXQ0SzBrcE9XMmdwdzNCZ3Zfa3VjQ0NickswMmxCNkpoS2c1elhMRTNJQ0tLUDhCdHF5TVYxcHpsVlBhX2xWd3pJRGJtNjI4aVo3TTZZNU1qVmVsWGY5RDVadll3c1VIQkxBQ0F1UU9EZDRVNFY5bVp1WUZvdXczek1sRWR3UGxsNEItV0pvQ3pQZWxVR3p1Q1VKazNRSU1MelN4YUNia0dBOE9lcTI0SW9SQU5CdXllYU41VGJzTjBNRkgzaWlSM2twN1JsMVpyZ19WYXNzNlZFaFNfUjBha19PbDNVTXdUUdIBqAJBVV95cUxQNXlBRUYybml1VThXT29GdkpTcDdueW9yR3R4dERQS3EzZlBWM3Ftcjh2VV9xOWhtbVNLSko3X0dMa2t0WjNsa0NZYlhYU0s1eE9tVEQ1aGZCOVdHenZkSEw2dS0zVlF1cWZ2ZGoyNGtRbUlCSVdla1k1U1FHMUNZUER6Yl9vaW5XT1VhWHlISWhVSm1WVU96UkREbVFwV2ltOVFUNjdDWmIxZ0t5V3NYcVBQME95d2swU3BFcU13aXJkZWxkc0djZXlvdnZrVGtwN3psdHVfUS04TjBnLTk4d3VLRGE1UHMzWk9va2Fzb0hTbW4zSkFZcGg2blJqUFhOQzZhVkMwRW54Z0pqcjlJZDlIT1cwS3Q5QjJud0FqbzRYMTNSczkxYQ?oc=5",
           "score": 0,
-          "age_h": 13.7,
-          "published_at": "2026-11-08T04:43:23Z"
+          "age_h": 10.4,
+          "published_at": "2026-11-08T08:01:02Z"
         },
         {
-          "title": "Gold Prices Today Hyderabad: 22K, 24K Rates On Nov. 8",
-          "source": "INDToday",
-          "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE80VTlXME9aeF9MRUY3d05Rd3ZDOEtoVGxJazliTmV6MTR1WklNN3BsSk9uNkJJMnZPclFlSTlfVTV0YlU0RFNNLVI1Ti15Nmd3OFQwY3BXVmt4aHk0Y1E5NUNGSmdpenp2VnV4Z3BSQWg0UTJOdjNfd040Sk8?oc=5",
-          "score": 0,
-          "age_h": 13.8,
-          "published_at": "2026-11-08T04:38:51Z"
-        },
-        {
-          "title": "Gold price in Bhubaneswar today, November 8, 2026: Check 22K, 24K rates in major cities",
-          "source": "Kalinga TV",
-          "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQOGlBOUd2a3J2TTFmcDA0UFRKUm04NmRMYzlHZXpKNGY5aEVrbVoySHc4T3pZVWs2a1lCTXJMcXlMUXUycVB3eERGMlNOcXBkclZnS3VQWTBEdHFIWmpxaVZNMV9JSFQzSjFKQ18wTXdvRGRmbjMzSGYzNVR1bEJqVFFNWHdiOVdnZjZtZ2Z4U1kwUVBPQ0NyNjAyU1hMWnpFZXVldlVMTHNXQVN5bTBMUzNyTlM1QQ?oc=5",
-          "score": 0,
-          "age_h": 16.4,
-          "published_at": "2026-11-08T02:02:12Z"
-        },
-        {
-          "title": "Gold Rate Today On Dhanteras 2026 Live Updates: MCX Gold futures drop ahead of Diwali",
+          "title": "Gold, silver price outlook: US-Iran tensions, inflation data to set the tone next week",
           "source": "The Times of India",
-          "link": "https://news.google.com/rss/articles/CBMirwJBVV95cUxNOTVfSWxBVW1vTE5ueHNoaEVzcHhHYUx4eTZhaDByeWpyU2NyZjlQeWt5eWU3S3Yzcl9kbGRvd0RhZ0RrWU5lM2NRemNyOTQyTnN4NzhpQ2lLMXRDUUM1NWt0Y2g4NU14OFFiWFlvNTdEN3YzWFpDZEJZb2xtTjYwbHh4OUE4M3l0dXdoYW5waGxEM0xlNlo2Zkp2NXVtYmZCRlpoYWZTQWhONnJqa0NDaXdWcmZMeEJ4dzZSOWJ2Q0g5bUdDek1KVGhVRVVZRElyRS0waS1Zc3dVYXBZQkpybkdRbjY0TFlBRUQyVlFlcWtaQTM1VlNYckFra05QUE9fNEJTaV96WlB5VlFnQnU5VzB4QUJ1VUw3THR5MDBERHdINkVUczZmajhPLXdlZUHSAbQCQVVfeXFMTU9VRzhhVmlUX196VUVaWURiZWZUUXl3cXhQanQ3c1dBQ2s5X0tmNzNvU0p1SUJ3eWlSZTVlOHhfUFpGZ01oRkhfRVFzYzhKNXIzN3ZhY2pvTzZrdm5yTllTYXB5czFSQzRjZ1hwRjZaSnhLdkxqZzNVbE42b0gzVnFhNzV5N0FKUE9fdjRPZWhUYmhuVjg4SlQ2WEIteW1pRm04X1NQZGo3U1BUOWp1ODVWTDlEcUROSmN4UVl2S0tvNVh0NGdhOWE5bElOd1dMR3dwQnZzVGdwNTNtUmsxV2R3bEEzcnYzbTg5ZC11c05xbGs2OUxjZjVQOHhwXzU2Uy0zOEhEdDFyVV8yaXI0Y25GcTQ2dzN0OE9QeHlneTdfZHhRRjgwWkxON04tOXRTanpPOGU?oc=5",
-          "score": -1,
-          "age_h": 49.9,
-          "published_at": "2026-11-06T16:33:34Z"
+          "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxOYnBnNDBNak5BRkNUUndxUWdXbFVVX3pfck5DSVRaOXR3OVlHeG1rVTRPRG1jWUhqNEEzQTBMS1JEN01lUVZmYlJ3dWNuQ1k2Y0tZSkN4VGxkeHM0c3F2a25idWZ1U0cxcTc2cElXNll2UWxLbFRrdFAyQUJCNWJZWV9Oa0VaQVRZVUdTTHRjeXh3MlczTUNSalFCaDlxakc3UUxkaG9vbTkteEYtcm5DakdLdDh2Q0F0cHJXbXRFOUlZd2MwQ2ptM3E2dkFZby1kUjZzVmxsVk5GM1Rwc0FxMnJoQ1pPbzlwamZKMTg0clpMa2dCMHk3OFg3SmVUQdIBgwJBVV95cUxPUlRkS3VDZ2JsQU83eTdwd1R3QmpyeUVaMEdyUTdYb3VkZTZETE0zNXhzNEh0VUlocVBkMWYxRXh5OWZrejZpS3BIYzlnZ0ltanc3NGstdmhSejdxZkRiX3V4MS1yR19RYzc2OU9oWW4wTUhqZl9rVXRPaTFEa2x0VEVySzVfTXk4WExmRnhtN0pfRzRhVE95TE1fekg1N0VkXzdGN09mMzZTTVNFbkhpTFdPNEJoM1JYWjN6ajhTOXZsYWdYVHdSc0xhRC1MT21JYkExanozQ2Jfc1pYNGtxMG4wWWY0MTNUbWRkRHhNeEx2Y2N3X3hnbkpXdHRqOGJndWpJ?oc=5",
+          "score": 0,
+          "age_h": 11.8,
+          "published_at": "2026-11-08T06:40:00Z"
+        },
+        {
+          "title": "World Bank's Gold Forecast For 2028 Is Almost Exactly Today's Price",
+          "source": "NDTV Profit",
+          "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNS0NqZl9ZZnByWXBZaTYya2xIZC1aUWphbUZVdEZGR3FCUjdzeTAyelNraUE4N3NIdTJyNTRpUE5fSlpNU281d1V3V2dwOXZTYzJCLWJzR2JaVXNwZ1hiSFNtN29qdGV4c0ZhcmxYeUloYjUzNkJfQVBFd3JudnBBWnZpdHEtb3lpckQwQWNPV2ZpNlFGOW1rOUJfMmZzbG1taWxXRHJJOEc0RUFycmfSAbYBQVVfeXFMT0MyNjQ1WGN2aktVU2lZcW9xWGp4RFpDVTVINWtOeUw2SkMyRFFranBXbUUzRmpfV1F1aWVLOEZRUHJKOHhPQUwyNHVveVI3anM4Mm5YVERwT3YzN2JLMFctOG8waV9pOWEtSE1JT2ZZTzNoczVhSmdCMWdQMzgyNXNfYWQ0LW5qallTWThlcXJhODdYc1RkYk44OWk2SnRBOW51dFNtZ3dEcmdJdHFpQzZVRUJhMkE?oc=5",
+          "score": 0,
+          "age_h": 13.2,
+          "published_at": "2026-11-08T05:13:43Z"
+        },
+        {
+          "title": "Gold near interim bottom, but World Gold Council says three conditions associated with price recovery ‘already in place’",
+          "source": "Livemint",
+          "link": "https://news.google.com/rss/articles/CBMigAJBVV95cUxNQm84a19KQ2w4Y0tjbnU3OFFjeUxCVXBBc1FXRnA1ek5IYXJDSzBmUlFKQmJDZjJ2eEVxNk1fQ2twVDFZYkJIc08taTltZmJXZWd4cURqS2tUaGtSME9WSk9KRXN5em5BV19LcEZLUW1DbUhLSDkxQ0Y2NW4tVGRwbHBVa19BZXZrcmhWSUNCS3A4VmE5Wm5FQmpzY1NnRkxHVTlSMVRNOW9UNk1oRUVxdERYTVFnS1dLSWNLR0thOEVPWEFYZmVQQkluZTBNcERncFFhQ2czSUhGaXBWTldITG45WGpzVUloRWRoYlk1dTdvcUUyXzRqVnpleHp4T2hG0gGGAkFVX3lxTE1DWEVDbFRLVnhXVE9DcVVBWnk5UmRoenBMMFhFLUdrY2RFdXVFenhGaXFpYlc1bmIwU0otZDI3MEpUSDlROWFWVzk0dU1TcjktZ0VIT2pIckVhd2hDSkhIbnpycjFoSVNSMG9jLTB5SEVPVHBwZXpQWW5tTlZYTGtCT2x2b29WYnpVRHZJQnVjRnlLNG5FalV0clFxUjlhTzZ4RHJpaW5DRXZEY1N1UjZlLXVBX24zUmY0dEJIUENpNXM1UFBMM2hIbmU2VXZ3aTEyRnU3VlNLeGIwYXdDOXNWazVGME4zZUNqNGpRTWY5UzdLNHhSNFZsX3dCMWRleDdFNUpTU3c?oc=5",
+          "score": 0,
+          "age_h": 14.1,
+          "published_at": "2026-11-08T04:22:31Z"
+        },
+        {
+          "title": "Global Gold Prices Down 24% From Record. In India, It's Down 20%. Here's What Makes Up The Difference",
+          "source": "NDTV Profit",
+          "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQd1g3WEhvYkVPRjBjV3hFY1U1MXRTNC13UXpiSktFd3hoenl6cVpBZi00YkhTMXk5YVc5elF6RTNLa2lJUWFEMmFtN3JXRDJXamFkWThuc1ZkekM4R0F4NWNqdnZzTmc1X3ZSNHJ4Q19vcUlLMUFXX3hzZkhiVmxGZWU1aWNNcGlMYzBFWUMxbmxBMUhXRVpDUkJ2WVlHekc2VVI5OVdTa2JpbFpmaFJnc0g5amo3TEVSVTBrTEtWcGRLaUc4TzVoVkNCanJIaEMzaTlLZdIB3AFBVV95cUxOQ3RPemR4RGdWUDgya2dQa3NHSXFYRktEcUJ4VG91c21kRXMzSV8wUmFZM0xubTFMclVOQ2otX3JrNW0tQXlNUjZha3o2YV9ET25TUWpLNjhyNjZ0OEMyY3BUTVN0UjBqTFpic0ZxVnJFaHMtZS01V1BiYTBQTlBEb256RzF3S2R2LWlHTGI0T3prR0l3cVl5QVZZMW0xYTZDY1BKSFhiVnBJNGFBMExNMWJmWGxtZnRBX19HUHlwbl9hOURta2NwVGxwalotOVFKd3JDYzRNUm5veUQz?oc=5",
+          "score": 0,
+          "age_h": 15.1,
+          "published_at": "2026-11-08T03:17:09Z"
         }
       ],
       "pos_n": 1,
-      "neg_n": 3,
+      "neg_n": 2,
       "asset_search_shadow": {
-        "valid": false,
+        "valid": true,
         "scope": "asset_specific_google_related_queries_shadow",
         "seed": "gold price",
         "source": "Google Trends related_queries · India",
         "timeframe": "now 1-d",
-        "source_data_time": "2026-11-08T14:16:00+00:00",
+        "source_data_time": "2026-11-08T18:16:00+00:00",
+        "as_of": "2026-11-08T18:16:00+00:00",
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
         "raw_queries": 25,
-        "classified_queries": 0,
-        "unclassified_queries": 25,
-        "unclassified_weight": 221.0,
-        "classification_coverage_pct": 0.0,
+        "classified_queries": 9,
+        "unclassified_queries": 16,
+        "unclassified_weight": 91.0,
         "unclassified_terms": [
-          {
-            "term": "today gold price",
-            "weight": 100.0
-          },
           {
             "term": "gold rate",
             "weight": 13.0
@@ -1444,22 +1702,10 @@
           },
           {
             "term": "gold price india",
-            "weight": 10.0
-          },
-          {
-            "term": "gold price 22 carat",
-            "weight": 8.0
+            "weight": 11.0
           },
           {
             "term": "today silver price",
-            "weight": 8.0
-          },
-          {
-            "term": "silver price today",
-            "weight": 8.0
-          },
-          {
-            "term": "gold price in india",
             "weight": 7.0
           },
           {
@@ -1467,69 +1713,144 @@
             "weight": 7.0
           },
           {
+            "term": "gold price in india",
+            "weight": 7.0
+          },
+          {
+            "term": "22 carat gold price",
+            "weight": 7.0
+          },
+          {
             "term": "price of gold",
             "weight": 6.0
+          },
+          {
+            "term": "24 carat gold price",
+            "weight": 4.0
+          },
+          {
+            "term": "1 gram gold price",
+            "weight": 3.0
           }
         ],
-        "rising_queries": 8,
+        "classification_coverage_pct": 57.7,
+        "bull_pct": 0.0,
+        "bear_pct": 0.0,
+        "neutral_pct": 100.0,
+        "directional_bull_pct": null,
+        "neutral_aware_score": null,
+        "terms": [
+          {
+            "term": "gold price today",
+            "direction": "neutral",
+            "weight": 100.0
+          },
+          {
+            "term": "gold 22 carat price today",
+            "direction": "neutral",
+            "weight": 5.0
+          },
+          {
+            "term": "gold price today india",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "gold price today 22k",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "today gold price kolkata",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "gold price today 24 carat",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "gold price live",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "gold price today in india",
+            "direction": "neutral",
+            "weight": 2.0
+          }
+        ],
+        "rising_queries": 11,
         "rising_classified_queries": 0,
         "rising_direction_counts": {
           "bull": 0,
           "bear": 0,
           "neutral": 0,
-          "unclassified": 8
+          "unclassified": 11
         },
         "rising_terms": [
           {
             "term": "gold bees share price",
-            "value": "170",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "hdfc bank share price",
-            "value": "110",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "india gold price vs global",
-            "value": "14550",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "itc share price",
             "value": "160",
             "direction": "unclassified",
             "breakout": false
           },
           {
+            "term": "hdfc bank share price",
+            "value": "170",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "india gold price vs global",
+            "value": "60050",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "itc share price",
+            "value": "250",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
             "term": "jio platforms share price",
-            "value": "80",
+            "value": "150",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "sbi share price",
+            "value": "100",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "senco gold share price",
+            "value": "200",
+            "direction": "unclassified",
+            "breakout": false
+          },
+          {
+            "term": "shanti gold share price",
             "value": "170",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "sky gold share price",
-            "value": "250",
+            "value": "300",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "xxxx gold price",
-            "value": "60",
+            "term": "suzlon share price",
+            "value": "170",
             "direction": "unclassified",
             "breakout": false
           }
         ],
-        "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
         "production_score_used": false,
         "directional_query_diagnostic": {
           "available": false,
@@ -1550,27 +1871,25 @@
         },
         "components": {
           "news": {
-            "score": -0.1,
+            "score": 0.26,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
-            "newest_headline_published_at": "2026-11-08T11:08:50Z",
-            "oldest_headline_published_at": "2026-11-08T02:02:12Z",
+            "observed_at": "2026-11-08T18:25Z",
+            "newest_headline_published_at": "2026-11-08T16:01:00Z",
+            "oldest_headline_published_at": "2026-11-08T03:17:09Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 7,
+            "evidence_count": 8,
             "publishers": [
               "BusinessLine",
-              "Hindustan Times",
-              "INDToday",
-              "Kalinga TV",
               "Livemint",
+              "NDTV Profit",
               "Rapaport",
-              "The Hans India"
+              "The Times of India"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 7.26,
+            "newest_headline_age_h": 2.41,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -1579,7 +1898,7 @@
           "search": {
             "applicable": true,
             "included": false,
-            "reason": "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
+            "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
           },
           "eod_oi": {
             "applicable": true,
@@ -1603,21 +1922,62 @@
           "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
         },
         "search_diagnostic": {
-          "valid": false,
+          "valid": true,
           "seed": "gold price",
           "source": "Google Trends related_queries · India",
           "timeframe": "now 1-d",
-          "source_data_time": "2026-11-08T14:16:00+00:00",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
           "raw_queries": 25,
-          "classified_queries": 0,
-          "unclassified_queries": 25,
-          "classification_coverage_pct": 0.0,
-          "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
-          "unclassified_terms": [
+          "classified_queries": 9,
+          "unclassified_queries": 16,
+          "classification_coverage_pct": 57.7,
+          "bull_pct": 0.0,
+          "bear_pct": 0.0,
+          "neutral_pct": 100.0,
+          "directional_bull_pct": null,
+          "terms": [
             {
-              "term": "today gold price",
+              "term": "gold price today",
+              "direction": "neutral",
               "weight": 100.0
             },
+            {
+              "term": "gold 22 carat price today",
+              "direction": "neutral",
+              "weight": 5.0
+            },
+            {
+              "term": "gold price today india",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "gold price today 22k",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "today gold price kolkata",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "gold price today 24 carat",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "gold price live",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "gold price today in india",
+              "direction": "neutral",
+              "weight": 2.0
+            }
+          ],
+          "unclassified_terms": [
             {
               "term": "gold rate",
               "weight": 13.0
@@ -1628,22 +1988,10 @@
             },
             {
               "term": "gold price india",
-              "weight": 10.0
-            },
-            {
-              "term": "gold price 22 carat",
-              "weight": 8.0
+              "weight": 11.0
             },
             {
               "term": "today silver price",
-              "weight": 8.0
-            },
-            {
-              "term": "silver price today",
-              "weight": 8.0
-            },
-            {
-              "term": "gold price in india",
               "weight": 7.0
             },
             {
@@ -1651,64 +1999,92 @@
               "weight": 7.0
             },
             {
+              "term": "gold price in india",
+              "weight": 7.0
+            },
+            {
+              "term": "22 carat gold price",
+              "weight": 7.0
+            },
+            {
               "term": "price of gold",
               "weight": 6.0
+            },
+            {
+              "term": "24 carat gold price",
+              "weight": 4.0
+            },
+            {
+              "term": "1 gram gold price",
+              "weight": 3.0
             }
           ],
-          "rising_queries": 8,
+          "rising_queries": 11,
           "rising_classified_queries": 0,
           "rising_direction_counts": {
             "bull": 0,
             "bear": 0,
             "neutral": 0,
-            "unclassified": 8
+            "unclassified": 11
           },
           "rising_terms": [
             {
               "term": "gold bees share price",
-              "value": "170",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "hdfc bank share price",
-              "value": "110",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "india gold price vs global",
-              "value": "14550",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "itc share price",
               "value": "160",
               "direction": "unclassified",
               "breakout": false
             },
             {
+              "term": "hdfc bank share price",
+              "value": "170",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "india gold price vs global",
+              "value": "60050",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "itc share price",
+              "value": "250",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
               "term": "jio platforms share price",
-              "value": "80",
+              "value": "150",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "sbi share price",
+              "value": "100",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "senco gold share price",
+              "value": "200",
+              "direction": "unclassified",
+              "breakout": false
+            },
+            {
+              "term": "shanti gold share price",
               "value": "170",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "sky gold share price",
-              "value": "250",
+              "value": "300",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "xxxx gold price",
-              "value": "60",
+              "term": "suzlon share price",
+              "value": "170",
               "direction": "unclassified",
               "breakout": false
             }
@@ -1717,7 +2093,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -0.1,
+          "score": 0.26,
           "included_components": [
             "news"
           ],
@@ -1754,7 +2130,7 @@
           "source": "FXEmpire",
           "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPcFZSR2FZaUtLYlFncTI1MmFmaTZnc0ZpNktBMkk4Tk1rNzFtUzF4Uk50Sy1WcnNXUnJiS0lBYWw2bThZYnVLVEd1MTVKMjVKeVA3Q1lPQ3BQclhiSmVuX3IyRkdPVDVHVzh6VGNuMVFNdVZ5OWVBcTFVNHFMcTk4djlDVGxmamxlQUk3MEdfcnRUVExCSEl3XzJzX0NqeDZESURaWTc1UzFZejNkaVkzdVBnbWVMQQ?oc=5",
           "score": 0,
-          "age_h": 0.3,
+          "age_h": 0.4,
           "published_at": "2026-11-08T18:04:25Z"
         },
         {
@@ -1778,7 +2154,7 @@
           "source": "The Times of India",
           "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxOYnBnNDBNak5BRkNUUndxUWdXbFVVX3pfck5DSVRaOXR3OVlHeG1rVTRPRG1jWUhqNEEzQTBMS1JEN01lUVZmYlJ3dWNuQ1k2Y0tZSkN4VGxkeHM0c3F2a25idWZ1U0cxcTc2cElXNll2UWxLbFRrdFAyQUJCNWJZWV9Oa0VaQVRZVUdTTHRjeXh3MlczTUNSalFCaDlxakc3UUxkaG9vbTkteEYtcm5DakdLdDh2Q0F0cHJXbXRFOUlZd2MwQ2ptM3E2dkFZby1kUjZzVmxsVk5GM1Rwc0FxMnJoQ1pPbzlwamZKMTg0clpMa2dCMHk3OFg3SmVUQdIBgwJBVV95cUxPUlRkS3VDZ2JsQU83eTdwd1R3QmpyeUVaMEdyUTdYb3VkZTZETE0zNXhzNEh0VUlocVBkMWYxRXh5OWZrejZpS3BIYzlnZ0ltanc3NGstdmhSejdxZkRiX3V4MS1yR19RYzc2OU9oWW4wTUhqZl9rVXRPaTFEa2x0VEVySzVfTXk4WExmRnhtN0pfRzRhVE95TE1fekg1N0VkXzdGN09mMzZTTVNFbkhpTFdPNEJoM1JYWjN6ajhTOXZsYWdYVHdSc0xhRC1MT21JYkExanozQ2Jfc1pYNGtxMG4wWWY0MTNUbWRkRHhNeEx2Y2N3X3hnbkpXdHRqOGJndWpJ?oc=5",
           "score": 0,
-          "age_h": 11.7,
+          "age_h": 11.8,
           "published_at": "2026-11-08T06:40:00Z"
         },
         {
@@ -1811,25 +2187,23 @@
       "indicator_label": "BUILDUP DATA UNAVAILABLE",
       "indicator_reason": "एक ही कॉन्ट्रैक्ट का भरोसेमंद Open Interest डेटा उपलब्ध नहीं",
       "asset_search_shadow": {
-        "valid": false,
+        "valid": true,
         "scope": "asset_specific_google_related_queries_shadow",
         "seed": "silver price",
         "source": "Google Trends related_queries · India",
         "timeframe": "now 1-d",
-        "source_data_time": "2026-11-08T14:16:00+00:00",
+        "source_data_time": "2026-11-08T18:16:00+00:00",
+        "as_of": "2026-11-08T18:16:00+00:00",
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
         "raw_queries": 25,
-        "classified_queries": 0,
-        "unclassified_queries": 25,
-        "unclassified_weight": 367.0,
-        "classification_coverage_pct": 0.0,
+        "classified_queries": 7,
+        "unclassified_queries": 18,
+        "unclassified_weight": 241.0,
         "unclassified_terms": [
           {
-            "term": "today silver price",
-            "weight": 100.0
-          },
-          {
-            "term": "gold silver price",
-            "weight": 39.0
+            "term": "silver gold price",
+            "weight": 38.0
           },
           {
             "term": "gold price",
@@ -1837,98 +2211,132 @@
           },
           {
             "term": "today gold price",
-            "weight": 26.0
+            "weight": 25.0
           },
           {
-            "term": "gold silver price today",
+            "term": "silver price today gold",
             "weight": 25.0
           },
           {
             "term": "silver rate",
-            "weight": 17.0
-          },
-          {
-            "term": "silver coin price",
-            "weight": 17.0
+            "weight": 16.0
           },
           {
             "term": "silver coin",
             "weight": 16.0
           },
           {
-            "term": "today silver rate",
-            "weight": 14.0
+            "term": "silver coin price",
+            "weight": 15.0
           },
           {
             "term": "silver price india",
             "weight": 11.0
+          },
+          {
+            "term": "price of silver",
+            "weight": 10.0
+          },
+          {
+            "term": "silver price in india",
+            "weight": 8.0
           }
         ],
-        "rising_queries": 9,
+        "classification_coverage_pct": 35.2,
+        "bull_pct": 0.0,
+        "bear_pct": 0.0,
+        "neutral_pct": 100.0,
+        "directional_bull_pct": null,
+        "neutral_aware_score": null,
+        "terms": [
+          {
+            "term": "silver today price",
+            "direction": "neutral",
+            "weight": 100.0
+          },
+          {
+            "term": "today silver rate",
+            "direction": "neutral",
+            "weight": 14.0
+          },
+          {
+            "term": "silver live price",
+            "direction": "neutral",
+            "weight": 4.0
+          },
+          {
+            "term": "silver coin price today",
+            "direction": "neutral",
+            "weight": 4.0
+          },
+          {
+            "term": "mcx silver price today",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "silver price today in india",
+            "direction": "neutral",
+            "weight": 3.0
+          },
+          {
+            "term": "price of silver today",
+            "direction": "neutral",
+            "weight": 3.0
+          }
+        ],
+        "rising_queries": 7,
         "rising_classified_queries": 0,
         "rising_direction_counts": {
           "bull": 0,
           "bear": 0,
           "neutral": 0,
-          "unclassified": 9
+          "unclassified": 7
         },
         "rising_terms": [
           {
-            "term": "8 gram silver price",
-            "value": "70",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
             "term": "hdfc bank share price",
-            "value": "120",
+            "value": "250",
             "direction": "unclassified",
             "breakout": false
           },
           {
-            "term": "jio platforms share price",
+            "term": "hdfc silver etf share price",
             "value": "200",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "silver bees share price",
-            "value": "190",
+            "value": "170",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "silver etf price",
-            "value": "120",
-            "direction": "unclassified",
-            "breakout": false
-          },
-          {
-            "term": "silver rate today hyderabad",
-            "value": "80",
+            "value": "110",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "silver share price",
-            "value": "80",
+            "value": "90",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "tata silver etf share price",
-            "value": "160",
+            "value": "140",
             "direction": "unclassified",
             "breakout": false
           },
           {
             "term": "tata silver share price",
-            "value": "170",
+            "value": "200",
             "direction": "unclassified",
             "breakout": false
           }
         ],
-        "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
         "production_score_used": false,
         "directional_query_diagnostic": {
           "available": false,
@@ -1954,7 +2362,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T18:18:28Z",
             "oldest_headline_published_at": "2026-11-08T04:47:25Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -1969,7 +2377,7 @@
               "The Times of India"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 0.1,
+            "newest_headline_age_h": 0.12,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -1978,7 +2386,7 @@
           "search": {
             "applicable": true,
             "included": false,
-            "reason": "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
+            "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
           },
           "eod_oi": {
             "applicable": true,
@@ -2002,24 +2410,60 @@
           "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
         },
         "search_diagnostic": {
-          "valid": false,
+          "valid": true,
           "seed": "silver price",
           "source": "Google Trends related_queries · India",
           "timeframe": "now 1-d",
-          "source_data_time": "2026-11-08T14:16:00+00:00",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
           "raw_queries": 25,
-          "classified_queries": 0,
-          "unclassified_queries": 25,
-          "classification_coverage_pct": 0.0,
-          "reason": "पर्याप्त स्वतंत्र one-day classified queries नहीं (classified=0, total_weight=0.0)",
-          "unclassified_terms": [
+          "classified_queries": 7,
+          "unclassified_queries": 18,
+          "classification_coverage_pct": 35.2,
+          "bull_pct": 0.0,
+          "bear_pct": 0.0,
+          "neutral_pct": 100.0,
+          "directional_bull_pct": null,
+          "terms": [
             {
-              "term": "today silver price",
+              "term": "silver today price",
+              "direction": "neutral",
               "weight": 100.0
             },
             {
-              "term": "gold silver price",
-              "weight": 39.0
+              "term": "today silver rate",
+              "direction": "neutral",
+              "weight": 14.0
+            },
+            {
+              "term": "silver live price",
+              "direction": "neutral",
+              "weight": 4.0
+            },
+            {
+              "term": "silver coin price today",
+              "direction": "neutral",
+              "weight": 4.0
+            },
+            {
+              "term": "mcx silver price today",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "silver price today in india",
+              "direction": "neutral",
+              "weight": 3.0
+            },
+            {
+              "term": "price of silver today",
+              "direction": "neutral",
+              "weight": 3.0
+            }
+          ],
+          "unclassified_terms": [
+            {
+              "term": "silver gold price",
+              "weight": 38.0
             },
             {
               "term": "gold price",
@@ -2027,93 +2471,85 @@
             },
             {
               "term": "today gold price",
-              "weight": 26.0
+              "weight": 25.0
             },
             {
-              "term": "gold silver price today",
+              "term": "silver price today gold",
               "weight": 25.0
             },
             {
               "term": "silver rate",
-              "weight": 17.0
-            },
-            {
-              "term": "silver coin price",
-              "weight": 17.0
+              "weight": 16.0
             },
             {
               "term": "silver coin",
               "weight": 16.0
             },
             {
-              "term": "today silver rate",
-              "weight": 14.0
+              "term": "silver coin price",
+              "weight": 15.0
             },
             {
               "term": "silver price india",
               "weight": 11.0
+            },
+            {
+              "term": "price of silver",
+              "weight": 10.0
+            },
+            {
+              "term": "silver price in india",
+              "weight": 8.0
             }
           ],
-          "rising_queries": 9,
+          "rising_queries": 7,
           "rising_classified_queries": 0,
           "rising_direction_counts": {
             "bull": 0,
             "bear": 0,
             "neutral": 0,
-            "unclassified": 9
+            "unclassified": 7
           },
           "rising_terms": [
             {
-              "term": "8 gram silver price",
-              "value": "70",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
               "term": "hdfc bank share price",
-              "value": "120",
+              "value": "250",
               "direction": "unclassified",
               "breakout": false
             },
             {
-              "term": "jio platforms share price",
+              "term": "hdfc silver etf share price",
               "value": "200",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "silver bees share price",
-              "value": "190",
+              "value": "170",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "silver etf price",
-              "value": "120",
-              "direction": "unclassified",
-              "breakout": false
-            },
-            {
-              "term": "silver rate today hyderabad",
-              "value": "80",
+              "value": "110",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "silver share price",
-              "value": "80",
+              "value": "90",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "tata silver etf share price",
-              "value": "160",
+              "value": "140",
               "direction": "unclassified",
               "breakout": false
             },
             {
               "term": "tata silver share price",
-              "value": "170",
+              "value": "200",
               "direction": "unclassified",
               "breakout": false
             }
@@ -2254,9 +2690,9 @@
     },
     "BITCOIN": {
       "type": "index",
-      "change_pct": 0.1,
-      "price": 75832.11,
-      "price_time": "11.54 PM IST",
+      "change_pct": 0.08,
+      "price": 75817.49,
+      "price_time": "11.55 PM IST",
       "price_as_of": "2026-11-08",
       "price_unit": "",
       "price_source": "Coinbase BTC-USD latest executed trade",
@@ -2281,14 +2717,6 @@
           "published_at": "2026-11-08T17:30:00Z"
         },
         {
-          "title": "BTC Price Analysis: Key Support Levels to Watch as Bitcoin Enters a Crucial Week",
-          "source": "CryptoPotato",
-          "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPNVdnd0dxd1ZKZ3VjemZtanliYklSaWZoV1UtRFdYa0hNckxqb3lwUi1GLV9FNGNidTd4NXJva05BZGl1WnkySTZPRGE2YVBqS0V1YnhGUml2MklTTHc3clpOdEJkRWFYM0tyNTVHTGFhNFNQdngzbEJvQ1ZSeXNPZFJQWjVkSW5pU0xyWFphVVowamtaR1kxV3NwVmJmZE9WVkxWUzJ6ZGE?oc=5",
-          "score": 0,
-          "age_h": 1.2,
-          "published_at": "2026-11-08T17:12:00Z"
-        },
-        {
           "title": "Bitcoin Price Prediction: Why BTC Could Rally This Week as $70K Risk Persists",
           "source": "CoinGape",
           "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQdzhweVZkUzRUTFNKTFhYdXFpMGctVXE5Vk5wb2s5R1VveGxRWTc5VzBpZjdTb05iY0VjcTNjZFBSZllQOGU0aGstdk5MLWZDMHhvZlUwNHVsN0pqa2luRFdLTU1TMzlkcGxoMkY3LXJZMlAxZjFxME04cDVaS25OTkJnN0s2cERuNGMzcHdJM0dvX1NvLU03S2FHek1VQTBGUURsWTcyYUk?oc=5",
@@ -2309,7 +2737,7 @@
           "source": "CryptoTicker.io",
           "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE1LMFFac3U4U1hJaWhsaVRhenl1NFFXbGo1RjFjcExjYUlwLW4zY2JZbkZ2eFFqUjdkeVpfTGhGRWxMdE9MZlBBR1psSlNvLUdzYXJMUnRiU0NtWXlzTHl4dG1lUWx3ekJUUUE2dDRjOWNOTDhGYnEwUHlqVjVmdw?oc=5",
           "score": 0,
-          "age_h": 9.0,
+          "age_h": 9.1,
           "published_at": "2026-11-08T09:21:47Z"
         },
         {
@@ -2317,8 +2745,16 @@
           "source": "Bitcoin News",
           "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQMU1xclROT3RrLXVkVU5BQ0Njd2VTRFVIaXcyUzlKYVY4M09ackItUTROeWt2V1dqUHNMVFBtTEhrSFdMVThnTVk4VUJqeTEtUDFYMnY0Z3Jic04yWFVETTlfTkZ6cmVHZzNzR0JveFBRNV82WV9aT2VESGtPQlhTX096Q0tOX3BMUVpWNlp5QXJWN3R6QmlXT2EzTXNsejdiMzAxZzVjN3VHbl9aNTA2ZVRNRkUzWS1Wc2QzREFUWQ?oc=5",
           "score": -1,
-          "age_h": 19.2,
+          "age_h": 19.3,
           "published_at": "2026-11-07T23:10:04Z"
+        },
+        {
+          "title": "CRYPTO ACADEMY 711(@Crypto_academy_711)'s insights",
+          "source": "Binance",
+          "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBpbjFfczVoZFh1TmU2T2xuQnRfVDRmRGNZakdBeUxhZVJ1VmxWWGREQUtibmVtZkN6ekd4MjV6X0hldnBKNlVKMmxnbGRBd3dGV2JWVWoyWWQybXdDdS1UODdpTGE?oc=5",
+          "score": 0,
+          "age_h": 27.8,
+          "published_at": "2026-11-07T14:39:55Z"
         },
         {
           "title": "Bitcoin Price Forecast as BTC ETFs Record Highest Weekly Outflows Since June - Will $75K Hold?",
@@ -2350,27 +2786,26 @@
         },
         "components": {
           "news": {
-            "score": 0.06,
+            "score": 0.07,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T18:05:38Z",
             "oldest_headline_published_at": "2026-11-07T23:10:04Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 7,
+            "evidence_count": 6,
             "publishers": [
               "Analytics Insight",
               "Bitcoin News",
               "CoinGape",
               "Crowdfund Insider",
-              "CryptoPotato",
               "CryptoTicker.io",
               "Robinhood"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 0.32,
+            "newest_headline_age_h": 0.33,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2388,7 +2823,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": 0.06,
+          "score": 0.07,
           "included_components": [
             "news"
           ],
@@ -2417,7 +2852,7 @@
           "source": "Goodreturns",
           "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNZkZwTlpKYVUxaVUtck56LUVfQVBpOEt2bjlNel84YmJDUm04T1dlMjdnNkk0NFd5Z1lxU0RhM0NDRjRtai1RRWtlU3FVbnNoMjk3LW9QaUtYb3F1UkpGQnhIckg1Q1JaZzFXZ0plRGRYVUJfUjdMTERaR2NJbzB4Vk1uNFZXZFZpSm9LZGNkWXpHclNOZHdrVVNCTG9KWk9sRHlpakVEWjhjM08xRHJMVVhTYVV1TkQxTl9DM2pONWpsQ21MakVZ?oc=5",
           "score": 0,
-          "age_h": 9.4,
+          "age_h": 9.5,
           "published_at": "2026-11-08T08:58:16Z"
         },
         {
@@ -2425,7 +2860,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxPZm9GTDJKSWJ3Wi1xUFAxUHVNWUVTSFh4S3FWWnM5M0dTVTBTSWx1cm9uVnh5akhpOFVuWTVRcUllb1VGOUhnSnR6X3FvZG12ZUNpQ21sTk1QQlhqeHA5WXY1VlpkYm9Qb2lhdFdOZkRkVFdQal8wSzRFaXJJZllId01laG9peUFLUzg4bXBlN3F4ZGRmaVA0RzRXX0tNLU0wTFRPR3VZQUpnN0ViYjRWWWZvTTB5YTZRQ2pkMzFzSDluUUk2M0pFOVVaTHhBcjNrLWNDNXZ30gHbAUFVX3lxTE9aRUFadElqNUx3VC1oODY1cXk0NHJhZERXNVUzUVRwNVR6VENSWjh6X3E5c3JKV1l5bTVBXzQzb2xlcExxTXpqREtlLXp3QnB1WTU3T09GSVZpcWVybXRkR3BnUnB6QU5VSEowOTdhTWZYbk5PSG9VUmNXU0I3OEUzOUk1RFVRY3U3RzVQT252Vl9rNHRhNzA1a0JzNHlYMm5WTGZNeFJzaWpfdGFyZkppcEhPTWhfZzRCOTVaS2FoLTgzVEpWLUNXVllaZkIybW05M0ZhLU4xVHNxNA?oc=5",
           "score": 0,
-          "age_h": 11.1,
+          "age_h": 11.2,
           "published_at": "2026-11-08T07:15:50Z"
         },
         {
@@ -2441,7 +2876,7 @@
           "source": "Investing.com Nigeria",
           "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxPWkVzQlZNQXAyVzA5NzV3SjEzaUpCMVZFMWF2bVB4Zk5UUlRqV3VjeTZ1ZjM2ZXk4dzl1MzlwY1AwaHN0NDVtM3pTbElWYkpGRFBFWWpCeGo2WXVaM3NXS3VHYzRIbFBQTzJqdXRydTJZa3VBa1FmYkQ4MVVib0hpU2llSUdRMXhYVmRtSG5nVWl6bF9LanFBSHJ2cTZ4ZWRKaVVBSnJGT2Z1MzJzbnltWmdUQWZEVDJYeWRIZ2Z0aDlqT2hmY3d6d3RXaHp2cThYUks1R1I0SERVUTM1NE5qMGNn?oc=5",
           "score": 0,
-          "age_h": 44.5,
+          "age_h": 44.6,
           "published_at": "2026-11-06T21:52:03Z"
         },
         {
@@ -2497,7 +2932,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T08:58:16Z",
             "oldest_headline_published_at": "2026-11-08T07:15:50Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2507,7 +2942,7 @@
               "Simply Wall St"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 9.44,
+            "newest_headline_age_h": 9.45,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2562,7 +2997,7 @@
           "source": "Goodreturns",
           "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNZkZwTlpKYVUxaVUtck56LUVfQVBpOEt2bjlNel84YmJDUm04T1dlMjdnNkk0NFd5Z1lxU0RhM0NDRjRtai1RRWtlU3FVbnNoMjk3LW9QaUtYb3F1UkpGQnhIckg1Q1JaZzFXZ0plRGRYVUJfUjdMTERaR2NJbzB4Vk1uNFZXZFZpSm9LZGNkWXpHclNOZHdrVVNCTG9KWk9sRHlpakVEWjhjM08xRHJMVVhTYVV1TkQxTl9DM2pONWpsQ21MakVZ?oc=5",
           "score": 0,
-          "age_h": 9.4,
+          "age_h": 9.5,
           "published_at": "2026-11-08T08:58:16Z"
         },
         {
@@ -2586,7 +3021,7 @@
           "source": "CNBC",
           "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBGUGtVSmh2dDhaUDJWN2x5SWlLSW93SDgyMm5ybTd4TFo5R3NmZ3I0aDdHSHRNT2VxRVdVLS00NjZXeUE2ZDFSTExOaGtIaFY3MEFWYndKUENSWmMwVml3cVlMb1lnUk83RThmTDNvZGlCaVV0YkJn0gF8QVVfeXFMTmQ2ZmxnbU5Md3JkdGNYVG9TUVhLRDhETG9vY0lFaTZ0elZnYXBfN0hrRGU1S3pXN0kyazlXMHBxUkZ1cnNmOW1OVmxEX25VeHVJMzZ2V1dCczBhUHZaVGV1R0lvVUtkZmVBbk9KakpzUWc4QWlwX0UzSngyWQ?oc=5",
           "score": 1,
-          "age_h": 45.0,
+          "age_h": 45.1,
           "published_at": "2026-11-06T21:22:00Z"
         },
         {
@@ -2634,7 +3069,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T16:20:00Z",
             "oldest_headline_published_at": "2026-11-08T08:58:16Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2644,7 +3079,7 @@
               "Investor's Business Daily"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 2.08,
+            "newest_headline_age_h": 2.09,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2739,7 +3174,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxQeXpmUmFrY0JMRVlSRDJxRGFnRmhGMEZ2cWwtMDQzZU1qLXpneGlMTVB4U1BKaGJRSnhZcEJvX25rWkh6S2pmSkY5cjgtblg5UEZDeUVobW5lSkdPZWhNU2JFcHNJdFVSN0RaTUV6NjJVcG1GX2ZwUUJaem5TTlYtME5LT040RHJsTnd0azh3X1daQW53QlVrdTh5ZkJkazFiUDRTMEMtSGRyYXE1YWJfa0RnQnhzR0RBMFRVVjdpb3JCa0ZnR0NxcE9oYlV0bzBGMWNrc1N1RXhDaERUQ0ZvMWQ5NVRaYklURFdFdFJZTlZxVThy0gH6AUFVX3lxTFA4dXpyNjBISjEtX1gydzhiZXY3ck0tZzYwWEpCYTlwcUdQeDNLUktndWNHT2pkYTJfU3VqNUREQjI0UmVfOExVMkJOX3VJWkF3WkRtUjRESVRmTTdjR08wSFgyal94SU85LTRBbzVNUmdIYVpXa0ZDck9jVHFxLXZLVnpfTHZ3NVliSW5GbVJoSGE1a1NTWE80TUFWUjJVejFNRmJaMFhHdkRrR2swTWlVeFNFQlJZbEFqYkVaSG9ISENLTzJBRGo1MDduZVMza0x4Y3FEcnlkbTFIblE3eGZZa01YZ0MtWlNGd19yWVZGTEFsZklQa05WRVE?oc=5",
           "score": 1,
-          "age_h": 113.3,
+          "age_h": 113.4,
           "published_at": "2026-11-04T01:03:56Z"
         },
         {
@@ -2747,7 +3182,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxQU2IxZFp2SXB5LVpkOElMdjZtckM1VmFaZTlpckNMNlhDd29SVHNUU0V4OFU0RTZHWXVzalJaYXREeVE1V05yOGpETFk1aGhqOE91bWc5SkdUYlJ6NG1HYVdFektOZzdZVjVLSUpGaC1zSjc0X3g3T3JBYVVaYWNJUzk1Wi1HNGRFRTdlaWh3NjdwTThBSHRZV0NkSlBXX3FFS09WTHRkMDZTY1U1VTloTzVGRFRmRHp3LVlINlUzV2RpN0VpLUM2Ung4TlZCVXRhWDY4Q3FYTWV4dWdJU1lLbi1HVVJSbjFiMU8tZ1F1S2NjVWp5THV1NUF1Y3NuNEHSAYQCQVVfeXFMUGVrRU5iX3dDUG5lNWo0MDZNS19XVjRVZzF3U0tybTFrY2NHXzRGMTRGQTlVWWU3ZElsVTRTa3FyLVFfR2xZXzlBOHdFeS1LakcyWHM3cnQ1Q3NtZGYtX2Njd0lPNnpRdzN3M3ZsSUdiTUdWX21WTndXRUJXLTd5UHVHNEh2Vnk1M1JicE16c1RtNXRyYVFMdms1cWlLZlZUdURhLTJvcmtzUm9iTmxLTXY5Sk5oX2dkME5aNEVnczRIXzhtZmpOWFNCTXloMzRjSmZNeVotdTBKRF9WQWdHaWh5R3lsV0ZncHFVWms2OVQtOGJMdDUxaXRvOTRjOWxBZl9XVUM?oc=5",
           "score": 2,
-          "age_h": 158.3,
+          "age_h": 158.4,
           "published_at": "2026-11-02T04:04:26Z"
         }
       ],
@@ -2849,7 +3284,7 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxOblNXWE5DR2EtR1ZBRVFnODdxenU3aTZCUm16bWZOVHhyQ2l3STlYelQyU3NFdDBmdnpvTjF4d2RiSUh3VXlndjR1ZE43REY1d2ZYRDV2UUJfREUwOU90NFgzQTRmekJDUXh3dGI2VUJ4OU9SQUswVTdMM1RPcTc5TzEzdXNFcHc1Vkp3MDVYbVUtbnVxZ2lDMWh5NXJjbkhTT3g3TmxxX2EzTUQ1ZnhaUGdQMWZ5ajJweXVnZFo4eWYtNFBfaE9NZDJfdzBaeDJGem9zTzZCQWVPbmNMOTRQQnlrenhTcE3SAe4BQVVfeXFMT3h6alZmT2xjQkpXOWJsMV8wTmNsaG5OSnVhS3JxTXRpTUgzV2ZiamJUUDBqQkhNWE14clNWSDdUbkljVE8zRm1EYjFtb1ViWHgxTzJSaEFiOXB1dDFvR0VpcVZEU3hGYlEzbUhPV3U1TVFmcmhwdnRiVWh0NWdVeWlOY1VTWEtpVDQ3VUNXSXMtc1ZXMDh0ckVhRnAzUksxYTdzUGplSEo3ZkJwcVJTUE5wNkJFMy0wOTJBd0FxdUR3RW9JOTRIS0VYOVJ4TW9nS1NDd1duVW1mblA1MXViVHdBSlNKREZLUFFIRTZRUQ?oc=5",
           "score": 2,
-          "age_h": 59.0,
+          "age_h": 59.1,
           "published_at": "2026-11-06T07:22:28Z"
         },
         {
@@ -2889,7 +3324,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T16:00:43Z",
             "oldest_headline_published_at": "2026-11-08T10:02:48Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2899,7 +3334,7 @@
               "Multibagg AI"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 2.4,
+            "newest_headline_age_h": 2.41,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2954,7 +3389,7 @@
           "source": "Autocar Professional",
           "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQTGJXRUt5cXh2NW00dW1YRTdXUWdpY2tyWk81WlQ1SzlYQTU4OVBqc2VHV0hESzhBRzNRVC1yOEFkdll0NGZCWDJWc2RtVkpMM1Q2b2VBTEFOQ3FVT1c0SXpKSmZZNTRESUNLb040TFFOcDg4QkIzYnl6QnVzOTk4OHNsNE1jTl9QT3EzdXlnOC1leVRHNnI4SkNTZHNaVFo2TWl4RXUwNUhNSlB5aEtpcDE2cGdPT294WF90Vno4bmJuTkRpN2FoS2p5bjTSAdQBQVVfeXFMTVQ0OGhlZGV5bHBoeFFSbm43ckZLM1E4ZEFzS3BnQWlDYjVJMFRIeUpxUWZjZnJ1S2h3Wjc1YWcyQ29vcXFxRUhlMm15aUpVR0VmWDdzLVZzSTJrVEVBVEFLM1FGd2xmZGRUeTMyMG1DVmg3Vk1LamtKTnpFdXJRdzJ0em16SVZzaDV0U2tCSEhjQ0prV2l4UmNSN2JRSzJvNGJaZFoyS3ljMGVvekFNb21yaU1vSDk1WHY3MGx6OFZ5ejlqUm1GdEhlZUo2UUF5SXZvaDQ?oc=5",
           "score": 0,
-          "age_h": 2.8,
+          "age_h": 2.9,
           "published_at": "2026-11-08T15:34:43Z"
         },
         {
@@ -3026,7 +3461,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T17:17:12Z",
             "oldest_headline_published_at": "2026-11-08T08:57:45Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3038,7 +3473,7 @@
               "Livemint"
             ],
             "query": "Tata Motors Passenger Vehicles share",
-            "newest_headline_age_h": 1.12,
+            "newest_headline_age_h": 1.14,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -3133,7 +3568,7 @@
           "source": "The Economic Times",
           "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxNQzQ1blJ6SnRIdUVYNWFaRVg3d1pMNnV3WllFWWxscTNRTTJnWHBscVlwNlNyRzFfRWNtT2pUOVI1WVlNMEV3T0FsTEcweHR5aW55em1mRDRFN2NMOWdCbGtYX3FXdklGOUh5bVpscVVWUUxnTUJseFZHa1VCRDU3bWxWUXMyQ01HOTdWMVRFQnZnTHE4Mk5RRURyaFp0UnBfZ3o0WWI0VW5WZ0hUQnNIQTJSdHNGdG9VTjRkOVhQQUJRbzJ3RG5wVEN6RXRMM19rV3FlTFZkWVVNV1ZadHNzZDk2WmpyN0xCOENIQnhXZFpQUE1xX2U5ZDFIN21fd9IBgwJBVV95cUxOYXVmWkNVYnVTdGl0dHpCVmRRdVR1Z3k0NEEtTF9jNjdMUE1FMW40dzRIdWFUZFItSHQ5WHNPalUwSDV1LUZOZlU4TUJ1blp4TWxxZUgtTEhaWS1YU1hiRlE1WmlneFg4NTlDcTMtclM5c0NCVEEyaXdKaDRvamRXekRoR0JEWnEtOVNJMUIyVUhxcmlxU3ZuSFliTWM0UThwbTBSbXEwLTQxaHdWQjdaZ1ZPeGlyUlgyR2RmNTFSLUh5Wjc1UnpORkxRdjJRWjI4U2ZPZkNMUF9BS3F5ay1KcWNyVUNkb3YtcXVZSnhreGFrY2hoZW91NHdvUlFTdkZHZDc0?oc=5",
           "score": 4,
-          "age_h": 57.6,
+          "age_h": 57.7,
           "published_at": "2026-11-06T08:46:06Z"
         },
         {
@@ -3141,7 +3576,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxNMmZNZ2ltZy1sMWlDOWdub3VBYWh6ZjZTc29lX1YxX1J6MkVLaWpnRW9uc0ZCd2pIMVBaRzhXRldFRk55SWQxd2VuTjVvM2FNcG1obU1BN1lrQlk5MWFjeWl3c3ZISUwxczA3TnRLa3hPOGwtY0s2dWhSZ2FXWlVSVVFYWkkybWRfNXh1bXVpaWpsOHlza2FGN29GRGNKWGFJNnROajNBOHlhR2ZGUGh4dXpSYjA2R0pTNVJXajdKS0VDZnVzZjIzcTNjX1VHaE5nRkFBZmV30gHbAUFVX3lxTE4xMjRtNXBxMmxPNktSR1hnbF8wYW9EUWRESENNZ1poSy1oWHZ3TWlHeVNKd09aQWlLcFVYZktIQ1NuWFNETHBfOFhyN1JSMFBwZXUxYXBaX0sxTDRIcmVMRjVoYlFYQ1pSVFhtd2dVZTl1aDYtb1JWUHRvR1FnNXhGVEtITk43WlBvQkh3NmdMMlpwUWx4NHBKZ2MzYjh1ZmVvVUliOE5YTWhTSDF0ZU12QzdTRjZWMjR5X1daSmUzNFk4RlNvaDJZeEJ5dE5zVmhpRXUySWE1eWoyZw?oc=5",
           "score": 3,
-          "age_h": 57.9,
+          "age_h": 58.0,
           "published_at": "2026-11-06T08:28:36Z"
         }
       ],
@@ -3165,7 +3600,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T07:48:30Z",
             "oldest_headline_published_at": "2026-11-08T07:48:30Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3174,7 +3609,7 @@
               "Business Today"
             ],
             "query": "Hindalco share",
-            "newest_headline_age_h": 10.6,
+            "newest_headline_age_h": 10.62,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -3229,7 +3664,7 @@
           "source": "ETV Bharat",
           "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxOblRaMXhqNlozdXJnUnkwcGZSUFV4VkNqWEtwQVpJa05YUExzRFI2czB0T3FWMWlrU0pVcF9nRGprYzhpbTIxVV8wM2U2WW5qWFI0SnVMWGYtVmltSWF2UExEMUtnZ2Y5c0tIVEJvQU5sbU05MGRIcWFYZWxYdnNzMllBcjNmbWRGUHotTGhjMjNDMVFUMzBxb2ZKaGVtUGVDU21CWGtHbWlfcjNqd3VFWDE3ZGE3R0lNRWFZS3ExY203UUtfMzV0eUtvNW1tU0FWc1ZGStIB2gFBVV95cUxQTDYwN18xZW85Y3VYejZWcVFRN3dUMnJVS3czZG1qTHJ6SzNkOWJNSXVFYW5hMmhTX1JXczJNc3dua25sN092Vi1aLURQVzg4eVdPV2RLMFdMOC1ab3pWVlZrQWt5OHBySXRUY1ZYQUFMNFN5QXBNS1JEajZQc1ZyUU8zSU5Gb3ppZnhrMUNCUFhoaldibGR1d29raDh6c3FmZkM2RGx4YUVuRlN2cFI4aFNIRmpGc3B0Y21EZlJ3ZUJldk1RakVENl9NcmQyTHpKTU1HOVpFZUkzdw?oc=5",
           "score": 1,
-          "age_h": 32.6,
+          "age_h": 32.7,
           "published_at": "2026-11-07T09:46:06Z"
         },
         {
@@ -3237,7 +3672,7 @@
           "source": "ChemAnalyst",
           "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPM0c1dENPNTJrb2dRVmNQN2lrWjRpSlB5NkZFa3Jycl9JWnBxNk5Mc3RaUXNvN1hxVGhCNjBVVlhkdnQ3SGgzc3pBeC1uNk84U0JXR3pES09LVllhQzVnWUFuX2FoWEgwMHJmUExMZTFMWHIxM24tc2xoNXJsYjgyYW1QOExSTlFqejBxR0ZhZ0R5emlFalNsQ0szM0gtU2dvczg3NDQ5QWR4NENu?oc=5",
           "score": 0,
-          "age_h": 49.0,
+          "age_h": 49.1,
           "published_at": "2026-11-06T17:22:28Z"
         },
         {
@@ -3301,7 +3736,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T07:15:06Z",
             "oldest_headline_published_at": "2026-11-08T07:15:06Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3310,7 +3745,7 @@
               "Livemint"
             ],
             "query": "Adani Ports share",
-            "newest_headline_age_h": 11.16,
+            "newest_headline_age_h": 11.17,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -3797,7 +4232,7 @@
             "source_date": "2026-11-08",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-08T18:24Z",
+            "observed_at": "2026-11-08T18:25Z",
             "newest_headline_published_at": "2026-11-08T06:53:30Z",
             "oldest_headline_published_at": "2026-11-08T06:53:30Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3806,7 +4241,7 @@
               "Livemint"
             ],
             "query": "SBI share",
-            "newest_headline_age_h": 11.52,
+            "newest_headline_age_h": 11.53,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5877,7 +6312,7 @@
     "fii": -0.25,
     "dii": -700.31,
     "stale": false,
-    "as_of_run": "2026-11-08T18:24Z"
+    "as_of_run": "2026-11-08T18:25Z"
   },
   "participant_oi": {
     "ok": true,
@@ -6190,15 +6625,6 @@
         "age_h": 4.2
       },
       {
-        "topic": "अमेरिकी Fed और ब्याज दर",
-        "title": "Midterm results may add uncertainty to the Fed’ next rate decision — here are 5 money moves to consider before December",
-        "source": "Yahoo Finance",
-        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNZF8wRkd3OTN1U3I0S2xUdmpZZnR5bWNyak05MUdGOC1MVk5FQU80bkNNd05pc1ZnekgzbF9FbzMxNUZGajVtMFVyYWZkRExuYWV0SFJqdEtIWm9RUnhSejZDeVhGWDBlNG5wZndCRVFHLXlXdnN2d28zRzhnU2pYY1l6QUZ0MmF5V1dKUlNrMTFEU1BmamVHTVdLX3AyQzQ2Vnc?oc=5",
-        "score": 0,
-        "impact": "तटस्थ",
-        "age_h": 4.6
-      },
-      {
         "topic": "भारतीय बाज़ार",
         "title": "Indian stock market pauses after seven-day rally as Sensex, Nifty end Diwali session lower",
         "source": "Firstpost",
@@ -6278,82 +6704,83 @@
         "score": 0,
         "impact": "तटस्थ",
         "age_h": 14.9
+      },
+      {
+        "topic": "सोना, डॉलर और रुपया",
+        "title": "Global Gold Prices Down 24% From Record. In India, It's Down 20%. Here's What Makes Up The Difference",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQd1g3WEhvYkVPRjBjV3hFY1U1MXRTNC13UXpiSktFd3hoenl6cVpBZi00YkhTMXk5YVc5elF6RTNLa2lJUWFEMmFtN3JXRDJXamFkWThuc1ZkekM4R0F4NWNqdnZzTmc1X3ZSNHJ4Q19vcUlLMUFXX3hzZkhiVmxGZWU1aWNNcGlMYzBFWUMxbmxBMUhXRVpDUkJ2WVlHekc2VVI5OVdTa2JpbFpmaFJnc0g5amo3TEVSVTBrTEtWcGRLaUc4TzVoVkNCanJIaEMzaTlLZdIB3AFBVV95cUxOQ3RPemR4RGdWUDgya2dQa3NHSXFYRktEcUJ4VG91c21kRXMzSV8wUmFZM0xubTFMclVOQ2otX3JrNW0tQXlNUjZha3o2YV9ET25TUWpLNjhyNjZ0OEMyY3BUTVN0UjBqTFpic0ZxVnJFaHMtZS01V1BiYTBQTlBEb256RzF3S2R2LWlHTGI0T3prR0l3cVl5QVZZMW0xYTZDY1BKSFhiVnBJNGFBMExNMWJmWGxtZnRBX19HUHlwbl9hOURta2NwVGxwalotOVFKd3JDYzRNUm5veUQz?oc=5",
+        "score": 0,
+        "impact": "तटस्थ",
+        "age_h": 15.1
       }
     ],
     "stale": false,
-    "as_of": "2026-11-08T18:24Z"
+    "as_of": "2026-11-08T18:25Z"
   },
   "trends": {
     "ok": true,
     "unit": "anchor-relative points",
-    "fear_vs_avg": 6.3,
+    "fear_vs_avg": -3.8,
     "crowd_bull_pct": 33.3,
     "crowd_label": "सोच बँटी हुई",
-    "bull_sum_pct": 0.15,
-    "bear_sum_pct": 0.3,
+    "bull_sum_pct": 0.21,
+    "bear_sum_pct": 0.42,
     "min_side_pct": 0.01,
     "crowd_terms": [
       {
         "term": "share market",
         "dir": "neutral",
-        "now": 34.93,
-        "avg": 38.24,
+        "now": 40.38,
+        "avg": 37.41,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
         "term": "sensex today",
         "dir": "neutral",
-        "now": 32.54,
-        "avg": 22.3,
+        "now": 22.86,
+        "avg": 23.04,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
         "term": "nifty today",
         "dir": "neutral",
-        "now": 14.78,
-        "avg": 13.64,
+        "now": 13.03,
+        "avg": 13.8,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
         "term": "option chain",
         "dir": "neutral",
-        "now": 0.45,
-        "avg": 2.16,
+        "now": 1.28,
+        "avg": 1.92,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
-        "term": "बैंक निफ्टी में तेजी",
+        "term": "market recovery",
         "dir": "bull",
-        "now": 0.15,
-        "avg": 0.12,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "sensex correction",
-        "dir": "bear",
-        "now": 0.15,
-        "avg": 0.17,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "निफ्टी में करेक्शन",
-        "dir": "bear",
-        "now": 0.15,
+        "now": 0.21,
         "avg": 0.02,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
-        "term": "निफ्टी आज",
-        "dir": "neutral",
-        "now": 0.15,
+        "term": "market crash",
+        "dir": "bear",
+        "now": 0.21,
         "avg": 0.02,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
+        "term": "market correction",
+        "dir": "bear",
+        "now": 0.21,
+        "avg": 0.21,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6361,15 +6788,7 @@
         "term": "market rally",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.07,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "market recovery",
-        "dir": "bull",
-        "now": 0.0,
-        "avg": 0.0,
+        "avg": 0.02,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6385,7 +6804,7 @@
         "term": "stock market gains",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.0,
+        "avg": 0.09,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6409,7 +6828,7 @@
         "term": "निफ्टी में तेजी",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6417,7 +6836,7 @@
         "term": "बाजार में चढ़ाव",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.17,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6425,7 +6844,7 @@
         "term": "nifty rally",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.0,
+        "avg": 0.05,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6449,7 +6868,7 @@
         "term": "stocks to buy",
         "dir": "bull",
         "now": 0.0,
-        "avg": 1.82,
+        "avg": 1.69,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6457,7 +6876,15 @@
         "term": "सेंसेक्स में तेजी",
         "dir": "bull",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.11,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
+        "term": "बैंक निफ्टी में तेजी",
+        "dir": "bull",
+        "now": 0.0,
+        "avg": 0.18,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6481,22 +6908,6 @@
         "term": "market fall",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.07,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "market crash",
-        "dir": "bear",
-        "now": 0.0,
-        "avg": 0.0,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "market correction",
-        "dir": "bear",
-        "now": 0.0,
         "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
@@ -6505,7 +6916,7 @@
         "term": "market sell-off",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.0,
+        "avg": 0.02,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6529,7 +6940,7 @@
         "term": "निफ्टी में गिरावट",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.1,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6537,7 +6948,7 @@
         "term": "बाजार में बिकवाली",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.21,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6545,20 +6956,12 @@
         "term": "nifty correction",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.05,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
       {
-        "term": "nifty sell on rise",
-        "dir": "bear",
-        "now": 0.0,
-        "avg": 0.12,
-        "today_pct": null,
-        "yesterday_pct": null
-      },
-      {
-        "term": "sensex crash",
+        "term": "sensex correction",
         "dir": "bear",
         "now": 0.0,
         "avg": 0.0,
@@ -6566,10 +6969,34 @@
         "yesterday_pct": null
       },
       {
+        "term": "nifty sell on rise",
+        "dir": "bear",
+        "now": 0.0,
+        "avg": 0.0,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
+        "term": "sensex crash",
+        "dir": "bear",
+        "now": 0.0,
+        "avg": 0.11,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
+        "term": "निफ्टी में करेक्शन",
+        "dir": "bear",
+        "now": 0.0,
+        "avg": 0.11,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
         "term": "सेंसेक्स में करेक्शन",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.09,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6585,7 +7012,15 @@
         "term": "सेंसेक्स में भारी गिरावट",
         "dir": "bear",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.09,
+        "today_pct": null,
+        "yesterday_pct": null
+      },
+      {
+        "term": "निफ्टी आज",
+        "dir": "neutral",
+        "now": 0.0,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6593,7 +7028,7 @@
         "term": "सेंसेक्स आज",
         "dir": "neutral",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.0,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6601,7 +7036,7 @@
         "term": "शेयर बाजार",
         "dir": "neutral",
         "now": 0.0,
-        "avg": 0.02,
+        "avg": 0.09,
         "today_pct": null,
         "yesterday_pct": null
       },
@@ -6609,22 +7044,22 @@
         "term": "शेयर बाजार आज",
         "dir": "neutral",
         "now": 0.0,
-        "avg": 0.12,
+        "avg": 0.05,
         "today_pct": null,
         "yesterday_pct": null
       }
     ],
     "spikes": [],
     "hidden_spikes": 0,
-    "bull_score_pct": 0.2,
-    "bear_score_pct": 0.4,
-    "neutral_score_pct": 99.5,
+    "bull_score_pct": 0.3,
+    "bear_score_pct": 0.5,
+    "neutral_score_pct": 99.2,
     "sentiment_label": "BEARISH",
     "today_bull_pct": 33.3,
     "today_label": "पिछले 24 घंटे की Google Trends खोज-रुचि",
     "today_basis": "now_1d_anchor_relative",
     "source_timeframe": "now 1-d",
-    "source_data_time": "2026-11-08T14:16:00+00:00",
+    "source_data_time": "2026-11-08T18:16:00+00:00",
     "yesterday_label": "कल का डेटा उपलब्ध नहीं",
     "queries_total": 40,
     "per_term": [],
@@ -6681,12 +7116,350 @@
     },
     "request_policy": "timestamp-validated real Google Trends data: hourly 1-d, hourly 7-d, related 1-d, related 7-d; stop at first valid result",
     "stale": false,
-    "as_of": "2026-11-08T14:16:00+00:00",
-    "cached": true,
+    "as_of": "2026-11-08T18:16:00+00:00",
+    "cached": false,
     "refresh_policy_hours": null,
     "daily_slots": {
       "date": "2026-11-08",
-      "slots": {}
+      "slots": {
+        "1900": {
+          "time": "19:00",
+          "status": "success",
+          "source_data_time": "2026-11-08T18:16:00+00:00",
+          "basis": "now_1d_anchor_relative",
+          "timeframe": "now 1-d",
+          "bull_pct": 0.3,
+          "bear_pct": 0.5,
+          "neutral_pct": 99.2,
+          "crowd_pct": 33.3,
+          "today_bull_pct": 33.3,
+          "today_label": "पिछले 24 घंटे की Google Trends खोज-रुचि",
+          "bull_sum_pct": 0.21,
+          "bear_sum_pct": 0.42,
+          "crowd_terms": [
+            {
+              "term": "share market",
+              "dir": "neutral",
+              "now": 40.38,
+              "avg": 37.41,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "sensex today",
+              "dir": "neutral",
+              "now": 22.86,
+              "avg": 23.04,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "nifty today",
+              "dir": "neutral",
+              "now": 13.03,
+              "avg": 13.8,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "option chain",
+              "dir": "neutral",
+              "now": 1.28,
+              "avg": 1.92,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market recovery",
+              "dir": "bull",
+              "now": 0.21,
+              "avg": 0.02,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market crash",
+              "dir": "bear",
+              "now": 0.21,
+              "avg": 0.02,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market correction",
+              "dir": "bear",
+              "now": 0.21,
+              "avg": 0.21,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market rally",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.02,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "nifty breakout",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "stock market gains",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.09,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "बाजार में तेजी",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.05,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "शेयर बाजार में तेजी",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "निफ्टी में तेजी",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "बाजार में चढ़ाव",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "nifty rally",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.05,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "sensex rally",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "bank nifty breakout",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "stocks to buy",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 1.69,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "सेंसेक्स में तेजी",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.11,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "बैंक निफ्टी में तेजी",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.18,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "निफ्टी ऊपर जाएगा",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "शेयर खरीदने चाहिए",
+              "dir": "bull",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market fall",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "market sell-off",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.02,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "बाजार में गिरावट",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "शेयर बाजार में गिरावट",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "निफ्टी में गिरावट",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "बाजार में बिकवाली",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.21,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "nifty correction",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "sensex correction",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "nifty sell on rise",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "sensex crash",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.11,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "निफ्टी में करेक्शन",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.11,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "सेंसेक्स में करेक्शन",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.09,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "तेजी पर बिकवाली",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "सेंसेक्स में भारी गिरावट",
+              "dir": "bear",
+              "now": 0.0,
+              "avg": 0.09,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "निफ्टी आज",
+              "dir": "neutral",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "सेंसेक्स आज",
+              "dir": "neutral",
+              "now": 0.0,
+              "avg": 0.0,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "शेयर बाजार",
+              "dir": "neutral",
+              "now": 0.0,
+              "avg": 0.09,
+              "today_pct": null,
+              "yesterday_pct": null
+            },
+            {
+              "term": "शेयर बाजार आज",
+              "dir": "neutral",
+              "now": 0.0,
+              "avg": 0.05,
+              "today_pct": null,
+              "yesterday_pct": null
+            }
+          ]
+        }
+      }
     },
     "daily_complete": false,
     "daily_slot_summary": [
@@ -6708,11 +7481,11 @@
       {
         "id": "1900",
         "time": "19:00",
-        "status": "pending"
+        "status": "success"
       }
     ],
     "daily_label": "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग",
-    "daily_status_note": "दैनिक औसत अधूरा (बाकी: 09:15, 11:00, 13:00, 19:00)"
+    "daily_status_note": "दैनिक औसत अधूरा (बाकी: 09:15, 11:00, 13:00)"
   },
   "component_score_method": {
     "mode": "per_asset_verified_components_shadow",
