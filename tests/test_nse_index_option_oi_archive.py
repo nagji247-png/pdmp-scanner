@@ -141,6 +141,38 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
                     self.assertEqual(nse_archive.main(), 0)
                     fetch.assert_not_called()
 
+    def test_bounded_backfill_caps_dates_skips_weekends_and_uses_mocked_fetch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nse_index_option_oi.json"
+            with patch("sys.argv", [
+                "nse_index_option_oi_archive.py",
+                "--from-date", "2026-11-02", "--to-date", "2026-11-08",
+                "--max-sessions", "3", "--delay-seconds", "2", "--archive", str(path),
+            ]):
+                with patch.object(nse_archive, "capture_one") as capture:
+                    capture.side_effect = [
+                        {"date": "2026-11-02", "status": "captured"},
+                        {"date": "2026-11-03", "status": "captured"},
+                        {"date": "2026-11-04", "status": "captured"},
+                    ]
+                    with patch.object(nse_archive.time, "sleep") as sleep:
+                        self.assertEqual(nse_archive.main(), 0)
+                    self.assertEqual([call.args[1].isoformat() for call in capture.call_args_list],
+                                     ["2026-11-02", "2026-11-03", "2026-11-04"])
+                    self.assertEqual(sleep.call_count, 2)
+
+    def test_backfill_rejects_unbounded_or_fast_request_settings(self):
+        with patch("sys.argv", ["nse_index_option_oi_archive.py",
+                                "--from-date", "2026-11-02", "--to-date", "2026-11-06",
+                                "--max-sessions", "6"]):
+            with self.assertRaises(SystemExit):
+                nse_archive.main()
+        with patch("sys.argv", ["nse_index_option_oi_archive.py",
+                                "--from-date", "2026-11-02", "--to-date", "2026-11-06",
+                                "--delay-seconds", "0"]):
+            with self.assertRaises(SystemExit):
+                nse_archive.main()
+
 
 class ExistingNSEIndexOIComponentAggregationTests(unittest.TestCase):
     def test_exact_symbol_and_date_aggregate_both_option_sides(self):
