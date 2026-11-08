@@ -433,3 +433,67 @@ class MissingParticipantOIArchiveTests(unittest.TestCase):
             self.assertFalse(quality["participant_oi_complete"])
             self.assertFalse(quality["oi_change_available"])
             self.assertFalse(quality["complete_for_combined_backtest"])
+
+
+class PartialIndexCloseArchiveTests(unittest.TestCase):
+    def test_one_stale_index_close_does_not_discard_other_asset_evidence(self):
+        import datetime as dt
+        import json
+        import tempfile
+        from pathlib import Path
+
+        class FrozenDateTime(dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                value = cls(2026, 11, 6, 20, 30)
+                return value.replace(tzinfo=tz) if tz else value
+
+        def instrument(price_date):
+            return {
+                "price": 25000.0,
+                "price_as_of": price_date,
+                "price_source": "dated index close",
+                "change_pct": 0.5,
+                "headlines": [],
+                "component_breakdown": {
+                    "components": {"news": {"score": 1.0}},
+                    "final": {"status": "available", "score": 1.0},
+                    "coverage": {"included_count": 1},
+                },
+            }
+
+        result = {
+            "updated": "2026-11-06T15:00Z",
+            "participant_oi": {},
+            "trends": {},
+            "market_news": {},
+            "instruments": {
+                "NIFTY": instrument(DATE),
+                "SENSEX": instrument(DATE),
+                "BANKNIFTY": instrument("05/11/2026"),
+                "GOLD": instrument(DATE),
+                "SILVER": instrument(DATE),
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            archive_path = Path(tmp) / "market_signal_history.json"
+            with mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime), \\
+                 mock.patch.object(fetch_and_score, "SKIP_EVENTS", False), \\
+                 mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)), \\
+                 mock.patch.object(fetch_and_score, "load_json", return_value={}):
+                fetch_and_score.update_market_signal_history(result)
+
+            archive = json.loads(archive_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(len(archive["records"]), 1)
+        record = archive["records"][0]
+        self.assertTrue(record["indices"]["NIFTY"]["close_valid"])
+        self.assertFalse(record["indices"]["BANKNIFTY"]["close_valid"])
+        self.assertIsNone(record["indices"]["BANKNIFTY"]["close"])
+        self.assertEqual(
+            record["indices"]["BANKNIFTY"]["component_breakdown"]["final"]["score"],
+            1.0,
+        )
+        self.assertTrue(record["other_assets"]["GOLD"]["close_valid"])
+        self.assertTrue(record["other_assets"]["SILVER"]["close_valid"])
