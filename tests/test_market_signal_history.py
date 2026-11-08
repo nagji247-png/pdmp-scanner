@@ -47,7 +47,7 @@ def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00
         "captured_at_utc": capture,
         "trends": {
             "valid": True,
-            "as_of": "2026-11-06T13:04:00+00:00",
+            "as_of": "2026-11-06T13:25:00+00:00",
             "daily_complete": trends_complete,
             "daily_slot_evidence": trends_slot_evidence(),
             "crowd_bull_pct": 55.0,
