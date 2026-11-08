@@ -6,6 +6,35 @@ import fetch_and_score
 
 
 class ComponentBreakdownIntegrationTests(unittest.TestCase):
+    def test_informational_searches_are_unclassified_not_neutral(self):
+        cases = [
+            ("nifty today", "NIFTY"),
+            ("nifty live price", "NIFTY"),
+            ("sensex option chain", "SENSEX"),
+            ("bank nifty prediction", "BANKNIFTY"),
+            ("gold price today", "GOLD"),
+            ("silver rate live", "SILVER"),
+        ]
+        for term, asset in cases:
+            with self.subTest(term=term, asset=asset):
+                self.assertIsNone(fetch_and_score._asset_search_direction(term, asset))
+
+    def test_explicit_sideways_search_is_neutral(self):
+        self.assertEqual(
+            fetch_and_score._asset_search_direction("nifty sideways", "NIFTY"),
+            "neutral",
+        )
+
+    def test_asset_directional_terms_remain_directional(self):
+        self.assertEqual(
+            fetch_and_score._asset_search_direction("nifty breakout", "NIFTY"),
+            "bull",
+        )
+        self.assertEqual(
+            fetch_and_score._asset_search_direction("gold price fall", "GOLD"),
+            "bear",
+        )
+
     def test_optional_trends_phrase_diagnostics_are_off_by_default(self):
         seeds = {
             "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
@@ -280,12 +309,12 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
 
     def test_asset_search_classifier_blocks_cross_asset_and_bare_price_queries(self):
         classify = fetch_and_score._asset_search_direction
-        # Price/navigation searches count as Neutral, never as directional votes.
-        self.assertEqual(classify("gold price", "GOLD"), "neutral")
-        self.assertEqual(classify("silver rate", "SILVER"), "neutral")
-        self.assertEqual(classify("gold price today", "GOLD"), "neutral")
-        self.assertEqual(classify("Nifty live", "NIFTY"), "neutral")
-        self.assertEqual(classify("Nifty share price", "NIFTY"), "neutral")
+        # Price/navigation searches are Unclassified, not sentiment votes.
+        self.assertIsNone(classify("gold price", "GOLD"))
+        self.assertIsNone(classify("silver rate", "SILVER"))
+        self.assertIsNone(classify("gold price today", "GOLD"))
+        self.assertIsNone(classify("Nifty live", "NIFTY"))
+        self.assertIsNone(classify("Nifty share price", "NIFTY"))
         self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
         self.assertIsNone(classify("Nifty range", "NIFTY"))
