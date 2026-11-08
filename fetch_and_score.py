@@ -2306,6 +2306,14 @@ def intraday_quote(sym):
                 "Accept": "application/json",
                 "Cache-Control": "no-cache"
             }, timeout=12)
+            # HTTP 429 usually reflects an IP/session-wide throttle. Trying the
+            # second Yahoo hostname immediately adds another request without
+            # improving the chance of success, so stop the fallback chain.
+            if response.status_code == 429:
+                message = "HTTP 429 rate limited; alternate Yahoo host retry skipped"
+                errors.append(host + ": " + message)
+                print(f"Yahoo chart intraday fallback stopped {sym}: {message}")
+                break
             response.raise_for_status()
             payload = response.json()
             chart = (payload.get("chart") or {}).get("result") or []
