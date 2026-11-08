@@ -21,6 +21,26 @@ def participants():
     }
 
 
+def trends_slot_evidence():
+    return {
+        "date": DATE,
+        "slots": [
+            {"id": "0915", "time": "09:15", "status": "success",
+             "source_data_time": "2026-11-06T09:10:00+05:30",
+             "bull_pct": 55.0, "bear_pct": 25.0, "neutral_pct": 20.0, "crowd_pct": 55.0},
+            {"id": "1100", "time": "11:00", "status": "success",
+             "source_data_time": "2026-11-06T10:55:00+05:30",
+             "bull_pct": 55.0, "bear_pct": 25.0, "neutral_pct": 20.0, "crowd_pct": 55.0},
+            {"id": "1300", "time": "13:00", "status": "success",
+             "source_data_time": "2026-11-06T12:55:00+05:30",
+             "bull_pct": 55.0, "bear_pct": 25.0, "neutral_pct": 20.0, "crowd_pct": 55.0},
+            {"id": "1900", "time": "19:00", "status": "success",
+             "source_data_time": "2026-11-06T18:55:00+05:30",
+             "bull_pct": 55.0, "bear_pct": 25.0, "neutral_pct": 20.0, "crowd_pct": 55.0},
+        ],
+    }
+
+
 def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00Z"):
     return {
         "date": DATE,
@@ -29,6 +49,7 @@ def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00
             "valid": True,
             "as_of": "2026-11-06T13:04:00+00:00",
             "daily_complete": trends_complete,
+            "daily_slot_evidence": trends_slot_evidence(),
             "crowd_bull_pct": 55.0,
             "bull_score_pct": 55.0,
             "bear_score_pct": 25.0,
@@ -76,6 +97,28 @@ class MarketSignalHistoryTests(unittest.TestCase):
         })
         self.assertFalse(quality["trends_daily_complete"])
         self.assertFalse(quality["complete_for_combined_backtest"])
+
+    def test_all_four_unique_same_day_trends_slots_are_required(self):
+        row = snapshot()
+        row["trends"]["daily_slot_evidence"]["slots"].pop()
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["trends_slot_evidence_complete"])
+        self.assertFalse(quality["complete_for_combined_backtest"])
+
+        row = snapshot()
+        slots = row["trends"]["daily_slot_evidence"]["slots"]
+        slots[-1] = dict(slots[0])
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["trends_slot_evidence_complete"])
+
+    def test_trends_slot_timestamp_must_match_its_session_and_window(self):
+        row = snapshot()
+        row["trends"]["daily_slot_evidence"]["slots"][0]["source_data_time"] = (
+            "2026-11-05T09:10:00+05:30"
+        )
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["trends_slot_evidence_complete"])
+        self.assertFalse(quality["trends_daily_complete"])
 
     def test_oi_must_match_snapshot_date_and_have_prior_session(self):
         wrong_date = assess_snapshot(snapshot(oi_date="2026-11-05"), {
