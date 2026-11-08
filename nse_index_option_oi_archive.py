@@ -12,6 +12,7 @@ import hashlib
 import io
 import json
 import math
+import time
 import zipfile
 from pathlib import Path
 
@@ -222,50 +223,102 @@ def write_archive_atomic(path, archive):
             temporary.unlink()
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--date", help="NSE trade date YYYY-MM-DD; defaults to current IST date")
-    parser.add_argument("--archive", default=str(ARCHIVE_PATH))
-    args = parser.parse_args()
-    trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
-    path = Path(args.archive)
+def load_archive(path):
     if path.exists():
         with path.open("r", encoding="utf-8") as handle:
             archive = json.load(handle)
         if not isinstance(archive, dict) or not isinstance(archive.get("records", []), list):
             raise SystemExit("existing NSE OI archive has invalid structure")
-    else:
-        archive = {"schema_version": 1, "records": []}
+        return archive
+    return {"schema_version": 1, "records": []}
 
-    # Avoid another NSE request when a dated session is already archived.
+
+def capture_one(archive, trade_date):
+    """Capture one exchange date; existing dates are skipped before any HTTP request."""
     date_key = trade_date.isoformat()
     if any(isinstance(item, dict) and item.get("date") == date_key
            for item in archive.get("records", [])):
-        print(f"NSE_OI_ARCHIVE_SKIP already captured {date_key}; requests=0")
-        return 0
-
+        return {"date": date_key, "status": "skipped_existing", "date_attempts": 0}
     payload, source_url = fetch_official_bhavcopy(trade_date)
     rows = decode_udiff_zip(payload)
     symbols = aggregate_udiff_rows(rows, trade_date)
     fetched_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     changed = append_archive(archive, trade_date, source_url, payload, symbols, fetched_at)
-    if changed:
+    return {
+        "date": date_key, "status": "captured" if changed else "skipped_existing",
+        "date_attempts": 1, "sha256": hashlib.sha256(payload).hexdigest(),
+        "source": source_url, "symbols": {
+            symbol: {"expiry_count": value["expiry_count"],
+                     "contract_rows": value["contract_rows"],
+                     "coverage_validated": value["coverage_validated"],
+                     "included_in_asset_final": value["included_in_asset_final"]}
+            for symbol, value in symbols.items()
+        }
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", help="One NSE trade date YYYY-MM-DD; defaults to current IST date")
+    parser.add_argument("--from-date", help="Start date for bounded historical backfill (YYYY-MM-DD)")
+    parser.add_argument("--to-date", help="End date for bounded historical backfill (YYYY-MM-DD)")
+    parser.add_argument("--max-sessions", type=int, default=5,
+                        help="Maximum weekday dates attempted per backfill run (hard cap 5)")
+    parser.add_argument("--delay-seconds", type=float, default=2.0,
+                        help="Minimum pause between backfill dates (minimum 2 seconds)")
+    parser.add_argument("--archive", default=str(ARCHIVE_PATH))
+    args = parser.parse_args()
+    if args.date and (args.from_date or args.to_date):
+        parser.error("--date cannot be combined with --from-date/--to-date")
+    if bool(args.from_date) != bool(args.to_date):
+        parser.error("--from-date and --to-date must be supplied together")
+
+    path = Path(args.archive)
+    archive = load_archive(path)
+    if args.from_date:
+        start, end = parse_date(args.from_date), parse_date(args.to_date)
+        if end < start:
+            parser.error("--to-date must be on or after --from-date")
+        if not 1 <= args.max_sessions <= 5:
+            parser.error("--max-sessions must be between 1 and the hard cap of 5")
+        if args.delay_seconds < 2 or not math.isfinite(args.delay_seconds):
+            parser.error("--delay-seconds must be at least 2")
+        dates = []
+        day = start
+        while day <= end:
+            if day.weekday() < 5:
+                dates.append(day)
+            day += dt.timedelta(days=1)
+        dates = dates[:args.max_sessions]
+        results = []
+        for index, day in enumerate(dates):
+            try:
+                results.append(capture_one(archive, day))
+            except Exception as exc:
+                results.append({"date": day.isoformat(), "status": "unavailable_or_invalid",
+                                "error": str(exc)[:240]})
+            if index + 1 < len(dates):
+                time.sleep(args.delay_seconds)
+        if any(item.get("status") == "captured" for item in results):
+            write_archive_atomic(path, archive)
+        print(json.dumps({"mode": "bounded_historical_backfill",
+                          "attempted_dates": len(dates),
+                          "max_date_attempts": args.max_sessions,
+                          "delay_seconds": args.delay_seconds,
+                          "results": results,
+                          "archive_sessions": len(archive.get("records", [])),
+                          "research_only": True,
+                          "included_in_asset_final": False},
+                         ensure_ascii=False, sort_keys=True))
+        return 0
+
+    trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
+    result = capture_one(archive, trade_date)
+    if result["status"] == "captured":
         write_archive_atomic(path, archive)
-    print(json.dumps({
-        "trade_date": trade_date.isoformat(),
-        "archive_updated": changed,
-        "sha256": hashlib.sha256(payload).hexdigest(),
-        "symbols": {
-            symbol: {
-                "expiry_count": value["expiry_count"],
-                "contract_rows": value["contract_rows"],
-                "coverage_validated": value["coverage_validated"],
-                "included_in_asset_final": value["included_in_asset_final"],
-            } for symbol, value in symbols.items()
-        },
-        "archive_sessions": len(archive.get("records", [])),
-        "source": source_url,
-    }, ensure_ascii=False, sort_keys=True))
+    result.update({"archive_sessions": len(archive.get("records", [])),
+                   "research_only": True, "included_in_asset_final": False})
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
 
