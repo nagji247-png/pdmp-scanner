@@ -146,15 +146,15 @@ def attach_directional_inference(features):
                 [round(interval[0], 2), round(interval[1], 2)]
                 if interval is not None else None
             ),
-            "p_value_vs_50pct_two_sided": (
+            "p_value_vs_50pct_two_sided_nominal": (
                 round(evidence["pvalue"], 8)
                 if evidence["pvalue"] is not None else None
             ),
-            "holm_adjusted_p_value": (
+            "holm_adjusted_p_value_nominal": (
                 round(adjusted_p, 8) if adjusted_p is not None else None
             ),
             "holm_family_size": family_size,
-            "holm_significant_05": (
+            "nominal_holm_p_below_05": (
                 adjusted_p < 0.05 if adjusted_p is not None else False
             ),
         }
@@ -247,10 +247,12 @@ def summarize_index(name, index):
                     "p_value_vs_50pct_two_sided"
                 ) is not None
             ),
-            "interpretation": (
-                "Exploratory inference only; overlapping horizons and shared aggregate "
-                "participant OI remain dependent observations. No live-score eligibility."
+            "dependence_warning": (
+                "Nominal binomial p-values assume independent hit outcomes. Forward-return "
+                "horizons overlap and participant OI is shared across index tests; "
+                "these values are exploratory, not confirmatory."
             ),
+            "interpretation": "No live-score eligibility; use only as a conservative diagnostic.",
         },
         "features": features,
         "best_holdout_futures_exploratory_only": [
