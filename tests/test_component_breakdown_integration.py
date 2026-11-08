@@ -611,5 +611,57 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertTrue(all(item.get("valid") is False for item in result.values()))
 
 
+    def test_nse_index_futures_rejects_wrong_exchange_segment_type_symbol_and_date(self):
+        from component_scoring import compare_nse_udiff_index_futures_oi
+
+        current = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "TckrSymb": "NIFTY", "BizDt": "2026-11-06",
+            "XpryDt": "2026-11-26", "OpnIntrst": 120000,
+            "ChngInOpnIntrst": 1500, "ClsPric": 25100,
+        }
+        previous = [dict(
+            current, BizDt="2026-11-05", OpnIntrst=118000,
+            ChngInOpnIntrst=900, ClsPric=25000,
+        )]
+        invalid_current_rows = [
+            dict(current, Sgmt="CD"),
+            dict(current, Src="BSE"),
+            dict(current, FinInstrmTp="OPTIDX"),
+            dict(current, TckrSymb="BANKNIFTY"),
+            dict(current, BizDt="2026-11-05"),
+            dict(current, XpryDt="2026-12-31"),
+        ]
+        for invalid_row in invalid_current_rows:
+            with self.subTest(row=invalid_row):
+                result = compare_nse_udiff_index_futures_oi(
+                    [invalid_row], previous, "NIFTY",
+                    "2026-11-06", "2026-11-05", "2026-11-26",
+                )
+                self.assertFalse(result["available"])
+                self.assertFalse(result["included_in_asset_final"])
+                self.assertIn("row_count_not_one", result["reason"])
+
+    def test_nse_index_futures_requires_same_exact_expiry_on_both_sessions(self):
+        from component_scoring import compare_nse_udiff_index_futures_oi
+
+        current = [{
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "TckrSymb": "BANKNIFTY", "BizDt": "2026-11-06",
+            "XpryDt": "2026-11-25", "OpnIntrst": 52000,
+            "ChngInOpnIntrst": -300, "ClsPric": 58400,
+        }]
+        previous_wrong_expiry = [dict(
+            current[0], BizDt="2026-11-05", XpryDt="2026-12-30",
+        )]
+        result = compare_nse_udiff_index_futures_oi(
+            current, previous_wrong_expiry, "BANKNIFTY",
+            "2026-11-06", "2026-11-05", "2026-11-25",
+        )
+        self.assertFalse(result["available"])
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertIn("row_count_not_one", result["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()
