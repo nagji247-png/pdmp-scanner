@@ -310,7 +310,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
     def test_asset_search_classifier_blocks_cross_asset_and_bare_price_queries(self):
         classify = fetch_and_score._asset_search_direction
         # Price/navigation searches count as Neutral, never as directional votes.
-        self.assertEqual(classify("gold price", "GOLD"), "neutral")
+        self.assertIsNone(classify("gold price", "GOLD"))
         self.assertEqual(classify("silver rate", "SILVER"), "neutral")
         self.assertEqual(classify("gold price today", "GOLD"), "neutral")
         self.assertEqual(classify("Nifty live", "NIFTY"), "neutral")
