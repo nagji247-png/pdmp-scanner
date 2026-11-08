@@ -1,12 +1,19 @@
 import io
+import json
+import tempfile
 import unittest
 import zipfile
+from pathlib import Path
+from unittest.mock import patch
+
+import nse_index_option_oi_archive as nse_archive
 
 from component_scoring import aggregate_nse_udiff_index_option_oi
 from nse_index_option_oi_archive import (
     aggregate_udiff_rows,
     append_archive,
     decode_udiff_zip,
+    write_archive_atomic,
 )
 
 
@@ -108,6 +115,31 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
                 archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
                 b"changed bytes", symbols, "2026-11-06T14:02:00Z"
             )
+
+
+    def test_atomic_archive_write_persists_complete_json_and_cleans_temp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nse_index_option_oi.json"
+            expected = {"schema_version": 1, "records": [{"date": "2026-11-06"}]}
+            write_archive_atomic(path, expected)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), expected)
+            self.assertFalse(path.with_suffix(path.suffix + ".tmp").exists())
+
+    def test_existing_date_skips_download_entirely(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nse_index_option_oi.json"
+            path.write_text(json.dumps({
+                "schema_version": 1,
+                "records": [{"date": "2026-11-06"}],
+            }), encoding="utf-8")
+            with patch("sys.argv", [
+                "nse_index_option_oi_archive.py",
+                "--date", "2026-11-06",
+                "--archive", str(path),
+            ]):
+                with patch.object(nse_archive, "fetch_official_bhavcopy") as fetch:
+                    self.assertEqual(nse_archive.main(), 0)
+                    fetch.assert_not_called()
 
 
 class ExistingNSEIndexOIComponentAggregationTests(unittest.TestCase):
