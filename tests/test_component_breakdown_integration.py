@@ -574,6 +574,11 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         participant_today = {
             "ok": True, "stale": False, "date": "2026-11-06",
             "source": "NSE official participant-wise OI",
+            "participants": {"CLIENT": {
+                "index_call_long": 110, "index_call_short": 180,
+                "index_put_long": 330, "index_put_short": 360,
+                "future_index_long": 550, "future_index_short": 540,
+            }},
         }
         participant_changes = {
             "ok": True, "prev_date": "2026-11-05",
@@ -602,6 +607,22 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(context["pe_build_up"]["put_short_change"], -40)
             self.assertEqual(context["client_index_futures"]["long_change"], 50)
             self.assertEqual(context["client_index_futures"]["short_change"], -60)
+            evidence = context["evidence_components"]
+            self.assertEqual(set(evidence), {
+                "ce_long", "ce_short", "pe_long", "pe_short",
+                "futures_long", "futures_short",
+            })
+            self.assertEqual(evidence["ce_long"]["change_pct_prior_gross"], 10.0)
+            self.assertEqual(evidence["ce_short"]["change_pct_prior_gross"], -10.0)
+            self.assertEqual(evidence["pe_long"]["change_pct_prior_gross"], 10.0)
+            self.assertEqual(evidence["pe_short"]["change_pct_prior_gross"], -10.0)
+            self.assertEqual(evidence["futures_long"]["change_pct_prior_gross"], 10.0)
+            self.assertEqual(evidence["futures_short"]["change_pct_prior_gross"], -10.0)
+            for evidence_item in evidence.values():
+                self.assertEqual(evidence_item["source_date"], "2026-11-06")
+                self.assertEqual(evidence_item["previous_source_date"], "2026-11-05")
+                self.assertFalse(evidence_item["included_in_asset_final"])
+                self.assertIsNone(evidence_item["score"])
             self.assertEqual(breakdown["final"]["status"], "unavailable")
             self.assertEqual(breakdown["final"]["included_components"], [])
             self.assertEqual(item["score"], 1.25)
