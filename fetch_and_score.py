@@ -1586,6 +1586,11 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
     return -2 <= age <= allowed_age
 
 
+def mcx_reference_fallback_needed(data, now=None):
+    """Use public-page fallback only during MCX hours when cached quote is stale/missing."""
+    return mcx_session_open(now) and not mcx_reference_is_fresh(data, now=now)
+
+
 def mcx_reference_is_live(data, now=None):
     age = mcx_reference_age_minutes(data, now)
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
@@ -4986,12 +4991,24 @@ def update_market_signal_history(result):
 def main():
     global SKIP_EVENTS
     mcx_updated = refresh_mcx_market_watch_quotes()
+    # Public-page fallbacks are only needed during MCX hours when the cached
+    # exchange quote is missing/stale. Keep the last valid close on weekends,
+    # after hours, and while a recent quote is still within its freshness window.
     if "SILVER" not in mcx_updated:
-        refresh_mcx_silver_reference()
+        if mcx_reference_fallback_needed(load_json(MCX_SILVER_FILE, {})):
+            refresh_mcx_silver_reference()
+        else:
+            print("MCX SILVER fallback skipped: cached quote is fresh or market is closed.")
     if "GOLD" not in mcx_updated:
-        refresh_mcx_gold_reference()
+        if mcx_reference_fallback_needed(load_json(GOLD_MCX_FILE, {})):
+            refresh_mcx_gold_reference()
+        else:
+            print("MCX GOLD fallback skipped: cached quote is fresh or market is closed.")
     if "CRUDEOIL" not in mcx_updated:
-        refresh_mcx_crude_reference()
+        if mcx_reference_fallback_needed(load_json(CRUDE_MCX_FILE, {})):
+            refresh_mcx_crude_reference()
+        else:
+            print("MCX CRUDEOIL fallback skipped: cached quote is fresh or market is closed.")
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
