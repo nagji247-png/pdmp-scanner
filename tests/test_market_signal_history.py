@@ -259,10 +259,12 @@ class GoldSilverEODSnapshotTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             archive_path = Path(tmp) / "market_signal_history.json"
-            with mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime), \
-                 mock.patch.object(fetch_and_score, "SKIP_EVENTS", False), \
-                 mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)), \
-                 mock.patch.object(fetch_and_score, "load_json", return_value={}):
+            with (
+                mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime),
+                mock.patch.object(fetch_and_score, "SKIP_EVENTS", False),
+                mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)),
+                mock.patch.object(fetch_and_score, "load_json", return_value={}),
+            ):
                 fetch_and_score.update_market_signal_history(result)
 
             archive = json.loads(archive_path.read_text(encoding="utf-8"))
