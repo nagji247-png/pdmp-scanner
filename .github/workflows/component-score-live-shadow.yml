@@ -1,10 +1,22 @@
 name: Component Score Live Shadow Scan
 
 on:
+  # One isolated five-asset Trends batch at the existing approved IST slots:
+  # 09:15, 11:00, 13:00 and 19:00, weekdays only.
+  # UTC cron: 03:45, 05:30, 07:30 and 13:30.
+  schedule:
+    - cron: "45 3 * * 1-5"
+    - cron: "30 5 * * 1-5"
+    - cron: "30 7 * * 1-5"
+    - cron: "30 13 * * 1-5"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: component-score-live-shadow
+  cancel-in-progress: false
 
 jobs:
   live-shadow:
