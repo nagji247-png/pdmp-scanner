@@ -212,3 +212,113 @@ class MarketSignalHistoryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoldSilverEODSnapshotTests(unittest.TestCase):
+    def test_gold_and_silver_closes_and_component_evidence_are_archived(self):
+        import datetime as dt
+        import json
+        import tempfile
+        from pathlib import Path
+
+        class FrozenDateTime(dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                value = cls(2026, 11, 6, 20, 30)
+                return value.replace(tzinfo=tz) if tz else value
+
+        def instrument(price, score):
+            return {
+                "price": price, "price_as_of": DATE, "price_source": "MCX official close",
+                "change_pct": 0.5, "score": score, "headline_score": score,
+                "headlines": [{"title": "sample", "source": "archive", "score": 1, "age_h": 1}],
+                "component_breakdown": {"components": {"news": {"score": score, "source": "dated news"}}},
+                "asset_search_shadow": {"valid": False, "classified_queries": 0},
+            }
+
+        result = {
+            "updated": "2026-11-06T15:00Z",
+            "participant_oi": {"ok": True, "stale": False, "date": DATE},
+            "trends": {
+                "ok": True, "stale": False, "as_of": "2026-11-06T19:00:00+05:30",
+                "crowd_bull_pct": 55.0, "bull_score_pct": 55.0,
+                "bear_score_pct": 25.0, "neutral_score_pct": 20.0,
+                "daily_complete": True, "daily": {"date": DATE, "slots": []},
+            },
+            "market_news": {"ok": True, "as_of": "2026-11-06T15:00Z", "items": []},
+            "instruments": {
+                name: {"price": 100.0, "price_as_of": "06/11/2026",
+                       "change_pct": 0.2, "price_source": "official index close",
+                       "headline_score": 1.0, "score": 1.0,
+                       "headlines": [], "component_breakdown": {"components": {"news": {"score": 1.0}}}}
+                for name in ("NIFTY", "SENSEX", "BANKNIFTY")
+            },
+        }
+        result["instruments"]["GOLD"] = instrument(70000.0, -0.5)
+        result["instruments"]["SILVER"] = instrument(80000.0, 0.8)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            archive_path = Path(tmp) / "market_signal_history.json"
+            with mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime), \\
+                 mock.patch.object(fetch_and_score, "SKIP_EVENTS", False), \\
+                 mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)), \\
+                 mock.patch.object(fetch_and_score, "load_json", return_value={}):
+                fetch_and_score.update_market_signal_history(result)
+
+            archive = json.loads(archive_path.read_text(encoding="utf-8"))
+            record = archive["records"][0]
+            self.assertEqual(record["other_assets"]["GOLD"]["close"], 70000.0)
+            self.assertTrue(record["other_assets"]["GOLD"]["close_valid"])
+            self.assertEqual(record["other_assets"]["SILVER"]["close"], 80000.0)
+            self.assertEqual(
+                record["other_assets"]["SILVER"]["component_breakdown"]["components"]["news"]["score"],
+                0.8,
+            )
+            self.assertEqual(
+                record["indices"]["NIFTY"]["component_breakdown"]["components"]["news"]["score"],
+                1.0,
+            )
+
+    def test_gold_and_silver_wrong_date_closes_are_not_backtest_eligible(self):
+        import datetime as dt
+        import json
+        import tempfile
+        from pathlib import Path
+
+        class FrozenDateTime(dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                value = cls(2026, 11, 6, 20, 30)
+                return value.replace(tzinfo=tz) if tz else value
+
+        def index_row():
+            return {
+                "price": 100.0, "price_as_of": "06/11/2026", "price_source": "official close",
+                "change_pct": 0.0, "headline_score": 0.0, "score": 0.0, "headlines": [],
+            }
+
+        result = {
+            "updated": "2026-11-06T15:00Z",
+            "participant_oi": {"ok": True, "stale": False, "date": DATE},
+            "trends": {"ok": False, "stale": False, "daily": {"date": DATE, "slots": []}},
+            "market_news": {"ok": False, "items": []},
+            "instruments": {name: index_row() for name in ("NIFTY", "SENSEX", "BANKNIFTY")},
+        }
+        result["instruments"]["GOLD"] = {
+            "price": 70000.0, "price_as_of": "2026-11-05", "price_source": "old MCX close",
+        }
+        result["instruments"]["SILVER"] = {
+            "price": 80000.0, "price_as_of": DATE, "price_source": "MCX official close",
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            archive_path = Path(tmp) / "market_signal_history.json"
+            with mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime), \\
+                 mock.patch.object(fetch_and_score, "SKIP_EVENTS", False), \\
+                 mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)), \\
+                 mock.patch.object(fetch_and_score, "load_json", return_value={}):
+                fetch_and_score.update_market_signal_history(result)
+            record = json.loads(archive_path.read_text(encoding="utf-8"))["records"][0]
+            self.assertFalse(record["other_assets"]["GOLD"]["close_valid"])
+            self.assertIsNone(record["other_assets"]["GOLD"]["close"])
+            self.assertTrue(record["other_assets"]["SILVER"]["close_valid"])
