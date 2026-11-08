@@ -5,7 +5,7 @@ from component_scoring import (
     DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
     search_component_from_snapshot, client_oi_context, is_fresh_timestamp,
     parse_utc_timestamp,
-    compare_mcx_bhavcopy_contract_oi,
+    compare_mcx_bhavcopy_contract_oi, compare_nse_udiff_index_futures_oi,
 )
 from validate_market_signal_history import market_snapshot_completeness
 import feedparser, yfinance as yf
