@@ -217,6 +217,13 @@ def build_archive_inputs(archive):
                 audit["missing_component_final"] += 1
                 continue
 
+            evidence_error = _component_evidence_error(
+                breakdown, final, market_day, observed
+            )
+            if evidence_error:
+                audit["invalid_component_evidence"] += 1
+                continue
+
             signals.append({
                 "asset": asset,
                 "signal_date": day_text,
