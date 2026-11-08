@@ -654,10 +654,15 @@ function renderComponentBreakdown(b) {
     : "";
   const includedComponentCount = Object.keys(b.components || {}).length;
   const excludedComponentCount = Object.keys(b.excluded_components || {}).length;
-  const completenessHtml = excludedComponentCount > 0
-    ? '<div class="hl-meta" style="margin-top:7px"><b>स्थिति: PARTIAL</b> · शामिल सत्यापित घटक ' +
-      includedComponentCount + ' · Final से बाहर / बाकी ' + excludedComponentCount +
-      ' · इसे पूरा multi-source score न मानें।</div>'
+  const coverage = b.coverage || {};
+  const coveragePct = coverage.coverage_pct == null ? null : Number(coverage.coverage_pct);
+  const coverageLabel = coverage.label || (excludedComponentCount > 0 ? "आंशिक कवरेज" : "कवरेज");
+  const completenessHtml = coverage.status || excludedComponentCount > 0
+    ? '<div class="hl-meta" style="margin-top:7px"><b>स्थिति: ' + esc(coverageLabel) + '</b> · शामिल सत्यापित घटक ' +
+      (coverage.included_count == null ? includedComponentCount : esc(coverage.included_count)) + ' / ' +
+      (coverage.applicable_count == null ? includedComponentCount + excludedComponentCount : esc(coverage.applicable_count)) +
+      (Number.isFinite(coveragePct) ? ' · Data coverage ' + coveragePct.toFixed(1) + '%' : '') +
+      '<br>यह data-coverage है, prediction confidence या accuracy नहीं। Final Score केवल शामिल सत्यापित components पर आधारित है।</div>'
     : "";
   const finalText = final.score == null
     ? "Final Score: डेटा उपलब्ध नहीं"
