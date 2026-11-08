@@ -229,7 +229,13 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
                 "price_source": "dated test close",
                 "change_pct": 0.5,
                 "headlines": [{
-                    "title": f"{asset} rallies in test session",
+                    \"title\": {
+                        \"NIFTY\": \"Nifty benchmark gains on domestic demand\",
+                        \"SENSEX\": \"Sensex bluechips advance after earnings\",
+                        \"BANKNIFTY\": \"Bank Nifty lenders climb on credit growth\",
+                        \"GOLD\": \"Gold bullion rises on safe haven demand\",
+                        \"SILVER\": \"Silver industrial metal strengthens on supply outlook\",
+                    }[asset],
                     "source": "Reuters",
                     "score": 2,
                     "published_at": "2026-11-06T14:00:00Z",
