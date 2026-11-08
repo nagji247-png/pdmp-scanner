@@ -4792,6 +4792,10 @@ def update_market_signal_history(result):
             "client_retail_adjustment": item.get("retail_adj"),
             "published_score": item.get("score"),
             "published_score_mode": item.get("score_mode"),
+            # Preserve the exact per-index News + asset-specific Google Trends
+            # component evidence used by the shadow scorer; global crowd Trends
+            # alone is not a substitute for NIFTY/SENSEX/BANKNIFTY search data.
+            "component_breakdown": item.get("component_breakdown"),
         }
 
     trends = result.get("trends") or {}
@@ -4849,7 +4853,7 @@ def update_market_signal_history(result):
 
     archive = load_json(MARKET_SIGNAL_HISTORY_FILE, {
         "schema_version": 1,
-        "description": "Point-in-time EOD News, Google Trends, participant OI and index close snapshots; not backfilled",
+        "description": "Point-in-time EOD per-index News, asset-specific Google Trends, global crowd diagnostics, participant OI and index closes; not backfilled",
         "retention_sessions": 260,
         "records": [],
     })
@@ -4869,7 +4873,7 @@ def update_market_signal_history(result):
     ordered = [by_date[d] for d in sorted(by_date)][-260:]
     archive.update({
         "schema_version": 1,
-        "description": "Point-in-time EOD News, Google Trends, participant OI and index close snapshots; not backfilled",
+        "description": "Point-in-time EOD per-index News, asset-specific Google Trends, global crowd diagnostics, participant OI and index closes; not backfilled",
         "retention_sessions": 260,
         "records": ordered,
         "updated_at": result.get("updated"),
