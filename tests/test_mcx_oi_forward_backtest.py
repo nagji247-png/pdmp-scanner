@@ -18,7 +18,7 @@ class MCXForwardBacktestTests(unittest.TestCase):
         ]}
         result = evaluate_forward_price_oi(archive, min_signal_sessions=1)
         self.assertEqual(result["observations"], 2)
-        self.assertEqual(result["signal_sessions"], 1)
+        self.assertEqual(result["signal_sessions_by_symbol"], {"GOLD": 1, "SILVER": 1})
         self.assertEqual(result["status"], "available")
         self.assertEqual(result["by_symbol"]["GOLD"]["signal_sessions"], 1)
         self.assertEqual(result["by_symbol"]["SILVER"]["signal_sessions"], 1)
@@ -66,7 +66,7 @@ class MCXForwardBacktestTests(unittest.TestCase):
             session("2026-11-03", 102, 12),
             session("2026-11-04", 102, 13),
         ]})
-        bucket = result["regimes"]["price_up_oi_up"]
+        bucket = result["by_symbol"]["GOLD"]["regimes"]["price_up_oi_up"]
         self.assertEqual(bucket["next_flat"], 1)
         self.assertEqual(bucket["contrarian_hits"], 0)
 
