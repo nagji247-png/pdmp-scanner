@@ -70,6 +70,20 @@ class MCXForwardBacktestTests(unittest.TestCase):
         self.assertEqual(bucket["next_flat"], 1)
         self.assertEqual(bucket["contrarian_hits"], 0)
 
+    def test_flat_outcomes_are_excluded_from_both_accuracy_denominators(self):
+        result = evaluate_forward_price_oi({"records": [
+            session("2026-11-02", 100, 10, 200, 20),
+            session("2026-11-03", 102, 12, 202, 22),
+            session("2026-11-04", 102, 13, 204, 23),
+            session("2026-11-05", 104, 14, 206, 24),
+        ]}, min_signal_sessions=1)
+        bucket = result["by_symbol"]["GOLD"]["regimes"]["price_up_oi_up"]
+        self.assertEqual(bucket["observations"], 2)
+        self.assertEqual(bucket["next_flat"], 1)
+        self.assertEqual(bucket["directional_observations"], 1)
+        self.assertEqual(bucket["continuation_accuracy_pct_excluding_flat"], 100.0)
+        self.assertEqual(bucket["contrarian_accuracy_pct_excluding_flat"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
