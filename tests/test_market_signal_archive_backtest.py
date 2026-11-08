@@ -9,12 +9,14 @@ def component(score, day, included=None):
         "final": {
             "status": "available", "score": score,
             "included_components": included or ["news"],
+            "normalized_weights_pct": {"news": 100.0},
+            "weight_total": 40.0,
         },
         "components": {
             "news": {
                 "score": score, "source": "Google News RSS · test",
-                "source_date": "2026-11-06", "observed_at": "2026-11-06T20:05+05:30",
-                "evidence_count": 3,
+                "source_date": day, "observed_at": f"{day}T20:00+05:30",
+                "weight": 40.0, "included": True, "evidence_count": 3,
             }
         },
         "excluded_components": {
@@ -85,7 +87,9 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertEqual(latest["NIFTY"]["final_score"], 2.0)
         self.assertEqual(latest["NIFTY"]["coverage"]["coverage_pct"], 25)
         self.assertEqual(latest["NIFTY"]["components"]["news"]["source_date"], "2026-11-06")
-        self.assertEqual(latest["NIFTY"]["components"]["news"]["evidence_count"], 3)\n        self.assertEqual(latest["NIFTY"]["components"]["news"]["weight"], 40.0)\n        self.assertTrue(latest["NIFTY"]["components"]["news"]["included"])
+        self.assertEqual(latest["NIFTY"]["components"]["news"]["evidence_count"], 3)
+        self.assertEqual(latest["NIFTY"]["components"]["news"]["weight"], 40.0)
+        self.assertTrue(latest["NIFTY"]["components"]["news"]["included"])
         self.assertIn("search", latest["NIFTY"]["excluded_components"])
         self.assertEqual(latest["GOLD"]["final_score"], -2.0)
 
@@ -122,7 +126,8 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertEqual(signals, [])
         self.assertEqual(closes, [])
         self.assertEqual(audit["invalid_component_evidence"], 1)
-\n    def test_non_eod_snapshots_are_not_used(self):
+
+    def test_non_eod_snapshots_are_not_used(self):
         archive = {"records": [
             snapshot("2026-11-06", "2026-11-06T15:29+05:30", -4.0, 100)
         ]}
