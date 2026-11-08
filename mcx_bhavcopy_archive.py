@@ -47,7 +47,9 @@ def append_session(archive,trade_date,rows,captured_at_utc):
     date=dt.date.fromisoformat(str(trade_date)).isoformat()
     if any(isinstance(x,dict) and x.get("date")==date for x in records): return archive,False
     clean_rows=filter_contract_rows(rows,date)
-    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,\n            "normalized_rows_sha256":hashlib.sha256(json.dumps(clean_rows,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8")).hexdigest(),\n            "hash_scope":"SHA-256 of canonical filtered contract rows; raw HTTP response bytes are not exposed by the current fetch helper",
+    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,
+            "normalized_rows_sha256":hashlib.sha256(json.dumps(clean_rows,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8")).hexdigest(),
+            "hash_scope":"SHA-256 of canonical filtered contract rows; raw HTTP response bytes are not exposed by the current fetch helper",
             "scope":"All returned GOLD and SILVER FUTCOM expiry rows; exact date and expiry retained",
             "symbols":["GOLD","SILVER"],"contract_rows":clean_rows,"contract_count":len(clean_rows)}
     result={"schema_version":1,"source":SOURCE,"retention_sessions":260,
@@ -59,7 +61,8 @@ def write_archive_atomic(path,archive):
     target=Path(path)
     target.parent.mkdir(parents=True,exist_ok=True)
     temporary=target.with_suffix(target.suffix+".tmp")
-    payload=json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+"\n"
+    payload=json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+"
+"
     try:
         with temporary.open("w",encoding="utf-8") as handle:
             handle.write(payload)
@@ -86,7 +89,7 @@ def capture_one(archive,date,fetch_rows):
     updated,added=append_session(archive,key,rows,dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"))
     if not added: return {"date":key,"status":"skipped_existing","date_attempts":1}
     archive.clear(); archive.update(updated)
-    record=updated["records"][-1]
+    record=next(item for item in updated["records"] if item.get("date")==key)
     return {"date":key,"status":"captured","date_attempts":1,
             "contract_rows":record["contract_count"],"normalized_rows_sha256":record["normalized_rows_sha256"],
             "score_eligible":False}
