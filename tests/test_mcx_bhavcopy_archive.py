@@ -52,4 +52,14 @@ class MCXBhavcopyArchiveTests(unittest.TestCase):
   self.assertEqual(len(digest),64)
   b,added2=append_session({"records":[]},"2026-11-06",sample(),"2026-11-06T18:20:00Z")
   self.assertEqual(b["records"][0]["normalized_rows_sha256"],digest)
+ def test_workflow_stages_first_run_archive_before_cached_diff(self):
+  workflow = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "mcx-eod-archive.yml"
+  source = workflow.read_text(encoding="utf-8")
+  stage = "git add -f -- mcx_bhavcopy_archive.json"
+  diff = "git diff --cached --quiet -- mcx_bhavcopy_archive.json"
+  self.assertIn(stage, source)
+  self.assertIn(diff, source)
+  self.assertLess(source.index(stage), source.index(diff))
+  self.assertNotIn("git diff --quiet -- mcx_bhavcopy_archive.json", source)
+
 if __name__=="__main__": unittest.main()
