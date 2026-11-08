@@ -4825,6 +4825,9 @@ def update_market_signal_history(result):
             "close": item.get("price"),
             "close_as_of": item.get("price_as_of"),
             "day_change_pct": item.get("change_pct"),
+            "price_source": item.get("price_source"),
+            "score_mode": item.get("score_mode"),
+            "component_breakdown": item.get("component_breakdown"),
             "headline_score": item.get("headline_score"),
             "experimental_news_score": item.get("experimental_news_score"),
             "experimental_score": item.get("experimental_score"),
@@ -4845,6 +4848,42 @@ def update_market_signal_history(result):
             "client_retail_adjustment": item.get("retail_adj"),
             "published_score": item.get("score"),
             "published_score_mode": item.get("score_mode"),
+        }
+
+    # GOLD and SILVER are captured from the same already-fetched scan result.
+    # This adds no provider request; a close is eligible only when its source date
+    # matches this exchange-local session.
+    other_asset_records = {}
+    for name in ("GOLD", "SILVER"):
+        item = instruments.get(name)
+        if not isinstance(item, dict):
+            continue
+        try:
+            close_value = float(item.get("price"))
+            close_valid = (
+                math.isfinite(close_value) and close_value > 0
+                and as_market_date(item.get("price_as_of")) == date
+            )
+        except (TypeError, ValueError):
+            close_value = None
+            close_valid = False
+        headlines = item.get("headlines") or []
+        other_asset_records[name] = {
+            "close": close_value if close_valid else None,
+            "close_as_of": item.get("price_as_of"),
+            "close_valid": close_valid,
+            "price_source": item.get("price_source"),
+            "day_change_pct": item.get("change_pct"),
+            "headline_score": item.get("headline_score"),
+            "published_score": item.get("score"),
+            "component_breakdown": item.get("component_breakdown"),
+            "asset_search_shadow": item.get("asset_search_shadow"),
+            "headline_count": len(headlines),
+            "headlines": [
+                {"title": h.get("title"), "source": h.get("source"),
+                 "score": h.get("score"), "age_hours": h.get("age_h")}
+                for h in headlines[:8] if isinstance(h, dict)
+            ],
         }
 
     trends = result.get("trends") or {}
@@ -4890,6 +4929,7 @@ def update_market_signal_history(result):
             ],
         },
         "indices": index_records,
+        "other_assets": other_asset_records,
         "participant_oi": {
             "date": oi.get("date"),
             "source": oi.get("source"),
@@ -4902,7 +4942,7 @@ def update_market_signal_history(result):
 
     archive = load_json(MARKET_SIGNAL_HISTORY_FILE, {
         "schema_version": 1,
-        "description": "Point-in-time EOD News, Google Trends, participant OI and index close snapshots; not backfilled",
+        "description": "Point-in-time EOD News, Google Trends, participant OI, three index closes and GOLD/SILVER closes; not backfilled",
         "retention_sessions": 260,
         "records": [],
     })
