@@ -528,9 +528,6 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("market-wide aggregate", excluded["futures"]["reason"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
     def test_five_asset_trends_shadow_uses_one_independent_seed_batch(self):
         calls = []
 
@@ -556,3 +553,7 @@ if __name__ == "__main__":
             {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"},
         )
         self.assertTrue(all(item.get("valid") is False for item in result.values()))
+
+
+if __name__ == "__main__":
+    unittest.main()
