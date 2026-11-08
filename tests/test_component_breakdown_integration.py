@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
 from datetime import datetime, timezone
+from types import ModuleType
 
 import fetch_and_score
 
@@ -539,7 +540,14 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 calls.append((list(keywords), kwargs))
                 raise RuntimeError("stop after payload capture; no network request")
 
-        with mock.patch("pytrends.request.TrendReq", FakeTrendReq):
+        fake_pytrends = ModuleType("pytrends")
+        fake_request = ModuleType("pytrends.request")
+        fake_request.TrendReq = FakeTrendReq
+        fake_pytrends.request = fake_request
+        with mock.patch.dict(
+            "sys.modules",
+            {"pytrends": fake_pytrends, "pytrends.request": fake_request},
+        ):
             result = fetch_and_score.fetch_asset_trends_shadow()
 
         self.assertEqual(len(calls), 1)
