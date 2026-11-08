@@ -52,6 +52,36 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "bear",
         )
 
+    def test_asset_search_classifier_covers_common_directional_english_and_hindi_queries(self):
+        bullish = [
+            ("nifty going up", "NIFTY"),
+            ("nifty upside", "NIFTY"),
+            ("sensex positive trend", "SENSEX"),
+            ("bank nifty strong buying", "BANKNIFTY"),
+            ("सोने में तेजी", "GOLD"),
+            ("चांदी ऊपर जाएगी", "SILVER"),
+            ("निफ्टी बढ़ने की उम्मीद", "NIFTY"),
+        ]
+        bearish = [
+            ("nifty going down", "NIFTY"),
+            ("sensex downside", "SENSEX"),
+            ("bank nifty selling pressure", "BANKNIFTY"),
+            ("सोने में कमजोरी", "GOLD"),
+            ("चांदी नीचे जाएगी", "SILVER"),
+            ("निफ्टी में गिरावट", "NIFTY"),
+        ]
+        for term, asset in bullish:
+            with self.subTest(term=term, asset=asset):
+                self.assertEqual(fetch_and_score._asset_search_direction(term, asset), "bull")
+        for term, asset in bearish:
+            with self.subTest(term=term, asset=asset):
+                self.assertEqual(fetch_and_score._asset_search_direction(term, asset), "bear")
+
+    def test_asset_search_classifier_rejects_negated_and_cross_asset_direction(self):
+        self.assertIsNone(fetch_and_score._asset_search_direction("nifty नहीं बढ़ेगा", "NIFTY"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("sensex rally", "NIFTY"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price rise", "SILVER"))
+
     def test_optional_trends_phrase_diagnostics_are_off_by_default(self):
         seeds = {
             "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
