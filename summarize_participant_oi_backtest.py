@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -27,6 +28,7 @@ REGIME_DIRECTIONAL_FIELDS = (
     "n", "directional_observation_count", "directional_hit_rate_pct",
     "false_signals", "false_signal_rate_pct", "avg_forward_return_pct",
 )
+WILSON_Z_95 = 1.959963984540054
 
 
 def metric_view(item, directional, regime=False):
@@ -36,6 +38,126 @@ def metric_view(item, directional, regime=False):
     if directional:
         fields += REGIME_DIRECTIONAL_FIELDS[1:] if regime else DIRECTIONAL_FIELDS
     return {key: item.get(key) for key in fields}
+
+
+def wilson_interval(successes, trials, z=WILSON_Z_95):
+    """Return a two-sided Wilson score interval as percentages."""
+    if (
+        not isinstance(successes, int) or isinstance(successes, bool)
+        or not isinstance(trials, int) or isinstance(trials, bool)
+        or trials <= 0 or successes < 0 or successes > trials
+    ):
+        return None
+    proportion = successes / trials
+    z2 = z * z
+    denominator = 1.0 + z2 / trials
+    center = (proportion + z2 / (2.0 * trials)) / denominator
+    margin = (
+        z * math.sqrt(
+            proportion * (1.0 - proportion) / trials
+            + z2 / (4.0 * trials * trials)
+        ) / denominator
+    )
+    return (
+        max(0.0, (center - margin) * 100.0),
+        min(100.0, (center + margin) * 100.0),
+    )
+
+
+def exact_binomial_two_sided_pvalue(successes, trials):
+    """Exact two-sided binomial p-value for H0: directional hit probability = 0.5."""
+    if (
+        not isinstance(successes, int) or isinstance(successes, bool)
+        or not isinstance(trials, int) or isinstance(trials, bool)
+        or trials <= 0 or successes < 0 or successes > trials
+    ):
+        return None
+    tail = min(successes, trials - successes)
+    probability = math.fsum(
+        math.comb(trials, value) for value in range(tail + 1)
+    ) / (2 ** trials)
+    return min(1.0, 2.0 * probability)
+
+
+def holm_adjust_pvalues(pvalues):
+    """Holm step-down family-wise correction; accepts {key: raw_p_value}."""
+    valid = [
+        (key, float(value))
+        for key, value in pvalues.items()
+        if isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+        and 0.0 <= float(value) <= 1.0
+    ]
+    valid.sort(key=lambda item: item[1])
+    family_size = len(valid)
+    adjusted = {}
+    running_max = 0.0
+    for rank, (key, value) in enumerate(valid):
+        candidate = min(1.0, (family_size - rank) * value)
+        running_max = max(running_max, candidate)
+        adjusted[key] = running_max
+    return adjusted
+
+
+def attach_directional_inference(features):
+    """Add confidence intervals and multiplicity-adjusted chance tests to futures only."""
+    raw_pvalues = {}
+    prepared = {}
+    for position, item in enumerate(features):
+        if not item.get("directional_futures"):
+            continue
+        holdout = item.get("holdout") or {}
+        trials = holdout.get("directional_observation_count")
+        correct = holdout.get("correct_signals")
+        false = holdout.get("false_signals")
+        key = str(position)
+        valid_counts = (
+            isinstance(trials, int) and not isinstance(trials, bool)
+            and isinstance(correct, int) and not isinstance(correct, bool)
+            and isinstance(false, int) and not isinstance(false, bool)
+            and trials > 0 and correct >= 0 and false >= 0
+            and correct + false == trials
+        )
+        interval = wilson_interval(correct, trials) if valid_counts else None
+        pvalue = (
+            exact_binomial_two_sided_pvalue(correct, trials)
+            if valid_counts else None
+        )
+        if pvalue is not None:
+            raw_pvalues[key] = pvalue
+        prepared[key] = {
+            "interval": interval,
+            "pvalue": pvalue,
+            "trials": trials if valid_counts else None,
+        }
+
+    adjusted = holm_adjust_pvalues(raw_pvalues)
+    family_size = len(raw_pvalues)
+    for position, item in enumerate(features):
+        key = str(position)
+        evidence = prepared.get(key)
+        if evidence is None:
+            continue
+        adjusted_p = adjusted.get(key)
+        interval = evidence["interval"]
+        item["statistical_evidence"] = {
+            "hit_rate_ci95_pct": (
+                [round(interval[0], 2), round(interval[1], 2)]
+                if interval is not None else None
+            ),
+            "p_value_vs_50pct_two_sided": (
+                round(evidence["pvalue"], 8)
+                if evidence["pvalue"] is not None else None
+            ),
+            "holm_adjusted_p_value": (
+                round(adjusted_p, 8) if adjusted_p is not None else None
+            ),
+            "holm_family_size": family_size,
+            "holm_significant_05": (
+                adjusted_p < 0.05 if adjusted_p is not None else False
+            ),
+        }
 
 
 def summarize_index(name, index):
@@ -81,6 +203,7 @@ def summarize_index(name, index):
             "holdout_regimes": regimes,
         })
 
+    attach_directional_inference(features)
     futures = [
         item for item in features
         if item["directional_futures"]
@@ -110,6 +233,25 @@ def summarize_index(name, index):
         "symbol": index.get("symbol"),
         "data_quality": {key: index.get(key) for key in quality_fields},
         "feature_horizon_count": len(features),
+        "directional_inference": {
+            "confidence_interval": "95% Wilson score interval",
+            "chance_test": "exact two-sided binomial test against 50% directional hit rate",
+            "multiple_testing": (
+                "Holm family-wise correction across all valid futures "
+                "participant/field/horizon tests for this index"
+            ),
+            "family_size": sum(
+                1 for item in features
+                if item.get("directional_futures")
+                and (item.get("statistical_evidence") or {}).get(
+                    "p_value_vs_50pct_two_sided"
+                ) is not None
+            ),
+            "interpretation": (
+                "Exploratory inference only; overlapping horizons and shared aggregate "
+                "participant OI remain dependent observations. No live-score eligibility."
+            ),
+        },
         "features": features,
         "best_holdout_futures_exploratory_only": [
             {
@@ -120,6 +262,7 @@ def summarize_index(name, index):
                 "hit_rate_pct": item["holdout"].get("directional_hit_rate_pct"),
                 "false_signal_rate_pct": item["holdout"].get("false_signal_rate_pct"),
                 "false_signals": item["holdout"].get("false_signals"),
+                "statistical_evidence": item.get("statistical_evidence"),
             }
             for item in futures[:5]
         ],
@@ -129,8 +272,8 @@ def summarize_index(name, index):
 def build_summary(report):
     status = report.get("status", "unavailable")
     base = {
-        "schema_version": 2,
-        "summary_format": "compact_v2",
+        "schema_version": 3,
+        "summary_format": "compact_v3_inference",
         "status": status,
         "generated_at_utc": report.get("generated_at_utc"),
         "oi_source": report.get("oi_source"),
