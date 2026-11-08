@@ -78,7 +78,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual(nifty["best_holdout_futures_exploratory_only"][0]["feature"], futures)
         self.assertEqual(future["statistical_evidence"]["holm_family_size"], 1)
         self.assertIsNotNone(future["statistical_evidence"]["hit_rate_ci95_pct"])
-        self.assertFalse(future["statistical_evidence"]["holm_significant_05"])
+        self.assertFalse(future["statistical_evidence"]["nominal_holm_p_below_05"])
         option = next(x for x in nifty["features"] if not x["directional_futures"])
         self.assertIsNone(option["holdout"].get("directional_hit_rate_pct"))
         self.assertNotIn("statistical_evidence", option)
