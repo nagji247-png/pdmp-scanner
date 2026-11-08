@@ -421,6 +421,54 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             expected,
         )
 
+    def test_nse_index_futures_comparator_is_exact_expiry_and_diagnostic_only(self):
+        from component_scoring import compare_nse_udiff_index_futures_oi
+
+        current = [{
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "TckrSymb": "NIFTY", "BizDt": "2026-11-06",
+            "XpryDt": "2026-11-26", "OpnIntrst": 120000,
+            "ChngInOpnIntrst": 1500, "ClsPric": 25100,
+        }]
+        previous = [{
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "TckrSymb": "NIFTY", "BizDt": "2026-11-05",
+            "XpryDt": "2026-11-26", "OpnIntrst": 118000,
+            "ChngInOpnIntrst": 900, "ClsPric": 25000,
+        }]
+        result = compare_nse_udiff_index_futures_oi(
+            current, previous, "NIFTY", "2026-11-06", "2026-11-05", "2026-11-26"
+        )
+        self.assertTrue(result["available"])
+        self.assertEqual(result["change_in_oi"], 2000)
+        self.assertEqual(result["change_in_close"], 100.0)
+        self.assertEqual(result["price_oi_regime"], "price_up_oi_up")
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertFalse(result["coverage_validated"])
+
+        # A different expiry cannot be silently substituted for the requested contract.
+        wrong_expiry = [dict(current[0], XpryDt="2026-12-31")]
+        rejected = compare_nse_udiff_index_futures_oi(
+            wrong_expiry, previous, "NIFTY", "2026-11-06", "2026-11-05", "2026-11-26"
+        )
+        self.assertFalse(rejected["available"])
+        self.assertIn("row_count_not_one", rejected["reason"])
+
+        # Duplicate matching contracts are ambiguous and must fail closed.
+        duplicated = current + [dict(current[0])]
+        rejected_duplicate = compare_nse_udiff_index_futures_oi(
+            duplicated, previous, "NIFTY", "2026-11-06", "2026-11-05", "2026-11-26"
+        )
+        self.assertFalse(rejected_duplicate["available"])
+
+    def test_nse_index_futures_comparator_is_exposed_to_scan_module(self):
+        from component_scoring import compare_nse_udiff_index_futures_oi
+
+        self.assertIs(
+            fetch_and_score.compare_nse_udiff_index_futures_oi,
+            compare_nse_udiff_index_futures_oi,
+        )
+
     def test_mcx_bhavcopy_comparator_is_imported_for_diagnostic_workflow(self):
         from component_scoring import compare_mcx_bhavcopy_contract_oi
 
