@@ -627,6 +627,30 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertTrue(all(item.get("valid") is False for item in result.values()))
 
 
+    def test_component_breakdown_labels_partial_coverage_without_changing_score(self):
+        now = datetime(2026, 11, 8, 9, 35, tzinfo=timezone.utc)
+        instruments = {
+            "GOLD": {
+                "headlines": [{
+                    "title": "Gold price gains",
+                    "source": "Reuters",
+                    "score": 1.0,
+                    "published_at": "2026-11-08T09:00:00Z",
+                }],
+            }
+        }
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments, now.isoformat(), now
+        )
+        breakdown = instruments["GOLD"]["component_breakdown"]
+        self.assertEqual(breakdown["final"]["status"], "available")
+        self.assertEqual(breakdown["final"]["included_components"], ["news"])
+        self.assertEqual(breakdown["coverage"]["status"], "partial")
+        self.assertEqual(breakdown["coverage"]["included_count"], 1)
+        self.assertEqual(breakdown["coverage"]["applicable_count"], 4)
+        self.assertEqual(breakdown["coverage"]["coverage_pct"], 25.0)
+        self.assertIn("prediction confidence", breakdown["coverage"]["meaning"])
+
     def test_nse_index_futures_rejects_wrong_exchange_segment_type_symbol_and_date(self):
         from component_scoring import compare_nse_udiff_index_futures_oi
 

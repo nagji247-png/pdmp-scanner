@@ -651,6 +651,27 @@ def build_asset_component_breakdowns(
             }
 
         final = combine_components(components, DEFAULT_COMPONENT_WEIGHTS)
+        applicable_names = set(components)
+        applicable_names.update(
+            key for key, value in excluded.items()
+            if isinstance(value, dict) and value.get("applicable", True)
+        )
+        included_count = len(components)
+        applicable_count = len(applicable_names)
+        coverage_pct = (
+            round(included_count / applicable_count * 100.0, 2)
+            if applicable_count else 0.0
+        )
+        coverage_status = (
+            "unavailable" if included_count == 0
+            else "complete" if included_count == applicable_count
+            else "partial"
+        )
+        coverage_label = {
+            "unavailable": "कोई सत्यापित component शामिल नहीं",
+            "partial": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+            "complete": "सभी लागू components सत्यापित",
+        }[coverage_status]
         item["component_breakdown"] = {
             "version": 1,
             "scope": "per-asset shadow score; published PDMP score is unchanged",
@@ -658,6 +679,14 @@ def build_asset_component_breakdowns(
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
             "components": components,
             "excluded_components": excluded,
+            "coverage": {
+                "status": coverage_status,
+                "label": coverage_label,
+                "included_count": included_count,
+                "applicable_count": applicable_count,
+                "coverage_pct": coverage_pct,
+                "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।",
+            },
             "search_diagnostic": search_diagnostic,
             "client_market_context": client_context,
             "final": final,
