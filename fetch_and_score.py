@@ -4801,8 +4801,10 @@ def update_market_signal_history(result):
     date = now_ist.date().isoformat()
     oi = result.get("participant_oi") or {}
     instruments = result.get("instruments") or {}
-    if not oi.get("ok") or oi.get("stale") or oi.get("date") != date:
-        return
+    # Component-history capture must not depend on participant OI availability.
+    # Preserve the same-session component scores and closes even when OI is
+    # missing; the archive validator still excludes that session from any
+    # combined News/Trends/OI backtest unless dated OI and its prior session exist.
 
     def as_market_date(value):
         if not isinstance(value, str):
