@@ -1,4 +1,5 @@
 import unittest
+import pandas as pd
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
@@ -76,6 +77,17 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         self.assertIsNone(fetch_and_score.parse_nse_direct_equity_payload(
             "RELIANCE", payload, now=now
         ))
+
+    def test_yahoo_chart_fallback_stops_after_first_http_429(self):
+        empty_history = pd.DataFrame(columns=["Close"])
+        ticker = mock.Mock()
+        ticker.history.return_value = empty_history
+        throttled = mock.Mock(status_code=429)
+        with mock.patch.object(fetch_and_score.yf, "Ticker", return_value=ticker), \
+             mock.patch.object(fetch_and_score.requests, "get", return_value=throttled) as request:
+            result = fetch_and_score.intraday_quote("INR=X")
+        self.assertIsNone(result)
+        self.assertEqual(request.call_count, 1)
 
     def test_usdinr_uses_recent_cached_reference_if_free_api_is_unavailable(self):
         today = datetime.now(timezone.utc).date()
