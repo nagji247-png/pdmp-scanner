@@ -4820,12 +4820,22 @@ def update_market_signal_history(result):
     index_records = {}
     for name in index_names:
         item = instruments.get(name)
-        if not isinstance(item, dict) or as_market_date(item.get("price_as_of")) != date:
-            return
+        if not isinstance(item, dict):
+            item = {}
+        try:
+            close_value = float(item.get("price"))
+            close_valid = (
+                math.isfinite(close_value) and close_value > 0
+                and as_market_date(item.get("price_as_of")) == date
+            )
+        except (TypeError, ValueError):
+            close_value = None
+            close_valid = False
         headlines = item.get("headlines") or []
         index_records[name] = {
-            "close": item.get("price"),
+            "close": close_value if close_valid else None,
             "close_as_of": item.get("price_as_of"),
+            "close_valid": close_valid,
             "day_change_pct": item.get("change_pct"),
             "price_source": item.get("price_source"),
             "score_mode": item.get("score_mode"),
