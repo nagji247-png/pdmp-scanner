@@ -4,8 +4,6 @@ This module consumes archived observations only. It performs no network or
 provider access and never changes production dashboard scores.
 """
 from datetime import date, datetime, timezone
-import math
-
 from component_scoring import clamp_score, finite_number
 
 
@@ -47,9 +45,10 @@ def replay_component_scores(observations, replay_dates, max_age_days=1, weights=
     if isinstance(max_age_days, bool) or not isinstance(max_age_days, int) or max_age_days < 0:
         raise ValueError("max_age_days must be a non-negative integer")
 
-    days = sorted({_parse_day(str(item)) for item in replay_dates})
-    if None in days:
+    parsed_days = [_parse_day(str(item)) for item in replay_dates]
+    if any(item is None for item in parsed_days):
         raise ValueError("every replay date must be YYYY-MM-DD")
+    days = sorted(set(parsed_days))
     configured = weights or {}
     normalized = []
     malformed = 0
