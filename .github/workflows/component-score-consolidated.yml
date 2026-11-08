@@ -53,7 +53,15 @@ jobs:
         run: python component_score_consolidated_verify.py
       - name: Build offline NSE and MCX archive diagnostics (no provider requests)
         run: python archive_component_diagnostics.py
-      - name: Upload archive component diagnostics\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: archive-component-diagnostics\n          path: archive-component-diagnostics.json\n          if-no-files-found: error\n          retention-days: 14\n      - name: Upload one consolidated verification report
+      - name: Upload archive component diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-component-diagnostics
+          path: archive-component-diagnostics.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload one consolidated verification report
         if: always()
         uses: actions/upload-artifact@v4
         with:
