@@ -33,11 +33,17 @@ def _component_evidence_error(breakdown, final, market_day, snapshot_time):
         return "component metadata or included-component list missing"
     if not isinstance(configured, dict) or not isinstance(normalized, dict):
         return "configured or normalized component weights missing"
+    if any(not isinstance(name, str) or not name for name in included):
+        return "invalid component name in final"
     if len(set(included)) != len(included):
         return "duplicate component name in final"
     if set(included) != set(components):
         return "final included components do not match component evidence rows"
 
+    configured_weights = {name: _number(configured.get(name)) for name in included}
+    if any(weight is None or weight <= 0 for weight in configured_weights.values()):
+        return "configured component weight is invalid"
+    configured_total = sum(configured_weights.values())
     weighted_total = 0.0
     weight_total = 0.0
     observed_weights = {}
@@ -46,7 +52,7 @@ def _component_evidence_error(breakdown, final, market_day, snapshot_time):
         if not isinstance(component, dict) or component.get("included") is not True:
             return f"{name}: component is not explicitly included"
         score = _number(component.get("score"))
-        weight = _number(configured.get(name))
+        weight = configured_weights[name]
         component_weight = _number(component.get("weight"))
         source = component.get("source")
         source_day = _day(component.get("source_date"))
@@ -67,9 +73,7 @@ def _component_evidence_error(breakdown, final, market_day, snapshot_time):
             return f"{name}: component observation is later than EOD snapshot"
         weighted_total += score * weight
         weight_total += weight
-        observed_weights[name] = round(weight / sum(
-            _number(configured.get(item)) for item in included
-        ) * 100.0, 2)
+        observed_weights[name] = round(weight / configured_total * 100.0, 2)
 
     expected_score = weighted_total / weight_total if weight_total else None
     final_score = _number(final.get("score"))
