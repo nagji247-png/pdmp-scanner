@@ -250,9 +250,11 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as directory:
             archive_path = os.path.join(directory, "market_signal_history.json")
-            with patch.object(scorer, "MARKET_SIGNAL_HISTORY_FILE", archive_path), \\
-                 patch.object(scorer, "SKIP_EVENTS", False), \\
-                 patch.object(scorer.dt, "datetime", FixedDateTime):
+            with (
+                patch.object(scorer, "MARKET_SIGNAL_HISTORY_FILE", archive_path),
+                patch.object(scorer, "SKIP_EVENTS", False),
+                patch.object(scorer.dt, "datetime", FixedDateTime),
+            ):
                 scorer.update_market_signal_history(result)
 
             with open(archive_path, encoding="utf-8") as handle:
