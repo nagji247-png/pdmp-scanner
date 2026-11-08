@@ -204,5 +204,89 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
 
 
 
+
+    def test_eod_writer_serializes_all_five_asset_component_evidence(self):
+        import json
+        import os
+        import tempfile
+        from datetime import datetime as RealDateTime, timezone
+        from unittest.mock import patch
+        import fetch_and_score as scorer
+
+        class FixedDateTime(RealDateTime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls(2026, 11, 6, 20, 5, tzinfo=tz)
+
+        updated = "2026-11-06T14:05:00Z"
+        now_utc = RealDateTime(2026, 11, 6, 14, 5, tzinfo=timezone.utc)
+        instruments = {}
+        for asset in ("NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"):
+            instruments[asset] = {
+                "news_query": f"{asset} market news",
+                "price": 1000.0,
+                "price_as_of": "2026-11-06",
+                "price_source": "dated test close",
+                "change_pct": 0.5,
+                "headlines": [{
+                    "title": {
+                        "NIFTY": "Nifty benchmark gains on domestic demand",
+                        "SENSEX": "Sensex bluechips advance after earnings",
+                        "BANKNIFTY": "Bank Nifty lenders climb on credit growth",
+                        "GOLD": "Gold bullion rises on safe haven demand",
+                        "SILVER": "Silver industrial metal strengthens on supply outlook",
+                    }[asset],
+                    "source": "Reuters",
+                    "score": 2,
+                    "published_at": "2026-11-06T14:00:00Z",
+                }],
+            }
+        scorer.build_asset_component_breakdowns(instruments, updated, now_utc)
+        self.assertTrue(all(
+            instruments[asset]["component_breakdown"]["final"]["status"] == "available"
+            for asset in instruments
+        ))
+
+        result = {
+            "updated": updated,
+            "instruments": instruments,
+            "participant_oi": {},
+            "trends": {},
+            "market_news": {},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = os.path.join(directory, "market_signal_history.json")
+            with (
+                patch.object(scorer, "MARKET_SIGNAL_HISTORY_FILE", archive_path),
+                patch.object(scorer, "SKIP_EVENTS", False),
+                patch.object(scorer.dt, "datetime", FixedDateTime),
+            ):
+                scorer.update_market_signal_history(result)
+
+            with open(archive_path, encoding="utf-8") as handle:
+                archive = json.load(handle)
+
+        record = archive["records"][0]
+        self.assertEqual(set(record["indices"]), {"NIFTY", "SENSEX", "BANKNIFTY"})
+        self.assertEqual(set(record["other_assets"]), {"GOLD", "SILVER"})
+        for asset in ("NIFTY", "SENSEX", "BANKNIFTY"):
+            self.assertEqual(
+                record["indices"][asset]["component_breakdown"],
+                instruments[asset]["component_breakdown"],
+            )
+            self.assertTrue(record["indices"][asset]["close_valid"])
+        for asset in ("GOLD", "SILVER"):
+            self.assertEqual(
+                record["other_assets"][asset]["component_breakdown"],
+                instruments[asset]["component_breakdown"],
+            )
+            self.assertTrue(record["other_assets"][asset]["close_valid"])
+
+        signals, closes, audit = build_archive_inputs(archive)
+        self.assertEqual(len(signals), 5)
+        self.assertEqual(len(closes), 5)
+        self.assertEqual(audit["invalid_component_evidence"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
