@@ -206,15 +206,28 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
     return True
 
 
+def write_archive_atomic(path, archive):
+    """Persist a complete NSE OI JSON snapshot and clean up interrupted temp files."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(target.suffix + ".tmp")
+    payload = json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\\n"
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(payload)
+            handle.flush()
+        temporary.replace(target)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", help="NSE trade date YYYY-MM-DD; defaults to current IST date")
     parser.add_argument("--archive", default=str(ARCHIVE_PATH))
     args = parser.parse_args()
     trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
-    payload, source_url = fetch_official_bhavcopy(trade_date)
-    rows = decode_udiff_zip(payload)
-    symbols = aggregate_udiff_rows(rows, trade_date)
     path = Path(args.archive)
     if path.exists():
         with path.open("r", encoding="utf-8") as handle:
@@ -223,15 +236,21 @@ def main():
             raise SystemExit("existing NSE OI archive has invalid structure")
     else:
         archive = {"schema_version": 1, "records": []}
+
+    # Avoid another NSE request when a dated session is already archived.
+    date_key = trade_date.isoformat()
+    if any(isinstance(item, dict) and item.get("date") == date_key
+           for item in archive.get("records", [])):
+        print(f"NSE_OI_ARCHIVE_SKIP already captured {date_key}; requests=0")
+        return 0
+
+    payload, source_url = fetch_official_bhavcopy(trade_date)
+    rows = decode_udiff_zip(payload)
+    symbols = aggregate_udiff_rows(rows, trade_date)
     fetched_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     changed = append_archive(archive, trade_date, source_url, payload, symbols, fetched_at)
     if changed:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temp = path.with_suffix(path.suffix + ".tmp")
-        with temp.open("w", encoding="utf-8") as handle:
-            json.dump(archive, handle, ensure_ascii=False, indent=2, allow_nan=False)
-            handle.write("\n")
-        temp.replace(path)
+        write_archive_atomic(path, archive)
     print(json.dumps({
         "trade_date": trade_date.isoformat(),
         "archive_updated": changed,
@@ -247,6 +266,7 @@ def main():
         "archive_sessions": len(archive.get("records", [])),
         "source": source_url,
     }, ensure_ascii=False, sort_keys=True))
+    return 0
 
 
 if __name__ == "__main__":
