@@ -322,3 +322,114 @@ class GoldSilverEODSnapshotTests(unittest.TestCase):
             self.assertFalse(record["other_assets"]["GOLD"]["close_valid"])
             self.assertIsNone(record["other_assets"]["GOLD"]["close"])
             self.assertTrue(record["other_assets"]["SILVER"]["close_valid"])
+
+
+class MissingParticipantOIArchiveTests(unittest.TestCase):
+    def test_missing_participant_oi_does_not_discard_valid_component_history(self):
+        import datetime as dt
+        import json
+        import tempfile
+        from pathlib import Path
+        from validate_market_signal_history import assess_snapshot
+
+        class FrozenDateTime(dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                value = cls(2026, 11, 6, 20, 30)
+                return value.replace(tzinfo=tz) if tz else value
+
+        def index_row():
+            return {
+                "price": 25000.0,
+                "price_as_of": "06/11/2026",
+                "price_source": "official same-session close",
+                "change_pct": 0.5,
+                "headline_score": 1.0,
+                "experimental_news_score": 1.0,
+                "experimental_headline_count": 2,
+                "score": 1.0,
+                "headlines": [{"title": "dated headline", "source": "test", "score": 1, "age_h": 1}],
+                "component_breakdown": {
+                    "components": {
+                        "news": {
+                            "score": 1.0,
+                            "source": "dated asset news",
+                            "source_date": DATE,
+                            "weight": 40,
+                            "included": True,
+                        }
+                    },
+                    "final": {"status": "available", "score": 1.0},
+                },
+            }
+
+        def commodity_row(price, score):
+            return {
+                "price": price,
+                "price_as_of": DATE,
+                "price_source": "MCX official same-session close",
+                "change_pct": 0.5,
+                "headline_score": score,
+                "score": score,
+                "headlines": [{"title": "dated commodity headline", "source": "test", "score": 1, "age_h": 1}],
+                "component_breakdown": {
+                    "components": {
+                        "news": {
+                            "score": score,
+                            "source": "dated commodity news",
+                            "source_date": DATE,
+                            "weight": 40,
+                            "included": True,
+                        }
+                    },
+                    "final": {"status": "available", "score": score},
+                },
+                "asset_search_shadow": {"valid": False, "classified_queries": 0},
+            }
+
+        result = {
+            "updated": "2026-11-06T15:00Z",
+            "participant_oi": {
+                "ok": False,
+                "stale": False,
+                "date": None,
+                "source": "NSE participant-wise OI",
+                "reason": "same-session participant OI unavailable",
+            },
+            "trends": {"ok": False, "stale": False, "error": "no complete daily reading"},
+            "market_news": {"ok": False, "items": []},
+            "instruments": {
+                name: index_row()
+                for name in ("NIFTY", "SENSEX", "BANKNIFTY")
+            },
+        }
+        result["instruments"]["GOLD"] = commodity_row(70000.0, -0.5)
+        result["instruments"]["SILVER"] = commodity_row(80000.0, 0.8)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            archive_path = Path(tmp) / "market_signal_history.json"
+            with mock.patch.object(fetch_and_score.dt, "datetime", FrozenDateTime), \\
+                 mock.patch.object(fetch_and_score, "SKIP_EVENTS", False), \\
+                 mock.patch.object(fetch_and_score, "MARKET_SIGNAL_HISTORY_FILE", str(archive_path)), \\
+                 mock.patch.object(fetch_and_score, "load_json", return_value={}):
+                fetch_and_score.update_market_signal_history(result)
+
+            archive = json.loads(archive_path.read_text(encoding="utf-8"))
+            self.assertEqual(len(archive["records"]), 1)
+            record = archive["records"][0]
+            self.assertIsNone(record["participant_oi"]["date"])
+            self.assertIsNone(record["participant_oi"]["participants"])
+            self.assertEqual(
+                record["indices"]["NIFTY"]["component_breakdown"]["components"]["news"]["score"],
+                1.0,
+            )
+            self.assertEqual(
+                record["other_assets"]["GOLD"]["component_breakdown"]["components"]["news"]["score"],
+                -0.5,
+            )
+            self.assertTrue(record["other_assets"]["GOLD"]["close_valid"])
+
+            quality = assess_snapshot(record, {})
+            self.assertFalse(quality["participant_oi_complete"])
+            self.assertFalse(quality["oi_change_available"])
+            self.assertFalse(quality["complete_for_combined_backtest"])
