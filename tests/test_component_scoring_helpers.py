@@ -8,7 +8,8 @@ from component_scoring import (
     client_oi_context,
     is_fresh_timestamp,
     search_component_from_snapshot,
-    weighted_constituent_breadth_candidate,\n    equal_weight_constituent_breadth_candidate,
+    weighted_constituent_breadth_candidate,
+    equal_weight_constituent_breadth_candidate,
 )
 
 
