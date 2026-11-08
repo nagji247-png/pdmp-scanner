@@ -1,6 +1,8 @@
 import unittest
 
-from validate_market_signal_history import assess_snapshot, validate_archives
+from validate_market_signal_history import (
+    assess_snapshot, market_snapshot_completeness, validate_archives,
+)
 
 
 DATE = "2026-11-06"
@@ -153,6 +155,16 @@ class MarketSignalHistoryTests(unittest.TestCase):
         row["trends"]["as_of"] = "2026-11-06T19:00:00Z"
         quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
         self.assertFalse(quality["trends_daily_complete"])
+
+    def test_complete_trends_snapshot_outranks_later_partial_snapshot(self):
+        complete = snapshot()
+        partial = snapshot(trends_complete=False)
+        for name in ("NIFTY", "SENSEX", "BANKNIFTY"):
+            partial["indices"][name]["headline_score"] = 9.0
+        self.assertGreater(
+            market_snapshot_completeness(complete, DATE),
+            market_snapshot_completeness(partial, DATE),
+        )
 
     def test_duplicate_market_dates_are_invalid_archive(self):
         row = snapshot()

@@ -7,6 +7,7 @@ from component_scoring import (
     parse_utc_timestamp,
     compare_mcx_bhavcopy_contract_oi,
 )
+from validate_market_signal_history import market_snapshot_completeness
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -4858,18 +4859,11 @@ def update_market_signal_history(result):
         if isinstance(x, dict) and isinstance(x.get("date"), str)
     }
     previous = by_date.get(date)
-    # Never replace a complete same-day Trends snapshot with a later incomplete scan.
-    def completeness(item):
-        if not isinstance(item, dict):
-            return -1
-        idx = item.get("indices") or {}
-        return (
-            sum(1 for n in index_names if isinstance(idx.get(n), dict)
-                and isinstance(idx[n].get("headline_score"), (int, float)))
-            + (3 if (item.get("trends") or {}).get("valid") else 0)
-            + (1 if (item.get("participant_oi") or {}).get("date") == date else 0)
-        )
-    if previous is None or completeness(record) >= completeness(previous):
+    # A complete four-slot Trends snapshot must never be replaced by a partial scan.
+    if previous is None or (
+        market_snapshot_completeness(record, date)
+        >= market_snapshot_completeness(previous, date)
+    ):
         by_date[date] = record
 
     ordered = [by_date[d] for d in sorted(by_date)][-260:]

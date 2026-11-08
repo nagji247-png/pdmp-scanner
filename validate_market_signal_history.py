@@ -217,6 +217,30 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
     }
 
 
+def market_snapshot_completeness(record: object, expected_date: str) -> tuple:
+    """Rank a same-day snapshot so complete Trends evidence always outranks partial."""
+    if not isinstance(record, dict):
+        record = {}
+    trends = record.get("trends") if isinstance(record.get("trends"), dict) else {}
+    trends_complete = (
+        trends.get("valid") is True
+        and trends.get("daily_complete") is True
+        and trends_slot_evidence_complete(
+            trends.get("daily_slot_evidence"), expected_date,
+            trends.get("as_of") or trends.get("source_data_time"),
+        )
+    )
+    indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
+    news_coverage = sum(
+        1 for name in INDEXES
+        if isinstance(indices.get(name), dict)
+        and finite_number(indices[name].get("headline_score"))
+    )
+    oi = record.get("participant_oi") if isinstance(record.get("participant_oi"), dict) else {}
+    oi_matches = oi.get("date") == expected_date
+    return (trends_complete, news_coverage, oi_matches)
+
+
 def _archive_dates(records: object) -> tuple[list[str], int, int, int]:
     if not isinstance(records, list):
         return [], 0, 0, 0
