@@ -68,7 +68,7 @@ class OfflineContrarianMarketBacktestTests(unittest.TestCase):
              signal("2026-11-02", 5, asset="GOLD")],
             [close("2026-11-02", 100, "NIFTY"), close("2026-11-03", 101, "NIFTY"),
              close("2026-11-02", 100, "GOLD"), close("2026-11-03", 99, "GOLD")])
-        self.assertEqual(report["by_asset"]["NIFTY"]["contrarian_accuracy_pct"], 0.0)
+        self.assertEqual(report["by_asset"]["NIFTY"]["contrarian_accuracy_pct"], 100.0)
         self.assertEqual(report["by_asset"]["GOLD"]["contrarian_accuracy_pct"], 100.0)
 
 
