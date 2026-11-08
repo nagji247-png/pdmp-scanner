@@ -1,6 +1,6 @@
 """Daily diagnostic-only archive of official MCX GOLD/SILVER FUTCOM Bhavcopy rows."""
 from __future__ import annotations
-import datetime as dt, json, math
+import argparse, datetime as dt, hashlib, json, math, time
 from pathlib import Path
 ARCHIVE_PATH=Path("mcx_bhavcopy_archive.json")
 IST=dt.timezone(dt.timedelta(hours=5,minutes=30))
@@ -47,7 +47,7 @@ def append_session(archive,trade_date,rows,captured_at_utc):
     date=dt.date.fromisoformat(str(trade_date)).isoformat()
     if any(isinstance(x,dict) and x.get("date")==date for x in records): return archive,False
     clean_rows=filter_contract_rows(rows,date)
-    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,
+    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,\n            "source_sha256":hashlib.sha256(json.dumps(clean_rows,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8")).hexdigest(),
             "scope":"All returned GOLD and SILVER FUTCOM expiry rows; exact date and expiry retained",
             "symbols":["GOLD","SILVER"],"contract_rows":clean_rows,"contract_count":len(clean_rows)}
     result={"schema_version":1,"source":SOURCE,"retention_sessions":260,
@@ -69,26 +69,68 @@ def write_archive_atomic(path,archive):
         if temporary.exists():
             temporary.unlink()
 
-def main():
-    from fetch_and_score import fetch_mcx_bhavcopy_rows
-    now=dt.datetime.now(IST)
-    if now.weekday()>=5:
-        print("MCX_ARCHIVE_SKIP weekend; no request made"); return 0
-    archive={"schema_version":1,"source":SOURCE,"retention_sessions":260,"records":[]}
-    if ARCHIVE_PATH.exists():
-        try: archive=json.loads(ARCHIVE_PATH.read_text(encoding="utf-8"))
+def load_archive(path):
+    if path.exists():
+        try: archive=json.loads(path.read_text(encoding="utf-8"))
         except (OSError,json.JSONDecodeError) as exc: raise RuntimeError(f"Existing archive unreadable; refusing overwrite: {exc}")
         if not isinstance(archive,dict) or not isinstance(archive.get("records"),list):
             raise RuntimeError("Existing MCX archive has invalid structure; refusing overwrite")
-    date=now.date().isoformat()
-    if any(isinstance(x,dict) and x.get("date")==date for x in archive.get("records",[])):
-        print(f"MCX_ARCHIVE_SKIP already captured {date}; no request made"); return 0
-    # Exactly one official MCX Bhavcopy request per scheduled weekday run.
-    rows=fetch_mcx_bhavcopy_rows(date)
-    updated,added=append_session(archive,date,rows,dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"))
-    if not added: print(f"MCX_ARCHIVE_SKIP duplicate date {date}"); return 0
-    write_archive_atomic(ARCHIVE_PATH,updated)
+        return archive
+    return {"schema_version":1,"source":SOURCE,"retention_sessions":260,"records":[]}
+
+def capture_one(archive,date,fetch_rows):
+    key=dt.date.fromisoformat(str(date)).isoformat()
+    if any(isinstance(x,dict) and x.get("date")==key for x in archive.get("records",[])):
+        return {"date":key,"status":"skipped_existing","date_attempts":0}
+    rows=fetch_rows(key)
+    updated,added=append_session(archive,key,rows,dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"))
+    if not added: return {"date":key,"status":"skipped_existing","date_attempts":1}
+    archive.clear(); archive.update(updated)
     record=updated["records"][-1]
-    print(f"MCX_ARCHIVE_ADDED date={date} rows={record['contract_count']} GOLD={sum(x['Symbol']=='GOLD' for x in record['contract_rows'])} SILVER={sum(x['Symbol']=='SILVER' for x in record['contract_rows'])} requests=1 score_eligible=false")
+    return {"date":key,"status":"captured","date_attempts":1,
+            "contract_rows":record["contract_count"],"source_sha256":record["source_sha256"],
+            "score_eligible":False}
+
+def main():
+    from fetch_and_score import fetch_mcx_bhavcopy_rows
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--date",help="One MCX trade date YYYY-MM-DD; defaults to current IST date")
+    parser.add_argument("--from-date",help="Start date for bounded historical backfill")
+    parser.add_argument("--to-date",help="End date for bounded historical backfill")
+    parser.add_argument("--max-sessions",type=int,default=5,help="Maximum weekday dates attempted per run (hard cap 5)")
+    parser.add_argument("--delay-seconds",type=float,default=2.0,help="Minimum pause between dates (minimum 2 seconds)")
+    parser.add_argument("--archive",default=str(ARCHIVE_PATH))
+    args=parser.parse_args()
+    if args.date and (args.from_date or args.to_date): parser.error("--date cannot be combined with a date range")
+    if bool(args.from_date)!=bool(args.to_date): parser.error("--from-date and --to-date must be supplied together")
+    path=Path(args.archive); archive=load_archive(path)
+    if args.from_date:
+        start,end=dt.date.fromisoformat(args.from_date),dt.date.fromisoformat(args.to_date)
+        if end<start: parser.error("--to-date must be on or after --from-date")
+        if not 1<=args.max_sessions<=5: parser.error("--max-sessions must be between 1 and the hard cap of 5")
+        if not math.isfinite(args.delay_seconds) or args.delay_seconds<2: parser.error("--delay-seconds must be at least 2")
+        dates=[]; day=start
+        while day<=end:
+            if day.weekday()<5: dates.append(day)
+            day+=dt.timedelta(days=1)
+        dates=dates[:args.max_sessions]; results=[]
+        for index,day in enumerate(dates):
+            try: results.append(capture_one(archive,day.isoformat(),fetch_mcx_bhavcopy_rows))
+            except Exception as exc: results.append({"date":day.isoformat(),"status":"unavailable_or_invalid","error":str(exc)[:240]})
+            if index+1<len(dates): time.sleep(args.delay_seconds)
+        if any(x.get("status")=="captured" for x in results): write_archive_atomic(path,archive)
+        print(json.dumps({"mode":"bounded_historical_backfill","attempted_dates":len(dates),
+                          "max_date_attempts":args.max_sessions,"delay_seconds":args.delay_seconds,
+                          "results":results,"archive_sessions":len(archive.get("records",[])),
+                          "research_only":True,"included_in_asset_final":False},sort_keys=True))
+        return 0
+    date=args.date or dt.datetime.now(IST).date().isoformat()
+    day=dt.date.fromisoformat(date)
+    if day.weekday()>=5:
+        print("MCX_ARCHIVE_SKIP weekend; no request made"); return 0
+    result=capture_one(archive,date,fetch_mcx_bhavcopy_rows)
+    if result["status"]=="captured": write_archive_atomic(path,archive)
+    result.update({"archive_sessions":len(archive.get("records",[])),"research_only":True,"included_in_asset_final":False})
+    print(json.dumps(result,sort_keys=True))
     return 0
 if __name__=="__main__": raise SystemExit(main())
