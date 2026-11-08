@@ -128,7 +128,8 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
             directional = values["next_up"] + values["next_down"]
             regime_summary[name] = {
                 **values,
-                "continuation_accuracy_pct": round(100 * values["continuation_hits"] / count, 2) if count else None,
+                "directional_observations": directional,
+                "continuation_accuracy_pct_excluding_flat": round(100 * values["continuation_hits"] / directional, 2) if directional else None,
                 "contrarian_accuracy_pct_excluding_flat": round(100 * values["contrarian_hits"] / directional, 2) if directional else None,
             }
         per_symbol[symbol] = {
