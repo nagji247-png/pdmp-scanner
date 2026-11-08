@@ -4564,10 +4564,14 @@ def trends_within_freshness(data, now_utc=None):
 
 
 
-def market_closed_today():
+def market_closed_today(now_utc=None):
     """भारतीय बाज़ार आज बंद है? (सप्ताहांत, सूची में दी गई छुट्टी, या शाम 4 बजे के बाद
-    भी आज का NIFTY बार न होना)। सुबह की छुट्टी सूची के बिना नहीं पकड़ी जा सकती।"""
-    ist = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5, minutes=30)
+    भी आज का NIFTY बार न होना)। सुबह की छुट्टी सूची के बिना नहीं पकड़ी जा सकती।
+    now_utc वैकल्पिक है ताकि market-status tests deterministic रहें।"""
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    ist = now.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30)))
     today = ist.date().isoformat()
     if today in NSE_HOLIDAYS or ist.weekday() >= 5:
         return True
@@ -5027,9 +5031,12 @@ def main():
     sig_log = load_json(SIG_LOG_FILE, [])
     previous = load_json(DATA_FILE, {})
 
+    # Resolve the exchange calendar before publishing the flag or processing signals.
+    # Previously result captured the previous global SKIP_EVENTS value (often False),
+    # then updated SKIP_EVENTS afterward; weekend scans were therefore mislabeled open.
+    SKIP_EVENTS = market_closed_today()
     result = {"updated": updated, "instruments": {}, "market_closed": SKIP_EVENTS}
     all_returns = {}
-    SKIP_EVENTS = market_closed_today()
 
     for name, (sym, query) in INDEXES.items():
         process(name, sym, query, "index", events, today_str, result["instruments"],
