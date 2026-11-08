@@ -20,6 +20,26 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         quote = {"source_time": "2026-11-02 10:00 IST"}
         self.assertFalse(fetch_and_score.mcx_reference_is_fresh(quote, now=now))
 
+
+    def test_mcx_public_fallback_skips_a_fresh_cached_quote_during_session(self):
+        now = datetime(2026, 11, 9, 10, 0, tzinfo=IST)
+        quote = {"source_time": "2026-11-09 09:30 IST"}
+        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
+
+    def test_mcx_public_fallback_runs_for_a_stale_quote_during_session(self):
+        now = datetime(2026, 11, 9, 10, 0, tzinfo=IST)
+        quote = {"source_time": "2026-11-09 09:00 IST"}
+        self.assertTrue(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
+
+    def test_mcx_public_fallback_skips_when_quote_is_missing_outside_session(self):
+        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
+        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed({}, now=now))
+
+    def test_mcx_public_fallback_skips_stale_quote_after_market_hours(self):
+        now = datetime(2026, 11, 9, 23, 45, tzinfo=IST)
+        quote = {"source_time": "2026-11-09 20:00 IST"}
+        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
+
     def test_nse_equity_friday_close_remains_valid_on_saturday_evening(self):
         now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
         payload = {
