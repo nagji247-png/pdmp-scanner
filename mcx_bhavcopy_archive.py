@@ -54,6 +54,21 @@ def append_session(archive,trade_date,rows,captured_at_utc):
             "records":sorted((records+[record])[-260:],key=lambda x:x.get("date",""))}
     return result,True
 
+def write_archive_atomic(path,archive):
+    """Persist a complete JSON snapshot via same-directory replace."""
+    target=Path(path)
+    target.parent.mkdir(parents=True,exist_ok=True)
+    temporary=target.with_suffix(target.suffix+".tmp")
+    payload=json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+"\\n"
+    try:
+        with temporary.open("w",encoding="utf-8") as handle:
+            handle.write(payload)
+            handle.flush()
+        temporary.replace(target)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
 def main():
     from fetch_and_score import fetch_mcx_bhavcopy_rows
     now=dt.datetime.now(IST)
@@ -63,6 +78,8 @@ def main():
     if ARCHIVE_PATH.exists():
         try: archive=json.loads(ARCHIVE_PATH.read_text(encoding="utf-8"))
         except (OSError,json.JSONDecodeError) as exc: raise RuntimeError(f"Existing archive unreadable; refusing overwrite: {exc}")
+        if not isinstance(archive,dict) or not isinstance(archive.get("records"),list):
+            raise RuntimeError("Existing MCX archive has invalid structure; refusing overwrite")
     date=now.date().isoformat()
     if any(isinstance(x,dict) and x.get("date")==date for x in archive.get("records",[])):
         print(f"MCX_ARCHIVE_SKIP already captured {date}; no request made"); return 0
@@ -70,7 +87,7 @@ def main():
     rows=fetch_mcx_bhavcopy_rows(date)
     updated,added=append_session(archive,date,rows,dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"))
     if not added: print(f"MCX_ARCHIVE_SKIP duplicate date {date}"); return 0
-    ARCHIVE_PATH.write_text(json.dumps(updated,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
+    write_archive_atomic(ARCHIVE_PATH,updated)
     record=updated["records"][-1]
     print(f"MCX_ARCHIVE_ADDED date={date} rows={record['contract_count']} GOLD={sum(x['Symbol']=='GOLD' for x in record['contract_rows'])} SILVER={sum(x['Symbol']=='SILVER' for x in record['contract_rows'])} requests=1 score_eligible=false")
     return 0
