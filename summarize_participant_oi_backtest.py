@@ -244,7 +244,7 @@ def summarize_index(name, index):
                 1 for item in features
                 if item.get("directional_futures")
                 and (item.get("statistical_evidence") or {}).get(
-                    "p_value_vs_50pct_two_sided"
+                    "p_value_vs_50pct_two_sided_nominal"
                 ) is not None
             ),
             "dependence_warning": (
