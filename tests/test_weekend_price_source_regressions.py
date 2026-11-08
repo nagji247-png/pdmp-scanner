@@ -10,6 +10,16 @@ IST = timezone(timedelta(hours=5, minutes=30))
 
 
 class WeekendPriceSourceRegressionTests(unittest.TestCase):
+    def test_market_status_marks_sunday_closed_without_provider_request(self):
+        sunday_utc = datetime(2026, 11, 8, 6, 0, tzinfo=timezone.utc)
+        with mock.patch.object(fetch_and_score.yf, "Ticker") as ticker:
+            self.assertTrue(fetch_and_score.market_closed_today(now_utc=sunday_utc))
+        ticker.assert_not_called()
+
+    def test_market_status_keeps_regular_monday_session_open(self):
+        monday_utc = datetime(2026, 11, 9, 5, 30, tzinfo=timezone.utc)
+        self.assertFalse(fetch_and_score.market_closed_today(now_utc=monday_utc))
+
     def test_friday_mcx_close_remains_visible_on_saturday_evening(self):
         now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
         quote = {"source_time": "2026-11-06 23:54 IST"}
