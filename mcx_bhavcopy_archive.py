@@ -47,7 +47,7 @@ def append_session(archive,trade_date,rows,captured_at_utc):
     date=dt.date.fromisoformat(str(trade_date)).isoformat()
     if any(isinstance(x,dict) and x.get("date")==date for x in records): return archive,False
     clean_rows=filter_contract_rows(rows,date)
-    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,\n            "source_sha256":hashlib.sha256(json.dumps(clean_rows,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8")).hexdigest(),
+    record={"date":date,"captured_at_utc":captured_at_utc,"source":SOURCE,\n            "normalized_rows_sha256":hashlib.sha256(json.dumps(clean_rows,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8")).hexdigest(),\n            "hash_scope":"SHA-256 of canonical filtered contract rows; raw HTTP response bytes are not exposed by the current fetch helper",
             "scope":"All returned GOLD and SILVER FUTCOM expiry rows; exact date and expiry retained",
             "symbols":["GOLD","SILVER"],"contract_rows":clean_rows,"contract_count":len(clean_rows)}
     result={"schema_version":1,"source":SOURCE,"retention_sessions":260,
@@ -88,7 +88,7 @@ def capture_one(archive,date,fetch_rows):
     archive.clear(); archive.update(updated)
     record=updated["records"][-1]
     return {"date":key,"status":"captured","date_attempts":1,
-            "contract_rows":record["contract_count"],"source_sha256":record["source_sha256"],
+            "contract_rows":record["contract_count"],"normalized_rows_sha256":record["normalized_rows_sha256"],
             "score_eligible":False}
 
 def main():
