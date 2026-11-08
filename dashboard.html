@@ -652,6 +652,13 @@ function renderComponentBreakdown(b) {
       (!search.valid && search.reason ? '<div class="hl-meta">Reading: ' + esc(search.reason) + '</div>' : '') +
       '</div>'
     : "";
+  const includedComponentCount = Object.keys(b.components || {}).length;
+  const excludedComponentCount = Object.keys(b.excluded_components || {}).length;
+  const completenessHtml = excludedComponentCount > 0
+    ? '<div class="hl-meta" style="margin-top:7px"><b>स्थिति: PARTIAL</b> · शामिल सत्यापित घटक ' +
+      includedComponentCount + ' · Final से बाहर / बाकी ' + excludedComponentCount +
+      ' · इसे पूरा multi-source score न मानें।</div>'
+    : "";
   const finalText = final.score == null
     ? "Final Score: डेटा उपलब्ध नहीं"
     : "Final Score: " + signedScore(final.score) + "/10";
@@ -661,6 +668,7 @@ function renderComponentBreakdown(b) {
   return '<details style="margin-top:8px">' +
     '<summary><b>घटक-आधारित ' + esc(finalText) + ' · हिसाब देखें</b></summary>' +
     '<div class="hl-meta" style="margin-top:7px">यह अलग परीक्षण गणना है; ऊपर का प्रकाशित PDMP score और signals नहीं बदले।</div>' +
+    completenessHtml +
     (rows || '<div class="hl-meta" style="margin-top:7px">कोई सत्यापित component score उपलब्ध नहीं।</div>') +
     (weightText ? '<div class="hl-meta" style="margin-top:7px"><b>सामान्यीकृत Final weights:</b> ' + esc(weightText) + '</div>' : '') +
     (excludedRows ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>डेटा उपलब्ध नहीं / Final से बाहर</b></div>' + excludedRows + '</div>' : '') +
