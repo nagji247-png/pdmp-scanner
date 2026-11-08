@@ -43,6 +43,37 @@ def trends_slot_evidence():
     }
 
 
+def asset_component_breakdown(index_name):
+    seeds = {"NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty"}
+    seed = seeds[index_name]
+    search_time = "2026-11-06T12:55:00+05:30"
+    return {
+        "version": 1,
+        "components": {
+            "news": {
+                "score": 1.0, "source": "Google News RSS · asset-specific card query",
+                "source_date": DATE, "weight": 40, "included": True,
+                "observed_at": "2026-11-06T14:32:00Z",
+                "newest_headline_published_at": "2026-11-06T14:00:00Z",
+                "newest_headline_age_h": 0.53, "evidence_count": 3,
+            },
+            "search": {
+                "score": 2.0, "source": "Google Trends related_queries · India",
+                "source_date": DATE, "weight": 40, "included": True,
+                "observed_at": search_time, "seed": seed, "timeframe": "now 1-d",
+                "classified_queries": 4,
+            },
+        },
+        "search_diagnostic": {
+            "valid": True, "seed": seed, "timeframe": "now 1-d",
+            "source_data_time": search_time, "classified_queries": 4,
+            "classification_coverage_pct": 100.0,
+            "bull_pct": 50.0, "bear_pct": 25.0, "neutral_pct": 25.0,
+            "directional_bull_pct": 66.67,
+        },
+    }
+
+
 def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00Z"):
     return {
         "date": DATE,
@@ -63,6 +94,7 @@ def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00
                 "close_as_of": "06/11/2026",
                 "experimental_news_score": 1.0,
                 "experimental_headline_count": 3,
+                "component_breakdown": asset_component_breakdown(name),
             }
             for name in ("NIFTY", "SENSEX", "BANKNIFTY")
         },
@@ -105,7 +137,8 @@ class MarketSignalHistoryTests(unittest.TestCase):
         row["trends"]["daily_slot_evidence"]["slots"].pop()
         quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
         self.assertFalse(quality["trends_slot_evidence_complete"])
-        self.assertFalse(quality["complete_for_combined_backtest"])
+        self.assertFalse(quality["trends_daily_complete"])
+        self.assertTrue(quality["complete_for_combined_backtest"])
 
         row = snapshot()
         slots = row["trends"]["daily_slot_evidence"]["slots"]
@@ -122,6 +155,35 @@ class MarketSignalHistoryTests(unittest.TestCase):
         self.assertFalse(quality["trends_slot_evidence_complete"])
         self.assertFalse(quality["trends_daily_complete"])
 
+    def test_every_index_requires_its_own_fresh_one_day_search_seed(self):
+        row = snapshot()
+        row["indices"]["SENSEX"]["component_breakdown"]["search_diagnostic"]["seed"] = "nifty"
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["asset_search_components_complete"])
+        self.assertFalse(quality["complete_for_combined_backtest"])
+
+        row = snapshot()
+        row["indices"]["BANKNIFTY"]["component_breakdown"]["components"]["search"]["timeframe"] = "now 7-d"
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["asset_search_components_complete"])
+
+    def test_news_component_requires_same_day_scan_and_recent_publisher_time(self):
+        row = snapshot()
+        row["indices"]["NIFTY"]["component_breakdown"]["components"]["news"]["observed_at"] = (
+            "2026-11-05T14:32:00Z"
+        )
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["asset_news_components_complete"])
+        self.assertFalse(quality["complete_for_combined_backtest"])
+
+    def test_global_trends_slots_cannot_substitute_for_missing_asset_search(self):
+        row = snapshot(trends_complete=True)
+        row["indices"]["NIFTY"]["component_breakdown"]["components"].pop("search")
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertTrue(quality["trends_daily_complete"])
+        self.assertFalse(quality["asset_search_components_complete"])
+        self.assertFalse(quality["complete_for_combined_backtest"])
+
     def test_oi_must_match_snapshot_date_and_have_prior_session(self):
         wrong_date = assess_snapshot(snapshot(oi_date="2026-11-05"), {
             "2026-11-05": None,
@@ -134,9 +196,9 @@ class MarketSignalHistoryTests(unittest.TestCase):
 
     def test_index_news_and_closes_must_be_complete(self):
         row = snapshot()
-        row["indices"]["SENSEX"]["experimental_news_score"] = None
+        row["indices"]["SENSEX"]["component_breakdown"]["components"]["news"]["score"] = None
         quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
-        self.assertFalse(quality["index_news_complete"])
+        self.assertFalse(quality["asset_news_components_complete"])
         self.assertFalse(quality["complete_for_combined_backtest"])
 
         row = snapshot()
@@ -178,8 +240,10 @@ class MarketSignalHistoryTests(unittest.TestCase):
         self.assertEqual(report["market_signal_duplicate_dates"], 1)
 
     def test_insufficient_complete_sessions_do_not_create_a_score(self):
+        incomplete = snapshot()
+        incomplete["indices"]["BANKNIFTY"]["component_breakdown"]["components"].pop("search")
         report = validate_archives(
-            {"records": [snapshot(trends_complete=False)]},
+            {"records": [incomplete]},
             oi_history(),
             min_sessions=120,
             target_sessions=250,
