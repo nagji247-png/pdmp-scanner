@@ -67,6 +67,47 @@ def same_ist_date(value: object, expected_date: str) -> bool:
     return parsed is not None and parsed.date().isoformat() == expected_date
 
 
+TRENDS_SLOTS = {"0915": "09:15", "1100": "11:00", "1300": "13:00", "1900": "19:00"}
+
+
+def trends_slot_evidence_complete(value: object, expected_date: str) -> bool:
+    """Require four unique, same-session slot observations with validated times."""
+    if not isinstance(value, dict) or value.get("date") != expected_date:
+        return False
+    rows = value.get("slots")
+    if not isinstance(rows, list) or len(rows) != len(TRENDS_SLOTS):
+        return False
+    by_id = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            return False
+        slot_id = row.get("id")
+        if slot_id not in TRENDS_SLOTS or slot_id in by_id:
+            return False
+        by_id[slot_id] = row
+    if set(by_id) != set(TRENDS_SLOTS):
+        return False
+
+    for slot_id, label in TRENDS_SLOTS.items():
+        row = by_id[slot_id]
+        if row.get("status") != "success" or row.get("time") != label:
+            return False
+        stamp = ist_datetime(row.get("source_data_time"))
+        if stamp is None or stamp.date().isoformat() != expected_date:
+            return False
+        expected = datetime.combine(
+            stamp.date(), time.fromisoformat(label), tzinfo=IST
+        )
+        observation_lag = (expected - stamp).total_seconds() / 60
+        if observation_lag < -15 or observation_lag > 360:
+            return False
+        if not all(finite_number(row.get(field)) for field in (
+            "bull_pct", "bear_pct", "neutral_pct", "crowd_pct"
+        )):
+            return False
+    return True
+
+
 def captured_after_close(value: object, expected_date: str) -> bool:
     parsed = ist_datetime(value)
     return (
@@ -116,11 +157,15 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
     trends_date_aligned = bool(valid_date) and same_ist_date(
         trends.get("as_of") or trends.get("source_data_time"), date
     )
+    trends_slot_evidence_ok = bool(valid_date) and trends_slot_evidence_complete(
+        trends.get("daily_slot_evidence"), date
+    )
     trends_daily_complete = (
         trends_valid
         and trends.get("daily_complete") is True
         and trends_fields_complete
         and trends_date_aligned
+        and trends_slot_evidence_ok
     )
 
     oi = record.get("participant_oi") if isinstance(record.get("participant_oi"), dict) else {}
@@ -152,6 +197,7 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
         "index_news_complete": news_complete,
         "trends_valid": trends_valid,
         "trends_daily_complete": trends_daily_complete,
+        "trends_slot_evidence_complete": trends_slot_evidence_ok,
         "participant_oi_complete": oi_snapshot_complete,
         "oi_change_available": oi_change_available,
         "eod_capture_valid": eod_capture_valid,
@@ -222,6 +268,9 @@ def validate_archives(
     incomplete_trends = sum(
         1 for row in assessments if not row.get("trends_daily_complete")
     )
+    incomplete_trends_slot_evidence = sum(
+        1 for row in assessments if not row.get("trends_slot_evidence_complete")
+    )
     missing_news = sum(
         1 for row in assessments if not row.get("index_news_complete")
     )
@@ -287,6 +336,7 @@ def validate_archives(
         "target_sessions": target_sessions,
         "target_met": len(eligible_dates) >= target_sessions,
         "incomplete_trends_sessions": incomplete_trends,
+        "sessions_with_incomplete_trends_slot_evidence": incomplete_trends_slot_evidence,
         "sessions_missing_index_news": missing_news,
         "sessions_missing_or_unpaired_oi": missing_oi,
         "sessions_with_invalid_index_closes": invalid_closes,
