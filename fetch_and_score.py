@@ -374,7 +374,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             if not (isinstance(fresh, dict) and fresh.get("valid")):
                 stamp = old.get("source_data_time") or old.get("as_of") if isinstance(old, dict) else None
                 if isinstance(old, dict) and old.get("valid") and is_fresh_timestamp(
-                    stamp, now_utc, max_age_minutes=120
+                    stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES
                 ):
                     cached = dict(old)
                     cached["cached"] = True
@@ -402,7 +402,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
 
         if isinstance(old, dict) and old.get("valid"):
             stamp = old.get("source_data_time") or old.get("as_of")
-            if is_fresh_timestamp(stamp, now_utc, max_age_minutes=120):
+            if is_fresh_timestamp(stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES):
                 cached = dict(old)
                 cached["cached"] = True
                 item[field] = cached
@@ -588,7 +588,7 @@ def build_asset_component_breakdowns(
                 search_component, search_reason = search_component_from_snapshot(
                     search_snapshot,
                     now_utc=now_utc,
-                    max_age_minutes=120,
+                    max_age_minutes=TRENDS_MAX_AGE_MINUTES,
                     weight=DEFAULT_COMPONENT_WEIGHTS["search"],
                 )
             if search_component:
