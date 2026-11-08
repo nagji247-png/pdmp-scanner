@@ -51,5 +51,5 @@ class MCXBhavcopyArchiveTests(unittest.TestCase):
   digest=a["records"][0]["normalized_rows_sha256"]
   self.assertEqual(len(digest),64)
   b,added2=append_session({"records":[]},"2026-11-06",sample(),"2026-11-06T18:20:00Z")
-  self.assertEqual(b["records"][0]["source_sha256"],digest)
+  self.assertEqual(b["records"][0]["normalized_rows_sha256"],digest)
 if __name__=="__main__": unittest.main()
