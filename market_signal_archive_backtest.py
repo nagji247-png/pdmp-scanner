@@ -1,7 +1,7 @@
 """Build an offline contrarian backtest from PDMP's dated EOD archive."""
 import argparse
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from offline_contrarian_market_backtest import _day, _number, run_contrarian_backtest
@@ -21,6 +21,74 @@ def _eod_snapshot_time(record, market_day):
     if stamp.date().isoformat() != market_day or stamp.hour * 60 + stamp.minute < 15 * 60 + 30:
         return None
     return stamp
+
+
+def _component_evidence_error(breakdown, final, market_day, snapshot_time):
+    """Fail closed on missing, future-dated, or mathematically inconsistent evidence."""
+    components = breakdown.get("components") if isinstance(breakdown, dict) else None
+    included = final.get("included_components") if isinstance(final, dict) else None
+    configured = breakdown.get("component_weights") if isinstance(breakdown, dict) else None
+    normalized = final.get("normalized_weights_pct") if isinstance(final, dict) else None
+    if not isinstance(components, dict) or not isinstance(included, list) or not included:
+        return "component metadata or included-component list missing"
+    if not isinstance(configured, dict) or not isinstance(normalized, dict):
+        return "configured or normalized component weights missing"
+    if any(not isinstance(name, str) or not name for name in included):
+        return "invalid component name in final"
+    if len(set(included)) != len(included):
+        return "duplicate component name in final"
+    if set(included) != set(components):
+        return "final included components do not match component evidence rows"
+
+    configured_weights = {name: _number(configured.get(name)) for name in included}
+    if any(weight is None or weight <= 0 for weight in configured_weights.values()):
+        return "configured component weight is invalid"
+    configured_total = sum(configured_weights.values())
+    weighted_total = 0.0
+    weight_total = 0.0
+    observed_weights = {}
+    for name in included:
+        component = components.get(name)
+        if not isinstance(component, dict) or component.get("included") is not True:
+            return f"{name}: component is not explicitly included"
+        score = _number(component.get("score"))
+        weight = configured_weights[name]
+        component_weight = _number(component.get("weight"))
+        source = component.get("source")
+        source_day = _day(component.get("source_date"))
+        raw_observed_at = component.get("observed_at")
+        if (score is None or not -10 <= score <= 10 or weight is None or weight <= 0
+                or component_weight is None or abs(component_weight - weight) > 0.0001
+                or not isinstance(source, str) or not source.strip()
+                or source_day is None or source_day > market_day
+                or not isinstance(raw_observed_at, str)):
+            return f"{name}: score, source, weight, or source date is invalid"
+        try:
+            component_time = datetime.fromisoformat(raw_observed_at.replace("Z", "+00:00"))
+        except ValueError:
+            return f"{name}: observation timestamp is invalid"
+        if component_time.tzinfo is None:
+            component_time = component_time.replace(tzinfo=timezone.utc)
+        if component_time.astimezone(timezone.utc) > snapshot_time.astimezone(timezone.utc):
+            return f"{name}: component observation is later than EOD snapshot"
+        weighted_total += score * weight
+        weight_total += weight
+        observed_weights[name] = round(weight / configured_total * 100.0, 2)
+
+    expected_score = weighted_total / weight_total if weight_total else None
+    final_score = _number(final.get("score"))
+    final_weight_total = _number(final.get("weight_total"))
+    if expected_score is None or final_score is None or abs(expected_score - final_score) > 0.02:
+        return "final score does not match weighted component evidence"
+    if final_weight_total is None or abs(final_weight_total - weight_total) > 0.01:
+        return "final weight total does not match component weights"
+    if set(normalized) != set(observed_weights) or any(
+        _number(normalized.get(name)) is None
+        or abs(_number(normalized.get(name)) - expected) > 0.02
+        for name, expected in observed_weights.items()
+    ):
+        return "normalized weights do not match component weights"
+    return None
 
 
 def _asset_record(record, asset):
@@ -46,6 +114,7 @@ def build_archive_inputs(archive):
         "signals_added": 0,
         "closes_added": 0,
         "missing_component_final": 0,
+        "invalid_component_evidence": 0,
         "invalid_or_non_eod_snapshot": 0,
         "invalid_or_mismatched_close": 0,
         "assets_with_component_final": {},
@@ -94,6 +163,8 @@ def build_archive_inputs(archive):
                             continue
                         latest_components[component_name] = {
                             "score": _number(component.get("score")),
+                            "weight": _number(component.get("weight")),
+                            "included": component.get("included"),
                             "source": component.get("source"),
                             "source_date": component.get("source_date"),
                             "observed_at": component.get("observed_at"),
@@ -144,6 +215,13 @@ def build_archive_inputs(archive):
                     or not isinstance(coverage, dict)
                     or coverage.get("included_count", 0) < 1):
                 audit["missing_component_final"] += 1
+                continue
+
+            evidence_error = _component_evidence_error(
+                breakdown, final, market_day, observed
+            )
+            if evidence_error:
+                audit["invalid_component_evidence"] += 1
                 continue
 
             signals.append({

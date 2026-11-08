@@ -4,17 +4,20 @@ from market_signal_archive_backtest import build_archive_inputs, run_archive_bac
 from offline_contrarian_market_backtest import _day
 
 
-def component(score, included=None):
+def component(score, day, included=None):
     return {
         "final": {
             "status": "available", "score": score,
             "included_components": included or ["news"],
+            "normalized_weights_pct": {"news": 100.0},
+            "weight_total": 40.0,
         },
+        "component_weights": {"news": 40.0},
         "components": {
             "news": {
                 "score": score, "source": "Google News RSS · test",
-                "source_date": "2026-11-06", "observed_at": "2026-11-06T20:05+05:30",
-                "evidence_count": 3,
+                "source_date": day, "observed_at": f"{day}T20:00+05:30",
+                "weight": 40.0, "included": True, "evidence_count": 3,
             }
         },
         "excluded_components": {
@@ -36,7 +39,7 @@ def snapshot(day, captured, score, close, close_as_of=None):
                 "close": close, "close_as_of": close_as_of or day,
                 "price_source": "NSE dated index close",
                 "published_score": 8.5,
-                "component_breakdown": component(score),
+                "component_breakdown": component(score, day),
             }
         },
         "other_assets": {
@@ -44,7 +47,7 @@ def snapshot(day, captured, score, close, close_as_of=None):
                 "close": 70000 + close, "close_as_of": day,
                 "close_valid": True, "price_source": "MCX dated close",
                 "published_score": 9.0,
-                "component_breakdown": component(-2.0),
+                "component_breakdown": component(-2.0, day),
             }
         },
     }
@@ -86,8 +89,44 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertEqual(latest["NIFTY"]["coverage"]["coverage_pct"], 25)
         self.assertEqual(latest["NIFTY"]["components"]["news"]["source_date"], "2026-11-06")
         self.assertEqual(latest["NIFTY"]["components"]["news"]["evidence_count"], 3)
+        self.assertEqual(latest["NIFTY"]["components"]["news"]["weight"], 40.0)
+        self.assertTrue(latest["NIFTY"]["components"]["news"]["included"])
         self.assertIn("search", latest["NIFTY"]["excluded_components"])
         self.assertEqual(latest["GOLD"]["final_score"], -2.0)
+
+
+    def test_future_component_observation_is_rejected(self):
+        row = snapshot("2026-11-06", "2026-11-06T20:05+05:30", 2.0, 100)["indices"]["NIFTY"]
+        row["component_breakdown"]["components"]["news"]["observed_at"] = "2026-11-06T20:06+05:30"
+        signals, closes, audit = build_archive_inputs({"records": [{
+            "date": "2026-11-06", "captured_at_ist": "2026-11-06T20:05+05:30",
+            "indices": {"NIFTY": row},
+        }]})
+        self.assertEqual(signals, [])
+        self.assertEqual(closes, [])
+        self.assertEqual(audit["invalid_component_evidence"], 1)
+
+    def test_final_score_must_match_weighted_components(self):
+        row = snapshot("2026-11-06", "2026-11-06T20:05+05:30", 2.0, 100)["indices"]["NIFTY"]
+        row["component_breakdown"]["final"]["score"] = 7.5
+        signals, closes, audit = build_archive_inputs({"records": [{
+            "date": "2026-11-06", "captured_at_ist": "2026-11-06T20:05+05:30",
+            "indices": {"NIFTY": row},
+        }]})
+        self.assertEqual(signals, [])
+        self.assertEqual(closes, [])
+        self.assertEqual(audit["invalid_component_evidence"], 1)
+
+    def test_future_component_source_date_is_rejected(self):
+        row = snapshot("2026-11-06", "2026-11-06T20:05+05:30", 2.0, 100)["indices"]["NIFTY"]
+        row["component_breakdown"]["components"]["news"]["source_date"] = "2026-11-07"
+        signals, closes, audit = build_archive_inputs({"records": [{
+            "date": "2026-11-06", "captured_at_ist": "2026-11-06T20:05+05:30",
+            "indices": {"NIFTY": row},
+        }]})
+        self.assertEqual(signals, [])
+        self.assertEqual(closes, [])
+        self.assertEqual(audit["invalid_component_evidence"], 1)
 
     def test_non_eod_snapshots_are_not_used(self):
         archive = {"records": [
