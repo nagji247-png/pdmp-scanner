@@ -600,18 +600,32 @@ def build_asset_component_breakdowns(
                 }
 
         if name in index_names:
-            excluded["eod_oi"] = {
-                "applicable": True,
-                "included": False,
-                "source": "NSE option-chain symbol/expiry contract-level OI",
-                "reason": "5-Nov-2026 के official NSE UDiFF और same-date MII Contract Master में NIFTY (2,050/2,050) तथा BANKNIFTY (975/975) contracts के ID, symbol, CE/PE, expiry और strike का exact reconciliation verify हुआ। लेकिन इस live scan में यह dated per-index snapshot wired नहीं और 60-session holdout में directional edge प्रमाणित नहीं; इसलिए EOD OI Final से बाहर है। Participant CLIENT OI अलग market-wide aggregate है, इसे index-specific CLIENT position नहीं माना गया।",
-            }
-            excluded["futures"] = {
-                "applicable": True,
-                "included": False,
-                "source": "NSE index-futures contract data",
-                "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।",
-            }
+            if name == "SENSEX":
+                excluded["eod_oi"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": "BSE official SENSEX index-option EOD data",
+                    "reason": "SENSEX के लिए BSE का dated official UDiFF FO Bhavcopy और same-date BSE contract master अभी source, parse और exact contract coverage के साथ validate नहीं हुआ। NSE UDiFF में NIFTY/BANKNIFTY की जाँच को SENSEX पर लागू नहीं किया गया; इसलिए BSE EOD OI Final से बाहर है।",
+                }
+                excluded["futures"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": "BSE SENSEX index-futures contract data",
+                    "reason": "BSE SENSEX futures का dated contract-level snapshot और symbol-specific chronological holdout validation उपलब्ध नहीं; NSE participant CLIENT futures market-wide aggregate को SENSEX futures score नहीं माना गया।",
+                }
+            else:
+                excluded["eod_oi"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": "NSE option-chain symbol/expiry contract-level OI",
+                    "reason": "5-Nov-2026 के official NSE UDiFF और same-date MII Contract Master में NIFTY (2,050/2,050) तथा BANKNIFTY (975/975) contracts के ID, symbol, CE/PE, expiry और strike का exact reconciliation verify हुआ। लेकिन इस live scan में यह dated per-index snapshot wired नहीं और 60-session holdout में directional edge प्रमाणित नहीं; इसलिए EOD OI Final से बाहर है। Participant CLIENT OI अलग market-wide aggregate है, इसे index-specific CLIENT position नहीं माना गया।",
+                }
+                excluded["futures"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": "NSE index-futures contract data",
+                    "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।",
+                }
             excluded["stock_basket"] = {
                 "applicable": True,
                 "included": False,
