@@ -7,6 +7,22 @@ import fetch_and_score
 
 
 class ComponentBreakdownIntegrationTests(unittest.TestCase):
+    def test_global_trends_mood_percentages_use_real_three_way_group_weights(self):
+        queries = {
+            "a": {"term": "nifty breakout", "weight": 60, "rising": False},
+            "b": {"term": "nifty correction", "weight": 20, "rising": False},
+            "c": {"term": "nifty today", "weight": 20, "rising": False},
+        }
+        result = fetch_and_score.tq_aggregate(queries)
+        self.assertEqual(result["crowd_bull_pct"], 75)
+        self.assertEqual(result["bull_score_pct"], 60.0)
+        self.assertEqual(result["bear_score_pct"], 20.0)
+        self.assertEqual(result["neutral_score_pct"], 20.0)
+        self.assertEqual(
+            round(result["bull_score_pct"] + result["bear_score_pct"] + result["neutral_score_pct"], 1),
+            100.0,
+        )
+
     def test_informational_searches_are_unclassified_not_neutral(self):
         cases = [
             ("nifty today", "NIFTY"),
