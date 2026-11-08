@@ -17,6 +17,11 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent
 IST = ZoneInfo("Asia/Kolkata")
 INDEXES = ("NIFTY", "SENSEX", "BANKNIFTY")
+ASSET_SEARCH_SEEDS = {
+    "NIFTY": "nifty",
+    "SENSEX": "sensex",
+    "BANKNIFTY": "bank nifty",
+}
 PARTICIPANTS = ("FII", "DII", "PRO", "CLIENT")
 OI_FIELDS = (
     "future_index_long", "future_index_short",
@@ -139,6 +144,85 @@ def participant_fields_complete(participants: object) -> bool:
     return True
 
 
+def asset_component_quality(index_record: object, index_name: str, expected_date: str) -> dict:
+    """Validate the per-index News and asset-specific one-day Google Trends evidence."""
+    if not isinstance(index_record, dict):
+        index_record = {}
+    breakdown = index_record.get("component_breakdown")
+    breakdown = breakdown if isinstance(breakdown, dict) else {}
+    components = breakdown.get("components")
+    components = components if isinstance(components, dict) else {}
+    news = components.get("news")
+    news = news if isinstance(news, dict) else {}
+    search = components.get("search")
+    search = search if isinstance(search, dict) else {}
+    diagnostic = breakdown.get("search_diagnostic")
+    diagnostic = diagnostic if isinstance(diagnostic, dict) else {}
+
+    news_observed = ist_datetime(news.get("observed_at"))
+    newest_published = ist_datetime(news.get("newest_headline_published_at"))
+    news_age_hours = (
+        (news_observed - newest_published).total_seconds() / 3600
+        if news_observed is not None and newest_published is not None else None
+    )
+    evidence_count = news.get("evidence_count")
+    news_ok = (
+        news.get("included") is True
+        and finite_number(news.get("score"))
+        and finite_number(news.get("weight"))
+        and float(news.get("weight")) > 0
+        and isinstance(evidence_count, int)
+        and not isinstance(evidence_count, bool)
+        and evidence_count > 0
+        and news_observed is not None
+        and news_observed.date().isoformat() == expected_date
+        and newest_published is not None
+        and newest_published <= news_observed
+        and news_age_hours is not None
+        and 0 <= news_age_hours <= 24
+        and finite_number(news.get("newest_headline_age_h"))
+        and 0 <= float(news.get("newest_headline_age_h")) <= 24
+        and market_date(news.get("source_date")) is not None
+    )
+
+    expected_seed = ASSET_SEARCH_SEEDS.get(index_name)
+    search_stamp = ist_datetime(search.get("observed_at"))
+    diagnostic_stamp = ist_datetime(
+        diagnostic.get("source_data_time") or diagnostic.get("as_of")
+    )
+    classified_queries = diagnostic.get("classified_queries")
+    search_ok = (
+        expected_seed is not None
+        and search.get("included") is True
+        and finite_number(search.get("score"))
+        and finite_number(search.get("weight"))
+        and float(search.get("weight")) > 0
+        and search.get("seed") == expected_seed
+        and search.get("timeframe") == "now 1-d"
+        and market_date(search.get("source_date")) == expected_date
+        and search_stamp is not None
+        and search_stamp.date().isoformat() == expected_date
+        and diagnostic.get("valid") is True
+        and diagnostic.get("seed") == expected_seed
+        and diagnostic.get("timeframe") == "now 1-d"
+        and diagnostic_stamp is not None
+        and diagnostic_stamp.date().isoformat() == expected_date
+        and isinstance(classified_queries, int)
+        and not isinstance(classified_queries, bool)
+        and classified_queries > 0
+        and finite_number(diagnostic.get("classification_coverage_pct"))
+        and float(diagnostic.get("classification_coverage_pct")) > 0
+        and all(finite_number(diagnostic.get(field)) for field in (
+            "bull_pct", "bear_pct", "neutral_pct", "directional_bull_pct"
+        ))
+    )
+    return {
+        "news_component_complete": bool(news_ok),
+        "search_component_complete": bool(search_ok),
+        "complete": bool(news_ok and search_ok),
+    }
+
+
 def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
     if not isinstance(record, dict):
         record = {}
@@ -179,6 +263,24 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
         and trends_slot_evidence_ok
     )
 
+    asset_quality = {
+        name: asset_component_quality(indices.get(name), name, date)
+        for name in INDEXES
+    } if valid_date else {name: {
+        "news_component_complete": False,
+        "search_component_complete": False,
+        "complete": False,
+    } for name in INDEXES}
+    asset_news_complete = all(
+        item["news_component_complete"] for item in asset_quality.values()
+    )
+    asset_search_complete = all(
+        item["search_component_complete"] for item in asset_quality.values()
+    )
+    asset_components_complete = all(
+        item["complete"] for item in asset_quality.values()
+    )
+
     oi = record.get("participant_oi") if isinstance(record.get("participant_oi"), dict) else {}
     oi_date = oi.get("date")
     oi_history_has_date = bool(valid_date) and date in oi_previous_dates
@@ -196,8 +298,8 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
 
     eligible = all((
         closes_complete,
-        news_complete,
-        trends_daily_complete,
+        asset_news_complete,
+        asset_search_complete,
         oi_snapshot_complete,
         oi_change_available,
         eod_capture_valid,
@@ -209,6 +311,10 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
         "trends_valid": trends_valid,
         "trends_daily_complete": trends_daily_complete,
         "trends_slot_evidence_complete": trends_slot_evidence_ok,
+        "asset_news_components_complete": asset_news_complete,
+        "asset_search_components_complete": asset_search_complete,
+        "per_index_components_complete": asset_components_complete,
+        "asset_component_quality": asset_quality,
         "participant_oi_complete": oi_snapshot_complete,
         "oi_change_available": oi_change_available,
         "eod_capture_valid": eod_capture_valid,
@@ -218,9 +324,14 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
 
 
 def market_snapshot_completeness(record: object, expected_date: str) -> tuple:
-    """Rank a same-day snapshot so complete Trends evidence always outranks partial."""
+    """Prefer complete per-index News/Search evidence, then complete global crowd slots."""
     if not isinstance(record, dict):
         record = {}
+    indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
+    asset_complete = all(
+        asset_component_quality(indices.get(name), name, expected_date)["complete"]
+        for name in INDEXES
+    )
     trends = record.get("trends") if isinstance(record.get("trends"), dict) else {}
     trends_complete = (
         trends.get("valid") is True
@@ -230,7 +341,6 @@ def market_snapshot_completeness(record: object, expected_date: str) -> tuple:
             trends.get("as_of") or trends.get("source_data_time"),
         )
     )
-    indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
     news_coverage = sum(
         1 for name in INDEXES
         if isinstance(indices.get(name), dict)
@@ -238,7 +348,7 @@ def market_snapshot_completeness(record: object, expected_date: str) -> tuple:
     )
     oi = record.get("participant_oi") if isinstance(record.get("participant_oi"), dict) else {}
     oi_matches = oi.get("date") == expected_date
-    return (trends_complete, news_coverage, oi_matches)
+    return (asset_complete, trends_complete, news_coverage, oi_matches)
 
 
 def _archive_dates(records: object) -> tuple[list[str], int, int, int]:
@@ -307,7 +417,13 @@ def validate_archives(
         1 for row in assessments if not row.get("trends_slot_evidence_complete")
     )
     missing_news = sum(
-        1 for row in assessments if not row.get("index_news_complete")
+        1 for row in assessments if not row.get("asset_news_components_complete")
+    )
+    missing_asset_search = sum(
+        1 for row in assessments if not row.get("asset_search_components_complete")
+    )
+    missing_asset_components = sum(
+        1 for row in assessments if not row.get("per_index_components_complete")
     )
     missing_oi = sum(
         1 for row in assessments
@@ -373,6 +489,8 @@ def validate_archives(
         "incomplete_trends_sessions": incomplete_trends,
         "sessions_with_incomplete_trends_slot_evidence": incomplete_trends_slot_evidence,
         "sessions_missing_index_news": missing_news,
+        "sessions_missing_asset_search": missing_asset_search,
+        "sessions_missing_per_index_components": missing_asset_components,
         "sessions_missing_or_unpaired_oi": missing_oi,
         "sessions_with_invalid_index_closes": invalid_closes,
         "sessions_without_valid_after_close_capture": invalid_capture,
@@ -381,7 +499,8 @@ def validate_archives(
         "score_changed": False,
         "eligible_for_live_score": False,
         "source_note": (
-            "Only point-in-time snapshots are eligible. Intraday history.csv is not a substitute. "
+            "Only point-in-time snapshots with per-index News and asset-specific Google Trends now 1-d evidence are eligible. "
+            "Global crowd slots remain diagnostic; intraday history.csv is not a substitute. "
             "NSE participant OI is aggregate Index F&O data, not independent OI for each index."
         ),
     }
@@ -412,7 +531,8 @@ def main() -> int:
             summary.write(f"- Status: **{report['status']}**\n")
             summary.write(f"- Complete sessions: **{report['combined_backtest_eligible_sessions']} / {report['minimum_required_sessions']} required**\n")
             summary.write(f"- OI archive: **{report['oi_valid_rows']} valid / {report['oi_archive_records']} records**\n")
-            summary.write(f"- Incomplete Trends sessions: **{report['incomplete_trends_sessions']}**\n")
+            summary.write(f"- Incomplete global Trends sessions: **{report['incomplete_trends_sessions']}**\n")
+            summary.write(f"- Sessions missing per-index asset Search: **{report['sessions_missing_asset_search']}**\n")
             summary.write(f"- Reason: {report['reason']}\n")
             summary.write("- Live score changed: **No**\n")
 
