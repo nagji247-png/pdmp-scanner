@@ -70,6 +70,26 @@ class MCXForwardBacktestTests(unittest.TestCase):
         self.assertEqual(bucket["next_flat"], 1)
         self.assertEqual(bucket["contrarian_hits"], 0)
 
+    def test_flat_outcomes_are_excluded_from_both_accuracy_denominators(self):
+        def multi_expiry_session(day, gold_a, oi_a, gold_b, oi_b):
+            return {"date": day, "contract_rows": [
+                {"Symbol": "GOLD", "ExpiryDate": "04DEC2026", "Close": gold_a, "OpenInterest": oi_a},
+                {"Symbol": "GOLD", "ExpiryDate": "05FEB2027", "Close": gold_b, "OpenInterest": oi_b},
+                {"Symbol": "SILVER", "ExpiryDate": "05DEC2026", "Close": 200, "OpenInterest": 20},
+            ]}
+
+        result = evaluate_forward_price_oi({"records": [
+            multi_expiry_session("2026-11-02", 100, 10, 200, 20),
+            multi_expiry_session("2026-11-03", 102, 12, 202, 22),
+            multi_expiry_session("2026-11-04", 102, 13, 204, 23),
+        ]}, min_signal_sessions=1)
+        bucket = result["by_symbol"]["GOLD"]["regimes"]["price_up_oi_up"]
+        self.assertEqual(bucket["observations"], 2)
+        self.assertEqual(bucket["next_flat"], 1)
+        self.assertEqual(bucket["directional_observations"], 1)
+        self.assertEqual(bucket["continuation_accuracy_pct_excluding_flat"], 100.0)
+        self.assertEqual(bucket["contrarian_accuracy_pct_excluding_flat"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
