@@ -1,4 +1,7 @@
 import unittest
+from unittest import mock
+
+import fetch_and_score
 
 from validate_market_signal_history import (
     assess_snapshot, market_snapshot_completeness, validate_archives,
@@ -192,6 +195,19 @@ class MarketSignalHistoryTests(unittest.TestCase):
     def test_minimum_threshold_requires_valid_configuration(self):
         with self.assertRaisesRegex(ValueError, "target_sessions"):
             validate_archives({"records": []}, {"records": []}, min_sessions=120, target_sessions=60)
+
+    def test_participant_oi_backfill_is_capped_and_persists_resume_cursor(self):
+        failed_snapshot = {"ok": False, "stale": False}
+        with mock.patch.object(fetch_and_score, "load_json", return_value={}), \
+             mock.patch.object(fetch_and_score, "fetch_participant_oi",
+                               return_value=failed_snapshot) as fetch:
+            archive = fetch_and_score.update_participant_oi_history()
+
+        self.assertLessEqual(fetch.call_count, 3)
+        self.assertEqual(archive["backfill"]["version"], 6)
+        self.assertEqual(archive["backfill"]["requests_this_run"], fetch.call_count)
+        self.assertIsNotNone(archive["backfill"]["next_date"])
+        self.assertGreaterEqual(archive["backfill"]["calendar_days_remaining"], 0)
 
 
 if __name__ == "__main__":
