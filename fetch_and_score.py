@@ -1670,10 +1670,27 @@ def fetch_mcx_bhavcopy_rows(trade_date):
         timeout=30,
     )
     response.raise_for_status()
-    payload = response.json()
+    content_type = str(response.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+    try:
+        payload = response.json()
+    except (ValueError, json.JSONDecodeError) as exc:
+        # MCX sometimes returns an HTML/empty gateway response with HTTP 200.
+        # Do not log the body: it may contain request tokens or session data.
+        raise ValueError(
+            "MCX Bhavcopy non-JSON response "
+            f"(HTTP {response.status_code}, content-type={content_type or 'missing'}, "
+            f"bytes={len(response.content)}): {type(exc).__name__}"
+        ) from exc
     box = payload.get("d") or payload.get("data") or payload
     if isinstance(box, str):
-        box = json.loads(box)
+        try:
+            box = json.loads(box)
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                "MCX Bhavcopy JSON envelope contains invalid nested data "
+                f"(HTTP {response.status_code}, content-type={content_type or 'missing'}): "
+                f"{type(exc).__name__}"
+            ) from exc
     rows = box.get("Data") if isinstance(box, dict) else None
     if not isinstance(rows, list):
         raise ValueError("MCX Bhavcopy returned no contract rows")
