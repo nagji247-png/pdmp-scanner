@@ -61,7 +61,7 @@ def is_fresh_timestamp(value, now_utc=None, max_age_minutes=360, future_skew_min
     return -float(future_skew_minutes) <= age_minutes <= float(max_age_minutes)
 
 
-def build_component(score, source, source_date, weight, **metadata):
+def build_component(score, source, source_date, weight, /, **metadata):
     """Create a scored component only when score, source, date and weight exist."""
     normalized = clamp_score(score)
     numeric_weight = finite_number(weight)
