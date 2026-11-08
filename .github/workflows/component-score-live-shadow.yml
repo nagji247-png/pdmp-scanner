@@ -1,14 +1,10 @@
 name: Component Score Live Shadow Scan
 
 on:
-  # One isolated five-asset Trends batch at the existing approved IST slots:
-  # 09:15, 11:00, 13:00 and 19:00, weekdays only.
-  # UTC cron: 03:45, 05:30, 07:30 and 13:30.
-  schedule:
-    - cron: "45 3 * * 1-5"
-    - cron: "30 5 * * 1-5"
-    - cron: "30 7 * * 1-5"
-    - cron: "30 13 * * 1-5"
+  # Manual diagnostic only. The scheduled PDMP Scan already refreshes the
+  # five asset-specific Trends seeds and writes their shadow breakdown.
+  # Keeping this workflow manual avoids a duplicate five-seed batch at the
+  # same 09:15, 11:00, 13:00 and 19:00 IST slots.
   workflow_dispatch:
 
 permissions:
