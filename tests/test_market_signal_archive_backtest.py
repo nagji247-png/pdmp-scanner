@@ -229,12 +229,12 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
                 "price_source": "dated test close",
                 "change_pct": 0.5,
                 "headlines": [{
-                    \"title\": {
-                        \"NIFTY\": \"Nifty benchmark gains on domestic demand\",
-                        \"SENSEX\": \"Sensex bluechips advance after earnings\",
-                        \"BANKNIFTY\": \"Bank Nifty lenders climb on credit growth\",
-                        \"GOLD\": \"Gold bullion rises on safe haven demand\",
-                        \"SILVER\": \"Silver industrial metal strengthens on supply outlook\",
+                    "title": {
+                        "NIFTY": "Nifty benchmark gains on domestic demand",
+                        "SENSEX": "Sensex bluechips advance after earnings",
+                        "BANKNIFTY": "Bank Nifty lenders climb on credit growth",
+                        "GOLD": "Gold bullion rises on safe haven demand",
+                        "SILVER": "Silver industrial metal strengthens on supply outlook",
                     }[asset],
                     "source": "Reuters",
                     "score": 2,
