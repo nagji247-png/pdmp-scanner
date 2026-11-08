@@ -12,6 +12,7 @@ def component(score, day, included=None):
             "normalized_weights_pct": {"news": 100.0},
             "weight_total": 40.0,
         },
+        "component_weights": {"news": 40.0},
         "components": {
             "news": {
                 "score": score, "source": "Google News RSS · test",
