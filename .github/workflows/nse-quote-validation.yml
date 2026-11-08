@@ -290,6 +290,7 @@ jobs:
       # External NSE endpoints can rate-limit or return 404 from GitHub runners.
       # Keep this diagnostic visible without blocking unrelated code validation.
       - name: Diagnostic NSE index and stock quote probe
+        if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: |
           python - <<'PY'
@@ -304,6 +305,7 @@ jobs:
           PY
 
       - name: Diagnostic official MCX Market Watch probe
+        if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: |
           python - <<'PY'
