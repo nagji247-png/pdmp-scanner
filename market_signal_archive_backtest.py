@@ -49,6 +49,7 @@ def build_archive_inputs(archive):
         "invalid_or_non_eod_snapshot": 0,
         "invalid_or_mismatched_close": 0,
         "assets_with_component_final": {},
+        "latest_asset_evidence": {},
     }
 
     for record in records:
@@ -68,6 +69,72 @@ def build_archive_inputs(archive):
             row = _asset_record(record, asset)
             if not isinstance(row, dict):
                 continue
+
+            # Keep a readable latest-per-asset evidence snapshot in the audit.
+            # This is derived only from the committed archive and makes no provider calls.
+            previous_evidence = audit["latest_asset_evidence"].get(asset)
+            if previous_evidence is None or day_text > previous_evidence["date"]:
+                latest_breakdown = row.get("component_breakdown")
+                latest_final = (
+                    latest_breakdown.get("final")
+                    if isinstance(latest_breakdown, dict) else None
+                )
+                latest_coverage = (
+                    latest_breakdown.get("coverage")
+                    if isinstance(latest_breakdown, dict) else None
+                )
+                latest_components = {}
+                raw_components = (
+                    latest_breakdown.get("components")
+                    if isinstance(latest_breakdown, dict) else None
+                )
+                if isinstance(raw_components, dict):
+                    for component_name, component in raw_components.items():
+                        if not isinstance(component, dict):
+                            continue
+                        latest_components[component_name] = {
+                            "score": _number(component.get("score")),
+                            "source": component.get("source"),
+                            "source_date": component.get("source_date"),
+                            "observed_at": component.get("observed_at"),
+                            "evidence_count": component.get("evidence_count"),
+                        }
+                raw_excluded = (
+                    latest_breakdown.get("excluded_components")
+                    if isinstance(latest_breakdown, dict) else None
+                )
+                latest_excluded = {}
+                if isinstance(raw_excluded, dict):
+                    latest_excluded = {
+                        key: {
+                            "source": value.get("source"),
+                            "reason": value.get("reason"),
+                        }
+                        for key, value in raw_excluded.items()
+                        if isinstance(value, dict)
+                    }
+                latest_score = (
+                    _number(latest_final.get("score"))
+                    if isinstance(latest_final, dict)
+                    and latest_final.get("status") == "available" else None
+                )
+                audit["latest_asset_evidence"][asset] = {
+                    "date": day_text,
+                    "captured_at_ist": record.get("captured_at_ist"),
+                    "component_status": "available" if latest_score is not None else "missing",
+                    "final_score": latest_score,
+                    "included_components": (
+                        latest_final.get("included_components")
+                        if isinstance(latest_final, dict) else []
+                    ),
+                    "coverage": {
+                        key: latest_coverage.get(key)
+                        for key in ("status", "included_count", "applicable_count", "coverage_pct")
+                    } if isinstance(latest_coverage, dict) else None,
+                    "components": latest_components,
+                    "excluded_components": latest_excluded,
+                }
+
             breakdown = row.get("component_breakdown")
             final = breakdown.get("final") if isinstance(breakdown, dict) else None
             coverage = breakdown.get("coverage") if isinstance(breakdown, dict) else None
