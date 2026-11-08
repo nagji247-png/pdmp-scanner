@@ -12,9 +12,9 @@ def session(day, gold_close, gold_oi, silver_close=100, silver_oi=10):
 class MCXForwardBacktestTests(unittest.TestCase):
     def test_uses_same_contract_and_next_archived_session(self):
         archive = {"records": [
-            session("2026-11-02", 100, 10),
-            session("2026-11-03", 102, 12),
-            session("2026-11-04", 103, 13),
+            session("2026-11-02", 100, 10, 200, 20),
+            session("2026-11-03", 102, 12, 202, 22),
+            session("2026-11-04", 103, 13, 203, 23),
         ]}
         result = evaluate_forward_price_oi(archive, min_signal_sessions=1)
         self.assertEqual(result["observations"], 2)
