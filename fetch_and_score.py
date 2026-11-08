@@ -4109,12 +4109,16 @@ def _asset_search_direction(term, asset):
     has_bear = bool(tokens & bearish_terms) or any(
         phrase in text for phrase in bearish_record_phrases
     )
+    if has_bull and has_bear:
+        # Mixed directional wording is ambiguous, not a neutral vote.
+        return None
     if has_bull != has_bear:
         return "bull" if has_bull else "bear"
 
     # Explicit flat/range-bound language is neutral crowd intent.
-    # Information/navigation searches are NOT sentiment: keep them
-    # unclassified so they cannot inflate the Neutral crowd percentage.
+    # The dashboard's agreed three-way crowd model also treats asset-matched
+    # information-intent searches (today/live/price/option-chain/prediction)
+    # as Neutral. This is search intent, not a claim about trader positioning.
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
@@ -4136,7 +4140,7 @@ def _asset_search_direction(term, asset):
         "विश्लेषण", "समाचार", "कल", "स्पॉट",
     }
     if tokens & informational:
-        return None
+        return "neutral"
     return None
 
 
