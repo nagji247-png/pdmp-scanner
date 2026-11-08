@@ -165,7 +165,7 @@ def main():
     nse_payload = json.loads(NSE_PATH.read_text(encoding="utf-8"))
     mcx_payload = json.loads(MCX_PATH.read_text(encoding="utf-8"))
     report = build_report(nse_payload, mcx_payload)
-    OUTPUT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\\n", encoding="utf-8")
+    OUTPUT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     for group, data in (("NSE", report["nse_index_options"]["assets"]), ("MCX", report["mcx_commodity_futures"]["assets"])):
         for asset, item in data.items():
             print(f"{group} {asset}: sessions={item['sessions']} observations={item.get('same_expiry_observations', item.get('same_expiry_session_pairs', 0))} status={item['validation_status']} score=NONE")
