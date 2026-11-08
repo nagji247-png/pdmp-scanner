@@ -292,7 +292,13 @@ def combine_components(components, weights=None):
 
 
 def client_oi_context(participant_today, changes):
-    """Return aggregate CLIENT CE/PE/Futures changes as context, never an index score."""
+    """Return aggregate CLIENT CE/PE/Futures evidence as context, never an index score.
+
+    Each of the four option-side changes and two futures-side changes is kept
+    separate with its prior-gross percentage. They remain diagnostic-only:
+    participant data is market-wide, not index-specific, and no unvalidated
+    participant field may enter an individual index Final score.
+    """
     today = participant_today if isinstance(participant_today, dict) else {}
     change_data = changes if isinstance(changes, dict) else {}
     result = {
@@ -315,9 +321,10 @@ def client_oi_context(participant_today, changes):
             "long_change": None,
             "short_change": None,
         },
+        "evidence_components": {},
         "directional_scoring": {
             "ce_pe": "Withheld: option-side long/short changes are not validated directional predictors.",
-            "futures": "Withheld: market-wide CLIENT futures directional backtest is not robust enough for live scoring.",
+            "futures": "Withheld: market-wide CLIENT futures directional holdout results do not establish a robust edge.",
         },
     }
     if not today.get("ok") or today.get("stale") or not today.get("date"):
@@ -326,9 +333,6 @@ def client_oi_context(participant_today, changes):
     if not change_data.get("ok"):
         result["reason"] = "पिछले उपलब्ध EOD snapshot से CLIENT बदलाव सत्यापित नहीं"
         return result
-    # A change is meaningful only when its comparison snapshot is explicitly
-    # dated before the current EOD snapshot. Reject missing, same-day, future,
-    # or malformed dates instead of displaying an untraceable delta.
     current_date = today.get("date")
     previous_date = change_data.get("prev_date")
     try:
@@ -340,15 +344,56 @@ def client_oi_context(participant_today, changes):
     if previous_day >= current_day:
         result["reason"] = "CLIENT बदलाव के लिए पिछली EOD तारीख़ आज की तारीख़ से पहले नहीं है"
         return result
+
     client = ((change_data.get("by_group") or {}).get("CLIENT") or {})
+    current_client = ((today.get("participants") or {}).get("CLIENT") or {})
     if not client:
         result["reason"] = "NSE report में CLIENT participant row उपलब्ध नहीं"
         return result
 
     def value(key):
-        raw = client.get(key)
-        number = finite_number(raw)
+        number = finite_number(client.get(key))
         return int(number) if number is not None else None
+
+    definitions = {
+        "ce_long": ("index_call_long", "index_call_long", "bullish", "bearish"),
+        "ce_short": ("index_call_short", "index_call_short", "bearish", "bullish"),
+        "pe_long": ("index_put_long", "index_put_long", "bearish", "bullish"),
+        "pe_short": ("index_put_short", "index_put_short", "bullish", "bearish"),
+        "futures_long": ("future_index_long", "future_index_long", "bullish", "bearish"),
+        "futures_short": ("future_index_short", "future_index_short", "bearish", "bullish"),
+    }
+    for name, (change_key, gross_key, crowd_bias, contrarian_bias) in definitions.items():
+        delta = value(change_key)
+        current_gross = finite_number(current_client.get(gross_key))
+        previous_gross = (
+            current_gross - delta
+            if current_gross is not None and delta is not None else None
+        )
+        change_pct = (
+            round(delta / previous_gross * 100.0, 4)
+            if delta is not None and previous_gross is not None and previous_gross > 0
+            else None
+        )
+        result["evidence_components"][name] = {
+            "field": change_key,
+            "change": delta,
+            "current_gross": int(current_gross) if current_gross is not None and current_gross.is_integer() else current_gross,
+            "previous_gross": int(previous_gross) if previous_gross is not None and previous_gross.is_integer() else previous_gross,
+            "change_pct_prior_gross": change_pct,
+            "crowd_bias": crowd_bias,
+            "contrarian_bias": contrarian_bias,
+            "source": result["source"],
+            "source_date": current_date,
+            "previous_source_date": previous_date,
+            "included_in_asset_final": False,
+            "score": None,
+            "score_status": "withheld_unvalidated",
+            "reason": (
+                "NSE participant CLIENT OI market-wide aggregate है; "
+                "individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+            ),
+        }
 
     result["ce_build_up"] = {
         "call_long_change": value("index_call_long"),
@@ -363,13 +408,8 @@ def client_oi_context(participant_today, changes):
         "short_change": value("future_index_short"),
     }
     result["available"] = any(
-        item is not None
-        for group in (
-            result["ce_build_up"],
-            result["pe_build_up"],
-            result["client_index_futures"],
-        )
-        for item in group.values()
+        item["change"] is not None
+        for item in result["evidence_components"].values()
     )
     if not result["available"]:
         result["reason"] = "CLIENT की चार CE/PE बदलाव फ़ील्ड और Futures बदलाव उपलब्ध नहीं"
