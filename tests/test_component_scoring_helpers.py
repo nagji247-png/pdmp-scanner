@@ -8,7 +8,7 @@ from component_scoring import (
     client_oi_context,
     is_fresh_timestamp,
     search_component_from_snapshot,
-    weighted_constituent_breadth_candidate,
+    weighted_constituent_breadth_candidate,\n    equal_weight_constituent_breadth_candidate,
 )
 
 
@@ -72,6 +72,29 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertFalse(replacement["available"])
         self.assertEqual(replacement["missing_symbols"], ["BBB"])
         self.assertEqual(replacement["unexpected_symbols"], ["ZZZ"])
+
+
+    def test_equal_weight_breadth_is_explicit_proxy_and_requires_full_roster(self):
+        rows = [
+            {"symbol": "AAA", "previous_close": 100, "current_close": 110},
+            {"symbol": "BBB", "previous_close": 100, "current_close": 90},
+            {"symbol": "CCC", "previous_close": 100, "current_close": 105},
+        ]
+        result = equal_weight_constituent_breadth_candidate(
+            rows, "NSE official CM UDiFF Bhavcopy + official roster",
+            "2026-11-09", expected_symbols=["AAA", "BBB", "CCC"],
+        )
+        self.assertTrue(result["available"])
+        self.assertEqual(result["candidate_score"], round(10 * (2/3 - 1/3), 4))
+        self.assertEqual(result["weighting_method"], "equal_weight_breadth_proxy")
+        self.assertFalse(result["included_in_asset_final"])
+        self.assertIn("official cap weights उपलब्ध नहीं", result["scope"])
+        partial = equal_weight_constituent_breadth_candidate(
+            rows[:2], "official", "2026-11-09",
+            expected_symbols=["AAA", "BBB", "CCC"],
+        )
+        self.assertFalse(partial["available"])
+        self.assertFalse(partial["included_in_asset_final"])
 
     def test_component_metadata_cannot_override_score_or_provenance(self):
         # Optional metadata must not bypass score clamping or forge provenance.
