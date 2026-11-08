@@ -11,6 +11,7 @@ import nse_index_option_oi_archive as nse_archive
 from component_scoring import aggregate_nse_udiff_index_option_oi
 from nse_index_option_oi_archive import (
     aggregate_udiff_rows,
+    aggregate_index_futures_rows,
     append_archive,
     decode_udiff_zip,
     write_archive_atomic,
@@ -23,7 +24,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "IDO",
             "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
             "StrkPric": "25000.00", "OpnIntrst": "1000",
-            "ChngInOpnIntrst": "125",
+            "ChngInOpnIntrst": "125", "ClsPric": "25050.50",
         }
         return [
             {**base, "TckrSymb": "NIFTY", "OptnTp": "CE"},
@@ -42,6 +43,63 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         self.assertEqual(result["BANKNIFTY"]["by_expiry"]["2026-11-26"]["PE"]["open_interest"], 3000)
         self.assertFalse(result["NIFTY"]["coverage_validated"])
         self.assertFalse(result["NIFTY"]["included_in_asset_final"])
+
+    def test_exact_nse_index_futures_are_archived_by_symbol_and_expiry(self):
+        base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "25125.50",
+        }
+        rows = [
+            {**base, "TckrSymb": "NIFTY"},
+            {**base, "TckrSymb": "BANKNIFTY", "OpnIntrst": "90000",
+             "ChngInOpnIntrst": "-2500", "ClsPric": "59000.25"},
+            {**base, "TckrSymb": "FINNIFTY"},
+        ]
+        result = aggregate_index_futures_rows(rows, "2026-11-06")
+        self.assertTrue(result["NIFTY"]["available"])
+        self.assertTrue(result["BANKNIFTY"]["available"])
+        self.assertEqual(
+            result["NIFTY"]["by_expiry"]["2026-11-26"]["change_in_oi"], 5000
+        )
+        self.assertEqual(
+            result["BANKNIFTY"]["by_expiry"]["2026-11-26"]["close"], 59000.25
+        )
+        self.assertFalse(result["NIFTY"]["included_in_asset_final"])
+        self.assertFalse(result["BANKNIFTY"]["coverage_validated"])
+
+    def test_index_futures_reject_duplicate_or_malformed_exact_rows(self):
+        base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "25125.50", "TckrSymb": "NIFTY",
+        }
+        duplicate = aggregate_index_futures_rows([base, base], "2026-11-06")
+        self.assertFalse(duplicate["NIFTY"]["available"])
+        self.assertIn("duplicate futures", duplicate["NIFTY"]["reason"])
+        malformed = aggregate_index_futures_rows(
+            [{**base, "ClsPric": ""}], "2026-11-06"
+        )
+        self.assertFalse(malformed["NIFTY"]["available"])
+        self.assertIn("ClsPric", malformed["NIFTY"]["reason"])
+
+    def test_index_futures_wrong_date_or_expired_contract_are_not_accepted(self):
+        base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTIDX",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "25125.50", "TckrSymb": "NIFTY",
+        }
+        wrong_date = aggregate_index_futures_rows(
+            [{**base, "BizDt": "2026-11-05"}], "2026-11-06"
+        )
+        self.assertFalse(wrong_date["NIFTY"]["available"])
+        expired = aggregate_index_futures_rows(
+            [{**base, "XpryDt": "2026-11-05"}], "2026-11-06"
+        )
+        self.assertFalse(expired["NIFTY"]["available"])
 
     def test_non_index_options_and_other_symbols_are_ignored(self):
         rows = self.rows() + [
@@ -89,7 +147,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         with zipfile.ZipFile(payload, "w") as archive:
             archive.writestr(
                 "bhav.csv",
-                ",".join(["FinInstrmTp", "TckrSymb", "BizDt", "XpryDt", "OptnTp", "StrkPric", "OpnIntrst", "ChngInOpnIntrst"]) + chr(10),
+                ",".join(["FinInstrmTp", "TckrSymb", "BizDt", "XpryDt", "OptnTp", "StrkPric", "OpnIntrst", "ChngInOpnIntrst", "ClsPric"]) + chr(10),
             )
         self.assertEqual(decode_udiff_zip(payload.getvalue()), [])
         with self.assertRaisesRegex(ValueError, "valid ZIP"):
