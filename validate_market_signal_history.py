@@ -70,7 +70,9 @@ def same_ist_date(value: object, expected_date: str) -> bool:
 TRENDS_SLOTS = {"0915": "09:15", "1100": "11:00", "1300": "13:00", "1900": "19:00"}
 
 
-def trends_slot_evidence_complete(value: object, expected_date: str) -> bool:
+def trends_slot_evidence_complete(
+    value: object, expected_date: str, trends_as_of: object = None
+) -> bool:
     """Require four unique, same-session slot observations with validated times."""
     if not isinstance(value, dict) or value.get("date") != expected_date:
         return False
@@ -88,12 +90,20 @@ def trends_slot_evidence_complete(value: object, expected_date: str) -> bool:
     if set(by_id) != set(TRENDS_SLOTS):
         return False
 
+    as_of = ist_datetime(trends_as_of)
+    if as_of is None or as_of.date().isoformat() != expected_date:
+        return False
+
     for slot_id, label in TRENDS_SLOTS.items():
         row = by_id[slot_id]
         if row.get("status") != "success" or row.get("time") != label:
             return False
         stamp = ist_datetime(row.get("source_data_time"))
-        if stamp is None or stamp.date().isoformat() != expected_date:
+        if (
+            stamp is None
+            or stamp.date().isoformat() != expected_date
+            or stamp > as_of
+        ):
             return False
         expected = datetime.combine(
             stamp.date(), time.fromisoformat(label), tzinfo=IST
@@ -158,7 +168,8 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
         trends.get("as_of") or trends.get("source_data_time"), date
     )
     trends_slot_evidence_ok = bool(valid_date) and trends_slot_evidence_complete(
-        trends.get("daily_slot_evidence"), date
+        trends.get("daily_slot_evidence"), date,
+        trends.get("as_of") or trends.get("source_data_time"),
     )
     trends_daily_complete = (
         trends_valid
