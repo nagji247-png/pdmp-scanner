@@ -109,7 +109,8 @@ def build_archive_inputs(archive):
         "assets_considered": list(ASSETS),
         "signals_added": 0,
         "closes_added": 0,
-        "missing_component_final": 0,\n        "invalid_component_evidence": 0,
+        "missing_component_final": 0,
+        "invalid_component_evidence": 0,
         "invalid_or_non_eod_snapshot": 0,
         "invalid_or_mismatched_close": 0,
         "assets_with_component_final": {},
@@ -158,6 +159,8 @@ def build_archive_inputs(archive):
                             continue
                         latest_components[component_name] = {
                             "score": _number(component.get("score")),
+                            "weight": _number(component.get("weight")),
+                            "included": component.get("included"),
                             "source": component.get("source"),
                             "source_date": component.get("source_date"),
                             "observed_at": component.get("observed_at"),
@@ -258,7 +261,8 @@ def main():
     args = parser.parse_args()
     archive = json.loads(Path(args.archive).read_text(encoding="utf-8"))
     report = run_archive_backtest(archive, threshold=args.threshold)
-    Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "
+", encoding="utf-8")
     print(json.dumps({
         "report": args.out,
         "sample_count": report["summary"]["sample_count"],
