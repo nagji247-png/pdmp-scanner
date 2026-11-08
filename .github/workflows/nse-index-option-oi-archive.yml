@@ -1,0 +1,43 @@
+name: NSE Index Option OI EOD Archive
+
+on:
+  schedule:
+    # 19:30 IST on NSE weekdays, after the F&O UDiFF EOD report is normally published.
+    - cron: "0 14 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nse-index-option-oi-archive
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install archive dependency
+        run: python -m pip install requests
+      - name: Validate archive code and tests
+        run: |
+          python -m py_compile nse_index_option_oi_archive.py
+          python -m unittest discover -s tests -p 'test_nse_index_option_oi_archive.py' -v
+      - name: Download and archive official NSE F&O UDiFF index-option OI
+        run: python nse_index_option_oi_archive.py
+      - name: Commit archive only
+        run: |
+          git config user.name "pdmp-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add nse_index_option_oi.json
+          if git diff --cached --quiet; then
+            echo "No new NSE OI archive session; commit skipped."
+          else
+            git commit -m "archive NSE index option OI $(date -u +%Y-%m-%d)"
+            git pull --rebase -X theirs origin main
+            git push origin HEAD:main
+          fi
