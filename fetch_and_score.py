@@ -156,6 +156,11 @@ CONTRARIAN_LIMIT = 6.0
 SKIP_EVENTS = False
 # NSE की आधिकारिक छुट्टियाँ "YYYY-MM-DD" में यहाँ भरें (Google/आधिकारिक सूची से)
 NSE_HOLIDAYS = set()
+# Exchange-notified special live sessions on otherwise closed dates (IST).
+# 2026 Diwali Muhurat: normal market 14:20–15:40 on Sunday 08-Nov-2026.
+SPECIAL_TRADING_SESSIONS = {
+    "2026-11-08": ("14:20", "15:40"),
+}
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
 CROWD_FILE = "crowd_events.json"
@@ -4573,6 +4578,11 @@ def market_closed_today(now_utc=None):
         now = now.replace(tzinfo=dt.timezone.utc)
     ist = now.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30)))
     today = ist.date().isoformat()
+    special_session = SPECIAL_TRADING_SESSIONS.get(today)
+    if special_session:
+        start = dt.time.fromisoformat(special_session[0])
+        end = dt.time.fromisoformat(special_session[1])
+        return not (start <= ist.time() < end)
     if today in NSE_HOLIDAYS or ist.weekday() >= 5:
         return True
     if ist.hour < 16:
