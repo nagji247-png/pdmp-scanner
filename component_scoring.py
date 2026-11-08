@@ -400,6 +400,99 @@ def _exchange_integer(value):
     return int(number)
 
 
+def compare_nse_udiff_index_futures_oi(
+    current_rows, previous_rows, symbol, trade_date, previous_trade_date, expiry
+):
+    """Compare one exact NSE FUTIDX symbol/expiry across two dated UDiFF files.
+
+    This is an exchange-contract diagnostic only. It deliberately does not
+    produce a directional score or claim full contract-master coverage.
+    """
+    target_symbol = str(symbol or "").strip().upper()
+    target_date = _parse_exchange_date(str(trade_date or ""))
+    prior_date = _parse_exchange_date(str(previous_trade_date or ""))
+    target_expiry = _parse_exchange_date(str(expiry or ""))
+    if (not target_symbol or not target_date or not prior_date or not target_expiry
+            or not isinstance(current_rows, list) or not isinstance(previous_rows, list)):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "symbol, dates, expiry or dated NSE UDiFF rows missing"}
+
+    def exact_contract(rows, expected_date):
+        matches = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("Sgmt") or "").strip().upper() != "FO":
+                continue
+            if str(row.get("Src") or "").strip().upper() != "NSE":
+                continue
+            if str(row.get("FinInstrmTp") or "").strip().upper() != "FUTIDX":
+                continue
+            if str(row.get("TckrSymb") or "").strip().upper() != target_symbol:
+                continue
+            if _parse_exchange_date(str(row.get("BizDt") or "")) != expected_date:
+                continue
+            if _parse_exchange_date(str(row.get("XpryDt") or "")) != target_expiry:
+                continue
+            oi = _exchange_integer(row.get("OpnIntrst"))
+            oi_change = _exchange_integer(row.get("ChngInOpnIntrst"))
+            close = finite_number(row.get("ClsPric"))
+            if oi is None or oi_change is None or close is None or close <= 0:
+                return None, "missing_or_invalid_oi_change_or_close"
+            matches.append({
+                "open_interest": oi,
+                "change_in_oi": oi_change,
+                "close": round(close, 6),
+            })
+        if len(matches) != 1:
+            return None, "exact_symbol_expiry_date_row_count_not_one"
+        return matches[0], None
+
+    current, current_error = exact_contract(current_rows, target_date)
+    previous, previous_error = exact_contract(previous_rows, prior_date)
+    if current is None or previous is None:
+        return {
+            "available": False, "included_in_asset_final": False,
+            "source": "NSE UDiFF FO Bhavcopy · FUTIDX",
+            "symbol": target_symbol, "expiry": target_expiry,
+            "source_date": target_date, "previous_source_date": prior_date,
+            "reason": current_error or previous_error,
+            "current": current, "previous": previous,
+        }
+
+    oi_change = current["open_interest"] - previous["open_interest"]
+    close_change = round(current["close"] - previous["close"], 6)
+    if close_change > 0 and oi_change > 0:
+        regime = "price_up_oi_up"
+    elif close_change > 0 and oi_change < 0:
+        regime = "price_up_oi_down"
+    elif close_change < 0 and oi_change > 0:
+        regime = "price_down_oi_up"
+    elif close_change < 0 and oi_change < 0:
+        regime = "price_down_oi_down"
+    else:
+        regime = "mixed_or_unchanged"
+    return {
+        "available": True,
+        "included_in_asset_final": False,
+        "coverage_validated": False,
+        "source": "NSE UDiFF FO Bhavcopy · FUTIDX",
+        "exchange": "NSE",
+        "symbol": target_symbol,
+        "instrument_type": "FUTIDX",
+        "expiry": target_expiry,
+        "source_date": target_date,
+        "previous_source_date": prior_date,
+        "current": current,
+        "previous": previous,
+        "change_in_oi": oi_change,
+        "change_in_close": close_change,
+        "price_oi_regime": regime,
+        "interpretation": "diagnostic_only_not_directional_signal",
+        "reason": None,
+    }
+
+
 def aggregate_nse_udiff_index_option_oi(rows, symbol, trade_date):
     """Aggregate NSE UDiFF IDO (index-option) CE/PE OI for one exact trade date.
 
