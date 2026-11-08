@@ -75,6 +75,21 @@ jobs:
               print(f"| {asset} | {row.get('sample_count', 0)} | {row.get('contrarian_accuracy_pct')} | {row.get('crowd_follow_accuracy_pct')} |")
           print("\nZero samples means insufficient dated component evidence, not zero accuracy.")
           print("This is close-to-close direction testing, not option-premium profitability.")
+          print("\n### Latest per-asset component evidence (committed EOD archive)")
+          print("| Asset | Latest EOD date | Final score | Coverage | Included components |")
+          print("|---|---|---:|---:|---|")
+          for asset in ("NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"):
+              row = report["archive_audit"].get("latest_asset_evidence", {}).get(asset, {})
+              coverage = row.get("coverage") or {}
+              score = row.get("final_score")
+              score_text = f"{score:+.2f}" if isinstance(score, (int, float)) else "—"
+              coverage_text = (
+                  f"{coverage.get('coverage_pct')}% "
+                  f"({coverage.get('included_count')}/{coverage.get('applicable_count')})"
+                  if coverage else "—"
+              )
+              included = ", ".join(row.get("included_components") or []) or "—"
+              print(f"| {asset} | {row.get('date', '—')} | {score_text} | {coverage_text} | {included} |")
           print("\n### Archive audit")
           print("```json")
           print(json.dumps(report["archive_audit"], indent=2))
