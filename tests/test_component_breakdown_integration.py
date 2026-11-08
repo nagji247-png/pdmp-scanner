@@ -520,7 +520,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "BSE official SENSEX index-option EOD data",
         )
         self.assertIn("BSE", excluded["eod_oi"]["reason"])
-        self.assertNotIn("NSE UDiFF में NIFTY/BANKNIFTY", excluded["eod_oi"]["reason"])
+        self.assertIn("NSE UDiFF में NIFTY/BANKNIFTY की जाँच को SENSEX पर लागू नहीं किया गया", excluded["eod_oi"]["reason"])
         self.assertEqual(
             excluded["futures"]["source"],
             "BSE SENSEX index-futures contract data",
