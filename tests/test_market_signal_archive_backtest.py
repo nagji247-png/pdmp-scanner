@@ -87,7 +87,7 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertEqual(latest["NIFTY"]["components"]["news"]["source_date"], "2026-11-06")
         self.assertEqual(latest["NIFTY"]["components"]["news"]["evidence_count"], 3)
         self.assertIn("search", latest["NIFTY"]["excluded_components"])
-        self.assertEqual(latest["GOLD"]["final_score"], 2.0 - 4.0)
+        self.assertEqual(latest["GOLD"]["final_score"], -2.0)
 
     def test_non_eod_snapshots_are_not_used(self):
         archive = {"records": [
