@@ -1,0 +1,30 @@
+import unittest
+from mcx_bhavcopy_archive import append_session,filter_contract_rows
+
+def sample(date="06 Nov 2026"):
+ return [
+  {"InstrumentName":"FUTCOM","Symbol":"GOLD","DateDisplay":date,"ExpiryDate":"04DEC2026","OptionType":"-","OpenInterest":"15771","Close":"142364"},
+  {"InstrumentName":"FUTCOM","Symbol":"GOLD","DateDisplay":date,"ExpiryDate":"05FEB2027","OptionType":"-","OpenInterest":"120","Close":"145000"},
+  {"InstrumentName":"FUTCOM","Symbol":"SILVER","DateDisplay":date,"ExpiryDate":"05DEC2026","OptionType":"-","OpenInterest":"23000","Close":"180000"},
+  {"InstrumentName":"FUTIDX","Symbol":"NIFTY","DateDisplay":date,"ExpiryDate":"10NOV2026","OptionType":"-","OpenInterest":"1","Close":"25000"},
+ ]
+class MCXBhavcopyArchiveTests(unittest.TestCase):
+ def test_filters_commodity_futcom_and_preserves_expiries(self):
+  got=filter_contract_rows(sample(),"2026-11-06")
+  self.assertEqual(len(got),3); self.assertEqual([x["Symbol"] for x in got],["GOLD","GOLD","SILVER"])
+  self.assertEqual(got[0]["OpenInterest"],15771); self.assertEqual(got[0]["ExpiryDate"],"04DEC2026")
+ def test_rejects_wrong_date(self):
+  with self.assertRaisesRegex(ValueError,"date mismatch"): filter_contract_rows(sample("05 Nov 2026"),"2026-11-06")
+ def test_rejects_duplicate_contract(self):
+  x=sample(); x.append(dict(x[0]))
+  with self.assertRaisesRegex(ValueError,"Duplicate"): filter_contract_rows(x,"2026-11-06")
+ def test_rejects_bad_oi_and_missing_commodity(self):
+  x=sample(); x[0]["OpenInterest"]=""
+  with self.assertRaisesRegex(ValueError,"Malformed"): filter_contract_rows(x,"2026-11-06")
+  with self.assertRaisesRegex(ValueError,"lacks required"): filter_contract_rows([sample()[0]],"2026-11-06")
+ def test_appends_once_without_overwriting(self):
+  a,ok=append_session({"records":[]},"2026-11-06",sample(),"2026-11-06T17:20:00Z")
+  self.assertTrue(ok)
+  b,ok2=append_session(a,"2026-11-06",sample(),"2026-11-06T18:20:00Z")
+  self.assertFalse(ok2); self.assertEqual(b["records"][0]["captured_at_utc"],"2026-11-06T17:20:00Z")
+if __name__=="__main__": unittest.main()
