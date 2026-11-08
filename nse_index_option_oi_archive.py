@@ -136,6 +136,69 @@ def aggregate_udiff_rows(rows, trade_date):
     return output
 
 
+def aggregate_index_futures_rows(rows, trade_date):
+    """Capture exact NSE NIFTY/BANKNIFTY FUTIDX rows from the same UDiFF file.
+
+    No extra exchange request is made. Rows are retained by exact expiry and
+    date so consecutive-session comparisons never roll contracts implicitly.
+    """
+    target_date = parse_date(trade_date)
+    output = {symbol: {} for symbol in SYMBOLS}
+    seen = set()
+    invalid = {symbol: [] for symbol in SYMBOLS}
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("FinInstrmTp") or "").strip().upper() != "FUTIDX":
+            continue
+        symbol = str(row.get("TckrSymb") or "").strip().upper()
+        if symbol not in SYMBOLS:
+            continue
+        try:
+            if str(row.get("Sgmt") or "").strip().upper() != "FO":
+                raise ValueError("unexpected segment")
+            if str(row.get("Src") or "").strip().upper() != "NSE":
+                raise ValueError("unexpected source")
+            if parse_date(row.get("BizDt")) != target_date:
+                raise ValueError("trade date mismatch")
+            expiry = parse_date(row.get("XpryDt"))
+            if expiry < target_date:
+                raise ValueError("expired futures contract")
+            oi = integer(row.get("OpnIntrst"), "OpnIntrst")
+            change = integer(row.get("ChngInOpnIntrst"), "ChngInOpnIntrst")
+            close = positive_number(row.get("ClsPric"), "ClsPric")
+            if oi < 0:
+                raise ValueError("negative open interest")
+            key = (symbol, expiry.isoformat())
+            if key in seen:
+                raise ValueError(f"duplicate futures contract row: {key}")
+            seen.add(key)
+            output[symbol][expiry.isoformat()] = {
+                "open_interest": oi,
+                "change_in_oi": change,
+                "close": round(close, 6),
+            }
+        except ValueError as exc:
+            invalid[symbol].append(str(exc))
+
+    result = {}
+    for symbol in SYMBOLS:
+        valid = bool(output[symbol]) and not invalid[symbol]
+        result[symbol] = {
+            "available": valid,
+            "contract_count": len(output[symbol]),
+            "by_expiry": dict(sorted(output[symbol].items())),
+            "coverage_validated": False,
+            "included_in_asset_final": False,
+            "reason": None if valid else (
+                "; ".join(sorted(set(invalid[symbol])))
+                if invalid[symbol] else "no exact FUTIDX rows for this symbol/date"
+            ),
+        }
+    return result
+
+
 def decode_udiff_zip(payload):
     try:
         with zipfile.ZipFile(io.BytesIO(payload)) as archive:
@@ -152,7 +215,7 @@ def decode_udiff_zip(payload):
         raise ValueError("UDiFF CSV is not UTF-8") from exc
     reader = csv.DictReader(io.StringIO(decoded))
     required = {"FinInstrmTp", "TckrSymb", "BizDt", "XpryDt",
-                "OptnTp", "StrkPric", "OpnIntrst", "ChngInOpnIntrst"}
+                "OptnTp", "StrkPric", "OpnIntrst", "ChngInOpnIntrst", "ClsPric"}
     if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
         raise ValueError("UDiFF CSV is missing required index-option columns")
     return list(reader)
@@ -179,7 +242,7 @@ def fetch_official_bhavcopy(trade_date, session=None):
     raise RuntimeError("official NSE UDiFF Bhavcopy unavailable: " + " | ".join(failures))
 
 
-def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at):
+def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at, index_futures=None):
     day = parse_date(trade_date).isoformat()
     digest = hashlib.sha256(payload).hexdigest()
     records = archive.setdefault("records", [])
@@ -195,13 +258,14 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
         "sha256": digest,
         "fetched_at": fetched_at,
         "symbols": symbols,
+        "index_futures": index_futures or {},
     })
     records.sort(key=lambda item: item["date"])
     archive["records"] = records[-KEEP_SESSIONS:]
     archive["schema_version"] = 1
     archive["source"] = "NSE India official F&O UDiFF Common Bhavcopy Final"
     archive["symbols"] = list(SYMBOLS)
-    archive["scope"] = "NIFTY and BANKNIFTY index options; CE/PE OI by expiry"
+    archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI and FUTIDX price/OI by exact expiry"
     archive["research_only"] = True
     archive["included_in_asset_final"] = False
     return True
@@ -242,8 +306,11 @@ def capture_one(archive, trade_date):
     payload, source_url = fetch_official_bhavcopy(trade_date)
     rows = decode_udiff_zip(payload)
     symbols = aggregate_udiff_rows(rows, trade_date)
+    index_futures = aggregate_index_futures_rows(rows, trade_date)
     fetched_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    changed = append_archive(archive, trade_date, source_url, payload, symbols, fetched_at)
+    changed = append_archive(
+        archive, trade_date, source_url, payload, symbols, fetched_at, index_futures
+    )
     return {
         "date": date_key, "status": "captured" if changed else "skipped_existing",
         "date_attempts": 1, "sha256": hashlib.sha256(payload).hexdigest(),
@@ -253,6 +320,13 @@ def capture_one(archive, trade_date):
                      "coverage_validated": value["coverage_validated"],
                      "included_in_asset_final": value["included_in_asset_final"]}
             for symbol, value in symbols.items()
+        },
+        "index_futures": {
+            symbol: {"contract_count": value["contract_count"],
+                     "available": value["available"],
+                     "coverage_validated": value["coverage_validated"],
+                     "included_in_asset_final": value["included_in_asset_final"]}
+            for symbol, value in index_futures.items()
         }
     }
 
