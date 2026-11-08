@@ -510,3 +510,29 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_five_asset_trends_shadow_uses_one_independent_seed_batch(self):
+        calls = []
+
+        class FakeTrendReq:
+            def __init__(self, **kwargs):
+                self.kwargs = kwargs
+
+            def build_payload(self, keywords, **kwargs):
+                calls.append((list(keywords), kwargs))
+                raise RuntimeError("stop after payload capture; no network request")
+
+        with mock.patch("pytrends.request.TrendReq", FakeTrendReq):
+            result = fetch_and_score.fetch_asset_trends_shadow()
+
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(
+            calls[0][0],
+            ["nifty", "sensex", "bank nifty", "gold price", "silver price"],
+        )
+        self.assertEqual(calls[0][1], {"timeframe": "now 1-d", "geo": "IN"})
+        self.assertEqual(
+            set(result),
+            {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"},
+        )
+        self.assertTrue(all(item.get("valid") is False for item in result.values()))
