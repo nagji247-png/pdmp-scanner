@@ -190,7 +190,7 @@ def weighted_constituent_breadth_candidate(
 
 
 def search_component_from_snapshot(
-    snapshot, now_utc=None, max_age_minutes=120, weight=40.0
+    snapshot, now_utc=None, max_age_minutes=360, weight=40.0
 ):
     """Accept only a fresh, timestamped, asset-specific one-day Trends reading."""
     if not isinstance(snapshot, dict) or not snapshot.get("valid"):

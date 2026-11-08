@@ -105,7 +105,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
-TRENDS_MAX_AGE_MINUTES = 360  # 30 मिनट से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
+TRENDS_MAX_AGE_MINUTES = 360  # 6 घंटे से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -374,7 +374,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             if not (isinstance(fresh, dict) and fresh.get("valid")):
                 stamp = old.get("source_data_time") or old.get("as_of") if isinstance(old, dict) else None
                 if isinstance(old, dict) and old.get("valid") and is_fresh_timestamp(
-                    stamp, now_utc, max_age_minutes=120
+                    stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES
                 ):
                     cached = dict(old)
                     cached["cached"] = True
@@ -402,7 +402,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
 
         if isinstance(old, dict) and old.get("valid"):
             stamp = old.get("source_data_time") or old.get("as_of")
-            if is_fresh_timestamp(stamp, now_utc, max_age_minutes=120):
+            if is_fresh_timestamp(stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES):
                 cached = dict(old)
                 cached["cached"] = True
                 item[field] = cached
@@ -588,7 +588,7 @@ def build_asset_component_breakdowns(
                 search_component, search_reason = search_component_from_snapshot(
                     search_snapshot,
                     now_utc=now_utc,
-                    max_age_minutes=120,
+                    max_age_minutes=TRENDS_MAX_AGE_MINUTES,
                     weight=DEFAULT_COMPONENT_WEIGHTS["search"],
                 )
             if search_component:
@@ -3845,7 +3845,7 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
             if abs((chunk_time - last_utc).total_seconds()) > TRENDS_MAX_AGE_MINUTES * 60:
                 raise ValueError(
                     f"Google Trends {direction} keywords का observation base data से "
-                    "30 मिनट से अधिक अलग है"
+                    "6 घंटे से अधिक अलग है"
                 )
             for term in chunk:
                 recent_ratio, average_ratio = _ratio(df, term, recent_points=recent_points)
