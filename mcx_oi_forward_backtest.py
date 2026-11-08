@@ -54,7 +54,7 @@ def _session_map(record):
     return mapped
 
 
-def evaluate_forward_price_oi(archive, min_observations=1):
+def evaluate_forward_price_oi(archive, min_signal_sessions=60):
     """Test whether current price direction continues or reverses next session.
 
     Signal inputs use only previous/current sessions. Outcome is the next
@@ -130,9 +130,13 @@ def evaluate_forward_price_oi(archive, min_observations=1):
                 if values["next_up"] + values["next_down"] else None,
         }
     count = len(observations)
+    signal_sessions = len({item["signal_date"] for item in observations})
     result = {
-        "status": "available" if count >= int(min_observations) else "insufficient_sample",
+        "status": "available" if signal_sessions >= int(min_signal_sessions) else "insufficient_sample",
         "observations": count,
+        "signal_sessions": signal_sessions,
+        "minimum_signal_sessions": int(min_signal_sessions),
+        "sample_unit": "contract-expiry observations; multiple expiries on one date are not independent sessions",
         "regimes": summary,
         "excluded": dict(excluded),
         "sample": observations,
@@ -141,6 +145,6 @@ def evaluate_forward_price_oi(archive, min_observations=1):
         "included_in_asset_final": False,
         "trading_signal": False,
     }
-    if count < int(min_observations):
-        result["reason"] = f"observations {count} below minimum {int(min_observations)}"
+    if signal_sessions < int(min_signal_sessions):
+        result["reason"] = f"signal sessions {signal_sessions} below minimum {int(min_signal_sessions)}"
     return result
