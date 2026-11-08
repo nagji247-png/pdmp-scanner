@@ -61,7 +61,7 @@ def write_archive_atomic(path,archive):
     target=Path(path)
     target.parent.mkdir(parents=True,exist_ok=True)
     temporary=target.with_suffix(target.suffix+".tmp")
-    payload=json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+"\\n"
+    payload=json.dumps(archive,ensure_ascii=False,indent=2,allow_nan=False)+chr(10)
     try:
         with temporary.open("w",encoding="utf-8") as handle:
             handle.write(payload)
