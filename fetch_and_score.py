@@ -4654,20 +4654,35 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 5
+    BACKFILL_VERSION = 6
+    BACKFILL_TARGET = 250
+    # Keep the ordinary PDMP scan from issuing hundreds of historical NSE
+    # requests in one run. Resume a dated cursor and make at most three
+    # exact-session requests per 24-hour backfill window.
     retry_due = (backfill_state.get("version") != BACKFILL_VERSION
                   or last_attempt is None
                   or (now - last_attempt).total_seconds() >= 86400)
-    BACKFILL_TARGET = 250
     if len(by_date) < BACKFILL_TARGET and retry_due:
-        anchor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
-        # 420 calendar days allow for weekends/holidays; stop immediately at target.
-        for offset in range(0, 421):
-            if len(by_date) >= BACKFILL_TARGET:
-                break
-            target_day = anchor_date - dt.timedelta(days=offset)
+        if backfill_state.get("version") == BACKFILL_VERSION:
+            try:
+                cursor_date = dt.date.fromisoformat(backfill_state.get("next_date", ""))
+                days_remaining = max(0, int(backfill_state.get("calendar_days_remaining", 0)))
+            except (TypeError, ValueError):
+                cursor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
+                days_remaining = 421
+        else:
+            cursor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
+            days_remaining = 421
+
+        requests_this_run = 0
+        while (len(by_date) < BACKFILL_TARGET and requests_this_run < 3
+               and days_remaining > 0):
+            target_day = cursor_date
+            cursor_date -= dt.timedelta(days=1)
+            days_remaining -= 1
             if target_day.weekday() >= 5:
                 continue
+            requests_this_run += 1
             historical = fetch_participant_oi(base_date=target_day, lookback_days=0)
             if not isinstance(historical, dict) or not historical.get("ok") or historical.get("stale"):
                 continue
@@ -4690,7 +4705,10 @@ def update_participant_oi_history(*snapshots):
             "status": "complete" if len(by_date) >= BACKFILL_TARGET else "partial",
             "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
             "sessions_added": backfilled,
+            "requests_this_run": requests_this_run,
             "target_sessions": BACKFILL_TARGET,
+            "next_date": cursor_date.isoformat(),
+            "calendar_days_remaining": days_remaining,
         }
 
     ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
