@@ -71,6 +71,11 @@ def build_component(score, source, source_date, weight, **metadata):
         return None
     if numeric_weight is None or numeric_weight <= 0:
         return None
+    # Metadata is caller-supplied diagnostic context. It must never be able
+    # to overwrite the fields that establish score eligibility and provenance.
+    reserved = {"score", "source", "source_date", "weight", "included"}
+    if reserved.intersection(metadata):
+        return None
     component = {
         "score": normalized,
         "source": str(source).strip(),
