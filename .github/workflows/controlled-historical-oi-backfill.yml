@@ -1,0 +1,141 @@
+name: Controlled Historical OI Backfill
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/controlled-historical-oi-backfill.yml"
+      - "nse_index_option_oi_archive.py"
+      - "mcx_bhavcopy_archive.py"
+      - "fetch_and_score.py"
+      - "tests/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/controlled-historical-oi-backfill.yml"
+      - "nse_index_option_oi_archive.py"
+      - "mcx_bhavcopy_archive.py"
+      - "fetch_and_score.py"
+      - "tests/**"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Choose one exchange only (keeps provider requests controlled)"
+        required: true
+        type: choice
+        options:
+          - nse
+          - mcx
+      start_date:
+        description: "Start date YYYY-MM-DD"
+        required: true
+        type: string
+      end_date:
+        description: "End date YYYY-MM-DD"
+        required: true
+        type: string
+      max_sessions:
+        description: "Maximum weekday dates to attempt (hard cap 5)"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+        default: "5"
+      delay_seconds:
+        description: "Pause between date attempts (minimum 2 seconds)"
+        required: true
+        type: choice
+        options:
+          - "2"
+          - "3"
+          - "5"
+          - "10"
+        default: "5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: controlled-historical-oi-backfill
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install existing scanner runtime dependencies
+        run: python -m pip install yfinance feedparser requests curl_cffi pytrends
+      - name: Validate archive code and offline regression tests
+        run: |
+          python -m py_compile fetch_and_score.py nse_index_option_oi_archive.py mcx_bhavcopy_archive.py
+          python -m unittest discover -s tests -v
+
+  backfill:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install existing scanner runtime dependencies
+        run: python -m pip install yfinance feedparser requests curl_cffi pytrends
+      - name: Validate archive code and offline regression tests
+        run: |
+          python -m py_compile fetch_and_score.py nse_index_option_oi_archive.py mcx_bhavcopy_archive.py
+          python -m unittest discover -s tests -v
+      - name: Run bounded NSE historical archive
+        if: inputs.source == 'nse'
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          MAX_SESSIONS: ${{ inputs.max_sessions }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds }}
+        run: |
+          python nse_index_option_oi_archive.py \
+            --from-date "$START_DATE" \
+            --to-date "$END_DATE" \
+            --max-sessions "$MAX_SESSIONS" \
+            --delay-seconds "$DELAY_SECONDS"
+      - name: Run bounded MCX historical archive
+        if: inputs.source == 'mcx'
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          MAX_SESSIONS: ${{ inputs.max_sessions }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds }}
+        run: |
+          python mcx_bhavcopy_archive.py \
+            --from-date "$START_DATE" \
+            --to-date "$END_DATE" \
+            --max-sessions "$MAX_SESSIONS" \
+            --delay-seconds "$DELAY_SECONDS"
+      - name: Commit only the selected research archive
+        env:
+          SOURCE: ${{ inputs.source }}
+        run: |
+          if [ "$SOURCE" = "nse" ]; then
+            ARCHIVE="nse_index_option_oi.json"
+          else
+            ARCHIVE="mcx_bhavcopy_archive.json"
+          fi
+          if git diff --quiet -- "$ARCHIVE"; then
+            echo "No new validated archive sessions; commit skipped."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$ARCHIVE"
+          git commit -m "Backfill bounded $SOURCE historical OI archive"
+          git push origin HEAD:main
