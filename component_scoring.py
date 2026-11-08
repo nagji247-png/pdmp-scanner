@@ -194,6 +194,54 @@ def weighted_constituent_breadth_candidate(
     }
 
 
+
+def equal_weight_constituent_breadth_candidate(
+    constituents, source, source_date, expected_symbols=None,
+):
+    """Diagnostic-only equal-weight breadth proxy for a complete official roster.
+
+    This is deliberately separate from the cap-weighted candidate: it does not
+    pretend free EOD files contain official constituent weights. The complete
+    authoritative roster and every prior/current close are mandatory.
+    """
+    if not isinstance(constituents, list) or not constituents:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "constituent rows missing"}
+    if not isinstance(expected_symbols, (list, tuple, set)) or not expected_symbols:
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "authoritative expected constituent roster missing"}
+    expected = [str(symbol or "").strip().upper() for symbol in expected_symbols]
+    if any(not symbol for symbol in expected) or len(set(expected)) != len(expected):
+        return {"available": False, "included_in_asset_final": False,
+                "reason": "authoritative expected constituent roster invalid or duplicated"}
+    rows = []
+    for item in constituents:
+        if not isinstance(item, dict):
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "malformed constituent row"}
+        symbol = str(item.get("symbol") or "").strip().upper()
+        if not symbol:
+            return {"available": False, "included_in_asset_final": False,
+                    "reason": "missing constituent symbol"}
+        rows.append({
+            "symbol": symbol,
+            "weight_pct": 100.0 / len(expected),
+            "previous_close": item.get("previous_close"),
+            "current_close": item.get("current_close"),
+        })
+    result = weighted_constituent_breadth_candidate(
+        rows, source, source_date, expected_symbols=expected
+    )
+    result["weighting_method"] = "equal_weight_breadth_proxy"
+    result["scope"] = (
+        "पूर्ण आधिकारिक constituent roster; equal-weight advancing minus "
+        "declining breadth proxy; official cap weights उपलब्ध नहीं"
+    )
+    result["included_in_asset_final"] = False
+    result["validation_status"] = "DIAGNOSTIC_ONLY_REQUIRES_HISTORICAL_HOLDOUT"
+    return result
+
+
 def search_component_from_snapshot(
     snapshot, now_utc=None, max_age_minutes=360, weight=40.0
 ):
