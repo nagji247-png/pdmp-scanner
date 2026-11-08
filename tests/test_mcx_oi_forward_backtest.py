@@ -16,13 +16,16 @@ class MCXForwardBacktestTests(unittest.TestCase):
             session("2026-11-03", 102, 12),
             session("2026-11-04", 103, 13),
         ]}
-        result = evaluate_forward_price_oi(archive)
+        result = evaluate_forward_price_oi(archive, min_signal_sessions=1)
         self.assertEqual(result["observations"], 2)
+        self.assertEqual(result["signal_sessions"], 1)
+        self.assertEqual(result["status"], "available")
         self.assertEqual(result["sample"][0]["signal_date"], "2026-11-03")
         self.assertEqual(result["sample"][0]["outcome_date"], "2026-11-04")
         self.assertEqual(result["sample"][0]["price_oi_regime"], "price_up_oi_up")
         self.assertFalse(result["included_in_asset_final"])
         self.assertFalse(result["trading_signal"])
+        self.assertEqual(evaluate_forward_price_oi(archive)["status"], "insufficient_sample")
 
     def test_no_observation_when_expiry_rolls_or_contract_missing(self):
         archive = {"records": [
