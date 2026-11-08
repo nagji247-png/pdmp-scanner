@@ -4066,7 +4066,7 @@ def _asset_search_direction(term, asset):
         "recovery", "recover", "bounce", "uptrend", "rise", "rises",
         "rising", "jump", "jumps", "up", "upside", "higher", "positive",
         "outperform", "bullrun", "bull", "buying", "teji", "tez", "badhega",
-        "badhegi", "upar", "chadhega", "chadhav", "chadhne", "badhegi",
+        "badhegi", "badhne", "upar", "chadhega", "chadhav", "chadhne", "बढ़ने", "बढने",
         "बुलिश", "तेज़ी", "तेजी", "उछाल", "बढ़ेगा", "बढ़ेगी",
         "ऊपर", "बढ़त", "चढ़ा", "चढ़ेगा", "महंगा", "महंगी",
         "रिकवरी", "ब्रेकआउट", "रैली",
