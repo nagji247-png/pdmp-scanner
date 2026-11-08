@@ -508,6 +508,26 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(item["score"], 1.25)
 
 
+    def test_sensex_component_exclusions_use_bse_not_nse_sources(self):
+        now = datetime(2026, 11, 8, 6, 0, tzinfo=timezone.utc)
+        instruments = {"SENSEX": {"score": 1.0, "headlines": []}}
+        fetch_and_score.build_asset_component_breakdowns(
+            instruments, "2026-11-08T06:00:00Z", now
+        )
+        excluded = instruments["SENSEX"]["component_breakdown"]["excluded_components"]
+        self.assertEqual(
+            excluded["eod_oi"]["source"],
+            "BSE official SENSEX index-option EOD data",
+        )
+        self.assertIn("BSE", excluded["eod_oi"]["reason"])
+        self.assertNotIn("NSE UDiFF में NIFTY/BANKNIFTY", excluded["eod_oi"]["reason"])
+        self.assertEqual(
+            excluded["futures"]["source"],
+            "BSE SENSEX index-futures contract data",
+        )
+        self.assertIn("market-wide aggregate", excluded["futures"]["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
