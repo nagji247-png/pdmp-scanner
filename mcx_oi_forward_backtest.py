@@ -82,9 +82,9 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
         dates.append(session_date)
         maps.append(_session_map(record))
 
-    regimes = defaultdict(lambda: {"observations": 0, "continuation_hits": 0,
-                                   "contrarian_hits": 0, "next_up": 0,
-                                   "next_down": 0, "next_flat": 0})
+    by_symbol = defaultdict(lambda: {"regimes": defaultdict(lambda: {
+        "observations": 0, "continuation_hits": 0, "contrarian_hits": 0,
+        "next_up": 0, "next_down": 0, "next_flat": 0}), "signal_dates": set()})
     excluded = defaultdict(int)
     observations = []
     for index in range(1, len(maps) - 1):
@@ -97,10 +97,7 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
             if price_delta == 0 or oi_delta == 0:
                 excluded["unchanged_signal_input"] += 1
                 continue
-            if next_delta == 0:
-                outcome = "flat"
-            else:
-                outcome = "up" if next_delta > 0 else "down"
+            outcome = "flat" if next_delta == 0 else ("up" if next_delta > 0 else "down")
             regime = ("price_up_oi_up" if price_delta > 0 and oi_delta > 0 else
                       "price_up_oi_down" if price_delta > 0 and oi_delta < 0 else
                       "price_down_oi_up" if price_delta < 0 and oi_delta > 0 else
@@ -111,7 +108,9 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
                     "outcome_date": dates[index + 1].isoformat(),
                     "price_oi_regime": regime, "next_session_direction": outcome}
             observations.append(item)
-            bucket = regimes[regime]
+            symbol_data = by_symbol[key[0]]
+            symbol_data["signal_dates"].add(item["signal_date"])
+            bucket = symbol_data["regimes"][regime]
             bucket["observations"] += 1
             bucket["continuation_hits"] += int(outcome == expected)
             bucket["contrarian_hits"] += int(outcome != expected and outcome != "flat")
@@ -119,25 +118,38 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
             bucket["next_down"] += int(outcome == "down")
             bucket["next_flat"] += int(outcome == "flat")
 
-    summary = {}
-    for name, values in sorted(regimes.items()):
-        count = values["observations"]
-        summary[name] = {
-            **values,
-            "continuation_accuracy_pct": round(100 * values["continuation_hits"] / count, 2) if count else None,
-            "contrarian_accuracy_pct_excluding_flat": round(100 * values["contrarian_hits"] /
-                (values["next_up"] + values["next_down"]), 2)
-                if values["next_up"] + values["next_down"] else None,
+    per_symbol = {}
+    for symbol in ("GOLD", "SILVER"):
+        symbol_data = by_symbol[symbol]
+        signal_sessions = len(symbol_data["signal_dates"])
+        regime_summary = {}
+        for name, values in sorted(symbol_data["regimes"].items()):
+            count = values["observations"]
+            directional = values["next_up"] + values["next_down"]
+            regime_summary[name] = {
+                **values,
+                "continuation_accuracy_pct": round(100 * values["continuation_hits"] / count, 2) if count else None,
+                "contrarian_accuracy_pct_excluding_flat": round(100 * values["contrarian_hits"] / directional, 2) if directional else None,
+            }
+        per_symbol[symbol] = {
+            "status": "available" if signal_sessions >= int(min_signal_sessions) else "insufficient_sample",
+            "observations": sum(v["observations"] for v in regime_summary.values()),
+            "signal_sessions": signal_sessions,
+            "minimum_signal_sessions": int(min_signal_sessions),
+            "regimes": regime_summary,
+            "reason": None if signal_sessions >= int(min_signal_sessions) else
+                f"signal sessions {signal_sessions} below minimum {int(min_signal_sessions)}",
         }
+
     count = len(observations)
-    signal_sessions = len({item["signal_date"] for item in observations})
+    all_symbols_ready = all(per_symbol[symbol]["status"] == "available" for symbol in ("GOLD", "SILVER"))
     result = {
-        "status": "available" if signal_sessions >= int(min_signal_sessions) else "insufficient_sample",
+        "status": "available" if all_symbols_ready else "insufficient_sample",
         "observations": count,
-        "signal_sessions": signal_sessions,
-        "minimum_signal_sessions": int(min_signal_sessions),
-        "sample_unit": "contract-expiry observations; multiple expiries on one date are not independent sessions",
-        "regimes": summary,
+        "signal_sessions_by_symbol": {symbol: per_symbol[symbol]["signal_sessions"] for symbol in ("GOLD", "SILVER")},
+        "minimum_signal_sessions_per_symbol": int(min_signal_sessions),
+        "sample_unit": "contract-expiry observations; GOLD and SILVER are reported separately; multiple expiries on one date are not independent sessions",
+        "by_symbol": per_symbol,
         "excluded": dict(excluded),
         "sample": observations,
         "method": "same symbol+expiry; prior/current price-OI regime predicts next archived-session close direction; no look-ahead",
@@ -145,6 +157,7 @@ def evaluate_forward_price_oi(archive, min_signal_sessions=60):
         "included_in_asset_final": False,
         "trading_signal": False,
     }
-    if signal_sessions < int(min_signal_sessions):
-        result["reason"] = f"signal sessions {signal_sessions} below minimum {int(min_signal_sessions)}"
+    if not all_symbols_ready:
+        result["reason"] = "at least one commodity has fewer than the required distinct signal sessions"
+
     return result
