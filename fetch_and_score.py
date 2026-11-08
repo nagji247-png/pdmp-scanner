@@ -3732,7 +3732,7 @@ def tq_weight(v):
 
 def tq_aggregate(queries):
     """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
-    bull_w = bear_w = 0.0
+    bull_w = bear_w = neutral_w = 0.0
     crowd_terms, spikes = [], []
     for item in queries.values():
         d = tq_dir(item["term"])
@@ -3740,6 +3740,8 @@ def tq_aggregate(queries):
             bull_w += item["weight"]
         elif d == "bear":
             bear_w += item["weight"]
+        elif d == "neutral":
+            neutral_w += item["weight"]
         if d:
             crowd_terms.append({"term": item["term"], "dir": d, "now": round(item["weight"], 1),
                                 "avg": round(item["weight"], 1), "today_pct": None, "yesterday_pct": None})
@@ -3761,11 +3763,13 @@ def tq_aggregate(queries):
             label = "ज़्यादातर बियरिश सोच"
         else:
             label = "सोच बँटी हुई"
-        bull_score = round(max(0.0, bull_w - bear_w) / total * 100, 1)
-        bear_score = round(max(0.0, bear_w - bull_w) / total * 100, 1)
-        neutral_score = round(max(0.0, 100.0 - bull_score - bear_score), 1)
-        # Direction label compares bullish vs bearish search interest directly.
-        # Residual neutral score measures strength/uncertainty; it is not a vote.
+        # Three-way mood percentages use the actual weight of each query group.
+        # Keep crowd_bull_pct on the historical bull-vs-bear basis for published-score compatibility.
+        mood_total = bull_w + bear_w + neutral_w
+        bull_score = round(bull_w / mood_total * 100, 1) if mood_total else None
+        bear_score = round(bear_w / mood_total * 100, 1) if mood_total else None
+        neutral_score = round(neutral_w / mood_total * 100, 1) if mood_total else None
+        # Direction label continues to compare directional searches only.
         sentiment = ("BULLISH" if bull_w > bear_w
                      else "BEARISH" if bear_w > bull_w else "NEUTRAL")
     rising_all = [it for it in queries.values() if it.get("rising")]
