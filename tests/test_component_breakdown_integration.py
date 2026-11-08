@@ -23,7 +23,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             100.0,
         )
 
-    def test_informational_searches_are_unclassified_not_neutral(self):
+    def test_asset_matched_information_searches_are_neutral(self):
         cases = [
             ("nifty today", "NIFTY"),
             ("nifty live price", "NIFTY"),
@@ -34,7 +34,11 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         ]
         for term, asset in cases:
             with self.subTest(term=term, asset=asset):
-                self.assertIsNone(fetch_and_score._asset_search_direction(term, asset))
+                self.assertEqual(fetch_and_score._asset_search_direction(term, asset), "neutral")
+
+    def test_bare_price_only_searches_remain_unclassified(self):
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price", "GOLD"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("silver rate", "SILVER"))
 
     def test_explicit_sideways_search_is_neutral(self):
         self.assertEqual(
@@ -380,8 +384,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         # Price/navigation searches are Unclassified, not sentiment votes.
         self.assertIsNone(classify("gold price", "GOLD"))
         self.assertIsNone(classify("silver rate", "SILVER"))
-        self.assertIsNone(classify("gold price today", "GOLD"))
-        self.assertIsNone(classify("Nifty live", "NIFTY"))
+        self.assertEqual(classify("gold price today", "GOLD"), "neutral")
+        self.assertEqual(classify("Nifty live", "NIFTY"), "neutral")
         self.assertIsNone(classify("Nifty share price", "NIFTY"))
         self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
