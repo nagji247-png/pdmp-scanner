@@ -73,6 +73,32 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertEqual(replacement["missing_symbols"], ["BBB"])
         self.assertEqual(replacement["unexpected_symbols"], ["ZZZ"])
 
+    def test_component_metadata_cannot_override_score_or_provenance(self):
+        # Optional metadata must not bypass score clamping or forge provenance.
+        for metadata in (
+            {"score": 99},
+            {"source": "forged source"},
+            {"source_date": "2099-01-01"},
+            {"weight": 9999},
+            {"included": False},
+        ):
+            with self.subTest(metadata=metadata):
+                self.assertIsNone(build_component(
+                    4, "verified source", "2026-11-06", 40, **metadata
+                ))
+
+        valid = build_component(
+            4, "verified source", "2026-11-06", 40,
+            observed_at="2026-11-06T10:00:00Z",
+            seed="nifty",
+        )
+        self.assertEqual(valid["score"], 4.0)
+        self.assertEqual(valid["source"], "verified source")
+        self.assertEqual(valid["source_date"], "2026-11-06")
+        self.assertEqual(valid["weight"], 40.0)
+        self.assertTrue(valid["included"])
+        self.assertEqual(valid["seed"], "nifty")
+
     def test_clamp_and_reject_non_finite_values(self):
         self.assertEqual(clamp_score(15), 10.0)
         self.assertEqual(clamp_score(-15), -10.0)
