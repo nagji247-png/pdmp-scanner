@@ -20,6 +20,18 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         monday_utc = datetime(2026, 11, 9, 5, 30, tzinfo=timezone.utc)
         self.assertFalse(fetch_and_score.market_closed_today(now_utc=monday_utc))
 
+    def test_market_status_marks_official_nse_weekday_holiday_closed(self):
+        republic_day_utc = datetime(2026, 1, 26, 4, 0, tzinfo=timezone.utc)  # 09:30 IST
+        with mock.patch.object(fetch_and_score.yf, "Ticker") as ticker:
+            self.assertTrue(fetch_and_score.market_closed_today(now_utc=republic_day_utc))
+        ticker.assert_not_called()
+
+    def test_market_status_marks_diwali_balipratipada_holiday_closed(self):
+        holiday_utc = datetime(2026, 11, 10, 4, 0, tzinfo=timezone.utc)  # 09:30 IST
+        with mock.patch.object(fetch_and_score.yf, "Ticker") as ticker:
+            self.assertTrue(fetch_and_score.market_closed_today(now_utc=holiday_utc))
+        ticker.assert_not_called()
+
     def test_market_status_recognizes_diwali_muhurat_session_on_sunday(self):
         before_session_utc = datetime(2026, 11, 8, 8, 49, tzinfo=timezone.utc)  # 14:19 IST
         during_session_utc = datetime(2026, 11, 8, 8, 50, tzinfo=timezone.utc)  # 14:20 IST

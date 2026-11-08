@@ -154,13 +154,9 @@ SIG_LOG_KEEP = 200
 CONTRARIAN_LIMIT = 6.0
 # बाज़ार बंद/छुट्टी होने पर नए इवेंट नहीं बनते (main में सेट होता है)
 SKIP_EVENTS = False
-# NSE की आधिकारिक छुट्टियाँ "YYYY-MM-DD" में यहाँ भरें (Google/आधिकारिक सूची से)
-NSE_HOLIDAYS = set()
-# Exchange-notified special live sessions on otherwise closed dates (IST).
-# 2026 Diwali Muhurat: normal market 14:20–15:40 on Sunday 08-Nov-2026.
-SPECIAL_TRADING_SESSIONS = {
-    "2026-11-08": ("14:20", "15:40"),
-}
+# Exchange calendar is maintained separately from scanner logic and contains
+# official NSE equity holidays plus notified special sessions (all times IST).
+EXCHANGE_CALENDAR_FILE = "exchange_calendar.json"
 DATA_FILE = "data.json"
 EVENTS_FILE = "contrarian.json"
 CROWD_FILE = "crowd_events.json"
@@ -4578,12 +4574,20 @@ def market_closed_today(now_utc=None):
         now = now.replace(tzinfo=dt.timezone.utc)
     ist = now.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30)))
     today = ist.date().isoformat()
-    special_session = SPECIAL_TRADING_SESSIONS.get(today)
+    calendar = load_json(EXCHANGE_CALENDAR_FILE, {})
+    holidays = {
+        str(item.get("date"))
+        for item in calendar.get("holidays", [])
+        if isinstance(item, dict) and item.get("date")
+    }
+    special_session = (calendar.get("special_sessions") or {}).get(today)
     if special_session:
-        start = dt.time.fromisoformat(special_session[0])
-        end = dt.time.fromisoformat(special_session[1])
+        # Only the continuous trading window counts as live for scanner signals;
+        # pre-open and post-close remain closed for price/signal processing.
+        start = dt.time.fromisoformat(special_session["regular_start"])
+        end = dt.time.fromisoformat(special_session["regular_end"])
         return not (start <= ist.time() < end)
-    if today in NSE_HOLIDAYS or ist.weekday() >= 5:
+    if today in holidays or ist.weekday() >= 5:
         return True
     if ist.hour < 16:
         return False
