@@ -1,5 +1,8 @@
+import json
+import tempfile
 import unittest
-from mcx_bhavcopy_archive import append_session,filter_contract_rows
+from pathlib import Path
+from mcx_bhavcopy_archive import append_session,filter_contract_rows,write_archive_atomic
 
 def sample(date="06 Nov 2026"):
  return [
@@ -27,4 +30,18 @@ class MCXBhavcopyArchiveTests(unittest.TestCase):
   self.assertTrue(ok)
   b,ok2=append_session(a,"2026-11-06",sample(),"2026-11-06T18:20:00Z")
   self.assertFalse(ok2); self.assertEqual(b["records"][0]["captured_at_utc"],"2026-11-06T17:20:00Z")
+ def test_atomic_write_produces_complete_json_and_cleans_temp_file(self):
+  payload={"schema_version":1,"records":[{"date":"2026-11-06","rows":[1,2,3]}]}
+  with tempfile.TemporaryDirectory() as directory:
+   target=Path(directory)/"archive.json"
+   write_archive_atomic(target,payload)
+   self.assertEqual(json.loads(target.read_text(encoding="utf-8")),payload)
+   self.assertFalse(target.with_suffix(".json.tmp").exists())
+ def test_atomic_write_replaces_previous_complete_snapshot(self):
+  with tempfile.TemporaryDirectory() as directory:
+   target=Path(directory)/"archive.json"
+   target.write_text('{"old":true}',encoding="utf-8")
+   payload={"schema_version":1,"records":[{"date":"2026-11-06"}]}
+   write_archive_atomic(target,payload)
+   self.assertEqual(json.loads(target.read_text(encoding="utf-8")),payload)
 if __name__=="__main__": unittest.main()
