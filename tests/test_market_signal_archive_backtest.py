@@ -10,7 +10,20 @@ def component(score, included=None):
             "status": "available", "score": score,
             "included_components": included or ["news"],
         },
-        "coverage": {"included_count": 1, "applicable_count": 4},
+        "components": {
+            "news": {
+                "score": score, "source": "Google News RSS · test",
+                "source_date": "2026-11-06", "observed_at": "2026-11-06T20:05+05:30",
+                "evidence_count": 3,
+            }
+        },
+        "excluded_components": {
+            "search": {"source": "Google Trends", "reason": "not validated"}
+        },
+        "coverage": {
+            "status": "partial", "included_count": 1,
+            "applicable_count": 4, "coverage_pct": 25,
+        },
     }
 
 
@@ -67,6 +80,14 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         self.assertEqual(signals[0]["score"], -2.0)
         self.assertIn("news", signals[0]["source"])
         self.assertEqual(audit["assets_with_component_final"], {"NIFTY": 2, "GOLD": 2})
+        latest = audit["latest_asset_evidence"]
+        self.assertEqual(latest["NIFTY"]["date"], "2026-11-06")
+        self.assertEqual(latest["NIFTY"]["final_score"], 2.0)
+        self.assertEqual(latest["NIFTY"]["coverage"]["coverage_pct"], 25)
+        self.assertEqual(latest["NIFTY"]["components"]["news"]["source_date"], "2026-11-06")
+        self.assertEqual(latest["NIFTY"]["components"]["news"]["evidence_count"], 3)
+        self.assertIn("search", latest["NIFTY"]["excluded_components"])
+        self.assertEqual(latest["GOLD"]["final_score"], 2.0 - 4.0)
 
     def test_non_eod_snapshots_are_not_used(self):
         archive = {"records": [
