@@ -4031,9 +4031,9 @@ def _asset_search_direction(term, asset):
     if has_bull != has_bear:
         return "bull" if has_bull else "bear"
 
-    # Explicit flat/range-bound language is neutral crowd intent. Pure
-    # information/navigation searches are also counted as Neutral (not Bull/Bear),
-    # while ambiguous targets or an unqualified "range" stay unclassified.
+    # Explicit flat/range-bound language is neutral crowd intent.
+    # Information/navigation searches are NOT sentiment: keep them
+    # unclassified so they cannot inflate the Neutral crowd percentage.
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
@@ -4055,7 +4055,7 @@ def _asset_search_direction(term, asset):
         "विश्लेषण", "समाचार", "कल", "स्पॉट",
     }
     if tokens & informational:
-        return "neutral"
+        return None
     return None
 
 
