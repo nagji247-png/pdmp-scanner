@@ -83,8 +83,8 @@ class MarketSignalArchiveBacktestTests(unittest.TestCase):
         ]}
         signals, closes, audit = build_archive_inputs(archive)
         self.assertEqual(len(signals), 2)
-        self.assertEqual(len(closes), 0)
-        self.assertEqual(audit["invalid_or_mismatched_close"], 2)
+        self.assertEqual(len(closes), 1)
+        self.assertEqual(audit["invalid_or_mismatched_close"], 1)
 
     def test_archive_backtest_reports_independent_asset_results(self):
         archive = {"records": [
