@@ -4705,6 +4705,38 @@ def update_participant_oi_history(*snapshots):
 
 
 
+def compact_trends_slot_evidence(trends):
+    """Keep compact, point-in-time proof for each scheduled Google Trends slot."""
+    labels = {"0915": "09:15", "1100": "11:00", "1300": "13:00", "1900": "19:00"}
+    daily = trends.get("daily_slots") if isinstance(trends, dict) else {}
+    daily = daily if isinstance(daily, dict) else {}
+    records = daily.get("slots") if isinstance(daily.get("slots"), dict) else {}
+    evidence = []
+    for key, label in labels.items():
+        source = records.get(key)
+        if not isinstance(source, dict):
+            evidence.append({"id": key, "time": label, "status": "pending"})
+            continue
+        status = source.get("status") if source.get("status") in ("success", "failed") else "pending"
+        row = {"id": key, "time": label, "status": status}
+        if status == "success":
+            row.update({
+                "source_data_time": source.get("source_data_time"),
+                "basis": source.get("basis"),
+                "timeframe": source.get("timeframe"),
+                "bull_pct": source.get("bull_pct"),
+                "bear_pct": source.get("bear_pct"),
+                "neutral_pct": source.get("neutral_pct"),
+                "crowd_pct": source.get("crowd_pct"),
+            })
+        elif source.get("checked_at"):
+            row["checked_at"] = source.get("checked_at")
+        if status == "failed" and source.get("error"):
+            row["error"] = str(source.get("error"))[:240]
+        evidence.append(row)
+    return {"date": daily.get("date"), "slots": evidence}
+
+
 def update_market_signal_history(result):
     """Capture one point-in-time EOD snapshot per trading date for honest future testing."""
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
@@ -4785,10 +4817,13 @@ def update_market_signal_history(result):
             "bull_score_pct": trends.get("bull_score_pct"),
             "bear_score_pct": trends.get("bear_score_pct"),
             "neutral_score_pct": trends.get("neutral_score_pct"),
-            "daily_complete": trends.get("daily_complete"),
+            "daily_complete": trends.get("daily_complete") is True,
+            "daily_slot_evidence": compact_trends_slot_evidence(trends),
         } if trends_valid else {
             "valid": False,
             "reason": trends.get("error") or trends.get("daily_status_note") or "No fresh validated Trends reading",
+            "daily_complete": trends.get("daily_complete") is True,
+            "daily_slot_evidence": compact_trends_slot_evidence(trends),
         }),
         "market_news_context": {
             "ok": bool(market_news.get("ok")),
