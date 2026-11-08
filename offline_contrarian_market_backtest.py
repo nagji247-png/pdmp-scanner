@@ -10,10 +10,18 @@ from pathlib import Path
 def _day(value):
     if not isinstance(value, str):
         return None
-    try:
-        return date.fromisoformat(value[:10])
-    except ValueError:
-        return None
+    raw = value.strip()
+    for parser in (date.fromisoformat,):
+        try:
+            return parser(raw[:10])
+        except ValueError:
+            pass
+    for fmt in ("%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(raw[:10], fmt).date()
+        except ValueError:
+            pass
+    return None
 
 
 def _number(value):

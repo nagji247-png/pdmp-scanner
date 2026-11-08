@@ -30,3 +30,20 @@ The report includes per-asset and combined contrarian accuracy, crowd-follow ben
 - A small sample is descriptive only. No performance claim should be made until a sufficiently large out-of-sample period is available.
 
 This tool is offline by design: provider_calls=0 and production_score_modified=false are included in every report.
+## Run directly from the PDMP EOD archive
+
+The repository adapter reads `market_signal_history.json` and uses only
+`component_breakdown.final.score` from an EOD snapshot captured at or after
+15:30 IST. It never substitutes the published production score. It accepts
+both ISO dates and Indian `DD/MM/YYYY` close dates, and requires each close
+date to match its signal date.
+
+```bash
+python market_signal_archive_backtest.py --archive market_signal_history.json --threshold 1 --out contrarian_backtest_report.json
+```
+
+The adapter reports how many dated component signals and closes were eligible,
+and why rows were skipped. A zero-sample report is an honest data-coverage
+result, not a 0% strategy accuracy. The current archive must first contain
+component-breakdown snapshots and a subsequent session close before a real
+next-session result can be calculated.
