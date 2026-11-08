@@ -107,6 +107,22 @@ class ComponentScoringHelperTests(unittest.TestCase):
         self.assertIsNone(component)
         self.assertIn("now 1-d", reason)
 
+    def test_search_component_accepts_five_hour_reading_but_rejects_over_six_hours(self):
+        now = datetime(2026, 11, 6, 7, 0, tzinfo=timezone.utc)
+        fresh = {
+            "valid": True, "timeframe": "now 1-d",
+            "source_data_time": "2026-11-06T02:00:00Z",
+            "neutral_aware_score": 4.5, "directional_bull_pct": 65,
+            "bull_pct": 65, "bear_pct": 35,
+        }
+        component, reason = search_component_from_snapshot(fresh, now_utc=now)
+        self.assertIsNotNone(component, reason)
+        self.assertEqual(component["score"], 4.5)
+        stale = dict(fresh, source_data_time="2026-11-06T00:59:00Z")
+        component, reason = search_component_from_snapshot(stale, now_utc=now)
+        self.assertIsNone(component)
+        self.assertIn("stale", reason)
+
     def test_neutral_only_search_is_diagnostic_not_a_zero_score(self):
         snapshot = {
             "valid": True, "timeframe": "now 1-d",
