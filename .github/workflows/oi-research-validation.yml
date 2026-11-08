@@ -12,6 +12,8 @@ on:
       - "summarize_participant_oi_backtest.py"
       - "fetch_and_score.py"
       - "validate_market_signal_history.py"
+      - "market_signal_archive_backtest.py"
+      - "offline_contrarian_market_backtest.py"
       - "tests/**"
       - ".github/workflows/oi-research-validation.yml"
   push:
@@ -38,8 +40,49 @@ jobs:
       - name: Install research dependencies
         run: python -m pip install pandas yfinance feedparser requests
       - name: Validate Python syntax
-        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py validate_market_signal_history.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py tests/test_market_signal_history.py
+        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py validate_market_signal_history.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py tests/test_market_signal_history.py market_signal_archive_backtest.py offline_contrarian_market_backtest.py
       - name: Run OI research unit tests
         run: python -m unittest discover -s tests -v
+      - name: Test per-asset component archive backtest
+        run: python -m unittest discover -s tests -p "test_market_signal_archive_backtest.py" -v
       - name: Audit point-in-time combined-signal archive
         run: python validate_market_signal_history.py --min-sessions 120 --target-sessions 250
+      # This replay reads only the committed EOD archive. It makes zero market-data requests
+      # and never modifies data.json or any production score.
+      - name: Build per-asset contrarian component backtest report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python market_signal_archive_backtest.py --archive market_signal_history.json --threshold 1 --out contrarian_component_backtest_report.json
+      - name: Add component backtest summary to workflow report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report = json.loads(Path("contrarian_component_backtest_report.json").read_text())
+          summary = report["summary"]
+          print("## Per-asset verified component contrarian backtest")
+          print(f"- Total eligible next-session samples: **{summary['sample_count']}**")
+          print(f"- Contrarian accuracy: **{summary['contrarian_accuracy_pct']}**")
+          print(f"- Crowd-follow accuracy: **{summary['crowd_follow_accuracy_pct']}**")
+          print(f"- Provider calls: **{report['provider_calls']}**")
+          print("- Production scores modified: **No**")
+          print("\\n| Asset | Samples | Contrarian accuracy | Crowd-follow accuracy |")
+          print("|---|---:|---:|---:|")
+          for asset in ("NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"):
+              row = report["by_asset"].get(asset, {})
+              print(f"| {asset} | {row.get('sample_count', 0)} | {row.get('contrarian_accuracy_pct')} | {row.get('crowd_follow_accuracy_pct')} |")
+          print("\\nZero samples means insufficient dated component evidence, not zero accuracy.")
+          print("This is close-to-close direction testing, not option-premium profitability.")
+          print("\\n### Archive audit")
+          print("```json")
+          print(json.dumps(report["archive_audit"], indent=2))
+          print("```")
+          PY
+      - name: Upload component backtest report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trinetra-component-backtest-${{ github.run_number }}
+          path: contrarian_component_backtest_report.json
+          if-no-files-found: error
+          retention-days: 30
