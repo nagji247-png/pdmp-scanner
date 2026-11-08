@@ -3961,7 +3961,7 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def _asset_search_direction(term, asset):
-    """Classify only queries that actually refer to this asset; generic info intent is neutral."""
+    """Classify asset-specific directional/explicit-flat queries; information intent is unclassified."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
     tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
 
