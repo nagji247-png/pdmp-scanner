@@ -20,6 +20,14 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         monday_utc = datetime(2026, 11, 9, 5, 30, tzinfo=timezone.utc)
         self.assertFalse(fetch_and_score.market_closed_today(now_utc=monday_utc))
 
+    def test_market_status_recognizes_diwali_muhurat_session_on_sunday(self):
+        before_session_utc = datetime(2026, 11, 8, 8, 49, tzinfo=timezone.utc)  # 14:19 IST
+        during_session_utc = datetime(2026, 11, 8, 8, 50, tzinfo=timezone.utc)  # 14:20 IST
+        after_session_utc = datetime(2026, 11, 8, 10, 10, tzinfo=timezone.utc)  # 15:40 IST
+        self.assertTrue(fetch_and_score.market_closed_today(now_utc=before_session_utc))
+        self.assertFalse(fetch_and_score.market_closed_today(now_utc=during_session_utc))
+        self.assertTrue(fetch_and_score.market_closed_today(now_utc=after_session_utc))
+
     def test_friday_mcx_close_remains_visible_on_saturday_evening(self):
         now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
         quote = {"source_time": "2026-11-06 23:54 IST"}
