@@ -309,12 +309,12 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
 
     def test_asset_search_classifier_blocks_cross_asset_and_bare_price_queries(self):
         classify = fetch_and_score._asset_search_direction
-        # Price/navigation searches count as Neutral, never as directional votes.
+        # Price/navigation searches are Unclassified, not sentiment votes.
         self.assertIsNone(classify("gold price", "GOLD"))
-        self.assertEqual(classify("silver rate", "SILVER"), "neutral")
-        self.assertEqual(classify("gold price today", "GOLD"), "neutral")
-        self.assertEqual(classify("Nifty live", "NIFTY"), "neutral")
-        self.assertEqual(classify("Nifty share price", "NIFTY"), "neutral")
+        self.assertIsNone(classify("silver rate", "SILVER"))
+        self.assertIsNone(classify("gold price today", "GOLD"))
+        self.assertIsNone(classify("Nifty live", "NIFTY"))
+        self.assertIsNone(classify("Nifty share price", "NIFTY"))
         self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
         self.assertIsNone(classify("Nifty range", "NIFTY"))
