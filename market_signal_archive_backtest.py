@@ -265,8 +265,7 @@ def main():
     args = parser.parse_args()
     archive = json.loads(Path(args.archive).read_text(encoding="utf-8"))
     report = run_archive_backtest(archive, threshold=args.threshold)
-    Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "
-", encoding="utf-8")
+    Path(args.out).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "report": args.out,
         "sample_count": report["summary"]["sample_count"],
