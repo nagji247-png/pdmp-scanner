@@ -82,7 +82,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         with zipfile.ZipFile(payload, "w") as archive:
             archive.writestr(
                 "bhav.csv",
-                "FinInstrmTp,TckrSymb,BizDt,XpryDt,OptnTp,StrkPric,OpnIntrst,ChngInOpnIntrst\\n",
+                ",".join(["FinInstrmTp", "TckrSymb", "BizDt", "XpryDt", "OptnTp", "StrkPric", "OpnIntrst", "ChngInOpnIntrst"]) + chr(10),
             )
         self.assertEqual(decode_udiff_zip(payload.getvalue()), [])
         with self.assertRaisesRegex(ValueError, "valid ZIP"):
