@@ -335,6 +335,32 @@
 
 
   /* Stock Basket opens in a separate viewport; never expands the index card. */
+  /* Compact asset cards: retain the existing information behind explicit eye toggles. */
+  .compact-score-price{margin:3px 0 1px}
+  .compact-score-price .big{font-size:24px;line-height:1.15}
+  .compact-last-price{font-size:14px;white-space:nowrap}
+  .compact-sentiment-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:2px;min-width:0}
+  .compact-change{font-size:10px;color:#a9c5e5;text-align:right;white-space:nowrap}
+  .compact-timestamp{font-size:10px;line-height:1.35;color:#8a90a8;text-align:right;margin-top:4px}
+  .asset-detail-toggle{margin-top:7px;padding-top:5px;border-top:1px solid #183252}
+  .asset-detail-toggle>summary{display:flex;align-items:center;gap:6px;color:#6cecff;font-weight:750;font-size:11px;list-style:none}
+  .asset-detail-toggle>summary::-webkit-details-marker{display:none}
+  .asset-detail-toggle>summary:before{content:"＋";font-size:13px}
+  .asset-detail-toggle[open]>summary:before{content:"−"}
+  .asset-detail-content{padding:7px 2px 2px}
+  .divergence-compact{margin-top:7px;padding:6px 8px;border:1px solid #6b512c;border-radius:8px;background:rgba(54,37,17,.35);font-size:11px;color:#ffc66d}
+  .divergence-compact>summary{display:flex;justify-content:space-between;align-items:center;gap:6px;list-style:none;font-weight:750}
+  .divergence-compact>summary::-webkit-details-marker{display:none}
+  .divergence-compact>summary span{color:#6cecff;white-space:nowrap}
+  .divergence-full{padding-top:8px;color:#dce8f5}
+  .stock-basket-compact-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+  .stock-basket-compact-main small{width:100%;font-size:9px;color:#8a90a8;margin-top:-4px}
+  @media(max-width:560px){
+    .compact-score-price .big{font-size:21px}
+    .compact-last-price{font-size:12px}
+    .compact-change{font-size:9px}
+    .compact-timestamp{font-size:9px}
+  }
   .stock-basket-compact{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:6px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.55);min-width:0}
   .stock-basket-compact>div{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
   .stock-basket-compact-title{font-size:11px;color:#a9c5e5;font-weight:700}
@@ -541,14 +567,18 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
   const reason = (s > 0 && c < 0)
     ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
     : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।";
-  return `<details class="div"><summary>⚡ सेंटिमेंट और कीमत उलटे हैं — समझें</summary>
-    <div class="hl-meta" style="margin-top:8px"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
-    <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${s > 0 ? "+" : ""}${s})</div>
-    <div class="hl-meta"><b>कीमत:</b> ${c > 0 ? "+" : ""}${c}% — ${priceDirection}</div>
-    <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
-    <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
-    <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
-    <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
+  const divergenceLabel = (s > 0 && c < 0) ? "Bullish divergence" : "Bearish divergence";
+  return `<details class="divergence-compact">
+    <summary>⚡ ${divergenceLabel} <span>👁️ विवरण</span></summary>
+    <div class="divergence-full">
+      <div class="hl-meta"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
+      <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${s > 0 ? "+" : ""}${s})</div>
+      <div class="hl-meta"><b>कीमत:</b> ${c > 0 ? "+" : ""}${c}% — ${priceDirection}</div>
+      <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
+      <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
+      <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
+      <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
+    </div>
   </details>`;
 }
 
@@ -862,9 +892,11 @@ function renderStandaloneStockBasket(b, assetName) {
   const score = validScore ? Number(component.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
   const label = validScore ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10") : "डेटा जमा / जाँच जारी";
+  const eodDate = component && component.source_date ? String(component.source_date) : "";
   return '<div class="stock-basket-compact">' +
-    '<div><span class="stock-basket-compact-title">STOCK BASKET</span><b class="' + cls + '">' + label + '</b></div>' +
-    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(\'' + key + '\')">👁️ <span>विवरण</span></button>' +
+    '<div class="stock-basket-compact-main"><span class="stock-basket-compact-title">STOCK BASKET</span><b class="' + cls + '">' + label + '</b>' +
+    (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') + '</div>' +
+    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(\\'' + key + '\\')">👁️ <span>विवरण</span></button>' +
     '</div>';
 }
 
@@ -940,35 +972,55 @@ function card(name, d, participantOI) {
       + ' <span style="color:' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5") + '">' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : (name === "USDINR" && d.reference_price != null ? "दैनिक संदर्भ · लाइव नहीं" : "बदलाव डेटा नहीं")) + '</span><small style="display:block;line-height:1.35">' + priceMeta + '</small>';
   const el = document.createElement("div");
   el.className = "card " + cls;
+  const compactSource = String(d.price_source || "").trim()
+    .replace(/National Stock Exchange of India|NSE India/gi, "NSE")
+    .replace(/Multi Commodity Exchange/gi, "MCX")
+    .replace(/Yahoo Finance/gi, "Yahoo");
+  const compactChange = hasChange
+    ? (Number(d.change_pct) > 0 ? "+" : Number(d.change_pct) < 0 ? "−" : "") + Math.abs(Number(d.change_pct)).toFixed(2) + "%"
+    : "बदलाव डेटा नहीं";
+  const compactPrice = name === "GOLD"
+    ? (hasPrice ? goldPrice + " /10g" : "—")
+    : name === "BITCOIN" || name === "NASDAQ" || name === "DJI"
+      ? (hasPrice ? "$" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) : "—")
+      : (hasPrice ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) +
+        (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—");
+  const compactDateTime = [priceDate, priceTime].filter(Boolean);
+  const detailSignals = (Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal =>
+    '<div class="div">' + esc(signal.label) + '</div>' +
+    (signal.reason ? '<div class="more">' + esc(signal.reason) + '</div>' : '')
+  ).join("");
+  const detailIndicator = d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label)
+    ? '<div class="div">' + esc(d.indicator_label) + '</div>' +
+      (d.indicator_reason ? '<div class="more">' + esc(d.indicator_reason) + '</div>' : '') : "";
+  const detailPrice = '<div class="hl-meta"><b>कीमत में बदलाव:</b> ' +
+    (hasChange ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : "डेटा उपलब्ध नहीं") +
+    ' · स्रोत: ' + esc(d.price_source || "स्रोत उपलब्ध नहीं") +
+    ' · तारीख़: ' + esc(priceDate || "—") + ' · समय: ' + esc(priceTime || "—") + '</div>';
   el.innerHTML = `
-    ${name === "GOLD" ? `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="name" style="font-size:12px">GOLD</div><div class="last-price" style="font-size:15px">${goldPrice}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin:1px 0">
-        <div class="big" style="color:${color};margin:0">${sScore}</div>
-        <div class="last-price" style="font-size:13px">/10g <span style="color:${goldChangeColor}">${goldChange}</span></div>
-      </div>
-      <div style="font-size:11px;line-height:1.25;color:#aab2c5;margin:2px 0 4px">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <div class="lbl" style="font-size:12px;color:${color}">${label}</div><div style="font-size:11px;line-height:1.35;color:#8a90a8">${priceMeta}</div>
-      </div>
-    ` : `
-      <div class="name">${esc(name)}</div>
-      <div class="score-price-row">
-        <div class="big" style="color:${color}">${sScore}${name === "SILVER" ? '<small style="display:block;font-size:11px;line-height:1.35;font-weight:500;color:#aab2c5;margin-top:4px">दुकानों के भाव अलग हो सकते हैं</small>' : ""}</div>
-        <div class="last-price">${priceHtml}</div>
-      </div>
+    <div class="name">${esc(name)}</div>
+    <div class="score-price-row compact-score-price">
+      <div class="big" style="color:${color}">${sScore}</div>
+      <div class="last-price compact-last-price">${compactPrice}</div>
+    </div>
+    <div class="compact-sentiment-row">
       <div class="lbl" style="color:${color}">${label}</div>
-      ${experimentalScoreLine}
-      ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
-    `}
-    ${componentBreakdown}
-    ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
-    ${d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label) ? `<div class="div">${esc(d.indicator_label)}</div>${d.indicator_reason ? `<div class="more">${esc(d.indicator_reason)}</div>` : ""}` : ""}
+      <div class="compact-change">${compactChange}${compactSource ? ' · ' + esc(compactSource) : ''}</div>
+    </div>
+    <div class="compact-timestamp">${compactDateTime.map(esc).join("<br>")}</div>
+    ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
-    ${d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? '<div class="chg">कीमत में बदलाव: ' + (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + '%</div>' : (name !== "BITCOIN" ? '<div class="chg">कीमत में बदलाव: डेटा उपलब्ध नहीं</div>' : "")}
-
+    <details class="asset-detail-toggle">
+      <summary>👁️ विस्तृत जानकारी खोलें</summary>
+      <div class="asset-detail-content">
+        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+        ${experimentalScoreLine}
+        ${componentBreakdown}
+        ${detailSignals}
+        ${detailIndicator}
+        ${detailPrice}
+      </div>
+    </details>
     ${spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
