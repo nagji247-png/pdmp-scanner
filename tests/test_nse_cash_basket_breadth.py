@@ -102,6 +102,16 @@ class CashBasketBreadthTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "count mismatch"):
             calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
 
+    def test_duplicate_isin_in_roster_is_rejected(self):
+        self.rosters["NIFTY"]["members"][1]["isin"] = "ISINAAA"
+        with self.assertRaisesRegex(ValueError, "symbol/ISIN missing or duplicate"):
+            calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+
+    def test_http_official_looking_roster_url_is_rejected(self):
+        self.rosters["NIFTY"]["source_url"] = "http://www.nseindia.com/content/indices/ind_nifty50list.csv"
+        with self.assertRaisesRegex(ValueError, "non-official roster source"):
+            calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+
 
 if __name__ == "__main__":
     unittest.main()
