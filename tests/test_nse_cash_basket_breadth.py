@@ -104,7 +104,7 @@ class CashBasketBreadthTests(unittest.TestCase):
 
     def test_duplicate_isin_in_roster_is_rejected(self):
         self.rosters["NIFTY"]["members"][1]["isin"] = "ISINAAA"
-        with self.assertRaisesRegex(ValueError, "symbol/ISIN missing or duplicate"):
+        with self.assertRaisesRegex(ValueError, "ISIN missing or duplicate"):
             calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
 
     def test_http_official_looking_roster_url_is_rejected(self):
