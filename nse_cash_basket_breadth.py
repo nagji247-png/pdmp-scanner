@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import datetime as dt
+import math
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -73,12 +74,19 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
         if row is None or str(row.get("isin") or "").upper() != isin:
             missing.append(symbol)
             continue
-        close = float(row["close"])
-        previous = float(row["previous_close"])
-        if close <= 0 or previous <= 0:
+        try:
+            close = float(row["close"])
+            previous = float(row["previous_close"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            missing.append(symbol)
+            continue
+        if not math.isfinite(close) or not math.isfinite(previous) or close <= 0 or previous <= 0:
             missing.append(symbol)
             continue
         change_pct = (close / previous - 1.0) * 100.0
+        if not math.isfinite(change_pct):
+            missing.append(symbol)
+            continue
         moves.append((symbol, change_pct))
 
     coverage = len(moves) / len(members)
