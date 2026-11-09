@@ -58,6 +58,7 @@ jobs:
             nse_cm_bhavcopy_archive.json
             bse_cm_bhavcopy_archive.json
             index_constituent_rosters.json
+            nse_index_constituent_rosters.json
             index_cash_basket_diagnostics.json
       - name: Commit dated roster snapshot
         if: github.event_name != 'pull_request'
