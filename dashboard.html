@@ -340,7 +340,7 @@
   .compact-score-price .big{font-size:24px;line-height:1.15}
   .compact-last-price{font-size:14px;white-space:nowrap}
   .compact-sentiment-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:2px;min-width:0}
-  .compact-change{font-size:10px;color:#a9c5e5;text-align:right;white-space:nowrap}
+  .compact-change{font-size:10px;text-align:right;white-space:nowrap}
   .compact-timestamp{font-size:10px;line-height:1.35;color:#8a90a8;text-align:right;margin-top:4px}
   .compact-sentiment-row{margin-top:5px;gap:5px}
   .compact-sentiment-row .lbl{white-space:nowrap;flex:0 0 auto}
@@ -1087,7 +1087,7 @@ function card(name, d, participantOI) {
     </div>
     <div class="compact-sentiment-row">
       <div class="lbl" style="color:${color}">${label}</div>
-      <div class="compact-change">${compactChange}</div>
+      <div class="compact-change ${!hasChange || Number(d.change_pct) === 0 ? "zero" : Number(d.change_pct) > 0 ? "pos" : "neg"}">${compactChange}</div>
     </div>
     ${compactSource ? '<div class="compact-source">' + esc(compactSource) + '</div>' : ''}
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
