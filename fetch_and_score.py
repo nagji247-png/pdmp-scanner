@@ -433,6 +433,66 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             }
 
 
+def load_latest_stock_basket_diagnostics(scan_date, archive=None):
+    """Load the latest complete dated cash-basket breadth per index for display only.
+
+    This diagnostic is deliberately separate from the weighted component map used
+    by combine_components(), so it can never enter the shadow or published Final.
+    """
+    if archive is None:
+        try:
+            with open("index_cash_basket_diagnostics.json", "r", encoding="utf-8") as handle:
+                archive = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            return {}
+    records = archive.get("records", []) if isinstance(archive, dict) else []
+    output = {}
+    for record in sorted(
+        (row for row in records if isinstance(row, dict)
+         and isinstance(row.get("date"), str) and row.get("date") <= str(scan_date)),
+        key=lambda row: row["date"], reverse=True,
+    ):
+        indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
+        for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
+            if index_name in output:
+                continue
+            metric = indices.get(index_name)
+            if not isinstance(metric, dict):
+                continue
+            try:
+                score = float(metric.get("score"))
+                expected = int(metric.get("expected"))
+                matched = int(metric.get("matched"))
+                coverage = float(metric.get("coverage_pct"))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if (
+                metric.get("status") != "complete_diagnostic"
+                or metric.get("research_only") is not True
+                or metric.get("score_eligible") is not False
+                or expected <= 0 or matched != expected or coverage != 100.0
+                or not math.isfinite(score) or not -10 <= score <= 10
+            ):
+                continue
+            output[index_name] = {
+                "score": round(score, 2),
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": record["date"],
+                "research_only": True,
+                "score_eligible": False,
+                "included": False,
+                "status": "complete_diagnostic",
+                "expected": expected,
+                "matched": matched,
+                "coverage_pct": coverage,
+                "advances": int(metric.get("advances", 0)),
+                "declines": int(metric.get("declines", 0)),
+                "unchanged": int(metric.get("unchanged", 0)),
+                "method": metric.get("method") or "10 × (advances − declines) / official constituent count",
+            }
+    return output
+
+
 def build_asset_component_breakdowns(
     instruments, updated, now_utc, participant_today=None, participant_changes_data=None
 ):
@@ -454,6 +514,8 @@ def build_asset_component_breakdowns(
         ).date().isoformat()
     except (TypeError, ValueError):
         news_source_date = str(updated or "")[:10]
+
+    stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date)
 
     for name, item in (instruments or {}).items():
         if not isinstance(item, dict):
@@ -679,6 +741,7 @@ def build_asset_component_breakdowns(
             "score_range": "-10..+10",
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
             "components": components,
+            "stock_basket_diagnostic": stock_basket_diagnostics.get(name),
             "excluded_components": excluded,
             "coverage": {
                 "status": coverage_status,
