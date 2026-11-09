@@ -158,6 +158,18 @@ def fetch_once(session, url):
 def build_roster_bundle(session, as_of, bse_archive):
     nifty_payload = fetch_once(session, SOURCES["NIFTY"])
     bank_payload = fetch_once(session, SOURCES["BANKNIFTY"])
+    nifty_roster = parse_nse_constituent_csv(nifty_payload, "NIFTY", as_of, SOURCES["NIFTY"])
+    bank_roster = parse_nse_constituent_csv(bank_payload, "BANKNIFTY", as_of, SOURCES["BANKNIFTY"])
+    partial = {
+        "schema_version": 1, "as_of": as_of,
+        "rosters": {"NIFTY": nifty_roster, "BANKNIFTY": bank_roster},
+        "expected_counts": {"NIFTY": 50, "BANKNIFTY": 14},
+        "research_only": True, "score_eligible": False,
+    }
+    Path("nse_index_constituent_rosters.json").write_text(
+        json.dumps(partial, ensure_ascii=False, indent=2, allow_nan=False) + "\\n",
+        encoding="utf-8",
+    )
     bse_payload = fetch_once(session, SOURCES["SENSEX"])
     bse_html = bse_payload.decode("utf-8-sig", errors="replace")
     scripts = re.findall(r"<script[^>]+src=[\\\"\\\']([^\\\"\\\']+)", bse_html, flags=re.IGNORECASE)
@@ -172,8 +184,8 @@ def build_roster_bundle(session, as_of, bse_archive):
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "rosters": {
-            "NIFTY": parse_nse_constituent_csv(nifty_payload, "NIFTY", as_of, SOURCES["NIFTY"]),
-            "BANKNIFTY": parse_nse_constituent_csv(bank_payload, "BANKNIFTY", as_of, SOURCES["BANKNIFTY"]),
+            "NIFTY": nifty_roster,
+            "BANKNIFTY": bank_roster,
             "SENSEX": parse_bse_sensex_constituents(bse_payload.decode("utf-8-sig"), bse_archive, as_of, SOURCES["SENSEX"]),
         },
         "expected_counts": EXPECTED,
