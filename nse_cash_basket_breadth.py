@@ -145,7 +145,8 @@ def calculate_three_index_baskets(archives, roster_bundle, trade_date):
         try:
             if not isinstance(roster_bundle, dict):
                 raise ValueError("official roster bundle missing")
-            item = roster_bundle.get(index_key)
+            roster_map = roster_bundle.get("rosters", roster_bundle)
+            item = roster_map.get(index_key)
             if not isinstance(item, dict):
                 raise ValueError(f"official roster missing for {index_key}")
             if int(item.get("expected_count", -1)) != count:
