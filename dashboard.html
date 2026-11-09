@@ -605,6 +605,8 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
   const c = hasPriceChange ? Number(change) : NaN;
   const strongEnough = hasSentiment && hasPriceChange && Math.abs(s) >= 1 && Math.abs(c) >= 0.2;
   const isOpposite = strongEnough && Math.sign(s) !== Math.sign(c);
+  // Keep the divergence disclosure out of the card unless both signals are strong and opposite.
+  if (!isOpposite) return "";
   const sentiment = hasSentiment
     ? (s > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : s < 0 ? "BEARISH (खबरों का रुख नकारात्मक)" : "NEUTRAL")
     : "डेटा उपलब्ध नहीं";
