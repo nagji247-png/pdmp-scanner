@@ -125,6 +125,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         )
 
     def test_directional_phrase_diagnostics_return_three_way_mix_for_each_asset(self):
+        import pandas as pd
         from fetch_and_score import fetch_asset_directional_trends_diagnostics
 
         class FakeTrendReq:
@@ -164,6 +165,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 self.assertEqual(item["diagnostic_only"], True)
 
     def test_directional_phrase_diagnostics_stop_after_google_trends_429(self):
+        import pandas as pd
         from fetch_and_score import fetch_asset_directional_trends_diagnostics
 
         class FakeTrendReq:
