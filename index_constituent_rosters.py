@@ -131,7 +131,7 @@ def parse_bse_sensex_constituents(payload, bse_archive, as_of, source_url):
             if code:
                 scrip_codes.append(code)
     if len(scrip_codes) != EXPECTED["SENSEX"] or len(set(scrip_codes)) != EXPECTED["SENSEX"]:
-        preview = re.sub(r"\s+, " ", str(data or ""))[:1200]
+        preview = re.sub(r"\s+", " ", str(data or ""))[:1200]
         raise ValueError(
             f"SENSEX official page must yield 30 unique BSE scrip codes; received {len(scrip_codes)}; "
             f"response_preview={preview!r}"
