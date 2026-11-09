@@ -2564,7 +2564,7 @@ function renderFoDetail() {
         return `<div style="flex:1;min-width:0;text-align:center;color:${color};font-size:10px;font-weight:700"><div>${label}</div><div style="height:16px;font-size:9px;overflow:hidden">${v == null ? "—" : signedNum(v)}</div><div style="height:40px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1px">${v != null && v >= 0 ? bar : ""}</div><div style="height:1px;background:#aab2c5"></div><div style="height:40px;display:flex;align-items:flex-start;justify-content:center;padding-top:1px">${v != null && v < 0 ? bar : ""}</div></div>`;
       };
       const historyAttrs = historicalDate
-        ? ' role="button" tabindex="0" aria-label="इस पुरानी तारीख का FII, PRO और CLIENT अलग-अलग नतीजा देखें" onclick="openFoHistoricalStatus(\\'' + esc(historicalDate) + '\\')" onkeydown="if(event.key===\\'Enter\\'||event.key===\\' \\\'){event.preventDefault();openFoHistoricalStatus(\\'' + esc(historicalDate) + '\\')}"'
+        ? ' role="button" tabindex="0" aria-label="इस पुरानी तारीख का FII, PRO और CLIENT अलग-अलग नतीजा देखें" onclick="openFoHistoricalStatus(&quot;' + esc(historicalDate) + '&quot;)"'
         : "";
       return `<div${historyAttrs} style="flex:1;min-width:0;border:1px solid #303751;border-radius:7px;padding:6px 4px;background:#111729;text-align:center;${historicalDate ? "cursor:pointer;" : ""}"><div style="font-size:11px;font-weight:700;color:#cfd4e6;margin-bottom:5px">${title}</div><div style="display:flex;gap:2px">${oneBar("CALL",callV,"#2ecc71")}${oneBar("PUT",putV,"#e74c3c")}</div></div>`;
     };
