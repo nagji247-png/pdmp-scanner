@@ -82,6 +82,15 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
                     self.assertEqual(cm.main(), 0)
                     fetch.assert_not_called()
 
+    def test_fetch_uses_exactly_one_official_request_without_mirror_retry(self):
+        from unittest.mock import Mock
+        session = Mock()
+        session.get.return_value = Mock(status_code=200, content=b"zip")
+        payload, url = cm.fetch_official_cm_bhavcopy("2026-11-06", session=session)
+        self.assertEqual(payload, b"zip")
+        self.assertEqual(session.get.call_count, 1)
+        self.assertIn("archives.nseindia.com/content/cm/", url)
+
     def test_small_or_empty_equity_universe_rejected(self):
         with self.assertRaisesRegex(ValueError, "implausibly small"):
             cm.normalize_equity_rows([self.row()], "2026-11-06")
