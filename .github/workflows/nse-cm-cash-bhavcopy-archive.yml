@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "bse_cm_bhavcopy_archive.py"
       - "nse_cash_basket_breadth.py"
       - "tests/test_nse_cm_bhavcopy_archive.py"
       - "tests/test_bse_cm_bhavcopy_archive.py"
@@ -12,7 +13,7 @@ on:
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # One official NSE CM UDiFF ZIP request after cash-market EOD publication.
+    # One request per exchange after cash-market EOD publication; no retries.
     - cron: "0 13 * * 1-5"
   workflow_dispatch:
 
@@ -48,19 +49,23 @@ jobs:
         run: python nse_cm_bhavcopy_archive.py
       - name: Fetch one dated official BSE CM UDiFF archive
         if: github.event_name != 'pull_request'
+        continue-on-error: true
         run: python bse_cm_bhavcopy_archive.py
       - name: Commit exchange cash archives only when a new session is captured
         if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for file in nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json; do
-            if [ ! -f "$file" ]; then
-              echo "CASH_ARCHIVE_FILE_NOT_CREATED: $file"
-              exit 1
-            fi
-            git add -f -- "$file"
-          done
+          if [ ! -f nse_cm_bhavcopy_archive.json ]; then
+            echo "NSE_CM_ARCHIVE_FILE_NOT_CREATED"
+            exit 1
+          fi
+          git add -f -- nse_cm_bhavcopy_archive.json
+          if [ -f bse_cm_bhavcopy_archive.json ]; then
+            git add -f -- bse_cm_bhavcopy_archive.json
+          else
+            echo "BSE archive unavailable; Sensex cash basket remains withheld"
+          fi
           if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json; then
             echo "EXCHANGE_CASH_ARCHIVES_NO_CHANGE"
           else
