@@ -105,7 +105,7 @@ TERM_CHUNK = 4
 # यह मान "निफ़्टी" की खोज के प्रतिशत में है। शुरुआती मान है, डैशबोर्ड पर असली अनुपात दिखता है ताकि बदला जा सके।
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
-TRENDS_MAX_AGE_MINUTES = 360  # 6 घंटे से पुरानी Google Trends reading Crowd score में शामिल नहीं होगी
+TRENDS_MAX_AGE_MINUTES = 180  # 3 घंटे से पुरानी Google Trends reading stale मानी जाएगी; पुराना डेटा reuse नहीं होगा
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
