@@ -56,7 +56,7 @@ def _pearson(xs, ys):
     return round(sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(vx * vy), 4)
 
 
-def evaluate_cash_basket(diagnostics, market_history, min_samples=20):
+def evaluate_cash_basket(diagnostics, market_history, min_samples=60):
     """Pair each complete breadth signal with the next captured close per index."""
     if min_samples < 2:
         raise ValueError("min_samples must be at least 2")
@@ -136,7 +136,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--diagnostics", default="index_cash_basket_diagnostics.json")
     parser.add_argument("--history", default="market_signal_history.json")
-    parser.add_argument("--min-samples", type=int, default=20)
+    parser.add_argument("--min-samples", type=int, default=60)
     parser.add_argument("--output", default="cash_basket_forward_evaluation.json")
     args = parser.parse_args()
     diagnostics = json.loads(Path(args.diagnostics).read_text(encoding="utf-8"))
