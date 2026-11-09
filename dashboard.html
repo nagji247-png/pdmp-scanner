@@ -189,6 +189,8 @@
   #trade-guard.brand-logo-only { display:none; }
   #status { display:none!important; }
   .panel { min-width:0; margin:10px 0 0; }
+  /* Keep dashboard sections in the exact HTML order requested. */
+  .app-main > .panel { order:0 !important; grid-column:1 / -1 !important; }
   .panel h2 { margin:0 0 6px; font-size:14px; }
   .panel .box,.panel .grid { margin:0; padding:11px; }
   .panel .grid { grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:8px; }
@@ -474,25 +476,14 @@
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
 
 <section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स <span style="margin-left:10px;color:#ffd54a;font-size:12px;font-weight:900">कार्ड पर क्लिक करो चार्ट खुलेंगे</span></h2><div class="grid" id="indexes"></div></section>
+
 <section class="panel" style="grid-column:1 / -1"><h2>🧾 F&amp;O और संस्थागत स्थिति (NSE, कल का डेटा)</h2><div class="box" id="foPanel"></div></section>
 
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
 
-<section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
+<section class="panel" style="grid-column:1 / -1"><h2>Silver Price अनुमान</h2><div id="silverProjection"></div></section>
 
-<section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
-
-<h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2>
-<div class="box" id="contrarian"></div>
-
-<h2>🎯 Verified Prediction Accuracy</h2>
-<div class="box" id="verified-accuracy"></div>
-
-<h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2>
-<div class="box" id="divergence"></div>
-
-<h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2>
-<div class="box" id="signals"></div>
+<section class="panel" style="grid-column:1 / -1"><h2>खरा सोना</h2><div id="goldForecast"></div></section>
 
 <section class="panel crowd-panel"><h2>🧠 बाज़ार की सोच (भीड़ का मूड)</h2><div class="box" id="crowd"></div></section>
 
@@ -500,8 +491,19 @@
 
 <section class="panel trends-panel"><h2>🔍 What People Are Searching (Google Trends)</h2><div class="box" id="trends"></div></section>
 
-<h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
-<div class="box" id="news"></div>
+<section class="panel" style="grid-column:1 / -1"><h2>⚠️ Extreme Sentiment Days — Contrarian Watch</h2><div class="box" id="contrarian"></div></section>
+
+<section class="panel" style="grid-column:1 / -1"><h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2><div class="box" id="divergence"></div></section>
+
+<section class="panel" style="grid-column:1 / -1"><h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2><div class="box" id="signals"></div></section>
+
+<section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
+
+<section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
+
+<section class="panel" style="grid-column:1 / -1"><h2>🎯 Verified Prediction Accuracy</h2><div class="box" id="verified-accuracy"></div></section>
+
+<section class="panel" style="grid-column:1 / -1"><h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2><div class="box" id="news"></div></section>
 
 <div class="footer">
   सभी जानकारी केवल शैक्षिक उद्देश्य के लिए है। यह निवेश सलाह नहीं है।
@@ -1505,10 +1507,12 @@ function renderInstruments(instruments, participantOI) {
     item.style.alignSelf = "stretch";
   });
 
+  const silverHost = document.getElementById("silverProjection");
+  const goldHost = document.getElementById("goldForecast");
   const projection = createSilverProjectionCard();
   projection.style.gridColumn = "1 / -1";
-  glb.appendChild(projection);
-  glb.appendChild(createGoldForecastCard());
+  if (silverHost) silverHost.appendChild(projection);
+  if (goldHost) goldHost.appendChild(createGoldForecastCard());
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
