@@ -1,5 +1,6 @@
 import unittest
 
+from component_scoring import build_component, combine_components
 from provisional_component_scoring import (
     PROVISIONAL_WEIGHTS,
     client_marketwide_components,
@@ -8,6 +9,19 @@ from provisional_component_scoring import (
 
 
 class ProvisionalComponentScoringTests(unittest.TestCase):
+    def test_available_components_use_equal_provisional_weights_and_include_basket(self):
+        self.assertEqual(set(PROVISIONAL_WEIGHTS.values()), {1.0})
+        components = {
+            "news": build_component(2, "News", "2026-11-06", PROVISIONAL_WEIGHTS["news"]),
+            "stock_basket": build_component(8, "Official basket", "2026-11-06", PROVISIONAL_WEIGHTS["stock_basket"]),
+        }
+        result = combine_components(components, PROVISIONAL_WEIGHTS)
+        self.assertEqual(result["score"], 5.0)
+        self.assertEqual(result["included_components"], ["news", "stock_basket"])
+        self.assertEqual(result["normalized_weights_pct"], {
+            "news": 50.0, "stock_basket": 50.0
+        })
+
     def test_nearest_expiry_oi_balance_averages_available_sessions(self):
         archive = {
             "records": [
