@@ -503,8 +503,6 @@
 <h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2>
 <div class="box" id="news"></div>
 
-<section class="panel" style="grid-column:1 / -1"><h2>🎯 अवसर विश्लेषण (सिर्फ़ आँकड़े)</h2><div class="box" id="opportunity"></div></section>
-
 <div class="footer">
   सभी जानकारी केवल शैक्षिक उद्देश्य के लिए है। यह निवेश सलाह नहीं है।
 </div>
@@ -2620,8 +2618,6 @@ async function load() {
     renderNews(data.market_news);
     renderSectorMap(data);
     renderFoPanel(data.participant_oi, data.instruments);
-    lastOppData = { opp: data.opportunity, asOf: data.opportunity_as_of };
-    renderOpportunity(data.opportunity, data.opportunity_as_of);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
     const guard = document.getElementById("trade-guard");
