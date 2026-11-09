@@ -7,7 +7,7 @@ class CashBasketBreadthTests(unittest.TestCase):
     def setUp(self):
         self.rosters = {
             "NIFTY": {
-                "as_of": "2026-11-06", "source_url": "https://official.example/nifty.csv",
+                "as_of": "2026-11-06", "source_url": "https://www.nseindia.com/content/indices/ind_nifty50list.csv",
                 "expected_count": 2,
                 "members": [
                     {"symbol": "AAA", "isin": "ISINAAA"},
@@ -42,6 +42,22 @@ class CashBasketBreadthTests(unittest.TestCase):
         result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
         self.assertEqual(result["matched"], 1)
         self.assertEqual(result["score"], None)
+
+
+    def test_stale_roster_is_withheld(self):
+        self.rosters["NIFTY"]["as_of"] = "2026-01-01"
+        with self.assertRaisesRegex(ValueError, "stale constituent roster"):
+            calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+
+    def test_future_roster_is_rejected_for_historical_trade_date(self):
+        self.rosters["NIFTY"]["as_of"] = "2026-11-07"
+        with self.assertRaisesRegex(ValueError, "newer than requested trade date"):
+            calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+
+    def test_non_official_roster_url_is_rejected(self):
+        self.rosters["NIFTY"]["source_url"] = "https://example.com/nifty.csv"
+        with self.assertRaisesRegex(ValueError, "non-official roster source"):
+            calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
 
     def test_roster_count_and_provenance_are_mandatory(self):
         self.rosters["NIFTY"]["expected_count"] = 3
