@@ -7,6 +7,10 @@ from component_scoring import (
     parse_utc_timestamp,
     compare_mcx_bhavcopy_contract_oi, compare_nse_udiff_index_futures_oi,
 )
+from provisional_component_scoring import (
+    PROVISIONAL_WEIGHTS, index_oi_balance_component,
+    client_marketwide_components,
+)
 from validate_market_signal_history import market_snapshot_completeness
 import feedparser, yfinance as yf
 import requests
@@ -552,6 +556,11 @@ def build_asset_component_breakdowns(
         news_source_date = str(updated or "")[:10]
 
     stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date)
+    try:
+        with open("nse_index_option_oi.json", "r", encoding="utf-8") as handle:
+            index_oi_archive = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        index_oi_archive = {}
 
     for name, item in (instruments or {}).items():
         if not isinstance(item, dict):
@@ -750,6 +759,43 @@ def build_asset_component_breakdowns(
             }
 
         final = combine_components(components, DEFAULT_COMPONENT_WEIGHTS)
+
+        # The new visible Component Score is provisional and independent from
+        # both the published PDMP score and the stricter verified-only shadow.
+        provisional_components = dict(components)
+        basket = stock_basket_diagnostics.get(name)
+        if isinstance(basket, dict):
+            basket_component = build_component(
+                basket.get("score"),
+                basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                basket.get("source_date"),
+                PROVISIONAL_WEIGHTS["stock_basket"],
+                method=basket.get("method"),
+                advances=basket.get("advances"),
+                declines=basket.get("declines"),
+                expected=basket.get("expected"),
+                matched=basket.get("matched"),
+                coverage_pct=basket.get("coverage_pct"),
+                validation_status="प्रारंभिक; 60-session परीक्षण जारी",
+                weighting_method="equal-weight breadth",
+            )
+            if basket_component:
+                provisional_components["stock_basket"] = basket_component
+
+        if name in index_names:
+            oi_component = index_oi_balance_component(
+                index_oi_archive, name, news_source_date,
+                weight=PROVISIONAL_WEIGHTS["eod_oi"], sessions=5,
+            )
+            if oi_component:
+                provisional_components["eod_oi"] = oi_component
+            provisional_components.update(
+                client_marketwide_components(client_context)
+            )
+
+        provisional_final = combine_components(
+            provisional_components, PROVISIONAL_WEIGHTS
+        )
         applicable_names = set(components)
         applicable_names.update(
             key for key, value in excluded.items()
@@ -777,6 +823,8 @@ def build_asset_component_breakdowns(
             "score_range": "-10..+10",
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
             "components": components,
+            "provisional_components": provisional_components,
+            "provisional_final": provisional_final,
             "stock_basket_diagnostic": stock_basket_diagnostics.get(name),
             "excluded_components": excluded,
             "coverage": {
