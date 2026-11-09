@@ -679,10 +679,81 @@ function renderParticipantOI(oi) {
     (rows || '<div class="hl-meta">NSE participant rows नहीं मिले।</div>');
 }
 
-function renderComponentBreakdown(b) {
+function renderStockBasketAdvanced(c, observedAt, assetName) {
+  if (!c || typeof c !== "object") return "";
+  const finite = value => value != null && Number.isFinite(Number(value));
+  const signed = value => {
+    if (!finite(value)) return "—";
+    const n = Number(value);
+    return (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toFixed(2);
+  };
+  const dateLabel = value => {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return match ? match[3] + "/" + match[2] + "/" + match[1] : (String(value || "—"));
+  };
+  let observedLabel = "—";
+  if (observedAt) {
+    const date = new Date(observedAt);
+    if (Number.isFinite(date.getTime())) observedLabel = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: true
+    }).format(date) + " IST";
+  }
+  const members = Array.isArray(c.constituents) ? c.constituents : [];
+  const matched = Number(c.matched), expected = Number(c.expected);
+  const complete = Number.isFinite(matched) && Number.isFinite(expected) && matched === expected
+    && members.length === matched && members.every(row => row && String(row.symbol || "").trim()
+      && String(row.isin || "").trim() && finite(row.close) && Number(row.close) > 0
+      && finite(row.previous_close) && Number(row.previous_close) > 0
+      && finite(row.change_pct) && finite(row.volume) && Number(row.volume) >= 0);
+  const scoreValid = finite(c.score) && Number(c.score) >= -10 && Number(c.score) <= 10;
+  const scoreText = scoreValid ? signed(c.score) + "/10" : "डेटा उपलब्ध नहीं";
+  const scoreClass = scoreValid ? (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") : "zero";
+  const tableRows = complete ? members.map(row => {
+    const change = Number(row.change_pct), changeClass = change > 0 ? "pos" : change < 0 ? "neg" : "zero";
+    return '<tr><td>' + esc(row.symbol) + '</td><td>' + Number(row.close).toLocaleString("en-IN", {maximumFractionDigits: 2}) +
+      '</td><td>' + Number(row.previous_close).toLocaleString("en-IN", {maximumFractionDigits: 2}) +
+      '</td><td class="' + changeClass + '">' + (change > 0 ? "+" : change < 0 ? "−" : "") + Math.abs(change).toFixed(2) +
+      '%</td><td>' + Number(row.volume).toLocaleString("en-IN") + '</td></tr>';
+  }).join("") : "";
+  const calculated = finite(c.advances) && finite(c.declines) && expected > 0
+    ? signed(10 * (Number(c.advances) - Number(c.declines)) / expected) + "/10" : "गणना उपलब्ध नहीं";
+  const eligibility = c.score_eligible === true && c.research_only !== true
+    ? "सत्यापित component" : "RESEARCH DIAGNOSTIC · PDMP Final Score से बाहर";
+  return '<div class="hl" style="margin-top:9px">' +
+    '<div class="hl-title"><b>STOCK BASKET · ' + esc(assetName || "Index") + '</b> · <b class="' + scoreClass + '">' + esc(scoreText) + '</b></div>' +
+    '<div class="hl-meta">स्थिति: ' + eligibility + ' · EOD डेटा, live नहीं</div>' +
+    '<div class="hl-meta">स्रोत: ' + esc(c.source || "Official NSE/BSE CM UDiFF cash Bhavcopy") +
+      ' + official dated index constituent roster · डेटा तारीख़: ' + esc(dateLabel(c.source_date)) + '</div>' +
+    '<div class="hl-meta">Dashboard snapshot observation: ' + esc(observedLabel) +
+      ' · Roster as of: ' + esc(dateLabel(c.roster_as_of || c.source_date)) + '</div>' +
+    '<div class="hl-meta">कुल आधिकारिक स्टॉक: ' + (finite(c.expected) ? esc(c.expected) : "—") +
+      ' · वैध मिले: ' + (finite(c.matched) ? esc(c.matched) : "—") +
+      ' · Data coverage: ' + (finite(c.coverage_pct) ? Number(c.coverage_pct).toFixed(1) + "%" : "—") + '</div>' +
+    '<div class="hl-meta">गणना के इनपुट: बढ़े ' + (finite(c.advances) ? esc(c.advances) : "—") +
+      ' · गिरे ' + (finite(c.declines) ? esc(c.declines) : "—") +
+      ' · स्थिर ' + (finite(c.unchanged) ? esc(c.unchanged) : "—") + '</div>' +
+    '<div class="hl-meta"><b>Formula:</b> 10 × (बढ़े हुए स्टॉक − गिरे हुए स्टॉक) ÷ आधिकारिक कुल स्टॉक। ' +
+      'इस snapshot में गणना = ' + esc(calculated) + ' · Equal-weight breadth; हर स्टॉक की गिनती समान है, market-cap weight नहीं।</div>' +
+    (complete
+      ? '<div class="hl-meta" style="margin-top:7px"><b>Basket में शामिल स्टॉक्स (' + members.length + '):</b> ' +
+        esc(members.map(row => row.symbol).join(", ")) + '</div>' +
+        '<div style="overflow-x:auto;margin-top:7px"><table style="width:100%;min-width:520px;border-collapse:collapse;font-size:11px">' +
+        '<thead><tr><th style="text-align:left;padding:5px;border-bottom:1px solid #345">स्टॉक</th>' +
+        '<th style="text-align:right;padding:5px;border-bottom:1px solid #345">बंद भाव</th>' +
+        '<th style="text-align:right;padding:5px;border-bottom:1px solid #345">पिछला बंद</th>' +
+        '<th style="text-align:right;padding:5px;border-bottom:1px solid #345">बदलाव</th>' +
+        '<th style="text-align:right;padding:5px;border-bottom:1px solid #345">वॉल्यूम</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>'
+      : '<div class="hl-meta warn">शेयर-वाइज डेटा अधूरा है; किसी स्टॉक का नाम/भाव अनुमान से नहीं दिखाया गया।</div>') +
+    '<div class="hl-meta" style="margin-top:7px">यह equal-weight breadth diagnostic है। पूरी सूची का डेटा मौजूद होने पर भी 60-session directional holdout validation पास होने तक इसे प्रकाशित PDMP Final Score में शामिल नहीं किया जाएगा।</div>' +
+    '</div>';
+}
+
+function renderComponentBreakdown(b, observedAt, assetName) {
   if (!b || typeof b !== "object") return "";
   const final = b.final || {};
   const search = b.search_diagnostic || null;
+  const stockBasketHtml = renderStockBasketAdvanced(b.stock_basket_diagnostic, observedAt, assetName);
   const pct = value => value == null || !Number.isFinite(Number(value))
     ? "—" : Number(value).toFixed(1) + "%";
   const labels = {
@@ -820,6 +891,7 @@ function renderComponentBreakdown(b) {
     '<div class="hl-meta" style="margin-top:7px">यह अलग परीक्षण गणना है; ऊपर का प्रकाशित PDMP score और signals नहीं बदले।</div>' +
     completenessHtml +
     (rows || '<div class="hl-meta" style="margin-top:7px">कोई सत्यापित component score उपलब्ध नहीं।</div>') +
+    stockBasketHtml +
     (weightText ? '<div class="hl-meta" style="margin-top:7px"><b>सामान्यीकृत Final weights:</b> ' + esc(weightText) + '</div>' : '') +
     (excludedRows ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>डेटा उपलब्ध नहीं / Final से बाहर</b></div>' + excludedRows + '</div>' : '') +
     searchDiagnosticHtml +
@@ -947,9 +1019,6 @@ document.addEventListener("keydown", event => {
 });
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
-  const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
-  const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
-  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
   const validScore = component && Number.isFinite(Number(component.score))
     && Number(component.score) >= -10 && Number(component.score) <= 10
     && typeof component.source === "string" && component.source.trim()
@@ -967,13 +1036,13 @@ function renderStandaloneStockBasket(b, assetName) {
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
-      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
+      '</div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
 }
 
-function card(name, d, participantOI) {
+function card(name, d, participantOI, observedAt) {
   const shownScore = Number(d.score);
   let [cls, label] = classify(shownScore);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
@@ -1002,7 +1071,7 @@ function card(name, d, participantOI) {
       '</b> · खबरें ' + Number(d.experimental_headline_count || 0) +
       ' · हटाई गई पुरानी/अज्ञात ' + Number(d.experimental_excluded_old_or_unknown || 0) +
       ' · साझा ' + Number(d.experimental_excluded_cross_index_duplicates || 0) + '</div>' : "";
-  const componentBreakdown = renderComponentBreakdown(d.component_breakdown);
+  const componentBreakdown = renderComponentBreakdown(d.component_breakdown, observedAt, name);
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
   const hTotal = posN + negN;
@@ -1480,7 +1549,7 @@ function createGoldForecastCard() {
   }
   return el;
 }
-function renderInstruments(instruments, participantOI) {
+function renderInstruments(instruments, participantOI, observedAt) {
   const idx = document.getElementById("indexes");
   const stk = document.getElementById("stocks");
   const stkMore = document.getElementById("stocksMore");
@@ -1496,7 +1565,7 @@ function renderInstruments(instruments, participantOI) {
   const globalOrder = ["GOLD", "SILVER", "CRUDEOIL", "BITCOIN", "NASDAQ", "DJI"];
   for (const name of globalOrder) {
     const d = instruments[name];
-    if (d) glb.appendChild(card(name, d, participantOI));
+    if (d) glb.appendChild(card(name, d, participantOI, observedAt));
   }
 
   // दोनों कॉलम के कार्ड हर grid row में बराबर ऊँचाई लें।
@@ -1516,7 +1585,7 @@ function renderInstruments(instruments, participantOI) {
 
   for (const [name, d] of Object.entries(instruments)) {
     if (d.type === "stock") {
-      const stockCard = card(name, d, participantOI);
+      const stockCard = card(name, d, participantOI, observedAt);
       if (name === "RELIANCE" || name === "HDFCBANK") {
         stk.appendChild(stockCard);
       } else if (stkMore) {
@@ -1525,7 +1594,7 @@ function renderInstruments(instruments, participantOI) {
         stk.appendChild(stockCard);
       }
     } else if (INDIAN_INDEXES.includes(name)) {
-      idx.appendChild(card(name, d, participantOI));
+      idx.appendChild(card(name, d, participantOI, observedAt));
     }
   }
 }
@@ -2613,7 +2682,7 @@ async function load() {
     renderCrowd(data);
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
-    renderInstruments(data.instruments, data.participant_oi);
+    renderInstruments(data.instruments, data.participant_oi, data.updated);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
