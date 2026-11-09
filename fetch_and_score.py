@@ -556,7 +556,7 @@ def build_asset_component_breakdowns(
             if isinstance(search_snapshot, dict):
                 diagnostic_fields = (
                     "valid", "seed", "source", "timeframe", "source_data_time",
-                    "raw_queries", "classified_queries", "unclassified_queries",
+                    "raw_queries", "in_scope_queries", "out_of_scope_queries", "out_of_scope_weight", "classified_queries", "unclassified_queries",
                     "classification_coverage_pct", "bull_pct", "bear_pct",
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
