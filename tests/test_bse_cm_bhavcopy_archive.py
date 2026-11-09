@@ -33,11 +33,11 @@ def row(code="500001", symbol="ABC", isin="INE000A01001", close="105"):
 
 class BseCashArchiveTests(unittest.TestCase):
     def test_parses_bse_scrip_code_isin_and_cash_prices(self):
-        rows = [row(str(500000 + i), f"SYM{i}", f"INE{i:07d}A01001") for i in range(500)]
+        rows = [row(str(500000 + i), f"SYM{i}", f"IN{i:09d}0") for i in range(500)]
         parsed = parse_bse_cm_csv(payload(rows), "2026-11-06")
         self.assertEqual(len(parsed), 500)
         self.assertEqual(parsed[0]["instrument_id"], "500000")
-        self.assertEqual(parsed[0]["isin"], "INE0000000A01001")
+        self.assertEqual(parsed[0]["isin"], "IN0000000000")
         self.assertEqual(parsed[0]["close"], 105.0)
         self.assertEqual(parsed[0]["previous_close"], 100.0)
 
