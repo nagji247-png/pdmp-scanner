@@ -44,6 +44,25 @@ class CashBasketBreadthTests(unittest.TestCase):
         self.assertEqual(result["score"], None)
 
 
+    def test_constituent_count_is_roster_driven_not_hardcoded(self):
+        members = [{"symbol": f"BANK{i:02d}", "isin": f"ISIN{i:02d}"} for i in range(14)]
+        rows = [
+            {"symbol": f"BANK{i:02d}", "isin": f"ISIN{i:02d}", "close": 101, "previous_close": 100}
+            for i in range(14)
+        ]
+        rosters = {"BANKNIFTY": {
+            "as_of": "2026-11-06",
+            "source_url": "https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-bank",
+            "expected_count": 14,
+            "members": members,
+        }}
+        archive = {"records": [{"date": "2026-11-06", "equity_rows": rows}]}
+        result = calculate_breadth(archive, rosters, "BANKNIFTY", "2026-11-06")
+        self.assertEqual(result["status"], "complete_diagnostic")
+        self.assertEqual(result["matched"], 14)
+        self.assertEqual(result["score"], 10)
+        self.assertFalse(result["score_eligible"])
+
     def test_invalid_price_is_withheld_instead_of_crashing(self):
         self.archive["records"][0]["equity_rows"][0]["close"] = "not-a-price"
         result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
