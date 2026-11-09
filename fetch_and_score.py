@@ -4279,6 +4279,9 @@ def fetch_asset_directional_trends_diagnostics():
     assets = list(ASSET_DIRECTIONAL_TRENDS_QUERIES.items())
     for position, (asset, spec) in enumerate(assets):
         try:
+            # Space independent asset payloads to reduce burst pressure.
+            if position:
+                time.sleep(2)
             terms = [spec["seed"], spec["bull"], spec["bear"], spec["neutral"]]
             py.build_payload(terms, timeframe="now 1-d", geo="IN")
             frame = py.interest_over_time()
