@@ -818,23 +818,6 @@ function renderComponentBreakdown(b, observedAt, assetName) {
   const normalizedText = Object.entries(normalized).map(([key, value]) =>
     (labels[key] || key) + " " + Number(value).toFixed(2) + "%"
   ).join(" · ");
-  const basket = b.stock_basket_diagnostic || {};
-  const basketKey = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
-  const basketDetail = Object.keys(basket).length
-    ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>STOCK BASKET · ' +
-      esc(assetName || "Index") + ' का संयुक्त शेयर डेटा</b></div>' +
-      '<div class="hl-meta">आधिकारिक शेयर: ' + (basket.expected == null ? "—" : esc(basket.expected)) +
-      ' · मिले: ' + (basket.matched == null ? "—" : esc(basket.matched)) +
-      ' · कवरेज: ' + (basket.coverage_pct == null ? "—" : esc(basket.coverage_pct) + "%") + '</div>' +
-      '<div class="hl-meta">बढ़े: ' + (basket.advances == null ? "—" : esc(basket.advances)) +
-      ' · गिरे: ' + (basket.declines == null ? "—" : esc(basket.declines)) +
-      ' · स्थिर: ' + (basket.unchanged == null ? "—" : esc(basket.unchanged)) + '</div>' +
-      '<div class="hl-meta">स्रोत: ' + esc(basket.source || "डेटा उपलब्ध नहीं") +
-      ' · EOD: ' + esc(dateText(basket.source_date)) + '</div>' +
-      '<div class="hl-meta">स्थिति: ' + (basket.score_eligible === true && basket.research_only !== true
-        ? "सत्यापित" : "प्रारंभिक diagnostic · provisional Component Score में input; validation जारी") + '</div>' +
-      '<button type="button" class="stock-basket-list-eye" style="margin-top:7px" onclick="openStockBasketDetails(&quot;' + basketKey + '&quot;)">👁️ शेयर-वाइज सूची और पूरा Basket विवरण</button></div>'
-    : "";
   const client = b.client_market_context || {};
   const evidence = client.evidence_components || {};
   const clientRows = [
@@ -868,7 +851,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + '/6</div>' +
     '<div class="hl-meta">कुल उपलब्ध वजन: ' + (weightsMatch && final.weight_total != null ? Number(final.weight_total).toFixed(2) : "अगली गणना पर") +
     (weightsMatch ? '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") : ' · मौजूदा snapshot पुरानी weightage पर है; नया स्कोर अगली Auto Run पर बनेगा') + '</div>' +
-    rowHtml + basketDetail + clientDetail + searchReason +
+    rowHtml + clientDetail + searchReason +
     '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>' +
     '</div>';
 }
