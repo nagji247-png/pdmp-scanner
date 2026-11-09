@@ -158,7 +158,9 @@ def build_roster_bundle(session, as_of, bse_archive):
     nifty_payload = fetch_once(session, SOURCES["NIFTY"])
     bank_payload = fetch_once(session, SOURCES["BANKNIFTY"])
     bse_payload = fetch_once(session, SOURCES["SENSEX"])
-    print(f"BSE SENSEX official constituent response bytes: {len(bse_payload)}")
+    bse_html = bse_payload.decode("utf-8-sig", errors="replace")
+    scripts = re.findall(r"<script[^>]+src=[\\\"\\\']([^\\\"\\\']+)", bse_html, flags=re.IGNORECASE)
+    print(f"BSE SENSEX official constituent response bytes: {len(bse_payload)}; script_sources={scripts}")
     return {
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
