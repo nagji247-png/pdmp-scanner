@@ -5620,13 +5620,11 @@ def main():
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
-        directional_slot = slot_id == "1900"
+        # Every scheduled slot uses only the existing single five-seed batch.
+        # The optional five extra phrase batches are diagnostic-only and remain
+        # opt-in for explicit offline/manual research, never scheduled scans.
         print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
-        if directional_slot:
-            print("ASSET_TRENDS_DIRECTIONAL: one daily asset-by-asset phrase check; stop immediately on rate limit")
-        _fresh_asset_search = fetch_asset_trends_shadow(
-            include_directional_diagnostics=directional_slot
-        )
+        _fresh_asset_search = fetch_asset_trends_shadow()
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
