@@ -815,6 +815,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     (labels[key] || key) + " " + Number(value).toFixed(2) + "%"
   ).join(" · ");
   const basket = b.stock_basket_diagnostic || {};
+  const basketKey = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
   const basketDetail = Object.keys(basket).length
     ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>STOCK BASKET · ' +
       esc(assetName || "Index") + ' का संयुक्त शेयर डेटा</b></div>' +
@@ -827,7 +828,8 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       '<div class="hl-meta">स्रोत: ' + esc(basket.source || "डेटा उपलब्ध नहीं") +
       ' · EOD: ' + esc(dateText(basket.source_date)) + '</div>' +
       '<div class="hl-meta">स्थिति: ' + (basket.score_eligible === true && basket.research_only !== true
-        ? "सत्यापित" : "प्रारंभिक diagnostic · validation जारी") + '</div></div>'
+        ? "सत्यापित" : "प्रारंभिक diagnostic · provisional Component Score में input; validation जारी") + '</div>' +
+      '<button type="button" class="stock-basket-list-eye" style="margin-top:7px" onclick="openStockBasketDetails(&quot;' + basketKey + '&quot;)">👁️ शेयर-वाइज सूची और पूरा Basket विवरण</button></div>'
     : "";
   const client = b.client_market_context || {};
   const evidence = client.evidence_components || {};
@@ -868,6 +870,12 @@ function renderComponentBreakdown(b, observedAt, assetName) {
 }
 
 const stockBasketDetailStore = Object.create(null);
+function openAssetExpandedDetails(key) {
+  const details = document.getElementById("asset-detail-" + String(key || "").replace(/[^A-Za-z0-9_-]/g, "_"));
+  if (!details) return;
+  details.open = true;
+  details.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
 function openStockBasketDetails(key) {
   const item = stockBasketDetailStore[key];
   const modal = document.getElementById("stockBasketModal");
@@ -889,7 +897,7 @@ function openStockBasketDetails(key) {
   ).join("");
   const rows = [
     ["Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
-    ["स्थिति", c.research_only === true || c.score_eligible === false ? "RESEARCH · Final Score से बाहर" : (c.status || "अलग Diagnostic")],
+    ["स्थिति", c.research_only === true || c.score_eligible === false ? "प्रारंभिक diagnostic · नए Component Score का input; पुराने PDMP Main Score से बाहर" : (c.status || "अलग Diagnostic")],
     ["स्रोत", c.source || "डेटा नहीं"],
     ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
     ["आधिकारिक कुल शेयर", val(c.expected)],
@@ -902,7 +910,7 @@ function openStockBasketDetails(key) {
     '<div class="stock-basket-category-grid">' + categoryHtml + '</div>' +
     '<div id="stockBasketConstituentList" aria-live="polite"></div>' +
     '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
-    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic है। यह मौजूदा PDMP Final Score में शामिल नहीं है। पुराने snapshot में शेयर-वाइज विवरण सेव नहीं था तो सूची अगली सफल EOD cash-basket update के बाद उपलब्ध होगी।</div>' +
+    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic नए provisional Component Score में Stock Basket input है; पुराने PDMP Main Score की गणना इससे नहीं बदलती। पुराने snapshot में शेयर-वाइज विवरण सेव नहीं था तो सूची अगली सफल EOD cash-basket update के बाद उपलब्ध होगी।</div>' +
     (e.reason ? '<div class="stock-basket-modal-note">अलग रखने का कारण: ' + esc(e.reason) + '</div>' : '');
   modal.hidden = false;
   document.body.classList.add("stock-basket-modal-open");
@@ -1003,7 +1011,7 @@ function renderStandaloneStockBasket(b, assetName) {
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
-      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
+      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openAssetExpandedDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
@@ -1133,7 +1141,7 @@ function card(name, d, participantOI, observedAt) {
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
     ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
-    <details class="asset-detail-toggle">
+    <details id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" class="asset-detail-toggle">
       <summary>👁️ विस्तृत जानकारी खोलें</summary>
       <div class="asset-detail-content">
         ${componentBreakdown}
