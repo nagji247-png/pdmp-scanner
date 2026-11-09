@@ -48,6 +48,12 @@ class CashBasketForwardEvaluationTests(unittest.TestCase):
         result = evaluate_cash_basket(self.diagnostics, self.history, min_samples=2)
         self.assertEqual(result["indices"]["BANKNIFTY"]["sample_count"], 0)
 
+    def test_default_gate_requires_60_paired_sessions(self):
+        result = evaluate_cash_basket(self.diagnostics, self.history)
+        self.assertEqual(result["minimum_samples_required"], 60)
+        for metric in result["indices"].values():
+            self.assertEqual(metric["status"], "insufficient_sample")
+
     def test_minimum_sample_count_is_enforced(self):
         with self.assertRaises(ValueError):
             evaluate_cash_basket(self.diagnostics, self.history, min_samples=1)
