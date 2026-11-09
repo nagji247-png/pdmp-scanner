@@ -114,7 +114,7 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         )
         self.assertEqual(metrics[0]["directional_observation_count"], 3)
         self.assertEqual(metrics[0]["false_signals"], 0)
-        self.assertIn("bull", metrics[0]["regime_metrics"])
+        self.assertNotIn("regime_metrics", metrics[0])
 
     def test_non_overlapping_phase_rejects_invalid_horizon(self):
         with self.assertRaisesRegex(ValueError, "positive integer"):

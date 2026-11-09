@@ -77,16 +77,6 @@ class ParticipantOISummaryTests(unittest.TestCase):
                 "false_signal_rate_pct": 33.33,
                 "directional_hit_rate_pct": 66.67,
                 "avg_forward_return_pct": 0.12,
-                "regime_metrics": {
-                    "bull": {
-                        "n": 2,
-                        "directional_observation_count": 2,
-                        "directional_hit_rate_pct": 100.0,
-                        "false_signals": 0,
-                        "false_signal_rate_pct": 0.0,
-                        "avg_forward_return_pct": 0.2,
-                    }
-                },
             }
         ]
         result = build_summary(report)
@@ -101,7 +91,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         phase = future["non_overlapping_holdout_phases"][0]
         self.assertEqual(phase["phase_offset_sessions"], 0)
         self.assertEqual(phase["directional_hit_rate_pct"], 66.67)
-        self.assertEqual(phase["regime_metrics"]["bull"]["n"], 2)
+        self.assertNotIn("regime_metrics", phase)
         self.assertEqual(nifty["best_holdout_futures_exploratory_only"][0]["feature"], futures)
         self.assertEqual(future["statistical_evidence"]["holm_family_size"], 1)
         self.assertEqual(nifty["directional_inference"]["family_size"], 1)

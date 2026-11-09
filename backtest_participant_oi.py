@@ -350,13 +350,6 @@ def non_overlapping_phase_metrics(rows, horizon, directional):
             "false_signal_rate_pct": metrics["false_signal_rate_pct"],
             "directional_hit_rate_pct": metrics["directional_hit_rate_pct"],
             "avg_forward_return_pct": metrics["avg_forward_return_pct"],
-            "regime_metrics": {
-                regime: calculate_metrics(
-                    [row for row in phase_rows if row.get("regime") == regime],
-                    directional=directional,
-                )
-                for regime in REGIMES
-            },
         })
     return results
 
@@ -450,11 +443,12 @@ def analyze_index(index_name, symbol, records):
                         )
                         for regime in REGIMES
                     }
-                    item["non_overlapping_holdout_phases"] = (
-                        non_overlapping_phase_metrics(
-                            sample, horizon, directional=futures_directional
+                    if futures_directional:
+                        item["non_overlapping_holdout_phases"] = (
+                            non_overlapping_phase_metrics(
+                                sample, horizon, directional=True
+                            )
                         )
-                    )
                 results.append(item)
 
     regime_counts = Counter(regimes.get(date, "unknown") for date in aligned_dates)
@@ -491,8 +485,9 @@ def analyze_index(index_name, symbol, records):
             "For each horizon H, the chronological holdout is split into all H possible "
             "phase offsets using actual index-session positions. Within one phase, signal "
             "dates are at least H sessions apart, so forward windows do not overlap. "
-            "All phases are reported; phases are alternative partitions, not independent "
-            "samples. Descriptive only: no phase selection or phase-level p-values."
+            "Non-overlapping phases are reported for futures directional features only; "
+            "options remain correlation-only. Phases are alternative partitions, not "
+            "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
     }
