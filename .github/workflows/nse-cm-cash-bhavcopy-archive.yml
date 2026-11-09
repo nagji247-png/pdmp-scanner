@@ -69,7 +69,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: python run_three_index_cash_basket.py
       - name: Evaluate historical cash-basket signals against next captured closes
-        if: github.event_name != "pull_request"
+        if: github.event_name != 'pull_request'
         run: |
           if [ ! -s market_signal_history.json ]; then
             echo "MARKET_SIGNAL_HISTORY_MISSING; forward evaluation withheld"
