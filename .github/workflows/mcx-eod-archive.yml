@@ -24,21 +24,25 @@ jobs:
           python-version: "3.11"
       - name: Install scanner runtime dependencies
         run: python -m pip install yfinance feedparser requests curl_cffi pytrends
-      - name: Validate archive code and run offline tests
+      - name: Validate archive and research code; run offline tests
         run: |
-          python -m py_compile mcx_bhavcopy_archive.py
+          python -m py_compile mcx_bhavcopy_archive.py mcx_oi_forward_backtest.py run_mcx_oi_forward_evaluation.py
           python -m unittest discover -s tests -p 'test_mcx_bhavcopy_archive.py' -v
+          python -m unittest discover -s tests -p 'test_mcx_oi_forward_backtest.py' -v
+          python -m unittest discover -s tests -p 'test_run_mcx_oi_forward_evaluation.py' -v
       - name: Fetch one dated official MCX Bhavcopy
         run: python mcx_bhavcopy_archive.py
-      - name: Commit new EOD session only when archive changed
+      - name: Build offline same-expiry price-OI forward research report
+        run: python run_mcx_oi_forward_evaluation.py --min-signal-sessions 60
+      - name: Commit archive and research report only when changed
         run: |
-          # Stage first: a first-run archive is untracked, so git diff alone misses it.
-          git add -f -- mcx_bhavcopy_archive.json
-          if git diff --cached --quiet -- mcx_bhavcopy_archive.json; then
-            echo "MCX_ARCHIVE_NO_CHANGE"
+          # Stage first: newly created files are untracked, so git diff alone misses them.
+          git add -f -- mcx_bhavcopy_archive.json mcx_oi_forward_evaluation.json
+          if git diff --cached --quiet -- mcx_bhavcopy_archive.json mcx_oi_forward_evaluation.json; then
+            echo "MCX_ARCHIVE_AND_REPORT_NO_CHANGE"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Archive official MCX GOLD/SILVER EOD Bhavcopy"
+          git commit -m "Archive MCX EOD data and refresh price-OI research"
           git push
