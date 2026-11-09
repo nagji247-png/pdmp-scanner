@@ -1,0 +1,30 @@
+name: Cash Basket Forward Evaluation Validation
+
+on:
+  pull_request:
+    paths:
+      - "evaluate_cash_basket_forward.py"
+      - "tests/test_evaluate_cash_basket_forward.py"
+      - ".github/workflows/cash-basket-forward-evaluation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cash-basket-forward-evaluation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Compile evaluator
+        run: python -m py_compile evaluate_cash_basket_forward.py
+      - name: Run isolated offline tests
+        run: python -m unittest discover -s tests -p 'test_evaluate_cash_basket_forward.py' -v
