@@ -126,10 +126,11 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
             "reference_date": (today - timedelta(days=1)).isoformat(),
         }
         with mock.patch.object(
-            fetch_and_score, "intraday_quote", return_value=None
-        ) as quote:
+            fetch_and_score.requests, "get",
+            side_effect=RuntimeError("offline"),
+        ) as request:
             result = fetch_and_score.fetch_usdinr_reference(previous)
-        quote.assert_called_once_with("INR=X")
+        self.assertEqual(request.call_count, 2)
         self.assertEqual(result["reference_price"], 93.89)
         self.assertTrue(result["reference_stale"])
         self.assertIn("लाइव नहीं", result["reference_source"])
