@@ -149,6 +149,7 @@ def assess_snapshot(record: object, oi_previous_dates: dict[str, str]) -> dict:
 
     closes_complete = bool(valid_date) and all(
         isinstance(indices.get(name), dict)
+        and indices[name].get("close_valid") is True
         and finite_number(indices[name].get("close"))
         and market_date(indices[name].get("close_as_of")) == date
         for name in INDEXES
