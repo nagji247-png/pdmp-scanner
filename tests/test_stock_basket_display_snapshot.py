@@ -32,6 +32,27 @@ class StockBasketDisplaySnapshotTests(unittest.TestCase):
         self.assertFalse(result["NIFTY"]["score_eligible"])
         self.assertFalse(result["NIFTY"]["included"])
 
+    def test_complete_member_detail_is_carried_to_dashboard_diagnostic(self):
+        members = [{
+            "symbol": "AAA", "instrument_id": "", "isin": "ISINAAA",
+            "close": 110.0, "previous_close": 100.0,
+            "change_pct": 10.0, "volume": 12345,
+        }]
+        archive = {"records": [{
+            "date": "2026-11-06",
+            "indices": {
+                "NIFTY": {
+                    "status": "complete_diagnostic", "score": 10.0,
+                    "matched": 1, "expected": 1, "coverage_pct": 100.0,
+                    "advances": 1, "declines": 0, "unchanged": 0,
+                    "research_only": True, "score_eligible": False,
+                    "constituents": members,
+                }
+            },
+        }]}
+        result = load_latest_stock_basket_diagnostics("2026-11-09", archive)
+        self.assertEqual(result["NIFTY"]["constituents"], members)
+
     def test_incomplete_or_unvalidated_diagnostic_is_not_displayed_as_score(self):
         archive = {"records": [
             row("2026-11-06", "NIFTY", 8.0, matched=49),

@@ -490,6 +490,42 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None):
                 "unchanged": int(metric.get("unchanged", 0)),
                 "method": metric.get("method") or "10 × (advances − declines) / official constituent count",
             }
+            detail_rows = metric.get("constituents")
+            if isinstance(detail_rows, list) and len(detail_rows) == expected:
+                valid_details = True
+                seen_ids = set()
+                for detail in detail_rows:
+                    if not isinstance(detail, dict):
+                        valid_details = False
+                        break
+                    identity = str(detail.get("symbol") or detail.get("instrument_id") or "").strip().upper()
+                    isin = str(detail.get("isin") or "").strip().upper()
+                    try:
+                        close = float(detail.get("close"))
+                        previous_close = float(detail.get("previous_close"))
+                        change_pct = float(detail.get("change_pct"))
+                    except (TypeError, ValueError, OverflowError):
+                        valid_details = False
+                        break
+                    if (
+                        not identity or not isin or identity in seen_ids
+                        or not math.isfinite(close) or close <= 0
+                        or not math.isfinite(previous_close) or previous_close <= 0
+                        or not math.isfinite(change_pct)
+                    ):
+                        valid_details = False
+                        break
+                    seen_ids.add(identity)
+                if valid_details:
+                    detail_up = sum(float(item["change_pct"]) > 0 for item in detail_rows)
+                    detail_down = sum(float(item["change_pct"]) < 0 for item in detail_rows)
+                    detail_flat = expected - detail_up - detail_down
+                    if (
+                        detail_up == int(metric.get("advances", 0))
+                        and detail_down == int(metric.get("declines", 0))
+                        and detail_flat == int(metric.get("unchanged", 0))
+                    ):
+                        output[index_name]["constituents"] = detail_rows
     return output
 
 

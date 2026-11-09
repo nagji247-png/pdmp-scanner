@@ -102,7 +102,15 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
         if not math.isfinite(change_pct):
             missing.append(label)
             continue
-        moves.append((label, change_pct))
+        moves.append({
+            "symbol": str(row.get("symbol") or "").strip().upper(),
+            "instrument_id": str(row.get("instrument_id") or "").strip(),
+            "isin": isin,
+            "close": round(close, 6),
+            "previous_close": round(previous, 6),
+            "change_pct": round(change_pct, 4),
+            "volume": row.get("volume"),
+        })
 
     coverage = len(moves) / len(members)
     if missing:
@@ -114,10 +122,14 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
             "score_eligible": False, "research_only": True,
         }
 
-    advances = sum(change > 0 for _, change in moves)
-    declines = sum(change < 0 for _, change in moves)
+    advances = sum(item["change_pct"] > 0 for item in moves)
+    declines = sum(item["change_pct"] < 0 for item in moves)
     unchanged = len(moves) - advances - declines
     score = 10.0 * (advances - declines) / len(moves)
+    constituents = sorted(
+        moves,
+        key=lambda item: (item["symbol"] or item["instrument_id"]),
+    )
     return {
         "index": index_key, "date": trade_date, "status": "complete_diagnostic",
         "roster_as_of": meta["as_of"], "expected": len(members),
@@ -125,7 +137,10 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
         "advances": advances, "declines": declines, "unchanged": unchanged,
         "advance_pct": round(100 * advances / len(moves), 2),
         "decline_pct": round(100 * declines / len(moves), 2),
-        "equal_weight_mean_change_pct": round(sum(x for _, x in moves) / len(moves), 4),
+        "equal_weight_mean_change_pct": round(
+            sum(item["change_pct"] for item in moves) / len(moves), 4
+        ),
+        "constituents": constituents,
         "score": round(max(-10.0, min(10.0, score)), 2),
         "score_eligible": False, "research_only": True,
         "method": "10 * (advances - declines) / official constituent count; equal member count",

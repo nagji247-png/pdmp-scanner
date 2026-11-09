@@ -340,6 +340,19 @@
   .stock-basket-compact-title{font-size:11px;color:#a9c5e5;font-weight:700}
   .stock-basket-compact b{font-size:13px;white-space:nowrap}
   .stock-basket-eye{flex:0 0 auto;border:1px solid #28628d;border-radius:7px;background:#10294a;color:#7cecff;padding:5px 8px;font:700 11px system-ui;cursor:pointer}
+  .stock-basket-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
+  .stock-basket-category{min-width:0;padding:11px;border:1px solid #1e426b;border-radius:10px;background:#0a1a32}
+  .stock-basket-category-label{display:block;color:#87a9cc;font-size:12px;margin-bottom:7px}
+  .stock-basket-category-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .stock-basket-category-actions b{font-size:20px;color:#e8f5ff}
+  .stock-basket-list-eye{border:1px solid #28628d;border-radius:7px;background:#10294a;color:#7cecff;padding:6px 9px;font:700 11px system-ui;cursor:pointer;white-space:nowrap}
+  .stock-basket-constituent-list{margin-top:12px;padding:11px;border:1px solid #245078;border-radius:10px;background:#08172d}
+  .stock-basket-constituent-list h3{font-size:14px;color:#dff7ff;margin:0 0 8px}
+  .stock-basket-constituent-table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
+  .stock-basket-constituent-table th,.stock-basket-constituent-table td{padding:8px 6px;border-top:1px solid #1b3555;text-align:right;white-space:nowrap}
+  .stock-basket-constituent-table th:first-child,.stock-basket-constituent-table td:first-child{text-align:left}
+  .stock-basket-symbol-link{color:#6cecff;font-weight:800;text-decoration:none}
+  .stock-basket-symbol-link:hover{text-decoration:underline;color:#fff}
   .stock-basket-eye:focus-visible,.stock-basket-close:focus-visible{outline:2px solid #36e7ff;outline-offset:2px}
   #stockBasketModal[hidden]{display:none!important}
   #stockBasketModal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,5,16,.88);backdrop-filter:blur(8px)}
@@ -727,15 +740,22 @@ function openStockBasketDetails(key) {
   const c = item.component || {};
   const e = item.excluded || {};
   const val = (v, suffix="") => v == null || v === "" ? "डेटा नहीं" : esc(String(v) + suffix);
+  const categories = [
+    ["up", "बढ़े हुए शेयर", c.advances],
+    ["down", "गिरे हुए शेयर", c.declines],
+    ["flat", "स्थिर शेयर", c.unchanged],
+    ["all", "मिले हुए शेयर", c.matched]
+  ];
+  const categoryHtml = categories.map(([id, label, count]) =>
+    '<div class="stock-basket-category"><span class="stock-basket-category-label">' + label + '</span>' +
+    '<div class="stock-basket-category-actions"><b>' + val(count) + '</b>' +
+    '<button type="button" class="stock-basket-list-eye" data-stock-basket-key="' + key + '" data-stock-basket-category="' + id + '" onclick="showStockBasketConstituentList(this.dataset.stockBasketKey,this.dataset.stockBasketCategory)">👁️ सूची</button></div></div>'
+  ).join("");
   const rows = [
     ["Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
     ["स्थिति", c.research_only === true || c.score_eligible === false ? "RESEARCH · Final Score से बाहर" : (c.status || "अलग Diagnostic")],
     ["स्रोत", c.source || "डेटा नहीं"],
     ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
-    ["बढ़े हुए शेयर", val(c.advances)],
-    ["गिरे हुए शेयर", val(c.declines)],
-    ["स्थिर शेयर", val(c.unchanged)],
-    ["मिले हुए शेयर", val(c.matched)],
     ["आधिकारिक कुल शेयर", val(c.expected)],
     ["कवरेज", val(c.coverage_pct, "%")],
     ["गणना", c.formula || "10 × (बढ़े − गिरे) ÷ आधिकारिक constituent संख्या; सीमा −10 से +10"],
@@ -743,13 +763,81 @@ function openStockBasketDetails(key) {
   ];
   content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — STOCK BASKET</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
     '<div class="stock-basket-modal-score ' + (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") + '">' + (c.score == null ? "—" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")) + '</div>' +
+    '<div class="stock-basket-category-grid">' + categoryHtml + '</div>' +
+    '<div id="stockBasketConstituentList" aria-live="polite"></div>' +
     '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
-    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic है। यह मौजूदा PDMP Final Score में शामिल नहीं है। पुराने archive का डेटा होने पर तारीख़ स्पष्ट दिखाई जाएगी।</div>' +
+    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic है। यह मौजूदा PDMP Final Score में शामिल नहीं है। पुराने snapshot में शेयर-वाइज विवरण सेव नहीं था तो सूची अगली सफल EOD cash-basket update के बाद उपलब्ध होगी।</div>' +
     (e.reason ? '<div class="stock-basket-modal-note">अलग रखने का कारण: ' + esc(e.reason) + '</div>' : '');
   modal.hidden = false;
   document.body.classList.add("stock-basket-modal-open");
   const close = modal.querySelector(".stock-basket-close");
   if (close) close.focus();
+}
+function showStockBasketConstituentList(key, category) {
+  const item = stockBasketDetailStore[key];
+  const target = document.getElementById("stockBasketConstituentList");
+  if (!item || !target) return;
+  const c = item.component || {};
+  const labels = {
+    up: "बढ़े हुए शेयर", down: "गिरे हुए शेयर",
+    flat: "स्थिर शेयर", all: "मिले हुए शेयर"
+  };
+  const rows = Array.isArray(c.constituents) ? c.constituents : null;
+  if (!rows) {
+    target.innerHTML = '<div class="stock-basket-constituent-list"><div class="warn">इस पुराने snapshot में शेयर-वाइज नाम/भाव सेव नहीं हैं।</div><div class="sub">कुल संख्या उपलब्ध है, लेकिन किसी शेयर को बढ़ा/गिरा हुआ बताने के लिए अनुमान नहीं लगाया जाएगा। अगली सफल EOD cash-basket update में पूरी सूची सेव होगी।</div></div>';
+    return;
+  }
+  const valid = rows.length === Number(c.matched) && rows.every(row =>
+    row && (String(row.symbol || "").trim() || String(row.instrument_id || "").trim())
+    && String(row.isin || "").trim()
+    && Number.isFinite(Number(row.close)) && Number(row.close) > 0
+    && Number.isFinite(Number(row.previous_close)) && Number(row.previous_close) > 0
+    && Number.isFinite(Number(row.change_pct))
+  );
+  if (!valid) {
+    target.innerHTML = '<div class="stock-basket-constituent-list"><div class="warn">शेयर-वाइज डेटा अधूरा है — सूची रोकी गई है।</div><div class="sub">सभी matched शेयरों का सत्यापित विवरण मिलने पर ही लिस्ट दिखाई जाएगी।</div></div>';
+    return;
+  }
+  const filtered = rows.filter(row => {
+    const change = Number(row.change_pct);
+    return category === "up" ? change > 0
+      : category === "down" ? change < 0
+      : category === "flat" ? change === 0
+      : true;
+  }).sort((a, b) => {
+    if (category === "up") return Number(b.change_pct) - Number(a.change_pct);
+    if (category === "down") return Number(a.change_pct) - Number(b.change_pct);
+    return String(a.symbol || a.instrument_id).localeCompare(String(b.symbol || b.instrument_id));
+  });
+  const expectedCount = category === "up" ? Number(c.advances)
+    : category === "down" ? Number(c.declines)
+    : category === "flat" ? Number(c.unchanged) : Number(c.matched);
+  if (filtered.length !== expectedCount) {
+    target.innerHTML = '<div class="stock-basket-constituent-list"><div class="warn">गिनती और शेयर-वाइज डेटा मेल नहीं खाते — सूची रोकी गई है।</div></div>';
+    return;
+  }
+  if (!filtered.length) {
+    target.innerHTML = '<div class="stock-basket-constituent-list"><h3>' + labels[category] + ' (0)</h3><div class="sub">इस तारीख़ पर इस श्रेणी में कोई शेयर नहीं है।</div></div>';
+    return;
+  }
+  const fmt = value => Number(value).toLocaleString("en-IN", {maximumFractionDigits: 2});
+  const signed = value => (Number(value) > 0 ? "+" : "") + Number(value).toFixed(2) + "%";
+  const tableRows = filtered.map(row => {
+    const symbol = String(row.symbol || "").trim().toUpperCase();
+    const instrumentId = String(row.instrument_id || "").trim();
+    const displayName = symbol || ("BSE " + instrumentId);
+    const ticker = symbol ? "NSE:" + symbol : "BSE:" + instrumentId;
+    const chartUrl = "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(ticker);
+    const change = Number(row.change_pct);
+    const cls = change > 0 ? "pos" : change < 0 ? "neg" : "zero";
+    const volume = row.volume == null ? "—" : fmt(row.volume);
+    return '<tr><td><a class="stock-basket-symbol-link" href="' + chartUrl + '" target="_blank" rel="noopener noreferrer">' + esc(displayName) + ' ↗</a></td>' +
+      '<td>₹' + fmt(row.close) + '</td><td>₹' + fmt(row.previous_close) + '</td>' +
+      '<td class="' + cls + '">' + signed(change) + '</td><td>' + volume + '</td></tr>';
+  }).join("");
+  target.innerHTML = '<div class="stock-basket-constituent-list"><h3>' + labels[category] + ' (' + filtered.length + ') · ' + esc(c.source_date || "तारीख़ नहीं") + '</h3>' +
+    '<div class="sub" style="margin-bottom:8px">शेयर के नाम पर क्लिक करें — उसका TradingView चार्ट खुलेगा। भाव EOD डेटा है, live quote नहीं।</div>' +
+    '<div style="overflow-x:auto"><table class="stock-basket-constituent-table"><thead><tr><th>शेयर / चार्ट</th><th>बंद भाव</th><th>पिछला बंद</th><th>बदलाव</th><th>वॉल्यूम</th></tr></thead><tbody>' + tableRows + '</tbody></table></div></div>';
 }
 function closeStockBasketDetails() {
   const modal = document.getElementById("stockBasketModal");
