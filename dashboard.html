@@ -426,7 +426,7 @@
 </div>
 </div>
 
-<div id="stockBasketModal" hidden onclick="if(event.target===this) closeStockBasketDetails()" role="dialog" aria-modal="true" aria-label="Stock Basket का पूरा विवरण"><div class="stock-basket-modal-panel"><div id="stockBasketModalContent"></div></div></div>
+<div id="stockBasketModal" hidden role="dialog" aria-modal="true" aria-label="Stock Basket का पूरा विवरण"><div class="stock-basket-modal-panel"><div id="stockBasketModalContent"></div></div></div>
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -724,6 +724,7 @@ function openStockBasketDetails(key) {
   const modal = document.getElementById("stockBasketModal");
   const content = document.getElementById("stockBasketModalContent");
   if (!modal || !content || !item) return;
+  if (!modal.hidden) { closeStockBasketDetails(); return; }
   const c = item.component || {};
   const e = item.excluded || {};
   const val = (v, suffix="") => v == null || v === "" ? "डेटा नहीं" : esc(String(v) + suffix);
@@ -741,7 +742,7 @@ function openStockBasketDetails(key) {
     ["गणना", c.formula || "10 × (बढ़े − गिरे) ÷ आधिकारिक constituent संख्या; सीमा −10 से +10"],
     ["Validation", c.validation && c.validation.passed === true ? "पास" : "अभी पूर्ण सत्यापन नहीं"]
   ];
-  content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — STOCK BASKET</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
+  content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — STOCK BASKET</h2></div></div>' +
     '<div class="stock-basket-modal-score ' + (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") + '">' + (c.score == null ? "—" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")) + '</div>' +
     '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
     '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic है। यह मौजूदा PDMP Final Score में शामिल नहीं है। पुराने archive का डेटा होने पर तारीख़ स्पष्ट दिखाई जाएगी।</div>' +
@@ -756,9 +757,6 @@ function closeStockBasketDetails() {
   if (modal) modal.hidden = true;
   document.body.classList.remove("stock-basket-modal-open");
 }
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeStockBasketDetails();
-});
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
