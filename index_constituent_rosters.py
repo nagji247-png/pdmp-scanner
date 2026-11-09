@@ -14,6 +14,7 @@ import io
 import json
 import re
 from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
 
@@ -161,6 +162,12 @@ def build_roster_bundle(session, as_of, bse_archive):
     bse_html = bse_payload.decode("utf-8-sig", errors="replace")
     scripts = re.findall(r"<script[^>]+src=[\\\"\\\']([^\\\"\\\']+)", bse_html, flags=re.IGNORECASE)
     print(f"BSE SENSEX official constituent response bytes: {len(bse_payload)}; script_sources={scripts}")
+    main_script = next((item for item in scripts if item.rsplit("/", 1)[-1].startswith("main-")), None)
+    if main_script:
+        js_payload = fetch_once(session, urljoin("https://www.bseindices.com/", main_script))
+        js_text = js_payload.decode("utf-8", errors="replace")
+        matches = [js_text[max(0, m.start()-100):min(len(js_text), m.end()+180)] for m in re.finditer(r"api|constituent|indexdetail", js_text, flags=re.IGNORECASE)]
+        print("BSE Indices main bundle API clues:", matches[:60])
     return {
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
