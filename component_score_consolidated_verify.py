@@ -15,6 +15,34 @@ INPUT = Path("data.json")
 OUTPUT = Path("component-score-consolidated-verification.json")
 
 
+
+SEARCH_ASSETS = {"NIFTY": ("index_search_shadow", "nifty"), "SENSEX": ("index_search_shadow", "sensex"), "BANKNIFTY": ("index_search_shadow", "bank nifty"), "GOLD": ("asset_search_shadow", "gold price"), "SILVER": ("asset_search_shadow", "silver price")}
+
+def summarize_asset_search(asset, instrument, now_utc):
+    field, expected = SEARCH_ASSETS[asset]
+    snap = instrument.get(field) if isinstance(instrument, dict) else None
+    if not isinstance(snap, dict):
+        return {"status": "MISSING", "field": field, "expected_seed": expected, "reason": "asset-specific snapshot missing"}
+    actual = str(snap.get("seed") or "").strip().lower()
+    stamp = snap.get("source_data_time") or snap.get("as_of")
+    fresh = component_scoring.is_fresh_timestamp(stamp, now_utc, max_age_minutes=360)
+    bull = component_scoring.finite_number(snap.get("bull_pct"))
+    bear = component_scoring.finite_number(snap.get("bear_pct"))
+    neutral = component_scoring.finite_number(snap.get("neutral_pct"))
+    directional = component_scoring.finite_number(snap.get("directional_bull_pct"))
+    if actual != expected:
+        status, reason = "SEED_MISMATCH", "cross-asset seed rejected"
+    elif not snap.get("valid"):
+        status, reason = "INVALID", snap.get("reason") or "source marked invalid"
+    elif not fresh:
+        status, reason = "STALE_OR_INVALID_TIMESTAMP", "observation is not fresh"
+    elif directional is None or (bull == 0 and bear == 0):
+        status, reason = "NEUTRAL_ONLY", "no directional evidence; excluded from Search Final"
+    else:
+        status, reason = "DIRECTIONAL_EVIDENCE_PRESENT", "directional evidence exists; score eligibility checked separately"
+    return {"status": status, "field": field, "expected_seed": expected, "actual_seed": actual or None, "source": snap.get("source"), "timeframe": snap.get("timeframe"), "source_data_time": stamp, "fresh": bool(fresh), "classification_coverage_pct": component_scoring.finite_number(snap.get("classification_coverage_pct")), "bull_pct": bull, "bear_pct": bear, "neutral_pct": neutral, "directional_bull_pct": directional, "classified_queries": snap.get("classified_queries"), "raw_queries": snap.get("raw_queries"), "reason": reason}
+
+
 def main():
     if not INPUT.is_file():
         raise SystemExit("FAIL: data.json is missing")
@@ -93,6 +121,7 @@ def main():
             "normalized_weights_pct": normalized,
             "included_component_count": len(included),
             "excluded_component_count": len(excluded),
+            "search_evidence_audit": summarize_asset_search(asset, instruments[asset], now),
         }
 
     report = {
