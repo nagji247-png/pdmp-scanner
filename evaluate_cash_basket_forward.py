@@ -144,7 +144,7 @@ def main():
     result = evaluate_cash_basket(diagnostics, history, args.min_samples)
     target = Path(args.output)
     temporary = target.with_suffix(target.suffix + ".tmp")
-    temporary.write_text(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\\n", encoding="utf-8")
+    temporary.write_text(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     temporary.replace(target)
     print(json.dumps({
         "status": {key: value["status"] for key, value in result["indices"].items()},
