@@ -6,13 +6,15 @@ continue to accumulate.
 """
 from component_scoring import build_component, clamp_score, finite_number
 
+# No calibrated weights exist yet. Give each available component one equal
+# provisional vote; combine_components normalizes over components actually present.
 PROVISIONAL_WEIGHTS = {
-    "news": 40.0,
-    "search": 40.0,
-    "eod_oi": 20.0,
-    "client_ce_pe": 10.0,
-    "client_futures": 10.0,
-    "stock_basket": 20.0,
+    "news": 1.0,
+    "search": 1.0,
+    "eod_oi": 1.0,
+    "client_ce_pe": 1.0,
+    "client_futures": 1.0,
+    "stock_basket": 1.0,
 }
 
 
