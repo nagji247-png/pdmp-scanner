@@ -1586,12 +1586,6 @@ function renderTrends(t) {
       <div class="sub" style="margin-top:5px">Crowd Bull % का आधार अलग है: केवल BULLISH + BEARISH। इसलिए Crowd Bull % और इस तीन-भाग विभाजन की सीधे तुलना न करें।</div>
       <div class="sub" style="margin-top:5px">स्रोत: Google Trends · सापेक्ष खोज-रुचि; वास्तविक लोगों की गिनती नहीं। ${t.as_of ? "स्रोत समय: "+esc(istTime(t.as_of))+" IST" : "स्रोत समय उपलब्ध नहीं"}</div>
     </details>`;
-  const fearGreedDetails = hasFearGreed ? `
-    <details class="trends-details">
-      <summary><span class="details-toggle-label"><span style="font-size:24px;vertical-align:middle;line-height:1">👁️🖕</span> विवरण खोलें</span></summary>
-      <div class="sub" style="margin-top:8px">स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि · स्रोत समय: ${t.as_of ? esc(istTime(t.as_of))+" IST" : "उपलब्ध नहीं"}</div>
-      ${daySummary}
-    </details>` : "";
   const ct = failed ? [] : (t.crowd_terms || []);
   const topOf = (dir) => {
     const xs = ct.filter(p => p.dir === dir && p.today_pct != null);
@@ -1612,6 +1606,12 @@ function renderTrends(t) {
   const daySummary = todayBull == null ? "" : `
     <div class="sub" style="margin-top:12px">आज (${esc(t.today_date_ist || "IST")}) की दिशा: <b>बुलिश ${Number(todayBull).toFixed(1)}% · बियरिश ${(100 - Number(todayBull)).toFixed(1)}%</b> — ${esc(t.today_label || "")}</div>
     <div class="sub" style="margin-top:6px">कल (${esc(t.yesterday_date_ist || "IST")}) की दिशा: <b>${yesterdayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + yesterdayBull + "% · बियरिश " + (100 - yesterdayBull).toFixed(1) + "%"}</b> — ${esc(t.yesterday_label || "")}</div>`;
+  const fearGreedDetails = hasFearGreed ? `
+    <details class="trends-details">
+      <summary><span class="details-toggle-label"><span style="font-size:24px;vertical-align:middle;line-height:1">👁️🖕</span> विवरण खोलें</span></summary>
+      <div class="sub" style="margin-top:8px">स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि · स्रोत समय: ${t.as_of ? esc(istTime(t.as_of))+" IST" : "उपलब्ध नहीं"}</div>
+      ${daySummary}
+    </details>` : "";
 
   const allRows = ct.map(p => {
     const isBull = p.dir === "bull";
