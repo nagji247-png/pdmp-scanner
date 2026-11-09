@@ -333,6 +333,29 @@
   @media(max-width:560px){.brandbar{justify-content:space-between;gap:7px}.brand-mark{width:clamp(48px,15vw,58px);flex:0 0 auto}.brand-name{text-align:left;flex:1}.brand-owner-photo{width:clamp(132px,38vw,155px);height:150px;object-fit:cover;object-position:center top}}
   @media(max-width:360px){.brandbar{gap:5px;padding-left:8px;padding-right:8px}.brand-mark{width:42px}.brand-owner-photo{width:122px;height:138px}.brand-title{font-size:18px}.brand-tagline{font-size:9px}.brand-hi{font-size:12px}}
 
+
+  /* Stock Basket opens in a separate viewport; never expands the index card. */
+  .stock-basket-compact{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:6px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.55);min-width:0}
+  .stock-basket-compact>div{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+  .stock-basket-compact-title{font-size:11px;color:#a9c5e5;font-weight:700}
+  .stock-basket-compact b{font-size:13px;white-space:nowrap}
+  .stock-basket-eye{flex:0 0 auto;border:1px solid #28628d;border-radius:7px;background:#10294a;color:#7cecff;padding:5px 8px;font:700 11px system-ui;cursor:pointer}
+  .stock-basket-eye:focus-visible,.stock-basket-close:focus-visible{outline:2px solid #36e7ff;outline-offset:2px}
+  #stockBasketModal[hidden]{display:none!important}
+  #stockBasketModal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,5,16,.88);backdrop-filter:blur(8px)}
+  .stock-basket-modal-panel{width:min(900px,100%);max-height:92vh;overflow:auto;padding:clamp(16px,3vw,28px);border:1px solid #2474a5;border-radius:18px;background:linear-gradient(145deg,#0c1d39,#071126 75%);box-shadow:0 18px 70px #000c,0 0 28px #1ce7ff22}
+  .stock-basket-modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .stock-basket-eyebrow{font-size:11px;letter-spacing:1.5px;color:#6cecff;font-weight:800}
+  .stock-basket-modal-head h2{margin:5px 0 0;font-size:clamp(18px,4vw,25px);color:#e8f5ff}
+  .stock-basket-close{width:40px;height:40px;flex:0 0 40px;border:1px solid #396187;border-radius:10px;background:#142a49;color:#fff;font-size:20px;cursor:pointer}
+  .stock-basket-modal-score{font-size:clamp(32px,7vw,48px);font-weight:900;margin:14px 0 18px}
+  .stock-basket-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .stock-basket-detail-cell{min-width:0;padding:12px;border:1px solid #1e426b;border-radius:10px;background:#0a1a32}
+  .stock-basket-detail-cell span{display:block;font-size:11px;color:#87a9cc;margin-bottom:5px}
+  .stock-basket-detail-cell b{display:block;font-size:14px;line-height:1.45;overflow-wrap:anywhere;color:#e8f5ff}
+  .stock-basket-modal-note{margin-top:14px;padding:12px;border-left:3px solid #36e7ff;border-radius:7px;background:#102442;color:#b9d2ed;font-size:12px;line-height:1.55}
+  body.stock-basket-modal-open{overflow:hidden}
+  @media(max-width:560px){#stockBasketModal{padding:8px}.stock-basket-modal-panel{max-height:96vh;padding:15px;border-radius:14px}.stock-basket-detail-grid{grid-template-columns:1fr}.stock-basket-detail-cell{padding:10px}}
 </style>
 </head>
 <body>
@@ -403,6 +426,7 @@
 </div>
 </div>
 
+<div id="stockBasketModal" hidden onclick="if(event.target===this) closeStockBasketDetails()" role="dialog" aria-modal="true" aria-label="Stock Basket का पूरा विवरण"><div class="stock-basket-modal-panel"><div id="stockBasketModalContent"></div></div></div>
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -694,9 +718,52 @@ function renderComponentBreakdown(b) {
 }
 
 
-function renderStandaloneStockBasket(b) {
+const stockBasketDetailStore = Object.create(null);
+function openStockBasketDetails(key) {
+  const item = stockBasketDetailStore[key];
+  const modal = document.getElementById("stockBasketModal");
+  const content = document.getElementById("stockBasketModalContent");
+  if (!modal || !content || !item) return;
+  const c = item.component || {};
+  const e = item.excluded || {};
+  const val = (v, suffix="") => v == null || v === "" ? "डेटा नहीं" : esc(String(v) + suffix);
+  const rows = [
+    ["Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
+    ["स्थिति", c.research_only === true || c.score_eligible === false ? "RESEARCH · Final Score से बाहर" : (c.status || "अलग Diagnostic")],
+    ["स्रोत", c.source || "डेटा नहीं"],
+    ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
+    ["बढ़े हुए शेयर", val(c.advances)],
+    ["गिरे हुए शेयर", val(c.declines)],
+    ["स्थिर शेयर", val(c.unchanged)],
+    ["मिले हुए शेयर", val(c.matched)],
+    ["आधिकारिक कुल शेयर", val(c.expected)],
+    ["कवरेज", val(c.coverage_pct, "%")],
+    ["गणना", c.formula || "10 × (बढ़े − गिरे) ÷ आधिकारिक constituent संख्या; सीमा −10 से +10"],
+    ["Validation", c.validation && c.validation.passed === true ? "पास" : "अभी पूर्ण सत्यापन नहीं"]
+  ];
+  content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — STOCK BASKET</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
+    '<div class="stock-basket-modal-score ' + (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") + '">' + (c.score == null ? "—" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")) + '</div>' +
+    '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
+    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic है। यह मौजूदा PDMP Final Score में शामिल नहीं है। पुराने archive का डेटा होने पर तारीख़ स्पष्ट दिखाई जाएगी।</div>' +
+    (e.reason ? '<div class="stock-basket-modal-note">अलग रखने का कारण: ' + esc(e.reason) + '</div>' : '');
+  modal.hidden = false;
+  document.body.classList.add("stock-basket-modal-open");
+  const close = modal.querySelector(".stock-basket-close");
+  if (close) close.focus();
+}
+function closeStockBasketDetails() {
+  const modal = document.getElementById("stockBasketModal");
+  if (modal) modal.hidden = true;
+  document.body.classList.remove("stock-basket-modal-open");
+}
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeStockBasketDetails();
+});
+function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
+  const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
+  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
   const validScore = component && Number.isFinite(Number(component.score))
     && Number(component.score) >= -10 && Number(component.score) <= 10
     && typeof component.source === "string" && component.source.trim()
@@ -704,34 +771,13 @@ function renderStandaloneStockBasket(b) {
     && (component.included === true || component.research_only === true
       || component.status === "complete_diagnostic"
       || (component.validation && component.validation.passed === true));
-  if (validScore) {
-    const score = Number(component.score);
-    const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
-    const status = component.research_only === true || component.score_eligible === false
-      ? "RESEARCH · Final Score से बाहर" : "अलग Component";
-    const breadth = Number.isFinite(Number(component.advances)) && Number.isFinite(Number(component.declines))
-      ? Number(component.advances) + " बढ़े / " + Number(component.declines) + " गिरे" +
-        (Number.isFinite(Number(component.unchanged)) && Number(component.unchanged) > 0
-          ? " / " + Number(component.unchanged) + " स्थिर" : "") : "";
-    const coverage = Number.isFinite(Number(component.matched)) && Number.isFinite(Number(component.expected))
-      ? Number(component.matched) + "/" + Number(component.expected) + " शेयर · " +
-        Number(component.coverage_pct || 0).toFixed(0) + "% कवरेज" : "";
-    const detail = [breadth, coverage].filter(Boolean).join(" · ");
-    return '<div style="margin-top:7px;padding:7px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.55)">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
-      '<span style="font-size:11px;color:#a9c5e5;font-weight:700">STOCK BASKET</span>' +
-      '<b class="' + cls + '" style="font-size:15px">' + (score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + '/10</b></div>' +
-      '<div class="hl-meta">' + esc(status) + ' · ' + esc(component.source) + ' · ' + esc(component.source_date) + '</div>' +
-      (detail ? '<div class="hl-meta">' + esc(detail) + '</div>' : '') +
-      '<div class="hl-meta">Equal-weight breadth diagnostic · मौजूदा PDMP Final Score में शामिल नहीं</div></div>';
-  }
-  const reason = excluded && excluded.reason ? String(excluded.reason) : "";
-  return '<div style="margin-top:7px;padding:7px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.38)">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
-    '<span style="font-size:11px;color:#a9c5e5;font-weight:700">STOCK BASKET</span>' +
-    '<b class="zero" style="font-size:11px">डेटा जमा / जाँच जारी</b></div>' +
-    '<div class="hl-meta">' + esc(reason || "अभी पूरा, तारीख़-सत्यापित Basket Score उपलब्ध नहीं") + '</div>' +
-    '<div class="hl-meta">यह अलग रहेगा; मौजूदा PDMP Final Score में नहीं जुड़ेगा।</div></div>';
+  const score = validScore ? Number(component.score) : null;
+  const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
+  const label = validScore ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10") : "डेटा जमा / जाँच जारी";
+  return '<div class="stock-basket-compact">' +
+    '<div><span class="stock-basket-compact-title">STOCK BASKET</span><b class="' + cls + '">' + label + '</b></div>' +
+    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(\'' + key + '\')">👁️ <span>विवरण</span></button>' +
+    '</div>';
 }
 
 function card(name, d, participantOI) {
@@ -827,7 +873,7 @@ function card(name, d, participantOI) {
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
       ${experimentalScoreLine}
-      ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown) : ""}
+      ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     `}
     ${componentBreakdown}
     ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
