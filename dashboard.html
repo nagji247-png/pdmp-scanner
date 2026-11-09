@@ -1826,8 +1826,11 @@ function renderDivergence(dv, instruments = {}) {
     ${small}
     <div class="sub">जब खबर का लहजा और कीमत की दिशा अलग हों, तब यह संकेत दर्ज होता है। हर रिकॉर्ड पर टैप करें—स्कोर, कीमत, नतीजा और उपलब्ध खबरों का विवरण खुलेगा।</div>
     <div style="margin-top:12px">${summary}</div>
-    <div style="margin-top:10px">${rows || '<div class="sub">अभी कोई ⚡ संकेत दर्ज नहीं हुआ</div>'}</div>
-    <div class="sub" style="margin-top:12px;line-height:1.5">यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।</div>`;
+    <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:8px 12px">
+      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">👁️🖕 विवरण देखें</summary>
+      <div style="margin-top:8px">${rows || '<div class="sub">अभी कोई ⚡ संकेत दर्ज नहीं हुआ</div>'}</div>
+      <div class="sub" style="margin-top:12px;line-height:1.5">यह इतिहास का मिलान है। इसे खरीद या बिक्री का संकेत न मानें।</div>
+    </details>`;
 }
 function renderSignals(sg) {
   const box = document.getElementById("signals");
