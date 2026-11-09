@@ -252,17 +252,17 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(instruments[name][field]["seed"], seed)
             self.assertTrue(instruments[name][field]["cached"])
 
-    def test_asset_search_cache_uses_six_hour_declared_freshness_window(self):
+    def test_asset_search_cache_uses_three_hour_declared_freshness_window(self):
         now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
         instruments = {"NIFTY": {"score": 1.0}, "SENSEX": {"score": 2.0}}
         previous = {
             "NIFTY": {"index_search_shadow": {
                 "valid": True, "seed": "nifty", "timeframe": "now 1-d",
-                "source_data_time": "2026-11-07T08:30:00Z",
+                "source_data_time": "2026-11-07T10:30:00Z",
             }},
             "SENSEX": {"index_search_shadow": {
                 "valid": True, "seed": "sensex", "timeframe": "now 1-d",
-                "source_data_time": "2026-11-07T07:29:00Z",
+                "source_data_time": "2026-11-07T10:29:00Z",
             }},
         }
         fetch_and_score.attach_asset_search_snapshots(
