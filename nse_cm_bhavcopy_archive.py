@@ -28,7 +28,7 @@ HEADERS = {
 }
 REQUIRED_COLUMNS = {
     "Sgmt", "Src", "FinInstrmTp", "TckrSymb", "SctySrs", "ISIN",
-    "BizDt", "OpnPric", "HghPric", "LwPric", "ClsPric",
+    "TradDt", "OpnPric", "HghPric", "LwPric", "ClsPric",
     "PrvsClsgPric", "TtlTradgVol",
 }
 
@@ -96,8 +96,12 @@ def normalize_equity_rows(rows, trade_date, min_rows=100):
         isin = str(row.get("ISIN") or "").strip().upper()
         if not symbol or not isin:
             raise ValueError("EQ cash row missing symbol or ISIN")
-        if parse_date(row.get("BizDt")) != target:
+        trade_value = row.get("TradDt") or row.get("BizDt")
+        if parse_date(trade_value) != target:
             raise ValueError(f"CM trade date mismatch for {symbol}")
+        business_date = str(row.get("BizDt") or "").strip()
+        if business_date and parse_date(business_date) != target:
+            raise ValueError(f"CM business date mismatch for {symbol}")
         key = (symbol, series)
         if key in seen:
             raise ValueError(f"duplicate EQ cash row: {symbol}")
@@ -126,7 +130,7 @@ def fetch_official_cm_bhavcopy(trade_date, session=None):
     day = parse_date(trade_date)
     stamp = day.strftime("%Y%m%d")
     filename = f"BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
-    url = f"https://archives.nseindia.com/content/cm/{filename}"
+    url = f"https://nsearchives.nseindia.com/content/cm/{filename}"
     client = session or requests.Session()
     # Exactly one request per date. No mirror retry or retry loop: a failed
     # exchange request is reported and left for the next scheduled session.
@@ -194,8 +198,24 @@ def load_archive(path):
     return archive
 
 
-def capture_one(archive, trade_date):
+def is_exchange_session(trade_date, calendar):
+    day = parse_date(trade_date)
+    key = day.isoformat()
+    special_sessions = calendar.get("special_sessions", {}) if isinstance(calendar, dict) else {}
+    if key in special_sessions:
+        return True
+    holidays = calendar.get("holidays", []) if isinstance(calendar, dict) else []
+    holiday_dates = {
+        str(item.get("date")) for item in holidays
+        if isinstance(item, dict) and item.get("date")
+    }
+    return day.weekday() < 5 and key not in holiday_dates
+
+
+def capture_one(archive, trade_date, calendar=None):
     key = parse_date(trade_date).isoformat()
+    if calendar is not None and not is_exchange_session(trade_date, calendar):
+        return {"date": key, "status": "skipped_non_session", "date_attempts": 0}
     if any(isinstance(item, dict) and item.get("date") == key
            for item in archive.get("records", [])):
         return {"date": key, "status": "skipped_existing", "date_attempts": 0}
@@ -216,11 +236,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", help="One NSE session date YYYY-MM-DD; defaults to current IST date")
     parser.add_argument("--archive", default=str(ARCHIVE_PATH))
+    parser.add_argument("--calendar", default="exchange_calendar.json")
     args = parser.parse_args()
     path = Path(args.archive)
     archive = load_archive(path)
+    calendar_path = Path(args.calendar)
+    if calendar_path.exists():
+        calendar = json.loads(calendar_path.read_text(encoding="utf-8"))
+    else:
+        calendar = None
     trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
-    result = capture_one(archive, trade_date)
+    result = capture_one(archive, trade_date, calendar=calendar)
     if result["status"] == "captured":
         write_archive_atomic(path, archive)
     result["archive_sessions"] = len(archive.get("records", []))
