@@ -1692,10 +1692,15 @@ function renderContrarian(c) {
   }).join("");
 
   box.innerHTML = `
-    <div class="warn" style="color:#f5a623">
-      NEWS SCORE (समाचार-आधारित): ±6.0 सीमा पार। अगला-सत्र परिणाम उसी इंस्ट्रूमेंट की अगली कारोबारी चाल से जाँचा जाता है; यह ट्रेडिंग accuracy या भविष्यवाणी की गारंटी नहीं है।
-    </div>
-    <div class="sub" style="margin:-4px 0 10px">30m / 60m अलग जाँच: संकेत के समय की पूरी हुई Yahoo 5-मिनट candle से शुरुआती भाव लिया जाता है। लक्ष्य समय के 10 मिनट के भीतर पूरी candle न मिले तो परिणाम उपलब्ध नहीं माना जाएगा। यह सुविधा NSE cash index और NSE शेयरों के नए रिकॉर्ड पर लागू है; पुराने रिकॉर्ड में यह डेटा नहीं था।</div>
+    <details style="margin:0 0 10px;background:#1e2540;border-radius:8px;padding:8px 12px">
+      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">👁️🖕</summary>
+      <div style="margin-top:8px">
+        <div class="warn" style="color:#f5a623">
+          NEWS SCORE (समाचार-आधारित): ±6.0 सीमा पार। अगला-सत्र परिणाम उसी इंस्ट्रूमेंट की अगली कारोबारी चाल से जाँचा जाता है; यह ट्रेडिंग accuracy या भविष्यवाणी की गारंटी नहीं है।
+        </div>
+        <div class="sub" style="margin:-4px 0 10px">30m / 60m अलग जाँच: संकेत के समय की पूरी हुई Yahoo 5-मिनट candle से शुरुआती भाव लिया जाता है। लक्ष्य समय के 10 मिनट के भीतर पूरी candle न मिले तो परिणाम उपलब्ध नहीं माना जाएगा। यह सुविधा NSE cash index और NSE शेयरों के नए रिकॉर्ड पर लागू है; पुराने रिकॉर्ड में यह डेटा नहीं था।</div>
+      </div>
+    </details>
     ${small}
     <div style="display:flex;align-items:center;gap:14px;background:#1e2540;border-radius:8px;padding:12px;margin-bottom:6px">
       <div style="text-align:center;min-width:90px">
