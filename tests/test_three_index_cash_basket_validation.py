@@ -16,7 +16,9 @@ def make_bundle():
     archives = {}
     for index, (count, source_url) in specs.items():
         members = [
-            {"symbol": f"{index}{i:02d}", "isin": f"INE{index[:2]}{i:07d}"}
+            ({"instrument_id": str(500000 + i), "isin": f"IN{i:09d}0"}
+             if index == "SENSEX" else
+             {"symbol": f"{index}{i:02d}", "isin": f"IN{i:09d}0"})
             for i in range(count)
         ]
         bundle[index] = {
@@ -30,7 +32,8 @@ def make_bundle():
                 "date": TRADE_DATE,
                 "equity_rows": [
                     {
-                        "symbol": member["symbol"],
+                        **({"instrument_id": member["instrument_id"], "symbol": f"BSE{i}"}
+                           if index == "SENSEX" else {"symbol": member["symbol"]}),
                         "isin": member["isin"],
                         "close": 101.0 if i % 2 == 0 else 99.0,
                         "previous_close": 100.0,
