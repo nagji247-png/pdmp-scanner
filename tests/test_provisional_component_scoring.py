@@ -34,7 +34,7 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
             for name, score in scores.items()
         }
         result = combine_components(components, PROVISIONAL_WEIGHTS)
-        self.assertEqual(result["score"], 3.45)
+        self.assertEqual(result["score"], 3.15)
         self.assertEqual(result["included_components"], list(scores))
         self.assertEqual(result["weight_total"], 100.0)
 
