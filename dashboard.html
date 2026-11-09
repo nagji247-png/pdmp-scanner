@@ -649,6 +649,16 @@ function renderComponentBreakdown(b) {
           (Array.isArray(search.rising_terms) && search.rising_terms.length
             ? ' · उदाहरण: ' + esc(search.rising_terms.slice(0, 4).map(x => x.term + ' (' + x.value + ')').join(', ')) : '') +
           '</div>' : '') +
+      (search.directional_query_diagnostic
+        ? (search.directional_query_diagnostic.available
+          ? '<div class="hl-meta"><b>अलग चुने हुए Search Phrases का अनुपात (seed-relative):</b> Bullish ' +
+            pct(search.directional_query_diagnostic.query_interest_mix_pct && search.directional_query_diagnostic.query_interest_mix_pct.bull) +
+            ' · Bearish ' + pct(search.directional_query_diagnostic.query_interest_mix_pct && search.directional_query_diagnostic.query_interest_mix_pct.bear) +
+            ' · Neutral ' + pct(search.directional_query_diagnostic.query_interest_mix_pct && search.directional_query_diagnostic.query_interest_mix_pct.neutral) +
+            ' · जाँच ' + esc(search.directional_query_diagnostic.source_data_time || "—") +
+            '</div><div class="hl-meta">यह पाँचों में से इसी एसेट के चुने हुए तीन directional phrases की Google खोज-रुचि का अनुपात है; सभी ट्रेडरों की वास्तविक पोज़िशन का प्रतिशत नहीं।</div>'
+          : '<div class="hl-meta"><b>अलग directional phrase जाँच:</b> ' + esc(search.directional_query_diagnostic.reason || "अभी उपलब्ध नहीं") + '</div>')
+        : '') +
       (!search.valid && search.reason ? '<div class="hl-meta">Reading: ' + esc(search.reason) + '</div>' : '') +
       '</div>'
     : "";

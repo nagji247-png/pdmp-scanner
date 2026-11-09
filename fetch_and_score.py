@@ -561,7 +561,7 @@ def build_asset_component_breakdowns(
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
                     "rising_classified_queries", "rising_direction_counts",
-                    "rising_terms",
+                    "rising_terms", "directional_query_diagnostic",
                 )
                 search_diagnostic = {
                     key: search_snapshot.get(key)
@@ -4276,13 +4276,18 @@ def fetch_asset_directional_trends_diagnostics():
             for asset in ASSET_DIRECTIONAL_TRENDS_QUERIES
         }
 
-    for asset, spec in ASSET_DIRECTIONAL_TRENDS_QUERIES.items():
+    assets = list(ASSET_DIRECTIONAL_TRENDS_QUERIES.items())
+    for position, (asset, spec) in enumerate(assets):
         try:
+            # Space independent asset payloads to reduce burst pressure.
+            if position:
+                time.sleep(2)
             terms = [spec["seed"], spec["bull"], spec["bear"], spec["neutral"]]
             py.build_payload(terms, timeframe="now 1-d", geo="IN")
             frame = py.interest_over_time()
             output[asset] = _summarize_asset_directional_trends(frame, asset, spec)
         except Exception as exc:
+            reason = str(exc)[:220]
             output[asset] = {
                 "available": False,
                 "diagnostic_only": True,
@@ -4290,8 +4295,23 @@ def fetch_asset_directional_trends_diagnostics():
                 "seed": spec["seed"],
                 "source": "Google Trends interest_over_time · India",
                 "timeframe": "now 1-d",
-                "reason": str(exc)[:220],
+                "reason": reason,
             }
+            # Google Trends throttling is a hard stop. Do not continue with
+            # the remaining four-phrase batches after a 429/rate-limit response.
+            lowered = reason.lower()
+            if "429" in lowered or "too many requests" in lowered or "rate limit" in lowered:
+                for pending_asset, pending_spec in assets[position + 1:]:
+                    output[pending_asset] = {
+                        "available": False,
+                        "diagnostic_only": True,
+                        "asset": pending_asset,
+                        "seed": pending_spec["seed"],
+                        "source": "Google Trends interest_over_time · India",
+                        "timeframe": "now 1-d",
+                        "reason": "Google Trends rate limit; remaining asset requests stopped to protect quota",
+                    }
+                break
     return output
 
 
@@ -5501,8 +5521,13 @@ def main():
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
+        directional_slot = slot_id == "1900"
         print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
-        _fresh_asset_search = fetch_asset_trends_shadow()
+        if directional_slot:
+            print("ASSET_TRENDS_DIRECTIONAL: one daily asset-by-asset phrase check; stop immediately on rate limit")
+        _fresh_asset_search = fetch_asset_trends_shadow(
+            include_directional_diagnostics=directional_slot
+        )
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,

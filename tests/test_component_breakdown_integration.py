@@ -124,6 +124,85 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             result["NIFTY"]["directional_query_diagnostic"], expected["NIFTY"]
         )
 
+    def test_directional_phrase_diagnostics_return_three_way_mix_for_each_asset(self):
+        import pandas as pd
+        from fetch_and_score import fetch_asset_directional_trends_diagnostics
+
+        class FakeTrendReq:
+            calls = []
+            def __init__(self, **kwargs):
+                pass
+            def build_payload(self, terms, **kwargs):
+                self.calls.append(list(terms))
+                self.terms = list(terms)
+            def interest_over_time(self):
+                stamp = pd.Timestamp.now(tz="UTC")
+                return pd.DataFrame(
+                    {self.terms[0]: [100] * 24,
+                     self.terms[1]: [60] * 24,
+                     self.terms[2]: [30] * 24,
+                     self.terms[3]: [10] * 24},
+                    index=pd.date_range(end=stamp, periods=24, freq="h"),
+                )
+
+        request_module = ModuleType("pytrends.request")
+        request_module.TrendReq = FakeTrendReq
+        package_module = ModuleType("pytrends")
+        package_module.request = request_module
+        with mock.patch.dict("sys.modules", {
+            "pytrends": package_module, "pytrends.request": request_module,
+        }):
+            result = fetch_asset_directional_trends_diagnostics()
+
+        self.assertEqual(len(FakeTrendReq.calls), 5)
+        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
+        for asset, item in result.items():
+            with self.subTest(asset=asset):
+                self.assertTrue(item["available"], item.get("reason"))
+                self.assertEqual(item["query_interest_mix_pct"], {
+                    "bull": 60.0, "bear": 30.0, "neutral": 10.0,
+                })
+                self.assertEqual(item["diagnostic_only"], True)
+
+    def test_directional_phrase_diagnostics_stop_after_google_trends_429(self):
+        import pandas as pd
+        from fetch_and_score import fetch_asset_directional_trends_diagnostics
+
+        class FakeTrendReq:
+            calls = 0
+            def __init__(self, **kwargs):
+                pass
+            def build_payload(self, terms, **kwargs):
+                FakeTrendReq.calls += 1
+                if FakeTrendReq.calls == 2:
+                    raise RuntimeError("429 Too Many Requests")
+                self.terms = list(terms)
+            def interest_over_time(self):
+                stamp = pd.Timestamp.now(tz="UTC")
+                return pd.DataFrame(
+                    {self.terms[0]: [100] * 24,
+                     self.terms[1]: [60] * 24,
+                     self.terms[2]: [30] * 24,
+                     self.terms[3]: [10] * 24},
+                    index=pd.date_range(end=stamp, periods=24, freq="h"),
+                )
+
+        request_module = ModuleType("pytrends.request")
+        request_module.TrendReq = FakeTrendReq
+        package_module = ModuleType("pytrends")
+        package_module.request = request_module
+        with mock.patch.dict("sys.modules", {
+            "pytrends": package_module, "pytrends.request": request_module,
+        }):
+            result = fetch_asset_directional_trends_diagnostics()
+
+        self.assertEqual(FakeTrendReq.calls, 2)
+        self.assertTrue(result["NIFTY"]["available"])
+        self.assertFalse(result["SENSEX"]["available"])
+        self.assertIn("rate limit", result["BANKNIFTY"]["reason"].lower())
+        self.assertIn("rate limit", result["GOLD"]["reason"].lower())
+        self.assertIn("rate limit", result["SILVER"]["reason"].lower())
+
     def test_asset_search_snapshots_are_saved_for_all_five_assets(self):
         now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
         seeds = {
