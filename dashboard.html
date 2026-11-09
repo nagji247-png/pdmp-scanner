@@ -352,6 +352,16 @@
   .compact-change{flex:0 0 auto;white-space:nowrap}
   .compact-source{font-size:9px;line-height:1.3;color:#8a90a8;text-align:right;margin-top:3px;overflow-wrap:anywhere}
   .compact-timestamp{white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:2px}
+  .asset-detail-open{display:inline-flex;align-items:center;gap:6px;margin-top:7px;padding:5px 0;border:0;background:transparent;color:#6cecff;font-weight:750;font-size:11px;cursor:pointer}
+  #assetDetailModal[hidden]{display:none!important}
+  #assetDetailModal{position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:clamp(8px,2vw,20px);background:rgba(0,5,16,.90);backdrop-filter:blur(8px)}
+  .asset-detail-modal-panel{width:min(1040px,100%);max-height:94vh;overflow:auto;padding:clamp(14px,2.5vw,26px);border:1px solid #2474a5;border-radius:18px;background:linear-gradient(145deg,#0c1d39,#071126 75%);box-shadow:0 18px 70px #000c,0 0 28px #1ce7ff22}
+  .asset-detail-modal-head{position:sticky;top:-1px;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:-2px 0 12px;padding:2px 0 12px;background:#0b1b34}
+  .asset-detail-modal-head h2{margin:4px 0 0;color:#e8f5ff;font-size:clamp(18px,4vw,24px)}
+  .asset-detail-modal-close{width:40px;height:40px;flex:0 0 40px;border:1px solid #396187;border-radius:10px;background:#142a49;color:#fff;font-size:25px;line-height:1;cursor:pointer}
+  .asset-detail-modal-content{padding:0 2px 8px}
+  body.asset-detail-modal-open{overflow:hidden}
+  @media(max-width:560px){#assetDetailModal{padding:8px}.asset-detail-modal-panel{max-height:97vh;padding:12px;border-radius:13px}}
   .asset-detail-toggle{margin-top:7px;padding-top:5px;border-top:1px solid #183252}
   .asset-detail-toggle>summary{display:flex;align-items:center;gap:6px;color:#6cecff;font-weight:750;font-size:11px;list-style:none}
   .asset-detail-toggle>summary::-webkit-details-marker{display:none}
@@ -510,6 +520,12 @@
 </div>
 </div>
 
+<div id="assetDetailModal" hidden onclick="if(event.target===this) closeAssetDetailModal()" role="dialog" aria-modal="true" aria-labelledby="assetDetailModalTitle">
+  <section class="asset-detail-modal-panel">
+    <div class="asset-detail-modal-head"><h2 id="assetDetailModalTitle">पूरा विवरण</h2><button class="asset-detail-modal-close" type="button" aria-label="बंद करें" onclick="closeAssetDetailModal()">×</button></div>
+    <div id="assetDetailModalContent" class="asset-detail-modal-content"></div>
+  </section>
+</div>
 <div id="stockBasketModal" hidden onclick="if(event.target===this) closeStockBasketDetails()" role="dialog" aria-modal="true" aria-label="Stock Basket का पूरा विवरण"><div class="stock-basket-modal-panel"><div id="stockBasketModalContent"></div></div></div>
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
@@ -863,6 +879,28 @@ function openAssetExpandedDetails(key) {
   details.open = true;
   details.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
+function openAssetDetailModal(key) {
+  const safeKey = String(key || "").replace(/[^A-Za-z0-9_-]/g, "_");
+  const details = document.getElementById("asset-detail-" + safeKey);
+  const modal = document.getElementById("assetDetailModal");
+  const content = document.getElementById("assetDetailModalContent");
+  const title = document.getElementById("assetDetailModalTitle");
+  if (!details || !modal || !content || !title) return;
+  const source = details.querySelector(".asset-detail-content");
+  if (!source) return;
+  title.textContent = safeKey.replace(/_/g, " ") + " · पूरा विवरण";
+  content.innerHTML = source.innerHTML;
+  modal.hidden = false;
+  document.body.classList.add("asset-detail-modal-open");
+  const close = modal.querySelector(".asset-detail-modal-close");
+  if (close) close.focus();
+}
+function closeAssetDetailModal() {
+  const modal = document.getElementById("assetDetailModal");
+  if (modal) modal.hidden = true;
+  document.body.classList.remove("asset-detail-modal-open");
+}
+
 function openStockBasketDetails(key) {
   const item = stockBasketDetailStore[key];
   const modal = document.getElementById("stockBasketModal");
@@ -970,6 +1008,9 @@ function showStockBasketConstituentList(key, category) {
     '<div class="sub" style="margin-bottom:8px">शेयर के नाम पर क्लिक करें — उसका TradingView चार्ट खुलेगा। भाव EOD डेटा है, live quote नहीं।</div>' +
     '<div style="overflow-x:auto"><table class="stock-basket-constituent-table"><thead><tr><th>शेयर / चार्ट</th><th>बंद भाव</th><th>पिछला बंद</th><th>बदलाव</th><th>वॉल्यूम</th></tr></thead><tbody>' + tableRows + '</tbody></table></div></div>';
 }
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeAssetDetailModal();
+});
 function closeStockBasketDetails() {
   const modal = document.getElementById("stockBasketModal");
   if (modal) modal.hidden = true;
@@ -1134,8 +1175,8 @@ function card(name, d, participantOI, observedAt) {
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
     ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
-    <details id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" class="asset-detail-toggle">
-      <summary>👁️ विस्तृत जानकारी खोलें</summary>
+    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
       <div class="asset-detail-content">
         ${componentBreakdown}
         ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
@@ -1144,7 +1185,8 @@ function card(name, d, participantOI, observedAt) {
         ${detailIndicator}
         ${detailPrice}
       </div>
-    </details>
+    </div>
+
     ${spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
