@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import datetime as dt
 from pathlib import Path
+from urllib.parse import urlparse
 
 
-def _valid_roster(roster, index_key):
+def _valid_roster(roster, index_key, trade_date, max_roster_age_days=180):
     if not isinstance(roster, dict) or not isinstance(roster.get(index_key), dict):
         raise ValueError(f"missing official roster for {index_key}")
     item = roster[index_key]
@@ -30,13 +32,29 @@ def _valid_roster(roster, index_key):
         normalized.append((symbol, isin))
     if len(normalized) != int(item.get("expected_count", len(normalized))):
         raise ValueError(f"roster count mismatch for {index_key}")
-    if not item.get("source_url") or not item.get("as_of"):
+    source_url = str(item.get("source_url") or "").strip()
+    as_of = str(item.get("as_of") or "").strip()
+    if not source_url or not as_of:
         raise ValueError(f"roster provenance missing for {index_key}")
+    host = (urlparse(source_url).hostname or "").lower()
+    official_hosts = ("nseindia.com", "niftyindices.com", "bseindia.com", "bseindices.com")
+    if not any(host == domain or host.endswith("." + domain) for domain in official_hosts):
+        raise ValueError(f"non-official roster source for {index_key}")
+    try:
+        roster_day = dt.date.fromisoformat(as_of)
+        trade_day = dt.date.fromisoformat(trade_date)
+    except ValueError as exc:
+        raise ValueError(f"invalid roster/trade date for {index_key}") from exc
+    age_days = (trade_day - roster_day).days
+    if age_days < 0:
+        raise ValueError(f"roster is newer than requested trade date for {index_key}")
+    if age_days > max_roster_age_days:
+        raise ValueError(f"stale constituent roster for {index_key}: {age_days} days old")
     return normalized, item
 
 
-def calculate_breadth(archive, roster, index_key, trade_date):
-    members, meta = _valid_roster(roster, index_key)
+def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_days=180):
+    members, meta = _valid_roster(roster, index_key, trade_date, max_roster_age_days)
     records = archive.get("records", []) if isinstance(archive, dict) else []
     session = next((r for r in records if isinstance(r, dict) and r.get("date") == trade_date), None)
     if not session:
