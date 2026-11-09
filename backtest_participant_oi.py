@@ -299,6 +299,68 @@ def calculate_metrics(rows, directional=False):
     }
 
 
+def partition_non_overlapping_rows(rows, horizon):
+    """Partition dated holdout rows into every possible non-overlapping phase.
+
+    Within each phase, signal positions are at least horizon sessions apart,
+    so their forward-return windows do not overlap. Different phases are
+    alternative partitions of the same holdout and are not independent.
+    """
+    if not isinstance(horizon, int) or isinstance(horizon, bool) or horizon < 1:
+        raise ValueError("horizon must be a positive integer")
+    valid_rows = [
+        row for row in rows
+        if isinstance(row, dict)
+        and isinstance(row.get("signal_session_position"), int)
+        and not isinstance(row.get("signal_session_position"), bool)
+    ]
+    if not valid_rows:
+        return []
+    anchor = min(row["signal_session_position"] for row in valid_rows)
+    return [
+        [
+            row for row in valid_rows
+            if (row["signal_session_position"] - anchor) % horizon == phase
+        ]
+        for phase in range(horizon)
+    ]
+
+
+def non_overlapping_phase_metrics(rows, horizon, directional):
+    """Describe every non-overlapping holdout phase; do not infer significance."""
+    phases = partition_non_overlapping_rows(rows, horizon)
+    if not phases:
+        return []
+    anchor_row = min(
+        (row for row in rows if isinstance(row, dict)
+         and isinstance(row.get("signal_session_position"), int)
+         and not isinstance(row.get("signal_session_position"), bool)),
+        key=lambda row: row["signal_session_position"],
+    )
+    results = []
+    for phase_offset, phase_rows in enumerate(phases):
+        metrics = calculate_metrics(phase_rows, directional=directional)
+        results.append({
+            "phase_offset_sessions": phase_offset,
+            "anchor_signal_date": anchor_row.get("date"),
+            "n": metrics["n"],
+            "directional_observation_count": metrics["directional_observation_count"],
+            "correct_signals": metrics["correct_signals"],
+            "false_signals": metrics["false_signals"],
+            "false_signal_rate_pct": metrics["false_signal_rate_pct"],
+            "directional_hit_rate_pct": metrics["directional_hit_rate_pct"],
+            "avg_forward_return_pct": metrics["avg_forward_return_pct"],
+            "regime_metrics": {
+                regime: calculate_metrics(
+                    [row for row in phase_rows if row.get("regime") == regime],
+                    directional=directional,
+                )
+                for regime in REGIMES
+            },
+        })
+    return results
+
+
 def analyze_index(index_name, symbol, records):
     prices, price_validation = load_index_prices(symbol)
     price_dates = sorted(prices)
@@ -352,6 +414,7 @@ def analyze_index(index_name, symbol, records):
                             bucket.append({
                                 "date": date, "entry_date": entry_date,
                                 "target_date": target_date, "horizon": horizon,
+                                "signal_session_position": price_position,
                                 "signal": value, "forward_return_pct": forward,
                                 "regime": regimes.get(date, "unknown"),
                             })
@@ -387,6 +450,11 @@ def analyze_index(index_name, symbol, records):
                         )
                         for regime in REGIMES
                     }
+                    item["non_overlapping_holdout_phases"] = (
+                        non_overlapping_phase_metrics(
+                            sample, horizon, directional=futures_directional
+                        )
+                    )
                 results.append(item)
 
     regime_counts = Counter(regimes.get(date, "unknown") for date in aligned_dates)
@@ -418,6 +486,13 @@ def analyze_index(index_name, symbol, records):
             "Bullish signal followed by a negative return or bearish signal followed by "
             "a positive return is false. Zero-return observations are excluded; no "
             "optimized signal threshold is fitted."
+        ),
+        "non_overlapping_holdout_method": (
+            "For each horizon H, the chronological holdout is split into all H possible "
+            "phase offsets using actual index-session positions. Within one phase, signal "
+            "dates are at least H sessions apart, so forward windows do not overlap. "
+            "All phases are reported; phases are alternative partitions, not independent "
+            "samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
     }
