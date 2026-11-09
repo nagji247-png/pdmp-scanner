@@ -44,6 +44,25 @@ class CashBasketBreadthTests(unittest.TestCase):
         self.assertEqual(result["score"], None)
 
 
+    def test_invalid_price_is_withheld_instead_of_crashing(self):
+        self.archive["records"][0]["equity_rows"][0]["close"] = "not-a-price"
+        result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+        self.assertEqual(result["status"], "withheld_incomplete")
+        self.assertIsNone(result["score"])
+        self.assertEqual(result["missing_symbols"], ["AAA"])
+
+    def test_non_finite_price_is_withheld(self):
+        self.archive["records"][0]["equity_rows"][0]["close"] = float("nan")
+        result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+        self.assertEqual(result["status"], "withheld_incomplete")
+        self.assertIsNone(result["score"])
+
+    def test_missing_previous_close_is_withheld(self):
+        del self.archive["records"][0]["equity_rows"][0]["previous_close"]
+        result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
+        self.assertEqual(result["status"], "withheld_incomplete")
+        self.assertIsNone(result["score"])
+
     def test_stale_roster_is_withheld(self):
         self.rosters["NIFTY"]["as_of"] = "2026-01-01"
         with self.assertRaisesRegex(ValueError, "stale constituent roster"):
