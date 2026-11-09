@@ -366,6 +366,29 @@
   .stock-basket-compact-title{font-size:11px;color:#a9c5e5;font-weight:700}
   .stock-basket-compact b{font-size:13px;white-space:nowrap}
   .stock-basket-eye{flex:0 0 auto;border:1px solid #28628d;border-radius:7px;background:#10294a;color:#7cecff;padding:5px 8px;font:700 11px system-ui;cursor:pointer}
+  /* Mobile card-width correction: keep every asset card inside its grid cell. */
+  .panel .grid{box-sizing:border-box;width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .panel .grid>.card{box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden}
+  .card .compact-score-price{display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0;width:100%}
+  .card .compact-score-price>*{min-width:0}
+  .card .compact-score-price .big{flex:0 1 auto;overflow-wrap:anywhere}
+  .card .compact-last-price{flex:0 1 auto;max-width:68%;text-align:right;white-space:normal;overflow-wrap:anywhere}
+  .card .compact-sentiment-row{width:100%;min-width:0}
+  .card .compact-sentiment-row>.lbl{min-width:0;overflow-wrap:anywhere}
+  .card .compact-change{min-width:0;max-width:68%;white-space:normal;overflow-wrap:anywhere}
+  .card .compact-timestamp{max-width:100%;overflow-wrap:anywhere}
+  .card .stock-basket-compact{box-sizing:border-box;width:100%;min-width:0;flex-wrap:wrap}
+  .card .stock-basket-compact-main{flex:1 1 90px;min-width:0}
+  .card .stock-basket-eye{max-width:100%;white-space:nowrap}
+  @media(max-width:380px){
+    .panel .grid{gap:7px;padding:8px}
+    .panel .grid>.card{padding:8px 7px 7px}
+    .card .compact-score-price .big{font-size:19px}
+    .card .compact-last-price{font-size:11px;max-width:70%}
+    .card .compact-change{font-size:9px}
+    .card .stock-basket-compact{gap:5px;padding:5px}
+    .card .stock-basket-eye{font-size:10px;padding:4px 5px}
+  }
   .stock-basket-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
   .stock-basket-category{min-width:0;padding:11px;border:1px solid #1e426b;border-radius:10px;background:#0a1a32}
   .stock-basket-category-label{display:block;color:#87a9cc;font-size:12px;margin-bottom:7px}
