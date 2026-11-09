@@ -35,9 +35,30 @@ jobs:
         run: |
           python -m py_compile index_constituent_rosters.py
           python -m unittest discover -s tests -p 'test_index_constituent_rosters.py' -v
+      - name: Live official NSE and BSE cash-source validation (latest completed session)
+        if: github.event_name == 'pull_request'
+        run: |
+          CASH_DATE="2026-11-06"
+          python nse_cm_bhavcopy_archive.py --date "$CASH_DATE"
+          python bse_cm_bhavcopy_archive.py --date "$CASH_DATE"
+          python index_constituent_rosters.py --date "$CASH_DATE"
+          python run_three_index_cash_basket.py --date "$CASH_DATE"
       - name: Capture official Nifty 50, Nifty Bank and BSE Sensex rosters
         if: github.event_name != 'pull_request'
-        run: python index_constituent_rosters.py
+        run: |
+          python bse_cm_bhavcopy_archive.py
+          python index_constituent_rosters.py
+      - name: Upload live exchange validation evidence
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-three-index-cash-validation
+          if-no-files-found: warn
+          path: |
+            nse_cm_bhavcopy_archive.json
+            bse_cm_bhavcopy_archive.json
+            index_constituent_rosters.json
+            index_cash_basket_diagnostics.json
       - name: Commit dated roster snapshot
         if: github.event_name != 'pull_request'
         run: |
