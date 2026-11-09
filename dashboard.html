@@ -753,40 +753,119 @@ function renderComponentBreakdown(b, observedAt, assetName) {
   if (!b || typeof b !== "object") return "";
   const final = b.provisional_final || {};
   const components = b.provisional_components || {};
+  const excluded = b.excluded_components || {};
+  const weights = b.provisional_weights || {
+    news: 15, stock_basket: 20, eod_oi: 15,
+    client_ce_pe: 15, client_futures: 15, search: 20
+  };
   const labels = {
     news: "News",
-    search: "Google Trends",
+    stock_basket: "Stock Basket",
     eod_oi: "EOD OI",
     client_ce_pe: "CLIENT CE/PE",
     client_futures: "CLIENT Futures",
-    stock_basket: "Stock Basket"
+    search: "Google Trends"
   };
   const scoreText = value => {
     if (value == null || !Number.isFinite(Number(value))) return "—/10";
     const n = Number(value);
     return (n > 0 ? "+" : "") + n.toFixed(2) + "/10";
   };
-  const rows = Object.entries(components).map(([key, component]) => {
-    if (!component || component.score == null || !Number.isFinite(Number(component.score))) return "";
-    const score = Number(component.score);
-    const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
-    return '<div class="hl" style="margin-top:5px">' +
-      '<div class="hl-title"><b>' + esc(labels[key] || key) + '</b> · <b class="' + cls + '">' + scoreText(score) + '</b></div>' +
+  const dateText = value => {
+    const raw = String(value || "").trim();
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[3] + "/" + m[2] + "/" + m[1] : (raw || "तारीख़ उपलब्ध नहीं");
+  };
+  const rowHtml = Object.entries(labels).map(([key, label]) => {
+    const item = components[key];
+    const reasonKey = key === "client_futures" ? "futures" : key;
+    const reason = excluded[reasonKey] && excluded[reasonKey].reason
+      ? excluded[reasonKey].reason : "";
+    const hasScore = item && item.score != null && Number.isFinite(Number(item.score));
+    const score = hasScore ? Number(item.score) : null;
+    const cls = score == null ? "zero" : score > 0 ? "pos" : score < 0 ? "neg" : "zero";
+    const weight = Number(weights[key] || (item && item.weight) || 0);
+    const normalized = final.normalized_weights_pct && final.normalized_weights_pct[key];
+    const source = item && item.source ? item.source
+      : (key.startsWith("client_") && b.client_market_context ? b.client_market_context.source
+      : (excluded[reasonKey] && excluded[reasonKey].source) || "");
+    const sourceDate = item && item.source_date ? item.source_date
+      : (key.startsWith("client_") && b.client_market_context ? b.client_market_context.source_date
+      : (excluded[reasonKey] && excluded[reasonKey].source_date) || "");
+    const detail = item
+      ? [item.method, item.validation_status, item.scope].filter(Boolean).join(" · ")
+      : reason;
+    return '<div class="hl" style="margin-top:6px">' +
+      '<div class="hl-title"><b>' + esc(label) + '</b> · <b class="' + cls + '">' +
+      (hasScore ? scoreText(score) : "डेटा उपलब्ध नहीं") + '</b></div>' +
+      '<div class="hl-meta">निर्धारित वजन: ' + weight.toFixed(0) + '%' +
+      (normalized != null ? ' · उपलब्ध डेटा के बाद लागू वजन: ' + Number(normalized).toFixed(2) + '%' : '') +
+      ' · स्थिति: ' + (item ? "गणना में शामिल" : "अभी शामिल नहीं") + '</div>' +
+      (source ? '<div class="hl-meta">स्रोत: ' + esc(source) + '</div>' : '') +
+      (sourceDate ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(sourceDate)) + '</div>' : '') +
+      (detail ? '<div class="hl-meta">' + esc(detail) + '</div>' : '') +
       '</div>';
   }).join("");
-  const searchPending = !Object.prototype.hasOwnProperty.call(components, "search")
-    && b.search_diagnostic && b.search_diagnostic.valid === true
-    ? '<div class="hl" style="margin-top:5px"><div class="hl-title"><b>Google Trends</b> · <b class="zero">—/10</b></div></div>'
-    : "";
   const total = final.score;
   const totalNumber = total == null || !Number.isFinite(Number(total)) ? null : Number(total);
   const totalClass = totalNumber == null ? "zero" : totalNumber > 0 ? "pos" : totalNumber < 0 ? "neg" : "zero";
+  const included = Array.isArray(final.included_components) ? final.included_components : [];
+  const normalized = final.normalized_weights_pct || {};
+  const normalizedText = Object.entries(normalized).map(([key, value]) =>
+    (labels[key] || key) + " " + Number(value).toFixed(2) + "%"
+  ).join(" · ");
+  const basket = b.stock_basket_diagnostic || {};
+  const basketDetail = Object.keys(basket).length
+    ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>STOCK BASKET · ' +
+      esc(assetName || "Index") + ' का संयुक्त शेयर डेटा</b></div>' +
+      '<div class="hl-meta">आधिकारिक शेयर: ' + (basket.expected == null ? "—" : esc(basket.expected)) +
+      ' · मिले: ' + (basket.matched == null ? "—" : esc(basket.matched)) +
+      ' · कवरेज: ' + (basket.coverage_pct == null ? "—" : esc(basket.coverage_pct) + "%") + '</div>' +
+      '<div class="hl-meta">बढ़े: ' + (basket.advances == null ? "—" : esc(basket.advances)) +
+      ' · गिरे: ' + (basket.declines == null ? "—" : esc(basket.declines)) +
+      ' · स्थिर: ' + (basket.unchanged == null ? "—" : esc(basket.unchanged)) + '</div>' +
+      '<div class="hl-meta">स्रोत: ' + esc(basket.source || "डेटा उपलब्ध नहीं") +
+      ' · EOD: ' + esc(dateText(basket.source_date)) + '</div>' +
+      '<div class="hl-meta">स्थिति: ' + (basket.score_eligible === true && basket.research_only !== true
+        ? "सत्यापित" : "प्रारंभिक diagnostic · validation जारी") + '</div></div>'
+    : "";
+  const client = b.client_market_context || {};
+  const evidence = client.evidence_components || {};
+  const clientRows = [
+    ["CE Long", "ce_long"], ["CE Short", "ce_short"],
+    ["PE Long", "pe_long"], ["PE Short", "pe_short"],
+    ["Futures Long", "futures_long"], ["Futures Short", "futures_short"]
+  ].map(([label, key]) => {
+    const item = evidence[key] || {};
+    const change = item.change;
+    const pct = item.change_pct_prior_gross;
+    const changeText = change == null ? "डेटा नहीं" :
+      ((Number(change) > 0 ? "+" : "") + Number(change).toLocaleString("en-IN"));
+    const pctText = pct == null ? "—" :
+      ((Number(pct) > 0 ? "+" : "") + Number(pct).toFixed(2) + "%");
+    return '<div class="hl-meta">' + label + ': ' + changeText + ' (' + pctText + ')</div>';
+  }).join("");
+  const clientDetail = client.available
+    ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>CLIENT CE/PE और Futures · मूल बदलाव</b></div>' +
+      clientRows +
+      '<div class="hl-meta">स्रोत: ' + esc(client.source || "NSE participant report") +
+      ' · तारीख़: ' + esc(dateText(client.source_date)) +
+      ' · दायरा: ' + esc(client.scope || "Market-wide aggregate") + '</div>' +
+      '<div class="hl-meta">इन बदलावों को contrarian दिशा में provisional score में तभी शामिल माना जाएगा जब संबंधित component ऊपर गणना में शामिल दिखे। Market-wide CLIENT डेटा को किसी एक Index की अलग पोज़िशन नहीं कहा गया है।</div></div>'
+    : "";
+  const searchReason = b.search_diagnostic && b.search_diagnostic.reason
+    ? '<div class="hl-meta">Google Trends जाँच: ' + esc(b.search_diagnostic.reason) + '</div>' : "";
   return '<div class="hl" style="margin-top:8px">' +
-    '<div class="hl-title"><b>Component Score</b> · <b class="' + totalClass + '">' + scoreText(totalNumber) + '</b></div>' +
-    rows + searchPending +
+    '<div class="hl-title"><b>संयुक्त Final Component Score</b> · <b class="' + totalClass + '">' +
+    scoreText(totalNumber) + '</b></div>' +
+    '<div class="hl-meta">स्थिति: ' + esc(final.status || "डेटा उपलब्ध नहीं") +
+    ' · शामिल Components: ' + included.length + '/6</div>' +
+    '<div class="hl-meta">कुल उपलब्ध वजन: ' + (final.weight_total == null ? "0" : Number(final.weight_total).toFixed(2)) +
+    '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") + '</div>' +
+    rowHtml + basketDetail + clientDetail + searchReason +
+    '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>' +
     '</div>';
 }
-
 
 const stockBasketDetailStore = Object.create(null);
 function openStockBasketDetails(key) {
@@ -907,18 +986,16 @@ document.addEventListener("keydown", event => {
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
+  const final = b && b.provisional_final ? b.provisional_final : {};
   const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
   stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
-  const validScore = component && Number.isFinite(Number(component.score))
-    && Number(component.score) >= -10 && Number(component.score) <= 10
-    && typeof component.source === "string" && component.source.trim()
-    && typeof component.source_date === "string" && component.source_date.trim()
-    && (component.included === true || component.research_only === true
-      || component.status === "complete_diagnostic"
-      || (component.validation && component.validation.passed === true));
-  const score = validScore ? Number(component.score) : null;
+  const validScore = final.status === "available" && Number.isFinite(Number(final.score))
+    && Number(final.score) >= -10 && Number(final.score) <= 10;
+  const score = validScore ? Number(final.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
-  const label = validScore ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10") : "डेटा जमा / जाँच जारी";
+  const label = validScore
+    ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10")
+    : "डेटा जमा / जाँच जारी";
   const eodRaw = component && component.source_date ? String(component.source_date) : "";
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
@@ -926,7 +1003,7 @@ function renderStandaloneStockBasket(b, assetName) {
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
-      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
+      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
@@ -1053,13 +1130,13 @@ function card(name, d, participantOI, observedAt) {
     </div>
     ${compactSource ? '<div class="compact-source">' + esc(compactSource) + '</div>' : ''}
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
-    ${componentBreakdown}
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
     ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <details class="asset-detail-toggle">
       <summary>👁️ विस्तृत जानकारी खोलें</summary>
       <div class="asset-detail-content">
+        ${componentBreakdown}
         ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
         ${experimentalScoreLine}
         ${detailSignals}
