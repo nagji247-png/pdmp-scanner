@@ -87,7 +87,7 @@ class OfficialRosterCaptureTests(unittest.TestCase):
         }
         result = parse_bse_sensex_constituents(
             api_payload, archive, "2026-11-09",
-            "https://www.bseindia.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
+            "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
         )
         self.assertEqual(len(result["members"]), 30)
         self.assertEqual(result["members"][0]["instrument_id"], "500000")
