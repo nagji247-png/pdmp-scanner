@@ -892,11 +892,13 @@ function renderStandaloneStockBasket(b, assetName) {
   const score = validScore ? Number(component.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
   const label = validScore ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10") : "डेटा जमा / जाँच जारी";
-  const eodDate = component && component.source_date ? String(component.source_date) : "";
+  const eodRaw = component && component.source_date ? String(component.source_date) : "";
+  const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
   return '<div class="stock-basket-compact">' +
     '<div class="stock-basket-compact-main"><span class="stock-basket-compact-title">STOCK BASKET</span><b class="' + cls + '">' + label + '</b>' +
     (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') + '</div>' +
-    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(\\'' + key + '\\')">👁️ <span>विवरण</span></button>' +
+    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button>' +
     '</div>';
 }
 
@@ -942,7 +944,7 @@ function card(name, d, participantOI) {
   const priceTime = (() => {
     const raw = String(d.price_time || "").trim();
     const m = raw.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
-    return m ? Number(m[1]) + "." + m[2] + " " + m[3].toLowerCase() + " IST" : raw.replace(/\b(AM|PM)\b/i, x => x.toLowerCase()).replace(/^(\d{1,2}):(\d{2})/, "$1.$2");
+    return m ? Number(m[1]) + ":" + m[2] + " " + m[3].toUpperCase() + " IST" : raw.replace(/\b(AM|PM)\b/i, x => x.toUpperCase());
   })();
   const priceDate = (() => {
     const raw = String(d.price_as_of || "").trim();
