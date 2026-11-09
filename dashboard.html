@@ -567,7 +567,7 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
   const reason = (s > 0 && c < 0)
     ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
     : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।";
-  const divergenceLabel = (s > 0 && c < 0) ? "Bullish divergence" : "Bearish divergence";
+  const divergenceLabel = "Sentiment और price में अंतर";
   return `<details class="divergence-compact">
     <summary>⚡ ${divergenceLabel} <span>👁️ विवरण</span></summary>
     <div class="divergence-full">
@@ -1003,7 +1003,7 @@ function card(name, d, participantOI) {
     esc(signal.label || "⚡ Divergence") + ' <span>👁️ विवरण</span></summary>' +
     '<div class="divergence-full">' + esc(signal.reason || "विस्तृत RSI / candle विवरण उपलब्ध नहीं") + '</div></details>'
   ).join("");
-  const detailIndicator = d.indicator_label && !/UNAVAILABLE|NO CONFIRMED|NO CLEAR|INSUFFICIENT|DATA FEED ERROR/i.test(d.indicator_label)
+  const detailIndicator = d.indicator_label
     ? '<div class="div">' + esc(d.indicator_label) + '</div>' +
       (d.indicator_reason ? '<div class="more">' + esc(d.indicator_reason) + '</div>' : '') : "";
   const detailPrice = '<div class="hl-meta"><b>कीमत में बदलाव:</b> ' +
