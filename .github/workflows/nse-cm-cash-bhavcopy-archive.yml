@@ -28,6 +28,8 @@ jobs:
         run: |
           python -m py_compile nse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
+          python -m py_compile nse_cash_basket_breadth.py
+          python -m unittest discover -s tests -p 'test_nse_cash_basket_breadth.py' -v
       - name: Fetch one dated official NSE CM UDiFF archive
         run: python nse_cm_bhavcopy_archive.py
       - name: Commit archive only when a new session is captured
