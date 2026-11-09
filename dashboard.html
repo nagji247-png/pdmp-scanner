@@ -599,22 +599,43 @@ function spark(values, color) {
 }
 
 function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml) {
-  const s = Number(score), c = Number(change);
-  if (!Number.isFinite(s) || !Number.isFinite(c) || Math.abs(s) < 1 || Math.abs(c) < 0.2) return "";
-  if (Math.sign(s) === Math.sign(c)) return "";
-  const sentiment = s > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : "BEARISH (खबरों का रुख नकारात्मक)";
-  const priceDirection = c > 0 ? "कीमत बढ़ी है" : "कीमत गिरी है";
-  const reason = (s > 0 && c < 0)
-    ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
-    : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।";
+  const hasSentiment = score != null && String(score).trim() !== "" && Number.isFinite(Number(score));
+  const hasPriceChange = change != null && String(change).trim() !== "" && Number.isFinite(Number(change));
+  const s = hasSentiment ? Number(score) : NaN;
+  const c = hasPriceChange ? Number(change) : NaN;
+  const strongEnough = hasSentiment && hasPriceChange && Math.abs(s) >= 1 && Math.abs(c) >= 0.2;
+  const isOpposite = strongEnough && Math.sign(s) !== Math.sign(c);
+  const sentiment = hasSentiment
+    ? (s > 0 ? "BULLISH (खबरों का रुख सकारात्मक)" : s < 0 ? "BEARISH (खबरों का रुख नकारात्मक)" : "NEUTRAL")
+    : "डेटा उपलब्ध नहीं";
+  const priceDirection = hasPriceChange
+    ? (c > 0 ? "कीमत बढ़ी है" : c < 0 ? "कीमत गिरी है" : "कीमत में बदलाव नहीं")
+    : "डेटा उपलब्ध नहीं";
+  const reason = isOpposite
+    ? (s > 0 && c < 0
+      ? "खबरों का रुख तेजी वाला है, लेकिन कीमत नीचे गई। इसलिए दोनों दिशाएँ अलग हैं।"
+      : "खबरों का रुख मंदी वाला है, लेकिन कीमत ऊपर गई। इसलिए दोनों दिशाएँ अलग हैं।")
+    : !hasSentiment || !hasPriceChange
+      ? "तुलना के लिए sentiment score और price change दोनों उपलब्ध होना ज़रूरी है।"
+      : Math.abs(s) < 1 || Math.abs(c) < 0.2
+        ? "अभी कम-से-कम एक संकेत तय सीमा तक मजबूत नहीं है; इसलिए विपरीत दिशा की पुष्टि नहीं हुई।"
+        : "अभी sentiment और price एक ही दिशा में हैं।";
+  const status = isOpposite
+    ? "⚠️ दोनों संकेत विपरीत दिशा में हैं"
+    : !hasSentiment || !hasPriceChange
+      ? "ℹ️ जाँच के लिए पर्याप्त डेटा उपलब्ध नहीं"
+      : Math.abs(s) < 1 || Math.abs(c) < 0.2
+        ? "ℹ️ अभी स्पष्ट अंतर नहीं मिला"
+        : "✓ अभी दोनों संकेत एक ही दिशा में हैं";
   const divergenceLabel = "Sentiment और price में अंतर";
   return `<details class="divergence-compact">
     <summary>⚡ ${divergenceLabel} <span>👁️ विवरण</span></summary>
     <div class="divergence-full">
+      <div class="hl-meta"><b>स्थिति:</b> ${status}</div>
       <div class="hl-meta"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
-      <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment} (स्कोर ${s > 0 ? "+" : ""}${s})</div>
-      <div class="hl-meta"><b>कीमत:</b> ${c > 0 ? "+" : ""}${c}% — ${priceDirection}</div>
-      <div class="hl-meta"><b>उलटा क्यों?</b> ${reason}</div>
+      <div class="hl-meta"><b>सेंटिमेंट:</b> ${sentiment}${hasSentiment ? " (स्कोर " + (s > 0 ? "+" : "") + s + ")" : ""}</div>
+      <div class="hl-meta"><b>कीमत:</b> ${hasPriceChange ? (c > 0 ? "+" : "") + c + "%" : "डेटा उपलब्ध नहीं"} — ${priceDirection}</div>
+      <div class="hl-meta"><b>विश्लेषण:</b> ${reason}</div>
       <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
       <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
       <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
@@ -1067,13 +1088,14 @@ function card(name, d, participantOI) {
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
+    ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     <details class="asset-detail-toggle">
       <summary>👁️ विस्तृत जानकारी खोलें</summary>
       <div class="asset-detail-content">
         ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
         ${experimentalScoreLine}
         ${componentBreakdown}
-        ${divergence(d.headline_score != null ? d.headline_score : d.score, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
+
         ${detailSignals}
         ${detailIndicator}
         ${detailPrice}
