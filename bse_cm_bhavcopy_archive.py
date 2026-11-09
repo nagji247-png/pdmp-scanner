@@ -109,7 +109,7 @@ def parse_bse_cm_csv(payload, trade_date, min_rows=500):
 
 def fetch_official_bse_cm_bhavcopy(trade_date, session=None):
     day = parse_date(trade_date)
-    filename = f"BhavCopy_BSE_CM_0_0_0_{day:%Y%m%d}_F_0000.csv"
+    filename = f"BhavCopy_BSE_CM_0_0_0_{day:%Y%m%d}_F_0000.CSV"
     url = f"https://www.bseindia.com/download/BhavCopy/Equity/{filename}"
     client = session or requests.Session()
     # Exactly one request per date; no retry or mirror fallback.
