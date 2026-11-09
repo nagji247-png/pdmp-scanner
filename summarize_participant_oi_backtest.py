@@ -197,7 +197,6 @@ def summarize_index(name, index):
         for phase in raw_phases:
             if not isinstance(phase, dict):
                 continue
-            raw_phase_regimes = phase.get("regime_metrics") or {}
             phase_views.append({
                 "phase_offset_sessions": phase.get("phase_offset_sessions"),
                 "anchor_signal_date": phase.get("anchor_signal_date"),
@@ -208,11 +207,6 @@ def summarize_index(name, index):
                 "false_signal_rate_pct": phase.get("false_signal_rate_pct"),
                 "directional_hit_rate_pct": phase.get("directional_hit_rate_pct"),
                 "avg_forward_return_pct": phase.get("avg_forward_return_pct"),
-                "regime_metrics": {
-                    regime: metric_view(metrics, is_directional, regime=True)
-                    for regime, metrics in raw_phase_regimes.items()
-                    if isinstance(metrics, dict)
-                },
             })
         features.append({
             "feature": feature,
