@@ -766,11 +766,6 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const n = Number(value);
     return (n > 0 ? "+" : "") + n.toFixed(2) + "/10";
   };
-  const dateText = value => {
-    const raw = String(value || "");
-    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return match ? match[3] + "/" + match[2] + "/" + match[1] : (raw || "—");
-  };
   const rows = Object.entries(components).map(([key, component]) => {
     if (!component || component.score == null || !Number.isFinite(Number(component.score))) return "";
     const score = Number(component.score);
