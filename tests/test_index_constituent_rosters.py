@@ -70,6 +70,28 @@ class OfficialRosterCaptureTests(unittest.TestCase):
         self.assertEqual(len(result["members"]), 30)
         self.assertEqual(result["members"][0]["instrument_id"], "500000")
 
+    def test_sensex_parses_official_bse_constituent_api_json(self):
+        codes = [str(500000 + i) for i in range(30)]
+        archive = {"records": [{
+            "date": "2026-11-09",
+            "equity_rows": [
+                {"instrument_id": code, "isin": f"IN{i:09d}0"}
+                for i, code in enumerate(codes)
+            ],
+        }]}
+        api_payload = {
+            "Table": [
+                {"SCRIP_CODE": code, "SCRIPNAME": f"Company {i}", "Industry_name": "Sector"}
+                for i, code in enumerate(codes)
+            ]
+        }
+        result = parse_bse_sensex_constituents(
+            api_payload, archive, "2026-11-09",
+            "https://www.bseindia.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
+        )
+        self.assertEqual(len(result["members"]), 30)
+        self.assertEqual(result["members"][0]["instrument_id"], "500000")
+
     def test_sensex_missing_same_day_archive_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "same-date BSE cash archive missing"):
             parse_bse_sensex_constituents(
