@@ -14,7 +14,6 @@ import io
 import json
 import re
 from pathlib import Path
-from urllib.parse import urljoin
 
 import requests
 
@@ -25,7 +24,7 @@ EXPECTED = {"NIFTY": 50, "BANKNIFTY": 14, "SENSEX": 30}
 SOURCES = {
     "NIFTY": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
     "BANKNIFTY": "https://nsearchives.nseindia.com/content/indices/ind_niftybanklist.csv",
-    "SENSEX": "https://www.bseindices.com/constituents/code/16",
+    "SENSEX": "https://www.bseindia.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
 }
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; Trinetra-Index-Roster/1.0)",
@@ -105,16 +104,32 @@ class _BseConstituentTableParser(HTMLParser):
             self.in_row = False
 
 
-def parse_bse_sensex_constituents(html, bse_archive, as_of, source_url):
-    parser = _BseConstituentTableParser()
-    parser.feed(str(html or ""))
+def parse_bse_sensex_constituents(payload, bse_archive, as_of, source_url):
+    data = payload
+    if isinstance(payload, (bytes, bytearray, str)):
+        raw = bytes(payload).decode("utf-8-sig") if isinstance(payload, (bytes, bytearray)) else payload
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            data = raw
     scrip_codes = []
-    for cells in parser.rows:
-        if len(cells) < 2:
-            continue
-        code = next((cell.strip() for cell in cells if re.fullmatch(r"\d{5,6}", cell.strip())), None)
-        if code:
-            scrip_codes.append(code)
+    if isinstance(data, dict):
+        rows = data.get("Table") or data.get("table") or data.get("Table1") or []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            code = str(row.get("SCRIP_CODE") or row.get("Scrip_Code") or row.get("scrip_code") or "").strip()
+            if code:
+                scrip_codes.append(code)
+    else:
+        parser = _BseConstituentTableParser()
+        parser.feed(str(data or ""))
+        for cells in parser.rows:
+            if len(cells) < 2:
+                continue
+            code = next((cell.strip() for cell in cells if re.fullmatch(r"\d{5,6}", cell.strip())), None)
+            if code:
+                scrip_codes.append(code)
     if len(scrip_codes) != EXPECTED["SENSEX"] or len(set(scrip_codes)) != EXPECTED["SENSEX"]:
         preview = re.sub(r"\\s+", " ", str(html or ""))[:1200]
         raise ValueError(
@@ -171,22 +186,13 @@ def build_roster_bundle(session, as_of, bse_archive):
         encoding="utf-8",
     )
     bse_payload = fetch_once(session, SOURCES["SENSEX"])
-    bse_html = bse_payload.decode("utf-8-sig", errors="replace")
-    scripts = re.findall(r"<script[^>]+src=[\\\"\\\']([^\\\"\\\']+)", bse_html, flags=re.IGNORECASE)
-    print(f"BSE SENSEX official constituent response bytes: {len(bse_payload)}; script_sources={scripts}")
-    main_script = next((item for item in scripts if item.rsplit("/", 1)[-1].startswith("main-")), None)
-    if main_script:
-        js_payload = fetch_once(session, urljoin("https://www.bseindices.com/", main_script))
-        js_text = js_payload.decode("utf-8", errors="replace")
-        matches = [js_text[max(0, m.start()-180):min(len(js_text), m.end()+260)] for m in re.finditer(r"constituent|constituents|indexdetail|indexstock", js_text, flags=re.IGNORECASE)]
-        print("BSE Indices main bundle constituent API clues:", matches[:80])
     return {
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "rosters": {
             "NIFTY": nifty_roster,
             "BANKNIFTY": bank_roster,
-            "SENSEX": parse_bse_sensex_constituents(bse_payload.decode("utf-8-sig"), bse_archive, as_of, SOURCES["SENSEX"]),
+            "SENSEX": parse_bse_sensex_constituents(bse_payload, bse_archive, as_of, SOURCES["SENSEX"]),
         },
         "expected_counts": EXPECTED,
         "research_only": True,
