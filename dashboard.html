@@ -426,6 +426,15 @@
   .stock-basket-modal-note{margin-top:14px;padding:12px;border-left:3px solid #36e7ff;border-radius:7px;background:#102442;color:#b9d2ed;font-size:12px;line-height:1.55}
   body.stock-basket-modal-open{overflow:hidden}
   @media(max-width:560px){#stockBasketModal{padding:8px}.stock-basket-modal-panel{max-height:96vh;padding:15px;border-radius:14px}.stock-basket-detail-grid{grid-template-columns:1fr}.stock-basket-detail-cell{padding:10px}}
+
+  /* Stock Basket compact three-line layout: title, score + details, EOD date. */
+  .stock-basket-compact{align-items:stretch;}
+  .stock-basket-compact .stock-basket-compact-main{display:flex;flex:1 1 100%;flex-direction:column;align-items:stretch;gap:2px;min-width:0;flex-wrap:nowrap;}
+  .stock-basket-compact .stock-basket-compact-title{display:block;line-height:1.2;}
+  .stock-basket-compact-score-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;}
+  .stock-basket-compact-score-row>b{font-size:13px;line-height:1.2;}
+  .stock-basket-compact .stock-basket-compact-main small{width:auto;margin-top:1px;line-height:1.2;}
+  .stock-basket-compact-score-row .stock-basket-eye{padding:3px 7px;font-size:10px;}
 </style>
 </head>
 <body>
@@ -927,9 +936,12 @@ function renderStandaloneStockBasket(b, assetName) {
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
   return '<div class="stock-basket-compact">' +
-    '<div class="stock-basket-compact-main"><span class="stock-basket-compact-title">STOCK BASKET</span><b class="' + cls + '">' + label + '</b>' +
-    (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') + '</div>' +
-    '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button>' +
+    '<div class="stock-basket-compact-main">' +
+      '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
+      '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
+      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
+      (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
+    '</div>' +
     '</div>';
 }
 
