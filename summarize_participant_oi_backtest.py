@@ -192,6 +192,28 @@ def summarize_index(name, index):
             for regime, metrics in raw_regimes.items()
             if isinstance(metrics, dict)
         }
+        raw_phases = holdout.get("non_overlapping_holdout_phases") or []
+        phase_views = []
+        for phase in raw_phases:
+            if not isinstance(phase, dict):
+                continue
+            raw_phase_regimes = phase.get("regime_metrics") or {}
+            phase_views.append({
+                "phase_offset_sessions": phase.get("phase_offset_sessions"),
+                "anchor_signal_date": phase.get("anchor_signal_date"),
+                "n": phase.get("n"),
+                "directional_observation_count": phase.get("directional_observation_count"),
+                "correct_signals": phase.get("correct_signals"),
+                "false_signals": phase.get("false_signals"),
+                "false_signal_rate_pct": phase.get("false_signal_rate_pct"),
+                "directional_hit_rate_pct": phase.get("directional_hit_rate_pct"),
+                "avg_forward_return_pct": phase.get("avg_forward_return_pct"),
+                "regime_metrics": {
+                    regime: metric_view(metrics, is_directional, regime=True)
+                    for regime, metrics in raw_phase_regimes.items()
+                    if isinstance(metrics, dict)
+                },
+            })
         features.append({
             "feature": feature,
             "participant": holdout.get("participant") or feature.split(".", 1)[0],
@@ -201,6 +223,7 @@ def summarize_index(name, index):
             "train": metric_view(train, is_directional),
             "holdout": metric_view(holdout, is_directional),
             "holdout_regimes": regimes,
+            "non_overlapping_holdout_phases": phase_views,
         })
 
     attach_directional_inference(features)
@@ -228,6 +251,7 @@ def summarize_index(name, index):
         "aligned_first_date", "aligned_last_date",
         "regime_counts_on_aligned_dates", "regime_definition",
         "target_definition", "false_signal_definition",
+        "non_overlapping_holdout_method",
     )
     return {
         "symbol": index.get("symbol"),
@@ -249,8 +273,9 @@ def summarize_index(name, index):
             ),
             "dependence_warning": (
                 "Nominal binomial p-values assume independent hit outcomes. Forward-return "
-                "horizons overlap and participant OI is shared across index tests; "
-                "these values are exploratory, not confirmatory."
+                "horizons overlap and participant OI is shared across index tests. "
+                "Non-overlapping phase rows are descriptive alternatives and are not "
+                "independent across phases; these values are exploratory, not confirmatory."
             ),
             "interpretation": "No live-score eligibility; use only as a conservative diagnostic.",
         },

@@ -83,6 +83,43 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         self.assertEqual(result["oi_dates_without_price"], 1)
         self.assertEqual(result["oi_to_price_date_match_pct"], 66.67)
 
+    def test_non_overlapping_phases_separate_forward_windows(self):
+        rows = [
+            {
+                "signal_session_position": position,
+                "date": f"2026-01-{position + 1:02d}",
+                "signal": 1.0 if position % 2 == 0 else -1.0,
+                "forward_return_pct": 0.2 if position % 2 == 0 else -0.1,
+                "regime": ("bull", "bear", "sideways")[position % 3],
+            }
+            for position in range(10, 18)
+        ]
+        phases = backtest.partition_non_overlapping_rows(rows, 3)
+        self.assertEqual([len(phase) for phase in phases], [3, 3, 2])
+        flattened = [row for phase in phases for row in phase]
+        self.assertEqual(
+            sorted(row["signal_session_position"] for row in flattened),
+            list(range(10, 18)),
+        )
+        for phase in phases:
+            positions = [row["signal_session_position"] for row in phase]
+            self.assertTrue(
+                all(right - left >= 3 for left, right in zip(positions, positions[1:]))
+            )
+        metrics = backtest.non_overlapping_phase_metrics(
+            rows, 3, directional=True
+        )
+        self.assertEqual(
+            [row["phase_offset_sessions"] for row in metrics], [0, 1, 2]
+        )
+        self.assertEqual(metrics[0]["directional_observation_count"], 3)
+        self.assertEqual(metrics[0]["false_signals"], 0)
+        self.assertIn("bull", metrics[0]["regime_metrics"])
+
+    def test_non_overlapping_phase_rejects_invalid_horizon(self):
+        with self.assertRaisesRegex(ValueError, "positive integer"):
+            backtest.partition_non_overlapping_rows([], 0)
+
     def test_duplicate_oi_dates_are_rejected(self):
         with self.assertRaisesRegex(ValueError, "duplicate OI dates"):
             backtest.validate_oi_records([
