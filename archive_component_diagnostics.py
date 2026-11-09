@@ -10,6 +10,8 @@ import datetime as dt
 import json
 from pathlib import Path
 
+from index_oi_expiry_research import build_report as build_index_oi_expiry_report
+
 NSE_PATH = Path("nse_index_option_oi.json")
 MCX_PATH = Path("mcx_bhavcopy_archive.json")
 OUTPUT_PATH = Path("archive-component-diagnostics.json")
@@ -153,6 +155,7 @@ def build_report(nse_payload, mcx_payload, generated_at=None):
         "production_dashboard_score_changed": False,
         "minimum_sessions_for_validation": MIN_VALIDATION_SESSIONS,
         "nse_index_options": summarize_nse(nse_payload),
+        "nse_index_expiry_research": build_index_oi_expiry_report(nse_payload),
         "mcx_commodity_futures": summarize_mcx(mcx_payload),
         "guardrail": "All archive-derived results remain diagnostic-only. No archive component is eligible for Final Score until sufficient dated history and out-of-sample directional validation pass.",
     }
