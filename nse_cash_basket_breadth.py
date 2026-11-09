@@ -27,12 +27,14 @@ def _valid_roster(roster, index_key, trade_date, max_roster_age_days=180):
         if not isinstance(member, dict):
             raise ValueError("malformed constituent")
         symbol = str(member.get("symbol") or "").strip().upper()
+        instrument_id = str(member.get("instrument_id") or "").strip()
         isin = str(member.get("isin") or "").strip().upper()
-        if not symbol or not isin or symbol in seen or isin in seen_isins:
-            raise ValueError("constituent symbol/ISIN missing or duplicate")
-        seen.add(symbol)
+        identity = symbol or ("BSE:" + instrument_id if instrument_id else "")
+        if not identity or not isin or identity in seen or isin in seen_isins:
+            raise ValueError("constituent symbol/instrument_id/ISIN missing or duplicate")
+        seen.add(identity)
         seen_isins.add(isin)
-        normalized.append((symbol, isin))
+        normalized.append((symbol, isin, instrument_id))
     if len(normalized) != int(item.get("expected_count", len(normalized))):
         raise ValueError(f"roster count mismatch for {index_key}")
     source_url = str(item.get("source_url") or "").strip()
@@ -66,33 +68,41 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
     if not session:
         raise ValueError(f"cash archive session missing: {trade_date}")
     by_symbol = {}
+    by_instrument_id = {}
     for row in session.get("equity_rows", []):
         symbol = str(row.get("symbol") or "").strip().upper()
-        if symbol in by_symbol:
-            raise ValueError(f"duplicate archive symbol: {symbol}")
-        by_symbol[symbol] = row
+        instrument_id = str(row.get("instrument_id") or "").strip()
+        if symbol:
+            if symbol in by_symbol:
+                raise ValueError(f"duplicate archive symbol: {symbol}")
+            by_symbol[symbol] = row
+        if instrument_id:
+            if instrument_id in by_instrument_id:
+                raise ValueError(f"duplicate archive instrument_id: {instrument_id}")
+            by_instrument_id[instrument_id] = row
 
     moves = []
     missing = []
-    for symbol, isin in members:
-        row = by_symbol.get(symbol)
+    for symbol, isin, instrument_id in members:
+        row = by_symbol.get(symbol) if symbol else by_instrument_id.get(instrument_id)
+        label = symbol or instrument_id
         if row is None or str(row.get("isin") or "").upper() != isin:
-            missing.append(symbol)
+            missing.append(label)
             continue
         try:
             close = float(row["close"])
             previous = float(row["previous_close"])
         except (KeyError, TypeError, ValueError, OverflowError):
-            missing.append(symbol)
+            missing.append(label)
             continue
         if not math.isfinite(close) or not math.isfinite(previous) or close <= 0 or previous <= 0:
-            missing.append(symbol)
+            missing.append(label)
             continue
         change_pct = (close / previous - 1.0) * 100.0
         if not math.isfinite(change_pct):
-            missing.append(symbol)
+            missing.append(label)
             continue
-        moves.append((symbol, change_pct))
+        moves.append((label, change_pct))
 
     coverage = len(moves) / len(members)
     if missing:
