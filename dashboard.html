@@ -774,12 +774,16 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       '<div class="hl-title"><b>' + esc(labels[key] || key) + '</b> · <b class="' + cls + '">' + scoreText(score) + '</b></div>' +
       '</div>';
   }).join("");
+  const searchPending = !Object.prototype.hasOwnProperty.call(components, "search")
+    && b.search_diagnostic && b.search_diagnostic.valid === true
+    ? '<div class="hl" style="margin-top:5px"><div class="hl-title"><b>Google Trends</b> · <b class="zero">—/10</b></div></div>'
+    : "";
   const total = final.score;
   const totalNumber = total == null || !Number.isFinite(Number(total)) ? null : Number(total);
   const totalClass = totalNumber == null ? "zero" : totalNumber > 0 ? "pos" : totalNumber < 0 ? "neg" : "zero";
   return '<div class="hl" style="margin-top:8px">' +
     '<div class="hl-title"><b>Component Score</b> · <b class="' + totalClass + '">' + scoreText(totalNumber) + '</b></div>' +
-    rows +
+    rows + searchPending +
     '</div>';
 }
 
