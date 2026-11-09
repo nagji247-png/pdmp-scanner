@@ -122,6 +122,54 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
     }
 
 
+def calculate_three_index_baskets(archives, roster_bundle, trade_date):
+    """Validate and calculate all three official index baskets independently.
+
+    archives maps NIFTY/BANKNIFTY/SENSEX to the relevant exchange cash archive.
+    NSE archives serve NIFTY and BANKNIFTY; BSE archive serves SENSEX. Missing
+    evidence is withheld, never converted into a zero score.
+    """
+    expected = {"NIFTY": 50, "BANKNIFTY": 14, "SENSEX": 30}
+    results = {}
+    for index_key, count in expected.items():
+        try:
+            if not isinstance(roster_bundle, dict):
+                raise ValueError("official roster bundle missing")
+            item = roster_bundle.get(index_key)
+            if not isinstance(item, dict):
+                raise ValueError(f"official roster missing for {index_key}")
+            if int(item.get("expected_count", -1)) != count:
+                raise ValueError(f"{index_key} official expected_count must be {count}")
+            members = item.get("members")
+            if not isinstance(members, list) or len(members) != count:
+                raise ValueError(f"{index_key} requires exactly {count} official members")
+            archive = archives.get(index_key) if isinstance(archives, dict) else None
+            if not isinstance(archive, dict):
+                raise ValueError(f"dated cash archive missing for {index_key}")
+            results[index_key] = calculate_breadth(
+                archive, {index_key: item}, index_key, trade_date
+            )
+        except (TypeError, ValueError, KeyError) as exc:
+            results[index_key] = {
+                "index": index_key, "date": trade_date,
+                "status": "withheld_unverified", "expected": count,
+                "matched": 0, "coverage_pct": 0.0,
+                "missing_symbols": [], "score": None,
+                "score_eligible": False, "research_only": True,
+                "reason": str(exc),
+            }
+    all_complete = all(
+        item.get("status") == "complete_diagnostic" for item in results.values()
+    )
+    return {
+        "date": trade_date,
+        "status": "complete_diagnostic" if all_complete else "withheld_incomplete",
+        "indices": results, "all_three_complete": all_complete,
+        "score_eligible": False, "research_only": True,
+        "note": "Diagnostic only; no production Final Score mutation.",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--archive", default="nse_cm_bhavcopy_archive.json")
