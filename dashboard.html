@@ -2458,28 +2458,35 @@ async function loadFoParticipantHistory() {
   return foParticipantHistoryPromise;
 }
 
-// उसी मौजूदा CALL/PUT daily-net नियम को दो पुराने EOD snapshots के अंतर पर लागू करता है।
-function getFoHistoricalStatuses(date) {
+// दो पुराने NSE EOD snapshots के अंतर से उसी मौजूदा CALL/PUT daily-net नियम के मान निकालें।
+function getFoHistoricalDailyNet(date, participantKey) {
   const records = foParticipantHistory && Array.isArray(foParticipantHistory.records)
     ? foParticipantHistory.records : [];
   const current = records.find(record => record && record.date === date);
   const previous = records.filter(record => record && record.date && record.date < date)
     .sort((a, b) => a.date.localeCompare(b.date)).pop();
   if (!current || !previous || !current.participants || !previous.participants) return null;
+  const now = current.participants[participantKey], before = previous.participants[participantKey];
+  if (!now || !before) return null;
+  const read = (obj, field) => obj[field] == null || !Number.isFinite(Number(obj[field])) ? null : Number(obj[field]);
+  const cLongNow = read(now, "index_call_long"), cShortNow = read(now, "index_call_short");
+  const pLongNow = read(now, "index_put_long"), pShortNow = read(now, "index_put_short");
+  const cLongBefore = read(before, "index_call_long"), cShortBefore = read(before, "index_call_short");
+  const pLongBefore = read(before, "index_put_long"), pShortBefore = read(before, "index_put_short");
+  if ([cLongNow,cShortNow,pLongNow,pShortNow,cLongBefore,cShortBefore,pLongBefore,pShortBefore].some(v => v == null)) return null;
+  return {
+    callNet: (cLongNow - cLongBefore) - (cShortNow - cShortBefore),
+    putNet: (pLongNow - pLongBefore) - (pShortNow - pShortBefore)
+  };
+}
+
+function getFoHistoricalStatuses(date) {
   const result = [];
   for (const key of ["FII", "PRO", "CLIENT"]) {
-    const now = current.participants[key], before = previous.participants[key];
-    if (!now || !before) return null;
-    const read = (obj, field) => obj[field] == null || !Number.isFinite(Number(obj[field])) ? null : Number(obj[field]);
-    const cLongNow = read(now, "index_call_long"), cShortNow = read(now, "index_call_short");
-    const pLongNow = read(now, "index_put_long"), pShortNow = read(now, "index_put_short");
-    const cLongBefore = read(before, "index_call_long"), cShortBefore = read(before, "index_call_short");
-    const pLongBefore = read(before, "index_put_long"), pShortBefore = read(before, "index_put_short");
-    if ([cLongNow,cShortNow,pLongNow,pShortNow,cLongBefore,cShortBefore,pLongBefore,pShortBefore].some(v => v == null)) return null;
-    const callNet = (cLongNow - cLongBefore) - (cShortNow - cShortBefore);
-    const putNet = (pLongNow - pLongBefore) - (pShortNow - pShortBefore);
-    const callBull = callNet >= 0;
-    const putBull = putNet < 0;
+    const daily = getFoHistoricalDailyNet(date, key);
+    if (!daily) return null;
+    const callBull = daily.callNet >= 0;
+    const putBull = daily.putNet < 0;
     const status = callBull && putBull ? "BULLISH"
       : (!callBull && !putBull ? "BEARISH" : "NEUTRAL");
     result.push({ key, status });
@@ -2539,12 +2546,19 @@ function renderFoDetail() {
     inst: { title: "F&O INSTITUTIONAL (FII + DII)", keys: ["FII", "DII"], call: false },
   }[foSel];
   if (!cfg) { box.innerHTML = ""; return; }
+  // पुराने participant snapshots केवल static JSON से एक बार पढ़ें; कोई NSE/Yahoo/Trends scan नहीं।
+  if (cfg.call && !foParticipantHistory && !foParticipantHistoryPromise) {
+    const selected = foSel;
+    loadFoParticipantHistory().then(() => {
+      if (foSel === selected) renderFoDetail();
+    });
+  }
   const badge = (t, good) => t
     ? `<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;background:${good ? "#1d3a2a" : "#3b1d22"};color:${good ? "#2ecc71" : "#e74c3c"}">${t}</span>`
     : "";
   const signedNum = v => v == null ? "डेटा नहीं" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toLocaleString("en-IN");
-  const candlePair = (callToday, putToday, callPrev, putPrev) => {
-    const vals = [callToday, putToday, callPrev, putPrev].filter(v => v != null);
+  const candlePair = (callToday, putToday, callPrev, putPrev, callDayBefore, putDayBefore) => {
+    const vals = [callToday, putToday, callPrev, putPrev, callDayBefore, putDayBefore].filter(v => v != null);
     if (!vals.length) return '<div class="sub">आज का NSE Call/Put OI डेटा उपलब्ध नहीं; असली कैंडल नहीं बनाई जा सकती।</div>';
     const maxAbs = Math.max(1, ...vals.map(v => Math.abs(v)));
     const formatOiDate = value => {
@@ -2568,7 +2582,7 @@ function renderFoDetail() {
         : "";
       return `<div${historyAttrs} style="flex:1;min-width:0;border:1px solid #303751;border-radius:7px;padding:6px 4px;background:#111729;text-align:center;${historicalDate ? "cursor:pointer;" : ""}"><div style="font-size:11px;font-weight:700;color:#cfd4e6;margin-bottom:5px">${title}</div><div style="display:flex;gap:2px">${oneBar("CALL",callV,"#2ecc71")}${oneBar("PUT",putV,"#e74c3c")}</div></div>`;
     };
-    return `<div style="margin:12px 0 8px;padding:8px;background:#151b30;border-radius:10px"><div style="font-size:12px;font-weight:700;color:#cfd4e6;margin-bottom:7px">NET OI · ZERO LINE (केंद्र से)</div><div style="display:flex;flex-direction:row;gap:5px;align-items:stretch">${dayBox(dateDayBeforeLabel,null,null,true,dateDayBefore)}${dayBox(dateYesterdayLabel,callPrev,putPrev,callPrev == null && putPrev == null,dateYesterday)}${dayBox(dateTodayLabel,callToday,putToday,callToday == null && putToday == null)}</div><div class="sub" style="margin-top:7px">हर दिन का छोटा बॉक्स · CALL हरा, PUT लाल · शून्य रेखा के ऊपर/नीचे वास्तविक Net Long − Short। परसों की कैंडल तभी बनेगी जब उसका असली डेटा उपलब्ध हो।</div></div>`;
+    return `<div style="margin:12px 0 8px;padding:8px;background:#151b30;border-radius:10px"><div style="font-size:12px;font-weight:700;color:#cfd4e6;margin-bottom:7px">NET OI · ZERO LINE (केंद्र से)</div><div style="display:flex;flex-direction:row;gap:5px;align-items:stretch">${dayBox(dateDayBeforeLabel,callDayBefore,putDayBefore,callDayBefore == null && putDayBefore == null,dateDayBefore)}${dayBox(dateYesterdayLabel,callPrev,putPrev,callPrev == null && putPrev == null,dateYesterday)}${dayBox(dateTodayLabel,callToday,putToday,callToday == null && putToday == null)}</div><div class="sub" style="margin-top:7px">हर दिन का छोटा बॉक्स · CALL हरा, PUT लाल · शून्य रेखा के ऊपर/नीचे वास्तविक Net Long − Short। परसों की कैंडल तभी बनेगी जब उसका असली डेटा उपलब्ध हो।</div></div>`;
   };
   const dashTxt = '<div class="sub">डेटा नहीं मिला</div>';
   const prevDate = chg && po.changes.prev_date ? po.changes.prev_date : null;
@@ -2593,8 +2607,12 @@ function renderFoDetail() {
     // totals as if they were today's change; previous-day daily change is not stored.
     const callToday = callNet;
     const putToday = putNet;
-    const callPrev = null;
-    const putPrev = null;
+    const historyYesterday = getFoHistoricalDailyNet(prevDate, cfg.keys[0]);
+    const historyDayBefore = getFoHistoricalDailyNet(po.two_days_ago_date || null, cfg.keys[0]);
+    const callPrev = historyYesterday ? historyYesterday.callNet : null;
+    const putPrev = historyYesterday ? historyYesterday.putNet : null;
+    const callDayBefore = historyDayBefore ? historyDayBefore.callNet : null;
+    const putDayBefore = historyDayBefore ? historyDayBefore.putNet : null;
     const callBull = callNet == null ? null : callNet >= 0;
     const putBull = putNet == null ? null : putNet < 0;
     let netTag = "", netGood = true;
@@ -2622,7 +2640,7 @@ function renderFoDetail() {
     const sepRow = `<div style="border-top:1px solid #252b45;margin:8px 0"></div>`;
     box.innerHTML = wrap(
       headerBox(foSel === "retail" ? retailTitleTag : netTag, foSel === "retail" ? retailTitleGood : netGood) +
-      candlePair(callToday, putToday, callPrev, putPrev) +
+      candlePair(callToday, putToday, callPrev, putPrev, callDayBefore, putDayBefore) +
       `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
          <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2ecc71;margin-right:8px"></span>Call Change</div>
          <div style="display:flex;align-items:center;gap:8px"><b class="${valCls(callNet, callBull)}">${fmtLakh(callNet)}</b>${callBull == null ? "" : badge(callBull ? "BULLISH" : "BEARISH", callBull)}</div></div>` +
