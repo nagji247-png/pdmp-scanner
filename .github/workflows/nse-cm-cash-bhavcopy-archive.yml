@@ -4,13 +4,20 @@ on:
   pull_request:
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "bse_cm_bhavcopy_archive.py"
+      - "index_constituent_rosters.py"
+      - "run_three_index_cash_basket.py"
       - "nse_cash_basket_breadth.py"
       - "tests/test_nse_cm_bhavcopy_archive.py"
+      - "tests/test_bse_cm_bhavcopy_archive.py"
+      - "tests/test_index_constituent_rosters.py"
+      - "tests/test_run_three_index_cash_basket.py"
       - "tests/test_nse_cash_basket_breadth.py"
+      - "tests/test_three_index_cash_basket_validation.py"
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # One official NSE CM UDiFF ZIP request after cash-market EOD publication.
+    # One request per exchange after cash-market EOD publication; no retries.
     - cron: "0 13 * * 1-5"
   workflow_dispatch:
 
@@ -36,12 +43,26 @@ jobs:
         run: |
           python -m py_compile nse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
+          python -m py_compile bse_cm_bhavcopy_archive.py
+          python -m unittest discover -s tests -p 'test_bse_cm_bhavcopy_archive.py' -v
+          python -m py_compile index_constituent_rosters.py
+          python -m unittest discover -s tests -p 'test_index_constituent_rosters.py' -v
           python -m py_compile nse_cash_basket_breadth.py
           python -m unittest discover -s tests -p 'test_nse_cash_basket_breadth.py' -v
+          python -m unittest discover -s tests -p 'test_three_index_cash_basket_validation.py' -v
+          python -m py_compile run_three_index_cash_basket.py
+          python -m unittest discover -s tests -p 'test_run_three_index_cash_basket.py' -v
       - name: Fetch one dated official NSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         run: python nse_cm_bhavcopy_archive.py
-      - name: Commit archive only when a new session is captured
+      - name: Fetch one dated official BSE CM UDiFF archive
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: python bse_cm_bhavcopy_archive.py
+      - name: Run offline full-universe cash basket checks
+        if: github.event_name != 'pull_request'
+        run: python run_three_index_cash_basket.py
+      - name: Commit exchange cash archives and diagnostic report
         if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
@@ -51,10 +72,20 @@ jobs:
             exit 1
           fi
           git add -f -- nse_cm_bhavcopy_archive.json
-          if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json; then
-            echo "NSE_CM_ARCHIVE_NO_CHANGE"
+          if [ -f bse_cm_bhavcopy_archive.json ]; then
+            git add -f -- bse_cm_bhavcopy_archive.json
           else
-            git commit -m "Archive official NSE CM cash Bhavcopy"
+            echo "BSE archive unavailable; Sensex cash basket remains withheld"
+          fi
+          if [ ! -s index_cash_basket_diagnostics.json ]; then
+            echo "CASH_BASKET_DIAGNOSTIC_REPORT_MISSING"
+            exit 1
+          fi
+          git add -f -- index_cash_basket_diagnostics.json
+          if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json index_cash_basket_diagnostics.json; then
+            echo "EXCHANGE_CASH_ARCHIVES_NO_CHANGE"
+          else
+            git commit -m "Archive exchange cash and daily index basket diagnostics"
             git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
