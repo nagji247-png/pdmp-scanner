@@ -963,7 +963,8 @@ function card(name, d, participantOI, observedAt) {
       '</b> · खबरें ' + Number(d.experimental_headline_count || 0) +
       ' · हटाई गई पुरानी/अज्ञात ' + Number(d.experimental_excluded_old_or_unknown || 0) +
       ' · साझा ' + Number(d.experimental_excluded_cross_index_duplicates || 0) + '</div>' : "";
-  const componentBreakdown = renderComponentBreakdown(d.component_breakdown, observedAt, name);
+  const componentBreakdown = ["NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"].includes(name)
+    ? renderComponentBreakdown(d.component_breakdown, observedAt, name) : "";
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
   const hTotal = posN + negN;
