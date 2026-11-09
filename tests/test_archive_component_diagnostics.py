@@ -35,9 +35,18 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         ]}
         report = build_report(nse, mcx, generated_at="2026-11-08T00:00:00Z")
         nifty = report["nse_index_options"]["assets"]["NIFTY"]
+        futures = report["nse_index_expiry_research"]["index_futures"]["NIFTY"]
+        option_research = report["nse_index_expiry_research"]["index_options"]["NIFTY"]
         gold = report["mcx_commodity_futures"]["assets"]["GOLD"]
         silver = report["mcx_commodity_futures"]["assets"]["SILVER"]
         self.assertEqual(nifty["sessions"], 2)
+        self.assertEqual(futures["same_expiry_observations"], 0)
+        self.assertIsNone(futures["score"])
+        self.assertFalse(futures["included_in_asset_final"])
+        self.assertEqual(option_research["same_expiry_observations"], 1)
+        option_pair = option_research["observations"][0]
+        self.assertEqual(option_pair["sides"]["CE"]["oi_change"], 10)
+        self.assertEqual(option_pair["sides"]["PE"]["oi_change"], 20)
         self.assertEqual(nifty["same_expiry_session_pairs"], 1)
         self.assertEqual(gold["same_expiry_observations"], 1)
         self.assertEqual(gold["observations"][0]["regime"], "price_up_oi_up")
