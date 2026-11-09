@@ -4042,7 +4042,7 @@ def _trends_related_queries(timeframe="now 1-d"):
 def _asset_search_is_out_of_scope(term, asset):
     """Return True only when a related query clearly belongs to another tracked asset."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
-    tokens = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
+    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
     has_bank = bool(tokens & {"bank", "बैंक", "banknifty", "बैंकनिफ्टी"})
     has_nifty = bool(tokens & {"nifty", "निफ्टी", "banknifty", "बैंकनिफ्टी"})
     has_sensex = bool(tokens & {"sensex", "सेंसेक्स"})
