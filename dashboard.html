@@ -1021,7 +1021,7 @@ function renderStandaloneStockBasket(b, assetName) {
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
-      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openAssetExpandedDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
+      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
