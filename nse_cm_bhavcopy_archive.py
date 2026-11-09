@@ -1,8 +1,8 @@
 """Daily diagnostic-only archive of NSE CM UDiFF Common Bhavcopy Final.
 
-One official ZIP per NSE session. Keeps validated EQ-series cash equity rows
-for later exact-constituent basket analysis. No per-symbol provider requests,
-no production score mutation, and no score eligibility.
+One official ZIP request per NSE session. Keeps validated EQ-series cash equity
+rows for later exact-constituent basket analysis. No per-symbol provider
+requests, no production score mutation, and no score eligibility.
 """
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ import hashlib
 import io
 import json
 import math
-import time
 import zipfile
 from pathlib import Path
 
@@ -91,8 +90,6 @@ def normalize_equity_rows(rows, trade_date, min_rows=100):
         series = str(row.get("SctySrs") or "").strip().upper()
         if segment != "CM" or source not in ("NSE", ""):
             continue
-        # Cash-market equity security rows only; exclude ETFs, debt, SME,
-        # indices and derivatives. EQ is the exchange's normal equity series.
         if instrument not in ("STK", "EQUITY", "") or series != "EQ":
             continue
         symbol = str(row.get("TckrSymb") or "").strip().upper()
@@ -129,21 +126,14 @@ def fetch_official_cm_bhavcopy(trade_date, session=None):
     day = parse_date(trade_date)
     stamp = day.strftime("%Y%m%d")
     filename = f"BhavCopy_NSE_CM_0_0_0_{stamp}_F_0000.csv.zip"
-    urls = (
-        f"https://archives.nseindia.com/content/cm/{filename}",
-        f"https://nsearchives.nseindia.com/content/cm/{filename}",
-    )
+    url = f"https://archives.nseindia.com/content/cm/{filename}"
     client = session or requests.Session()
-    failures = []
-    for url in urls:
-        try:
-            response = client.get(url, headers=HEADERS, timeout=(10, 45))
-            if response.status_code == 200 and response.content:
-                return response.content, url
-            failures.append(f"{url}: HTTP {response.status_code}")
-        except requests.RequestException as exc:
-            failures.append(f"{url}: {str(exc)[:160]}")
-    raise RuntimeError("official NSE CM Bhavcopy unavailable: " + " | ".join(failures))
+    # Exactly one request per date. No mirror retry or retry loop: a failed
+    # exchange request is reported and left for the next scheduled session.
+    response = client.get(url, headers=HEADERS, timeout=(10, 45))
+    if response.status_code != 200 or not response.content:
+        raise RuntimeError(f"official NSE CM Bhavcopy unavailable: HTTP {response.status_code}")
+    return response.content, url
 
 
 def append_session(archive, trade_date, source_url, payload, rows, fetched_at):
