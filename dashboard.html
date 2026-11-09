@@ -354,9 +354,9 @@
   .asset-detail-toggle[open]>summary:before{content:"−"}
   .asset-detail-content{padding:7px 2px 2px}
   .divergence-compact{margin-top:7px;padding:6px 8px;border:1px solid #6b512c;border-radius:8px;background:rgba(54,37,17,.35);font-size:11px;color:#ffc66d}
-  .divergence-compact>summary{display:flex;justify-content:space-between;align-items:center;gap:6px;list-style:none;font-weight:750}
+  .divergence-compact>summary{display:flex;flex-direction:column;align-items:flex-start;gap:3px;list-style:none;font-weight:750}
   .divergence-compact>summary::-webkit-details-marker{display:none}
-  .divergence-compact>summary span{color:#6cecff;white-space:nowrap}
+  .divergence-compact>summary .divergence-title{color:#ffc66d;white-space:normal}\n  .divergence-compact>summary .divergence-action{color:#6cecff;white-space:nowrap;font-size:10px}
   .divergence-full{padding-top:8px;color:#dce8f5}
   .stock-basket-compact-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
   .stock-basket-compact-main small{width:100%;font-size:9px;color:#8a90a8;margin-top:-4px}
@@ -631,7 +631,7 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
         : "✓ अभी दोनों संकेत एक ही दिशा में हैं";
   const divergenceLabel = "Sentiment और price में अंतर";
   return `<details class="divergence-compact">
-    <summary>⚡ ${divergenceLabel} <span>👁️ विवरण</span></summary>
+    <summary><span class="divergence-title">⚡ ${divergenceLabel}</span><span class="divergence-action">👁️ विवरण</span></summary>
     <div class="divergence-full">
       <div class="hl-meta"><b>स्थिति:</b> ${status}</div>
       <div class="hl-meta"><b>सेंटिमेंट क्या है?</b> उपलब्ध समाचारों की हेडलाइन से बना स्कोर; यह वास्तविक निवेशकों की पोज़िशन या CE/PE डेटा नहीं है।</div>
