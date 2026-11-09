@@ -9,17 +9,45 @@ from provisional_component_scoring import (
 
 
 class ProvisionalComponentScoringTests(unittest.TestCase):
-    def test_available_components_use_equal_provisional_weights_and_include_basket(self):
-        self.assertEqual(set(PROVISIONAL_WEIGHTS.values()), {1.0})
+    def test_user_approved_weights_are_configured(self):
+        self.assertEqual(PROVISIONAL_WEIGHTS, {
+            "news": 15.0,
+            "stock_basket": 20.0,
+            "eod_oi": 15.0,
+            "client_ce_pe": 15.0,
+            "client_futures": 15.0,
+            "search": 20.0,
+        })
+        self.assertEqual(sum(PROVISIONAL_WEIGHTS.values()), 100.0)
+
+    def test_all_six_components_use_weighted_average(self):
+        scores = {
+            "news": 2,
+            "stock_basket": 6,
+            "eod_oi": 4,
+            "client_ce_pe": -2,
+            "client_futures": 5,
+            "search": 3,
+        }
+        components = {
+            name: build_component(score, name, "2026-11-06", PROVISIONAL_WEIGHTS[name])
+            for name, score in scores.items()
+        }
+        result = combine_components(components, PROVISIONAL_WEIGHTS)
+        self.assertEqual(result["score"], 3.45)
+        self.assertEqual(result["included_components"], list(scores))
+        self.assertEqual(result["weight_total"], 100.0)
+
+    def test_missing_components_renormalize_available_weights(self):
         components = {
             "news": build_component(2, "News", "2026-11-06", PROVISIONAL_WEIGHTS["news"]),
             "stock_basket": build_component(8, "Official basket", "2026-11-06", PROVISIONAL_WEIGHTS["stock_basket"]),
         }
         result = combine_components(components, PROVISIONAL_WEIGHTS)
-        self.assertEqual(result["score"], 5.0)
+        self.assertEqual(result["score"], 5.43)
         self.assertEqual(result["included_components"], ["news", "stock_basket"])
         self.assertEqual(result["normalized_weights_pct"], {
-            "news": 50.0, "stock_basket": 50.0
+            "news": 42.86, "stock_basket": 57.14
         })
 
     def test_nearest_expiry_oi_balance_averages_available_sessions(self):
