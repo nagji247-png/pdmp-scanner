@@ -14,7 +14,7 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
         value = {
             "Sgmt": "CM", "Src": "NSE", "FinInstrmTp": "STK",
             "TckrSymb": "RELIANCE", "SctySrs": "EQ", "ISIN": "INE002A01018",
-            "BizDt": "2026-11-06", "OpnPric": "1400", "HghPric": "1420",
+            "TradDt": "2026-11-06", "BizDt": "2026-11-06", "OpnPric": "1400", "HghPric": "1420",
             "LwPric": "1390", "ClsPric": "1410", "PrvsClsgPric": "1405",
             "TtlTradgVol": "100000",
         }
@@ -35,7 +35,7 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
 
     def test_wrong_date_duplicate_missing_identity_and_bad_ohlc_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "date mismatch"):
-            cm.normalize_equity_rows([self.row(BizDt="2026-11-05")], "2026-11-06", min_rows=1)
+            cm.normalize_equity_rows([self.row(TradDt="2026-11-05")], "2026-11-06", min_rows=1)
         with self.assertRaisesRegex(ValueError, "duplicate EQ"):
             cm.normalize_equity_rows([self.row(), self.row()], "2026-11-06", min_rows=1)
         with self.assertRaisesRegex(ValueError, "symbol or ISIN"):
@@ -89,7 +89,21 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
         payload, url = cm.fetch_official_cm_bhavcopy("2026-11-06", session=session)
         self.assertEqual(payload, b"zip")
         self.assertEqual(session.get.call_count, 1)
-        self.assertIn("archives.nseindia.com/content/cm/", url)
+        self.assertIn("nsearchives.nseindia.com/content/cm/", url)
+
+
+    def test_exchange_holiday_skips_without_network_and_special_session_is_allowed(self):
+        calendar = {
+            "holidays": [{"date": "2026-11-10", "name": "Diwali-Balipratipada"}],
+            "special_sessions": {"2026-11-08": {"name": "Diwali Muhurat Trading"}},
+        }
+        with patch.object(cm, "fetch_official_cm_bhavcopy") as fetch:
+            result = cm.capture_one({"records": []}, "2026-11-10", calendar=calendar)
+            self.assertEqual(result["status"], "skipped_non_session")
+            self.assertEqual(result["date_attempts"], 0)
+            fetch.assert_not_called()
+        self.assertTrue(cm.is_exchange_session("2026-11-08", calendar))
+        self.assertTrue(cm.is_exchange_session("2026-11-09", calendar))
 
     def test_small_or_empty_equity_universe_rejected(self):
         with self.assertRaisesRegex(ValueError, "implausibly small"):
