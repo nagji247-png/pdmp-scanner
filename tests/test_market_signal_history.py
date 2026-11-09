@@ -63,6 +63,7 @@ def snapshot(*, trends_complete=True, oi_date=DATE, capture="2026-11-06T14:32:00
         "indices": {
             name: {
                 "close": 25000.0,
+                "close_valid": True,
                 "close_as_of": "06/11/2026",
                 "experimental_news_score": 1.0,
                 "experimental_headline_count": 3,
@@ -144,6 +145,18 @@ class MarketSignalHistoryTests(unittest.TestCase):
 
         row = snapshot()
         row["indices"]["BANKNIFTY"]["close_as_of"] = "05/11/2026"
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["index_closes_complete"])
+
+    def test_explicit_close_valid_flag_is_required(self):
+        row = snapshot()
+        row["indices"]["SENSEX"]["close_valid"] = False
+        quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
+        self.assertFalse(quality["index_closes_complete"])
+        self.assertFalse(quality["complete_for_combined_backtest"])
+
+        row = snapshot()
+        del row["indices"]["BANKNIFTY"]["close_valid"]
         quality = assess_snapshot(row, {"2026-11-05": None, DATE: "2026-11-05"})
         self.assertFalse(quality["index_closes_complete"])
 
