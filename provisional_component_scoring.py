@@ -6,15 +6,16 @@ continue to accumulate.
 """
 from component_scoring import build_component, clamp_score, finite_number
 
-# No calibrated weights exist yet. Give each available component one equal
-# provisional vote; combine_components normalizes over components actually present.
+# User-approved provisional component weights. These are separate from the
+# published PDMP Main Score weights in component_scoring.py.
+# combine_components renormalizes only across components with valid evidence.
 PROVISIONAL_WEIGHTS = {
-    "news": 1.0,
-    "search": 1.0,
-    "eod_oi": 1.0,
-    "client_ce_pe": 1.0,
-    "client_futures": 1.0,
-    "stock_basket": 1.0,
+    "news": 15.0,
+    "stock_basket": 20.0,
+    "eod_oi": 15.0,
+    "client_ce_pe": 15.0,
+    "client_futures": 15.0,
+    "search": 20.0,
 }
 
 

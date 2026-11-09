@@ -822,6 +822,7 @@ def build_asset_component_breakdowns(
             "scope": "per-asset shadow score; published PDMP score is unchanged",
             "score_range": "-10..+10",
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
+            "provisional_weights": PROVISIONAL_WEIGHTS,
             "components": components,
             "provisional_components": provisional_components,
             "provisional_final": provisional_final,
@@ -838,12 +839,13 @@ def build_asset_component_breakdowns(
             "search_diagnostic": search_diagnostic,
             "client_market_context": client_context,
             "final": final,
-            "formula": "sum(component_score × configured_weight) / sum(weights of included verified components)",
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)",
         }
 
     return {
         "mode": "per_asset_verified_components_shadow",
         "weights": DEFAULT_COMPONENT_WEIGHTS,
+        "provisional_weights": PROVISIONAL_WEIGHTS,
         "score_range": "-10..+10",
         "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
         "news_rule": "Only publisher-timestamped asset-specific headlines no older than 24 hours; age is recomputed from published_at; source_date is newest eligible headline date in IST; cross-index duplicate stories excluded.",
