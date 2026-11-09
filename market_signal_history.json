@@ -876,7 +876,3675 @@
         "crowd_bull_pct": 16.7,
         "client_included": true
       }
+    },
+    {
+      "date": "2026-11-09",
+      "captured_at_utc": "2026-11-09T14:47Z",
+      "captured_at_ist": "2026-11-09T20:17+05:30",
+      "price_source_note": "Index close must be dated to this trading session",
+      "news_capture_time_utc": "2026-11-09T14:47Z",
+      "trends": {
+        "valid": false,
+        "reason": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी",
+        "daily_complete": false,
+        "daily_slot_evidence": {
+          "date": "2026-11-09",
+          "slots": [
+            {
+              "id": "0915",
+              "time": "09:15",
+              "status": "pending"
+            },
+            {
+              "id": "1100",
+              "time": "11:00",
+              "status": "pending"
+            },
+            {
+              "id": "1300",
+              "time": "13:00",
+              "status": "pending"
+            },
+            {
+              "id": "1900",
+              "time": "19:00",
+              "status": "pending"
+            }
+          ]
+        }
+      },
+      "market_news_context": {
+        "ok": true,
+        "as_of": "2026-11-09T14:47Z",
+        "items": [
+          {
+            "topic": "कच्चा तेल",
+            "title": "Current price of oil as of November 9, 2026",
+            "source": "Fortune",
+            "score": 0,
+            "age_hours": 2.0
+          },
+          {
+            "topic": "कच्चा तेल",
+            "title": "Oil Slides More Than 3% as Trump Downplays Prospect of New Iran Strikes",
+            "source": "WSJ",
+            "score": -1,
+            "age_hours": 2.3
+          },
+          {
+            "topic": "कच्चा तेल",
+            "title": "Oil prices today: Brent crude, WTI fall as Trump rules out fresh Iran strikes amid Strait of Hormuz concerns | Hindustan Times",
+            "source": "Hindustan Times",
+            "score": -1,
+            "age_hours": 2.4
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Market wrap: SBI, Trent, Tata Steel, HCL Tech top gainers and losers on Nifty and Sensex on Monday",
+            "source": "The Economic Times",
+            "score": 1,
+            "age_hours": 3.0
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Indian Equities See Modest Gains Amidst Oil Price Correction, Strong Bank Performance",
+            "source": "Rediff",
+            "score": 1,
+            "age_hours": 3.6
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Indian Stock Market Closes in Green: Sensex Surpasses 81,000, Nifty Settles Above 25,000",
+            "source": "tennews.in",
+            "score": 0,
+            "age_hours": 3.7
+          },
+          {
+            "topic": "कच्चा तेल",
+            "title": "Oil Prices Fell Fast. Where They Could Go Next.",
+            "source": "Barron's",
+            "score": -1,
+            "age_hours": 3.9
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex Today Ends 107 Points Higher | Nifty Above 25,000 | Data Patterns Up 9%",
+            "source": "Equitymaster",
+            "score": 1,
+            "age_hours": 4.3
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock Market Highlights: Nifty Reclaims 25,000 After Muhurat Dip; Sensex Ends 100 Pts Higher. Check Key Gainers",
+            "source": "NDTV Profit",
+            "score": 1,
+            "age_hours": 4.4
+          },
+          {
+            "topic": "सोना, डॉलर और रुपया",
+            "title": "RBI's $239 bn forward dollar position to limit rupee gains despite FPI inflows: Report",
+            "source": "The Economic Times",
+            "score": 1,
+            "age_hours": 4.7
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Is stock market closed tomorrow in India? Holiday in NSE, BSE or trading of shares allowed? Check exchange calendar",
+            "source": "Livemint",
+            "score": 0,
+            "age_hours": 5.7
+          },
+          {
+            "topic": "RBI नीति",
+            "title": "October 2026 Legislation Roundup: From RBI’s Repo Rate Hike to SEBI’s New Settlement Framework",
+            "source": "SCC Online",
+            "score": 0,
+            "age_hours": 6.3
+          }
+        ]
+      },
+      "indices": {
+        "NIFTY": {
+          "close": 25044.65,
+          "close_as_of": "09/11/2026",
+          "close_valid": true,
+          "day_change_pct": 0.23,
+          "price_source": "NSE India allIndices API · पिछला बंद भाव",
+          "score_mode": "news_client_only",
+          "component_breakdown": {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": {
+              "news": 40.0,
+              "search": 40.0,
+              "eod_oi": 20.0,
+              "futures": 20.0,
+              "stock_basket": 20.0
+            },
+            "provisional_weights": {
+              "news": 15.0,
+              "stock_basket": 20.0,
+              "eod_oi": 15.0,
+              "client_ce_pe": 15.0,
+              "client_futures": 15.0,
+              "search": 20.0
+            },
+            "components": {
+              "news": {
+                "score": 0.95,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T11:08:26Z",
+                "oldest_headline_published_at": "2026-11-09T08:58:47Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 7,
+                "publishers": [
+                  "Dalal Street Investment Journal",
+                  "ETV Bharat",
+                  "Investing.com",
+                  "Moneycontrol.com",
+                  "NDTV Profit",
+                  "tennews.in"
+                ],
+                "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
+                "newest_headline_age_h": 3.64,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              }
+            },
+            "provisional_components": {
+              "news": {
+                "score": 0.95,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T11:08:26Z",
+                "oldest_headline_published_at": "2026-11-09T08:58:47Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 7,
+                "publishers": [
+                  "Dalal Street Investment Journal",
+                  "ETV Bharat",
+                  "Investing.com",
+                  "Moneycontrol.com",
+                  "NDTV Profit",
+                  "tennews.in"
+                ],
+                "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
+                "newest_headline_age_h": 3.64,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              },
+              "stock_basket": {
+                "score": 8.0,
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-06",
+                "weight": 20.0,
+                "included": true,
+                "method": "10 * (advances - declines) / official constituent count; equal member count",
+                "advances": 45,
+                "declines": 5,
+                "expected": 50,
+                "matched": 50,
+                "coverage_pct": 100.0,
+                "validation_status": "प्रारंभिक; 60-session परीक्षण जारी",
+                "weighting_method": "equal-weight breadth"
+              },
+              "eod_oi": {
+                "score": 1.99,
+                "source": "NSE F&O UDiFF · nearest-expiry PE/CE open-interest balance",
+                "source_date": "2026-11-06",
+                "weight": 15.0,
+                "included": true,
+                "observations": 5,
+                "session_dates": [
+                  "2026-11-02",
+                  "2026-11-03",
+                  "2026-11-04",
+                  "2026-11-05",
+                  "2026-11-06"
+                ],
+                "expiry_dates": [
+                  "2026-11-03",
+                  "2026-11-03",
+                  "2026-11-09",
+                  "2026-11-09",
+                  "2026-11-09"
+                ],
+                "method": "प्रत्येक सत्र: 10 × (nearest-expiry PE OI − CE OI) ÷ (PE OI + CE OI); उपलब्ध सत्रों का औसत",
+                "validation_status": "प्रारंभिक; historical directional validation जारी",
+                "scope": "index-specific; nearest unexpired expiry"
+              },
+              "client_ce_pe": {
+                "score": 0.0,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "ce_long",
+                  "ce_short",
+                  "pe_long",
+                  "pe_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              },
+              "client_futures": {
+                "score": 2.0305,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "futures_long",
+                  "futures_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              }
+            },
+            "provisional_final": {
+              "status": "available",
+              "score": 2.93,
+              "included_components": [
+                "news",
+                "stock_basket",
+                "eod_oi",
+                "client_ce_pe",
+                "client_futures"
+              ],
+              "normalized_weights_pct": {
+                "news": 18.75,
+                "stock_basket": 25.0,
+                "eod_oi": 18.75,
+                "client_ce_pe": 18.75,
+                "client_futures": 18.75
+              },
+              "weight_total": 80.0
+            },
+            "stock_basket_diagnostic": {
+              "score": 8.0,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-06",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "expected": 50,
+              "matched": 50,
+              "coverage_pct": 100.0,
+              "advances": 45,
+              "declines": 5,
+              "unchanged": 0,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "ADANIENT",
+                  "isin": "INE423A01024",
+                  "close": 2745.8,
+                  "previous_close": 2733.3,
+                  "change_pct": 0.4573,
+                  "volume": 1267535
+                },
+                {
+                  "symbol": "ADANIPORTS",
+                  "isin": "INE742F01042",
+                  "close": 1936.6,
+                  "previous_close": 1884.6,
+                  "change_pct": 2.7592,
+                  "volume": 3875924
+                },
+                {
+                  "symbol": "APOLLOHOSP",
+                  "isin": "INE437A01024",
+                  "close": 8446,
+                  "previous_close": 8371,
+                  "change_pct": 0.896,
+                  "volume": 423178
+                },
+                {
+                  "symbol": "ASIANPAINT",
+                  "isin": "INE021A01026",
+                  "close": 2546,
+                  "previous_close": 2523.8,
+                  "change_pct": 0.8796,
+                  "volume": 969158
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "isin": "INE238A01034",
+                  "close": 1322.9,
+                  "previous_close": 1280,
+                  "change_pct": 3.3516,
+                  "volume": 9103753
+                },
+                {
+                  "symbol": "BAJAJ-AUTO",
+                  "isin": "INE917I01010",
+                  "close": 10900,
+                  "previous_close": 10758,
+                  "change_pct": 1.3199,
+                  "volume": 582120
+                },
+                {
+                  "symbol": "BAJAJFINSV",
+                  "isin": "INE918I01026",
+                  "close": 1864.7,
+                  "previous_close": 1835,
+                  "change_pct": 1.6185,
+                  "volume": 767674
+                },
+                {
+                  "symbol": "BAJFINANCE",
+                  "isin": "INE296A01032",
+                  "close": 1087.75,
+                  "previous_close": 1070,
+                  "change_pct": 1.6589,
+                  "volume": 9053404
+                },
+                {
+                  "symbol": "BEL",
+                  "isin": "INE263A01024",
+                  "close": 396,
+                  "previous_close": 395.1,
+                  "change_pct": 0.2278,
+                  "volume": 8830404
+                },
+                {
+                  "symbol": "BHARTIARTL",
+                  "isin": "INE397D01024",
+                  "close": 2107.2,
+                  "previous_close": 2056.9,
+                  "change_pct": 2.4454,
+                  "volume": 17095063
+                },
+                {
+                  "symbol": "BSE",
+                  "isin": "INE118H01025",
+                  "close": 3800,
+                  "previous_close": 3790,
+                  "change_pct": 0.2639,
+                  "volume": 4103624
+                },
+                {
+                  "symbol": "CIPLA",
+                  "isin": "INE059A01026",
+                  "close": 1411,
+                  "previous_close": 1404.1,
+                  "change_pct": 0.4914,
+                  "volume": 1567019
+                },
+                {
+                  "symbol": "COALINDIA",
+                  "isin": "INE522F01014",
+                  "close": 400,
+                  "previous_close": 394.3,
+                  "change_pct": 1.4456,
+                  "volume": 5044296
+                },
+                {
+                  "symbol": "DRREDDY",
+                  "isin": "INE089A01031",
+                  "close": 1373,
+                  "previous_close": 1366,
+                  "change_pct": 0.5124,
+                  "volume": 1343395
+                },
+                {
+                  "symbol": "EICHERMOT",
+                  "isin": "INE066A01021",
+                  "close": 7669.5,
+                  "previous_close": 7713,
+                  "change_pct": -0.564,
+                  "volume": 400115
+                },
+                {
+                  "symbol": "ETERNAL",
+                  "isin": "INE758T01015",
+                  "close": 363.15,
+                  "previous_close": 358.3,
+                  "change_pct": 1.3536,
+                  "volume": 25612265
+                },
+                {
+                  "symbol": "GRASIM",
+                  "isin": "INE047A01021",
+                  "close": 3227,
+                  "previous_close": 3227.6,
+                  "change_pct": -0.0186,
+                  "volume": 923379
+                },
+                {
+                  "symbol": "HCLTECH",
+                  "isin": "INE860A01027",
+                  "close": 1440,
+                  "previous_close": 1430.5,
+                  "change_pct": 0.6641,
+                  "volume": 4185868
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "isin": "INE040A01034",
+                  "close": 788.25,
+                  "previous_close": 760,
+                  "change_pct": 3.7171,
+                  "volume": 73482878
+                },
+                {
+                  "symbol": "HDFCLIFE",
+                  "isin": "INE795G01014",
+                  "close": 565.3,
+                  "previous_close": 543.8,
+                  "change_pct": 3.9537,
+                  "volume": 5902888
+                },
+                {
+                  "symbol": "HINDALCO",
+                  "isin": "INE038A01020",
+                  "close": 958.4,
+                  "previous_close": 937.85,
+                  "change_pct": 2.1912,
+                  "volume": 13374061
+                },
+                {
+                  "symbol": "HINDUNILVR",
+                  "isin": "INE030A01027",
+                  "close": 1998.4,
+                  "previous_close": 1982,
+                  "change_pct": 0.8274,
+                  "volume": 1058803
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "isin": "INE090A01021",
+                  "close": 1571.2,
+                  "previous_close": 1500,
+                  "change_pct": 4.7467,
+                  "volume": 40383259
+                },
+                {
+                  "symbol": "INDIGO",
+                  "isin": "INE646L01027",
+                  "close": 5476,
+                  "previous_close": 5420,
+                  "change_pct": 1.0332,
+                  "volume": 1180152
+                },
+                {
+                  "symbol": "INFY",
+                  "isin": "INE009A01021",
+                  "close": 1181.4,
+                  "previous_close": 1167.4,
+                  "change_pct": 1.1992,
+                  "volume": 15301109
+                },
+                {
+                  "symbol": "ITC",
+                  "isin": "INE154A01025",
+                  "close": 283.15,
+                  "previous_close": 278.85,
+                  "change_pct": 1.542,
+                  "volume": 17144523
+                },
+                {
+                  "symbol": "JIOFIN",
+                  "isin": "INE758E01017",
+                  "close": 231.2,
+                  "previous_close": 229.62,
+                  "change_pct": 0.6881,
+                  "volume": 23209640
+                },
+                {
+                  "symbol": "JSWSTEEL",
+                  "isin": "INE019A01038",
+                  "close": 1357.1,
+                  "previous_close": 1355.6,
+                  "change_pct": 0.1107,
+                  "volume": 2985592
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "isin": "INE237A01036",
+                  "close": 480,
+                  "previous_close": 467,
+                  "change_pct": 2.7837,
+                  "volume": 24341330
+                },
+                {
+                  "symbol": "LT",
+                  "isin": "INE018A01030",
+                  "close": 4117.7,
+                  "previous_close": 4050,
+                  "change_pct": 1.6716,
+                  "volume": 3396323
+                },
+                {
+                  "symbol": "M&M",
+                  "isin": "INE101A01026",
+                  "close": 3287.2,
+                  "previous_close": 3127.5,
+                  "change_pct": 5.1063,
+                  "volume": 8520444
+                },
+                {
+                  "symbol": "MARUTI",
+                  "isin": "INE585B01010",
+                  "close": 12750,
+                  "previous_close": 12652,
+                  "change_pct": 0.7746,
+                  "volume": 923719
+                },
+                {
+                  "symbol": "MAXHEALTH",
+                  "isin": "INE027H01010",
+                  "close": 934,
+                  "previous_close": 932,
+                  "change_pct": 0.2146,
+                  "volume": 2762172
+                },
+                {
+                  "symbol": "NESTLEIND",
+                  "isin": "INE239A01024",
+                  "close": 1282.1,
+                  "previous_close": 1258.3,
+                  "change_pct": 1.8914,
+                  "volume": 1764575
+                },
+                {
+                  "symbol": "NTPC",
+                  "isin": "INE733E01010",
+                  "close": 323.45,
+                  "previous_close": 316.7,
+                  "change_pct": 2.1314,
+                  "volume": 12414392
+                },
+                {
+                  "symbol": "ONGC",
+                  "isin": "INE213A01029",
+                  "close": 231.76,
+                  "previous_close": 230,
+                  "change_pct": 0.7652,
+                  "volume": 27519580
+                },
+                {
+                  "symbol": "POWERGRID",
+                  "isin": "INE752E01010",
+                  "close": 259.9,
+                  "previous_close": 261.15,
+                  "change_pct": -0.4787,
+                  "volume": 18076819
+                },
+                {
+                  "symbol": "RELIANCE",
+                  "isin": "INE002A01018",
+                  "close": 1320,
+                  "previous_close": 1313.4,
+                  "change_pct": 0.5025,
+                  "volume": 22768301
+                },
+                {
+                  "symbol": "SBILIFE",
+                  "isin": "INE123W01016",
+                  "close": 1784,
+                  "previous_close": 1735,
+                  "change_pct": 2.8242,
+                  "volume": 1481880
+                },
+                {
+                  "symbol": "SBIN",
+                  "isin": "INE062A01020",
+                  "close": 1018.5,
+                  "previous_close": 1006.4,
+                  "change_pct": 1.2023,
+                  "volume": 15801292
+                },
+                {
+                  "symbol": "SHRIRAMFIN",
+                  "isin": "INE721A01047",
+                  "close": 961.15,
+                  "previous_close": 964,
+                  "change_pct": -0.2956,
+                  "volume": 4694647
+                },
+                {
+                  "symbol": "SUNPHARMA",
+                  "isin": "INE044A01036",
+                  "close": 1860,
+                  "previous_close": 1829,
+                  "change_pct": 1.6949,
+                  "volume": 2348251
+                },
+                {
+                  "symbol": "TATACONSUM",
+                  "isin": "INE192A01025",
+                  "close": 1086.3,
+                  "previous_close": 1077.7,
+                  "change_pct": 0.798,
+                  "volume": 1379102
+                },
+                {
+                  "symbol": "TATASTEEL",
+                  "isin": "INE081A01020",
+                  "close": 186.3,
+                  "previous_close": 182,
+                  "change_pct": 2.3626,
+                  "volume": 33990807
+                },
+                {
+                  "symbol": "TCS",
+                  "isin": "INE467B01029",
+                  "close": 2498.5,
+                  "previous_close": 2495.7,
+                  "change_pct": 0.1122,
+                  "volume": 4922308
+                },
+                {
+                  "symbol": "TECHM",
+                  "isin": "INE669C01036",
+                  "close": 1831,
+                  "previous_close": 1822.7,
+                  "change_pct": 0.4554,
+                  "volume": 1996596
+                },
+                {
+                  "symbol": "TITAN",
+                  "isin": "INE280A01028",
+                  "close": 5000,
+                  "previous_close": 4834.6,
+                  "change_pct": 3.4212,
+                  "volume": 4132719
+                },
+                {
+                  "symbol": "TMPV",
+                  "isin": "INE155A01022",
+                  "close": 292,
+                  "previous_close": 293.7,
+                  "change_pct": -0.5788,
+                  "volume": 7506108
+                },
+                {
+                  "symbol": "TRENT",
+                  "isin": "INE849A01020",
+                  "close": 3079,
+                  "previous_close": 3055,
+                  "change_pct": 0.7856,
+                  "volume": 580070
+                },
+                {
+                  "symbol": "ULTRACEMCO",
+                  "isin": "INE481G01011",
+                  "close": 12450,
+                  "previous_close": 12250,
+                  "change_pct": 1.6327,
+                  "volume": 480790
+                }
+              ]
+            },
+            "excluded_components": {
+              "search": {
+                "applicable": true,
+                "included": false,
+                "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
+              },
+              "eod_oi": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE option-chain symbol/expiry contract-level OI",
+                "reason": "5-Nov-2026 के official NSE UDiFF और same-date MII Contract Master में NIFTY (2,050/2,050) तथा BANKNIFTY (975/975) contracts के ID, symbol, CE/PE, expiry और strike का exact reconciliation verify हुआ। लेकिन इस live scan में यह dated per-index snapshot wired नहीं और 60-session holdout में directional edge प्रमाणित नहीं; इसलिए EOD OI Final से बाहर है। Participant CLIENT OI अलग market-wide aggregate है, इसे index-specific CLIENT position नहीं माना गया।"
+              },
+              "futures": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE index-futures contract data",
+                "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।"
+              },
+              "stock_basket": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE Indices / BSE official constituent-and-weight files",
+                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+              }
+            },
+            "coverage": {
+              "status": "partial",
+              "label": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+              "included_count": 1,
+              "applicable_count": 5,
+              "coverage_pct": 20.0,
+              "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
+            },
+            "search_diagnostic": {
+              "valid": true,
+              "seed": "nifty",
+              "source": "Google Trends related_queries · India",
+              "timeframe": "now 1-d",
+              "source_data_time": "2026-11-09T12:00:00+00:00",
+              "raw_queries": 25,
+              "in_scope_queries": 21,
+              "out_of_scope_queries": 4,
+              "out_of_scope_weight": 24.0,
+              "classified_queries": 20,
+              "unclassified_queries": 1,
+              "classification_coverage_pct": 98.8,
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "directional_bull_pct": null,
+              "terms": [
+                {
+                  "term": "nifty 50",
+                  "direction": "neutral",
+                  "weight": 100.0
+                },
+                {
+                  "term": "nifty today",
+                  "direction": "neutral",
+                  "weight": 37.0
+                },
+                {
+                  "term": "gift nifty",
+                  "direction": "neutral",
+                  "weight": 33.0
+                },
+                {
+                  "term": "nifty share",
+                  "direction": "neutral",
+                  "weight": 29.0
+                },
+                {
+                  "term": "nifty share price",
+                  "direction": "neutral",
+                  "weight": 25.0
+                },
+                {
+                  "term": "nifty live",
+                  "direction": "neutral",
+                  "weight": 22.0
+                },
+                {
+                  "term": "nifty 50 share price",
+                  "direction": "neutral",
+                  "weight": 11.0
+                },
+                {
+                  "term": "nifty chart",
+                  "direction": "neutral",
+                  "weight": 10.0
+                }
+              ],
+              "unclassified_terms": [
+                {
+                  "term": "nse",
+                  "weight": 4.0
+                }
+              ],
+              "rising_queries": 2,
+              "rising_classified_queries": 1,
+              "rising_direction_counts": {
+                "bull": 0,
+                "bear": 0,
+                "neutral": 1,
+                "unclassified": 1
+              },
+              "rising_terms": [
+                {
+                  "term": "kospi index",
+                  "value": "300",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "sgx nifty futures live",
+                  "value": "40",
+                  "direction": "neutral",
+                  "breakout": false
+                }
+              ],
+              "directional_query_diagnostic": {
+                "available": false,
+                "diagnostic_only": true,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+              }
+            },
+            "client_market_context": {
+              "available": true,
+              "source": "NSE official participant-wise OI",
+              "source_date": "2026-11-09",
+              "previous_date": "2026-11-06",
+              "scope": "NSE participant-wise market-wide Index F&O aggregate; not index-specific",
+              "included_in_asset_final": false,
+              "reason": null,
+              "ce_build_up": {
+                "call_long_change": -793485,
+                "call_short_change": -812886
+              },
+              "pe_build_up": {
+                "put_long_change": -1643104,
+                "put_short_change": -1663936
+              },
+              "client_index_futures": {
+                "long_change": 1984,
+                "short_change": 5006
+              },
+              "evidence_components": {
+                "ce_long": {
+                  "field": "index_call_long",
+                  "change": -793485,
+                  "current_gross": 2112701,
+                  "previous_gross": 2906186,
+                  "change_pct_prior_gross": -27.3033,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "ce_short": {
+                  "field": "index_call_short",
+                  "change": -812886,
+                  "current_gross": 2081906,
+                  "previous_gross": 2894792,
+                  "change_pct_prior_gross": -28.081,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_long": {
+                  "field": "index_put_long",
+                  "change": -1643104,
+                  "current_gross": 2426932,
+                  "previous_gross": 4070036,
+                  "change_pct_prior_gross": -40.3707,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_short": {
+                  "field": "index_put_short",
+                  "change": -1663936,
+                  "current_gross": 2810271,
+                  "previous_gross": 4474207,
+                  "change_pct_prior_gross": -37.1895,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_long": {
+                  "field": "future_index_long",
+                  "change": 1984,
+                  "current_gross": 182812,
+                  "previous_gross": 180828,
+                  "change_pct_prior_gross": 1.0972,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_short": {
+                  "field": "future_index_short",
+                  "change": 5006,
+                  "current_gross": 102053,
+                  "previous_gross": 97047,
+                  "change_pct_prior_gross": 5.1583,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                }
+              },
+              "directional_scoring": {
+                "ce_pe": "Withheld: option-side long/short changes are not validated directional predictors.",
+                "futures": "Withheld: market-wide CLIENT futures directional holdout results do not establish a robust edge."
+              }
+            },
+            "final": {
+              "status": "available",
+              "score": 0.95,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 40.0
+            },
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
+          },
+          "headline_score": 2.9,
+          "experimental_news_score": 0.9,
+          "experimental_score": 1.3,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 7,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 1,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Indian Stock Market Closes in Green: Sensex Surpasses 81,000, Nifty Settles Above 25,000",
+              "source": "tennews.in",
+              "score": 0,
+              "age_hours": 3.6
+            },
+            {
+              "title": "Sensex, Nifty End Higher at 8-Month Closing Highs",
+              "source": "HDFC Sky",
+              "score": 1,
+              "age_hours": 3.7
+            },
+            {
+              "title": "India stocks higher at close of trade; Nifty 50 up 0.23%",
+              "source": "Investing.com",
+              "score": 1,
+              "age_hours": 4.2
+            },
+            {
+              "title": "Closing Bell: Nifty 50 Closes Above 25,000 as Sensex Gains 107 Points; PSU Banks Rally 3.73%",
+              "source": "Dalal Street Investment Journal",
+              "score": 3,
+              "age_hours": 4.2
+            },
+            {
+              "title": "Stock Market Highlights: Nifty Reclaims 25,000 After Muhurat Dip; Sensex Ends 100 Pts Higher. Check Key Gainers",
+              "source": "NDTV Profit",
+              "score": 1,
+              "age_hours": 4.4
+            },
+            {
+              "title": "Bank Nifty surges 1% to trade above 59,500; PSU banks lead gains: What lies ahead?",
+              "source": "Moneycontrol.com",
+              "score": 3,
+              "age_hours": 5.2
+            },
+            {
+              "title": "Nifty50 to Hit 28,000 by 2027-End? Citi Research Sees 12% Upside, Cites 3 Key Triggers",
+              "source": "ETV Bharat",
+              "score": 0,
+              "age_hours": 5.5
+            },
+            {
+              "title": "Sensex Falls 141 Points, Nifty 50 Slips Below 24,950 as Investors Assess U.S.-Iran Talks",
+              "source": "Dalal Street Investment Journal",
+              "score": -2,
+              "age_hours": 5.8
+            }
+          ],
+          "client_retail_adjustment": 0.41,
+          "published_score": 4.5,
+          "published_score_mode": "news_client_only"
+        },
+        "SENSEX": {
+          "close": 81106.65,
+          "close_as_of": "2026-11-09",
+          "close_valid": true,
+          "day_change_pct": 0.13,
+          "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
+          "score_mode": "news_client_only",
+          "component_breakdown": {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": {
+              "news": 40.0,
+              "search": 40.0,
+              "eod_oi": 20.0,
+              "futures": 20.0,
+              "stock_basket": 20.0
+            },
+            "provisional_weights": {
+              "news": 15.0,
+              "stock_basket": 20.0,
+              "eod_oi": 15.0,
+              "client_ce_pe": 15.0,
+              "client_futures": 15.0,
+              "search": 20.0
+            },
+            "components": {
+              "news": {
+                "score": 0.0,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T05:03:37Z",
+                "oldest_headline_published_at": "2026-11-09T00:55:00Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 3,
+                "publishers": [
+                  "Livemint",
+                  "The New Indian Express",
+                  "The Times of India"
+                ],
+                "query": "\"BSE Sensex\" OR Sensex index India",
+                "newest_headline_age_h": 9.73,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              }
+            },
+            "provisional_components": {
+              "news": {
+                "score": 0.0,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T05:03:37Z",
+                "oldest_headline_published_at": "2026-11-09T00:55:00Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 3,
+                "publishers": [
+                  "Livemint",
+                  "The New Indian Express",
+                  "The Times of India"
+                ],
+                "query": "\"BSE Sensex\" OR Sensex index India",
+                "newest_headline_age_h": 9.73,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              },
+              "stock_basket": {
+                "score": 9.33,
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-06",
+                "weight": 20.0,
+                "included": true,
+                "method": "10 * (advances - declines) / official constituent count; equal member count",
+                "advances": 29,
+                "declines": 1,
+                "expected": 30,
+                "matched": 30,
+                "coverage_pct": 100.0,
+                "validation_status": "प्रारंभिक; 60-session परीक्षण जारी",
+                "weighting_method": "equal-weight breadth"
+              },
+              "client_ce_pe": {
+                "score": 0.0,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "ce_long",
+                  "ce_short",
+                  "pe_long",
+                  "pe_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              },
+              "client_futures": {
+                "score": 2.0305,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "futures_long",
+                  "futures_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              }
+            },
+            "provisional_final": {
+              "status": "available",
+              "score": 3.34,
+              "included_components": [
+                "news",
+                "stock_basket",
+                "client_ce_pe",
+                "client_futures"
+              ],
+              "normalized_weights_pct": {
+                "news": 23.08,
+                "stock_basket": 30.77,
+                "client_ce_pe": 23.08,
+                "client_futures": 23.08
+              },
+              "weight_total": 65.0
+            },
+            "stock_basket_diagnostic": {
+              "score": 9.33,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-06",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "expected": 30,
+              "matched": 30,
+              "coverage_pct": 100.0,
+              "advances": 29,
+              "declines": 1,
+              "unchanged": 0,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "ADANIPORTS",
+                  "isin": "INE742F01042",
+                  "close": 1936.6,
+                  "previous_close": 1897,
+                  "change_pct": 2.0875,
+                  "volume": 179398
+                },
+                {
+                  "symbol": "ASIANPAINT",
+                  "isin": "INE021A01026",
+                  "close": 2542,
+                  "previous_close": 2527.85,
+                  "change_pct": 0.5598,
+                  "volume": 56106
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "isin": "INE238A01034",
+                  "close": 1320,
+                  "previous_close": 1279.2,
+                  "change_pct": 3.1895,
+                  "volume": 1081011
+                },
+                {
+                  "symbol": "BAJAJFINSV",
+                  "isin": "INE918I01026",
+                  "close": 1860,
+                  "previous_close": 1836.7,
+                  "change_pct": 1.2686,
+                  "volume": 39098
+                },
+                {
+                  "symbol": "BAJFINANCE",
+                  "isin": "INE296A01032",
+                  "close": 1085,
+                  "previous_close": 1070.2,
+                  "change_pct": 1.3829,
+                  "volume": 462110
+                },
+                {
+                  "symbol": "BEL",
+                  "isin": "INE263A01024",
+                  "close": 395.5,
+                  "previous_close": 394.85,
+                  "change_pct": 0.1646,
+                  "volume": 587672
+                },
+                {
+                  "symbol": "BHARTIARTL",
+                  "isin": "INE397D01024",
+                  "close": 2096.25,
+                  "previous_close": 2062.05,
+                  "change_pct": 1.6585,
+                  "volume": 580648
+                },
+                {
+                  "symbol": "ETERNAL",
+                  "isin": "INE758T01015",
+                  "close": 363,
+                  "previous_close": 357.25,
+                  "change_pct": 1.6095,
+                  "volume": 646360
+                },
+                {
+                  "symbol": "HCLTECH",
+                  "isin": "INE860A01027",
+                  "close": 1438.6,
+                  "previous_close": 1432,
+                  "change_pct": 0.4609,
+                  "volume": 223351
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "isin": "INE040A01034",
+                  "close": 787,
+                  "previous_close": 759.95,
+                  "change_pct": 3.5594,
+                  "volume": 2480476
+                },
+                {
+                  "symbol": "HINDUNILVR",
+                  "isin": "INE030A01027",
+                  "close": 1995,
+                  "previous_close": 1982.05,
+                  "change_pct": 0.6534,
+                  "volume": 59066
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "isin": "INE090A01021",
+                  "close": 1569,
+                  "previous_close": 1499.3,
+                  "change_pct": 4.6488,
+                  "volume": 1177038
+                },
+                {
+                  "symbol": "INDIGO",
+                  "isin": "INE646L01027",
+                  "close": 5460,
+                  "previous_close": 5438,
+                  "change_pct": 0.4046,
+                  "volume": 62087
+                },
+                {
+                  "symbol": "INFY",
+                  "isin": "INE009A01021",
+                  "close": 1180.65,
+                  "previous_close": 1166.1,
+                  "change_pct": 1.2477,
+                  "volume": 637877
+                },
+                {
+                  "symbol": "ITC",
+                  "isin": "INE154A01025",
+                  "close": 283,
+                  "previous_close": 278.65,
+                  "change_pct": 1.5611,
+                  "volume": 839152
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "isin": "INE237A01036",
+                  "close": 480,
+                  "previous_close": 467.45,
+                  "change_pct": 2.6848,
+                  "volume": 1261521
+                },
+                {
+                  "symbol": "LT",
+                  "isin": "INE018A01030",
+                  "close": 4118.9,
+                  "previous_close": 4042.1,
+                  "change_pct": 1.9,
+                  "volume": 288630
+                },
+                {
+                  "symbol": "M&M",
+                  "isin": "INE101A01026",
+                  "close": 3295,
+                  "previous_close": 3104,
+                  "change_pct": 6.1534,
+                  "volume": 713140
+                },
+                {
+                  "symbol": "MARUTI",
+                  "isin": "INE585B01010",
+                  "close": 12736,
+                  "previous_close": 12601.1,
+                  "change_pct": 1.0705,
+                  "volume": 21424
+                },
+                {
+                  "symbol": "NTPC",
+                  "isin": "INE733E01010",
+                  "close": 323,
+                  "previous_close": 316.4,
+                  "change_pct": 2.086,
+                  "volume": 955952
+                },
+                {
+                  "symbol": "POWERGRID",
+                  "isin": "INE752E01010",
+                  "close": 259.5,
+                  "previous_close": 261,
+                  "change_pct": -0.5747,
+                  "volume": 845295
+                },
+                {
+                  "symbol": "RELIANCE",
+                  "isin": "INE002A01018",
+                  "close": 1318.1,
+                  "previous_close": 1313.35,
+                  "change_pct": 0.3617,
+                  "volume": 768236
+                },
+                {
+                  "symbol": "SBIN",
+                  "isin": "INE062A01020",
+                  "close": 1018,
+                  "previous_close": 1006.95,
+                  "change_pct": 1.0974,
+                  "volume": 891879
+                },
+                {
+                  "symbol": "SUNPHARMA",
+                  "isin": "INE044A01036",
+                  "close": 1860,
+                  "previous_close": 1825.35,
+                  "change_pct": 1.8983,
+                  "volume": 54614
+                },
+                {
+                  "symbol": "TATASTEEL",
+                  "isin": "INE081A01020",
+                  "close": 186,
+                  "previous_close": 182,
+                  "change_pct": 2.1978,
+                  "volume": 1692623
+                },
+                {
+                  "symbol": "TCS",
+                  "isin": "INE467B01029",
+                  "close": 2498.05,
+                  "previous_close": 2493,
+                  "change_pct": 0.2026,
+                  "volume": 243133
+                },
+                {
+                  "symbol": "TECHM",
+                  "isin": "INE669C01036",
+                  "close": 1830,
+                  "previous_close": 1821.05,
+                  "change_pct": 0.4915,
+                  "volume": 65849
+                },
+                {
+                  "symbol": "TITAN",
+                  "isin": "INE280A01028",
+                  "close": 4994,
+                  "previous_close": 4831.55,
+                  "change_pct": 3.3623,
+                  "volume": 146633
+                },
+                {
+                  "symbol": "TRENT",
+                  "isin": "INE849A01020",
+                  "close": 3075,
+                  "previous_close": 3059.35,
+                  "change_pct": 0.5115,
+                  "volume": 37239
+                },
+                {
+                  "symbol": "ULTRACEMCO",
+                  "isin": "INE481G01011",
+                  "close": 12445.05,
+                  "previous_close": 12240,
+                  "change_pct": 1.6752,
+                  "volume": 14019
+                }
+              ]
+            },
+            "excluded_components": {
+              "search": {
+                "applicable": true,
+                "included": false,
+                "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
+              },
+              "eod_oi": {
+                "applicable": true,
+                "included": false,
+                "source": "BSE official SENSEX index-option EOD data",
+                "reason": "SENSEX के लिए BSE का dated official UDiFF FO Bhavcopy और same-date BSE contract master अभी source, parse और exact contract coverage के साथ validate नहीं हुआ। NSE UDiFF में NIFTY/BANKNIFTY की जाँच को SENSEX पर लागू नहीं किया गया; इसलिए BSE EOD OI Final से बाहर है।"
+              },
+              "futures": {
+                "applicable": true,
+                "included": false,
+                "source": "BSE SENSEX index-futures contract data",
+                "reason": "BSE SENSEX futures का dated contract-level snapshot और symbol-specific chronological holdout validation उपलब्ध नहीं; NSE participant CLIENT futures market-wide aggregate को SENSEX futures score नहीं माना गया।"
+              },
+              "stock_basket": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE Indices / BSE official constituent-and-weight files",
+                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+              }
+            },
+            "coverage": {
+              "status": "partial",
+              "label": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+              "included_count": 1,
+              "applicable_count": 5,
+              "coverage_pct": 20.0,
+              "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
+            },
+            "search_diagnostic": {
+              "valid": true,
+              "seed": "sensex",
+              "source": "Google Trends related_queries · India",
+              "timeframe": "now 1-d",
+              "source_data_time": "2026-11-09T12:00:00+00:00",
+              "raw_queries": 25,
+              "in_scope_queries": 21,
+              "out_of_scope_queries": 4,
+              "out_of_scope_weight": 21.0,
+              "classified_queries": 11,
+              "unclassified_queries": 10,
+              "classification_coverage_pct": 80.6,
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "directional_bull_pct": null,
+              "terms": [
+                {
+                  "term": "sensex today",
+                  "direction": "neutral",
+                  "weight": 100.0
+                },
+                {
+                  "term": "bse sensex",
+                  "direction": "neutral",
+                  "weight": 33.0
+                },
+                {
+                  "term": "sensex share",
+                  "direction": "neutral",
+                  "weight": 28.0
+                },
+                {
+                  "term": "sensex share price",
+                  "direction": "neutral",
+                  "weight": 22.0
+                },
+                {
+                  "term": "live sensex",
+                  "direction": "neutral",
+                  "weight": 18.0
+                },
+                {
+                  "term": "sensex live today",
+                  "direction": "neutral",
+                  "weight": 13.0
+                },
+                {
+                  "term": "sensex index",
+                  "direction": "neutral",
+                  "weight": 8.0
+                },
+                {
+                  "term": "today bse sensex",
+                  "direction": "neutral",
+                  "weight": 7.0
+                }
+              ],
+              "unclassified_terms": [
+                {
+                  "term": "bse",
+                  "weight": 36.0
+                },
+                {
+                  "term": "bse share price",
+                  "weight": 4.0
+                },
+                {
+                  "term": "nse sensex",
+                  "weight": 3.0
+                },
+                {
+                  "term": "hang seng",
+                  "weight": 2.0
+                },
+                {
+                  "term": "hdfc share price",
+                  "weight": 2.0
+                },
+                {
+                  "term": "sensex moneycontrol",
+                  "weight": 2.0
+                },
+                {
+                  "term": "jio share price",
+                  "weight": 2.0
+                },
+                {
+                  "term": "nse share price",
+                  "weight": 2.0
+                },
+                {
+                  "term": "kospi",
+                  "weight": 2.0
+                },
+                {
+                  "term": "hang seng index",
+                  "weight": 2.0
+                }
+              ],
+              "rising_queries": 10,
+              "rising_classified_queries": 2,
+              "rising_direction_counts": {
+                "bull": 0,
+                "bear": 0,
+                "neutral": 2,
+                "unclassified": 8
+              },
+              "rising_terms": [
+                {
+                  "term": "brent crude price",
+                  "value": "110",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "crude oil price",
+                  "value": "50",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "dax",
+                  "value": "180",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "hang seng",
+                  "value": "350",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "hang seng index",
+                  "value": "350",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "kospi",
+                  "value": "180",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "kospi index",
+                  "value": "180",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "sensex index",
+                  "value": "60",
+                  "direction": "neutral",
+                  "breakout": false
+                },
+                {
+                  "term": "sensex moneycontrol",
+                  "value": "70",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "sensex share bazar",
+                  "value": "160",
+                  "direction": "neutral",
+                  "breakout": false
+                }
+              ],
+              "directional_query_diagnostic": {
+                "available": false,
+                "diagnostic_only": true,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+              }
+            },
+            "client_market_context": {
+              "available": true,
+              "source": "NSE official participant-wise OI",
+              "source_date": "2026-11-09",
+              "previous_date": "2026-11-06",
+              "scope": "NSE participant-wise market-wide Index F&O aggregate; not index-specific",
+              "included_in_asset_final": false,
+              "reason": null,
+              "ce_build_up": {
+                "call_long_change": -793485,
+                "call_short_change": -812886
+              },
+              "pe_build_up": {
+                "put_long_change": -1643104,
+                "put_short_change": -1663936
+              },
+              "client_index_futures": {
+                "long_change": 1984,
+                "short_change": 5006
+              },
+              "evidence_components": {
+                "ce_long": {
+                  "field": "index_call_long",
+                  "change": -793485,
+                  "current_gross": 2112701,
+                  "previous_gross": 2906186,
+                  "change_pct_prior_gross": -27.3033,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "ce_short": {
+                  "field": "index_call_short",
+                  "change": -812886,
+                  "current_gross": 2081906,
+                  "previous_gross": 2894792,
+                  "change_pct_prior_gross": -28.081,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_long": {
+                  "field": "index_put_long",
+                  "change": -1643104,
+                  "current_gross": 2426932,
+                  "previous_gross": 4070036,
+                  "change_pct_prior_gross": -40.3707,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_short": {
+                  "field": "index_put_short",
+                  "change": -1663936,
+                  "current_gross": 2810271,
+                  "previous_gross": 4474207,
+                  "change_pct_prior_gross": -37.1895,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_long": {
+                  "field": "future_index_long",
+                  "change": 1984,
+                  "current_gross": 182812,
+                  "previous_gross": 180828,
+                  "change_pct_prior_gross": 1.0972,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_short": {
+                  "field": "future_index_short",
+                  "change": 5006,
+                  "current_gross": 102053,
+                  "previous_gross": 97047,
+                  "change_pct_prior_gross": 5.1583,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                }
+              },
+              "directional_scoring": {
+                "ce_pe": "Withheld: option-side long/short changes are not validated directional predictors.",
+                "futures": "Withheld: market-wide CLIENT futures directional holdout results do not establish a robust edge."
+              }
+            },
+            "final": {
+              "status": "available",
+              "score": 0.0,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 40.0
+            },
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
+          },
+          "headline_score": 1.1,
+          "experimental_news_score": 0.0,
+          "experimental_score": 0.7,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 3,
+          "experimental_excluded_old_or_unknown": 5,
+          "experimental_excluded_cross_index_duplicates": 0,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Nifty, Sensex decline in early trade as profit-taking sets in",
+              "source": "The New Indian Express",
+              "score": 0,
+              "age_hours": 9.7
+            },
+            {
+              "title": "Stock market outlook today, 9 Nov: Sensex, Nifty prediction - DJIA, S&P, NASDAQ, GIFT Nifty, Kospi, Nikkei, Taiwan cues",
+              "source": "Livemint",
+              "score": 0,
+              "age_hours": 13.3
+            },
+            {
+              "title": "For the first time since 2017, Sensex and Nifty end Muhurat trading in the red",
+              "source": "The Times of India",
+              "score": 0,
+              "age_hours": 13.9
+            },
+            {
+              "title": "Sensex, Nifty start Samvat 2083 in red: What's the outlook till next Diwali & what should investors do?",
+              "source": "The Times of India",
+              "score": 0,
+              "age_hours": 24.6
+            },
+            {
+              "title": "Indian stock market pauses after seven-day rally as Sensex, Nifty end Diwali session lower",
+              "source": "Firstpost",
+              "score": 1,
+              "age_hours": 26.9
+            },
+            {
+              "title": "Muhurat trading breaks 7-day rally in stock markets as Nifty, Sensex see tiny drop",
+              "source": "India Today",
+              "score": 1,
+              "age_hours": 27.7
+            },
+            {
+              "title": "Sensex, Nifty reverse early gains to end Muhurat Trading lower; India VIX jumps 6%",
+              "source": "Firstpost",
+              "score": 1,
+              "age_hours": 28.6
+            },
+            {
+              "title": "Muhurat Trading 2026: SENSEX rises 270 points, NIFTY opens at 25,070; Tata Steel, Hindalco, ONGC lead gainers",
+              "source": "Upstox",
+              "score": 2,
+              "age_hours": 29.9
+            }
+          ],
+          "client_retail_adjustment": 0.41,
+          "published_score": 2.1,
+          "published_score_mode": "news_client_only"
+        },
+        "BANKNIFTY": {
+          "close": 59741.25,
+          "close_as_of": "09/11/2026",
+          "close_valid": true,
+          "day_change_pct": 1.51,
+          "price_source": "NSE India allIndices API · पिछला बंद भाव",
+          "score_mode": "news_client_only",
+          "component_breakdown": {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": {
+              "news": 40.0,
+              "search": 40.0,
+              "eod_oi": 20.0,
+              "futures": 20.0,
+              "stock_basket": 20.0
+            },
+            "provisional_weights": {
+              "news": 15.0,
+              "stock_basket": 20.0,
+              "eod_oi": 15.0,
+              "client_ce_pe": 15.0,
+              "client_futures": 15.0,
+              "search": 20.0
+            },
+            "components": {
+              "news": {
+                "score": 0.88,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:36:09Z",
+                "oldest_headline_published_at": "2026-11-09T10:12:03Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 7,
+                "publishers": [
+                  "HDFC Sky",
+                  "IndiaIPO",
+                  "Multibagg AI",
+                  "The Week",
+                  "TradingView"
+                ],
+                "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
+                "newest_headline_age_h": 0.18,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              }
+            },
+            "provisional_components": {
+              "news": {
+                "score": 0.88,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:36:09Z",
+                "oldest_headline_published_at": "2026-11-09T10:12:03Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 7,
+                "publishers": [
+                  "HDFC Sky",
+                  "IndiaIPO",
+                  "Multibagg AI",
+                  "The Week",
+                  "TradingView"
+                ],
+                "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
+                "newest_headline_age_h": 0.18,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; cross-index duplicates excluded"
+              },
+              "stock_basket": {
+                "score": 4.29,
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-06",
+                "weight": 20.0,
+                "included": true,
+                "method": "10 * (advances - declines) / official constituent count; equal member count",
+                "advances": 10,
+                "declines": 4,
+                "expected": 14,
+                "matched": 14,
+                "coverage_pct": 100.0,
+                "validation_status": "प्रारंभिक; 60-session परीक्षण जारी",
+                "weighting_method": "equal-weight breadth"
+              },
+              "eod_oi": {
+                "score": 0.29,
+                "source": "NSE F&O UDiFF · nearest-expiry PE/CE open-interest balance",
+                "source_date": "2026-11-06",
+                "weight": 15.0,
+                "included": true,
+                "observations": 5,
+                "session_dates": [
+                  "2026-11-02",
+                  "2026-11-03",
+                  "2026-11-04",
+                  "2026-11-05",
+                  "2026-11-06"
+                ],
+                "expiry_dates": [
+                  "2026-11-23",
+                  "2026-11-23",
+                  "2026-11-23",
+                  "2026-11-23",
+                  "2026-11-23"
+                ],
+                "method": "प्रत्येक सत्र: 10 × (nearest-expiry PE OI − CE OI) ÷ (PE OI + CE OI); उपलब्ध सत्रों का औसत",
+                "validation_status": "प्रारंभिक; historical directional validation जारी",
+                "scope": "index-specific; nearest unexpired expiry"
+              },
+              "client_ce_pe": {
+                "score": 0.0,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "ce_long",
+                  "ce_short",
+                  "pe_long",
+                  "pe_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              },
+              "client_futures": {
+                "score": 2.0305,
+                "source": "NSE official participant-wise OI",
+                "source_date": "2026-11-09",
+                "weight": 15.0,
+                "included": true,
+                "scope": "market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
+                "method": "प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
+                "validation_status": "प्रारंभिक; market-wide directional validation जारी",
+                "evidence_fields": [
+                  "futures_long",
+                  "futures_short"
+                ],
+                "previous_source_date": "2026-11-06"
+              }
+            },
+            "provisional_final": {
+              "status": "available",
+              "score": 1.67,
+              "included_components": [
+                "news",
+                "stock_basket",
+                "eod_oi",
+                "client_ce_pe",
+                "client_futures"
+              ],
+              "normalized_weights_pct": {
+                "news": 18.75,
+                "stock_basket": 25.0,
+                "eod_oi": 18.75,
+                "client_ce_pe": 18.75,
+                "client_futures": 18.75
+              },
+              "weight_total": 80.0
+            },
+            "stock_basket_diagnostic": {
+              "score": 4.29,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-06",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "expected": 14,
+              "matched": 14,
+              "coverage_pct": 100.0,
+              "advances": 10,
+              "declines": 4,
+              "unchanged": 0,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "AUBANK",
+                  "isin": "INE949L01017",
+                  "close": 931.8,
+                  "previous_close": 941,
+                  "change_pct": -0.9777,
+                  "volume": 1885167
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "isin": "INE238A01034",
+                  "close": 1322.9,
+                  "previous_close": 1280,
+                  "change_pct": 3.3516,
+                  "volume": 9103753
+                },
+                {
+                  "symbol": "BANKBARODA",
+                  "isin": "INE028A01039",
+                  "close": 250.31,
+                  "previous_close": 249.67,
+                  "change_pct": 0.2563,
+                  "volume": 8656740
+                },
+                {
+                  "symbol": "CANBK",
+                  "isin": "INE476A01022",
+                  "close": 122.93,
+                  "previous_close": 122.9,
+                  "change_pct": 0.0244,
+                  "volume": 37068836
+                },
+                {
+                  "symbol": "FEDERALBNK",
+                  "isin": "INE171A01029",
+                  "close": 340.1,
+                  "previous_close": 338.5,
+                  "change_pct": 0.4727,
+                  "volume": 8075197
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "isin": "INE040A01034",
+                  "close": 788.25,
+                  "previous_close": 760,
+                  "change_pct": 3.7171,
+                  "volume": 73482878
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "isin": "INE090A01021",
+                  "close": 1571.2,
+                  "previous_close": 1500,
+                  "change_pct": 4.7467,
+                  "volume": 40383259
+                },
+                {
+                  "symbol": "IDFCFIRSTB",
+                  "isin": "INE092T01019",
+                  "close": 77.33,
+                  "previous_close": 77.8,
+                  "change_pct": -0.6041,
+                  "volume": 22146493
+                },
+                {
+                  "symbol": "INDUSINDBK",
+                  "isin": "INE095A01012",
+                  "close": 910.25,
+                  "previous_close": 911.45,
+                  "change_pct": -0.1317,
+                  "volume": 8037082
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "isin": "INE237A01036",
+                  "close": 480,
+                  "previous_close": 467,
+                  "change_pct": 2.7837,
+                  "volume": 24341330
+                },
+                {
+                  "symbol": "PNB",
+                  "isin": "INE160A01022",
+                  "close": 126.55,
+                  "previous_close": 126.1,
+                  "change_pct": 0.3569,
+                  "volume": 21621616
+                },
+                {
+                  "symbol": "SBIN",
+                  "isin": "INE062A01020",
+                  "close": 1018.5,
+                  "previous_close": 1006.4,
+                  "change_pct": 1.2023,
+                  "volume": 15801292
+                },
+                {
+                  "symbol": "UNIONBANK",
+                  "isin": "INE692A01016",
+                  "close": 187,
+                  "previous_close": 188,
+                  "change_pct": -0.5319,
+                  "volume": 9933499
+                },
+                {
+                  "symbol": "YESBANK",
+                  "isin": "INE528G01035",
+                  "close": 17.2,
+                  "previous_close": 16.24,
+                  "change_pct": 5.9113,
+                  "volume": 514809386
+                }
+              ]
+            },
+            "excluded_components": {
+              "search": {
+                "applicable": true,
+                "included": false,
+                "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
+              },
+              "eod_oi": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE option-chain symbol/expiry contract-level OI",
+                "reason": "5-Nov-2026 के official NSE UDiFF और same-date MII Contract Master में NIFTY (2,050/2,050) तथा BANKNIFTY (975/975) contracts के ID, symbol, CE/PE, expiry और strike का exact reconciliation verify हुआ। लेकिन इस live scan में यह dated per-index snapshot wired नहीं और 60-session holdout में directional edge प्रमाणित नहीं; इसलिए EOD OI Final से बाहर है। Participant CLIENT OI अलग market-wide aggregate है, इसे index-specific CLIENT position नहीं माना गया।"
+              },
+              "futures": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE index-futures contract data",
+                "reason": "CLIENT Index Futures उपलब्ध NSE participant report में market-wide aggregate है; symbol-specific directional score और robust holdout validation उपलब्ध नहीं, इसलिए withheld।"
+              },
+              "stock_basket": {
+                "applicable": true,
+                "included": false,
+                "source": "NSE Indices / BSE official constituent-and-weight files",
+                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+              }
+            },
+            "coverage": {
+              "status": "partial",
+              "label": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+              "included_count": 1,
+              "applicable_count": 5,
+              "coverage_pct": 20.0,
+              "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
+            },
+            "search_diagnostic": {
+              "valid": true,
+              "seed": "bank nifty",
+              "source": "Google Trends related_queries · India",
+              "timeframe": "now 1-d",
+              "source_data_time": "2026-11-09T12:00:00+00:00",
+              "raw_queries": 6,
+              "in_scope_queries": 5,
+              "out_of_scope_queries": 1,
+              "out_of_scope_weight": 100.0,
+              "classified_queries": 5,
+              "unclassified_queries": 0,
+              "classification_coverage_pct": 100.0,
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "directional_bull_pct": null,
+              "terms": [
+                {
+                  "term": "bank nifty 50",
+                  "direction": "neutral",
+                  "weight": 99.0
+                },
+                {
+                  "term": "bank nifty today",
+                  "direction": "neutral",
+                  "weight": 68.0
+                },
+                {
+                  "term": "bank nifty live",
+                  "direction": "neutral",
+                  "weight": 22.0
+                },
+                {
+                  "term": "bank nifty chart",
+                  "direction": "neutral",
+                  "weight": 19.0
+                },
+                {
+                  "term": "bank nifty today live chart",
+                  "direction": "neutral",
+                  "weight": 3.0
+                }
+              ],
+              "unclassified_terms": [],
+              "rising_queries": 1,
+              "rising_classified_queries": 1,
+              "rising_direction_counts": {
+                "bull": 0,
+                "bear": 0,
+                "neutral": 1,
+                "unclassified": 0
+              },
+              "rising_terms": [
+                {
+                  "term": "bank nifty today live chart",
+                  "value": "70",
+                  "direction": "neutral",
+                  "breakout": false
+                }
+              ],
+              "directional_query_diagnostic": {
+                "available": false,
+                "diagnostic_only": true,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+              }
+            },
+            "client_market_context": {
+              "available": true,
+              "source": "NSE official participant-wise OI",
+              "source_date": "2026-11-09",
+              "previous_date": "2026-11-06",
+              "scope": "NSE participant-wise market-wide Index F&O aggregate; not index-specific",
+              "included_in_asset_final": false,
+              "reason": null,
+              "ce_build_up": {
+                "call_long_change": -793485,
+                "call_short_change": -812886
+              },
+              "pe_build_up": {
+                "put_long_change": -1643104,
+                "put_short_change": -1663936
+              },
+              "client_index_futures": {
+                "long_change": 1984,
+                "short_change": 5006
+              },
+              "evidence_components": {
+                "ce_long": {
+                  "field": "index_call_long",
+                  "change": -793485,
+                  "current_gross": 2112701,
+                  "previous_gross": 2906186,
+                  "change_pct_prior_gross": -27.3033,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "ce_short": {
+                  "field": "index_call_short",
+                  "change": -812886,
+                  "current_gross": 2081906,
+                  "previous_gross": 2894792,
+                  "change_pct_prior_gross": -28.081,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_long": {
+                  "field": "index_put_long",
+                  "change": -1643104,
+                  "current_gross": 2426932,
+                  "previous_gross": 4070036,
+                  "change_pct_prior_gross": -40.3707,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "pe_short": {
+                  "field": "index_put_short",
+                  "change": -1663936,
+                  "current_gross": 2810271,
+                  "previous_gross": 4474207,
+                  "change_pct_prior_gross": -37.1895,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_long": {
+                  "field": "future_index_long",
+                  "change": 1984,
+                  "current_gross": 182812,
+                  "previous_gross": 180828,
+                  "change_pct_prior_gross": 1.0972,
+                  "crowd_bias": "bullish",
+                  "contrarian_bias": "bearish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                },
+                "futures_short": {
+                  "field": "future_index_short",
+                  "change": 5006,
+                  "current_gross": 102053,
+                  "previous_gross": 97047,
+                  "change_pct_prior_gross": 5.1583,
+                  "crowd_bias": "bearish",
+                  "contrarian_bias": "bullish",
+                  "source": "NSE official participant-wise OI",
+                  "source_date": "2026-11-09",
+                  "previous_source_date": "2026-11-06",
+                  "included_in_asset_final": false,
+                  "score": null,
+                  "score_status": "withheld_unvalidated",
+                  "reason": "NSE participant CLIENT OI market-wide aggregate है; individual index attribution और stable out-of-sample directional edge प्रमाणित नहीं।"
+                }
+              },
+              "directional_scoring": {
+                "ce_pe": "Withheld: option-side long/short changes are not validated directional predictors.",
+                "futures": "Withheld: market-wide CLIENT futures directional holdout results do not establish a robust edge."
+              }
+            },
+            "final": {
+              "status": "available",
+              "score": 0.88,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 40.0
+            },
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
+          },
+          "headline_score": 4.6,
+          "experimental_news_score": 0.9,
+          "experimental_score": 1.3,
+          "experimental_score_mode": "shadow_news24h_dedup_client_only",
+          "experimental_headline_count": 7,
+          "experimental_excluded_old_or_unknown": 0,
+          "experimental_excluded_cross_index_duplicates": 1,
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "FIIs extend buying spree, pump ₹7,212 crore into equities as Nifty hits 9-month high",
+              "source": "IndiaIPO",
+              "score": 1,
+              "age_hours": 0.2
+            },
+            {
+              "title": "Sectoral Snapshot Today, November 9, 2026: PSU Banks, Pharma Stocks Lead Gains; IT, Metals Drag",
+              "source": "HDFC Sky",
+              "score": 0,
+              "age_hours": 3.0
+            },
+            {
+              "title": "Sensex, Nifty End Higher at 8-Month Closing Highs",
+              "source": "HDFC Sky",
+              "score": 1,
+              "age_hours": 3.7
+            },
+            {
+              "title": "Top Traded by Value Today 09-Nov-2026: Banks and Pharma Lead",
+              "source": "Multibagg AI",
+              "score": 0,
+              "age_hours": 3.7
+            },
+            {
+              "title": "Top Gainers Today 09 Nov 2026: PSU Banks and Small Caps Rise",
+              "source": "Multibagg AI",
+              "score": 2,
+              "age_hours": 3.8
+            },
+            {
+              "title": "Dalal Street extends winning rally: Nifty, Sensex rebound to hit eight-month high",
+              "source": "The Week",
+              "score": 3,
+              "age_hours": 3.8
+            },
+            {
+              "title": "Stock Market Today: Nifty Reclaims 25,000 as Banks Lead",
+              "source": "Multibagg AI",
+              "score": 0,
+              "age_hours": 3.8
+            },
+            {
+              "title": "News by CNBC TV18 on TradingView, 2026-11-09 — cnbctv:71a0648b0094b:0",
+              "source": "TradingView",
+              "score": 0,
+              "age_hours": 4.6
+            }
+          ],
+          "client_retail_adjustment": 0.41,
+          "published_score": 6.8,
+          "published_score_mode": "news_client_only"
+        }
+      },
+      "other_assets": {
+        "GOLD": {
+          "close": 148103.7,
+          "close_as_of": "2026-11-09",
+          "close_valid": true,
+          "price_source": "MCX live quote × 3% GST",
+          "day_change_pct": 1.14,
+          "headline_score": 1.2,
+          "published_score": 1.2,
+          "component_breakdown": {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": {
+              "news": 40.0,
+              "search": 40.0,
+              "eod_oi": 20.0,
+              "futures": 20.0,
+              "stock_basket": 20.0
+            },
+            "provisional_weights": {
+              "news": 15.0,
+              "stock_basket": 20.0,
+              "eod_oi": 15.0,
+              "client_ce_pe": 15.0,
+              "client_futures": 15.0,
+              "search": 20.0
+            },
+            "components": {
+              "news": {
+                "score": 0.47,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:14:22Z",
+                "oldest_headline_published_at": "2026-11-09T08:01:01Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 8,
+                "publishers": [
+                  "BusinessLine",
+                  "FXStreet",
+                  "Fortune",
+                  "NDTV",
+                  "NDTV Profit",
+                  "The Times of India",
+                  "Upstox",
+                  "www.tmgm.com"
+                ],
+                "query": "gold price",
+                "newest_headline_age_h": 0.55,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; asset-specific card query"
+              }
+            },
+            "provisional_components": {
+              "news": {
+                "score": 0.47,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:14:22Z",
+                "oldest_headline_published_at": "2026-11-09T08:01:01Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 8,
+                "publishers": [
+                  "BusinessLine",
+                  "FXStreet",
+                  "Fortune",
+                  "NDTV",
+                  "NDTV Profit",
+                  "The Times of India",
+                  "Upstox",
+                  "www.tmgm.com"
+                ],
+                "query": "gold price",
+                "newest_headline_age_h": 0.55,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; asset-specific card query"
+              }
+            },
+            "provisional_final": {
+              "status": "available",
+              "score": 0.47,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 15.0
+            },
+            "stock_basket_diagnostic": null,
+            "excluded_components": {
+              "search": {
+                "applicable": true,
+                "included": false,
+                "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
+              },
+              "eod_oi": {
+                "applicable": true,
+                "included": false,
+                "source": "MCX official category-wise EOD OI report",
+                "reason": "Dated MCX category-wise OI snapshot सत्यापित नहीं; MCX total contract OI को CLIENT category OI नहीं माना गया।"
+              },
+              "futures": {
+                "applicable": true,
+                "included": false,
+                "source": "MCX FUTCOM same-expiry daily OI",
+                "reason": "Current contract OI का पिछले session के उसी expiry से verified comparison उपलब्ध नहीं; futures direction score withheld।"
+              }
+            },
+            "coverage": {
+              "status": "partial",
+              "label": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+              "included_count": 1,
+              "applicable_count": 4,
+              "coverage_pct": 25.0,
+              "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
+            },
+            "search_diagnostic": {
+              "valid": true,
+              "seed": "gold price",
+              "source": "Google Trends related_queries · India",
+              "timeframe": "now 1-d",
+              "source_data_time": "2026-11-09T12:00:00+00:00",
+              "raw_queries": 25,
+              "in_scope_queries": 21,
+              "out_of_scope_queries": 4,
+              "out_of_scope_weight": 40.0,
+              "classified_queries": 10,
+              "unclassified_queries": 11,
+              "classification_coverage_pct": 69.9,
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "directional_bull_pct": null,
+              "terms": [
+                {
+                  "term": "today gold price",
+                  "direction": "neutral",
+                  "weight": 100.0
+                },
+                {
+                  "term": "gold 22 carat price today",
+                  "direction": "neutral",
+                  "weight": 5.0
+                },
+                {
+                  "term": "live gold price",
+                  "direction": "neutral",
+                  "weight": 4.0
+                },
+                {
+                  "term": "today gold price 22k",
+                  "direction": "neutral",
+                  "weight": 2.0
+                },
+                {
+                  "term": "24 carat gold price today",
+                  "direction": "neutral",
+                  "weight": 2.0
+                },
+                {
+                  "term": "gold price in india today",
+                  "direction": "neutral",
+                  "weight": 2.0
+                },
+                {
+                  "term": "price of gold today",
+                  "direction": "neutral",
+                  "weight": 2.0
+                },
+                {
+                  "term": "today gold price kolkata",
+                  "direction": "neutral",
+                  "weight": 2.0
+                }
+              ],
+              "unclassified_terms": [
+                {
+                  "term": "gold price india",
+                  "weight": 14.0
+                },
+                {
+                  "term": "22 carat gold price",
+                  "weight": 7.0
+                },
+                {
+                  "term": "gold price in india",
+                  "weight": 7.0
+                },
+                {
+                  "term": "price of gold",
+                  "weight": 6.0
+                },
+                {
+                  "term": "gold mcx",
+                  "weight": 4.0
+                },
+                {
+                  "term": "mcx gold price",
+                  "weight": 3.0
+                },
+                {
+                  "term": "gold mcx price",
+                  "weight": 3.0
+                },
+                {
+                  "term": "1 gram gold price",
+                  "weight": 3.0
+                },
+                {
+                  "term": "18 carat gold price",
+                  "weight": 2.0
+                },
+                {
+                  "term": "gold coin price",
+                  "weight": 2.0
+                }
+              ],
+              "rising_queries": 23,
+              "rising_classified_queries": 3,
+              "rising_direction_counts": {
+                "bull": 0,
+                "bear": 0,
+                "neutral": 3,
+                "unclassified": 20
+              },
+              "rising_terms": [
+                {
+                  "term": "crude oil price",
+                  "value": "70",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "crude oil price today",
+                  "value": "60",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "gold mcx",
+                  "value": "60",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "gold mcx live",
+                  "value": "60",
+                  "direction": "neutral",
+                  "breakout": false
+                },
+                {
+                  "term": "gold usd price",
+                  "value": "50",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "hdfc bank share price",
+                  "value": "70",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "india gold price vs global",
+                  "value": "11400",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "itc share price",
+                  "value": "70",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "jio finance share price",
+                  "value": "110",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "jio platforms share price",
+                  "value": "60",
+                  "direction": "unclassified",
+                  "breakout": false
+                }
+              ],
+              "directional_query_diagnostic": {
+                "available": false,
+                "diagnostic_only": true,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+              }
+            },
+            "client_market_context": null,
+            "final": {
+              "status": "available",
+              "score": 0.47,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 40.0
+            },
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
+          },
+          "asset_search_shadow": {
+            "valid": true,
+            "scope": "asset_specific_google_related_queries_shadow",
+            "seed": "gold price",
+            "source": "Google Trends related_queries · India",
+            "timeframe": "now 1-d",
+            "source_data_time": "2026-11-09T12:00:00+00:00",
+            "as_of": "2026-11-09T12:00:00+00:00",
+            "unit": "classified related-query relative-weight share",
+            "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+            "raw_queries": 25,
+            "in_scope_queries": 21,
+            "out_of_scope_queries": 4,
+            "out_of_scope_weight": 40.0,
+            "classified_queries": 10,
+            "unclassified_queries": 11,
+            "unclassified_weight": 53.0,
+            "unclassified_terms": [
+              {
+                "term": "gold price india",
+                "weight": 14.0
+              },
+              {
+                "term": "22 carat gold price",
+                "weight": 7.0
+              },
+              {
+                "term": "gold price in india",
+                "weight": 7.0
+              },
+              {
+                "term": "price of gold",
+                "weight": 6.0
+              },
+              {
+                "term": "gold mcx",
+                "weight": 4.0
+              },
+              {
+                "term": "mcx gold price",
+                "weight": 3.0
+              },
+              {
+                "term": "gold mcx price",
+                "weight": 3.0
+              },
+              {
+                "term": "1 gram gold price",
+                "weight": 3.0
+              },
+              {
+                "term": "18 carat gold price",
+                "weight": 2.0
+              },
+              {
+                "term": "gold coin price",
+                "weight": 2.0
+              }
+            ],
+            "classification_coverage_pct": 69.9,
+            "bull_pct": 0.0,
+            "bear_pct": 0.0,
+            "neutral_pct": 100.0,
+            "directional_bull_pct": null,
+            "neutral_aware_score": null,
+            "terms": [
+              {
+                "term": "today gold price",
+                "direction": "neutral",
+                "weight": 100.0
+              },
+              {
+                "term": "gold 22 carat price today",
+                "direction": "neutral",
+                "weight": 5.0
+              },
+              {
+                "term": "live gold price",
+                "direction": "neutral",
+                "weight": 4.0
+              },
+              {
+                "term": "today gold price 22k",
+                "direction": "neutral",
+                "weight": 2.0
+              },
+              {
+                "term": "24 carat gold price today",
+                "direction": "neutral",
+                "weight": 2.0
+              },
+              {
+                "term": "gold price in india today",
+                "direction": "neutral",
+                "weight": 2.0
+              },
+              {
+                "term": "price of gold today",
+                "direction": "neutral",
+                "weight": 2.0
+              },
+              {
+                "term": "today gold price kolkata",
+                "direction": "neutral",
+                "weight": 2.0
+              }
+            ],
+            "rising_queries": 23,
+            "rising_classified_queries": 3,
+            "rising_direction_counts": {
+              "bull": 0,
+              "bear": 0,
+              "neutral": 3,
+              "unclassified": 20
+            },
+            "rising_terms": [
+              {
+                "term": "crude oil price",
+                "value": "70",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "crude oil price today",
+                "value": "60",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "gold mcx",
+                "value": "60",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "gold mcx live",
+                "value": "60",
+                "direction": "neutral",
+                "breakout": false
+              },
+              {
+                "term": "gold usd price",
+                "value": "50",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "hdfc bank share price",
+                "value": "70",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "india gold price vs global",
+                "value": "11400",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "itc share price",
+                "value": "70",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "jio finance share price",
+                "value": "110",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "jio platforms share price",
+                "value": "60",
+                "direction": "unclassified",
+                "breakout": false
+              }
+            ],
+            "production_score_used": false,
+            "directional_query_diagnostic": {
+              "available": false,
+              "diagnostic_only": true,
+              "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+            },
+            "cached": true
+          },
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Gold, Silver Prices Today Live Updates: Gold jumps over 1% as falling oil prices ease inflation fears",
+              "source": "The Times of India",
+              "score": 0,
+              "age_hours": 0.5
+            },
+            {
+              "title": "Current price of gold as of November 9, 2026",
+              "source": "Fortune",
+              "score": 0,
+              "age_hours": 0.7
+            },
+            {
+              "title": "India Gold price today: FXStreet data shows Gold prices rising",
+              "source": "www.tmgm.com",
+              "score": 0,
+              "age_hours": 2.1
+            },
+            {
+              "title": "Gold Price Prediction For Next 10 Days: Three Dates That Will Decide The Direction",
+              "source": "NDTV Profit",
+              "score": 0,
+              "age_hours": 3.2
+            },
+            {
+              "title": "Gold Price Forecast: XAU/USD holds gains near $4,100 as risk appetite hits the USD",
+              "source": "FXStreet",
+              "score": 1,
+              "age_hours": 4.9
+            },
+            {
+              "title": "Gold, silver prices today, November 9: Both metals rebound after Diwali-Dhanteras dip; Check 24K, 22K gold rates in 20 cities",
+              "source": "Upstox",
+              "score": 0,
+              "age_hours": 5.5
+            },
+            {
+              "title": "Gold Prices Rise Day After Diwali, JP Morgan Predicts 46% Jump By 2026-End. Should You Buy?",
+              "source": "NDTV",
+              "score": 3,
+              "age_hours": 6.0
+            },
+            {
+              "title": "Gold Rate Today: Check 22K, 24K Gold prices in Delhi, Mumbai & Chennai",
+              "source": "BusinessLine",
+              "score": 0,
+              "age_hours": 6.8
+            }
+          ]
+        },
+        "SILVER": {
+          "close": 193081.74,
+          "close_as_of": "2026-11-09",
+          "close_valid": true,
+          "price_source": "MCX live quote + 3% GST Estimate",
+          "day_change_pct": 1.45,
+          "headline_score": 3.0,
+          "published_score": 3.0,
+          "component_breakdown": {
+            "version": 1,
+            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "score_range": "-10..+10",
+            "component_weights": {
+              "news": 40.0,
+              "search": 40.0,
+              "eod_oi": 20.0,
+              "futures": 20.0,
+              "stock_basket": 20.0
+            },
+            "provisional_weights": {
+              "news": 15.0,
+              "stock_basket": 20.0,
+              "eod_oi": 15.0,
+              "client_ce_pe": 15.0,
+              "client_futures": 15.0,
+              "search": 20.0
+            },
+            "components": {
+              "news": {
+                "score": 0.86,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:14:22Z",
+                "oldest_headline_published_at": "2026-11-09T06:35:12Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 8,
+                "publishers": [
+                  "Business Standard",
+                  "India TV News",
+                  "Inshorts",
+                  "NDTV",
+                  "News18",
+                  "The Times of India",
+                  "Upstox",
+                  "www.tmgm.com"
+                ],
+                "query": "silver price",
+                "newest_headline_age_h": 0.55,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; asset-specific card query"
+              }
+            },
+            "provisional_components": {
+              "news": {
+                "score": 0.86,
+                "source": "Google News RSS · asset-specific card query",
+                "source_date": "2026-11-09",
+                "weight": 40.0,
+                "included": true,
+                "observed_at": "2026-11-09T14:47Z",
+                "newest_headline_published_at": "2026-11-09T14:14:22Z",
+                "oldest_headline_published_at": "2026-11-09T06:35:12Z",
+                "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
+                "evidence_count": 8,
+                "publishers": [
+                  "Business Standard",
+                  "India TV News",
+                  "Inshorts",
+                  "NDTV",
+                  "News18",
+                  "The Times of India",
+                  "Upstox",
+                  "www.tmgm.com"
+                ],
+                "query": "silver price",
+                "newest_headline_age_h": 0.55,
+                "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
+                "note": "24h timestamped headlines; asset-specific card query"
+              }
+            },
+            "provisional_final": {
+              "status": "available",
+              "score": 0.86,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 15.0
+            },
+            "stock_basket_diagnostic": null,
+            "excluded_components": {
+              "search": {
+                "applicable": true,
+                "included": false,
+                "reason": "Google Trends में bullish-vs-bearish directional evidence नहीं; Search Final से बाहर"
+              },
+              "eod_oi": {
+                "applicable": true,
+                "included": false,
+                "source": "MCX official category-wise EOD OI report",
+                "reason": "Dated MCX category-wise OI snapshot सत्यापित नहीं; MCX total contract OI को CLIENT category OI नहीं माना गया।"
+              },
+              "futures": {
+                "applicable": true,
+                "included": false,
+                "source": "MCX FUTCOM same-expiry daily OI",
+                "reason": "Current contract OI का पिछले session के उसी expiry से verified comparison उपलब्ध नहीं; futures direction score withheld।"
+              }
+            },
+            "coverage": {
+              "status": "partial",
+              "label": "आंशिक कवरेज — Final केवल शामिल सत्यापित components पर आधारित",
+              "included_count": 1,
+              "applicable_count": 4,
+              "coverage_pct": 25.0,
+              "meaning": "यह data-coverage है, prediction confidence या accuracy नहीं।"
+            },
+            "search_diagnostic": {
+              "valid": true,
+              "seed": "silver price",
+              "source": "Google Trends related_queries · India",
+              "timeframe": "now 1-d",
+              "source_data_time": "2026-11-09T12:00:00+00:00",
+              "raw_queries": 25,
+              "in_scope_queries": 19,
+              "out_of_scope_queries": 6,
+              "out_of_scope_weight": 171.0,
+              "classified_queries": 8,
+              "unclassified_queries": 11,
+              "classification_coverage_pct": 57.6,
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "directional_bull_pct": null,
+              "terms": [
+                {
+                  "term": "silver today price",
+                  "direction": "neutral",
+                  "weight": 100.0
+                },
+                {
+                  "term": "silver rate today",
+                  "direction": "neutral",
+                  "weight": 15.0
+                },
+                {
+                  "term": "silver live price",
+                  "direction": "neutral",
+                  "weight": 7.0
+                },
+                {
+                  "term": "silver mcx price today",
+                  "direction": "neutral",
+                  "weight": 6.0
+                },
+                {
+                  "term": "silver price today live",
+                  "direction": "neutral",
+                  "weight": 3.0
+                },
+                {
+                  "term": "silver price today in india",
+                  "direction": "neutral",
+                  "weight": 3.0
+                },
+                {
+                  "term": "price of silver today",
+                  "direction": "neutral",
+                  "weight": 3.0
+                },
+                {
+                  "term": "silver price chart",
+                  "direction": "neutral",
+                  "weight": 3.0
+                }
+              ],
+              "unclassified_terms": [
+                {
+                  "term": "silver rate",
+                  "weight": 18.0
+                },
+                {
+                  "term": "silver share price",
+                  "weight": 15.0
+                },
+                {
+                  "term": "silver coin price",
+                  "weight": 11.0
+                },
+                {
+                  "term": "silver coin",
+                  "weight": 11.0
+                },
+                {
+                  "term": "silver price mcx",
+                  "weight": 10.0
+                },
+                {
+                  "term": "mcx silver",
+                  "weight": 10.0
+                },
+                {
+                  "term": "mcx silver price",
+                  "weight": 10.0
+                },
+                {
+                  "term": "silver price in india",
+                  "weight": 8.0
+                },
+                {
+                  "term": "10 gram silver price",
+                  "weight": 4.0
+                },
+                {
+                  "term": "1 kg silver price",
+                  "weight": 3.0
+                }
+              ],
+              "rising_queries": 23,
+              "rising_classified_queries": 5,
+              "rising_direction_counts": {
+                "bull": 1,
+                "bear": 0,
+                "neutral": 4,
+                "unclassified": 18
+              },
+              "rising_terms": [
+                {
+                  "term": "brent crude price",
+                  "value": "160",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "comex silver price",
+                  "value": "150",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "comex silver price rise weekly",
+                  "value": "650",
+                  "direction": "bull",
+                  "breakout": false
+                },
+                {
+                  "term": "crude oil price",
+                  "value": "140",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "gold mcx live",
+                  "value": "190",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "gold price live",
+                  "value": "110",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "hdfc bank share price",
+                  "value": "130",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "jio platforms share price",
+                  "value": "140",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "mcx gold",
+                  "value": "110",
+                  "direction": "unclassified",
+                  "breakout": false
+                },
+                {
+                  "term": "mcx silver",
+                  "value": "70",
+                  "direction": "unclassified",
+                  "breakout": false
+                }
+              ],
+              "directional_query_diagnostic": {
+                "available": false,
+                "diagnostic_only": true,
+                "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+              }
+            },
+            "client_market_context": null,
+            "final": {
+              "status": "available",
+              "score": 0.86,
+              "included_components": [
+                "news"
+              ],
+              "normalized_weights_pct": {
+                "news": 100.0
+              },
+              "weight_total": 40.0
+            },
+            "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
+          },
+          "asset_search_shadow": {
+            "valid": true,
+            "scope": "asset_specific_google_related_queries_shadow",
+            "seed": "silver price",
+            "source": "Google Trends related_queries · India",
+            "timeframe": "now 1-d",
+            "source_data_time": "2026-11-09T12:00:00+00:00",
+            "as_of": "2026-11-09T12:00:00+00:00",
+            "unit": "classified related-query relative-weight share",
+            "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+            "raw_queries": 25,
+            "in_scope_queries": 19,
+            "out_of_scope_queries": 6,
+            "out_of_scope_weight": 171.0,
+            "classified_queries": 8,
+            "unclassified_queries": 11,
+            "unclassified_weight": 103.0,
+            "unclassified_terms": [
+              {
+                "term": "silver rate",
+                "weight": 18.0
+              },
+              {
+                "term": "silver share price",
+                "weight": 15.0
+              },
+              {
+                "term": "silver coin price",
+                "weight": 11.0
+              },
+              {
+                "term": "silver coin",
+                "weight": 11.0
+              },
+              {
+                "term": "silver price mcx",
+                "weight": 10.0
+              },
+              {
+                "term": "mcx silver",
+                "weight": 10.0
+              },
+              {
+                "term": "mcx silver price",
+                "weight": 10.0
+              },
+              {
+                "term": "silver price in india",
+                "weight": 8.0
+              },
+              {
+                "term": "10 gram silver price",
+                "weight": 4.0
+              },
+              {
+                "term": "1 kg silver price",
+                "weight": 3.0
+              }
+            ],
+            "classification_coverage_pct": 57.6,
+            "bull_pct": 0.0,
+            "bear_pct": 0.0,
+            "neutral_pct": 100.0,
+            "directional_bull_pct": null,
+            "neutral_aware_score": null,
+            "terms": [
+              {
+                "term": "silver today price",
+                "direction": "neutral",
+                "weight": 100.0
+              },
+              {
+                "term": "silver rate today",
+                "direction": "neutral",
+                "weight": 15.0
+              },
+              {
+                "term": "silver live price",
+                "direction": "neutral",
+                "weight": 7.0
+              },
+              {
+                "term": "silver mcx price today",
+                "direction": "neutral",
+                "weight": 6.0
+              },
+              {
+                "term": "silver price today live",
+                "direction": "neutral",
+                "weight": 3.0
+              },
+              {
+                "term": "silver price today in india",
+                "direction": "neutral",
+                "weight": 3.0
+              },
+              {
+                "term": "price of silver today",
+                "direction": "neutral",
+                "weight": 3.0
+              },
+              {
+                "term": "silver price chart",
+                "direction": "neutral",
+                "weight": 3.0
+              }
+            ],
+            "rising_queries": 23,
+            "rising_classified_queries": 5,
+            "rising_direction_counts": {
+              "bull": 1,
+              "bear": 0,
+              "neutral": 4,
+              "unclassified": 18
+            },
+            "rising_terms": [
+              {
+                "term": "brent crude price",
+                "value": "160",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "comex silver price",
+                "value": "150",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "comex silver price rise weekly",
+                "value": "650",
+                "direction": "bull",
+                "breakout": false
+              },
+              {
+                "term": "crude oil price",
+                "value": "140",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "gold mcx live",
+                "value": "190",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "gold price live",
+                "value": "110",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "hdfc bank share price",
+                "value": "130",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "jio platforms share price",
+                "value": "140",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "mcx gold",
+                "value": "110",
+                "direction": "unclassified",
+                "breakout": false
+              },
+              {
+                "term": "mcx silver",
+                "value": "70",
+                "direction": "unclassified",
+                "breakout": false
+              }
+            ],
+            "production_score_used": false,
+            "directional_query_diagnostic": {
+              "available": false,
+              "diagnostic_only": true,
+              "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
+            },
+            "cached": true
+          },
+          "headline_count": 8,
+          "headlines": [
+            {
+              "title": "Gold, Silver Prices Today Live Updates: Gold jumps over 1% as falling oil prices ease inflation fears",
+              "source": "The Times of India",
+              "score": 0,
+              "age_hours": 0.5
+            },
+            {
+              "title": "Silver price today: FXStreet data show silver gaining ground",
+              "source": "www.tmgm.com",
+              "score": 1,
+              "age_hours": 2.1
+            },
+            {
+              "title": "Why are gold and silver prices rising? | Higher interest rates can weigh on gold prices | Inshorts",
+              "source": "Inshorts",
+              "score": 0,
+              "age_hours": 2.6
+            },
+            {
+              "title": "Gold, silver prices today, November 9: Both metals rebound after Diwali-Dhanteras dip; Check 24K, 22K gold rates in 20 cities",
+              "source": "Upstox",
+              "score": 0,
+              "age_hours": 5.5
+            },
+            {
+              "title": "Gold Prices Rise Day After Diwali, JP Morgan Predicts 46% Jump By 2026-End. Should You Buy?",
+              "source": "NDTV",
+              "score": 3,
+              "age_hours": 6.0
+            },
+            {
+              "title": "Gold, Silver Prices This Week: Buy Now Or Wait? 5 Factors That Could Decide Rates",
+              "source": "News18",
+              "score": 1,
+              "age_hours": 6.8
+            },
+            {
+              "title": "Gold, silver extend gains as softer oil prices ease inflation concerns",
+              "source": "Business Standard",
+              "score": 1,
+              "age_hours": 8.1
+            },
+            {
+              "title": "Gold, silver continues to rise on MCX post Diwali amid easing crude oil prices | Check city-wise rates",
+              "source": "India TV News",
+              "score": 1,
+              "age_hours": 8.2
+            }
+          ]
+        }
+      },
+      "participant_oi": {
+        "date": "2026-11-09",
+        "source": "NSE official participant-wise OI",
+        "scope": "F&O participant totals; stock F&O is aggregate, not per individual stock",
+        "changes": {
+          "ok": true,
+          "prev_date": "2026-11-06",
+          "by_group": {
+            "FII": {
+              "future_index_long": 3726,
+              "future_index_short": -5949,
+              "index_call_long": -254598,
+              "index_call_short": -270269,
+              "index_put_long": -409544,
+              "index_put_short": -347442
+            },
+            "DII": {
+              "future_index_long": 1287,
+              "future_index_short": 6366,
+              "index_call_long": 3075,
+              "index_call_short": -253,
+              "index_put_long": -718,
+              "index_put_short": -1003
+            },
+            "PRO": {
+              "future_index_long": -724,
+              "future_index_short": 850,
+              "index_call_long": -335800,
+              "index_call_short": -297398,
+              "index_put_long": -672690,
+              "index_put_short": -713676
+            },
+            "CLIENT": {
+              "future_index_long": 1984,
+              "future_index_short": 5006,
+              "index_call_long": -793485,
+              "index_call_short": -812886,
+              "index_put_long": -1643104,
+              "index_put_short": -1663936
+            }
+          }
+        },
+        "participants": {
+          "CLIENT": {
+            "future_index_long": 182812,
+            "future_index_short": 102053,
+            "index_call_long": 2112701,
+            "index_call_short": 2081906,
+            "index_put_long": 2426932,
+            "index_put_short": 2810271,
+            "future_stock_long": 3181091,
+            "future_stock_short": 341804,
+            "stock_call_long": 1840201,
+            "stock_call_short": 1087490,
+            "stock_put_long": 1179129,
+            "stock_put_short": 1106891,
+            "future_index_net": 80759,
+            "index_call_net": 30795,
+            "index_put_net": -383339,
+            "future_stock_net": 2839287
+          },
+          "DII": {
+            "future_index_long": 55291,
+            "future_index_short": 24834,
+            "index_call_long": 13893,
+            "index_call_short": 300,
+            "index_put_long": 104232,
+            "index_put_short": 0,
+            "future_stock_long": 339601,
+            "future_stock_short": 4355663,
+            "stock_call_long": 2716,
+            "stock_call_short": 424180,
+            "stock_put_long": 41449,
+            "stock_put_short": 32557,
+            "future_index_net": 30457,
+            "index_call_net": 13593,
+            "index_put_net": 104232,
+            "future_stock_net": -4016062
+          },
+          "FII": {
+            "future_index_long": 52382,
+            "future_index_short": 143123,
+            "index_call_long": 606678,
+            "index_call_short": 718631,
+            "index_put_long": 969672,
+            "index_put_short": 582033,
+            "future_stock_long": 3580740,
+            "future_stock_short": 2545989,
+            "stock_call_long": 319289,
+            "stock_call_short": 399618,
+            "stock_put_long": 395883,
+            "stock_put_short": 307120,
+            "future_index_net": -90741,
+            "index_call_net": -111953,
+            "index_put_net": 387639,
+            "future_stock_net": 1034751
+          },
+          "PRO": {
+            "future_index_long": 28827,
+            "future_index_short": 49302,
+            "index_call_long": 806059,
+            "index_call_short": 738495,
+            "index_put_long": 857050,
+            "index_put_short": 965582,
+            "future_stock_long": 683120,
+            "future_stock_short": 541096,
+            "stock_call_long": 1261677,
+            "stock_call_short": 1512595,
+            "stock_put_long": 1006634,
+            "stock_put_short": 1176527,
+            "future_index_net": -20475,
+            "index_call_net": 67564,
+            "index_put_net": -108532,
+            "future_stock_net": 142024
+          }
+        }
+      },
+      "score_method": {
+        "mode": "news_client_only",
+        "weights": {
+          "news": 40,
+          "crowd": 40,
+          "client": 20
+        },
+        "crowd_included": false,
+        "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
+        "crowd_bull_pct": null,
+        "client_included": true
+      }
     }
   ],
-  "updated_at": "2026-11-06T15:17Z"
+  "updated_at": "2026-11-09T14:47Z"
 }
