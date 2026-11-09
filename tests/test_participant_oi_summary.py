@@ -66,6 +66,29 @@ class ParticipantOISummaryTests(unittest.TestCase):
                 },
             },
         }
+        report["indices"]["NIFTY"]["metrics"][1]["non_overlapping_holdout_phases"] = [
+            {
+                "phase_offset_sessions": 0,
+                "anchor_signal_date": "2026-10-01",
+                "n": 6,
+                "directional_observation_count": 6,
+                "correct_signals": 4,
+                "false_signals": 2,
+                "false_signal_rate_pct": 33.33,
+                "directional_hit_rate_pct": 66.67,
+                "avg_forward_return_pct": 0.12,
+                "regime_metrics": {
+                    "bull": {
+                        "n": 2,
+                        "directional_observation_count": 2,
+                        "directional_hit_rate_pct": 100.0,
+                        "false_signals": 0,
+                        "false_signal_rate_pct": 0.0,
+                        "avg_forward_return_pct": 0.2,
+                    }
+                },
+            }
+        ]
         result = build_summary(report)
         nifty = result["indices"]["NIFTY"]
         self.assertEqual(result["oi_sessions"], 250)
@@ -75,6 +98,10 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual(future["train"]["directional_hit_rate_pct"], 55.0)
         self.assertEqual(future["holdout"]["directional_hit_rate_pct"], 60.0)
         self.assertEqual(future["holdout_regimes"]["sideways"]["n"], 4)
+        phase = future["non_overlapping_holdout_phases"][0]
+        self.assertEqual(phase["phase_offset_sessions"], 0)
+        self.assertEqual(phase["directional_hit_rate_pct"], 66.67)
+        self.assertEqual(phase["regime_metrics"]["bull"]["n"], 2)
         self.assertEqual(nifty["best_holdout_futures_exploratory_only"][0]["feature"], futures)
         self.assertEqual(future["statistical_evidence"]["holm_family_size"], 1)
         self.assertEqual(nifty["directional_inference"]["family_size"], 1)
