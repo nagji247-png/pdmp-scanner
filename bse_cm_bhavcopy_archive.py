@@ -90,7 +90,7 @@ def parse_bse_cm_csv(payload, trade_date, min_rows=500):
         high = finite_positive(row.get("HghPric"), "HghPric")
         low = finite_positive(row.get("LwPric"), "LwPric")
         close = finite_positive(row.get("ClsPric"), "ClsPric")
-        previous = finite_positive(row.get("PrvsClsgPric"), "PrvsClsgPric")
+        previous = finite_positive(row.get("PrvsClsgPric"), "PrvsClsgPric", allow_zero=True)
         volume = finite_positive(row.get("TtlTradgVol"), "TtlTradgVol", allow_zero=True)
         if low > min(opening, close) or high < max(opening, close) or high < low:
             raise ValueError(f"inconsistent BSE OHLC for scrip {instrument_id}")
@@ -99,7 +99,7 @@ def parse_bse_cm_csv(payload, trade_date, min_rows=500):
             "isin": isin, "series": str(row.get("SctySrs") or "").strip().upper(),
             "open": round(opening, 6), "high": round(high, 6),
             "low": round(low, 6), "close": round(close, 6),
-            "previous_close": round(previous, 6),
+            "previous_close": round(previous, 6) if previous > 0 else None,
             "volume": int(volume) if volume.is_integer() else volume,
         })
     if len(result) < min_rows:
