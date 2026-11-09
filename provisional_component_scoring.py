@@ -61,7 +61,7 @@ def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=
             })
     if not observations:
         return None
-    mean_score = sum(item["score"] for item in observations) / len(observations)
+    mean_score = round(sum(item["score"] for item in observations) / len(observations), 2)
     return build_component(
         mean_score,
         "NSE F&O UDiFF · nearest-expiry PE/CE open-interest balance",
