@@ -28,20 +28,20 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
             self.row(TckrSymb="NIFTY", SctySrs="INDEX", ISIN=""),
             self.row(TckrSymb="ABC", SctySrs="BE", ISIN="INE000A01000"),
         ]
-        result = cm.normalize_equity_rows(rows, "2026-11-06")
+        result = cm.normalize_equity_rows(rows, "2026-11-06", min_rows=1)
         self.assertEqual([x["symbol"] for x in result], ["HDFCBANK", "RELIANCE"])
         self.assertEqual(result[1]["previous_close"], 1405)
         self.assertFalse(any("included_in_asset_final" in x for x in result))
 
     def test_wrong_date_duplicate_missing_identity_and_bad_ohlc_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "date mismatch"):
-            cm.normalize_equity_rows([self.row(BizDt="2026-11-05")], "2026-11-06")
+            cm.normalize_equity_rows([self.row(BizDt="2026-11-05")], "2026-11-06", min_rows=1)
         with self.assertRaisesRegex(ValueError, "duplicate EQ"):
-            cm.normalize_equity_rows([self.row(), self.row()], "2026-11-06")
+            cm.normalize_equity_rows([self.row(), self.row()], "2026-11-06", min_rows=1)
         with self.assertRaisesRegex(ValueError, "symbol or ISIN"):
-            cm.normalize_equity_rows([self.row(ISIN="")], "2026-11-06")
+            cm.normalize_equity_rows([self.row(ISIN="")], "2026-11-06", min_rows=1)
         with self.assertRaisesRegex(ValueError, "inconsistent OHLC"):
-            cm.normalize_equity_rows([self.row(HghPric="1395")], "2026-11-06")
+            cm.normalize_equity_rows([self.row(HghPric="1395")], "2026-11-06", min_rows=1)
 
     def test_zip_decoder_requires_exactly_one_csv_and_all_required_columns(self):
         buffer = io.BytesIO()
@@ -58,7 +58,7 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
 
     def test_archive_is_idempotent_and_rejects_changed_source_file(self):
         archive = {"records": []}
-        rows = cm.normalize_equity_rows([self.row()], "2026-11-06")
+        rows = cm.normalize_equity_rows([self.row()], "2026-11-06", min_rows=1)
         self.assertTrue(cm.append_session(
             archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
             b"zipbytes", rows, "2026-11-06T14:00:00Z"))
