@@ -21,15 +21,17 @@ def _valid_roster(roster, index_key, trade_date, max_roster_age_days=180):
     if not isinstance(members, list) or not members:
         raise ValueError(f"empty roster for {index_key}")
     seen = set()
+    seen_isins = set()
     normalized = []
     for member in members:
         if not isinstance(member, dict):
             raise ValueError("malformed constituent")
         symbol = str(member.get("symbol") or "").strip().upper()
         isin = str(member.get("isin") or "").strip().upper()
-        if not symbol or not isin or symbol in seen:
+        if not symbol or not isin or symbol in seen or isin in seen_isins:
             raise ValueError("constituent symbol/ISIN missing or duplicate")
         seen.add(symbol)
+        seen_isins.add(isin)
         normalized.append((symbol, isin))
     if len(normalized) != int(item.get("expected_count", len(normalized))):
         raise ValueError(f"roster count mismatch for {index_key}")
@@ -37,9 +39,12 @@ def _valid_roster(roster, index_key, trade_date, max_roster_age_days=180):
     as_of = str(item.get("as_of") or "").strip()
     if not source_url or not as_of:
         raise ValueError(f"roster provenance missing for {index_key}")
-    host = (urlparse(source_url).hostname or "").lower()
+    parsed_url = urlparse(source_url)
+    host = (parsed_url.hostname or "").lower()
     official_hosts = ("nseindia.com", "niftyindices.com", "bseindia.com", "bseindices.com")
-    if not any(host == domain or host.endswith("." + domain) for domain in official_hosts):
+    if parsed_url.scheme != "https" or not any(
+        host == domain or host.endswith("." + domain) for domain in official_hosts
+    ):
         raise ValueError(f"non-official roster source for {index_key}")
     try:
         roster_day = dt.date.fromisoformat(as_of)
