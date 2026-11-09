@@ -757,8 +757,8 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     news: "News",
     search: "Google Trends",
     eod_oi: "EOD OI",
-    client_ce_pe: "CLIENT CE/PE (Market-wide)",
-    client_futures: "CLIENT Futures (Market-wide)",
+    client_ce_pe: "CLIENT CE/PE",
+    client_futures: "CLIENT Futures",
     stock_basket: "Stock Basket"
   };
   const scoreText = value => {
@@ -777,7 +777,6 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
     return '<div class="hl" style="margin-top:5px">' +
       '<div class="hl-title"><b>' + esc(labels[key] || key) + '</b> · <b class="' + cls + '">' + scoreText(score) + '</b></div>' +
-      '<div class="hl-meta">' + esc(component.source || "—") + ' · ' + esc(dateText(component.source_date)) + '</div>' +
       '</div>';
   }).join("");
   const total = final.score;
