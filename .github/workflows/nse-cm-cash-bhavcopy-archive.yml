@@ -34,6 +34,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -f nse_cm_bhavcopy_archive.json ]; then
+            echo "NSE_CM_ARCHIVE_FILE_NOT_CREATED"
+            exit 1
+          fi
           git add -f -- nse_cm_bhavcopy_archive.json
           if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json; then
             echo "NSE_CM_ARCHIVE_NO_CHANGE"
