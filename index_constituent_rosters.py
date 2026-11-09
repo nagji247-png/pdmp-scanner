@@ -167,7 +167,7 @@ def build_roster_bundle(session, as_of, bse_archive):
         "research_only": True, "score_eligible": False,
     }
     Path("nse_index_constituent_rosters.json").write_text(
-        json.dumps(partial, ensure_ascii=False, indent=2, allow_nan=False) + "\\n",
+        json.dumps(partial, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
         encoding="utf-8",
     )
     bse_payload = fetch_once(session, SOURCES["SENSEX"])
