@@ -599,9 +599,10 @@ function spark(values, color) {
 }
 
 function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml) {
-  const s = Number(score), c = Number(change);
-  const hasSentiment = Number.isFinite(s);
-  const hasPriceChange = Number.isFinite(c);
+  const hasSentiment = score != null && String(score).trim() !== "" && Number.isFinite(Number(score));
+  const hasPriceChange = change != null && String(change).trim() !== "" && Number.isFinite(Number(change));
+  const s = hasSentiment ? Number(score) : NaN;
+  const c = hasPriceChange ? Number(change) : NaN;
   const strongEnough = hasSentiment && hasPriceChange && Math.abs(s) >= 1 && Math.abs(c) >= 0.2;
   const isOpposite = strongEnough && Math.sign(s) !== Math.sign(c);
   const sentiment = hasSentiment
