@@ -40,7 +40,7 @@ def summarize_asset_search(asset, instrument, now_utc):
         status, reason = "NEUTRAL_ONLY", "no directional evidence; excluded from Search Final"
     else:
         status, reason = "DIRECTIONAL_EVIDENCE_PRESENT", "directional evidence exists; score eligibility checked separately"
-    return {"status": status, "field": field, "expected_seed": expected, "actual_seed": actual or None, "source": snap.get("source"), "timeframe": snap.get("timeframe"), "source_data_time": stamp, "fresh": bool(fresh), "classification_coverage_pct": component_scoring.finite_number(snap.get("classification_coverage_pct")), "bull_pct": bull, "bear_pct": bear, "neutral_pct": neutral, "directional_bull_pct": directional, "classified_queries": snap.get("classified_queries"), "raw_queries": snap.get("raw_queries"), "reason": reason}
+    return {"status": status, "field": field, "expected_seed": expected, "actual_seed": actual or None, "source": snap.get("source"), "timeframe": snap.get("timeframe"), "source_data_time": stamp, "fresh": bool(fresh), "classification_coverage_pct": component_scoring.finite_number(snap.get("classification_coverage_pct")), "bull_pct": bull, "bear_pct": bear, "neutral_pct": neutral, "directional_bull_pct": directional, "classified_queries": snap.get("classified_queries"), "raw_queries": snap.get("raw_queries"), "in_scope_queries": snap.get("in_scope_queries"), "out_of_scope_queries": snap.get("out_of_scope_queries"), "out_of_scope_weight": snap.get("out_of_scope_weight"), "reason": reason}
 
 
 def main():

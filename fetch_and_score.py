@@ -556,7 +556,7 @@ def build_asset_component_breakdowns(
             if isinstance(search_snapshot, dict):
                 diagnostic_fields = (
                     "valid", "seed", "source", "timeframe", "source_data_time",
-                    "raw_queries", "classified_queries", "unclassified_queries",
+                    "raw_queries", "in_scope_queries", "out_of_scope_queries", "out_of_scope_weight", "classified_queries", "unclassified_queries",
                     "classification_coverage_pct", "bull_pct", "bear_pct",
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
@@ -4039,6 +4039,28 @@ def _trends_related_queries(timeframe="now 1-d"):
     }
 
 
+def _asset_search_is_out_of_scope(term, asset):
+    """Return True only when a related query clearly belongs to another tracked asset."""
+    text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
+    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+    has_bank = bool(tokens & {"bank", "बैंक", "banknifty", "बैंकनिफ्टी"})
+    has_nifty = bool(tokens & {"nifty", "निफ्टी", "banknifty", "बैंकनिफ्टी"})
+    has_sensex = bool(tokens & {"sensex", "सेंसेक्स"})
+    has_gold = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
+    has_silver = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
+    if asset == "NIFTY":
+        return has_bank or has_sensex or has_gold or has_silver
+    if asset == "SENSEX":
+        return has_nifty or has_bank or has_gold or has_silver
+    if asset == "BANKNIFTY":
+        return not (has_bank and has_nifty) or has_sensex or has_gold or has_silver
+    if asset == "GOLD":
+        return has_silver
+    if asset == "SILVER":
+        return has_gold
+    return False
+
+
 def _asset_search_direction(term, asset):
     """Classify asset-specific directional/explicit-flat queries; information intent is unclassified."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
@@ -4139,7 +4161,14 @@ def _asset_search_direction(term, asset):
         "आज", "लाइव", "वर्तमान", "चार्ट", "अनुमान", "भविष्यवाणी",
         "ऑप्शन", "चेन", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
-    if tokens & informational:
+    # These are explicit index/instrument lookup phrases, not directional views.
+    # Keep them neutral only after the asset identity above has matched.
+    informational_phrases = (
+        "nifty 50", "gift nifty", "sgx nifty", "nse nifty",
+        "nifty share", "nifty stock", "sensex share", "sensex stock",
+        "bse sensex", "bank nifty 50",
+    )
+    if tokens & informational or any(phrase in text for phrase in informational_phrases):
         return "neutral"
     return None
 
@@ -4327,6 +4356,9 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
             unclassified_count = 0
             unclassified_weight = 0.0
             unclassified_terms = []
+            out_of_scope_count = 0
+            out_of_scope_weight = 0.0
+            in_scope_count = 0
             if top is not None and not top.empty and "query" in top and "value" in top:
                 for _, row in top.iterrows():
                     term = str(row.get("query", "")).strip()
@@ -4337,6 +4369,14 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
                     if not term or not math.isfinite(value) or value <= 0:
                         continue
                     raw_query_count += 1
+                    # A related-query result clearly about another tracked asset
+                    # is not evidence about this asset and must not dilute its
+                    # classification-coverage denominator.
+                    if _asset_search_is_out_of_scope(term, asset):
+                        out_of_scope_count += 1
+                        out_of_scope_weight += value
+                        continue
+                    in_scope_count += 1
                     direction = _asset_search_direction(term, asset)
                     if direction is None:
                         unclassified_count += 1
@@ -4365,6 +4405,9 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
                     "timeframe": "now 1-d",
                     "source_data_time": source_data_time,
                     "raw_queries": raw_query_count,
+                    "in_scope_queries": in_scope_count,
+                    "out_of_scope_queries": out_of_scope_count,
+                    "out_of_scope_weight": round(out_of_scope_weight, 1),
                     "classified_queries": len(classified_terms),
                     "unclassified_queries": unclassified_count,
                     "unclassified_weight": round(unclassified_weight, 1),
@@ -4403,6 +4446,9 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
                 "unit": "classified related-query relative-weight share",
                 "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
                 "raw_queries": raw_query_count,
+                "in_scope_queries": in_scope_count,
+                "out_of_scope_queries": out_of_scope_count,
+                "out_of_scope_weight": round(out_of_scope_weight, 1),
                 "classified_queries": len(classified_terms),
                 "unclassified_queries": unclassified_count,
                 "unclassified_weight": round(unclassified_weight, 1),
