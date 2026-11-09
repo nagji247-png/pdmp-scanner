@@ -78,7 +78,7 @@ def decode_cm_udiff_zip(payload):
     return list(reader)
 
 
-def normalize_equity_rows(rows, trade_date):
+def normalize_equity_rows(rows, trade_date, min_rows=100):
     target = parse_date(trade_date)
     result = []
     seen = set()
@@ -120,7 +120,7 @@ def normalize_equity_rows(rows, trade_date):
             "previous_close": round(previous, 6),
             "volume": int(volume) if volume.is_integer() else volume,
         })
-    if len(result) < 100:
+    if len(result) < min_rows:
         raise ValueError(f"implausibly small EQ cash universe: {len(result)} rows")
     return sorted(result, key=lambda item: item["symbol"])
 
