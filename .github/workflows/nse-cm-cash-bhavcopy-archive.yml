@@ -5,9 +5,11 @@ on:
     paths:
       - "nse_cm_bhavcopy_archive.py"
       - "bse_cm_bhavcopy_archive.py"
+      - "index_constituent_rosters.py"
       - "nse_cash_basket_breadth.py"
       - "tests/test_nse_cm_bhavcopy_archive.py"
       - "tests/test_bse_cm_bhavcopy_archive.py"
+      - "tests/test_index_constituent_rosters.py"
       - "tests/test_nse_cash_basket_breadth.py"
       - "tests/test_three_index_cash_basket_validation.py"
       - "exchange_calendar.json"
@@ -41,6 +43,8 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
           python -m py_compile bse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_bse_cm_bhavcopy_archive.py' -v
+          python -m py_compile index_constituent_rosters.py
+          python -m unittest discover -s tests -p 'test_index_constituent_rosters.py' -v
           python -m py_compile nse_cash_basket_breadth.py
           python -m unittest discover -s tests -p 'test_nse_cash_basket_breadth.py' -v
           python -m unittest discover -s tests -p 'test_three_index_cash_basket_validation.py' -v
