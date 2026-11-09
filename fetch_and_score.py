@@ -4161,7 +4161,14 @@ def _asset_search_direction(term, asset):
         "आज", "लाइव", "वर्तमान", "चार्ट", "अनुमान", "भविष्यवाणी",
         "ऑप्शन", "चेन", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
-    if tokens & informational:
+    # These are explicit index/instrument lookup phrases, not directional views.
+    # Keep them neutral only after the asset identity above has matched.
+    informational_phrases = (
+        "nifty 50", "gift nifty", "sgx nifty", "nse nifty",
+        "nifty share", "nifty stock", "sensex share", "sensex stock",
+        "bse sensex", "bank nifty 50",
+    )
+    if tokens & informational or any(phrase in text for phrase in informational_phrases):
         return "neutral"
     return None
 
