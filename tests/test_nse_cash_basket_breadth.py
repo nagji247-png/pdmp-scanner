@@ -29,6 +29,11 @@ class CashBasketBreadthTests(unittest.TestCase):
         self.assertEqual((result["advances"], result["declines"], result["unchanged"]), (1, 1, 0))
         self.assertEqual(result["score"], 0)
         self.assertFalse(result["score_eligible"])
+        self.assertEqual(
+            [(row["symbol"], row["change_pct"]) for row in result["constituents"]],
+            [("AAA", 10.0), ("BBB", -10.0)],
+        )
+        self.assertEqual(result["constituents"][0]["close"], 110.0)
 
     def test_missing_member_withholds_score_instead_of_treating_as_zero(self):
         self.archive["records"][0]["equity_rows"].pop()
