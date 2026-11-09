@@ -8,6 +8,8 @@ on:
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
       - "nse_cash_basket_breadth.py"
+      - "evaluate_cash_basket_forward.py"
+      - "tests/test_evaluate_cash_basket_forward.py"
       - "tests/test_nse_cm_bhavcopy_archive.py"
       - "tests/test_bse_cm_bhavcopy_archive.py"
       - "tests/test_index_constituent_rosters.py"
@@ -52,6 +54,10 @@ jobs:
           python -m unittest discover -s tests -p 'test_three_index_cash_basket_validation.py' -v
           python -m py_compile run_three_index_cash_basket.py
           python -m unittest discover -s tests -p 'test_run_three_index_cash_basket.py' -v
+      - name: Validate forward evaluator offline
+        run: |
+          python -m py_compile evaluate_cash_basket_forward.py
+          python -m unittest discover -s tests -p "test_evaluate_cash_basket_forward.py" -v
       - name: Fetch one dated official NSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         run: python nse_cm_bhavcopy_archive.py
@@ -62,6 +68,15 @@ jobs:
       - name: Run offline full-universe cash basket checks
         if: github.event_name != 'pull_request'
         run: python run_three_index_cash_basket.py
+      - name: Evaluate historical cash-basket signals against next captured closes
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ ! -s market_signal_history.json ]; then
+            echo "MARKET_SIGNAL_HISTORY_MISSING; forward evaluation withheld"
+            exit 1
+          fi
+          python evaluate_cash_basket_forward.py --min-samples 20
+          test -s cash_basket_forward_evaluation.json
       - name: Commit exchange cash archives and diagnostic report
         if: github.event_name != 'pull_request'
         run: |
@@ -82,7 +97,13 @@ jobs:
             exit 1
           fi
           git add -f -- index_cash_basket_diagnostics.json
-          if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json index_cash_basket_diagnostics.json; then
+          if [ -s cash_basket_forward_evaluation.json ]; then
+            git add -f -- cash_basket_forward_evaluation.json
+          else
+            echo "CASH_BASKET_FORWARD_EVALUATION_MISSING"
+            exit 1
+          fi
+          if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json index_cash_basket_diagnostics.json cash_basket_forward_evaluation.json; then
             echo "EXCHANGE_CASH_ARCHIVES_NO_CHANGE"
           else
             git commit -m "Archive exchange cash and daily index basket diagnostics"
