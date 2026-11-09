@@ -24,7 +24,7 @@ EXPECTED = {"NIFTY": 50, "BANKNIFTY": 14, "SENSEX": 30}
 SOURCES = {
     "NIFTY": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
     "BANKNIFTY": "https://nsearchives.nseindia.com/content/indices/ind_niftybanklist.csv",
-    "SENSEX": "https://www.bseindia.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
+    "SENSEX": "https://www.bseindices.com/AsiaIndexAPI/api/Codewise_Indices/w?code=16",
 }
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; Trinetra-Index-Roster/1.0)",
