@@ -69,7 +69,7 @@ class BseCashArchiveTests(unittest.TestCase):
         self.assertEqual(body, b"csv")
         self.assertEqual(
             url,
-            "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_20261106_F_0000.csv",
+            "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_20261106_F_0000.CSV",
         )
         self.assertEqual(session.get.call_count, 1)
 
