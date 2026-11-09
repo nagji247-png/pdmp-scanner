@@ -115,8 +115,10 @@ def parse_bse_sensex_constituents(html, bse_archive, as_of, source_url):
         if code:
             scrip_codes.append(code)
     if len(scrip_codes) != EXPECTED["SENSEX"] or len(set(scrip_codes)) != EXPECTED["SENSEX"]:
+        preview = re.sub(r"\\s+", " ", str(html or ""))[:1200]
         raise ValueError(
-            f"SENSEX official page must yield 30 unique BSE scrip codes; received {len(scrip_codes)}"
+            f"SENSEX official page must yield 30 unique BSE scrip codes; received {len(scrip_codes)}; "
+            f"response_preview={preview!r}"
         )
     records = bse_archive.get("records", []) if isinstance(bse_archive, dict) else []
     session = next((r for r in records if isinstance(r, dict) and r.get("date") == as_of), None)
@@ -156,6 +158,7 @@ def build_roster_bundle(session, as_of, bse_archive):
     nifty_payload = fetch_once(session, SOURCES["NIFTY"])
     bank_payload = fetch_once(session, SOURCES["BANKNIFTY"])
     bse_payload = fetch_once(session, SOURCES["SENSEX"])
+    print(f"BSE SENSEX official constituent response bytes: {len(bse_payload)}")
     return {
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
