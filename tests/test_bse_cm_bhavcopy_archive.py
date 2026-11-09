@@ -41,6 +41,12 @@ class BseCashArchiveTests(unittest.TestCase):
         self.assertEqual(parsed[0]["close"], 105.0)
         self.assertEqual(parsed[0]["previous_close"], 100.0)
 
+    def test_zero_previous_close_is_preserved_as_unavailable_not_fatal(self):
+        rows = [row(str(500000 + i), f"SYM{i}", f"IN{i:09d}0") for i in range(500)]
+        rows[0]["PrvsClsgPric"] = "0.00"
+        parsed = parse_bse_cm_csv(payload(rows), "2026-11-06")
+        self.assertIsNone(parsed[0]["previous_close"])
+
     def test_rejects_wrong_trade_date(self):
         bad = row()
         bad["TradDt"] = "2026-11-05"
