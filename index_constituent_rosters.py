@@ -178,8 +178,8 @@ def build_roster_bundle(session, as_of, bse_archive):
     if main_script:
         js_payload = fetch_once(session, urljoin("https://www.bseindices.com/", main_script))
         js_text = js_payload.decode("utf-8", errors="replace")
-        matches = [js_text[max(0, m.start()-100):min(len(js_text), m.end()+180)] for m in re.finditer(r"api|constituent|indexdetail", js_text, flags=re.IGNORECASE)]
-        print("BSE Indices main bundle API clues:", matches[:60])
+        matches = [js_text[max(0, m.start()-180):min(len(js_text), m.end()+260)] for m in re.finditer(r"constituent|constituents|indexdetail|indexstock", js_text, flags=re.IGNORECASE)]
+        print("BSE Indices main bundle constituent API clues:", matches[:80])
     return {
         "schema_version": 1,
         "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
