@@ -694,6 +694,36 @@ function renderComponentBreakdown(b) {
 }
 
 
+function renderStandaloneStockBasket(b) {
+  const component = b && b.components && b.components.stock_basket;
+  const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
+  const validScore = component && Number.isFinite(Number(component.score))
+    && Number(component.score) >= -10 && Number(component.score) <= 10
+    && typeof component.source === "string" && component.source.trim()
+    && typeof component.source_date === "string" && component.source_date.trim()
+    && (component.included === true || component.research_only === true
+      || component.status === "complete_diagnostic"
+      || (component.validation && component.validation.passed === true));
+  if (validScore) {
+    const score = Number(component.score);
+    const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
+    const status = component.research_only === true || component.score_eligible === false
+      ? "RESEARCH · Final Score से बाहर" : "अलग Component";
+    return '<div style="margin-top:7px;padding:7px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.55)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+      '<span style="font-size:11px;color:#a9c5e5;font-weight:700">STOCK BASKET</span>' +
+      '<b class="' + cls + '" style="font-size:15px">' + (score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + '/10</b></div>' +
+      '<div class="hl-meta">' + esc(status) + ' · ' + esc(component.source) + ' · ' + esc(component.source_date) + '</div></div>';
+  }
+  const reason = excluded && excluded.reason ? String(excluded.reason) : "";
+  return '<div style="margin-top:7px;padding:7px 8px;border:1px solid #24466a;border-radius:8px;background:rgba(7,19,39,.38)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+    '<span style="font-size:11px;color:#a9c5e5;font-weight:700">STOCK BASKET</span>' +
+    '<b class="zero" style="font-size:11px">डेटा जमा / जाँच जारी</b></div>' +
+    '<div class="hl-meta">' + esc(reason || "अभी पूरा, तारीख़-सत्यापित Basket Score उपलब्ध नहीं") + '</div>' +
+    '<div class="hl-meta">यह अलग रहेगा; मौजूदा PDMP Final Score में नहीं जुड़ेगा।</div></div>';
+}
+
 function card(name, d, participantOI) {
   const shownScore = Number(d.score);
   let [cls, label] = classify(shownScore);
@@ -787,6 +817,7 @@ function card(name, d, participantOI) {
       </div>
       <div class="lbl" style="color:${color}">${label}</div>
       ${experimentalScoreLine}
+      ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown) : ""}
     `}
     ${componentBreakdown}
     ${(Array.isArray(d.indicator_signals) ? d.indicator_signals : []).map(signal => `<div class="div">${esc(signal.label)}</div>${signal.reason ? `<div class="more">${esc(signal.reason)}</div>` : ""}`).join("")}
