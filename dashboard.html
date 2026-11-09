@@ -1019,6 +1019,9 @@ document.addEventListener("keydown", event => {
 });
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
+  const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
+  const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
+  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
   const validScore = component && Number.isFinite(Number(component.score))
     && Number(component.score) >= -10 && Number(component.score) <= 10
     && typeof component.source === "string" && component.source.trim()
@@ -1036,7 +1039,7 @@ function renderStandaloneStockBasket(b, assetName) {
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
-      '</div>' +
+      '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' Stock Basket का पूरा विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
