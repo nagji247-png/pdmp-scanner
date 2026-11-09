@@ -471,7 +471,6 @@
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
 
 <section class="panel indexes-panel"><h2>📊 भारतीय इंडेक्स <span style="margin-left:10px;color:#ffd54a;font-size:12px;font-weight:900">कार्ड पर क्लिक करो चार्ट खुलेंगे</span></h2><div class="grid" id="indexes"></div></section>
-<section class="panel" style="grid-column:1 / -1"><h2>🏢 NIFTY 50 Basket — सभी 50 शेयर</h2><div class="box" id="nifty50-basket"></div></section>
 <section class="panel" style="grid-column:1 / -1"><h2>🧾 F&amp;O और संस्थागत स्थिति (NSE, कल का डेटा)</h2><div class="box" id="foPanel"></div></section>
 
 <section class="panel global-panel"><h2>🌍 वैश्विक संदर्भ (भारत पर असर के लिए)</h2><div class="grid" id="global"></div></section>
@@ -1143,74 +1142,6 @@ function card(name, d, participantOI) {
     openChart(name);
   });
   return el;
-}
-
-function renderNifty50Basket(data) {
-  const box = document.getElementById("nifty50-basket");
-  if (!box) return;
-  const basket = data && data.index_baskets && data.index_baskets.NIFTY50;
-  const rows = basket && Array.isArray(basket.constituents) ? basket.constituents : [];
-  const validRow = row => row && typeof row.symbol === "string" && row.symbol.trim()
-    && Number.isFinite(Number(row.weight_pct)) && Number(row.weight_pct) > 0
-    && Number.isFinite(Number(row.close)) && Number(row.close) > 0
-    && Number.isFinite(Number(row.change_pct));
-  const complete = basket && rows.length === 50 && rows.every(validRow)
-    && typeof basket.source === "string" && basket.source.trim()
-    && typeof basket.source_date === "string" && basket.source_date.trim();
-  if (!complete) {
-    const reason = basket && basket.reason
-      ? esc(basket.reason)
-      : "अभी सभी 50 शेयरों का तारीख़ सहित, आधिकारिक वेटेज वाला पूरा दैनिक snapshot उपलब्ध नहीं है।";
-    box.innerHTML = '<div class="warn">BASKET DATA NOT READY — इसे अभी स्कोर में शामिल नहीं किया गया है।</div>' +
-      '<div class="sub">' + reason + '</div>' +
-      '<div class="sub" style="margin-top:8px">कोई 9-शेयर proxy, अनुमानित भाव या नकली live डेटा नहीं दिखाया जाएगा। पूरा snapshot मिलने पर इसी सेक्शन में सभी 50 शेयर दिखेंगे।</div>';
-    return;
-  }
-
-  const totalWeight = rows.reduce((sum, row) => sum + Number(row.weight_pct), 0);
-  if (totalWeight < 98 || totalWeight > 102) {
-    box.innerHTML = '<div class="warn">OFFICIAL WEIGHT CHECK FAILED</div><div class="sub">50 शेयर मिले, लेकिन वेटेज का कुल ' +
-      totalWeight.toFixed(2) + '% है। 98–102% जाँच सीमा से बाहर होने के कारण सूची/स्कोर रोका गया है।</div>';
-    return;
-  }
-  const up = rows.filter(row => Number(row.change_pct) > 0);
-  const down = rows.filter(row => Number(row.change_pct) < 0);
-  const flat = rows.length - up.length - down.length;
-  const upWeight = up.reduce((sum, row) => sum + Number(row.weight_pct), 0);
-  const downWeight = down.reduce((sum, row) => sum + Number(row.weight_pct), 0);
-  const fmt = value => Number(value).toLocaleString("en-IN", {maximumFractionDigits: 2});
-  const signed = value => (Number(value) > 0 ? "+" : "") + Number(value).toFixed(2) + "%";
-  const scoreValid = basket.validation && basket.validation.passed === true
-    && Number.isFinite(Number(basket.score)) && Number(basket.score) >= -10
-    && Number(basket.score) <= 10;
-  const scoreHtml = scoreValid
-    ? '<div class="ev"><div>ऐतिहासिक जाँच पास Basket Score</div><div><b>' +
-      (Number(basket.score) > 0 ? "+" : "") + Number(basket.score).toFixed(2) + '/10</b></div></div>'
-    : '<div class="sub" style="margin-top:8px">Basket Score: अभी validation pending — Final Score में शामिल नहीं।</div>';
-  const tableRows = rows.slice().sort((a,b) => Number(b.weight_pct)-Number(a.weight_pct)).map(row => {
-    const change = Number(row.change_pct);
-    const cls = change > 0 ? "pos" : change < 0 ? "neg" : "zero";
-    const contribution = Number.isFinite(Number(row.weighted_contribution_pct))
-      ? signed(row.weighted_contribution_pct) : "—";
-    return '<tr><td style="padding:7px 5px;border-top:1px solid #183252">' + esc(row.symbol) + '</td>' +
-      '<td style="padding:7px 5px;border-top:1px solid #183252;text-align:right">₹' + fmt(row.close) + '</td>' +
-      '<td class="' + cls + '" style="padding:7px 5px;border-top:1px solid #183252;text-align:right">' + signed(change) + '</td>' +
-      '<td style="padding:7px 5px;border-top:1px solid #183252;text-align:right">' + fmt(row.weight_pct) + '%</td>' +
-      '<td style="padding:7px 5px;border-top:1px solid #183252;text-align:right">' + contribution + '</td></tr>';
-  }).join("");
-  box.innerHTML = '<div class="sub">स्रोत: ' + esc(basket.source) + ' · EOD तारीख़: ' + esc(basket.source_date) +
-    (basket.observed_at ? ' · प्राप्ति समय: ' + esc(basket.observed_at) : '') + '</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px">' +
-    '<div class="detail-stat"><span>बढ़े</span><b class="pos">' + up.length + ' शेयर · ' + fmt(upWeight) + '% वेटेज</b></div>' +
-    '<div class="detail-stat"><span>गिरे</span><b class="neg">' + down.length + ' शेयर · ' + fmt(downWeight) + '% वेटेज</b></div>' +
-    '<div class="detail-stat"><span>बिना बदलाव</span><b>' + flat + ' शेयर</b></div></div>' +
-    '<div class="ev"><div>कुल आधिकारिक वेटेज</div><div><b>' + fmt(totalWeight) + '%</b></div></div>' +
-    scoreHtml +
-    '<details style="margin-top:10px"><summary><b>📋 सभी 50 शेयर खोलें — भाव, बदलाव, वेटेज और योगदान</b></summary>' +
-    '<div style="overflow-x:auto;margin-top:8px"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:460px">' +
-    '<thead><tr style="color:#9bbce0;text-align:right"><th style="text-align:left;padding:7px 5px">शेयर</th><th>बंद भाव</th><th>बदलाव</th><th>वेटेज</th><th>योगदान</th></tr></thead>' +
-    '<tbody>' + tableRows + '</tbody></table></div></details>' +
-    '<div class="sub" style="margin-top:8px">यह सूची EOD snapshot है, live quote नहीं। योगदान तभी दिखेगा जब backend उसे सत्यापित daily price और आधिकारिक weight से उपलब्ध कराए।</div>';
 }
 
 function renderRange(r) {
@@ -2654,7 +2585,6 @@ async function load() {
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
     renderInstruments(data.instruments, data.participant_oi);
-    renderNifty50Basket(data);
     renderTrends(data.trends);
     renderContrarian(data.contrarian);
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
