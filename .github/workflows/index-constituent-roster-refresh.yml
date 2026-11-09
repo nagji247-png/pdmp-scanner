@@ -1,0 +1,79 @@
+name: Official Index Constituent Roster Refresh
+
+on:
+  pull_request:
+    paths:
+      - "index_constituent_rosters.py"
+      - "tests/test_index_constituent_rosters.py"
+      - "bse_cm_bhavcopy_archive.py"
+      - "index_constituent_rosters.json"
+      - ".github/workflows/index-constituent-roster-refresh.yml"
+  schedule:
+    # Weekly after Monday cash EOD archives have been published.
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: official-index-constituent-roster-refresh
+  cancel-in-progress: false
+
+jobs:
+  roster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install roster capture dependency
+        run: python -m pip install requests
+      - name: Validate official roster parsers offline
+        run: |
+          python -m py_compile index_constituent_rosters.py
+          python -m unittest discover -s tests -p 'test_index_constituent_rosters.py' -v
+      - name: Live official NSE and BSE cash-source validation (latest completed session)
+        if: github.event_name == 'pull_request'
+        run: |
+          CASH_DATE="2026-11-06"
+          python nse_cm_bhavcopy_archive.py --date "$CASH_DATE"
+          python bse_cm_bhavcopy_archive.py --date "$CASH_DATE"
+          python index_constituent_rosters.py --date "$CASH_DATE"
+          python run_three_index_cash_basket.py --date "$CASH_DATE"
+      - name: Capture official Nifty 50, Nifty Bank and BSE Sensex rosters
+        if: github.event_name != 'pull_request'
+        run: |
+          python bse_cm_bhavcopy_archive.py
+          python index_constituent_rosters.py
+      - name: Upload live exchange validation evidence
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-three-index-cash-validation
+          if-no-files-found: warn
+          path: |
+            nse_cm_bhavcopy_archive.json
+            bse_cm_bhavcopy_archive.json
+            index_constituent_rosters.json
+            nse_index_constituent_rosters.json
+            index_cash_basket_diagnostics.json
+      - name: Commit dated roster snapshot
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -s index_constituent_rosters.json ]; then
+            echo "OFFICIAL_ROSTER_SNAPSHOT_MISSING"
+            exit 1
+          fi
+          git add -f -- index_constituent_rosters.json
+          if git diff --cached --quiet -- index_constituent_rosters.json; then
+            echo "OFFICIAL_ROSTER_NO_CHANGE"
+          else
+            git commit -m "Refresh official Nifty and Sensex constituent rosters"
+            git pull --rebase -X theirs origin main
+            git push origin HEAD:main
+          fi
