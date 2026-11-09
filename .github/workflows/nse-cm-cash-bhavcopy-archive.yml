@@ -75,7 +75,7 @@ jobs:
             echo "MARKET_SIGNAL_HISTORY_MISSING; forward evaluation withheld"
             exit 1
           fi
-          python evaluate_cash_basket_forward.py --min-samples 20
+          python evaluate_cash_basket_forward.py --min-samples 60
           test -s cash_basket_forward_evaluation.json
       - name: Commit exchange cash archives and diagnostic report
         if: github.event_name != 'pull_request'
