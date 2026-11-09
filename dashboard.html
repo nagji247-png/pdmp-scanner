@@ -2487,27 +2487,32 @@ function getFoHistoricalStatuses(date) {
   return { date, statuses: result };
 }
 
-function openFoHistoricalStatus(date) {
-  const historical = getFoHistoricalStatuses(date);
-  if (!historical) return;
-  const labels = {
-    FII: "INSIDER OPTIONS (FII)",
-    PRO: "INSIDER OPTIONS (PRO)",
-    CLIENT: "RETAIL BUILDUP (CLIENT)"
-  };
+async function openFoHistoricalStatus(date) {
   const content = document.getElementById("foHistoryModalContent");
   const title = document.getElementById("foHistoryModalTitle");
   const modal = document.getElementById("foHistoryModal");
   if (!content || !title || !modal) return;
   const parts = date.split("-");
   title.textContent = parts.length === 3 ? parts[2] + "/" + parts[1] + "/" + parts[0] + " — पुराना नतीजा" : date;
-  content.innerHTML = historical.statuses.map(item => {
-    const tone = item.status === "BULLISH" ? "bull" : item.status === "BEARISH" ? "bear" : "neutral";
-    const past = item.status === "BULLISH" ? "था" : item.status === "BEARISH" ? "था" : "था";
-    return '<div class="fo-history-row"><strong>' + labels[item.key] + '</strong><span class="fo-history-badge ' + tone + '">' + item.status + ' ' + past + '</span></div>';
-  }).join("");
+  content.innerHTML = '<div class="fo-history-row">पुराना NSE डेटा खोला जा रहा है…</div>';
   modal.hidden = false;
   document.body.classList.add("fo-history-modal-open");
+  await loadFoParticipantHistory();
+  const historical = getFoHistoricalStatuses(date);
+  if (!historical) {
+    content.innerHTML = '<div class="fo-history-row">इस तारीख का सत्यापित पुराना रिकॉर्ड उपलब्ध नहीं है।</div>';
+    return;
+  }
+  const labels = {
+    FII: "INSIDER OPTIONS (FII)",
+    PRO: "INSIDER OPTIONS (PRO)",
+    CLIENT: "RETAIL BUILDUP (CLIENT)"
+  };
+  content.innerHTML = historical.statuses.map(item => {
+    const tone = item.status === "BULLISH" ? "bull" : item.status === "BEARISH" ? "bear" : "neutral";
+    const statusText = item.key === "CLIENT" ? item.status + " था" : "NET " + item.status + " था";
+    return '<div class="fo-history-row"><strong>' + labels[item.key] + '</strong><span class="fo-history-badge ' + tone + '">' + statusText + '</span></div>';
+  }).join("");
 }
 
 function closeFoHistoricalStatus() {
@@ -2558,7 +2563,7 @@ function renderFoDetail() {
         const bar = v == null ? "" : `<div style="width:14px;height:${h}px;background:${color};border:1px solid ${color};border-radius:2px"></div>`;
         return `<div style="flex:1;min-width:0;text-align:center;color:${color};font-size:10px;font-weight:700"><div>${label}</div><div style="height:16px;font-size:9px;overflow:hidden">${v == null ? "—" : signedNum(v)}</div><div style="height:40px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1px">${v != null && v >= 0 ? bar : ""}</div><div style="height:1px;background:#aab2c5"></div><div style="height:40px;display:flex;align-items:flex-start;justify-content:center;padding-top:1px">${v != null && v < 0 ? bar : ""}</div></div>`;
       };
-      const historicalAvailable = !!(historicalDate && getFoHistoricalStatuses(historicalDate));
+      const historicalAvailable = !!historicalDate;
       const historyAction = historicalAvailable
         ? '<button type="button" class="fo-history-data-btn" onclick="openFoHistoricalStatus(\'' + esc(historicalDate) + '\')">डेटा</button>'
         : '<span style="font-size:9px;color:#f5a623">डेटा नहीं</span>';
@@ -2807,7 +2812,6 @@ async function load() {
     renderSignals(data.signals);
     renderNews(data.market_news);
     renderSectorMap(data);
-    await loadFoParticipantHistory();
     renderFoPanel(data.participant_oi, data.instruments);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
