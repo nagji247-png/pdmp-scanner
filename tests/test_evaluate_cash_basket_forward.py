@@ -38,6 +38,16 @@ class CashBasketForwardEvaluationTests(unittest.TestCase):
         result = evaluate_cash_basket(self.diagnostics, self.history, min_samples=2)
         self.assertEqual(result["indices"]["NIFTY"]["sample_count"], 0)
 
+    def test_missing_close_date_is_not_paired(self):
+        del self.history["records"][0]["indices"]["NIFTY"]["close_as_of"]
+        result = evaluate_cash_basket(self.diagnostics, self.history, min_samples=2)
+        self.assertEqual(result["indices"]["NIFTY"]["sample_count"], 0)
+
+    def test_explicitly_invalid_close_is_not_paired(self):
+        self.history["records"][0]["indices"]["NIFTY"]["close_valid"] = False
+        result = evaluate_cash_basket(self.diagnostics, self.history, min_samples=2)
+        self.assertEqual(result["indices"]["NIFTY"]["sample_count"], 0)
+
     def test_incomplete_basket_is_excluded(self):
         self.diagnostics["records"][0]["indices"]["SENSEX"]["status"] = "withheld_incomplete"
         result = evaluate_cash_basket(self.diagnostics, self.history, min_samples=2)

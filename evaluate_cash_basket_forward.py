@@ -26,18 +26,23 @@ def _dated_close(record, index_key):
         return None
     if not math.isfinite(close) or close <= 0:
         return None
+    # A close is usable only when the source explicitly dates it to this
+    # record's session. Missing dates and explicitly invalid rows fail closed.
+    if item.get("close_valid") is False:
+        return None
     as_of = str(item.get("close_as_of") or "").strip()
     day = str(record.get("date") or "").strip()
-    if as_of:
-        parsed = None
-        for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
-            try:
-                parsed = dt.datetime.strptime(as_of, fmt).date().isoformat()
-                break
-            except ValueError:
-                pass
-        if parsed != day:
-            return None
+    if not as_of:
+        return None
+    parsed = None
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            parsed = dt.datetime.strptime(as_of, fmt).date().isoformat()
+            break
+        except ValueError:
+            pass
+    if parsed != day:
+        return None
     try:
         dt.date.fromisoformat(day)
     except ValueError:
