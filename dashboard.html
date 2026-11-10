@@ -1643,6 +1643,12 @@ function renderTrends(t) {
   const bullScore = Number(t.bull_score_pct);
   const bearScore = Number(t.bear_score_pct);
   const neutralScore = Number(t.neutral_score_pct);
+  const dominantTrend = [
+    { label: "BULLISH", value: bullScore, className: "pos" },
+    { label: "BEARISH", value: bearScore, className: "neg" },
+    { label: "NEUTRAL", value: neutralScore, className: "neutral-score" }
+  ].reduce((best, item) => item.value > best.value ? item : best,
+    { label: "NEUTRAL", value: neutralScore, className: "neutral-score" });
   // 7-दिन related-query sample को आज का live crowd mood न दिखाएँ।
   const hasCurrentMood = !failed && t.today_bull_pct != null
     && t.today_basis !== "related_queries_7d"
@@ -1669,9 +1675,10 @@ function renderTrends(t) {
   const scoreBlock = hasScores ? `
     <div class="trends-score-layout">
       <div class="trends-donut" style="--bull:${bullScore}%;--bear:${bearScore}%;--neutral:${neutralScore}%" role="img" aria-label="Bullish ${pctText(bullScore)}, Bearish ${pctText(bearScore)}, Neutral ${pctText(neutralScore)}">
-        <div class="trends-donut-hole"><strong class="${t.sentiment_label === "BEARISH" ? "neg" : t.sentiment_label === "NEUTRAL" ? "neutral-score" : "pos"}">${esc(t.sentiment_label || "NO DATA")}</strong><b>${pctText(bullScore)}</b></div>
+        <div class="trends-donut-hole"><strong class="${dominantTrend.className}">${dominantTrend.label}</strong><b>${pctText(dominantTrend.value)}</b></div>
       </div>
       <div class="trends-score-legend">
+        <div><span class="legend-dot bullish-dot"></span><small>BULLISH</small><strong class="pos">${pctText(bullScore)}</strong></div>
         <div><span class="legend-dot bearish-dot"></span><small>BEARISH</small><strong class="neg">${pctText(bearScore)}</strong></div>
         <div><span class="legend-dot neutral-dot"></span><small>NEUTRAL</small><strong class="neutral-score">${pctText(neutralScore)}</strong></div>
       </div>
