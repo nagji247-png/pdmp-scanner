@@ -121,6 +121,48 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
                                  snapshot["in_scope_queries"] + snapshot["out_of_scope_queries"])
 
 
+    def test_crudeoil_related_queries_survive_empty_hourly_timestamp(self):
+        payloads = []
+
+        class FakeTrendReq:
+            def __init__(self, **kwargs):
+                pass
+
+            def build_payload(self, terms, **kwargs):
+                payloads.append(list(terms))
+
+            def related_queries(self):
+                return {
+                    "crude oil": {
+                        "top": pd.DataFrame([
+                            {"query": "oil prices rally", "value": 60},
+                            {"query": "oil prices crash", "value": 30},
+                            {"query": "oil prices sideways", "value": 10},
+                        ]),
+                        "rising": pd.DataFrame(columns=["query", "value"]),
+                    }
+                }
+
+            def interest_over_time(self):
+                return pd.DataFrame()
+
+        request_module = types.ModuleType("pytrends.request")
+        request_module.TrendReq = FakeTrendReq
+        package_module = types.ModuleType("pytrends")
+        package_module.request = request_module
+        with patch.dict(sys.modules, {
+            "pytrends": package_module,
+            "pytrends.request": request_module,
+        }), patch("fetch_and_score.time.sleep"):
+            result = fetch_crude_trends_shadow()
+
+        snapshot = result["CRUDEOIL"]
+        self.assertEqual(payloads, [["crude oil"]])
+        self.assertTrue(snapshot["valid"], snapshot.get("reason"))
+        self.assertEqual(snapshot["timestamp_basis"], "retrieval_time")
+        self.assertIsNone(snapshot["source_data_time"])
+        self.assertIsNotNone(snapshot["retrieved_at"])
+
     def test_crudeoil_refresh_is_independent_and_uses_one_seed_payload(self):
         payloads = []
 
