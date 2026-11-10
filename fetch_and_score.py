@@ -4685,7 +4685,14 @@ def fetch_trends():
             break
         except Exception as exc:
             errors.append(f"{name}: {exc}")
-            print(f"Google Trends {name} failed; trying next real-data source: {exc}")
+            print(f"Google Trends {name} failed: {exc}")
+            # HTTP 429 is an IP/session-wide throttle, not a bad timeframe.
+            # Stop immediately instead of issuing up to three more fallback
+            # requests in the same scan and extending the provider lockout.
+            message = str(exc).lower()
+            if "429" in message or "too many requests" in message or "rate limit" in message:
+                print("Google Trends rate limit detected; remaining fallback requests skipped.")
+                break
 
     if result is None:
         return {
