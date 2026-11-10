@@ -789,25 +789,30 @@ function renderStockBasketAdvanced(c, observedAt, assetName) {
 
 function renderComponentBreakdown(b, observedAt, assetName) {
   if (!b || typeof b !== "object") return "";
-  const final = b.provisional_final || {};
-  const components = b.provisional_components || {};
+  const isCrudeOil = assetName === "CRUDEOIL";
+  const final = isCrudeOil ? (b.final || {}) : (b.provisional_final || {});
+  const components = isCrudeOil ? (b.components || {}) : (b.provisional_components || {});
   const excluded = b.excluded_components || {};
-  const expectedWeights = {
-    news: 15, stock_basket: 20, eod_oi: 15,
-    client_ce_pe: 15, client_futures: 15, search: 20
-  };
-  const weights = b.provisional_weights || expectedWeights;
+  const expectedWeights = isCrudeOil
+    ? { news: 40, search: 40 }
+    : {
+        news: 15, stock_basket: 20, eod_oi: 15,
+        client_ce_pe: 15, client_futures: 15, search: 20
+      };
+  const weights = isCrudeOil ? (b.component_weights || expectedWeights) : (b.provisional_weights || expectedWeights);
   const weightsMatch = Object.keys(expectedWeights).every(key =>
     Number(weights[key]) === expectedWeights[key]
   );
-  const labels = {
-    news: "News",
-    stock_basket: "Stock Basket",
-    eod_oi: "EOD OI",
-    client_ce_pe: "CLIENT CE/PE",
-    client_futures: "CLIENT Futures",
-    search: "Google Trends"
-  };
+  const labels = isCrudeOil
+    ? { news: "NEWS SCORE", search: "GOOGLE TRENDS SEARCH SCORE" }
+    : {
+        news: "News",
+        stock_basket: "Stock Basket",
+        eod_oi: "EOD OI",
+        client_ce_pe: "CLIENT CE/PE",
+        client_futures: "CLIENT Futures",
+        search: "Google Trends"
+      };
   const scoreText = value => {
     if (value == null || !Number.isFinite(Number(value))) return "—/10";
     const n = Number(value);
@@ -886,11 +891,13 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     '<div class="hl-title"><b>संयुक्त Final Component Score</b> · <b class="' + totalClass + '">' +
     scoreText(totalNumber) + '</b></div>' +
     '<div class="hl-meta">स्थिति: ' + esc(weightsMatch ? (final.status || "डेटा उपलब्ध नहीं") : "नई Weightage की गणना लंबित") +
-    ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + '/6</div>' +
+    ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + (isCrudeOil ? '/2</div>' : '/6</div>') +
     '<div class="hl-meta">कुल उपलब्ध वजन: ' + (weightsMatch && final.weight_total != null ? Number(final.weight_total).toFixed(2) : "अगली गणना पर") +
     (weightsMatch ? '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") : ' · मौजूदा snapshot पुरानी weightage पर है; नया स्कोर अगली Auto Run पर बनेगा') + '</div>' +
     rowHtml + clientDetail + searchReason +
-    '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>' +
+    (isCrudeOil
+      ? '<div class="hl-meta" style="margin-top:8px">गणना: NEWS और Google Trends Search Score का weighted average; अनुपलब्ध घटक का वजन हटाकर उपलब्ध घटक का वजन normalize किया जाता है। यह केवल CRUDEOIL कार्ड का नया Final Score है।</div>'
+      : '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>') +
     '</div>';
 }
 
@@ -1074,7 +1081,11 @@ function renderStandaloneStockBasket(b, assetName) {
 }
 
 function card(name, d, participantOI, observedAt) {
-  const shownScore = Number(d.score);
+  const crudeFinal = name === "CRUDEOIL" && d.component_breakdown
+    ? d.component_breakdown.final : null;
+  const crudeFinalScore = crudeFinal && crudeFinal.status === "available"
+    && Number.isFinite(Number(crudeFinal.score)) ? Number(crudeFinal.score) : null;
+  const shownScore = crudeFinalScore != null ? crudeFinalScore : Number(d.score);
   let [cls, label] = classify(shownScore);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const hasChange = d.change_pct != null && Number.isFinite(Number(d.change_pct));
@@ -1102,7 +1113,7 @@ function card(name, d, participantOI, observedAt) {
       '</b> · खबरें ' + Number(d.experimental_headline_count || 0) +
       ' · हटाई गई पुरानी/अज्ञात ' + Number(d.experimental_excluded_old_or_unknown || 0) +
       ' · साझा ' + Number(d.experimental_excluded_cross_index_duplicates || 0) + '</div>' : "";
-  const componentBreakdown = ["NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"].includes(name)
+  const componentBreakdown = ["NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"].includes(name)
     ? renderComponentBreakdown(d.component_breakdown, observedAt, name) : "";
   const posN = Number(d.pos_n || 0);
   const negN = Number(d.neg_n || 0);
