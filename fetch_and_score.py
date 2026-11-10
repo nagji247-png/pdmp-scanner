@@ -4755,7 +4755,7 @@ def update_crowd(events, crowd_pct, today_str, nifty_ret):
         e["outcome"] = "followed" if crowd_up == price_up else "trap"
 
 
-def build_daily_crowd_followup(history, nifty_ret, keep=40):
+def build_daily_crowd_followup(history, nifty_ret, keep=260):
     """हर valid EOD Trends snapshot को अगले उपलब्ध पूर्ण NIFTY daily return से मिलाएँ."""
     records = history.get("records") if isinstance(history, dict) else []
     records = records if isinstance(records, list) else []
