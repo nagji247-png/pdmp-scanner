@@ -54,17 +54,6 @@ ARCHIVE_PENDING_SYMBOLS = {
     "MOTILALOFS": "MOTILALOFS.NS",
 }
 
-def contrarian_event_date(sym, now_utc=None):
-    """Return the scan date in the same calendar used by that symbol's daily returns."""
-    stamp = now_utc or dt.datetime.now(dt.timezone.utc)
-    if stamp.tzinfo is None:
-        stamp = stamp.replace(tzinfo=dt.timezone.utc)
-    indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK", "^INDIAVIX")
-    if indian_cash:
-        ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
-        return stamp.astimezone(ist).date().isoformat()
-    return stamp.astimezone(dt.timezone.utc).date().isoformat()
-
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
 # नया स्टॉक जोड़ें तो यहाँ भी एक लाइन जोड़ें।
 STOCK_ALIASES = {
@@ -773,24 +762,9 @@ def build_asset_component_breakdowns(
 
         # The new visible Component Score is provisional and independent from
         # both the published PDMP score and the stricter verified-only shadow.
-        provisional_components = {
-            component_name: {
-                **component,
-                "weight": PROVISIONAL_WEIGHTS[component_name],
-            }
-            for component_name, component in components.items()
-            if component_name in PROVISIONAL_WEIGHTS
-        }
+        provisional_components = dict(components)
         basket = stock_basket_diagnostics.get(name)
-        # A complete diagnostic is not automatically score-eligible. Require
-        # the research gate to explicitly approve inclusion before it can
-        # enter even the provisional aggregate.
-        if (
-            isinstance(basket, dict)
-            and basket.get("score_eligible") is True
-            and basket.get("included") is True
-            and basket.get("research_only") is not True
-        ):
+        if isinstance(basket, dict):
             basket_component = build_component(
                 basket.get("score"),
                 basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
@@ -2634,12 +2608,9 @@ def fetch_participant_oi(base_date=None, lookback_days=7):
         base_date = dt.datetime.now(dt.timezone.utc).date()
     elif isinstance(base_date, str):
         base_date = dt.date.fromisoformat(base_date)
-    search_days = max(0, int(lookback_days))
-    for offset in range(0, search_days + 1):
+    for offset in range(0, max(0, int(lookback_days)) + 1):
         day = base_date - dt.timedelta(days=offset)
-        # Normal latest-report lookup skips weekends. Exact-date mode (0-day
-        # lookback) must allow official Saturday/Sunday special trading sessions.
-        if day.weekday() >= 5 and search_days > 0:
+        if day.weekday() >= 5:
             continue
         url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
         try:
@@ -2845,18 +2816,6 @@ def update_contrarian(events, name, score, today_str, returns, sym):
                 continue
             _update_intraday_horizon(e, "after_30m", 30, bars)
             _update_intraday_horizon(e, "after_60m", 60, bars)
-
-
-
-
-def update_archived_contrarian_pending(events, name, now_utc, returns):
-    """Resolve a removed watchlist instrument's pending history with its real Yahoo symbol."""
-    sym = ARCHIVE_PENDING_SYMBOLS.get(name)
-    if not sym:
-        return False
-    event_date = contrarian_event_date(sym, now_utc)
-    update_contrarian(events, name, 0, event_date, returns, sym)
-    return True
 
 
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
@@ -3240,11 +3199,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "neg_n": sum(1 for h in heads if h["score"] < 0),
         **derive_card_indicator(name, sym, score, change),
     }
-    # Contrarian event dates must use the same timezone calendar as daily_returns().
-    # In the 00:00–05:29 IST window, UTC still belongs to the previous date;
-    # using today_str (UTC) would wrongly match the just-finished Indian session.
-    event_date = contrarian_event_date(sym)
-    update_contrarian(events, name, score, event_date, returns, sym)
+    update_contrarian(events, name, score, today_str, returns, sym)
     update_divergence(div_events, name, score, change, today_str, returns, heads)
 
 
@@ -3293,15 +3248,9 @@ def intraday_snapshot(sym):
 
 
 def _band(x, band):
-    try:
-        value = float(x)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(value):
-        return None
-    if value >= band:
+    if x >= band:
         return 1
-    if value <= -band:
+    if x <= -band:
         return -1
     return 0
 
@@ -3366,9 +3315,7 @@ def update_signals(instruments, state, log, now_iso):
         changed = []
         if cur["sent"] != prev["sent"] or abs(cur["score"] - prev["score"]) >= SIG_SCORE_BAND:
             changed.append("भावना")
-        # Missing/stale price changes are unknown, not a new price-direction event.
-        if cur["price_dir"] is not None and prev.get("price_dir") is not None \
-                and cur["price_dir"] != prev["price_dir"]:
+        if cur["price_dir"] != prev["price_dir"]:
             changed.append("कीमत")
         if cur["vwap_side"] is not None and prev.get("vwap_side") is not None \
                 and cur["vwap_side"] != prev["vwap_side"]:
@@ -4738,13 +4685,7 @@ def fetch_trends():
             break
         except Exception as exc:
             errors.append(f"{name}: {exc}")
-            print(f"Google Trends {name} failed: {exc}")
-            # HTTP 429 is a provider/IP throttle, not a failed timeframe.
-            # Stop here rather than multiplying requests during the same scan.
-            message = str(exc).lower()
-            if "429" in message or "too many requests" in message or "rate limit" in message:
-                print("Google Trends rate limit detected; remaining fallback requests skipped.")
-                break
+            print(f"Google Trends {name} failed; trying next real-data source: {exc}")
 
     if result is None:
         return {
@@ -4812,111 +4753,6 @@ def update_crowd(events, crowd_pct, today_str, nifty_ret):
         crowd_up = e["direction"] == "bull"
         price_up = nxt >= 0
         e["outcome"] = "followed" if crowd_up == price_up else "trap"
-
-
-def build_daily_crowd_followup(history, nifty_ret, crowd_events=None, keep=260):
-    """हर valid EOD Trends snapshot को अगले उपलब्ध पूर्ण NIFTY daily return से मिलाएँ."""
-    records = history.get("records") if isinstance(history, dict) else []
-    records = records if isinstance(records, list) else []
-    events = []
-    for record in sorted(records, key=lambda row: str(row.get("date", ""))):
-        if not isinstance(record, dict):
-            continue
-        date = record.get("date")
-        trends = record.get("trends") or {}
-        if not isinstance(date, str) or trends.get("valid") is not True:
-            continue
-        if not isinstance(trends.get("crowd_bull_pct"), (int, float)):
-            continue
-        source_time = trends.get("source_data_time") or trends.get("as_of")
-        if isinstance(source_time, str) and source_time[:10] != date:
-            continue
-        try:
-            crowd_pct = float(trends["crowd_bull_pct"])
-            if not math.isfinite(crowd_pct) or not 0 <= crowd_pct <= 100:
-                continue
-        except (TypeError, ValueError):
-            continue
-
-        # 45–55% को neutral band रखें; बाहर की दिशा directional crowd evidence है.
-        direction = "bull" if crowd_pct > 55 else "bear" if crowd_pct < 45 else "neutral"
-        event = {
-            "date": date,
-            "direction": direction,
-            "crowd_bull_pct": round(crowd_pct, 2),
-            "bull_score_pct": trends.get("bull_score_pct"),
-            "bear_score_pct": trends.get("bear_score_pct"),
-            "neutral_score_pct": trends.get("neutral_score_pct"),
-            "source_data_time": source_time,
-            "daily_average_complete": trends.get("daily_complete") is True,
-            "next_session_date": None,
-            "next_change": None,
-            "outcome": None,
-        }
-        later = sorted(day for day in nifty_ret if day > date)
-        if later:
-            next_day = later[0]
-            try:
-                move = float(nifty_ret[next_day])
-                if math.isfinite(move):
-                    event["next_session_date"] = next_day
-                    event["next_change"] = round(move, 4)
-                    if direction == "neutral" or move == 0:
-                        event["outcome"] = "neutral"
-                    else:
-                        crowd_up = direction == "bull"
-                        price_up = move > 0
-                        event["outcome"] = "followed" if crowd_up == price_up else "trap"
-            except (TypeError, ValueError):
-                pass
-        events.append(event)
-
-    # Existing crowd_events.json stores the exact first reading used by the
-    # live Crowd Trap detector. Prefer it on matching dates: the EOD snapshot
-    # can be a later/updated Trends reading and must not rewrite the historical
-    # crowd direction that was actually evaluated at the time.
-    by_date = {event["date"]: event for event in events}
-    for saved in crowd_events or []:
-        if not isinstance(saved, dict):
-            continue
-        date = saved.get("date")
-        direction = saved.get("direction")
-        try:
-            crowd_pct = float(saved.get("crowd_pct"))
-        except (TypeError, ValueError):
-            continue
-        if not isinstance(date, str) or direction not in ("bull", "bear") or not math.isfinite(crowd_pct):
-            continue
-        event = by_date.get(date, {
-            "date": date, "bull_score_pct": None, "bear_score_pct": None,
-            "neutral_score_pct": None, "source_data_time": None,
-            "daily_average_complete": False,
-        })
-        event.update({
-            "direction": direction,
-            "crowd_bull_pct": round(crowd_pct, 2),
-            "source": "original crowd_events.json reading",
-            "next_change": saved.get("next_change"),
-            "outcome": saved.get("outcome"),
-        })
-        later = sorted(day for day in nifty_ret if day > date)
-        event["next_session_date"] = later[0] if later and saved.get("next_change") is not None else None
-        by_date[date] = event
-
-    events = [by_date[date] for date in sorted(by_date)]
-    done = [event for event in events if event.get("outcome") is not None]
-    directional = [event for event in done if event.get("outcome") in ("trap", "followed")]
-    return {
-        "source": "Point-in-time market_signal_history + completed NIFTY daily returns",
-        "neutral_band_pct": [45, 55],
-        "tracked": len(done),
-        "directional_tracked": len(directional),
-        "trap": sum(event["outcome"] == "trap" for event in directional),
-        "followed": sum(event["outcome"] == "followed" for event in directional),
-        "neutral": sum(event["outcome"] == "neutral" for event in done),
-        "pending": sum(event.get("outcome") is None for event in events),
-        "events": events[-keep:],
-    }
 
 
 def pick_with_fallback(fresh, prev):
@@ -5040,10 +4876,6 @@ def participant_changes(today, prev):
 
 PARTICIPANT_HISTORY_FILE = "participant_oi_history.json"
 PARTICIPANT_HISTORY_KEEP = 260
-# Official NSE weekend trading sessions in the current archive window:
-# 01-Feb-2026 Budget session (NSE/FAOP/72352) and 08-Nov-2026 Muhurat
-# session (NSE/CMTR/76941). Add future dates only after an official NSE circular.
-SPECIAL_SESSION_OI_DATES = ("2026-02-01", "2026-11-08")
 
 
 def update_participant_oi_history(*snapshots):
@@ -5164,111 +4996,12 @@ def update_participant_oi_history(*snapshots):
             "calendar_days_remaining": days_remaining,
         }
 
-    # Repair known official weekend sessions separately from the weekday-only
-    # rolling backfill. Exact-date requests are rate-limited to once per 24 hours.
-    special_backfill_state = archive.get("special_session_backfill")
-    if not isinstance(special_backfill_state, dict):
-        special_backfill_state = {}
-    missing_special_dates = [
-        day for day in SPECIAL_SESSION_OI_DATES if day not in by_date
-    ]
-    if not missing_special_dates:
-        special_backfill_state.update({
-            "version": 1,
-            "status": "complete",
-            "target_dates": list(SPECIAL_SESSION_OI_DATES),
-            "missing_dates": [],
-        })
-    else:
-        last_special_attempt = None
-        try:
-            raw_special_attempt = special_backfill_state.get("attempted_at")
-            last_special_attempt = (
-                dt.datetime.fromisoformat(raw_special_attempt.replace("Z", "+00:00"))
-                if raw_special_attempt else None
-            )
-            if last_special_attempt and last_special_attempt.tzinfo is None:
-                last_special_attempt = last_special_attempt.replace(tzinfo=dt.timezone.utc)
-        except (TypeError, ValueError):
-            last_special_attempt = None
-
-        special_retry_due = (
-            last_special_attempt is None
-            or (now - last_special_attempt).total_seconds() >= 86400
-        )
-        if special_retry_due:
-            required_index_fields = (
-                "future_index_long", "future_index_short",
-                "index_call_long", "index_call_short",
-                "index_put_long", "index_put_short",
-            )
-            special_added = 0
-            special_requests = 0
-            special_errors = {}
-            for special_date in missing_special_dates:
-                target_day = dt.date.fromisoformat(special_date)
-                special_requests += 1
-                historical = fetch_participant_oi(base_date=target_day, lookback_days=0)
-                participants = historical.get("participants") if isinstance(historical, dict) else None
-                complete = (
-                    isinstance(historical, dict)
-                    and historical.get("ok")
-                    and not historical.get("stale")
-                    and historical.get("date") == special_date
-                    and isinstance(participants, dict)
-                    and all(
-                        isinstance(participants.get(group), dict)
-                        and all(
-                            isinstance(participants[group].get(field), (int, float))
-                            and not isinstance(participants[group].get(field), bool)
-                            for field in required_index_fields
-                        )
-                        for group in ("FII", "DII", "PRO", "CLIENT")
-                    )
-                )
-                if not complete:
-                    special_errors[special_date] = (
-                        historical.get("error", "exact-date participant OI incomplete")
-                        if isinstance(historical, dict)
-                        else "exact-date participant OI response invalid"
-                    )
-                    continue
-                by_date[special_date] = {
-                    "date": special_date,
-                    "source": historical.get("source", "NSE official participant-wise OI"),
-                    "scope": historical.get("scope", "Index F&O participant totals"),
-                    "participants": participants,
-                }
-                special_added += 1
-
-            remaining_special_dates = [
-                day for day in SPECIAL_SESSION_OI_DATES if day not in by_date
-            ]
-            special_backfill_state = {
-                "version": 1,
-                "status": "complete" if not remaining_special_dates else "partial",
-                "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
-                "requests_this_run": special_requests,
-                "sessions_added": special_added,
-                "target_dates": list(SPECIAL_SESSION_OI_DATES),
-                "missing_dates": remaining_special_dates,
-                "errors": special_errors,
-            }
-        else:
-            special_backfill_state.update({
-                "version": 1,
-                "status": special_backfill_state.get("status", "partial"),
-                "target_dates": list(SPECIAL_SESSION_OI_DATES),
-                "missing_dates": missing_special_dates,
-            })
-
     ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
     return {
         "schema_version": 1,
         "source": "NSE participant-wise Open Interest daily EOD CSV",
         "retention_sessions": PARTICIPANT_HISTORY_KEEP,
         "backfill": backfill_state,
-        "special_session_backfill": special_backfill_state,
         "records": ordered,
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes").replace("+00:00", "Z"),
         "added_this_run": added,
@@ -5561,28 +5294,17 @@ def main():
         if name in all_returns:
             continue
         try:
-            archived_sym = ARCHIVE_PENDING_SYMBOLS[name]
-            archived_returns = daily_returns(archived_sym)
+            archived_returns = daily_returns(ARCHIVE_PENDING_SYMBOLS[name])
             all_returns[name] = archived_returns
-            if update_archived_contrarian_pending(
-                events, name, now_utc, archived_returns
-            ):
-                print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
+            update_contrarian(events, name, 0, today_str, archived_returns)
+            print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
         except Exception as exc:
             print(f"Archived Contrarian history unavailable {name}: {str(exc)[:160]}")
 
     # संकेतों का स्नैपशॉट अंतिम संयुक्त स्कोर बनने के बाद नीचे बनाया जाएगा।
 
-    # Keep the latest 30 events per instrument in the dashboard payload.
-    # A global tail of 30 hid older NIFTY history behind events from other assets,
-    # even though the complete contrarian.json archive remained intact.
-    visible_events = []
-    for instrument_name in sorted({e.get("instrument", "अन्य") for e in events}):
-        instrument_events = [e for e in events if e.get("instrument", "अन्य") == instrument_name]
-        visible_events.extend(instrument_events[-30:])
-
     result["contrarian"] = {
-        "events": visible_events,
+        "events": events[-30:],
         # केवल दिशा साफ़ होने वाले रिकॉर्ड Accuracy में गिने जाते हैं।
         "tracked": len([e for e in events if e.get("outcome") in ("reversed", "continued")]),
         "reversed": len([e for e in events if e.get("outcome") == "reversed"]),
@@ -6063,11 +5785,6 @@ def main():
 
     result = clean(result)
     update_market_signal_history(result)
-    crowd_history = load_json(MARKET_SIGNAL_HISTORY_FILE, {})
-    result["crowd_daily_followup"] = build_daily_crowd_followup(
-        crowd_history, all_returns.get("NIFTY") or {}, crowd_events
-    )
-    result = clean(result)
     events = clean(events)
     crowd_events = clean(crowd_events)
     div_events = clean(div_events)

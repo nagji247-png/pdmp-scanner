@@ -136,29 +136,5 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         self.assertIn("लाइव नहीं", result["reference_source"])
 
 
-    def test_band_returns_unknown_for_missing_or_nonfinite_values(self):
-        self.assertIsNone(fetch_and_score._band(None, 0.5))
-        self.assertIsNone(fetch_and_score._band(float("nan"), 0.5))
-        self.assertEqual(fetch_and_score._band(0.6, 0.5), 1)
-        self.assertEqual(fetch_and_score._band(-0.6, 0.5), -1)
-        self.assertEqual(fetch_and_score._band(0.1, 0.5), 0)
-
-    def test_missing_price_change_does_not_crash_or_create_false_event(self):
-        state = {}
-        log = []
-        instruments = {"NIFTY": {"score": 1.0, "change_pct": None}}
-        with mock.patch.object(fetch_and_score, "SIGNAL_WATCH", {"NIFTY": "^NSEI"}), \
-             mock.patch.object(fetch_and_score, "intraday_snapshot", return_value=None):
-            fetch_and_score.update_signals(
-                instruments, state, log, "2026-11-10T07:40:00Z"
-            )
-            instruments["NIFTY"]["change_pct"] = 0.2
-            fetch_and_score.update_signals(
-                instruments, state, log, "2026-11-10T08:10:00Z"
-            )
-
-        self.assertEqual(log, [])
-        self.assertEqual(state["NIFTY"]["price_dir"], 1)
-
 if __name__ == "__main__":
     unittest.main()

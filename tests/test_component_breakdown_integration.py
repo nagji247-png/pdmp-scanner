@@ -707,48 +707,6 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(item["score"], 1.25)
 
 
-    def test_research_only_stock_basket_is_not_added_to_provisional_final(self):
-        instruments = {
-            "NIFTY": {
-                "score": 1.25,
-                "headlines": [{
-                    "title": "Nifty rally",
-                    "source": "Moneycontrol",
-                    "score": 2,
-                    "published_at": "2026-11-10T00:00:00Z",
-                }],
-            }
-        }
-        diagnostic = {
-            "score": 8.0,
-            "source": "Official NSE/BSE CM UDiFF",
-            "source_date": "2026-11-06",
-            "research_only": True,
-            "score_eligible": False,
-            "included": False,
-            "status": "complete_diagnostic",
-        }
-        now = datetime(2026, 11, 10, 0, 8, tzinfo=timezone.utc)
-        with mock.patch.object(
-            fetch_and_score,
-            "load_latest_stock_basket_diagnostics",
-            return_value={"NIFTY": diagnostic},
-        ):
-            fetch_and_score.build_asset_component_breakdowns(
-                instruments, "2026-11-10T00:08:00Z", now
-            )
-
-        breakdown = instruments["NIFTY"]["component_breakdown"]
-        self.assertNotIn("stock_basket", breakdown["provisional_components"])
-        self.assertEqual(
-            breakdown["stock_basket_diagnostic"]["score_eligible"], False
-        )
-        self.assertEqual(
-            breakdown["provisional_components"]["news"]["weight"],
-            breakdown["provisional_weights"]["news"],
-        )
-
-
     def test_partial_watchlist_never_enters_index_stock_basket_final(self):
         instruments = {
             name: {"score": 1.25, "headlines": []}
