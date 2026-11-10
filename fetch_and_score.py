@@ -54,6 +54,17 @@ ARCHIVE_PENDING_SYMBOLS = {
     "MOTILALOFS": "MOTILALOFS.NS",
 }
 
+def contrarian_event_date(sym, now_utc=None):
+    """Return the scan date in the same calendar used by that symbol's daily returns."""
+    stamp = now_utc or dt.datetime.now(dt.timezone.utc)
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=dt.timezone.utc)
+    indian_cash = sym.endswith(".NS") or sym in ("^NSEI", "^BSESN", "^NSEBANK", "^INDIAVIX")
+    if indian_cash:
+        ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+        return stamp.astimezone(ist).date().isoformat()
+    return stamp.astimezone(dt.timezone.utc).date().isoformat()
+
 # Google Trends में स्टॉक का नाम पहचानने के लिए वैकल्पिक नाम।
 # नया स्टॉक जोड़ें तो यहाँ भी एक लाइन जोड़ें।
 STOCK_ALIASES = {
@@ -2818,6 +2829,16 @@ def update_contrarian(events, name, score, today_str, returns, sym):
             _update_intraday_horizon(e, "after_60m", 60, bars)
 
 
+def update_archived_contrarian_pending(events, name, now_utc, returns):
+    """Resolve a removed watchlist instrument's pending history with its real Yahoo symbol."""
+    sym = ARCHIVE_PENDING_SYMBOLS.get(name)
+    if not sym:
+        return False
+    event_date = contrarian_event_date(sym, now_utc)
+    update_contrarian(events, name, 0, event_date, returns, sym)
+    return True
+
+
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
     """⚡ संकेत दर्ज करें: स्कोर और कीमत की दिशा अलग हो।
     नतीजा उसी दिन के सत्र से भरता है जिस दिन संकेत बना।
@@ -3199,7 +3220,11 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "neg_n": sum(1 for h in heads if h["score"] < 0),
         **derive_card_indicator(name, sym, score, change),
     }
-    update_contrarian(events, name, score, today_str, returns, sym)
+    # Contrarian event dates must use the same timezone calendar as daily_returns().
+    # In the 00:00–05:29 IST window, UTC still belongs to the previous date;
+    # using today_str (UTC) would wrongly match the just-finished Indian session.
+    event_date = contrarian_event_date(sym)
+    update_contrarian(events, name, score, event_date, returns, sym)
     update_divergence(div_events, name, score, change, today_str, returns, heads)
 
 
@@ -5399,10 +5424,13 @@ def main():
         if name in all_returns:
             continue
         try:
-            archived_returns = daily_returns(ARCHIVE_PENDING_SYMBOLS[name])
+            archived_sym = ARCHIVE_PENDING_SYMBOLS[name]
+            archived_returns = daily_returns(archived_sym)
             all_returns[name] = archived_returns
-            update_contrarian(events, name, 0, today_str, archived_returns)
-            print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
+            if update_archived_contrarian_pending(
+                events, name, now_utc, archived_returns
+            ):
+                print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
         except Exception as exc:
             print(f"Archived Contrarian history unavailable {name}: {str(exc)[:160]}")
 
