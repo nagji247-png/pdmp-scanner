@@ -565,6 +565,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "BANKNIFTY": "bank nifty breakout",
             "GOLD": "gold price rise",
             "SILVER": "silver price rise",
+            "CRUDEOIL": "crude oil price rise",
         }
         self.assertEqual(
             {asset: spec["bull"] for asset, spec in
