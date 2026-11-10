@@ -4664,9 +4664,12 @@ def fetch_crude_trends_shadow():
         source_time, timestamp_basis = _trends_snapshot_timestamp(
             observed, "Google Trends CRUDEOIL batch timestamp"
         )
-        return {"CRUDEOIL": _summarize_asset_related_query_snapshot(
+        result = {"CRUDEOIL": _summarize_asset_related_query_snapshot(
             related, "CRUDEOIL", seed, source_time, source, timestamp_basis
         )}
+        return _attach_asset_directional_trends_diagnostics(
+            result, {"CRUDEOIL": seed}, enabled=True
+        )
     except Exception as exc:
         reason = str(exc)[:220]
         print(f"Google Trends CRUDEOIL independent batch unavailable: {reason}")
@@ -4753,9 +4756,14 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 "reason": reason,
                 "production_score_used": False,
             }
-    # Optional only: five extra payloads, one per asset. Keep disabled by default.
+    # Optional only: one bounded phrase payload per requested asset. Keep
+    # disabled by default; scheduled scans explicitly enable it. Include crude
+    # only when its independent related-query payload was requested.
+    diagnostic_seeds = dict(seeds)
+    if include_crude:
+        diagnostic_seeds["CRUDEOIL"] = "crude oil"
     return _attach_asset_directional_trends_diagnostics(
-        output, seeds, enabled=include_directional_diagnostics
+        output, diagnostic_seeds, enabled=include_directional_diagnostics
     )
 
 
