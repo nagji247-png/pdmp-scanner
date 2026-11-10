@@ -2829,6 +2829,16 @@ def update_contrarian(events, name, score, today_str, returns, sym):
             _update_intraday_horizon(e, "after_60m", 60, bars)
 
 
+def update_archived_contrarian_pending(events, name, now_utc, returns):
+    """Resolve a removed watchlist instrument's pending history with its real Yahoo symbol."""
+    sym = ARCHIVE_PENDING_SYMBOLS.get(name)
+    if not sym:
+        return False
+    event_date = contrarian_event_date(sym, now_utc)
+    update_contrarian(events, name, 0, event_date, returns, sym)
+    return True
+
+
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
     """⚡ संकेत दर्ज करें: स्कोर और कीमत की दिशा अलग हो।
     नतीजा उसी दिन के सत्र से भरता है जिस दिन संकेत बना।
@@ -5417,11 +5427,10 @@ def main():
             archived_sym = ARCHIVE_PENDING_SYMBOLS[name]
             archived_returns = daily_returns(archived_sym)
             all_returns[name] = archived_returns
-            archived_event_date = contrarian_event_date(archived_sym, now_utc)
-            update_contrarian(
-                events, name, 0, archived_event_date, archived_returns, archived_sym
-            )
-            print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
+            if update_archived_contrarian_pending(
+                events, name, now_utc, archived_returns
+            ):
+                print(f"Archived Contrarian history checked: {name} ({len(archived_returns)} daily returns)")
         except Exception as exc:
             print(f"Archived Contrarian history unavailable {name}: {str(exc)[:160]}")
 
