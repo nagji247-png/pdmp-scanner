@@ -384,7 +384,10 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             # verified snapshot. Keep its original observation timestamp and
             # expose the failed refresh separately; never extend its lifetime.
             if not (isinstance(fresh, dict) and fresh.get("valid")):
-                stamp = old.get("source_data_time") or old.get("as_of") if isinstance(old, dict) else None
+                stamp = (
+                    old.get("source_data_time") or old.get("as_of")
+                    or (old.get("retrieved_at") if old.get("timestamp_basis") == "retrieval_time" else None)
+                ) if isinstance(old, dict) else None
                 if isinstance(old, dict) and old.get("valid") and is_fresh_timestamp(
                     stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES
                 ):
@@ -415,6 +418,8 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
 
         if isinstance(old, dict) and old.get("valid"):
             stamp = old.get("source_data_time") or old.get("as_of")
+            if old.get("timestamp_basis") == "retrieval_time":
+                stamp = old.get("retrieved_at")
             if is_fresh_timestamp(stamp, now_utc, max_age_minutes=TRENDS_MAX_AGE_MINUTES):
                 cached = dict(old)
                 cached["cached"] = True
