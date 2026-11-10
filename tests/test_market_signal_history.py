@@ -514,3 +514,84 @@ class PartialIndexCloseArchiveTests(unittest.TestCase):
         )
         self.assertTrue(record["other_assets"]["GOLD"]["close_valid"])
         self.assertTrue(record["other_assets"]["SILVER"]["close_valid"])
+
+
+
+class DailyCrowdFollowupTests(unittest.TestCase):
+    def test_saved_crowd_event_overrides_later_eod_snapshot(self):
+        history = {
+            "records": [{
+                "date": "2026-11-05",
+                "trends": {
+                    "valid": True, "crowd_bull_pct": 78.1,
+                    "source_data_time": "2026-11-05T15:00:00+00:00",
+                    "daily_complete": False,
+                },
+            }]
+        }
+        saved_events = [{
+            "date": "2026-11-05", "direction": "bear",
+            "crowd_pct": 27.5, "next_change": 2.01, "outcome": "trap",
+        }]
+        result = fetch_and_score.build_daily_crowd_followup(
+            history, {"2026-11-06": 2.01}, saved_events
+        )
+        self.assertEqual(result["tracked"], 1)
+        self.assertEqual(result["trap"], 1)
+        self.assertEqual(result["events"][0]["direction"], "bear")
+        self.assertEqual(result["events"][0]["crowd_bull_pct"], 27.5)
+        self.assertEqual(result["events"][0]["outcome"], "trap")
+        self.assertEqual(result["events"][0]["next_session_date"], "2026-11-06")
+
+    def test_non_extreme_daily_record_is_included_and_neutral_is_separate(self):
+        history = {
+            "records": [{
+                "date": "2026-11-09",
+                "trends": {
+                    "valid": True, "crowd_bull_pct": 50.0,
+                    "source_data_time": "2026-11-09T15:00:00+00:00",
+                    "daily_complete": True,
+                },
+            }]
+        }
+        result = fetch_and_score.build_daily_crowd_followup(
+            history, {"2026-11-10": -0.25}, []
+        )
+        self.assertEqual(result["tracked"], 1)
+        self.assertEqual(result["directional_tracked"], 0)
+        self.assertEqual(result["neutral"], 1)
+        self.assertEqual(result["events"][0]["outcome"], "neutral")
+
+    def test_incomplete_next_session_remains_pending(self):
+        history = {
+            "records": [{
+                "date": "2026-11-09",
+                "trends": {
+                    "valid": True, "crowd_bull_pct": 70.0,
+                    "source_data_time": "2026-11-09T15:00:00+00:00",
+                    "daily_complete": False,
+                },
+            }]
+        }
+        result = fetch_and_score.build_daily_crowd_followup(history, {}, [])
+        self.assertEqual(result["pending"], 1)
+        self.assertIsNone(result["events"][0]["next_change"])
+        self.assertIsNone(result["events"][0]["outcome"])
+
+    def test_invalid_or_wrong_date_trends_are_excluded(self):
+        history = {
+            "records": [
+                {"date": "2026-11-09", "trends": {
+                    "valid": False, "crowd_bull_pct": 70.0,
+                }},
+                {"date": "2026-11-10", "trends": {
+                    "valid": True, "crowd_bull_pct": 70.0,
+                    "source_data_time": "2026-11-09T15:00:00+00:00",
+                }},
+            ]
+        }
+        result = fetch_and_score.build_daily_crowd_followup(
+            history, {"2026-11-11": 0.5}, []
+        )
+        self.assertEqual(result["events"], [])
+        self.assertEqual(result["tracked"], 0)

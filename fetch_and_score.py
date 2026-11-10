@@ -4755,6 +4755,111 @@ def update_crowd(events, crowd_pct, today_str, nifty_ret):
         e["outcome"] = "followed" if crowd_up == price_up else "trap"
 
 
+def build_daily_crowd_followup(history, nifty_ret, crowd_events=None, keep=260):
+    """हर valid EOD Trends snapshot को अगले उपलब्ध पूर्ण NIFTY daily return से मिलाएँ."""
+    records = history.get("records") if isinstance(history, dict) else []
+    records = records if isinstance(records, list) else []
+    events = []
+    for record in sorted(records, key=lambda row: str(row.get("date", ""))):
+        if not isinstance(record, dict):
+            continue
+        date = record.get("date")
+        trends = record.get("trends") or {}
+        if not isinstance(date, str) or trends.get("valid") is not True:
+            continue
+        if not isinstance(trends.get("crowd_bull_pct"), (int, float)):
+            continue
+        source_time = trends.get("source_data_time") or trends.get("as_of")
+        if isinstance(source_time, str) and source_time[:10] != date:
+            continue
+        try:
+            crowd_pct = float(trends["crowd_bull_pct"])
+            if not math.isfinite(crowd_pct) or not 0 <= crowd_pct <= 100:
+                continue
+        except (TypeError, ValueError):
+            continue
+
+        # 45–55% को neutral band रखें; बाहर की दिशा directional crowd evidence है.
+        direction = "bull" if crowd_pct > 55 else "bear" if crowd_pct < 45 else "neutral"
+        event = {
+            "date": date,
+            "direction": direction,
+            "crowd_bull_pct": round(crowd_pct, 2),
+            "bull_score_pct": trends.get("bull_score_pct"),
+            "bear_score_pct": trends.get("bear_score_pct"),
+            "neutral_score_pct": trends.get("neutral_score_pct"),
+            "source_data_time": source_time,
+            "daily_average_complete": trends.get("daily_complete") is True,
+            "next_session_date": None,
+            "next_change": None,
+            "outcome": None,
+        }
+        later = sorted(day for day in nifty_ret if day > date)
+        if later:
+            next_day = later[0]
+            try:
+                move = float(nifty_ret[next_day])
+                if math.isfinite(move):
+                    event["next_session_date"] = next_day
+                    event["next_change"] = round(move, 4)
+                    if direction == "neutral" or move == 0:
+                        event["outcome"] = "neutral"
+                    else:
+                        crowd_up = direction == "bull"
+                        price_up = move > 0
+                        event["outcome"] = "followed" if crowd_up == price_up else "trap"
+            except (TypeError, ValueError):
+                pass
+        events.append(event)
+
+    # Existing crowd_events.json stores the exact first reading used by the
+    # live Crowd Trap detector. Prefer it on matching dates: the EOD snapshot
+    # can be a later/updated Trends reading and must not rewrite the historical
+    # crowd direction that was actually evaluated at the time.
+    by_date = {event["date"]: event for event in events}
+    for saved in crowd_events or []:
+        if not isinstance(saved, dict):
+            continue
+        date = saved.get("date")
+        direction = saved.get("direction")
+        try:
+            crowd_pct = float(saved.get("crowd_pct"))
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(date, str) or direction not in ("bull", "bear") or not math.isfinite(crowd_pct):
+            continue
+        event = by_date.get(date, {
+            "date": date, "bull_score_pct": None, "bear_score_pct": None,
+            "neutral_score_pct": None, "source_data_time": None,
+            "daily_average_complete": False,
+        })
+        event.update({
+            "direction": direction,
+            "crowd_bull_pct": round(crowd_pct, 2),
+            "source": "original crowd_events.json reading",
+            "next_change": saved.get("next_change"),
+            "outcome": saved.get("outcome"),
+        })
+        later = sorted(day for day in nifty_ret if day > date)
+        event["next_session_date"] = later[0] if later and saved.get("next_change") is not None else None
+        by_date[date] = event
+
+    events = [by_date[date] for date in sorted(by_date)]
+    done = [event for event in events if event.get("outcome") is not None]
+    directional = [event for event in done if event.get("outcome") in ("trap", "followed")]
+    return {
+        "source": "Point-in-time market_signal_history + completed NIFTY daily returns",
+        "neutral_band_pct": [45, 55],
+        "tracked": len(done),
+        "directional_tracked": len(directional),
+        "trap": sum(event["outcome"] == "trap" for event in directional),
+        "followed": sum(event["outcome"] == "followed" for event in directional),
+        "neutral": sum(event["outcome"] == "neutral" for event in done),
+        "pending": sum(event.get("outcome") is None for event in events),
+        "events": events[-keep:],
+    }
+
+
 def pick_with_fallback(fresh, prev):
     """ताज़ा सफल हो तो वही; वरना पिछला सफल डेटा 'stale' चिह्न के साथ।"""
     if fresh.get("ok"):
@@ -5303,8 +5408,16 @@ def main():
 
     # संकेतों का स्नैपशॉट अंतिम संयुक्त स्कोर बनने के बाद नीचे बनाया जाएगा।
 
+    # Keep the latest 30 events per instrument in the dashboard payload.
+    # A global tail of 30 hid older NIFTY history behind events from other assets,
+    # even though the complete contrarian.json archive remained intact.
+    visible_events = []
+    for instrument_name in sorted({e.get("instrument", "अन्य") for e in events}):
+        instrument_events = [e for e in events if e.get("instrument", "अन्य") == instrument_name]
+        visible_events.extend(instrument_events[-30:])
+
     result["contrarian"] = {
-        "events": events[-30:],
+        "events": visible_events,
         # केवल दिशा साफ़ होने वाले रिकॉर्ड Accuracy में गिने जाते हैं।
         "tracked": len([e for e in events if e.get("outcome") in ("reversed", "continued")]),
         "reversed": len([e for e in events if e.get("outcome") == "reversed"]),
@@ -5785,6 +5898,11 @@ def main():
 
     result = clean(result)
     update_market_signal_history(result)
+    crowd_history = load_json(MARKET_SIGNAL_HISTORY_FILE, {})
+    result["crowd_daily_followup"] = build_daily_crowd_followup(
+        crowd_history, all_returns.get("NIFTY") or {}, crowd_events
+    )
+    result = clean(result)
     events = clean(events)
     crowd_events = clean(crowd_events)
     div_events = clean(div_events)
