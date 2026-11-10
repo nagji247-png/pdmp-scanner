@@ -38,11 +38,11 @@ class DailyScoreHistoryTests(unittest.TestCase):
             )
             fetch_and_score.update_daily_score_history(
                 records, "NIFTY", 0, "2026-11-12",
-                {"2026-11-12": 0.0}
+                {"2026-11-11": -0.5, "2026-11-12": 0.0, "2026-11-13": 0.4}
             )
 
         by_date = {row["date"]: row for row in records}
-        self.assertEqual(by_date["2026-11-10"]["outcome"], "followed")
+        self.assertEqual(by_date["2026-11-10"]["outcome"], "trap")
         self.assertEqual(by_date["2026-11-10"]["next_change"], -0.5)
         self.assertEqual(by_date["2026-11-11"]["outcome"], "neutral")
         self.assertEqual(by_date["2026-11-12"]["outcome"], "neutral_signal")
