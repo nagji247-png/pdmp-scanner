@@ -34,7 +34,6 @@ permissions:
 concurrency:
   group: pdmp-scan
   cancel-in-progress: false
-  queue: max
 
 jobs:
   scan:

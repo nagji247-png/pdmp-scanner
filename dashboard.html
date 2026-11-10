@@ -1304,38 +1304,7 @@ function renderCrowd(data) {
     <div class="mood-bar"><div class="mood-bull" style="width:${hBull}%"></div><div class="mood-bear" style="width:${100-hBull}%"></div></div>` :
     `<div class="sub" style="margin-top:14px">समाचार भावना: डेटा उपलब्ध नहीं</div>`;
 
-  const trapLine = `<div class="sub" style="margin-top:12px">भीड़ के अत्यधिक झुकाव वाले दिन: Trap ${cs.trap} · Followed ${cs.followed} · जाँचे ${cs.tracked}</div>`;
-
-  const daily = data.crowd_daily_followup || {};
-  const dailyEvents = (daily.events || []).slice().reverse();
-  const dailyStatus = (e) => {
-    if (e.outcome === "trap") return '<span class="neg">भीड़ Trap हुई</span>';
-    if (e.outcome === "followed") return '<span class="pos">बाज़ार भीड़ के साथ चला</span>';
-    if (e.outcome === "neutral") return '<span style="color:#aab4c4">Neutral / स्थिर</span>';
-    return '<span style="color:#aab4c4">अगले सत्र का नतीजा बाकी</span>';
-  };
-  const dailyRows = dailyEvents.map(e => {
-    const direction = e.direction === "bull" ? "BULLISH" : e.direction === "bear" ? "BEARISH" : "NEUTRAL";
-    const move = e.next_change == null ? "—" : `${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%`;
-    const nextDate = e.next_session_date ? ` · अगला सत्र ${esc(e.next_session_date)}` : "";
-    const completeness = e.daily_average_complete ? "दैनिक औसत पूरा" : "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग";
-    return `<div style="padding:9px 10px;margin-top:6px;background:#20263f;border-radius:7px">
-      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
-        <b>${esc(e.date)}</b><span>${direction} · ${Number(e.crowd_bull_pct).toFixed(1)}% bullish</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:12px">
-        <span>${dailyStatus(e)}${nextDate}</span><span>NIFTY ${move}</span>
-      </div>
-      <div class="sub" style="margin-top:3px;font-size:10px">${completeness}</div>
-    </div>`;
-  }).join("");
-  const dailyFollowupHtml = `<details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
-    <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📅 रोज़ाना Crowd बनाम NIFTY — ${dailyEvents.length} रिकॉर्ड</summary>
-    <div class="sub" style="margin-top:8px">Directional जाँचे: ${daily.directional_tracked || 0} · Trap: ${daily.trap || 0} · साथ चला: ${daily.followed || 0} · Neutral: ${daily.neutral || 0} · Pending: ${daily.pending || 0}</div>
-    <div class="sub" style="margin-top:4px">45–55% bullish share को Neutral माना गया है। परिणाम अगले उपलब्ध पूर्ण NIFTY दैनिक रिटर्न से जाँचा जाता है; यह Google Trends खोज-रुचि है, वास्तविक CE/PE पोज़िशन नहीं।</div>
-    ${dailyRows || '<div class="sub" style="margin-top:8px">अभी valid EOD Crowd archive उपलब्ध नहीं।</div>'}
-  </details>`;
-
+  const trapLine = `<div class="sub" style="margin-top:12px">भीड़ एकतरफ़ा दिन: उलटी गई ${cs.trap} · सही निकली ${cs.followed} · कुल ${cs.tracked}</div>`;
   const levelHtml = levels.map(l => {
     const sign = l.dist_pct >= 0 ? "+" : "";
     const near = Math.abs(l.dist_pct) <= 1 ? ' <span class="tag t-rev">करीब</span>' : "";
@@ -1343,7 +1312,7 @@ function renderCrowd(data) {
       <div class="${l.dist_pct > 0 ? "pos" : "neg"}">${sign}${l.dist_pct}% दूर</div></div>`;
   }).join("");
 
-  box.innerHTML = `${moodHtml}${headHtml}${trapLine}${dailyFollowupHtml}
+  box.innerHTML = `${moodHtml}${headHtml}${trapLine}
     ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
 }
 
@@ -1811,6 +1780,16 @@ function renderContrarian(c) {
       const move = e.next_change !== null && e.next_change !== undefined && Number.isFinite(Number(e.next_change))
         ? `<span style="font-size:11px;color:#8fb8d8;margin-left:7px">अगला सत्र: ${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%</span>`
         : "";
+      const horizonLabel = (field, label) => {
+        const h = e[field];
+        if (!h || typeof h !== "object") return `${label}: पुराना रिकॉर्ड`;
+        if (h.status === "complete") {
+          const value = Number(h.change_pct);
+          return `${label}: ${value > 0 ? "+" : ""}${value.toFixed(2)}% ${h.outcome === "reversed" ? "पलटा" : h.outcome === "continued" ? "जारी" : "स्थिर"}`;
+        }
+        return `${label}: ${h.status === "pending" ? "जाँच जारी" : "उपलब्ध नहीं"}`;
+      };
+      const intradayText = `${horizonLabel("after_30m", "30m")} · ${horizonLabel("after_60m", "60m")}`;
       const sign = e.score > 0 ? "+" : "";
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
@@ -1822,7 +1801,8 @@ function renderContrarian(c) {
             ${badge}
           </div>
         </div>
-        <div style="text-align:right;margin:-4px 12px 2px 0">${status}${move}</div>`
+        <div style="text-align:right;margin:-4px 12px 2px 0">${status}${move}</div>
+        <div style="font-size:10px;color:#8fb8d8;text-align:right;margin:0 12px 4px">${intradayText}</div>`;
     }).join("");
     return `
       <details style="margin-top:8px;background:#1e2540;border-radius:8px;padding:10px 12px">
@@ -1848,7 +1828,7 @@ function renderContrarian(c) {
         <div style="font-size:10px;color:#7b82a0;letter-spacing:0.5px">NEXT-SESSION REVERSAL</div>
       </div>
       <div style="font-size:13px;color:#dfe3ef">
-        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> दिशात्मक नतीजे जाँचे
+        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> नतीजे जाँचे
       </div>
     </div>
     <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
