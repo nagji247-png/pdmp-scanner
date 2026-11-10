@@ -179,7 +179,6 @@ DIV_FILE = "divergence_events.json"
 SIG_STATE_FILE = "signal_state.json"
 SIG_LOG_FILE = "signal_log.json"
 HISTORY_FILE = "history.csv"
-DAILY_SCORE_FILE = "daily_score_history.json"
 MARKET_SIGNAL_HISTORY_FILE = "market_signal_history.json"
 
 
@@ -2834,82 +2833,6 @@ def update_contrarian(events, name, score, today_str, returns, sym):
 
 
 
-def update_daily_score_history(records, name, score, today_str, returns, has_news=True, keep=260):
-    """हर valid daily NEWS SCORE को उसी instrument के अगले पूर्ण सत्र से मिलाएँ.
-    यह ±6 Contrarian Watch और उसके reversal प्रतिशत से अलग archive है."""
-    existing = next(
-        (event for event in records
-         if event.get("key") == f"{today_str}|{name}"),
-        None,
-    )
-    if has_news and not SKIP_EVENTS:
-        try:
-            numeric_score = float(score)
-            if not math.isfinite(numeric_score):
-                numeric_score = None
-        except (TypeError, ValueError):
-            numeric_score = None
-        if numeric_score is not None:
-            if existing is None:
-                existing = {
-                    "key": f"{today_str}|{name}",
-                    "date": today_str,
-                    "instrument": name,
-                    "score": round(numeric_score, 2),
-                    "direction": "bullish" if numeric_score > 0 else "bearish" if numeric_score < 0 else "neutral",
-                    "next_session_date": None,
-                    "next_change": None,
-                    "outcome": None,
-                }
-                records.append(existing)
-            elif existing.get("outcome") is None:
-                # उसी कारोबारी दिन के सफल news refresh से score अपडेट करें;
-                # अगला सत्र resolve हो जाने के बाद पुराने संकेत को न बदलें.
-                existing["score"] = round(numeric_score, 2)
-                existing["direction"] = (
-                    "bullish" if numeric_score > 0
-                    else "bearish" if numeric_score < 0 else "neutral"
-                )
-
-    for event in records:
-        if event.get("instrument") != name or event.get("outcome") is not None:
-            continue
-        event_date = event.get("date")
-        if not isinstance(event_date, str):
-            continue
-        later = sorted(day for day in returns if day > event_date)
-        if not later:
-            continue
-        next_date = later[0]
-        try:
-            move = float(returns[next_date])
-            signal = float(event.get("score"))
-            if not math.isfinite(move) or not math.isfinite(signal):
-                continue
-        except (TypeError, ValueError):
-            continue
-        event["next_session_date"] = next_date
-        event["next_change"] = round(move, 2)
-        if abs(move) < 0.000001:
-            event["outcome"] = "neutral"
-        elif signal == 0:
-            event["outcome"] = "neutral_signal"
-        else:
-            same_direction = (move > 0) == (signal > 0)
-            event["outcome"] = "followed" if same_direction else "trap"
-
-    # हर instrument के अधिकतम 260 दैनिक रिकॉर्ड रखें; पुराना ±6 archive अलग है.
-    instrument_records = sorted(
-        (event for event in records if event.get("instrument") == name),
-        key=lambda event: str(event.get("date", "")),
-    )
-    keep_keys = {event.get("key") for event in instrument_records[-keep:]}
-    records[:] = [
-        event for event in records
-        if event.get("instrument") != name or event.get("key") in keep_keys
-    ]
-
-
 
 def update_archived_contrarian_pending(events, name, now_utc, returns):
     """Resolve a removed watchlist instrument's pending history with its real Yahoo symbol."""
@@ -3125,7 +3048,7 @@ def derive_card_indicator(name, sym, score, change):
         return {"indicator_signals": signals} if signals else {}
     return {}
 
-def process(name, sym, query, kind, events, daily_score_events, today_str, instruments, div_events, all_returns):
+def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
     returns = {}
     change = None if name == "SENSEX" else 0.0
     try:
@@ -3307,7 +3230,6 @@ def process(name, sym, query, kind, events, daily_score_events, today_str, instr
     # using today_str (UTC) would wrongly match the just-finished Indian session.
     event_date = contrarian_event_date(sym)
     update_contrarian(events, name, score, event_date, returns, sym)
-    update_daily_score_history(daily_score_events, name, score, event_date, returns, has_news=bool(heads))
     update_divergence(div_events, name, score, change, today_str, returns, heads)
 
 
@@ -5588,7 +5510,6 @@ def main():
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
     events = load_json(EVENTS_FILE, [])
-    daily_score_events = load_json(DAILY_SCORE_FILE, [])
     crowd_events = load_json(CROWD_FILE, [])
     div_events = load_json(DIV_FILE, [])
     sig_state = load_json(SIG_STATE_FILE, {})
@@ -5603,11 +5524,11 @@ def main():
     all_returns = {}
 
     for name, (sym, query) in INDEXES.items():
-        process(name, sym, query, "index", events, daily_score_events, today_str, result["instruments"],
+        process(name, sym, query, "index", events, today_str, result["instruments"],
                 div_events, all_returns)
 
     for name, (sym, query) in STOCKS.items():
-        process(name, sym, query, "stock", events, daily_score_events, today_str, result["instruments"],
+        process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
 
     # Add a clearly separate daily reference rate when the intraday FX quote is unavailable.
@@ -5645,14 +5566,8 @@ def main():
         instrument_events = [e for e in events if e.get("instrument", "अन्य") == instrument_name]
         visible_events.extend(instrument_events[-30:])
 
-    visible_daily_scores = []
-    for instrument_name in sorted({e.get("instrument", "अन्य") for e in daily_score_events}):
-        instrument_scores = [e for e in daily_score_events if e.get("instrument", "अन्य") == instrument_name]
-        visible_daily_scores.extend(instrument_scores[-30:])
-
     result["contrarian"] = {
         "events": visible_events,
-        "daily_scores": visible_daily_scores,
         # केवल दिशा साफ़ होने वाले रिकॉर्ड Accuracy में गिने जाते हैं।
         "tracked": len([e for e in events if e.get("outcome") in ("reversed", "continued")]),
         "reversed": len([e for e in events if e.get("outcome") == "reversed"]),
@@ -6151,8 +6066,6 @@ def main():
         json.dump(result, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(EVENTS_FILE, "w", encoding="utf-8") as f:
         json.dump(events, f, ensure_ascii=False, indent=2, allow_nan=False)
-    with open(DAILY_SCORE_FILE, "w", encoding="utf-8") as f:
-        json.dump(daily_score_events, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(CROWD_FILE, "w", encoding="utf-8") as f:
         json.dump(crowd_events, f, ensure_ascii=False, indent=2, allow_nan=False)
     with open(DIV_FILE, "w", encoding="utf-8") as f:
