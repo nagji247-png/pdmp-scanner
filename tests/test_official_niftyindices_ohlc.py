@@ -100,6 +100,7 @@ class OfficialNSEIndexOHLCTests(unittest.TestCase):
         self.assertEqual(report["oi_dates_without_official_price"], 1)
         self.assertEqual(report["official_sessions_missing_from_oi"], 1)
         self.assertFalse(report["exact_session_calendar_match"])
+        self.assertEqual(report["official_sessions_missing_from_oi_sample"], ["2026-11-06"])
 
     def test_fetch_seeds_session_and_splits_long_date_range(self):
         session = Mock()

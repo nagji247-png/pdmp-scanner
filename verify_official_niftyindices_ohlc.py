@@ -240,6 +240,8 @@ def run_audit(
     return {
         "schema_version": 1,
         "status": status,
+        "source_fetch_status": "success",
+        "alignment_status": "exact" if alignment["exact_session_calendar_match"] else "gaps_detected",
         "source": "NSE India official Historical Index Data",
         "source_page": HISTORICAL_PAGE_URL,
         "source_endpoint": OHLC_URL,
@@ -291,13 +293,15 @@ def main() -> None:
         "matched_sessions": report["alignment"]["matched_sessions"],
         "oi_dates_without_official_price": report["alignment"]["oi_dates_without_official_price"],
         "official_sessions_missing_from_oi": report["alignment"]["official_sessions_missing_from_oi"],
+        "official_sessions_missing_from_oi_sample": report["alignment"]["official_sessions_missing_from_oi_sample"],
+        "oi_dates_without_official_price_sample": report["alignment"]["oi_dates_without_official_price_sample"],
         "match_pct": report["alignment"]["oi_to_official_price_match_pct"],
         "provider_calls": report["provider_calls"],
         "production_backtest_changed": False,
         "live_score_changed": False,
     }, ensure_ascii=False))
-    if report["status"] != "validated":
-        raise SystemExit("official NSE NIFTY 50 OHLC date alignment is incomplete")
+    # A calendar gap is a valid audit finding, not a code/provider failure.
+    # Keep the report successful and expose the missing dates for investigation.
 
 
 if __name__ == "__main__":

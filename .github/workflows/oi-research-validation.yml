@@ -71,11 +71,21 @@ jobs:
           print(f"- Matched sessions: **{alignment['matched_sessions']}**")
           print(f"- OI dates without official price: **{alignment['oi_dates_without_official_price']}**")
           print(f"- Official sessions missing from OI: **{alignment['official_sessions_missing_from_oi']}**")
+          print(f"- Missing OI dates (sample): **{alignment['official_sessions_missing_from_oi_sample']}**")
+          print(f"- OI dates without official price (sample): **{alignment['oi_dates_without_official_price_sample']}**")
           print(f"- Date match: **{alignment['oi_to_official_price_match_pct']}%**")
           print(f"- Provider calls: **{report['provider_calls']}**")
           print("- Production backtest changed: **No**")
           print("- Live score changed: **No**")
           PY
+      - name: Upload official NSE OHLC audit
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-nse-index-ohlc-audit-${{ github.run_number }}
+          path: official_nse_index_ohlc_audit.json
+          if-no-files-found: error
+          retention-days: 14
       # This replay reads only the committed EOD archive. It makes zero market-data requests
       # and never modifies data.json or any production score.
       - name: Build per-asset contrarian component backtest report
