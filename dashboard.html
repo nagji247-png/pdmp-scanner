@@ -1811,16 +1811,6 @@ function renderContrarian(c) {
       const move = e.next_change !== null && e.next_change !== undefined && Number.isFinite(Number(e.next_change))
         ? `<span style="font-size:11px;color:#8fb8d8;margin-left:7px">अगला सत्र: ${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%</span>`
         : "";
-      const horizonLabel = (field, label) => {
-        const h = e[field];
-        if (!h || typeof h !== "object") return `${label}: पुराना रिकॉर्ड`;
-        if (h.status === "complete") {
-          const value = Number(h.change_pct);
-          return `${label}: ${value > 0 ? "+" : ""}${value.toFixed(2)}% ${h.outcome === "reversed" ? "पलटा" : h.outcome === "continued" ? "जारी" : "स्थिर"}`;
-        }
-        return `${label}: ${h.status === "pending" ? "जाँच जारी" : "उपलब्ध नहीं"}`;
-      };
-      const intradayText = `${horizonLabel("after_30m", "30m")} · ${horizonLabel("after_60m", "60m")}`;
       const sign = e.score > 0 ? "+" : "";
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
@@ -1833,7 +1823,6 @@ function renderContrarian(c) {
           </div>
         </div>
         <div style="text-align:right;margin:-4px 12px 2px 0">${status}${move}</div>
-        <div style="font-size:10px;color:#8fb8d8;text-align:right;margin:0 12px 4px">${intradayText}</div>`;
     }).join("");
     return `
       <details style="margin-top:8px;background:#1e2540;border-radius:8px;padding:10px 12px">
