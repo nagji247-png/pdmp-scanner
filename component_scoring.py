@@ -250,7 +250,10 @@ def search_component_from_snapshot(
         return None, "कोई वैध asset-specific Google Trends reading उपलब्ध नहीं"
     if snapshot.get("timeframe") != "now 1-d":
         return None, "केवल now 1-d reading स्वीकार है; 7-दिन fallback Search Score में शामिल नहीं"
+    timestamp_basis = snapshot.get("timestamp_basis") or "source_observation"
     stamp = snapshot.get("source_data_time") or snapshot.get("as_of")
+    if timestamp_basis == "retrieval_time":
+        stamp = snapshot.get("retrieved_at")
     if not is_fresh_timestamp(stamp, now_utc, max_age_minutes=max_age_minutes):
         return None, "Google Trends reading stale है या उसका वास्तविक observation timestamp मान्य नहीं"
     # A neutral-only query set has no directional crowd evidence. Keep its
@@ -278,11 +281,13 @@ def search_component_from_snapshot(
         source_date,
         weight,
         observed_at=stamp,
+        timestamp_basis=timestamp_basis,
         seed=snapshot.get("seed"),
         timeframe="now 1-d",
         classified_queries=snapshot.get("classified_queries"),
-        scope=snapshot.get("scope")
-        or "एक seed की अपनी related-query scale; relative search interest, population percentage नहीं",
+        scope=(snapshot.get("scope")
+        or "एक seed की अपनी related-query scale; relative search interest, population percentage नहीं")
+        + ("; freshness clock = retrieval time, not source observation" if timestamp_basis == "retrieval_time" else ""),
         denominator=snapshot.get("denominator")
         or "same seed's classified related-query relative weights only; not all searches or population percentages",
         score_method="(bullish classified weight - bearish classified weight) / all classified weight × 10",
