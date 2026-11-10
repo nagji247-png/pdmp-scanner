@@ -52,17 +52,17 @@ jobs:
       - name: Audit point-in-time combined-signal archive
         run: python validate_market_signal_history.py --min-sessions 120 --target-sessions 250
       # A single live, read-only source audit is run on this research PR only.
-      # It uses the official Nifty Indices historical-data portal and makes no Yahoo/NSE/Trends calls.
-      - name: Verify official NIFTY 50 OHLC against participant OI dates
+      # It uses the official NSE historical-data portal and makes no Yahoo/NSE/Trends calls.
+      - name: Verify official NSE NIFTY 50 OHLC against participant OI dates
         if: github.event_name == 'pull_request'
-        run: python verify_official_niftyindices_ohlc.py --out official_niftyindices_ohlc_audit.json
-      - name: Add official OHLC audit to PR summary
+        run: python verify_official_niftyindices_ohlc.py --out official_nse_index_ohlc_audit.json
+      - name: Add official NSE OHLC audit to PR summary
         if: github.event_name == 'pull_request'
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           from pathlib import Path
-          report = json.loads(Path("official_niftyindices_ohlc_audit.json").read_text())
+          report = json.loads(Path("official_nse_index_ohlc_audit.json").read_text())
           alignment = report["alignment"]
           print("## Official NIFTY 50 OHLC date alignment")
           print(f"- Status: **{report['status']}**")
