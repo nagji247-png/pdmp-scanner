@@ -1778,10 +1778,51 @@ function renderTrends(t) {
     </details>`;
 }
 
-function renderContrarian(c) {
+function renderContrarian(c, daily) {
   const box = document.getElementById("contrarian");
   if (!c) { box.innerHTML = '<div class="sub">अभी कोई डेटा नहीं</div>'; return; }
 
+  // Daily crowd follow-up is separate from the legacy ±6 NEWS SCORE events.
+  // It measures Google search-interest direction against the next completed NIFTY session.
+  const dailyEvents = Array.isArray(daily && daily.events) ? daily.events.slice().reverse() : [];
+  const dailyDirectional = dailyEvents.filter(e => e.outcome === "trap" || e.outcome === "followed");
+  const dailyTrap = dailyDirectional.filter(e => e.outcome === "trap").length;
+  const dailyFollowed = dailyDirectional.filter(e => e.outcome === "followed").length;
+  const dailyNeutral = dailyEvents.filter(e => e.outcome === "neutral").length;
+  const dailyPending = dailyEvents.filter(e => !e.outcome).length;
+  const dailyRate = dailyDirectional.length
+    ? ((dailyTrap / dailyDirectional.length) * 100).toFixed(1) + "%"
+    : "—";
+
+  const dailyStatus = (e) => {
+    if (e.outcome === "trap") return '<span style="color:#ff6b78;font-weight:700">भीड़ Trap हुई</span>';
+    if (e.outcome === "followed") return '<span style="color:#20e6ac;font-weight:700">बाज़ार भीड़ के साथ चला</span>';
+    if (e.outcome === "neutral") return '<span style="color:#aab4c4">Neutral / स्थिर</span>';
+    return '<span style="color:#aab4c4">Pending — अगला सत्र बाकी</span>';
+  };
+  const dailyRows = dailyEvents.map(e => {
+    const pct = Number(e.crowd_bull_pct);
+    const direction = e.direction === "bull" ? "BULLISH" : e.direction === "bear" ? "BEARISH" : "NEUTRAL";
+    const pctText = Number.isFinite(pct) ? pct.toFixed(1) + "% bullish search share" : "प्रतिशत उपलब्ध नहीं";
+    const move = e.next_change == null || !Number.isFinite(Number(e.next_change))
+      ? "अगला सत्र: अभी उपलब्ध नहीं"
+      : `अगला सत्र ${esc(e.next_session_date || "तारीख़ उपलब्ध नहीं")}: ${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%`;
+    const completeness = e.daily_average_complete
+      ? "चारों निर्धारित Trends स्लॉट पूरे"
+      : "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग";
+    return `
+      <div style="padding:10px 12px;margin-top:7px;background:#20263f;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <b style="font-size:12px;color:#e6e9f2">${esc(e.date)}</b>
+          <b style="font-size:12px;color:${direction === "BULLISH" ? "#20e6ac" : direction === "BEARISH" ? "#ff6b78" : "#aab4c4"}">${direction}</b>
+        </div>
+        <div style="font-size:11px;color:#9bb2d2;margin-top:3px">${pctText} · ${move}</div>
+        <div style="font-size:11px;margin-top:4px">${dailyStatus(e)}</div>
+        <div style="font-size:10px;color:#7188a8;margin-top:3px">${completeness}</div>
+      </div>`;
+  }).join("");
+
+  // Keep the original extreme NEWS SCORE statistic intact and label its scope.
   const rate = c.tracked ? ((c.reversed / c.tracked) * 100).toFixed(1) + "%" : "—";
   const small = c.tracked < 10
     ? '<div class="warn">Small sample size so far — इसे अभी शुरुआती संकेत मानें, पक्का नतीजा नहीं।</div>'
@@ -1796,18 +1837,11 @@ function renderContrarian(c) {
       const badge = isBull
         ? '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#1d3a2a;color:#2ecc71">BULLISH</span>'
         : '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#3b1d22;color:#e74c3c">BEARISH</span>';
-
       let status;
-      if (e.outcome === "reversed") {
-        status = '<span style="font-size:12px;color:#f5a623">पलटा</span>';
-      } else if (e.outcome === "continued") {
-        status = '<span style="font-size:12px;color:#2ecc71">जारी रहा</span>';
-      } else if (e.outcome === "neutral") {
-        status = '<span style="font-size:12px;color:#7b82a0">0.00% चाल — Accuracy में शामिल नहीं</span>';
-      } else {
-        status = '<span style="font-size:12px;color:#7b82a0">अगले दिन का डेटा अभी उपलब्ध नहीं</span>';
-      }
-
+      if (e.outcome === "reversed") status = '<span style="font-size:12px;color:#f5a623">पलटा</span>';
+      else if (e.outcome === "continued") status = '<span style="font-size:12px;color:#2ecc71">जारी रहा</span>';
+      else if (e.outcome === "neutral") status = '<span style="font-size:12px;color:#7b82a0">0.00% चाल — Accuracy में शामिल नहीं</span>';
+      else status = '<span style="font-size:12px;color:#7b82a0">अगले दिन का डेटा अभी उपलब्ध नहीं</span>';
       const move = e.next_change !== null && e.next_change !== undefined && Number.isFinite(Number(e.next_change))
         ? `<span style="font-size:11px;color:#8fb8d8;margin-left:7px">अगला सत्र: ${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%</span>`
         : "";
@@ -1824,12 +1858,9 @@ function renderContrarian(c) {
       const sign = e.score > 0 ? "+" : "";
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-top:8px;background:#20263f;border-radius:8px;">
-          <div style="font-size:13px;color:#e6e9f2">
-            ${esc(e.date)} <span style="color:#7b82a0;font-size:11px">(±6 सीमा पार)</span>
-          </div>
+          <div style="font-size:13px;color:#e6e9f2">${esc(e.date)} <span style="color:#7b82a0;font-size:11px">(±6 सीमा पार)</span></div>
           <div style="display:flex;align-items:center;gap:8px;white-space:nowrap">
-            <span style="font-size:13px;font-weight:700;color:${isBull ? "#2ecc71" : "#e74c3c"}">${sign}${e.score}</span>
-            ${badge}
+            <span style="font-size:13px;font-weight:700;color:${isBull ? "#2ecc71" : "#e74c3c"}">${sign}${e.score}</span>${badge}
           </div>
         </div>
         <div style="text-align:right;margin:-4px 12px 2px 0">${status}${move}</div>
@@ -1844,30 +1875,51 @@ function renderContrarian(c) {
 
   box.innerHTML = `
     <details style="margin:0 0 10px;background:#1e2540;border-radius:8px;padding:8px 12px">
-      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">👁️🖕</summary>
+      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">👁️ विस्तृत जानकारी खोलें</summary>
       <div style="margin-top:8px">
         <div class="warn" style="color:#f5a623">
-          NEWS SCORE (समाचार-आधारित): ±6.0 सीमा पार। अगला-सत्र परिणाम उसी इंस्ट्रूमेंट की अगली कारोबारी चाल से जाँचा जाता है; यह ट्रेडिंग accuracy या भविष्यवाणी की गारंटी नहीं है।
+          NEWS SCORE (समाचार-आधारित): ±6.0 सीमा पार। इसका पुराना NEXT-SESSION REVERSAL केवल extreme News Score रिकॉर्ड का हिसाब है; यह रोज़ाना Crowd Trap दर या पूरी Trinetra accuracy नहीं है।
         </div>
-        <div class="sub" style="margin:-4px 0 10px">30m / 60m अलग जाँच: संकेत के समय की पूरी हुई Yahoo 5-मिनट candle से शुरुआती भाव लिया जाता है। लक्ष्य समय के 10 मिनट के भीतर पूरी candle न मिले तो परिणाम उपलब्ध नहीं माना जाएगा। यह सुविधा NSE cash index और NSE शेयरों के नए रिकॉर्ड पर लागू है; पुराने रिकॉर्ड में यह डेटा नहीं था।</div>
+        <div class="sub" style="margin:-4px 0 10px">30m / 60m अलग जाँच: संकेत के समय की पूरी हुई Yahoo 5-मिनट candle से शुरुआती भाव लिया जाता है। लक्ष्य समय के 10 मिनट के भीतर पूरी candle न मिले तो परिणाम उपलब्ध नहीं माना जाएगा।</div>
       </div>
     </details>
-    ${small}
-    <div style="display:flex;align-items:center;gap:14px;background:#1e2540;border-radius:8px;padding:12px;margin-bottom:6px">
-      <div style="text-align:center;min-width:90px">
-        <div class="bigm" style="font-size:28px">${rate}</div>
-        <div style="font-size:10px;color:#7b82a0;letter-spacing:0.5px">NEXT-SESSION REVERSAL</div>
-      </div>
-      <div style="font-size:13px;color:#dfe3ef">
-        <b>${c.reversed}</b> पलटे · <b>${c.continued}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked}</b> दिशात्मक नतीजे जाँचे
-      </div>
-    </div>
-    <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
-      <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 इंस्ट्रूमेंट के अनुसार रिकॉर्ड खोलें (${(c.events || []).length})</summary>
-      <div style="margin-top:8px">${groupedRows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
-    </details>`;
-}
 
+    <div style="background:#1e2540;border-radius:8px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="text-align:center;min-width:90px">
+          <div class="bigm" style="font-size:28px">${dailyRate}</div>
+          <div style="font-size:10px;color:#7b82a0;letter-spacing:.5px">DAILY CROWD TRAP %</div>
+        </div>
+        <div style="font-size:13px;color:#dfe3ef">
+          <b>${dailyTrap}</b> Trap · <b>${dailyFollowed}</b> साथ चला · <b>${dailyNeutral}</b> स्थिर · <b>${dailyPending}</b> Pending
+          <div style="font-size:10px;color:#9bb2d2;margin-top:4px">${dailyDirectional.length} दिशात्मक नतीजे जाँचे · आधार: Google Trends crowd बनाम अगले सत्र का NIFTY</div>
+        </div>
+      </div>
+      <div class="sub" style="margin-top:8px">यह भीड़ की search-interest दिशा का परीक्षण है — अकेले इससे Trinetra के News/Final Score की accuracy तय नहीं होती।</div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📅 रोज़ाना Crowd बनाम NIFTY — ${dailyEvents.length} तारीख़ें</summary>
+        <div style="margin-top:7px">${dailyRows || '<div class="sub">अभी सत्यापित दैनिक रिकॉर्ड उपलब्ध नहीं हैं।</div>'}</div>
+      </details>
+    </div>
+
+    <div style="background:#1e2540;border-radius:8px;padding:12px;margin-bottom:6px">
+      <div style="font-size:10px;color:#9bb2d2;letter-spacing:.5px;margin-bottom:6px">EXTREME NEWS SCORE — ±6.0 NEXT-SESSION REVERSAL</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="text-align:center;min-width:90px">
+          <div class="bigm" style="font-size:28px">${rate}</div>
+          <div style="font-size:10px;color:#7b82a0;letter-spacing:.5px">NEWS REVERSAL</div>
+        </div>
+        <div style="font-size:13px;color:#dfe3ef">
+          <b>${c.reversed || 0}</b> पलटे · <b>${c.continued || 0}</b> जारी · <b>${c.neutral || 0}</b> स्थिर (अलग) · <b>${c.tracked || 0}</b> दिशात्मक नतीजे जाँचे
+        </div>
+      </div>
+      ${small}
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 इंस्ट्रूमेंट के अनुसार ±6 रिकॉर्ड खोलें (${(c.events || []).length})</summary>
+        <div style="margin-top:8px">${groupedRows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
+      </details>
+    </div>`;
+}
 
 function renderVerifiedAccuracy(v) {
   const box = document.getElementById("verified-accuracy");
@@ -2845,7 +2897,7 @@ async function load() {
     renderFlow(data.fii_dii);
     renderInstruments(data.instruments, data.participant_oi, data.updated);
     renderTrends(data.trends);
-    renderContrarian(data.contrarian);
+    renderContrarian(data.contrarian, data.crowd_daily_followup);
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
