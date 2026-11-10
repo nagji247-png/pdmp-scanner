@@ -762,9 +762,24 @@ def build_asset_component_breakdowns(
 
         # The new visible Component Score is provisional and independent from
         # both the published PDMP score and the stricter verified-only shadow.
-        provisional_components = dict(components)
+        provisional_components = {
+            component_name: {
+                **component,
+                "weight": PROVISIONAL_WEIGHTS[component_name],
+            }
+            for component_name, component in components.items()
+            if component_name in PROVISIONAL_WEIGHTS
+        }
         basket = stock_basket_diagnostics.get(name)
-        if isinstance(basket, dict):
+        # A complete diagnostic is not automatically score-eligible. Require
+        # the research gate to explicitly approve inclusion before it can
+        # enter even the provisional aggregate.
+        if (
+            isinstance(basket, dict)
+            and basket.get("score_eligible") is True
+            and basket.get("included") is True
+            and basket.get("research_only") is not True
+        ):
             basket_component = build_component(
                 basket.get("score"),
                 basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
