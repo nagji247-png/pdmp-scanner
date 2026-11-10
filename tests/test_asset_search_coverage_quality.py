@@ -9,6 +9,7 @@ from fetch_and_score import (
     _asset_search_direction,
     _asset_search_is_out_of_scope,
     fetch_asset_trends_shadow,
+    fetch_crude_trends_shadow,
 )
 
 
@@ -118,6 +119,51 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
                 self.assertEqual(snapshot["classification_coverage_pct"], 100.0)
                 self.assertEqual(snapshot["raw_queries"],
                                  snapshot["in_scope_queries"] + snapshot["out_of_scope_queries"])
+
+
+    def test_crudeoil_refresh_is_independent_and_uses_one_seed_payload(self):
+        payloads = []
+
+        class FakeTrendReq:
+            def __init__(self, **kwargs):
+                pass
+
+            def build_payload(self, terms, **kwargs):
+                payloads.append(list(terms))
+
+            def related_queries(self):
+                return {
+                    "crude oil": {
+                        "top": pd.DataFrame([
+                            {"query": "oil prices rally", "value": 60},
+                            {"query": "oil prices crash", "value": 30},
+                            {"query": "oil prices sideways", "value": 10},
+                        ]),
+                        "rising": pd.DataFrame(columns=["query", "value"]),
+                    }
+                }
+
+            def interest_over_time(self):
+                return pd.DataFrame(
+                    {"interest": [100]},
+                    index=pd.DatetimeIndex([pd.Timestamp.now(tz="UTC")]),
+                )
+
+        request_module = types.ModuleType("pytrends.request")
+        request_module.TrendReq = FakeTrendReq
+        package_module = types.ModuleType("pytrends")
+        package_module.request = request_module
+        with patch.dict(sys.modules, {
+            "pytrends": package_module,
+            "pytrends.request": request_module,
+        }), patch("fetch_and_score.time.sleep"):
+            result = fetch_crude_trends_shadow()
+
+        self.assertEqual(payloads, [["crude oil"]])
+        self.assertTrue(result["CRUDEOIL"]["valid"], result["CRUDEOIL"].get("reason"))
+        self.assertEqual(result["CRUDEOIL"]["classified_queries"], 3)
+        self.assertEqual(result["CRUDEOIL"]["seed"], "crude oil")
+
 
 
 if __name__ == "__main__":
