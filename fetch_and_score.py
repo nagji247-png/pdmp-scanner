@@ -4611,10 +4611,11 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
 
 
 def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
-    """One batched 1-day Trends request for three indices plus Gold/Silver.
+    """Refresh five asset seeds together; optionally refresh CRUDEOIL in one isolated seed batch.
 
-    The five additional per-asset phrase batches are opt-in only because they
-    are diagnostic-only and can increase Google Trends throttling/429 risk.
+    include_crude is used only by the existing scheduled Trends slots. The five
+    additional per-asset phrase batches remain opt-in diagnostics because they
+    can increase Google Trends throttling/429 risk.
     """
     from pytrends.request import TrendReq
 
@@ -5699,9 +5700,9 @@ def main():
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
-        # Every scheduled slot uses only the existing single five-seed batch.
-        # The optional five extra phrase batches are diagnostic-only and remain
-        # opt-in for explicit offline/manual research, never scheduled scans.
+        # Keep the existing five-seed batch unchanged; add one isolated CRUDEOIL seed here only.
+        # Ordinary 30-minute scans and manual component-shadow scans do not make this extra request.
+        # The optional five phrase-diagnostic batches remain disabled in scheduled scans.
         print("ASSET_TRENDS_REFRESH: five existing seeds plus one CRUDEOIL seed batch (scheduled slot only)")
         _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
     attach_asset_search_snapshots(
