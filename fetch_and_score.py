@@ -4182,11 +4182,13 @@ def _trends_related_queries(timeframe="now 1-d"):
         # bullish/bearish crowd signal just because the other side is absent.
         label, sentiment = "NEUTRAL", "NEUTRAL"
         crowd_bull_pct = 50
-    elif bull_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
-    elif bear_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
     else:
+        crowd_bull_pct = round(bull_pct)
+    if directional_complete and bull_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
+    elif directional_complete and bear_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
+    elif directional_complete:
         label, sentiment = "NEUTRAL", "NEUTRAL"
 
     terms = []
@@ -4200,13 +4202,13 @@ def _trends_related_queries(timeframe="now 1-d"):
 
     return {
         "ok": True, "unit": "Google Trends related-query share (%)",
-        "crowd_bull_pct": round(bull_pct), "crowd_label": label,
+        "crowd_bull_pct": crowd_bull_pct, "crowd_label": label,
         "bull_sum_pct": bull_pct, "bear_sum_pct": bear_pct,
         "min_side_pct": None, "crowd_terms": terms[:20],
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
         "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
-        "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
+        "today_bull_pct": crowd_bull_pct, "today_label": "पिछले 24 घंटे की related searches",
         "today_basis": "now_1d_related_queries" if timeframe == "now 1-d" else "related_queries_other",
         "source_timeframe": timeframe + " related queries",
         "source_data_time": source_data_time,
