@@ -1842,6 +1842,40 @@ function renderContrarian(c) {
       </details>`;
   }).join("");
 
+
+  // रोज़ाना NEWS SCORE इतिहास ±6 वाले पुराने Contrarian आँकड़े से अलग है.
+  // इसे उसी instrument-wise विस्तार के भीतर दिखाएँ; कोई नया dashboard panel नहीं.
+  const dailyScores = (c.daily_scores || []).slice().reverse();
+  const dailyInstruments = [...new Set(dailyScores.map(e => e.instrument || "अन्य"))];
+  const dailyScoreRows = dailyInstruments.map(instrument => {
+    const instrumentScores = dailyScores.filter(e => (e.instrument || "अन्य") === instrument);
+    const rows = instrumentScores.map(e => {
+      const score = Number(e.score);
+      const direction = score > 0 ? "BULLISH" : score < 0 ? "BEARISH" : "NEUTRAL";
+      const scoreText = (score > 0 ? "+" : "") + score.toFixed(2);
+      let outcome;
+      if (e.outcome === "trap") outcome = '<span style="color:#f5a623">स्कोर उलटा पड़ा — ट्रैप</span>';
+      else if (e.outcome === "followed") outcome = '<span style="color:#2ecc71">बाज़ार संकेत के साथ चला</span>';
+      else if (e.outcome === "neutral") outcome = '<span style="color:#7b82a0">बाज़ार स्थिर — अलग</span>';
+      else if (e.outcome === "neutral_signal") outcome = '<span style="color:#7b82a0">Neutral संकेत — directional गिनती में नहीं</span>';
+      else outcome = '<span style="color:#7b82a0">अगले सत्र का नतीजा बाकी</span>';
+      const move = e.next_change == null ? "" : ' · अगला सत्र ' + (Number(e.next_change) > 0 ? "+" : "") + Number(e.next_change).toFixed(2) + "%";
+      const nextDate = e.next_session_date ? " · " + esc(e.next_session_date) : "";
+      return '<div style="padding:8px 10px;margin-top:6px;background:#20263f;border-radius:7px">' +
+        '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
+        '<b>' + esc(e.date) + '</b><span style="font-weight:700;color:' + (score > 0 ? "#2ecc71" : score < 0 ? "#e74c3c" : "#aab4c4") + '">' + scoreText + ' · ' + direction + '</span></div>' +
+        '<div style="font-size:12px;margin-top:4px">' + outcome + nextDate + move + '</div></div>';
+    }).join("");
+    return '<details style="margin-top:7px;background:#1e2540;border-radius:8px;padding:9px 11px">' +
+      '<summary style="cursor:pointer;font-weight:700;color:#dfe3ef">' + esc(instrument) + ' — रोज़ाना ' + instrumentScores.length + ' रिकॉर्ड</summary>' +
+      '<div style="margin-top:5px">' + rows + '</div></details>';
+  }).join("");
+  const dailyScoreHistoryHtml = '<details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">' +
+    '<summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📅 रोज़ाना NEWS SCORE इतिहास (' + dailyScores.length + ')</summary>' +
+    '<div class="sub" style="margin-top:7px">हर दिन का अपना NEWS SCORE है। ±6 से कम, जैसे -2, भी दर्ज होगा। अगले पूर्ण कारोबारी सत्र में उसी इंस्ट्रूमेंट की कीमत से “ट्रैप” या “संकेत के साथ” तय होगा। यह पुरानी ±6 NEXT-SESSION REVERSAL गणना में शामिल नहीं है।</div>' +
+    (dailyScoreRows || '<div class="sub" style="margin-top:8px">नए valid news-data से दैनिक रिकॉर्ड अपने आप जुड़ेंगे।</div>') +
+    '</details>';
+
   box.innerHTML = `
     <details style="margin:0 0 10px;background:#1e2540;border-radius:8px;padding:8px 12px">
       <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">👁️🖕</summary>
@@ -1865,6 +1899,7 @@ function renderContrarian(c) {
     <details style="margin-top:10px;background:#1e2540;border-radius:8px;padding:10px 12px">
       <summary style="cursor:pointer;font-weight:700;color:#dfe3ef">📂 इंस्ट्रूमेंट के अनुसार रिकॉर्ड खोलें (${(c.events || []).length})</summary>
       <div style="margin-top:8px">${groupedRows || '<div class="sub" style="margin-top:8px">अभी कोई ±6 इवेंट दर्ज नहीं हुआ</div>'}</div>
+      ${dailyScoreHistoryHtml}
     </details>`;
 }
 
