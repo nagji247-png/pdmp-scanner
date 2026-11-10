@@ -1318,7 +1318,7 @@ function renderCrowd(data) {
     const direction = e.direction === "bull" ? "BULLISH" : e.direction === "bear" ? "BEARISH" : "NEUTRAL";
     const move = e.next_change == null ? "—" : `${Number(e.next_change) > 0 ? "+" : ""}${Number(e.next_change).toFixed(2)}%`;
     const nextDate = e.next_session_date ? ` · अगला सत्र ${esc(e.next_session_date)}` : "";
-    const completeness = e.daily_average_complete ? "दैनिक औसत पूरा" : "उपलब्ध सत्यापित रीडिंग";
+    const completeness = e.daily_average_complete ? "दैनिक औसत पूरा" : "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग";
     return `<div style="padding:9px 10px;margin-top:6px;background:#20263f;border-radius:7px">
       <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <b>${esc(e.date)}</b><span>${direction} · ${Number(e.crowd_bull_pct).toFixed(1)}% bullish</span>
