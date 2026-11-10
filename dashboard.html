@@ -787,6 +787,23 @@ function renderStockBasketAdvanced(c, observedAt, assetName) {
     '</div>';
 }
 
+function renderCrudeOilHistoricalCase() {
+  const buy = 42;
+  const sell = 83;
+  const returnPct = ((sell - buy) / buy) * 100;
+  return '<div class="hl" style="margin-top:10px">' +
+    '<div class="hl-title"><b>ऐतिहासिक Crowd Trap केस · 10/11/2026</b></div>' +
+    '<div class="hl-meta">Crowd Signal: <b class="neg">−9.4 · EXTREMELY BEARISH</b> · समय: 6:46 PM IST</div>' +
+    '<div class="hl-meta">Trinetra का contrarian नजरिया: संभावित BULLISH REVERSAL</div>' +
+    '<div class="hl-meta">CRUDEOIL 7950 CE · उसी दिन का बताया गया ट्रेड</div>' +
+    '<div class="hl-meta">खरीद: ₹' + buy.toFixed(2) + ' · बिक्री: ₹' + sell.toFixed(2) +
+      ' · प्रति यूनिट लाभ: ₹' + (sell - buy).toFixed(2) + '</div>' +
+    '<div class="hl-title"><b class="pos">Option Premium Return: +' + returnPct.toFixed(2) + '%</b></div>' +
+    '<div class="hl-meta">स्रोत/स्थिति: उपयोगकर्ता द्वारा बताए गए खरीद-बिक्री भाव; ब्रोकरेज/एक्सचेंज रिकॉर्ड से स्वतंत्र पुष्टि बाकी। शुल्क और टैक्स शामिल नहीं।</div>' +
+    '<div class="hl-meta">Crude Oil underlying के 30m, 60m और अगले सत्र के परिणाम: PENDING VERIFICATION। इस ऑप्शन रिटर्न को underlying reversal accuracy में नहीं गिना गया है।</div>' +
+    '</div>';
+}
+
 function renderComponentBreakdown(b, observedAt, assetName) {
   if (!b || typeof b !== "object") return "";
   const isCrudeOil = assetName === "CRUDEOIL";
@@ -894,7 +911,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + (isCrudeOil ? '/2</div>' : '/6</div>') +
     '<div class="hl-meta">कुल उपलब्ध वजन: ' + (weightsMatch && final.weight_total != null ? Number(final.weight_total).toFixed(2) : "अगली गणना पर") +
     (weightsMatch ? '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") : ' · मौजूदा snapshot पुरानी weightage पर है; नया स्कोर अगली Auto Run पर बनेगा') + '</div>' +
-    rowHtml + clientDetail + searchReason +
+    rowHtml + clientDetail + searchReason + (isCrudeOil ? renderCrudeOilHistoricalCase() : "") +
     (isCrudeOil
       ? '<div class="hl-meta" style="margin-top:8px">गणना: NEWS और Google Trends Search Score का weighted average; अनुपलब्ध घटक का वजन हटाकर उपलब्ध घटक का वजन normalize किया जाता है। यह केवल CRUDEOIL कार्ड का नया Final Score है।</div>'
       : '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>') +
