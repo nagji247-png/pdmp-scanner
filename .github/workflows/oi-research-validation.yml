@@ -52,7 +52,7 @@ jobs:
       - name: Audit point-in-time combined-signal archive
         run: python validate_market_signal_history.py --min-sessions 120 --target-sessions 250
       # A single live, read-only source audit is run on this research PR only.
-      # It uses the official NSE historical-data portal and makes no Yahoo/NSE/Trends calls.
+      # It uses the official NSE historical-index endpoint; no Yahoo, quote or Trends calls.
       - name: Verify official NSE NIFTY 50 OHLC against participant OI dates
         if: github.event_name == 'pull_request'
         run: python verify_official_niftyindices_ohlc.py --out official_nse_index_ohlc_audit.json
