@@ -375,6 +375,9 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
         if fresh_results is not None:
             # Partial refreshes must not overwrite unrequested asset snapshots.
             if asset not in fresh_results:
+                old_snapshot = (previous_instruments.get(asset) or {}).get(field)
+                if isinstance(old_snapshot, dict):
+                    item[field] = dict(old_snapshot)
                 continue
             fresh = fresh_results.get(asset)
             # A failed/under-covered refresh must not erase a still-fresh
