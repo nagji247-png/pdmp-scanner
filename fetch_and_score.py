@@ -373,6 +373,9 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             continue
         old = (previous_instruments.get(asset) or {}).get(field)
         if fresh_results is not None:
+            # Partial refreshes must not overwrite unrequested asset snapshots.
+            if asset not in fresh_results:
+                continue
             fresh = fresh_results.get(asset)
             # A failed/under-covered refresh must not erase a still-fresh
             # verified snapshot. Keep its original observation timestamp and
@@ -4610,6 +4613,39 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
     }
 
 
+def fetch_crude_trends_shadow():
+    """Refresh only CRUDEOIL one-day related queries in a scheduled slot.
+
+    This independent path prevents a primary index Crowd Trends outage from
+    suppressing CRUDEOIL Search data. It makes exactly one isolated payload
+    and is never used by ordinary 30-minute scans.
+    """
+    from pytrends.request import TrendReq
+
+    seed = "crude oil"
+    source = "Google Trends related_queries · India"
+    try:
+        time.sleep(2)
+        py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+        py.build_payload([seed], timeframe="now 1-d", geo="IN")
+        related = py.related_queries()
+        observed = py.interest_over_time()
+        source_time = _trends_observation_time(
+            observed, "Google Trends CRUDEOIL batch timestamp"
+        ).isoformat()
+        return {"CRUDEOIL": _summarize_asset_related_query_snapshot(
+            related, "CRUDEOIL", seed, source_time, source
+        )}
+    except Exception as exc:
+        reason = str(exc)[:220]
+        print(f"Google Trends CRUDEOIL independent batch unavailable: {reason}")
+        return {"CRUDEOIL": {
+            "valid": False,
+            "scope": "asset_specific_google_related_queries_shadow",
+            "seed": seed, "source": source, "timeframe": "now 1-d",
+            "reason": reason, "production_score_used": False,
+        }}
+
 def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
     """Refresh five asset seeds together; optionally refresh CRUDEOIL in one isolated seed batch.
 
@@ -5692,19 +5728,21 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
-    # Asset-specific Trends are refreshed only in a scheduled Trends slot,
-    # and only after the existing crowd Trends request succeeded. This adds one
-    # five-seed batch per successful slot, never on ordinary 30-minute scans.
+    # Refresh asset Trends only in scheduled slots. If the primary index Crowd
+    # Trends succeeds, retain the existing five-seed batch plus CRUDEOIL. If it
+    # fails, run one CRUDEOIL-only request so that outage cannot suppress the
+    # commodity's independent Search data. Never run either path every 30 minutes.
     _previous_asset_instruments = previous.get("instruments") or {}
     _fresh_asset_search = None
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
-    elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
-        # Keep the existing five-seed batch unchanged; add one isolated CRUDEOIL seed here only.
-        # Ordinary 30-minute scans and manual component-shadow scans do not make this extra request.
-        # The optional five phrase-diagnostic batches remain disabled in scheduled scans.
-        print("ASSET_TRENDS_REFRESH: five existing seeds plus one CRUDEOIL seed batch (scheduled slot only)")
-        _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+    elif trends_scan and slot_id in {"0915", "1100", "1300", "1900"}:
+        if trends.get("ok"):
+            print("ASSET_TRENDS_REFRESH: five asset seeds plus isolated CRUDEOIL batch (scheduled slot)")
+            _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+        else:
+            print("ASSET_TRENDS_REFRESH: primary Crowd Trends failed; running CRUDEOIL-only scheduled batch")
+            _fresh_asset_search = fetch_crude_trends_shadow()
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
