@@ -4664,12 +4664,9 @@ def fetch_crude_trends_shadow():
         source_time, timestamp_basis = _trends_snapshot_timestamp(
             observed, "Google Trends CRUDEOIL batch timestamp"
         )
-        result = {"CRUDEOIL": _summarize_asset_related_query_snapshot(
+        return {"CRUDEOIL": _summarize_asset_related_query_snapshot(
             related, "CRUDEOIL", seed, source_time, source, timestamp_basis
         )}
-        return _attach_asset_directional_trends_diagnostics(
-            result, {"CRUDEOIL": seed}, enabled=True
-        )
     except Exception as exc:
         reason = str(exc)[:220]
         print(f"Google Trends CRUDEOIL independent batch unavailable: {reason}")
