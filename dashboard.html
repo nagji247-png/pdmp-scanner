@@ -859,24 +859,46 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const cls = score == null ? "zero" : score > 0 ? "pos" : score < 0 ? "neg" : "zero";
     const weight = Number(weights[key] || (item && item.weight) || 0);
     const normalized = weightsMatch && final.normalized_weights_pct && final.normalized_weights_pct[key];
+    const directional = key === "search" && b.search_diagnostic
+      ? (b.search_diagnostic.directional_query_diagnostic || {}) : {};
+    const directionalAvailable = directional.available === true;
     const source = item && item.source ? item.source
+      : (directionalAvailable && directional.source ? directional.source
       : (key.startsWith("client_") && b.client_market_context ? b.client_market_context.source
-      : (excluded[reasonKey] && excluded[reasonKey].source) || "");
+      : (excluded[reasonKey] && excluded[reasonKey].source) || ""));
     const sourceDate = item && item.source_date ? item.source_date
+      : (directionalAvailable && directional.source_data_time ? directional.source_data_time
       : (key.startsWith("client_") && b.client_market_context ? b.client_market_context.source_date
-      : (excluded[reasonKey] && excluded[reasonKey].source_date) || "");
+      : (excluded[reasonKey] && excluded[reasonKey].source_date) || ""));
     const detail = item
       ? [item.method, item.validation_status, item.scope].filter(Boolean).join(" · ")
-      : reason;
+      : (directionalAvailable
+        ? "चयनित asset-specific खोज-शब्दों का Google Trends डेटा मिला; अभी Final Score में शामिल नहीं"
+        : reason);
+    const mix = directional.query_interest_mix_pct || {};
+    const terms = directional.query_terms || {};
+    const directionalDetail = directionalAvailable
+      ? '<div class="hl-meta">Google Trends Search Interest Mix (चयनित शब्द): तेजी ' +
+        Number(mix.bull || 0).toFixed(1) + '% · मंदी ' +
+        Number(mix.bear || 0).toFixed(1) + '% · स्थिर ' +
+        Number(mix.neutral || 0).toFixed(1) + '%</div>' +
+        '<div class="hl-meta">शब्द: ' + esc([terms.bull, terms.bear, terms.neutral].filter(Boolean).join(" · ")) + '</div>' +
+        '<div class="hl-meta">यह चयनित phrase-set का relative search-interest mix है, पूरे बाजार की crowd percentage नहीं।</div>'
+      : "";
+    const valueText = hasScore ? scoreText(score)
+      : (directionalAvailable ? "डेटा मिला · Score सत्यापन बाकी" : "डेटा उपलब्ध नहीं");
+    const statusText = item ? "गणना में शामिल"
+      : (directionalAvailable ? "दिशात्मक डेटा मिला · Final Score में अभी शामिल नहीं" : "अभी शामिल नहीं");
     return '<div class="hl" style="margin-top:6px">' +
       '<div class="hl-title"><b>' + esc(label) + '</b> · <b class="' + cls + '">' +
-      (hasScore ? scoreText(score) : "डेटा उपलब्ध नहीं") + '</b></div>' +
+      valueText + '</b></div>' +
       '<div class="hl-meta">निर्धारित वजन: ' + weight.toFixed(0) + '%' +
       (normalized != null ? ' · उपलब्ध डेटा के बाद लागू वजन: ' + Number(normalized).toFixed(2) + '%' : '') +
-      ' · स्थिति: ' + (weightsMatch ? (item ? "गणना में शामिल" : "अभी शामिल नहीं") : "नई Weightage की गणना लंबित") + '</div>' +
+      ' · स्थिति: ' + (weightsMatch ? statusText : "नई Weightage की गणना लंबित") + '</div>' +
       (source ? '<div class="hl-meta">स्रोत: ' + esc(source) + '</div>' : '') +
       (sourceDate ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(sourceDate)) + '</div>' : '') +
       (detail ? '<div class="hl-meta">' + esc(detail) + '</div>' : '') +
+      directionalDetail +
       '</div>';
   }).join("");
   const total = weightsMatch ? final.score : null;
