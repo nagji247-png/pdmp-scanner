@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Read-only verification of official NIFTY 50 daily OHLC against NSE participant OI dates.
+"""Read-only verification of official NSE NIFTY 50 OHLC against participant OI dates.
 
-The public Nifty Indices historical-data page exposes daily Date/Open/High/Low/Close
-records. Its backing POST method is undocumented; this client is isolated research
-code and does not change the production backtest or any live score.
+This isolated research verifier uses NSE's public historical-index JSON endpoint.
+It does not change the production backtest, data archive, dashboard or live score.
 """
 from __future__ import annotations
 
@@ -20,15 +19,16 @@ import backtest_participant_oi as participant_backtest
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE = ROOT / "participant_oi_history.json"
-HISTORICAL_PAGE_URL = "https://www.niftyindices.com/reports/historical-data"
-OHLC_URL = "https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString"
+COOKIE_SEED_URL = "https://www.nseindia.com/option-chain"
+HISTORICAL_PAGE_URL = "https://www.nseindia.com/reports-indices-historical-index-data"
+OHLC_URL = "https://www.nseindia.com/api/historicalOR/indicesHistory"
 DEFAULT_INDEX_NAME = "NIFTY 50"
 REQUEST_HEADERS = {
-    "Content-Type": "application/json; charset=utf-8",
-    "X-Requested-With": "XMLHttpRequest",
-    "Origin": "https://www.niftyindices.com",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/118.0",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": "gzip, deflate",
     "Referer": HISTORICAL_PAGE_URL,
-    "User-Agent": "Mozilla/5.0 (compatible; PDMP-Research/1.0)",
 }
 
 
@@ -48,35 +48,28 @@ def date_chunks(start: dt.date, end: dt.date, max_days: int = 365):
 
 
 def parse_api_response(payload: object) -> list[dict]:
-    """Parse the ASP.NET response, whose d member is usually a JSON string."""
-    if not isinstance(payload, dict) or "d" not in payload:
-        raise ValueError("official OHLC response is missing the d field")
-    raw = payload["d"]
-    if raw is None or raw is False:
+    """Parse the NSE historical index response's data array."""
+    if not isinstance(payload, dict) or "data" not in payload:
+        raise ValueError("NSE historical index response is missing the data field")
+    rows = payload["data"]
+    if rows is None:
         return []
-    if isinstance(raw, str):
-        if raw.strip().lower() in ("", "false", "[]"):
-            return []
-        try:
-            raw = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError("official OHLC d field is not valid JSON") from exc
-    if not isinstance(raw, list):
-        raise ValueError("official OHLC d field is not a list")
-    if any(not isinstance(row, dict) for row in raw):
-        raise ValueError("official OHLC response contains a non-object row")
-    return raw
+    if not isinstance(rows, list):
+        raise ValueError("NSE historical index data field is not a list")
+    if any(not isinstance(row, dict) for row in rows):
+        raise ValueError("NSE historical index response contains a non-object row")
+    return rows
 
 
 def _parse_source_date(value: object) -> dt.date:
     if not isinstance(value, str):
-        raise ValueError("official OHLC row has no valid date")
-    for fmt in ("%d %b %Y", "%d-%b-%Y", "%Y-%m-%d"):
+        raise ValueError("NSE historical index row has no valid EOD_TIMESTAMP")
+    for fmt in ("%d-%b-%Y", "%d-%B-%Y", "%Y-%m-%d"):
         try:
-            return dt.datetime.strptime(value.strip(), fmt).date()
+            return dt.datetime.strptime(value.strip().upper(), fmt).date()
         except ValueError:
             continue
-    raise ValueError(f"unsupported official OHLC date: {value!r}")
+    raise ValueError(f"unsupported NSE historical index date: {value!r}")
 
 
 def _positive_finite(value: object, field: str) -> float:
@@ -95,31 +88,25 @@ def normalize_ohlc_rows(
     start: dt.date,
     end: dt.date,
 ) -> dict[str, dict[str, float]]:
-    """Normalize official rows and reject duplicate, out-of-range or invalid OHLC."""
+    """Normalize NSE rows and reject duplicate, out-of-range or invalid OHLC."""
     prices: dict[str, dict[str, float]] = {}
     for position, row in enumerate(rows, start=1):
-        source_name = row.get("INDEX_NAME") or row.get("Index Name") or row.get("indexName")
+        source_name = row.get("EOD_INDEX_NAME") or row.get("indexType")
         if source_name and str(source_name).strip().upper() != index_name.strip().upper():
             raise ValueError(
                 f"row {position}: index name mismatch {source_name!r} != {index_name!r}"
             )
-        raw_date = (
-            row.get("HistoricalDate")
-            or row.get("DATE")
-            or row.get("Date")
-            or row.get("date")
-        )
-        session_date = _parse_source_date(raw_date)
+        session_date = _parse_source_date(row.get("EOD_TIMESTAMP"))
         if session_date < start or session_date > end:
             raise ValueError(f"row {position}: date outside requested range: {session_date}")
         date_key = session_date.isoformat()
         if date_key in prices:
-            raise ValueError(f"duplicate official OHLC date: {date_key}")
+            raise ValueError(f"duplicate official NSE OHLC date: {date_key}")
         values = {
-            "open": _positive_finite(row.get("OPEN", row.get("Open")), "open"),
-            "high": _positive_finite(row.get("HIGH", row.get("High")), "high"),
-            "low": _positive_finite(row.get("LOW", row.get("Low")), "low"),
-            "close": _positive_finite(row.get("CLOSE", row.get("Close")), "close"),
+            "open": _positive_finite(row.get("EOD_OPEN_INDEX_VAL"), "open"),
+            "high": _positive_finite(row.get("EOD_HIGH_INDEX_VAL"), "high"),
+            "low": _positive_finite(row.get("EOD_LOW_INDEX_VAL"), "low"),
+            "close": _positive_finite(row.get("EOD_CLOSE_INDEX_VAL"), "close"),
         }
         if (
             values["high"] < values["low"]
@@ -129,7 +116,7 @@ def normalize_ohlc_rows(
             raise ValueError(f"row {position}: inconsistent OHLC range for {date_key}")
         prices[date_key] = values
     if not prices:
-        raise ValueError("official NIFTY Indices endpoint returned no OHLC rows")
+        raise ValueError("NSE historical index endpoint returned no OHLC rows")
     return dict(sorted(prices.items()))
 
 
@@ -140,37 +127,47 @@ def fetch_official_ohlc(
     session=None,
     sleep_fn=time.sleep,
 ) -> tuple[dict[str, dict[str, float]], int]:
-    """Fetch the public Nifty Indices historical OHLC endpoint in <=365-day chunks."""
+    """Fetch NSE historical index OHLC in contiguous <=365-day requests."""
     client = session or requests.Session()
-    page = client.get(HISTORICAL_PAGE_URL, headers=REQUEST_HEADERS, timeout=30)
-    page.raise_for_status()  # seed the same-site session before the data request
+    seed = client.get(COOKIE_SEED_URL, headers=REQUEST_HEADERS, timeout=20)
+    seed.raise_for_status()
 
     chunks = list(date_chunks(start, end, max_days=365))
     combined: dict[str, dict[str, float]] = {}
+    sleep_fn(0.75)
     for number, (chunk_start, chunk_end) in enumerate(chunks):
-        cinfo = (
-            f"{{'name':'{index_name}','startDate':'{chunk_start.strftime('%d %b %Y')}',"
-            f"'endDate':'{chunk_end.strftime('%d %b %Y')}',"
-            f"'indexName':'{index_name}'}}"
-        )
-        response = client.post(
+        response = client.get(
             OHLC_URL,
-            data=json.dumps({"cinfo": cinfo}),
+            params={
+                "indexType": index_name.upper(),
+                "from": chunk_start.strftime("%d-%m-%Y"),
+                "to": chunk_end.strftime("%d-%m-%Y"),
+                "csv": True,
+            },
             headers=REQUEST_HEADERS,
             timeout=45,
         )
         response.raise_for_status()
-        rows = parse_api_response(response.json())
+        try:
+            payload = response.json()
+        except requests.exceptions.JSONDecodeError as exc:
+            content_type = getattr(response, "headers", {}).get("Content-Type", "unknown")
+            body_prefix = getattr(response, "text", "")[:180].replace("\n", " ")
+            raise RuntimeError(
+                "NSE historical index endpoint returned non-JSON "
+                f"(content-type={content_type!r}, body-prefix={body_prefix!r})"
+            ) from exc
+        rows = parse_api_response(payload)
         normalized = normalize_ohlc_rows(rows, index_name, chunk_start, chunk_end)
         overlap = set(combined).intersection(normalized)
         if overlap:
-            raise ValueError("duplicate official OHLC dates across chunks: " + ", ".join(sorted(overlap)))
+            raise ValueError("duplicate official NSE OHLC dates across chunks: " + ", ".join(sorted(overlap)))
         combined.update(normalized)
         if number + 1 < len(chunks):
             sleep_fn(0.75)
 
     if not combined:
-        raise ValueError("official NIFTY Indices endpoint returned no OHLC history")
+        raise ValueError("NSE historical index endpoint returned no OHLC history")
     return dict(sorted(combined.items())), 1 + len(chunks)
 
 
@@ -180,7 +177,7 @@ def build_alignment_report(
     start: dt.date,
     end: dt.date,
 ) -> dict:
-    """Compare the OI trading dates with official price sessions without filling gaps."""
+    """Compare OI trading dates with official NSE price sessions without filling gaps."""
     if len(oi_dates) != len(set(oi_dates)):
         raise ValueError("duplicate OI dates supplied to alignment audit")
     in_range_oi = sorted(
@@ -243,13 +240,14 @@ def run_audit(
     return {
         "schema_version": 1,
         "status": status,
-        "source": "NSE Indices official Historical Index Data portal",
+        "source": "NSE India official Historical Index Data",
         "source_page": HISTORICAL_PAGE_URL,
         "source_endpoint": OHLC_URL,
         "source_note": (
-            "The official page exposes daily Date/Open/High/Low/Close CSV data. "
-            "This isolated verifier uses the page's undocumented backing POST method; "
-            "it does not alter the production backtest or live scores."
+            "The official NSE historical-index page exposes downloadable daily "
+            "Date/Open/High/Low/Close data. This verifier uses the page's public "
+            "historical-index JSON endpoint with a standard cookie-backed session; "
+            "it does not bypass access controls or alter production scores."
         ),
         "index_name": index_name,
         "requested_start": start.isoformat(),
@@ -272,7 +270,7 @@ def main() -> None:
     parser.add_argument("--index-name", default=DEFAULT_INDEX_NAME)
     parser.add_argument("--start", type=dt.date.fromisoformat)
     parser.add_argument("--end", type=dt.date.fromisoformat)
-    parser.add_argument("--out", type=Path, default=ROOT / "official_niftyindices_ohlc_audit.json")
+    parser.add_argument("--out", type=Path, default=ROOT / "official_nse_index_ohlc_audit.json")
     args = parser.parse_args()
 
     report = run_audit(
@@ -299,7 +297,7 @@ def main() -> None:
         "live_score_changed": False,
     }, ensure_ascii=False))
     if report["status"] != "validated":
-        raise SystemExit("official NIFTY 50 OHLC date alignment is incomplete")
+        raise SystemExit("official NSE NIFTY 50 OHLC date alignment is incomplete")
 
 
 if __name__ == "__main__":
