@@ -19,12 +19,19 @@ class DailyScoreHistoryTests(unittest.TestCase):
                 {"2026-11-11": 0.2, "2026-11-12": -0.5}
             )
 
-        self.assertEqual(len(records), 1)
-        self.assertEqual(records[0]["score"], -2.0)
-        self.assertEqual(records[0]["direction"], "bearish")
-        self.assertEqual(records[0]["next_session_date"], "2026-11-11")
-        self.assertEqual(records[0]["next_change"], 0.2)
-        self.assertEqual(records[0]["outcome"], "trap")
+        self.assertEqual(len(records), 2)
+        by_date = {row["date"]: row for row in records}
+        # The first day's final score was refreshed from +6 to -2 before resolution.
+        self.assertEqual(by_date["2026-11-10"]["score"], -2.0)
+        self.assertEqual(by_date["2026-11-10"]["direction"], "bearish")
+        self.assertEqual(by_date["2026-11-10"]["next_session_date"], "2026-11-11")
+        self.assertEqual(by_date["2026-11-10"]["next_change"], 0.2)
+        self.assertEqual(by_date["2026-11-10"]["outcome"], "trap")
+        # The next date is a separate -2 signal with its own following session.
+        self.assertEqual(by_date["2026-11-11"]["score"], -2.0)
+        self.assertEqual(by_date["2026-11-11"]["next_session_date"], "2026-11-12")
+        self.assertEqual(by_date["2026-11-11"]["next_change"], -0.5)
+        self.assertEqual(by_date["2026-11-11"]["outcome"], "followed")
 
     def test_each_date_gets_its_own_outcome_and_neutral_is_not_directional(self):
         records = []
