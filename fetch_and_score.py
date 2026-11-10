@@ -364,6 +364,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
         "BANKNIFTY": "index_search_shadow",
         "GOLD": "asset_search_shadow",
         "SILVER": "asset_search_shadow",
+        "CRUDEOIL": "asset_search_shadow",
     }
     previous_instruments = previous_instruments or {}
     for asset, field in search_assets.items():
@@ -398,6 +399,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
                     "BANKNIFTY": "bank nifty",
                     "GOLD": "gold price",
                     "SILVER": "silver price",
+                    "CRUDEOIL": "crude oil",
                 }[asset],
                 "timeframe": "now 1-d",
                 "reason": "इस निर्धारित Trends स्लॉट में asset-specific reading नहीं मिली",
@@ -430,6 +432,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
                     "BANKNIFTY": "bank nifty",
                     "GOLD": "gold price",
                     "SILVER": "silver price",
+                    "CRUDEOIL": "crude oil",
                 }[asset],
                 "timeframe": "now 1-d",
                 "reason": "अभी तक कोई asset-specific Trends reading सेव नहीं है",
@@ -542,7 +545,7 @@ def build_asset_component_breakdowns(
     Auto Run, signals and stale-data guard remain independent.
     """
     index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
-    search_assets = set(index_names) | {"GOLD", "SILVER"}
+    search_assets = set(index_names) | {"GOLD", "SILVER", "CRUDEOIL"}
     index_news = experimental_news_scores(instruments, now_utc=now_utc)
 
     try:
@@ -681,6 +684,7 @@ def build_asset_component_breakdowns(
                 "BANKNIFTY": "bank nifty",
                 "GOLD": "gold price",
                 "SILVER": "silver price",
+                "CRUDEOIL": "crude oil",
             }
             expected_seed = expected_search_seeds.get(name)
             actual_seed = (
@@ -847,7 +851,7 @@ def build_asset_component_breakdowns(
         "weights": DEFAULT_COMPONENT_WEIGHTS,
         "provisional_weights": PROVISIONAL_WEIGHTS,
         "score_range": "-10..+10",
-        "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
+        "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback. CRUDEOIL uses its own one-seed scheduled batch.",
         "news_rule": "Only publisher-timestamped asset-specific headlines no older than 24 hours; age is recomputed from published_at; source_date is newest eligible headline date in IST; cross-index duplicate stories excluded.",
         "participant_oi_scope": "NSE participant-wise CLIENT CE/PE/Futures is market-wide aggregate context, not index-specific and not included in index final scores.",
         "published_score_changed": False,
@@ -4226,16 +4230,19 @@ def _asset_search_is_out_of_scope(term, asset):
     has_sensex = bool(tokens & {"sensex", "सेंसेक्स"})
     has_gold = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
     has_silver = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
+    has_crude = bool(tokens & {"crude", "brent", "wti", "कच्चा", "कच्चे", "कच्चेतेल"}) or "crude oil" in text or ("mcx" in tokens and bool(tokens & {"oil", "crude"}))
     if asset == "NIFTY":
-        return has_bank or has_sensex or has_gold or has_silver
+        return has_bank or has_sensex or has_gold or has_silver or has_crude
     if asset == "SENSEX":
-        return has_nifty or has_bank or has_gold or has_silver
+        return has_nifty or has_bank or has_gold or has_silver or has_crude
     if asset == "BANKNIFTY":
-        return not (has_bank and has_nifty) or has_sensex or has_gold or has_silver
+        return not (has_bank and has_nifty) or has_sensex or has_gold or has_silver or has_crude
     if asset == "GOLD":
-        return has_silver
+        return has_silver or has_crude
     if asset == "SILVER":
-        return has_gold
+        return has_gold or has_crude
+    if asset == "CRUDEOIL":
+        return has_nifty or has_bank or has_sensex or has_gold or has_silver
     return False
 
 
@@ -4252,6 +4259,7 @@ def _asset_search_direction(term, asset):
     sensex_name = "sensex" in tokens or "सेंसेक्स" in tokens
     gold_name = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
     silver_name = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
+    crude_name = bool(tokens & {"crude", "brent", "wti", "कच्चा", "कच्चे", "कच्चेतेल"}) or "crude oil" in text or ("mcx" in tokens and bool(tokens & {"oil", "crude"}))
 
     if asset == "NIFTY":
         if not nifty_name or bank_name:
@@ -4267,6 +4275,9 @@ def _asset_search_direction(term, asset):
             return None
     elif asset == "SILVER":
         if not silver_name or gold_name:
+            return None
+    elif asset == "CRUDEOIL":
+        if not crude_name or nifty_name or bank_name or sensex_name or gold_name or silver_name:
             return None
     else:
         return None
@@ -4519,23 +4530,33 @@ def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
     return output
 
 
-def fetch_asset_trends_shadow(include_directional_diagnostics=False):
-    """One batched 1-day Trends request for three indices plus Gold/Silver.
+def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False, asset_subset=None):
+    """Fetch asset-specific one-day related queries.
 
-    The five additional per-asset phrase batches are opt-in only because they
-    are diagnostic-only and can increase Google Trends throttling/429 risk.
+    The established five-asset batch stays intact. CRUDEOIL uses a separate
+    one-seed batch only when include_crude=True (scheduled Trends slots);
+    ordinary 30-minute and manual shadow scans do not add this request.
     """
     from pytrends.request import TrendReq
 
-    seeds = {
+    all_seeds = {
         "NIFTY": "nifty",
         "SENSEX": "sensex",
         "BANKNIFTY": "bank nifty",
         "GOLD": "gold price",
         "SILVER": "silver price",
+        "CRUDEOIL": "crude oil",
     }
+    if asset_subset is None:
+        seeds = {name: seed for name, seed in all_seeds.items() if name != "CRUDEOIL"}
+    else:
+        requested = set(asset_subset)
+        seeds = {name: seed for name, seed in all_seeds.items() if name in requested}
+    if not seeds:
+        return {}
     source = "Google Trends related_queries · India"
     output = {}
+    batch_ok = False
     try:
         py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
         py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
@@ -4544,6 +4565,7 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
         source_data_time = _trends_observation_time(
             observed, "Google Trends asset batch timestamp"
         ).isoformat()
+        batch_ok = True
         for asset, seed in seeds.items():
             pack = (related or {}).get(seed) or {}
             top = pack.get("top")
@@ -4676,6 +4698,16 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
                 "reason": reason,
                 "production_score_used": False,
             }
+    # CRUDEOIL needs its own seed; do not squeeze six terms into Google's
+    # five-term payload or borrow NIFTY/global search interest.
+    if include_crude and asset_subset is None and batch_ok:
+        crude_result = fetch_asset_trends_shadow(asset_subset=("CRUDEOIL",))
+        output["CRUDEOIL"] = crude_result.get("CRUDEOIL") or {
+            "valid": False, "seed": "crude oil",
+            "source": source, "timeframe": "now 1-d",
+            "reason": "CRUDEOIL one-day related-query batch unavailable",
+            "production_score_used": False,
+        }
     # Optional only: five extra payloads, one per asset. Keep disabled by default.
     return _attach_asset_directional_trends_diagnostics(
         output, seeds, enabled=include_directional_diagnostics
@@ -5702,8 +5734,8 @@ def main():
         # Every scheduled slot uses only the existing single five-seed batch.
         # The optional five extra phrase batches are diagnostic-only and remain
         # opt-in for explicit offline/manual research, never scheduled scans.
-        print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
-        _fresh_asset_search = fetch_asset_trends_shadow()
+        print("ASSET_TRENDS_REFRESH: existing five-seed batch plus one CRUDEOIL-only seed batch")
+        _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
@@ -5714,6 +5746,22 @@ def main():
         result["instruments"], updated, now_utc, participant_today,
         result["participant_oi"].get("changes"),
     )
+
+    # CRUDEOIL card only: use its verified, asset-specific News/Search Final.
+    # Missing components are excluded and the remaining verified weight is normalized.
+    # Keep headline_score as the separate News-only diagnostic.
+    _crude = result["instruments"].get("CRUDEOIL")
+    _crude_breakdown = (_crude or {}).get("component_breakdown") or {}
+    _crude_final = _crude_breakdown.get("final") or {}
+    _crude_final_score = _crude_final.get("score")
+    if (
+        isinstance(_crude_final_score, (int, float))
+        and math.isfinite(float(_crude_final_score))
+        and _crude_final.get("included_components")
+    ):
+        _crude["score"] = round(max(-10.0, min(10.0, float(_crude_final_score))), 1)
+        _crude["score_mode"] = "crudeoil_verified_news_search"
+    # No other asset's published score is modified.
 
     # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
