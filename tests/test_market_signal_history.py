@@ -213,7 +213,8 @@ class MarketSignalHistoryTests(unittest.TestCase):
         failed_snapshot = {"ok": False, "stale": False}
         with mock.patch.object(fetch_and_score, "load_json", return_value={}), \
              mock.patch.object(fetch_and_score, "fetch_participant_oi",
-                               return_value=failed_snapshot) as fetch:
+                               return_value=failed_snapshot) as fetch, \
+             mock.patch.object(fetch_and_score, "SPECIAL_SESSION_OI_DATES", ()):
             archive = fetch_and_score.update_participant_oi_history()
 
         self.assertLessEqual(fetch.call_count, 3)

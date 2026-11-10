@@ -2620,9 +2620,12 @@ def fetch_participant_oi(base_date=None, lookback_days=7):
         base_date = dt.datetime.now(dt.timezone.utc).date()
     elif isinstance(base_date, str):
         base_date = dt.date.fromisoformat(base_date)
-    for offset in range(0, max(0, int(lookback_days)) + 1):
+    search_days = max(0, int(lookback_days))
+    for offset in range(0, search_days + 1):
         day = base_date - dt.timedelta(days=offset)
-        if day.weekday() >= 5:
+        # Normal latest-report lookup skips weekends. Exact-date mode (0-day
+        # lookback) must allow official Saturday/Sunday special trading sessions.
+        if day.weekday() >= 5 and search_days > 0:
             continue
         url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
         try:
@@ -5100,6 +5103,10 @@ def participant_changes(today, prev):
 
 PARTICIPANT_HISTORY_FILE = "participant_oi_history.json"
 PARTICIPANT_HISTORY_KEEP = 260
+# Official NSE weekend trading sessions in the current archive window:
+# 01-Feb-2026 Budget session (NSE/FAOP/72352) and 08-Nov-2026 Muhurat
+# session (NSE/CMTR/76941). Add future dates only after an official NSE circular.
+SPECIAL_SESSION_OI_DATES = ("2026-02-01", "2026-11-08")
 
 
 def update_participant_oi_history(*snapshots):
@@ -5220,12 +5227,111 @@ def update_participant_oi_history(*snapshots):
             "calendar_days_remaining": days_remaining,
         }
 
+    # Repair known official weekend sessions separately from the weekday-only
+    # rolling backfill. Exact-date requests are rate-limited to once per 24 hours.
+    special_backfill_state = archive.get("special_session_backfill")
+    if not isinstance(special_backfill_state, dict):
+        special_backfill_state = {}
+    missing_special_dates = [
+        day for day in SPECIAL_SESSION_OI_DATES if day not in by_date
+    ]
+    if not missing_special_dates:
+        special_backfill_state.update({
+            "version": 1,
+            "status": "complete",
+            "target_dates": list(SPECIAL_SESSION_OI_DATES),
+            "missing_dates": [],
+        })
+    else:
+        last_special_attempt = None
+        try:
+            raw_special_attempt = special_backfill_state.get("attempted_at")
+            last_special_attempt = (
+                dt.datetime.fromisoformat(raw_special_attempt.replace("Z", "+00:00"))
+                if raw_special_attempt else None
+            )
+            if last_special_attempt and last_special_attempt.tzinfo is None:
+                last_special_attempt = last_special_attempt.replace(tzinfo=dt.timezone.utc)
+        except (TypeError, ValueError):
+            last_special_attempt = None
+
+        special_retry_due = (
+            last_special_attempt is None
+            or (now - last_special_attempt).total_seconds() >= 86400
+        )
+        if special_retry_due:
+            required_index_fields = (
+                "future_index_long", "future_index_short",
+                "index_call_long", "index_call_short",
+                "index_put_long", "index_put_short",
+            )
+            special_added = 0
+            special_requests = 0
+            special_errors = {}
+            for special_date in missing_special_dates:
+                target_day = dt.date.fromisoformat(special_date)
+                special_requests += 1
+                historical = fetch_participant_oi(base_date=target_day, lookback_days=0)
+                participants = historical.get("participants") if isinstance(historical, dict) else None
+                complete = (
+                    isinstance(historical, dict)
+                    and historical.get("ok")
+                    and not historical.get("stale")
+                    and historical.get("date") == special_date
+                    and isinstance(participants, dict)
+                    and all(
+                        isinstance(participants.get(group), dict)
+                        and all(
+                            isinstance(participants[group].get(field), (int, float))
+                            and not isinstance(participants[group].get(field), bool)
+                            for field in required_index_fields
+                        )
+                        for group in ("FII", "DII", "PRO", "CLIENT")
+                    )
+                )
+                if not complete:
+                    special_errors[special_date] = (
+                        historical.get("error", "exact-date participant OI incomplete")
+                        if isinstance(historical, dict)
+                        else "exact-date participant OI response invalid"
+                    )
+                    continue
+                by_date[special_date] = {
+                    "date": special_date,
+                    "source": historical.get("source", "NSE official participant-wise OI"),
+                    "scope": historical.get("scope", "Index F&O participant totals"),
+                    "participants": participants,
+                }
+                special_added += 1
+
+            remaining_special_dates = [
+                day for day in SPECIAL_SESSION_OI_DATES if day not in by_date
+            ]
+            special_backfill_state = {
+                "version": 1,
+                "status": "complete" if not remaining_special_dates else "partial",
+                "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
+                "requests_this_run": special_requests,
+                "sessions_added": special_added,
+                "target_dates": list(SPECIAL_SESSION_OI_DATES),
+                "missing_dates": remaining_special_dates,
+                "errors": special_errors,
+            }
+        else:
+            special_backfill_state.update({
+                "version": 1,
+                "status": special_backfill_state.get("status", "partial"),
+                "target_dates": list(SPECIAL_SESSION_OI_DATES),
+                "missing_dates": missing_special_dates,
+            })
+
     ordered = [by_date[d] for d in sorted(by_date)][-PARTICIPANT_HISTORY_KEEP:]
     return {
         "schema_version": 1,
         "source": "NSE participant-wise Open Interest daily EOD CSV",
         "retention_sessions": PARTICIPANT_HISTORY_KEEP,
         "backfill": backfill_state,
+        "special_session_backfill": special_backfill_state,
         "records": ordered,
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes").replace("+00:00", "Z"),
         "added_this_run": added,
