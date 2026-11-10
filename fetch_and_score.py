@@ -4755,6 +4755,78 @@ def update_crowd(events, crowd_pct, today_str, nifty_ret):
         e["outcome"] = "followed" if crowd_up == price_up else "trap"
 
 
+def build_daily_crowd_followup(history, nifty_ret, keep=40):
+    """हर valid EOD Trends snapshot को अगले उपलब्ध पूर्ण NIFTY daily return से मिलाएँ."""
+    records = history.get("records") if isinstance(history, dict) else []
+    records = records if isinstance(records, list) else []
+    events = []
+    for record in sorted(records, key=lambda row: str(row.get("date", ""))):
+        if not isinstance(record, dict):
+            continue
+        date = record.get("date")
+        trends = record.get("trends") or {}
+        if not isinstance(date, str) or trends.get("valid") is not True:
+            continue
+        if not isinstance(trends.get("crowd_bull_pct"), (int, float)):
+            continue
+        source_time = trends.get("source_data_time") or trends.get("as_of")
+        if isinstance(source_time, str) and source_time[:10] != date:
+            continue
+        try:
+            crowd_pct = float(trends["crowd_bull_pct"])
+            if not math.isfinite(crowd_pct) or not 0 <= crowd_pct <= 100:
+                continue
+        except (TypeError, ValueError):
+            continue
+
+        # 45–55% को neutral band रखें; बाहर की दिशा directional crowd evidence है.
+        direction = "bull" if crowd_pct > 55 else "bear" if crowd_pct < 45 else "neutral"
+        event = {
+            "date": date,
+            "direction": direction,
+            "crowd_bull_pct": round(crowd_pct, 2),
+            "bull_score_pct": trends.get("bull_score_pct"),
+            "bear_score_pct": trends.get("bear_score_pct"),
+            "neutral_score_pct": trends.get("neutral_score_pct"),
+            "source_data_time": source_time,
+            "daily_average_complete": trends.get("daily_complete") is True,
+            "next_session_date": None,
+            "next_change": None,
+            "outcome": None,
+        }
+        later = sorted(day for day in nifty_ret if day > date)
+        if later:
+            next_day = later[0]
+            try:
+                move = float(nifty_ret[next_day])
+                if math.isfinite(move):
+                    event["next_session_date"] = next_day
+                    event["next_change"] = round(move, 4)
+                    if direction == "neutral" or move == 0:
+                        event["outcome"] = "neutral"
+                    else:
+                        crowd_up = direction == "bull"
+                        price_up = move > 0
+                        event["outcome"] = "followed" if crowd_up == price_up else "trap"
+            except (TypeError, ValueError):
+                pass
+        events.append(event)
+
+    done = [event for event in events if event.get("outcome") is not None]
+    directional = [event for event in done if event.get("outcome") in ("trap", "followed")]
+    return {
+        "source": "Point-in-time market_signal_history + completed NIFTY daily returns",
+        "neutral_band_pct": [45, 55],
+        "tracked": len(done),
+        "directional_tracked": len(directional),
+        "trap": sum(event["outcome"] == "trap" for event in directional),
+        "followed": sum(event["outcome"] == "followed" for event in directional),
+        "neutral": sum(event["outcome"] == "neutral" for event in done),
+        "pending": sum(event.get("outcome") is None for event in events),
+        "events": events[-keep:],
+    }
+
+
 def pick_with_fallback(fresh, prev):
     """ताज़ा सफल हो तो वही; वरना पिछला सफल डेटा 'stale' चिह्न के साथ।"""
     if fresh.get("ok"):
@@ -5793,6 +5865,11 @@ def main():
 
     result = clean(result)
     update_market_signal_history(result)
+    crowd_history = load_json(MARKET_SIGNAL_HISTORY_FILE, {})
+    result["crowd_daily_followup"] = build_daily_crowd_followup(
+        crowd_history, all_returns.get("NIFTY") or {}
+    )
+    result = clean(result)
     events = clean(events)
     crowd_events = clean(crowd_events)
     div_events = clean(div_events)
