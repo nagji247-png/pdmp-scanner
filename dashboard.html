@@ -800,7 +800,15 @@ function renderCrudeOilHistoricalCase() {
       ' · प्रति यूनिट लाभ: ₹' + (sell - buy).toFixed(2) + '</div>' +
     '<div class="hl-title"><b class="pos">Option Premium Return: +' + returnPct.toFixed(2) + '%</b></div>' +
     '<div class="hl-meta">स्रोत/स्थिति: उपयोगकर्ता द्वारा बताए गए खरीद-बिक्री भाव; ब्रोकरेज/एक्सचेंज रिकॉर्ड से स्वतंत्र पुष्टि बाकी। शुल्क और टैक्स शामिल नहीं।</div>' +
-    '<div class="hl-meta">Crude Oil underlying के 30m, 60m और अगले सत्र के परिणाम: PENDING VERIFICATION। इस ऑप्शन रिटर्न को underlying reversal accuracy में नहीं गिना गया है।</div>' +
+    '<div class="hl" style="margin-top:8px">' +
+    '<div class="hl-title"><b>उसी दिन के बाद के CRUDEOIL स्कैन-स्नैपशॉट</b></div>' +
+    '<div class="hl-meta">समय (IST) · पिछले बंद भाव से दैनिक बदलाव</div>' +
+    '<div class="hl-meta">7:12 PM: <b class="neg">−4.19%</b> · 8:04 PM: <b class="neg">−3.58%</b> · 8:13 PM: <b class="neg">−3.65%</b></div>' +
+    '<div class="hl-meta">9:13 PM: <b class="neg">−2.59%</b> · 9:52 PM: <b class="neg">−1.82%</b> · 10:18 PM: <b class="neg">−1.23%</b></div>' +
+    '<div class="hl-meta">7:12 PM के −4.19% से 10:18 PM के −1.23% तक दैनिक बदलाव में +2.96 प्रतिशत-अंक का सुधार दर्ज हुआ; फिर भी अंतिम स्नैपशॉट पिछले बंद से नीचे था।</div>' +
+    '<div class="hl-meta">स्रोत: repository history.csv के दिनांकित CRUDEOIL scan snapshots। ये 30m candles या लगातार traded-price ticks नहीं हैं; हर पंक्ति का contract-expiry भी अलग से प्रमाणित नहीं है। 6:46 PM का ठीक उसी समय का underlying भाव उपलब्ध नहीं।</div>' +
+    '</div>' +
+    '<div class="hl-meta">30m, 60m और अगले सत्र के सटीक underlying परिणाम: PENDING VERIFICATION। इन दैनिक बदलावों को reversal accuracy में अभी नहीं गिना गया है; option premium return भी अलग रखा गया है।</div>' +
     '</div>';
 }
 
