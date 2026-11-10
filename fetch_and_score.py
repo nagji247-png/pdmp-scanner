@@ -5754,13 +5754,19 @@ def main():
     _crude_breakdown = (_crude or {}).get("component_breakdown") or {}
     _crude_final = _crude_breakdown.get("final") or {}
     _crude_final_score = _crude_final.get("score")
-    if (
-        isinstance(_crude_final_score, (int, float))
+    _crude_score_applied = bool(
+        _crude is not None
+        and isinstance(_crude_final_score, (int, float))
         and math.isfinite(float(_crude_final_score))
         and _crude_final.get("included_components")
-    ):
+    )
+    if _crude_score_applied:
         _crude["score"] = round(max(-10.0, min(10.0, float(_crude_final_score))), 1)
         _crude["score_mode"] = "crudeoil_verified_news_search"
+    result["component_score_method"]["published_score_changed"] = _crude_score_applied
+    result["component_score_method"]["published_score_assets"] = (
+        ["CRUDEOIL"] if _crude_score_applied else []
+    )
     # No other asset's published score is modified.
 
     # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
