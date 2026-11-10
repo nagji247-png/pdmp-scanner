@@ -682,7 +682,7 @@ def build_asset_component_breakdowns(
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
                     "rising_classified_queries", "rising_direction_counts",
-                    "rising_terms", "directional_query_diagnostic",
+                    "rising_terms", "directional_query_diagnostic", "directional_query_diagnostic",
                 )
                 search_diagnostic = {
                     key: search_snapshot.get(key)
@@ -4438,6 +4438,7 @@ ASSET_DIRECTIONAL_TRENDS_QUERIES = {
     "BANKNIFTY": {"seed": "bank nifty", "bull": "bank nifty breakout", "bear": "bank nifty crash", "neutral": "bank nifty sideways"},
     "GOLD": {"seed": "gold price", "bull": "gold price rise", "bear": "gold price fall", "neutral": "gold price stable"},
     "SILVER": {"seed": "silver price", "bull": "silver price rise", "bear": "silver price fall", "neutral": "silver price stable"},
+    "CRUDEOIL": {"seed": "crude oil", "bull": "crude oil price rise", "bear": "crude oil price fall", "neutral": "crude oil price stable"},
 }
 
 
@@ -4484,7 +4485,7 @@ def _summarize_asset_directional_trends(df, asset, spec):
 
 
 def fetch_asset_directional_trends_diagnostics():
-    """One fresh, asset-scoped phrase batch per asset; called only by manual shadow scans."""
+    """One fresh, asset-scoped phrase batch per asset; scheduled slots only in production."""
     from pytrends.request import TrendReq
 
     output = {}
@@ -5767,18 +5768,21 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
-    # Refresh asset Trends only in scheduled slots. If the primary index Crowd
-    # Trends succeeds, retain the existing five-seed batch plus CRUDEOIL. If it
-    # fails, run one CRUDEOIL-only request so that outage cannot suppress the
-    # commodity's independent Search data. Never run either path every 30 minutes.
+    # Refresh asset Trends only in scheduled slots. If primary Crowd Trends
+    # succeeds, fetch the five-seed batch, CRUDEOIL and bounded per-asset
+    # directional phrase diagnostics. These extra phrase batches are never
+    # called by ordinary 30-minute scans or manual shadow-only scans. A 429
+    # stops the remaining diagnostic assets immediately.
     _previous_asset_instruments = previous.get("instruments") or {}
     _fresh_asset_search = None
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and slot_id in {"0915", "1100", "1300", "1900"}:
         if trends.get("ok"):
-            print("ASSET_TRENDS_REFRESH: five asset seeds plus isolated CRUDEOIL batch (scheduled slot)")
-            _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+            print("ASSET_TRENDS_REFRESH: five asset seeds + CRUDEOIL + per-asset directional phrase batches (scheduled slot)")
+            _fresh_asset_search = fetch_asset_trends_shadow(
+                include_directional_diagnostics=True, include_crude=True
+            )
         else:
             print("ASSET_TRENDS_REFRESH: primary Crowd Trends failed; running CRUDEOIL-only scheduled batch")
             _fresh_asset_search = fetch_crude_trends_shadow()
