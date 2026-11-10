@@ -3850,6 +3850,19 @@ def _trends_observation_time(df, label="Google Trends"):
         )
     return last_utc
 
+def _trends_snapshot_timestamp(observed, label="Google Trends"):
+    """Return a truthful snapshot clock: source observation when present, retrieval clock otherwise."""
+    try:
+        stamp = _trends_observation_time(observed, label)
+        return stamp.isoformat(), "source_observation"
+    except Exception as exc:
+        # related_queries is a separate endpoint. If it succeeded but hourly
+        # interest data is empty/unavailable, retain its freshly retrieved
+        # snapshot without pretending retrieval time is source observation.
+        retrieved = dt.datetime.now(dt.timezone.utc)
+        print(f"{label}: source observation timestamp unavailable; using retrieval timestamp: {str(exc)[:160]}")
+        return retrieved.isoformat(), "retrieval_time"
+
 
 def _trends_request(py, terms, timeframe="now 7-d"):
     """एक Google Trends अनुरोध: ANCHOR + ज़्यादा से ज़्यादा 4 शब्द।"""
@@ -4088,7 +4101,9 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी खोज-रुचि" if timeframe == "now 1-d" else "डेटा उपलब्ध नहीं",
         "today_basis": "now_1d_anchor_relative" if timeframe == "now 1-d" else timeframe + "_anchor_relative",
         "source_timeframe": timeframe,
-        "source_data_time": source_data_time,
+        "source_data_time": source_data_time if timestamp_basis == "source_observation" else None,
+            "retrieved_at": source_data_time if timestamp_basis == "retrieval_time" else None,
+            "timestamp_basis": timestamp_basis,
         "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries)
     }
@@ -4542,7 +4557,7 @@ def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
     return output
 
 
-def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_time, source):
+def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_time, source, timestamp_basis="source_observation"):
     """Classify one seed's real related queries; no cross-seed score mixing."""
     pack = (related or {}).get(seed) or {}
     top = pack.get("top")
@@ -4599,7 +4614,10 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
     return {
         "valid": True, "scope": "asset_specific_google_related_queries_shadow",
         "seed": seed, "source": source, "timeframe": "now 1-d",
-        "source_data_time": source_data_time, "as_of": source_data_time,
+        "source_data_time": source_data_time if timestamp_basis == "source_observation" else None,
+        "as_of": source_data_time if timestamp_basis == "source_observation" else None,
+        "retrieved_at": source_data_time if timestamp_basis == "retrieval_time" else None,
+        "timestamp_basis": timestamp_basis,
         "unit": "classified related-query relative-weight share",
         "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
         "raw_queries": raw_query_count, "in_scope_queries": in_scope_count,
@@ -4632,12 +4650,16 @@ def fetch_crude_trends_shadow():
         py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
         py.build_payload([seed], timeframe="now 1-d", geo="IN")
         related = py.related_queries()
-        observed = py.interest_over_time()
-        source_time = _trends_observation_time(
+        try:
+            observed = py.interest_over_time()
+        except Exception as timestamp_error:
+            observed = None
+            print(f"Google Trends CRUDEOIL hourly timestamp request unavailable: {str(timestamp_error)[:160]}")
+        source_time, timestamp_basis = _trends_snapshot_timestamp(
             observed, "Google Trends CRUDEOIL batch timestamp"
-        ).isoformat()
+        )
         return {"CRUDEOIL": _summarize_asset_related_query_snapshot(
-            related, "CRUDEOIL", seed, source_time, source
+            related, "CRUDEOIL", seed, source_time, source, timestamp_basis
         )}
     except Exception as exc:
         reason = str(exc)[:220]
@@ -4671,13 +4693,17 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
         py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
         py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
         related = py.related_queries()
-        observed = py.interest_over_time()
-        source_data_time = _trends_observation_time(
+        try:
+            observed = py.interest_over_time()
+        except Exception as timestamp_error:
+            observed = None
+            print(f"Google Trends asset batch hourly timestamp request unavailable: {str(timestamp_error)[:160]}")
+        source_data_time, timestamp_basis = _trends_snapshot_timestamp(
             observed, "Google Trends asset batch timestamp"
-        ).isoformat()
+        )
         for asset, seed in seeds.items():
             output[asset] = _summarize_asset_related_query_snapshot(
-                related, asset, seed, source_data_time, source
+                related, asset, seed, source_data_time, source, timestamp_basis
             )
 
         if include_crude:
@@ -4689,12 +4715,17 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 crude_py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
                 crude_py.build_payload([crude_seed], timeframe="now 1-d", geo="IN")
                 crude_related = crude_py.related_queries()
-                crude_observed = crude_py.interest_over_time()
-                crude_source_time = _trends_observation_time(
+                try:
+                    crude_observed = crude_py.interest_over_time()
+                except Exception as timestamp_error:
+                    crude_observed = None
+                    print(f"Google Trends CRUDEOIL hourly timestamp request unavailable: {str(timestamp_error)[:160]}")
+                crude_source_time, crude_timestamp_basis = _trends_snapshot_timestamp(
                     crude_observed, "Google Trends CRUDEOIL batch timestamp"
-                ).isoformat()
+                )
                 output["CRUDEOIL"] = _summarize_asset_related_query_snapshot(
-                    crude_related, "CRUDEOIL", crude_seed, crude_source_time, source
+                    crude_related, "CRUDEOIL", crude_seed, crude_source_time, source,
+                    crude_timestamp_basis
                 )
             except Exception as crude_error:
                 reason = str(crude_error)[:220]
