@@ -5303,8 +5303,16 @@ def main():
 
     # संकेतों का स्नैपशॉट अंतिम संयुक्त स्कोर बनने के बाद नीचे बनाया जाएगा।
 
+    # Keep the latest 30 events per instrument in the dashboard payload.
+    # A global tail of 30 hid older NIFTY history behind events from other assets,
+    # even though the complete contrarian.json archive remained intact.
+    visible_events = []
+    for instrument_name in sorted({e.get("instrument", "अन्य") for e in events}):
+        instrument_events = [e for e in events if e.get("instrument", "अन्य") == instrument_name]
+        visible_events.extend(instrument_events[-30:])
+
     result["contrarian"] = {
-        "events": events[-30:],
+        "events": visible_events,
         # केवल दिशा साफ़ होने वाले रिकॉर्ड Accuracy में गिने जाते हैं।
         "tracked": len([e for e in events if e.get("outcome") in ("reversed", "continued")]),
         "reversed": len([e for e in events if e.get("outcome") == "reversed"]),
