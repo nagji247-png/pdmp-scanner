@@ -364,6 +364,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
         "BANKNIFTY": "index_search_shadow",
         "GOLD": "asset_search_shadow",
         "SILVER": "asset_search_shadow",
+        "CRUDEOIL": "asset_search_shadow",
     }
     previous_instruments = previous_instruments or {}
     for asset, field in search_assets.items():
@@ -398,6 +399,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
                     "BANKNIFTY": "bank nifty",
                     "GOLD": "gold price",
                     "SILVER": "silver price",
+                    "CRUDEOIL": "crude oil",
                 }[asset],
                 "timeframe": "now 1-d",
                 "reason": "इस निर्धारित Trends स्लॉट में asset-specific reading नहीं मिली",
@@ -430,6 +432,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
                     "BANKNIFTY": "bank nifty",
                     "GOLD": "gold price",
                     "SILVER": "silver price",
+                    "CRUDEOIL": "crude oil",
                 }[asset],
                 "timeframe": "now 1-d",
                 "reason": "अभी तक कोई asset-specific Trends reading सेव नहीं है",
@@ -542,7 +545,7 @@ def build_asset_component_breakdowns(
     Auto Run, signals and stale-data guard remain independent.
     """
     index_names = ("NIFTY", "SENSEX", "BANKNIFTY")
-    search_assets = set(index_names) | {"GOLD", "SILVER"}
+    search_assets = set(index_names) | {"GOLD", "SILVER", "CRUDEOIL"}
     index_news = experimental_news_scores(instruments, now_utc=now_utc)
 
     try:
@@ -681,6 +684,7 @@ def build_asset_component_breakdowns(
                 "BANKNIFTY": "bank nifty",
                 "GOLD": "gold price",
                 "SILVER": "silver price",
+                "CRUDEOIL": "crude oil",
             }
             expected_seed = expected_search_seeds.get(name)
             actual_seed = (
@@ -4236,6 +4240,15 @@ def _asset_search_is_out_of_scope(term, asset):
         return has_silver
     if asset == "SILVER":
         return has_gold
+    if asset == "CRUDEOIL":
+        non_crude_oil = {
+            "gold", "silver", "nifty", "sensex", "bank", "bitcoin",
+            "sunflower", "soybean", "palm", "edible", "cooking",
+            "vegetable", "mustard", "groundnut",
+            "सोना", "सोने", "चांदी", "रजत", "निफ्टी", "सेंसेक्स", "बैंक",
+            "सूरजमुखी", "सोयाबीन", "पाम", "खाद्य", "सरसों", "मूंगफली",
+        }
+        return bool(tokens & non_crude_oil)
     return False
 
 
@@ -4268,6 +4281,10 @@ def _asset_search_direction(term, asset):
     elif asset == "SILVER":
         if not silver_name or gold_name:
             return None
+    elif asset == "CRUDEOIL":
+        if _asset_search_is_out_of_scope(term, asset):
+            return None
+        # The "crude oil" seed scopes related searches; Google often omits seed words.
     else:
         return None
 
@@ -4519,11 +4536,86 @@ def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
     return output
 
 
-def fetch_asset_trends_shadow(include_directional_diagnostics=False):
-    """One batched 1-day Trends request for three indices plus Gold/Silver.
+def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_time, source):
+    """Classify one seed's real related queries; no cross-seed score mixing."""
+    pack = (related or {}).get(seed) or {}
+    top = pack.get("top")
+    rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
+    totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
+    classified_terms = []
+    raw_query_count = unclassified_count = out_of_scope_count = in_scope_count = 0
+    unclassified_weight = out_of_scope_weight = 0.0
+    unclassified_terms = []
+    if top is not None and not top.empty and "query" in top and "value" in top:
+        for _, row in top.iterrows():
+            term = str(row.get("query", "")).strip()
+            try:
+                value = float(row.get("value", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if not term or not math.isfinite(value) or value <= 0:
+                continue
+            raw_query_count += 1
+            if _asset_search_is_out_of_scope(term, asset):
+                out_of_scope_count += 1
+                out_of_scope_weight += value
+                continue
+            in_scope_count += 1
+            direction = _asset_search_direction(term, asset)
+            if direction is None:
+                unclassified_count += 1
+                unclassified_weight += value
+                unclassified_terms.append({"term": term, "weight": round(value, 1)})
+                continue
+            totals[direction] += value
+            classified_terms.append({"term": term, "direction": direction, "weight": round(value, 1)})
+    bull, bear, neutral = totals["bull"], totals["bear"], totals["neutral"]
+    total = bull + bear + neutral
+    if len(classified_terms) < 3 or total <= 0:
+        return {
+            "valid": False, "scope": "asset_specific_google_related_queries_shadow",
+            "seed": seed, "source": source, "timeframe": "now 1-d",
+            "source_data_time": source_data_time,
+            "raw_queries": raw_query_count, "in_scope_queries": in_scope_count,
+            "out_of_scope_queries": out_of_scope_count,
+            "out_of_scope_weight": round(out_of_scope_weight, 1),
+            "classified_queries": len(classified_terms),
+            "unclassified_queries": unclassified_count,
+            "unclassified_weight": round(unclassified_weight, 1),
+            "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+            "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+            **rising_diagnostics,
+            "reason": f"पर्याप्त स्वतंत्र one-day classified queries नहीं (classified={len(classified_terms)}, total_weight={total:.1f})",
+            "production_score_used": False,
+        }
+    bull_pct, bear_pct, neutral_pct = bull / total * 100.0, bear / total * 100.0, neutral / total * 100.0
+    directional_total = bull + bear
+    return {
+        "valid": True, "scope": "asset_specific_google_related_queries_shadow",
+        "seed": seed, "source": source, "timeframe": "now 1-d",
+        "source_data_time": source_data_time, "as_of": source_data_time,
+        "unit": "classified related-query relative-weight share",
+        "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
+        "raw_queries": raw_query_count, "in_scope_queries": in_scope_count,
+        "out_of_scope_queries": out_of_scope_count, "out_of_scope_weight": round(out_of_scope_weight, 1),
+        "classified_queries": len(classified_terms), "unclassified_queries": unclassified_count,
+        "unclassified_weight": round(unclassified_weight, 1),
+        "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+        "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+        "bull_pct": round(bull_pct, 1), "bear_pct": round(bear_pct, 1), "neutral_pct": round(neutral_pct, 1),
+        "directional_bull_pct": round(bull / directional_total * 100.0, 1) if directional_total > 0 else None,
+        "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2) if directional_total > 0 else None,
+        "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
+        **rising_diagnostics, "production_score_used": False,
+    }
 
-    The five additional per-asset phrase batches are opt-in only because they
-    are diagnostic-only and can increase Google Trends throttling/429 risk.
+
+def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
+    """Refresh five asset seeds together; optionally refresh CRUDEOIL in one isolated seed batch.
+
+    include_crude is used only by the existing scheduled Trends slots. The five
+    additional per-asset phrase batches remain opt-in diagnostics because they
+    can increase Google Trends throttling/429 risk.
     """
     from pytrends.request import TrendReq
 
@@ -4545,125 +4637,34 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False):
             observed, "Google Trends asset batch timestamp"
         ).isoformat()
         for asset, seed in seeds.items():
-            pack = (related or {}).get(seed) or {}
-            top = pack.get("top")
-            rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
-            totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
-            classified_terms = []
-            raw_query_count = 0
-            unclassified_count = 0
-            unclassified_weight = 0.0
-            unclassified_terms = []
-            out_of_scope_count = 0
-            out_of_scope_weight = 0.0
-            in_scope_count = 0
-            if top is not None and not top.empty and "query" in top and "value" in top:
-                for _, row in top.iterrows():
-                    term = str(row.get("query", "")).strip()
-                    try:
-                        value = float(row.get("value", 0) or 0)
-                    except (TypeError, ValueError):
-                        continue
-                    if not term or not math.isfinite(value) or value <= 0:
-                        continue
-                    raw_query_count += 1
-                    # A related-query result clearly about another tracked asset
-                    # is not evidence about this asset and must not dilute its
-                    # classification-coverage denominator.
-                    if _asset_search_is_out_of_scope(term, asset):
-                        out_of_scope_count += 1
-                        out_of_scope_weight += value
-                        continue
-                    in_scope_count += 1
-                    direction = _asset_search_direction(term, asset)
-                    if direction is None:
-                        unclassified_count += 1
-                        unclassified_weight += value
-                        unclassified_terms.append({"term": term, "weight": round(value, 1)})
-                        continue
-                    totals[direction] += value
-                    classified_terms.append({
-                        "term": term,
-                        "direction": direction,
-                        "weight": round(value, 1),
-                    })
-            bull = totals["bull"]
-            bear = totals["bear"]
-            neutral = totals["neutral"]
-            total = bull + bear + neutral
-            # A valid one-sided crowd is still a valid observation. Do not
-            # require both bullish and bearish categories: an absent side is
-            # not missing data when >=3 independent queries were classified.
-            if len(classified_terms) < 3 or total <= 0:
-                output[asset] = {
-                    "valid": False,
-                    "scope": "asset_specific_google_related_queries_shadow",
-                    "seed": seed,
-                    "source": source,
-                    "timeframe": "now 1-d",
-                    "source_data_time": source_data_time,
-                    "raw_queries": raw_query_count,
-                    "in_scope_queries": in_scope_count,
-                    "out_of_scope_queries": out_of_scope_count,
-                    "out_of_scope_weight": round(out_of_scope_weight, 1),
-                    "classified_queries": len(classified_terms),
-                    "unclassified_queries": unclassified_count,
-                    "unclassified_weight": round(unclassified_weight, 1),
-                    "classification_coverage_pct": (
-                        round(total / (total + unclassified_weight) * 100.0, 1)
-                        if total + unclassified_weight > 0 else None
-                    ),
-                    "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
-                    **rising_diagnostics,
-                    "reason": (
-                        f"पर्याप्त स्वतंत्र one-day classified queries नहीं "
-                        f"(classified={len(classified_terms)}, total_weight={total:.1f})"
-                    ),
-                    "production_score_used": False,
-                }
-                continue
-            bull_pct = bull / total * 100.0
-            bear_pct = bear / total * 100.0
-            neutral_pct = neutral / total * 100.0
-            directional_total = bull + bear
-            # Neutral-only related queries are a valid neutral reading. There is
-            # no bullish-vs-bearish split in that case, so keep it null rather
-            # than dividing by zero and invalidating the entire five-asset batch.
-            directional_bull_pct = (
-                round(bull / directional_total * 100.0, 1)
-                if directional_total > 0 else None
+            output[asset] = _summarize_asset_related_query_snapshot(
+                related, asset, seed, source_data_time, source
             )
-            output[asset] = {
-                "valid": True,
-                "scope": "asset_specific_google_related_queries_shadow",
-                "seed": seed,
-                "source": source,
-                "timeframe": "now 1-d",
-                "source_data_time": source_data_time,
-                "as_of": source_data_time,
-                "unit": "classified related-query relative-weight share",
-                "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
-                "raw_queries": raw_query_count,
-                "in_scope_queries": in_scope_count,
-                "out_of_scope_queries": out_of_scope_count,
-                "out_of_scope_weight": round(out_of_scope_weight, 1),
-                "classified_queries": len(classified_terms),
-                "unclassified_queries": unclassified_count,
-                "unclassified_weight": round(unclassified_weight, 1),
-                "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
-                "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
-                "bull_pct": round(bull_pct, 1),
-                "bear_pct": round(bear_pct, 1),
-                "neutral_pct": round(neutral_pct, 1),
-                "directional_bull_pct": directional_bull_pct,
-                "neutral_aware_score": (
-                    round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2)
-                    if directional_total > 0 else None
-                ),
-                "terms": sorted(classified_terms, key=lambda x: x["weight"], reverse=True)[:8],
-                **rising_diagnostics,
-                "production_score_used": False,
-            }
+
+        if include_crude:
+            crude_seed = "crude oil"
+            try:
+                # One additional asset-only batch, scheduled Trends slots only.
+                # Manual component-shadow scans do not add another Google request.
+                time.sleep(2)
+                crude_py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
+                crude_py.build_payload([crude_seed], timeframe="now 1-d", geo="IN")
+                crude_related = crude_py.related_queries()
+                crude_observed = crude_py.interest_over_time()
+                crude_source_time = _trends_observation_time(
+                    crude_observed, "Google Trends CRUDEOIL batch timestamp"
+                ).isoformat()
+                output["CRUDEOIL"] = _summarize_asset_related_query_snapshot(
+                    crude_related, "CRUDEOIL", crude_seed, crude_source_time, source
+                )
+            except Exception as crude_error:
+                reason = str(crude_error)[:220]
+                output["CRUDEOIL"] = {
+                    "valid": False, "scope": "asset_specific_google_related_queries_shadow",
+                    "seed": crude_seed, "source": source, "timeframe": "now 1-d",
+                    "reason": reason, "production_score_used": False,
+                }
+                print(f"Google Trends CRUDEOIL batch unavailable: {reason}")
     except Exception as exc:
         reason = str(exc)[:240]
         for asset, seed in seeds.items():
@@ -5699,11 +5700,11 @@ def main():
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and trends.get("ok") and slot_id in {"0915", "1100", "1300", "1900"}:
-        # Every scheduled slot uses only the existing single five-seed batch.
-        # The optional five extra phrase batches are diagnostic-only and remain
-        # opt-in for explicit offline/manual research, never scheduled scans.
-        print("ASSET_TRENDS_REFRESH: one batched five-seed request for NIFTY/SENSEX/BANKNIFTY/GOLD/SILVER")
-        _fresh_asset_search = fetch_asset_trends_shadow()
+        # Keep the existing five-seed batch unchanged; add one isolated CRUDEOIL seed here only.
+        # Ordinary 30-minute scans and manual component-shadow scans do not make this extra request.
+        # The optional five phrase-diagnostic batches remain disabled in scheduled scans.
+        print("ASSET_TRENDS_REFRESH: five existing seeds plus one CRUDEOIL seed batch (scheduled slot only)")
+        _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
