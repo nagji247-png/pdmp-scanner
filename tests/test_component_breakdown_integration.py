@@ -154,8 +154,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         }):
             result = fetch_asset_directional_trends_diagnostics()
 
-        self.assertEqual(len(FakeTrendReq.calls), 5)
-        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
+        self.assertEqual(len(FakeTrendReq.calls), 6)
+        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"})
         for asset, item in result.items():
             with self.subTest(asset=asset):
                 self.assertTrue(item["available"], item.get("reason"))
@@ -202,6 +202,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("rate limit", result["BANKNIFTY"]["reason"].lower())
         self.assertIn("rate limit", result["GOLD"]["reason"].lower())
         self.assertIn("rate limit", result["SILVER"]["reason"].lower())
+        self.assertIn("rate limit", result["CRUDEOIL"]["reason"].lower())
 
     def test_asset_search_snapshots_are_saved_for_all_five_assets(self):
         now = datetime(2026, 11, 7, 13, 30, tzinfo=timezone.utc)
