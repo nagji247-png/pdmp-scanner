@@ -4021,26 +4021,44 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     bull_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bull")
     bear_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bear")
     neutral_total = sum(x["weight"] for x in queries.values() if x["direction"] == "neutral")
-    if bull_total < TQ_MIN_WEIGHT or bear_total < TQ_MIN_WEIGHT:
-        raise ValueError(
-            f"Google Trends में तेजी और मंदी दोनों समूहों का वास्तविक non-zero डेटा चाहिए "
-            f"(bull={bull_total:.3f}, bear={bear_total:.3f}, minimum={TQ_MIN_WEIGHT})"
-        )
-
     total = bull_total + bear_total + neutral_total
     if total <= 0:
         raise ValueError("Google Trends के तीनों समूहों का कुल डेटा शून्य है")
+    # A real neutral-only reading is valid crowd data. Do not reject it merely
+    # because one/both directional keyword groups have no measurable interest.
+    directional_complete = (
+        bull_total >= TQ_MIN_WEIGHT and bear_total >= TQ_MIN_WEIGHT
+    )
+    if not directional_complete and neutral_total < TQ_MIN_WEIGHT:
+        raise ValueError(
+            f"Google Trends में पर्याप्त वर्गीकृत खोज-रुचि नहीं "
+            f"(bull={bull_total:.3f}, bear={bear_total:.3f}, "
+            f"neutral={neutral_total:.3f}, minimum={TQ_MIN_WEIGHT})"
+        )
     bull_pct = bull_total / total * 100
     bear_pct = bear_total / total * 100
     neutral_pct = neutral_total / total * 100
     bull_score = round(bull_pct, 1)
     bear_score = round(bear_pct, 1)
     neutral_score = round(neutral_pct, 1)
-    crowd_direction_pct = bull_total / (bull_total + bear_total) * 100
-    label = ("ज़्यादातर बुलिश सोच" if crowd_direction_pct >= CROWD_EXTREME
-             else "ज़्यादातर बियरिश सोच" if crowd_direction_pct <= CROWD_LOW else "सोच बँटी हुई")
-    sentiment = ("BULLISH" if bull_total > bear_total
-                 else "BEARISH" if bear_total > bull_total else "NEUTRAL")
+    # If either directional side is missing, absence is not proof of the
+    # opposite direction. Keep the observed percentages, but classify mood as
+    # NEUTRAL until both bull and bear evidence are measurable.
+    crowd_direction_pct = (
+        bull_total / (bull_total + bear_total) * 100
+        if directional_complete else 50.0
+    )
+    label = (
+        "ज़्यादातर बुलिश सोच" if directional_complete and crowd_direction_pct >= CROWD_EXTREME
+        else "ज़्यादातर बियरिश सोच" if directional_complete and crowd_direction_pct <= CROWD_LOW
+        else "सोच बँटी हुई" if directional_complete
+        else "दिशात्मक खोज स्पष्ट नहीं — तटस्थ"
+    )
+    sentiment = (
+        "BULLISH" if directional_complete and bull_total > bear_total
+        else "BEARISH" if directional_complete and bear_total > bull_total
+        else "NEUTRAL"
+    )
 
     crowd_terms = [{
         "term": x["term"], "dir": x["direction"], "now": x["weight"],
@@ -4150,16 +4168,27 @@ def _trends_related_queries(timeframe="now 1-d"):
     bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
     bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
     neutral_pct = round(sum(x[2] for x in per_seed) / len(per_seed), 1)
-    if bull_pct < TQ_MIN_WEIGHT or bear_pct < TQ_MIN_WEIGHT:
+    directional_complete = (
+        bull_pct >= TQ_MIN_WEIGHT and bear_pct >= TQ_MIN_WEIGHT
+    )
+    if not directional_complete and neutral_pct < TQ_MIN_WEIGHT:
         raise ValueError(
-            f"Google Trends में दोनों दिशाओं की पर्याप्त खोज नहीं "
-            f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
+            f"Google Trends में पर्याप्त वर्गीकृत खोज नहीं "
+            f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, "
+            f"neutral={neutral_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
         )
-    if bull_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
-    elif bear_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
+    if not directional_complete:
+        # Neutral-only (or one-sided) results must not be misread as a
+        # bullish/bearish crowd signal just because the other side is absent.
+        label, sentiment = "NEUTRAL", "NEUTRAL"
+        crowd_bull_pct = 50
     else:
+        crowd_bull_pct = round(bull_pct)
+    if directional_complete and bull_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
+    elif directional_complete and bear_pct >= CROWD_EXTREME:
+        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
+    elif directional_complete:
         label, sentiment = "NEUTRAL", "NEUTRAL"
 
     terms = []
@@ -4173,13 +4202,13 @@ def _trends_related_queries(timeframe="now 1-d"):
 
     return {
         "ok": True, "unit": "Google Trends related-query share (%)",
-        "crowd_bull_pct": round(bull_pct), "crowd_label": label,
+        "crowd_bull_pct": crowd_bull_pct, "crowd_label": label,
         "bull_sum_pct": bull_pct, "bear_sum_pct": bear_pct,
         "min_side_pct": None, "crowd_terms": terms[:20],
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
         "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
-        "today_bull_pct": bull_pct, "today_label": "पिछले 24 घंटे की related searches",
+        "today_bull_pct": crowd_bull_pct, "today_label": "पिछले 24 घंटे की related searches",
         "today_basis": "now_1d_related_queries" if timeframe == "now 1-d" else "related_queries_other",
         "source_timeframe": timeframe + " related queries",
         "source_data_time": source_data_time,
