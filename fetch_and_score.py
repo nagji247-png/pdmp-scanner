@@ -3353,9 +3353,15 @@ def intraday_snapshot(sym):
 
 
 def _band(x, band):
-    if x >= band:
+    try:
+        value = float(x)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(value):
+        return None
+    if value >= band:
         return 1
-    if x <= -band:
+    if value <= -band:
         return -1
     return 0
 
@@ -3420,7 +3426,9 @@ def update_signals(instruments, state, log, now_iso):
         changed = []
         if cur["sent"] != prev["sent"] or abs(cur["score"] - prev["score"]) >= SIG_SCORE_BAND:
             changed.append("भावना")
-        if cur["price_dir"] != prev["price_dir"]:
+        # Missing/stale price changes are unknown, not a new price-direction event.
+        if cur["price_dir"] is not None and prev.get("price_dir") is not None \
+                and cur["price_dir"] != prev["price_dir"]:
             changed.append("कीमत")
         if cur["vwap_side"] is not None and prev.get("vwap_side") is not None \
                 and cur["vwap_side"] != prev["vwap_side"]:
