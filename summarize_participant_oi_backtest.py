@@ -351,6 +351,7 @@ def summarize_index(name, index):
         "features": features,
         "client_option_quantity_magnitude_thresholds": [
             {
+                "horizon_sessions": row.get("horizon_sessions"),
                 "training_quantile": row.get("training_quantile"),
                 "training_nonzero_observations": row.get("training_nonzero_observations"),
                 "absolute_quantity_threshold": row.get("absolute_quantity_threshold"),
