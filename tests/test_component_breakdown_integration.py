@@ -30,6 +30,17 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             100.0,
         )
 
+    def test_tq_aggregate_label_uses_all_three_search_groups(self):
+        queries = {
+            "bull": {"term": "nifty breakout", "weight": 1.4, "rising": False},
+            "bear": {"term": "nifty correction", "weight": 0.4, "rising": False},
+            "neutral": {"term": "nifty today", "weight": 98.1, "rising": False},
+        }
+        result = fetch_and_score.tq_aggregate(queries)
+        self.assertEqual(result["crowd_label"], "भीड़ का मूड तटस्थ")
+        self.assertEqual(result["sentiment_label"], "NEUTRAL")
+        self.assertEqual(result["crowd_bull_pct"], 78)
+
     def test_three_way_mood_stays_neutral_when_neutral_interest_dominates(self):
         mood, label = fetch_and_score.three_way_crowd_mood(1.4, 0.4, 98.1)
         self.assertEqual(mood, "NEUTRAL")
