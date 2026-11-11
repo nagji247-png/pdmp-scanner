@@ -4697,11 +4697,10 @@ def fetch_crude_trends_shadow():
         }}
 
 def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
-    """Refresh five asset seeds together; optionally refresh CRUDEOIL in one isolated seed batch.
+    """Refresh five asset seeds together; optionally refresh CRUDEOIL separately.
 
-    include_crude is used only by the existing scheduled Trends slots. The five
-    additional per-asset phrase batches remain opt-in diagnostics because they
-    can increase Google Trends throttling/429 risk.
+    Scheduled slots may opt into phrase diagnostics. Manual scans refresh the
+    five asset seeds plus CRUDEOIL but leave the six extra phrase batches off.
     """
     from pytrends.request import TrendReq
 
@@ -4734,8 +4733,8 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
         if include_crude:
             crude_seed = "crude oil"
             try:
-                # One additional asset-only batch, scheduled Trends slots only.
-                # Manual component-shadow scans do not add another Google request.
+                # One additional asset-only batch; callers enable it only for
+                # scheduled slots or an explicit manual refresh after primary success.
                 time.sleep(2)
                 crude_py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
                 crude_py.build_payload([crude_seed], timeframe="now 1-d", geo="IN")
@@ -5832,24 +5831,29 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
-    # Refresh asset Trends only in scheduled slots. If primary Crowd Trends
-    # succeeds, fetch the five-seed batch, CRUDEOIL and bounded per-asset
-    # directional phrase diagnostics. These extra phrase batches are never
-    # called by ordinary 30-minute scans or manual shadow-only scans. A 429
-    # stops the remaining diagnostic assets immediately.
+    # Refresh asset-specific Search on scheduled slots and explicit manual scans.
+    # Manual scans use one five-seed batch plus one CRUDEOIL batch; they do not
+    # launch the six extra directional phrase requests, keeping 429 risk bounded.
+    # If primary Crowd Trends failed, do not add more Google requests in that run.
     _previous_asset_instruments = previous.get("instruments") or {}
     _fresh_asset_search = None
     if component_shadow_scan:
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and slot_id in {"0915", "1100", "1300", "1900"}:
         if trends.get("ok"):
-            print("ASSET_TRENDS_REFRESH: five asset seeds + CRUDEOIL + per-asset directional phrase batches (scheduled slot)")
+            print("ASSET_TRENDS_REFRESH: scheduled five asset seeds + CRUDEOIL + per-asset directional phrase diagnostics")
             _fresh_asset_search = fetch_asset_trends_shadow(
                 include_directional_diagnostics=True, include_crude=True
             )
         else:
             print("ASSET_TRENDS_REFRESH: primary Crowd Trends failed; running CRUDEOIL-only scheduled batch")
             _fresh_asset_search = fetch_crude_trends_shadow()
+    elif trends_scan and os.getenv("GITHUB_EVENT_NAME", "").lower() == "workflow_dispatch":
+        if trends.get("ok"):
+            print("ASSET_TRENDS_REFRESH: manual scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+            _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+        else:
+            print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends failed; extra asset requests skipped to protect Google Trends quota")
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
