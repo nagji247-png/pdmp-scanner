@@ -579,11 +579,14 @@ def run():
         "validation": {
             "chronological_split": "first 70% train; last 30% holdout, ordered by date",
             "directional_hit_rate": (
-                "Futures net OI and futures long/short changes only; futures short "
-                "changes are sign-inverted. Options remain correlation-only."
+                "Futures net/leg OI changes and CLIENT option directional net quantity "
+                "are tested as signed crowd-direction signals. CE long and PE short "
+                "changes are bullish; CE short and PE long changes are bearish. "
+                "Other option features remain correlation-only."
             ),
             "false_signal_rate": (
-                "Non-zero futures feature sign versus forward return sign; zero-return "
+                "Non-zero signed futures and explicitly directional CLIENT option "
+                "quantity feature signs versus forward return sign; zero-return "
                 "observations excluded; no optimized threshold."
             ),
             "regime_method": "signal-date-only SMA20 and its five-session slope",
@@ -592,6 +595,13 @@ def run():
                 "Exploratory OI diagnostics only. No OI weight or trading score is "
                 "assigned; aggregate scope, sample size and incremental value remain "
                 "limiting factors."
+            ),
+            "client_option_quantity_definition": (
+                "Directional crowd quantity = change in CLIENT CE long − CE short "
+                "+ PE short − PE long. CE long and PE short additions are bullish; "
+                "CE short and PE long additions are bearish. The user's raw arithmetic "
+                "net (CE long − CE short + PE long − PE short) is retained as a "
+                "separate correlation-only diagnostic."
             ),
         },
         "indices": index_results, "index_errors": errors,

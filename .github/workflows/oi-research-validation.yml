@@ -45,6 +45,49 @@ jobs:
         run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py validate_market_signal_history.py tests/test_participant_oi_backtest.py tests/test_participant_oi_summary.py tests/test_market_signal_history.py market_signal_archive_backtest.py offline_contrarian_market_backtest.py
       - name: Run OI research unit tests
         run: python -m unittest discover -s tests -v
+      # The participant archive is committed and the price fetch is limited to three
+      # daily index histories. This is read-only research; it never changes data.json.
+      - name: Run CLIENT option quantity directional backtest
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        run: |
+          python backtest_participant_oi.py
+          python summarize_participant_oi_backtest.py
+      - name: Add CLIENT option quantity results to workflow report
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report = json.loads(Path("participant_oi_backtest_summary.json").read_text())
+          print("## CLIENT option OI quantity backtest (research only)")
+          print(f"- Status: **{report.get('status')}**")
+          print(f"- OI sessions: **{report.get('oi_sessions')}** ({report.get('oi_first_date')} to {report.get('oi_last_date')})")
+          print(f"- Production score changed: **No**")
+          if report.get("status") != "exploratory_only":
+              print(f"- Reason: {report.get('reason', 'research report unavailable')}")
+          for asset, item in (report.get("indices") or {}).items():
+              features = item.get("features") or []
+              rows = [x for x in features if x.get("feature") == "CLIENT.index_option_directional_net_quantity"]
+              print(f"\n### {asset}")
+              print("| Horizon | Holdout samples | Hit rate | False signals | Train hit rate |")
+              print("|---:|---:|---:|---:|---:|")
+              for row in rows:
+                  holdout = row.get("holdout") or {}
+                  train = row.get("train") or {}
+                  print(f"| {row.get('horizon_sessions')} | {holdout.get('directional_observation_count')} | {holdout.get('directional_hit_rate_pct')}% | {holdout.get('false_signals')} | {train.get('directional_hit_rate_pct')}% |")
+          print("\nThis tests index direction from next-session open to the 1/3/5-session close; it does not test option premium profitability.")
+          print("NSE CLIENT options OI is market-wide aggregate positioning, not separate index-level CLIENT positioning.")
+          PY
+      - name: Upload CLIENT option quantity research artifacts
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-option-quantity-backtest-${{ github.run_number }}
+          path: |
+            participant_oi_backtest.json
+            participant_oi_backtest_summary.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Test per-asset component archive backtest
         run: python -m unittest discover -s tests -p "test_market_signal_archive_backtest.py" -v
       - name: Audit point-in-time combined-signal archive
