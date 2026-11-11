@@ -1728,6 +1728,9 @@ function renderInstruments(instruments, participantOI, observedAt) {
 
   const silverHost = document.getElementById("silverProjection");
   const goldHost = document.getElementById("goldForecast");
+  // Re-rendering must replace these two generated cards, not append duplicates.
+  if (silverHost) silverHost.innerHTML = "";
+  if (goldHost) goldHost.innerHTML = "";
   const projection = createSilverProjectionCard();
   projection.style.gridColumn = "1 / -1";
   if (silverHost) silverHost.appendChild(projection);
