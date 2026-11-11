@@ -5903,6 +5903,7 @@ def main():
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
     # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
     fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
+    crowd_bull = trends.get("crowd_bull_pct") if fresh_trends else None
     crowd_total_bull = trends.get("bull_score_pct") if fresh_trends else None
     crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
     crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
@@ -5969,8 +5970,9 @@ def main():
         "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
         "weights": {"news": 40, "crowd": 40, "client": 20},
         "crowd_included": bool(crowd_valid),
-        "crowd_basis": "bullish_share_of_directional_searches; 50%=0; 0-100 maps to -10..+10",
-        "crowd_bull_pct": crowd_bull if crowd_valid else None,
+        "crowd_basis": "three_way_net_directional_share; (BULLISH%-BEARISH%)/100 maps to -10..+10; NEUTRAL contributes zero",
+        "crowd_bull_pct": crowd_bull if fresh_trends else None,
+        "crowd_net_score": crowd_component if crowd_valid else None,
         "client_included": bool(retail_valid),
     }
 
@@ -5982,7 +5984,8 @@ def main():
         "watch": list(SIGNAL_WATCH.keys()),
     }
 
-    crowd_pct = trends.get("crowd_bull_pct") if fresh_trends else None
+    crowd_mood, _crowd_label = three_way_crowd_mood(crowd_total_bull, crowd_bear, crowd_neutral) if crowd_valid else ("NO DATA", "पर्याप्त खोज डेटा नहीं")
+    crowd_pct = crowd_bull if crowd_valid and crowd_mood in {"BULLISH", "BEARISH"} and (crowd_total_bull >= CROWD_EXTREME or crowd_bear >= CROWD_EXTREME) else None
     nifty_ret = all_returns.get("NIFTY") or {}
     update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
     done = [e for e in crowd_events if e.get("outcome")]
