@@ -23,6 +23,10 @@ def metric(feature, participant, field, horizon, sample, hit=None, false_rate=No
         "directional_observation_count": observations,
         "correct_signals": correct,
         "directional_hit_rate_pct": hit,
+        "contrarian_hit_rate_pct": (100.0 - hit) if directional and hit is not None else None,
+        "contrarian_correct_signals": (observations - correct) if directional and correct is not None else None,
+        "contrarian_false_signals": correct if directional and correct is not None else None,
+        "contrarian_false_signal_rate_pct": false_rate if directional else None,
         "false_signal_rate_pct": false_rate,
         "false_signals": false,
         "pearson_r": 0.12,
@@ -90,6 +94,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         future = next(x for x in nifty["features"] if x["directional_futures"])
         self.assertEqual(future["train"]["directional_hit_rate_pct"], 55.0)
         self.assertEqual(future["holdout"]["directional_hit_rate_pct"], 60.0)
+        self.assertEqual(future["holdout"]["contrarian_hit_rate_pct"], 40.0)
         self.assertEqual(future["holdout_regimes"]["sideways"]["n"], 4)
         phase = future["non_overlapping_holdout_phases"][0]
         self.assertEqual(phase["phase_offset_sessions"], 0)
