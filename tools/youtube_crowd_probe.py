@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Isolated YouTube crowd-attention probe. Never writes production dashboard data."""
 from __future__ import annotations
-import json, os, re, sys, time
+import json, os, re, sys
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -9,12 +9,12 @@ from urllib.error import HTTPError, URLError
 
 API = "https://www.googleapis.com/youtube/v3"
 ASSETS = {
-    "NIFTY": "Nifty 50 OR Nifty market",
-    "SENSEX": "Sensex market",
-    "BANKNIFTY": "Bank Nifty",
-    "GOLD": "India gold price OR MCX gold",
-    "SILVER": "India silver price OR MCX silver",
-    "CRUDEOIL": "MCX crude oil OR crude oil India",
+    "NIFTY": "Nifty 50 Nifty market Nifty teji Nifty girawat निफ्टी तेजी निफ्टी गिरावट",
+    "SENSEX": "Sensex market Sensex rise Sensex fall सेंसेक्स तेजी सेंसेक्स गिरावट",
+    "BANKNIFTY": "Bank Nifty market Bank Nifty bullish Bank Nifty bearish बैंक निफ्टी तेजी बैंक निफ्टी गिरावट",
+    "GOLD": "India gold price MCX gold gold bullish gold bearish सोना भाव तेजी सोना गिरावट",
+    "SILVER": "India silver price MCX silver silver bullish silver bearish चांदी भाव तेजी चांदी गिरावट",
+    "CRUDEOIL": "MCX crude oil crude oil India crude oil rise crude oil fall कच्चा तेल तेजी कच्चा तेल गिरावट",
 }
 BULL = ["bullish", "rise", "rising", "rally", "recovery", "breakout", "upside", "higher", "तेजी", "बढ़ेगा", "बढ़त", "उछाल", "ऊपर जाएगा", "खरीदारी"]
 BEAR = ["bearish", "fall", "falling", "crash", "correction", "downside", "selloff", "lower", "गिरावट", "गिरेगा", "नीचे जाएगा", "मंदी", "बिकवाली"]
@@ -57,7 +57,7 @@ def main() -> int:
     try:
         # Six search.list calls per run: deliberately manual/low-frequency.
         for asset, query in ASSETS.items():
-            data = api_get("search", {"part":"snippet", "type":"video", "q":query, "regionCode":"IN", "relevanceLanguage":"hi", "order":"date", "maxResults":10}, key)
+            data = api_get("search", {"part":"snippet", "type":"video", "q":query, "regionCode":"IN", "order":"date", "maxResults":10}, key)
             videos = []
             for item in data.get("items", []):
                 vid = item.get("id", {}).get("videoId")
