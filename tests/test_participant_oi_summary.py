@@ -61,7 +61,8 @@ class ParticipantOISummaryTests(unittest.TestCase):
                     "regime_counts_on_aligned_dates": {"bull": 90, "bear": 80, "sideways": 79, "unknown": 0},
                     "client_option_quantity_magnitude_threshold_diagnostics": [
                         {
-                            "training_quantile": 0.9,
+                            "horizon_sessions": 5,
+                        "training_quantile": 0.9,
                             "training_nonzero_observations": 100,
                             "absolute_quantity_threshold": 500000,
                             "holdout_selected_observations": 20,
@@ -180,6 +181,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         }
         result = build_summary(report)
         threshold = result["indices"]["NIFTY"]["client_option_quantity_magnitude_thresholds"][0]
+        self.assertEqual(threshold["horizon_sessions"], 5)
         self.assertEqual(threshold["pdmp_contrarian_correct_signals"], 12)
         self.assertEqual(threshold["pdmp_contrarian_hit_rate_pct"], 60.0)
         self.assertIsNotNone(threshold["statistical_evidence"]["pdmp_hit_rate_ci95_pct"])
