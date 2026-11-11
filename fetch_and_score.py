@@ -5965,7 +5965,7 @@ def main():
         "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
         "weights": {"news": 40, "crowd": 40, "client": 20},
         "crowd_included": bool(crowd_valid),
-        "crowd_basis": "three_way_net_directional_share; (BULLISH%-BEARISH%)/100 maps to -10..+10; NEUTRAL contributes zero",
+        "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
         "crowd_bull_pct": crowd_bull if fresh_trends else None,
         "crowd_net_score": crowd_component if crowd_valid else None,
         "client_included": bool(retail_valid),
