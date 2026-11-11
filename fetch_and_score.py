@@ -683,7 +683,7 @@ def build_asset_component_breakdowns(
                 diagnostic_fields = (
                     "valid", "seed", "source", "timeframe", "source_data_time",
                     "raw_queries", "in_scope_queries", "out_of_scope_queries", "out_of_scope_weight", "classified_queries", "unclassified_queries",
-                    "classification_coverage_pct", "bull_pct", "bear_pct",
+                    "classification_coverage_pct", "informational_queries", "informational_weight", "informational_terms", "bull_pct", "bear_pct",
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
                     "rising_classified_queries", "rising_direction_counts",
@@ -4473,18 +4473,18 @@ def _asset_rising_diagnostics(rising, asset):
         return {
             "rising_queries": 0,
             "rising_classified_queries": 0,
-            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0},
+            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "informational": 0, "unclassified": 0},
             "rising_terms": [],
         }
 
-    counts = {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0}
+    counts = {"bull": 0, "bear": 0, "neutral": 0, "informational": 0, "unclassified": 0}
     terms = []
     for _, row in rising.iterrows():
         term = str(row.get("query", "")).strip()
         if not term:
             continue
         direction = _asset_search_direction(term, asset)
-        category = direction if direction in ("bull", "bear", "neutral") else "unclassified"
+        category = direction if direction in ("bull", "bear", "neutral", "informational") else "unclassified"
         counts[category] += 1
         raw_value = row.get("value", "")
         value = str(raw_value).strip()
@@ -4689,6 +4689,9 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
             "unclassified_weight": round(unclassified_weight, 1),
             "classification_coverage_pct": round((total + informational_weight) / coverage_denominator * 100.0, 1) if coverage_denominator > 0 else None,
             "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+            "informational_queries": len(informational_terms),
+            "informational_weight": round(informational_weight, 1),
+            "informational_terms": sorted(informational_terms, key=lambda x: x["weight"], reverse=True)[:10],
             **rising_diagnostics,
             "reason": f"पर्याप्त directional/explicit-neutral queries नहीं (classified={len(classified_terms)}, informational={len(informational_terms)}, total_weight={total:.1f})",
             "production_score_used": False,
@@ -4709,6 +4712,9 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
         "classified_queries": len(classified_terms), "unclassified_queries": unclassified_count,
         "unclassified_weight": round(unclassified_weight, 1),
         "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+        "informational_queries": len(informational_terms),
+        "informational_weight": round(informational_weight, 1),
+        "informational_terms": sorted(informational_terms, key=lambda x: x["weight"], reverse=True)[:10],
         "classification_coverage_pct": round((total + informational_weight) / coverage_denominator * 100.0, 1) if coverage_denominator > 0 else None,
         "bull_pct": round(bull_pct, 1), "bear_pct": round(bear_pct, 1), "neutral_pct": round(neutral_pct, 1),
         "directional_bull_pct": round(bull / directional_total * 100.0, 1) if directional_total > 0 else None,
