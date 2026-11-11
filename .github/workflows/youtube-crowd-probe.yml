@@ -1,0 +1,33 @@
+name: YouTube Crowd Probe (isolated)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_isolated:
+        description: "Run isolated YouTube metadata/comments probe; does not update dashboard"
+        required: true
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: inputs.confirm_isolated == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run bounded YouTube probe
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python tools/youtube_crowd_probe.py
+      - name: Upload isolated diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-crowd-probe
+          path: youtube_probe_output/
+          if-no-files-found: ignore
+          retention-days: 7
