@@ -3,7 +3,7 @@
 This probe is intentionally separate from Trinetra production scoring.
 
 ## What it collects
-- India-region video search results for NIFTY, SENSEX, BANKNIFTY, GOLD, SILVER and CRUDEOIL.
+- India-region video search results for NIFTY, SENSEX, BANKNIFTY, GOLD, SILVER and CRUDEOIL. Each asset query uses Hindi/English alternatives joined with YouTube's OR (`|`) syntax, rather than requiring every phrase to match.
 - Public title, description, channel, publish time, view/like/comment counts.
 - Up to 20 recent top-level comments from the newest result per asset.
 - A simple keyword-based BULLISH/BEARISH/NEUTRAL *metadata diagnostic*.
