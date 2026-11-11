@@ -164,6 +164,70 @@ def attach_directional_inference(features):
         }
 
 
+def attach_magnitude_threshold_inference(indices):
+    """Add uncertainty and one global Holm correction to every holdout threshold test.
+
+    A PDMP hit is a crowd-follow miss. Thresholds are learned on training data
+    and evaluated once on chronological holdout data. Tests remain exploratory:
+    indexes share the same market-wide CLIENT OI input and horizons overlap.
+    """
+    raw_pvalues = {}
+    prepared = {}
+    for asset, index in indices.items():
+        for position, item in enumerate(index.get("client_option_quantity_magnitude_thresholds", [])):
+            n = item.get("holdout_selected_observations")
+            hits = item.get("pdmp_contrarian_correct_signals")
+            if (
+                isinstance(n, int) and not isinstance(n, bool) and n > 0
+                and isinstance(hits, int) and not isinstance(hits, bool)
+                and 0 <= hits <= n
+            ):
+                key = f"{asset}:{position}"
+                prepared[key] = {
+                    "interval": wilson_interval(hits, n),
+                    "pvalue": exact_binomial_two_sided_pvalue(hits, n),
+                    "n": n,
+                    "hits": hits,
+                }
+                raw_pvalues[key] = prepared[key]["pvalue"]
+
+    adjusted = holm_adjust_pvalues(raw_pvalues)
+    family_size = len(raw_pvalues)
+    for asset, index in indices.items():
+        for position, item in enumerate(index.get("client_option_quantity_magnitude_thresholds", [])):
+            key = f"{asset}:{position}"
+            evidence = prepared.get(key)
+            if evidence is None:
+                item["statistical_evidence"] = {
+                    "pdmp_hit_rate_ci95_pct": None,
+                    "p_value_vs_50pct_two_sided": None,
+                    "holm_adjusted_p_value": None,
+                    "holm_family_size": family_size,
+                    "nominal_holm_p_below_05": False,
+                }
+                continue
+            interval = evidence["interval"]
+            adjusted_p = adjusted.get(key)
+            item["pdmp_contrarian_correct_signals"] = evidence["hits"]
+            item["pdmp_contrarian_hit_rate_pct"] = round(
+                evidence["hits"] / evidence["n"] * 100.0, 2
+            )
+            item["statistical_evidence"] = {
+                "pdmp_hit_rate_ci95_pct": (
+                    [round(interval[0], 2), round(interval[1], 2)]
+                    if interval is not None else None
+                ),
+                "p_value_vs_50pct_two_sided": round(evidence["pvalue"], 8),
+                "holm_adjusted_p_value": (
+                    round(adjusted_p, 8) if adjusted_p is not None else None
+                ),
+                "holm_family_size": family_size,
+                "nominal_holm_p_below_05": (
+                    adjusted_p < 0.05 if adjusted_p is not None else False
+                ),
+            }
+
+
 def summarize_index(name, index):
     raw_metrics = index.get("metrics")
     if not isinstance(raw_metrics, list):
