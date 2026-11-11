@@ -2613,6 +2613,21 @@ def intraday_quote(sym):
         print("All Yahoo chart hosts failed for " + sym + ": " + " | ".join(errors))
     return None
 
+def nse_special_session_dates():
+    """आधिकारिक NSE calendar में दर्ज weekend trading sessions की तारीखें."""
+    calendar = load_json(EXCHANGE_CALENDAR_FILE, {})
+    sessions = calendar.get("special_sessions") if isinstance(calendar, dict) else {}
+    if not isinstance(sessions, dict):
+        return set()
+    valid = set()
+    for value in sessions:
+        try:
+            valid.add(dt.date.fromisoformat(value).isoformat())
+        except (TypeError, ValueError):
+            continue
+    return valid
+
+
 def fetch_participant_oi(base_date=None, lookback_days=7):
     """NSE official participant-wise OI: daily EOD, not a live feed.
     base_date lets the caller fetch the latest archived snapshot on/before a target date."""
@@ -2623,9 +2638,10 @@ def fetch_participant_oi(base_date=None, lookback_days=7):
         base_date = dt.datetime.now(dt.timezone.utc).date()
     elif isinstance(base_date, str):
         base_date = dt.date.fromisoformat(base_date)
+    special_session_dates = nse_special_session_dates()
     for offset in range(0, max(0, int(lookback_days)) + 1):
         day = base_date - dt.timedelta(days=offset)
-        if day.weekday() >= 5:
+        if day.weekday() >= 5 and day.isoformat() not in special_session_dates:
             continue
         url = f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{day.strftime('%d%m%Y')}.csv"
         try:
@@ -5053,15 +5069,23 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 6
+    BACKFILL_VERSION = 7
     BACKFILL_TARGET = 250
+    special_session_dates = sorted(
+        date for date in nse_special_session_dates()
+        if date <= now.date().isoformat()
+    )
+    missing_special_dates = [
+        date for date in special_session_dates if date not in by_date
+    ]
     # Keep the ordinary PDMP scan from issuing hundreds of historical NSE
     # requests in one run. Resume a dated cursor and make at most three
     # exact-session requests per 24-hour backfill window.
     retry_due = (backfill_state.get("version") != BACKFILL_VERSION
                   or last_attempt is None
                   or (now - last_attempt).total_seconds() >= 86400)
-    if len(by_date) < BACKFILL_TARGET and retry_due:
+    needs_backfill = len(by_date) < BACKFILL_TARGET or bool(missing_special_dates)
+    if needs_backfill and retry_due:
         if backfill_state.get("version") == BACKFILL_VERSION:
             try:
                 cursor_date = dt.date.fromisoformat(backfill_state.get("next_date", ""))
@@ -5074,12 +5098,38 @@ def update_participant_oi_history(*snapshots):
             days_remaining = 421
 
         requests_this_run = 0
+        special_sessions_checked = []
+        # Special weekend sessions are explicit exchange-calendar entries.
+        # Check them even when the ordinary 250-session target is already met.
+        for special_date in missing_special_dates:
+            if requests_this_run >= 3:
+                break
+            requests_this_run += 1
+            special_sessions_checked.append(special_date)
+            historical = fetch_participant_oi(base_date=special_date, lookback_days=0)
+            if (not isinstance(historical, dict) or not historical.get("ok")
+                    or historical.get("stale") or historical.get("date") != special_date):
+                continue
+            participants = historical.get("participants")
+            if (not isinstance(participants, dict)
+                    or not all(group in participants for group in ("FII", "DII", "PRO", "CLIENT"))
+                    or special_date in by_date):
+                continue
+            by_date[special_date] = {
+                "date": special_date,
+                "source": historical.get("source", "NSE official participant-wise OI"),
+                "scope": historical.get("scope", "Index F&O participant totals"),
+                "participants": participants,
+            }
+            backfilled += 1
+
         while (len(by_date) < BACKFILL_TARGET and requests_this_run < 3
                and days_remaining > 0):
             target_day = cursor_date
             cursor_date -= dt.timedelta(days=1)
             days_remaining -= 1
-            if target_day.weekday() >= 5:
+            if (target_day.weekday() >= 5
+                    and target_day.isoformat() not in special_session_dates):
                 continue
             requests_this_run += 1
             historical = fetch_participant_oi(base_date=target_day, lookback_days=0)
@@ -5099,13 +5149,19 @@ def update_participant_oi_history(*snapshots):
                 "participants": participants,
             }
             backfilled += 1
+
+        missing_special_dates = [
+            date for date in special_session_dates if date not in by_date
+        ]
         backfill_state = {
             "version": BACKFILL_VERSION,
-            "status": "complete" if len(by_date) >= BACKFILL_TARGET else "partial",
+            "status": "complete" if len(by_date) >= BACKFILL_TARGET and not missing_special_dates else "partial",
             "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
             "sessions_added": backfilled,
             "requests_this_run": requests_this_run,
             "target_sessions": BACKFILL_TARGET,
+            "special_sessions_checked": special_sessions_checked,
+            "missing_special_dates": missing_special_dates,
             "next_date": cursor_date.isoformat(),
             "calendar_days_remaining": days_remaining,
         }
