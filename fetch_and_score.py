@@ -4129,17 +4129,11 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         bull_total / (bull_total + bear_total) * 100
         if directional_complete else 50.0
     )
-    label = (
-        "ज़्यादातर बुलिश सोच" if directional_complete and crowd_direction_pct >= CROWD_EXTREME
-        else "ज़्यादातर बियरिश सोच" if directional_complete and crowd_direction_pct <= CROWD_LOW
-        else "सोच बँटी हुई" if directional_complete
-        else "दिशात्मक खोज स्पष्ट नहीं — तटस्थ"
-    )
-    sentiment = (
-        "BULLISH" if directional_complete and bull_total > bear_total
-        else "BEARISH" if directional_complete and bear_total > bull_total
-        else "NEUTRAL"
-    )
+    if directional_complete:
+        sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
+    else:
+        # एक directional side गायब हो तो उसे उलटी दिशा का प्रमाण न मानें।
+        label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
 
     crowd_terms = [{
         "term": x["term"], "dir": x["direction"], "now": x["weight"],
@@ -4260,19 +4254,14 @@ def _trends_related_queries(timeframe="now 1-d"):
             f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, "
             f"neutral={neutral_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
         )
-    if not directional_complete:
-        # Neutral-only (or one-sided) results must not be misread as a
-        # bullish/bearish crowd signal just because the other side is absent.
-        label, sentiment = "NEUTRAL", "NEUTRAL"
-        crowd_bull_pct = 50
+    # Keep the two-way ratio only for Fear-vs-Greed; mood classification uses all three groups.
+    directional_total = bull_pct + bear_pct
+    crowd_bull_pct = round(bull_pct / directional_total * 100) if directional_total > 0 else 50
+    if directional_complete:
+        label, sentiment = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
     else:
-        crowd_bull_pct = round(bull_pct)
-    if directional_complete and bull_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BULLISH", "BULLISH"
-    elif directional_complete and bear_pct >= CROWD_EXTREME:
-        label, sentiment = "EXTREMELY BEARISH", "BEARISH"
-    elif directional_complete:
-        label, sentiment = "NEUTRAL", "NEUTRAL"
+        # Neutral-only (or one-sided) results must not be misread as directional crowd evidence.
+        label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
 
     terms = []
     for item in all_terms.values():
