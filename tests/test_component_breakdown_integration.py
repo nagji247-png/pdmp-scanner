@@ -7,6 +7,13 @@ import fetch_and_score
 
 
 class ComponentBreakdownIntegrationTests(unittest.TestCase):
+    def test_bounded_asset_search_refresh_runs_for_manual_and_validation_push_only(self):
+        self.assertTrue(fetch_and_score.should_refresh_asset_search(True, "workflow_dispatch"))
+        self.assertTrue(fetch_and_score.should_refresh_asset_search(True, "push"))
+        self.assertFalse(fetch_and_score.should_refresh_asset_search(False, "push"))
+        self.assertFalse(fetch_and_score.should_refresh_asset_search(True, "schedule"))
+        self.assertFalse(fetch_and_score.should_refresh_asset_search(True, "repository_dispatch"))
+
     def test_global_trends_mood_percentages_use_real_three_way_group_weights(self):
         queries = {
             "a": {"term": "nifty breakout", "weight": 60, "rising": False},
