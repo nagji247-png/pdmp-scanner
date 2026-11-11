@@ -3966,19 +3966,23 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन"]
-# सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
-TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
-                    "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
-                    "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
-                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
-                    "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
+# केवल वास्तविक flat/sideways queries neutral mood हैं।
+TQ_NEUTRAL_WORDS = ["sideways", "sideway", "flat", "stable", "stability", "rangebound",
+                    "range-bound", "consolidation", "consolidating", "unchanged", "steady",
+                    "सपाट", "स्थिर", "बिना बदलाव", "सीमित दायरा", "दायरे में", "एक ही स्तर"]
+# Navigation/information intent is tracked separately and never counted as neutral mood.
+TQ_INFORMATION_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
+                        "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
+                        "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
+                        "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
+                        "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
 TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero reading स्वीकार; शून्य/अनुपलब्ध डेटा अस्वीकार
 
 
 def tq_dir(q):
-    """खोज-वाक्यांश की दिशा: bull/bear/neutral; अस्पष्ट query को None रखें।"""
+    """खोज-वाक्यांश की दिशा; जानकारी/नेविगेशन को neutral mood न मानें।"""
     text = str(q or "").lower()
-    tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+    tk = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
     bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
     bear = any(w.lower() in tk for w in TQ_BEAR_WORDS)
     if bull and not bear:
@@ -3987,6 +3991,8 @@ def tq_dir(q):
         return "bear"
     if not bull and not bear and any(w.lower() in tk for w in TQ_NEUTRAL_WORDS):
         return "neutral"
+    if not bull and not bear and any(w.lower() in tk for w in TQ_INFORMATION_WORDS):
+        return "informational"
     return None
 
 
@@ -4036,8 +4042,8 @@ def three_way_crowd_component(bull_pct, bear_pct, neutral_pct):
 
 def tq_aggregate(queries):
     """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
-    bull_w = bear_w = neutral_w = 0.0
-    crowd_terms, spikes = [], []
+    bull_w = bear_w = neutral_w = informational_w = 0.0
+    crowd_terms, spikes, informational_terms = [], [], []
     for item in queries.values():
         d = tq_dir(item["term"])
         if d == "bull":
@@ -4046,6 +4052,9 @@ def tq_aggregate(queries):
             bear_w += item["weight"]
         elif d == "neutral":
             neutral_w += item["weight"]
+        elif d == "informational":
+            informational_w += item["weight"]
+            informational_terms.append({"term": item["term"], "weight": round(item["weight"], 1)})
         if d:
             crowd_terms.append({"term": item["term"], "dir": d, "now": round(item["weight"], 1),
                                 "avg": round(item["weight"], 1), "today_pct": None, "yesterday_pct": None})
@@ -4084,6 +4093,9 @@ def tq_aggregate(queries):
         "hidden_spikes": max(0, len(rising_all) - len(spikes)),
         "bull_score_pct": bull_score, "bear_score_pct": bear_score,
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "informational_weight": round(informational_w, 1),
+        "informational_queries": len(informational_terms),
+        "informational_terms": informational_terms,
         "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "related_queries_7d",
         "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries),
