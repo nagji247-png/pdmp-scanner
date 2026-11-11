@@ -50,6 +50,35 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         self.assertEqual(result["false_signal_rate_pct"], 50.0)
         self.assertEqual(result["signal_coverage_pct"], 83.33)
 
+
+    def test_client_option_quantity_features_use_directional_put_sign(self):
+        previous = {
+            "index_call_long": 2112701,
+            "index_call_short": 2081906,
+            "index_put_long": 2426932,
+            "index_put_short": 2810271,
+        }
+        current = {
+            "index_call_long": 3045743,
+            "index_call_short": 2706602,
+            "index_put_long": 2722311,
+            "index_put_short": 3140961,
+        }
+        features = backtest.client_option_quantity_features(current, previous)
+        self.assertEqual(features["index_call_net_quantity"], 308346)
+        self.assertEqual(features["index_put_raw_net_quantity"], -35311)
+        self.assertEqual(features["index_put_directional_net_quantity"], 35311)
+        self.assertEqual(features["index_option_user_arithmetic_net_quantity"], 273035)
+        self.assertEqual(features["index_option_directional_net_quantity"], 343657)
+
+    def test_client_option_quantity_rejects_missing_legs(self):
+        self.assertEqual(
+            backtest.client_option_quantity_features(
+                {"index_call_long": 100}, {"index_call_long": 90}
+            ),
+            {},
+        )
+
     def test_options_remain_correlation_only(self):
         rows = [
             {"signal": 1.0, "forward_return_pct": 0.5},

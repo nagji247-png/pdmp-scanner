@@ -9,7 +9,7 @@ from summarize_participant_oi_backtest import (
 
 
 def metric(feature, participant, field, horizon, sample, hit=None, false_rate=None, regimes=None):
-    directional = field.startswith("future_index")
+    directional = field.startswith("future_index") or field == "index_option_directional_net_quantity"
     observations = 18 if directional else None
     correct = round(observations * hit / 100) if directional and hit is not None else None
     false = observations - correct if directional and correct is not None else None
@@ -35,6 +35,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
     def test_preserves_train_holdout_and_regime_metrics(self):
         futures = "FII.future_index_long_change_pct_prior_gross"
         options = "CLIENT.index_call_long_change_pct_prior_gross"
+        directional_options = "CLIENT.index_option_directional_net_quantity"
         report = {
             "status": "exploratory_only",
             "generated_at_utc": "2026-11-06T15:15:00+00:00",
@@ -62,6 +63,8 @@ class ParticipantOISummaryTests(unittest.TestCase):
                         }),
                         metric(options, "CLIENT", "index_call_long_change_pct_prior_gross", 3, "train_first_70pct"),
                         metric(options, "CLIENT", "index_call_long_change_pct_prior_gross", 3, "chronological_holdout_last_30pct"),
+                        metric(directional_options, "CLIENT", "index_option_directional_net_quantity", 1, "train_first_70pct", 52.0, 48.0),
+                        metric(directional_options, "CLIENT", "index_option_directional_net_quantity", 1, "chronological_holdout_last_30pct", 58.0, 42.0),
                     ],
                 },
             },
@@ -83,7 +86,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         nifty = result["indices"]["NIFTY"]
         self.assertEqual(result["oi_sessions"], 250)
         self.assertEqual(nifty["data_quality"]["aligned_oi_dates"], 249)
-        self.assertEqual(nifty["feature_horizon_count"], 2)
+        self.assertEqual(nifty["feature_horizon_count"], 3)
         future = next(x for x in nifty["features"] if x["directional_futures"])
         self.assertEqual(future["train"]["directional_hit_rate_pct"], 55.0)
         self.assertEqual(future["holdout"]["directional_hit_rate_pct"], 60.0)
@@ -93,13 +96,21 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual(phase["directional_hit_rate_pct"], 66.67)
         self.assertNotIn("regime_metrics", phase)
         self.assertEqual(nifty["best_holdout_futures_exploratory_only"][0]["feature"], futures)
-        self.assertEqual(future["statistical_evidence"]["holm_family_size"], 1)
-        self.assertEqual(nifty["directional_inference"]["family_size"], 1)
+        self.assertEqual(future["statistical_evidence"]["holm_family_size"], 2)
+        self.assertEqual(nifty["directional_inference"]["family_size"], 2)
         self.assertIsNotNone(future["statistical_evidence"]["hit_rate_ci95_pct"])
         self.assertFalse(future["statistical_evidence"]["nominal_holm_p_below_05"])
-        option = next(x for x in nifty["features"] if not x["directional_futures"])
+        option = next(x for x in nifty["features"] if x["feature"] == options)
+        self.assertFalse(option["directional_options"])
         self.assertIsNone(option["holdout"].get("directional_hit_rate_pct"))
         self.assertNotIn("statistical_evidence", option)
+        directional_option = next(x for x in nifty["features"] if x["directional_options"])
+        self.assertEqual(directional_option["holdout"]["directional_hit_rate_pct"], 58.0)
+        self.assertIsNotNone(directional_option["statistical_evidence"]["hit_rate_ci95_pct"])
+        self.assertEqual(
+            nifty["best_holdout_options_exploratory_only"][0]["feature"],
+            directional_options,
+        )
         self.assertFalse(result["score_changed"])
         self.assertFalse(result["eligible_for_live_score"])
 

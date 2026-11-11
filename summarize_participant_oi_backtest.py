@@ -101,11 +101,11 @@ def holm_adjust_pvalues(pvalues):
 
 
 def attach_directional_inference(features):
-    """Add confidence intervals and multiplicity-adjusted chance tests to futures only."""
+    """Add exploratory confidence intervals to explicitly directional futures/options features."""
     raw_pvalues = {}
     prepared = {}
     for position, item in enumerate(features):
-        if not item.get("directional_futures"):
+        if not (item.get("directional_futures") or item.get("directional_options")):
             continue
         holdout = item.get("holdout") or {}
         trials = holdout.get("directional_observation_count")
@@ -185,7 +185,9 @@ def summarize_index(name, index):
             continue
         train = samples.get(TRAIN)
         field = holdout.get("field") or feature.split(".", 1)[-1]
-        is_directional = field.startswith("future_index")
+        is_directional = field.startswith("future_index") or field == "index_option_directional_net_quantity"
+        is_directional_futures = field.startswith("future_index")
+        is_directional_options = field == "index_option_directional_net_quantity"
         raw_regimes = holdout.get("regime_metrics") or {}
         regimes = {
             regime: metric_view(metrics, is_directional, regime=True)
@@ -213,7 +215,8 @@ def summarize_index(name, index):
             "participant": holdout.get("participant") or feature.split(".", 1)[0],
             "field": field,
             "horizon_sessions": horizon,
-            "directional_futures": is_directional,
+            "directional_futures": is_directional_futures,
+            "directional_options": is_directional_options,
             "train": metric_view(train, is_directional),
             "holdout": metric_view(holdout, is_directional),
             "holdout_regimes": regimes,
@@ -255,12 +258,12 @@ def summarize_index(name, index):
             "confidence_interval": "95% Wilson score interval",
             "chance_test": "exact two-sided binomial test against 50% directional hit rate",
             "multiple_testing": (
-                "Holm family-wise correction across all valid futures "
-                "participant/field/horizon tests for this index"
+                "Holm family-wise correction across all explicitly directional "
+                "futures and CLIENT option quantity participant/field/horizon tests"
             ),
             "family_size": sum(
                 1 for item in features
-                if item.get("directional_futures")
+                if (item.get("directional_futures") or item.get("directional_options"))
                 and (item.get("statistical_evidence") or {}).get(
                     "p_value_vs_50pct_two_sided_nominal"
                 ) is not None
@@ -286,6 +289,30 @@ def summarize_index(name, index):
                 "statistical_evidence": item.get("statistical_evidence"),
             }
             for item in futures[:5]
+        ],
+        "best_holdout_options_exploratory_only": [
+            {
+                "feature": item["feature"],
+                "horizon_sessions": item["horizon_sessions"],
+                "n": item["holdout"].get("n"),
+                "directional_observation_count": item["holdout"].get("directional_observation_count"),
+                "hit_rate_pct": item["holdout"].get("directional_hit_rate_pct"),
+                "false_signal_rate_pct": item["holdout"].get("false_signal_rate_pct"),
+                "false_signals": item["holdout"].get("false_signals"),
+                "statistical_evidence": item.get("statistical_evidence"),
+            }
+            for item in sorted(
+                [
+                    row for row in features
+                    if row.get("directional_options")
+                    and row["holdout"].get("directional_hit_rate_pct") is not None
+                ],
+                key=lambda row: (
+                    row["holdout"].get("directional_hit_rate_pct", -1),
+                    row["holdout"].get("directional_observation_count", 0),
+                ),
+                reverse=True,
+            )[:5]
         ],
     }
 
