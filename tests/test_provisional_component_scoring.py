@@ -5,10 +5,18 @@ from provisional_component_scoring import (
     PROVISIONAL_WEIGHTS,
     client_marketwide_components,
     index_oi_balance_component,
+    source_date_is_fresh,
 )
 
 
 class ProvisionalComponentScoringTests(unittest.TestCase):
+    def test_source_date_freshness_rejects_stale_future_and_missing_dates(self):
+        self.assertTrue(source_date_is_fresh("2026-11-08", "2026-11-11"))
+        self.assertTrue(source_date_is_fresh("2026-11-11", "2026-11-11"))
+        self.assertFalse(source_date_is_fresh("2026-11-06", "2026-11-11"))
+        self.assertFalse(source_date_is_fresh("2026-11-12", "2026-11-11"))
+        self.assertFalse(source_date_is_fresh(None, "2026-11-11"))
+
     def test_user_approved_weights_are_configured(self):
         self.assertEqual(PROVISIONAL_WEIGHTS, {
             "news": 15.0,
@@ -111,6 +119,21 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
             archive, "BANKNIFTY", "2026-11-06"
         ))
 
+    def test_oi_balance_rejects_stale_archive_even_when_old_rows_are_valid(self):
+        archive = {"records": [{
+            "date": "2026-11-06",
+            "symbols": {"NIFTY": {"by_expiry": {
+                "2026-11-26": {
+                    "CE": {"open_interest": 100, "contracts": 10},
+                    "PE": {"open_interest": 300, "contracts": 10},
+                },
+            }}},
+        }]}
+        self.assertIsNone(index_oi_balance_component(
+            archive, "NIFTY", "2026-11-11",
+            weight=PROVISIONAL_WEIGHTS["eod_oi"],
+        ))
+
     def test_marketwide_client_ce_pe_and_futures_scores_are_separate(self):
         evidence = {
             "ce_long": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
@@ -132,6 +155,22 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
         self.assertEqual(result["client_futures"]["score"], -1.0)
         self.assertIn("market-wide", result["client_ce_pe"]["scope"])
         self.assertEqual(result["client_futures"]["source_date"], "2026-11-06")
+
+    def test_client_components_reject_stale_participant_report(self):
+        evidence = {
+            "ce_long": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
+            "ce_short": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
+            "pe_long": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
+            "pe_short": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
+            "futures_long": {"change_pct_prior_gross": 4.0, "contrarian_bias": "bearish"},
+            "futures_short": {"change_pct_prior_gross": 2.0, "contrarian_bias": "bullish"},
+        }
+        self.assertEqual(client_marketwide_components({
+            "available": True,
+            "source": "NSE participant-wise OI",
+            "source_date": "2026-11-06",
+            "evidence_components": evidence,
+        }, scan_date="2026-11-11"), {})
 
     def test_client_scores_require_all_fields_and_dated_marketwide_context(self):
         result = client_marketwide_components({
