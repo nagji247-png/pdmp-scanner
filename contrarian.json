@@ -983,5 +983,25 @@
       "status": "unavailable",
       "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली या स्रोत ने डेटा नहीं दिया"
     }
+  },
+  {
+    "key": "2026-11-11|BITCOIN",
+    "date": "2026-11-11",
+    "instrument": "BITCOIN",
+    "score": -6.1,
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance completed 5-minute candles",
+    "after_30m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    },
+    "after_60m": {
+      "status": "unavailable",
+      "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    }
   }
 ]
