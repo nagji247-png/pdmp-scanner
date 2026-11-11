@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "purpose": "Research-only crowd reversal vs continuation observations; does not modify production scores or dashboard data.",
+  "observations": [
+    {
+      "id": "BTC-USD-2026-11-11T21:01:00+05:30",
+      "asset": "BTC-USD",
+      "exchange": "Coinbase",
+      "observed_at": "2026-11-11T21:01:00+05:30",
+      "source_label": "Coinbase BTC-USD latest executed trade",
+      "price_usd": 73586.81,
+      "reported_change_pct": -0.15,
+      "crowd_score": -6,
+      "crowd_mood": "BEARISH",
+      "observation_type": "baseline",
+      "outcome": "PENDING",
+      "outcome_checkpoints_hours": [
+        0.5,
+        1,
+        4,
+        24
+      ],
+      "outcome_price_usd": null,
+      "outcome_change_pct": null,
+      "classification": null,
+      "notes": "Baseline transcribed from user-provided quote. Future checkpoints must use timestamped Coinbase BTC-USD observations; no outcome inferred yet."
+    }
+  ]
+}
