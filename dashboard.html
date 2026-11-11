@@ -1364,22 +1364,24 @@ function classifyThreeWayCrowdMood(t) {
   const values = [bull, bear, neutral];
   if (!values.every(value => Number.isFinite(value) && value >= 0 && value <= 100)
       || Math.abs(bull + bear + neutral - 100) > 2) return null;
-  if (neutral >= bull && neutral >= bear) {
-    return { state: "NEUTRAL", direction: "NEUTRAL", color: "#aab4c4", extreme: false, bull, bear, neutral };
+  const directionalTotal = bull + bear;
+  if (directionalTotal <= 0) {
+    return { state: "NEUTRAL", direction: "NEUTRAL", color: "#aab4c4", extreme: false, bull, bear, neutral, directionalBullPct: null };
   }
-  if (bull >= 70) {
-    return { state: "EXTREMELY BULLISH", direction: "BULLISH", color: "#35d07f", extreme: true, bull, bear, neutral };
+  const directionalBullPct = bull / directionalTotal * 100;
+  if (directionalBullPct >= 70) {
+    return { state: "EXTREMELY BULLISH", direction: "BULLISH", color: "#35d07f", extreme: true, bull, bear, neutral, directionalBullPct };
   }
-  if (bear >= 70) {
-    return { state: "EXTREMELY BEARISH", direction: "BEARISH", color: "#ff5d68", extreme: true, bull, bear, neutral };
+  if (directionalBullPct <= 30) {
+    return { state: "EXTREMELY BEARISH", direction: "BEARISH", color: "#ff5d68", extreme: true, bull, bear, neutral, directionalBullPct };
   }
-  if (bull > bear) {
-    return { state: "BULLISH", direction: "BULLISH", color: "#35d07f", extreme: false, bull, bear, neutral };
+  if (directionalBullPct > 50) {
+    return { state: "BULLISH", direction: "BULLISH", color: "#35d07f", extreme: false, bull, bear, neutral, directionalBullPct };
   }
-  if (bear > bull) {
-    return { state: "BEARISH", direction: "BEARISH", color: "#ff5d68", extreme: false, bull, bear, neutral };
+  if (directionalBullPct < 50) {
+    return { state: "BEARISH", direction: "BEARISH", color: "#ff5d68", extreme: false, bull, bear, neutral, directionalBullPct };
   }
-  return { state: "NEUTRAL", direction: "NEUTRAL", color: "#aab4c4", extreme: false, bull, bear, neutral };
+  return { state: "NEUTRAL", direction: "NEUTRAL", color: "#aab4c4", extreme: false, bull, bear, neutral, directionalBullPct };
 }
 
 function renderCrowd(data) {
