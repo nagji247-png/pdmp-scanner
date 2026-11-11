@@ -53,7 +53,7 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
             "sensex": [
                 ("bse sensex", 100), ("sensex share", 40),
                 ("sensex today", 20), ("sensex rally", 10),
-                ("sensex crash", 5), ("nifty", 50),
+                ("sensex crash", 5), ("sensex sideways", 3), ("nifty", 50),
             ],
             "bank nifty": [
                 ("bank nifty 50", 100), ("bank nifty today", 40),
