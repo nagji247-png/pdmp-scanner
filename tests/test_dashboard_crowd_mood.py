@@ -19,6 +19,7 @@ eval(html.slice(start, end));
 const result = {
   neutralDominantBullish: classifyThreeWayCrowdMood({ bull_score_pct: 1.4, bear_score_pct: 0.4, neutral_score_pct: 98.2 }),
   neutralOnly: classifyThreeWayCrowdMood({ bull_score_pct: 0, bear_score_pct: 0, neutral_score_pct: 100 }),
+  weakDirectional: classifyThreeWayCrowdMood({ bull_score_pct: 0.4, bear_score_pct: 0.3, neutral_score_pct: 99.3 }),
   bullish: classifyThreeWayCrowdMood({ bull_score_pct: 80, bear_score_pct: 10, neutral_score_pct: 10 }),
   bearish: classifyThreeWayCrowdMood({ bull_score_pct: 10, bear_score_pct: 80, neutral_score_pct: 10 }),
   balanced: classifyThreeWayCrowdMood({ bull_score_pct: 35, bear_score_pct: 35, neutral_score_pct: 30 }),
@@ -40,6 +41,8 @@ console.log(JSON.stringify(result));
         self.assertTrue(result["extreme"])
         self.assertAlmostEqual(result["directionalBullPct"], 77.7777, places=3)
         self.assertEqual(self.results["neutralOnly"]["state"], "NEUTRAL")
+        self.assertEqual(self.results["weakDirectional"]["state"], "NEUTRAL")
+        self.assertIsNone(self.results["weakDirectional"]["directionalBullPct"])
 
     def test_extreme_bullish_and_bearish_need_70_percent_directional_share(self):
         self.assertEqual(self.results["bullish"]["state"], "EXTREMELY BULLISH")
