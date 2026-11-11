@@ -9,12 +9,12 @@ from urllib.error import HTTPError, URLError
 
 API = "https://www.googleapis.com/youtube/v3"
 ASSETS = {
-    "NIFTY": "Nifty 50 Nifty market Nifty teji Nifty girawat निफ्टी तेजी निफ्टी गिरावट",
-    "SENSEX": "Sensex market Sensex rise Sensex fall सेंसेक्स तेजी सेंसेक्स गिरावट",
-    "BANKNIFTY": "Bank Nifty market Bank Nifty bullish Bank Nifty bearish बैंक निफ्टी तेजी बैंक निफ्टी गिरावट",
-    "GOLD": "India gold price MCX gold gold bullish gold bearish सोना भाव तेजी सोना गिरावट",
-    "SILVER": "India silver price MCX silver silver bullish silver bearish चांदी भाव तेजी चांदी गिरावट",
-    "CRUDEOIL": "MCX crude oil crude oil India crude oil rise crude oil fall कच्चा तेल तेजी कच्चा तेल गिरावट",
+    "NIFTY": "Nifty 50|Nifty market|Nifty teji|Nifty girawat|निफ्टी तेजी|निफ्टी गिरावट",
+    "SENSEX": "Sensex market|Sensex rise|Sensex fall|सेंसेक्स तेजी|सेंसेक्स गिरावट",
+    "BANKNIFTY": "Bank Nifty market|Bank Nifty bullish|Bank Nifty bearish|बैंक निफ्टी तेजी|बैंक निफ्टी गिरावट",
+    "GOLD": "India gold price|MCX gold|gold bullish|gold bearish|सोना भाव तेजी|सोना गिरावट",
+    "SILVER": "India silver price|MCX silver|silver bullish|silver bearish|चांदी भाव तेजी|चांदी गिरावट",
+    "CRUDEOIL": "MCX crude oil|crude oil India|crude oil rise|crude oil fall|कच्चा तेल तेजी|कच्चा तेल गिरावट",
 }
 BULL = ["bullish", "rise", "rising", "rally", "recovery", "breakout", "upside", "higher", "तेजी", "बढ़ेगा", "बढ़त", "उछाल", "ऊपर जाएगा", "खरीदारी"]
 BEAR = ["bearish", "fall", "falling", "crash", "correction", "downside", "selloff", "lower", "गिरावट", "गिरेगा", "नीचे जाएगा", "मंदी", "बिकवाली"]
@@ -64,7 +64,7 @@ def main() -> int:
                 sn = item.get("snippet", {})
                 if not vid: continue
                 all_ids.append(vid)
-                videos.append({"video_id":vid, "title":sn.get("title",""), "description":sn.get("description","")[:3000],
+                videos.append({"video_id":vid, "search_query":query, "title":sn.get("title",""), "description":sn.get("description","")[:3000],
                     "channel":sn.get("channelTitle",""), "published_at":sn.get("publishedAt"),
                     "metadata_direction":classify((sn.get("title","") + " " + sn.get("description",""))),
                     "transcript_status":"NOT_AVAILABLE_VIA_PUBLIC_DATA_API"})
