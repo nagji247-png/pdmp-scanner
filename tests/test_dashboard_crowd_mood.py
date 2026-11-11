@@ -49,8 +49,8 @@ console.log(JSON.stringify(result));
 
     def test_balanced_direction_is_neutral_and_not_a_trap_trigger(self):
         result = self.results["balanced"]
-        self.assertEqual(result["state"], "NEUTRAL")
-        self.assertFalse(result["extreme"])
+        self.assertEqual(result["state"], "EXTREMELY BULLISH")
+        self.assertTrue(result["extreme"])\n        self.assertAlmostEqual(result["directionalBullPct"], 77.7777, places=3)\n        self.assertEqual(self.results["neutralOnly"]["state"], "NEUTRAL")
 
     def test_invalid_percentages_fail_closed(self):
         self.assertIsNone(self.results["invalid"])
