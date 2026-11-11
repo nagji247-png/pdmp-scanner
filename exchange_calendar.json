@@ -3,31 +3,92 @@
   "segment": "equities",
   "timezone": "Asia/Kolkata",
   "calendar_year": 2026,
-  "source": "NSE India official 2026 equity holidays and Muhurat Trading circular",
+  "source": "NSE India official 2026 equity holidays, Budget-day F&O and Muhurat trading circulars",
   "source_urls": [
     "https://www.nseindia.com/resources/exchange-communication-holidays?apiversion=v2",
-    "https://nsearchives.nseindia.com/content/circulars/FAOP76940.pdf"
+    "https://nsearchives.nseindia.com/content/circulars/FAOP76940.pdf",
+    "https://nsearchives.nseindia.com/content/circulars/FAOP72352.pdf",
+    "https://nsearchives.nseindia.com/content/circulars/CMTR72349.pdf"
   ],
   "holidays": [
-    {"date": "2026-01-15", "name": "Municipal Corporation Election - Maharashtra"},
-    {"date": "2026-01-26", "name": "Republic Day"},
-    {"date": "2026-03-03", "name": "Holi"},
-    {"date": "2026-03-26", "name": "Shri Ram Navami"},
-    {"date": "2026-03-31", "name": "Shri Mahavir Jayanti"},
-    {"date": "2026-04-03", "name": "Good Friday"},
-    {"date": "2026-04-14", "name": "Dr. Baba Saheb Ambedkar Jayanti"},
-    {"date": "2026-05-01", "name": "Maharashtra Day"},
-    {"date": "2026-05-28", "name": "Bakri Id"},
-    {"date": "2026-06-26", "name": "Muharram"},
-    {"date": "2026-09-14", "name": "Ganesh Chaturthi"},
-    {"date": "2026-10-02", "name": "Mahatma Gandhi Jayanti"},
-    {"date": "2026-10-20", "name": "Dussehra"},
-    {"date": "2026-11-08", "name": "Diwali Laxmi Pujan (special Muhurat session)"},
-    {"date": "2026-11-10", "name": "Diwali-Balipratipada"},
-    {"date": "2026-11-24", "name": "Prakash Gurpurb Sri Guru Nanak Dev"},
-    {"date": "2026-12-25", "name": "Christmas"}
+    {
+      "date": "2026-01-15",
+      "name": "Municipal Corporation Election - Maharashtra"
+    },
+    {
+      "date": "2026-01-26",
+      "name": "Republic Day"
+    },
+    {
+      "date": "2026-03-03",
+      "name": "Holi"
+    },
+    {
+      "date": "2026-03-26",
+      "name": "Shri Ram Navami"
+    },
+    {
+      "date": "2026-03-31",
+      "name": "Shri Mahavir Jayanti"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Dr. Baba Saheb Ambedkar Jayanti"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Maharashtra Day"
+    },
+    {
+      "date": "2026-05-28",
+      "name": "Bakri Id"
+    },
+    {
+      "date": "2026-06-26",
+      "name": "Muharram"
+    },
+    {
+      "date": "2026-09-14",
+      "name": "Ganesh Chaturthi"
+    },
+    {
+      "date": "2026-10-02",
+      "name": "Mahatma Gandhi Jayanti"
+    },
+    {
+      "date": "2026-10-20",
+      "name": "Dussehra"
+    },
+    {
+      "date": "2026-11-08",
+      "name": "Diwali Laxmi Pujan (special Muhurat session)"
+    },
+    {
+      "date": "2026-11-10",
+      "name": "Diwali-Balipratipada"
+    },
+    {
+      "date": "2026-11-24",
+      "name": "Prakash Gurpurb Sri Guru Nanak Dev"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas"
+    }
   ],
   "special_sessions": {
+    "2026-02-01": {
+      "name": "Union Budget live trading session",
+      "pre_open_start": "09:00",
+      "pre_open_end": "09:08",
+      "regular_start": "09:15",
+      "regular_end": "15:30",
+      "source_circular": "NSE/FAOP/72352 and NSE/CMTR/72349"
+    },
     "2026-11-08": {
       "name": "Diwali Muhurat Trading",
       "pre_open_start": "14:05",
