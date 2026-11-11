@@ -59,6 +59,20 @@ class ParticipantOISummaryTests(unittest.TestCase):
                     "aligned_oi_dates": 249,
                     "missing_oi_sessions_inside_price_range": 0,
                     "regime_counts_on_aligned_dates": {"bull": 90, "bear": 80, "sideways": 79, "unknown": 0},
+                    "client_option_quantity_magnitude_threshold_diagnostics": [
+                        {
+                            "training_quantile": 0.9,
+                            "training_nonzero_observations": 100,
+                            "absolute_quantity_threshold": 500000,
+                            "holdout_selected_observations": 20,
+                            "holdout_total_rows": 20,
+                            "crowd_follow_hit_rate_pct": 40.0,
+                            "pdmp_contrarian_hit_rate_pct": 60.0,
+                            "crowd_follow_false_signals": 12,
+                            "pdmp_contrarian_false_signals": 8,
+                            "holdout_avg_forward_return_pct": -0.12,
+                        }
+                    ],
                     "metrics": [
                         metric(futures, "FII", "future_index_long_change_pct_prior_gross", 1, "train_first_70pct", 55.0, 45.0),
                         metric(futures, "FII", "future_index_long_change_pct_prior_gross", 1, "chronological_holdout_last_30pct", 60.0, 40.0, {
@@ -136,6 +150,42 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual([item["absolute_quantity_threshold"] for item in one_day], [5, 8, 9])
         self.assertEqual([item["holdout_selected_observations"] for item in one_day], [4, 3, 2])
         self.assertTrue(all(item["training_nonzero_observations"] == 10 for item in one_day))
+
+    def test_magnitude_threshold_summary_adds_ci_and_holm_inference(self):
+        feature = "CLIENT.index_option_directional_net_quantity"
+        report = {
+            "status": "exploratory_only",
+            "indices": {
+                "NIFTY": {
+                    "metrics": [
+                        metric(feature, "CLIENT", "index_option_directional_net_quantity", 1,
+                               "train_first_70pct", 55.0, 45.0),
+                        metric(feature, "CLIENT", "index_option_directional_net_quantity", 1,
+                               "chronological_holdout_last_30pct", 55.0, 45.0),
+                    ],
+                    "client_option_quantity_magnitude_threshold_diagnostics": [{
+                        "training_quantile": 0.9,
+                        "training_nonzero_observations": 100,
+                        "absolute_quantity_threshold": 500000,
+                        "holdout_selected_observations": 20,
+                        "holdout_total_rows": 20,
+                        "crowd_follow_hit_rate_pct": 40.0,
+                        "pdmp_contrarian_hit_rate_pct": 60.0,
+                        "crowd_follow_false_signals": 12,
+                        "pdmp_contrarian_false_signals": 8,
+                        "holdout_avg_forward_return_pct": -0.12,
+                    }],
+                }
+            },
+        }
+        result = build_summary(report)
+        threshold = result["indices"]["NIFTY"]["client_option_quantity_magnitude_thresholds"][0]
+        self.assertEqual(threshold["pdmp_contrarian_correct_signals"], 12)
+        self.assertEqual(threshold["pdmp_contrarian_hit_rate_pct"], 60.0)
+        self.assertIsNotNone(threshold["statistical_evidence"]["pdmp_hit_rate_ci95_pct"])
+        self.assertEqual(threshold["statistical_evidence"]["holm_family_size"], 1)
+        self.assertFalse(threshold["statistical_evidence"]["nominal_holm_p_below_05"])
+        self.assertFalse(result["magnitude_threshold_inference"]["live_score_eligible"])
 
     def test_wilson_interval_and_exact_binomial_probability(self):
         interval = wilson_interval(10, 20)

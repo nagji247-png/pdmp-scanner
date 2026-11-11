@@ -164,6 +164,70 @@ def attach_directional_inference(features):
         }
 
 
+def attach_magnitude_threshold_inference(indices):
+    """Add uncertainty and one global Holm correction to every holdout threshold test.
+
+    A PDMP hit is a crowd-follow miss. Thresholds are learned on training data
+    and evaluated once on chronological holdout data. Tests remain exploratory:
+    indexes share the same market-wide CLIENT OI input and horizons overlap.
+    """
+    raw_pvalues = {}
+    prepared = {}
+    for asset, index in indices.items():
+        for position, item in enumerate(index.get("client_option_quantity_magnitude_thresholds", [])):
+            n = item.get("holdout_selected_observations")
+            hits = item.get("pdmp_contrarian_correct_signals")
+            if (
+                isinstance(n, int) and not isinstance(n, bool) and n > 0
+                and isinstance(hits, int) and not isinstance(hits, bool)
+                and 0 <= hits <= n
+            ):
+                key = f"{asset}:{position}"
+                prepared[key] = {
+                    "interval": wilson_interval(hits, n),
+                    "pvalue": exact_binomial_two_sided_pvalue(hits, n),
+                    "n": n,
+                    "hits": hits,
+                }
+                raw_pvalues[key] = prepared[key]["pvalue"]
+
+    adjusted = holm_adjust_pvalues(raw_pvalues)
+    family_size = len(raw_pvalues)
+    for asset, index in indices.items():
+        for position, item in enumerate(index.get("client_option_quantity_magnitude_thresholds", [])):
+            key = f"{asset}:{position}"
+            evidence = prepared.get(key)
+            if evidence is None:
+                item["statistical_evidence"] = {
+                    "pdmp_hit_rate_ci95_pct": None,
+                    "p_value_vs_50pct_two_sided": None,
+                    "holm_adjusted_p_value": None,
+                    "holm_family_size": family_size,
+                    "nominal_holm_p_below_05": False,
+                }
+                continue
+            interval = evidence["interval"]
+            adjusted_p = adjusted.get(key)
+            item["pdmp_contrarian_correct_signals"] = evidence["hits"]
+            item["pdmp_contrarian_hit_rate_pct"] = round(
+                evidence["hits"] / evidence["n"] * 100.0, 2
+            )
+            item["statistical_evidence"] = {
+                "pdmp_hit_rate_ci95_pct": (
+                    [round(interval[0], 2), round(interval[1], 2)]
+                    if interval is not None else None
+                ),
+                "p_value_vs_50pct_two_sided": round(evidence["pvalue"], 8),
+                "holm_adjusted_p_value": (
+                    round(adjusted_p, 8) if adjusted_p is not None else None
+                ),
+                "holm_family_size": family_size,
+                "nominal_holm_p_below_05": (
+                    adjusted_p < 0.05 if adjusted_p is not None else False
+                ),
+            }
+
+
 def summarize_index(name, index):
     raw_metrics = index.get("metrics")
     if not isinstance(raw_metrics, list):
@@ -285,6 +349,27 @@ def summarize_index(name, index):
             "interpretation": "No live-score eligibility; use only as a conservative diagnostic.",
         },
         "features": features,
+        "client_option_quantity_magnitude_thresholds": [
+            {
+                "training_quantile": row.get("training_quantile"),
+                "training_nonzero_observations": row.get("training_nonzero_observations"),
+                "absolute_quantity_threshold": row.get("absolute_quantity_threshold"),
+                "holdout_selected_observations": row.get("holdout_selected_observations"),
+                "holdout_total_rows": row.get("holdout_total_rows"),
+                "crowd_follow_hit_rate_pct": row.get("crowd_follow_hit_rate_pct"),
+                "crowd_follow_false_signals": row.get("crowd_follow_false_signals"),
+                "pdmp_contrarian_correct_signals": row.get("crowd_follow_false_signals"),
+                "pdmp_contrarian_false_signals": (
+                    row.get("holdout_selected_observations") - row.get("crowd_follow_false_signals")
+                    if isinstance(row.get("holdout_selected_observations"), int)
+                    and isinstance(row.get("crowd_follow_false_signals"), int) else None
+                ),
+                "pdmp_contrarian_hit_rate_pct": row.get("pdmp_contrarian_hit_rate_pct"),
+                "holdout_avg_forward_return_pct": row.get("holdout_avg_forward_return_pct"),
+            }
+            for row in (index.get("client_option_quantity_magnitude_threshold_diagnostics") or [])
+            if isinstance(row, dict)
+        ],
         "best_holdout_futures_exploratory_only": [
             {
                 "feature": item["feature"],
@@ -359,6 +444,23 @@ def build_summary(report):
         base["indices"][name] = summarize_index(name, index)
     if not base["indices"]:
         raise ValueError("no valid index metrics could be summarized")
+    attach_magnitude_threshold_inference(base["indices"])
+    base["magnitude_threshold_inference"] = {
+        "method": "95% Wilson interval and exact two-sided binomial test against 50% PDMP hit rate",
+        "multiple_testing": "One Holm family-wise correction across every available index × horizon × training-quantile threshold comparison in this report",
+        "family_size": sum(
+            1 for index in base["indices"].values()
+            for row in index.get("client_option_quantity_magnitude_thresholds", [])
+            if (row.get("statistical_evidence") or {}).get("p_value_vs_50pct_two_sided") is not None
+        ),
+        "dependence_warning": (
+            "Exploratory only. The same market-wide CLIENT OI input is reused for all index price series; "
+            "1/3/5-session forward windows overlap; threshold quantiles are fixed from training data only. "
+            "Holm correction controls the listed family under its assumptions but does not make these "
+            "correlated observations independent or establish a tradable edge."
+        ),
+        "live_score_eligible": False,
+    }
     return base
 
 
