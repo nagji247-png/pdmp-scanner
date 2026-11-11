@@ -416,22 +416,29 @@ def analyze_index(index_name, symbol, records):
         for group in GROUPS:
             for field in FIELDS:
                 features = []
-                net_value = normalized_net_change(current_groups[group], previous_groups[group], field)
+                net_value = normalized_net_change(
+                    current_groups[group], previous_groups[group], field
+                )
                 if net_value is not None:
                     features.append((f"{field}_net_change_pct_prior_gross", net_value))
                 for leg in ("long", "short"):
-                    leg_value = normalized_leg_change(current_groups[group], previous_groups[group], field, leg)
+                    leg_value = normalized_leg_change(
+                        current_groups[group], previous_groups[group], field, leg
+                    )
                     if leg_value is not None:
                         if field == "future_index" and leg == "short":
                             leg_value *= -1
-                        features.append((f"{field}_{leg}_change_pct_prior_gross", leg_value))
+                        features.append((
+                            f"{field}_{leg}_change_pct_prior_gross", leg_value
+                        ))
 
-            if group == "CLIENT":
-                features.extend(client_option_quantity_features(
-                    current_groups[group], previous_groups[group]
-                ).items())
+                # Add the raw CLIENT option quantity features once per date pair.
+                if group == "CLIENT" and field == "index_put":
+                    features.extend(client_option_quantity_features(
+                        current_groups[group], previous_groups[group]
+                    ).items())
 
-            for suffix, value in features:
+                for suffix, value in features:
                     bucket = rows_by_feature.setdefault(f"{group}.{suffix}", [])
                     for horizon in HORIZONS:
                         target_position = price_position + horizon
@@ -482,7 +489,7 @@ def analyze_index(index_name, symbol, records):
                     item["regime_metrics"] = {
                         regime: calculate_metrics(
                             [row for row in sample if row["regime"] == regime],
-                            directional=futures_directional,
+                            directional=directional_signal,
                         )
                         for regime in REGIMES
                     }
