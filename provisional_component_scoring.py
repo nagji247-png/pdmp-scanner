@@ -4,11 +4,24 @@ These scores are separate from the published PDMP score. They are intended
 to make available evidence visible immediately while the historical samples
 continue to accumulate.
 """
+import datetime as dt
+
 from component_scoring import build_component, clamp_score, finite_number
 
 # User-approved provisional component weights. These are separate from the
 # published PDMP Main Score weights in component_scoring.py.
 # combine_components renormalizes only across components with valid evidence.
+def source_date_is_fresh(source_date, scan_date, max_age_days=3):
+    """Reject missing, future-dated, or calendar-stale archived evidence."""
+    try:
+        observed = dt.date.fromisoformat(str(source_date)[:10])
+        scanned = dt.date.fromisoformat(str(scan_date)[:10])
+    except (TypeError, ValueError):
+        return False
+    age_days = (scanned - observed).days
+    return 0 <= age_days <= int(max_age_days)
+
+
 PROVISIONAL_WEIGHTS = {
     "news": 15.0,
     "stock_basket": 20.0,
@@ -19,7 +32,7 @@ PROVISIONAL_WEIGHTS = {
 }
 
 
-def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=5):
+def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=5, max_age_days=3):
     """Average the nearest-unexpired-expiry PE/CE OI balance over recent sessions."""
     if not isinstance(archive, dict):
         return None
@@ -64,6 +77,9 @@ def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=
             })
     if not observations:
         return None
+    # Never let an old archive masquerade as a current component.
+    if not source_date_is_fresh(observations[-1]["date"], scan_date, max_age_days):
+        return None
     mean_score = round(sum(item["score"] for item in observations) / len(observations), 2)
     return build_component(
         mean_score,
@@ -79,13 +95,17 @@ def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=
     )
 
 
-def client_marketwide_components(context):
+def client_marketwide_components(context, scan_date=None, max_age_days=3):
     """Create provisional contrarian scores from dated CLIENT percentage changes."""
     if not isinstance(context, dict) or not context.get("available"):
         return {}
     evidence = context.get("evidence_components") or {}
     source = context.get("source") or "NSE official participant-wise OI · CLIENT"
     source_date = context.get("source_date")
+    if scan_date is not None and not source_date_is_fresh(
+        source_date, scan_date, max_age_days
+    ):
+        return {}
     output = {}
     groups = {
         "client_ce_pe": ("ce_long", "ce_short", "pe_long", "pe_short"),
