@@ -400,6 +400,48 @@ def non_overlapping_phase_metrics(rows, horizon, directional):
     return results
 
 
+
+def magnitude_threshold_diagnostics(rows_by_feature):
+    """Evaluate predeclared absolute-signal quantiles learned on train only.
+
+    Thresholds are the 50th, 75th and 90th percentiles of absolute training
+    quantities. They are applied unchanged to the chronological holdout.
+    This is descriptive threshold research, not a fitted live scoring rule.
+    """
+    feature = "CLIENT.index_option_directional_net_quantity"
+    observations = rows_by_feature.get(feature, [])
+    diagnostics = []
+    for horizon in HORIZONS:
+        sample = [row for row in observations if row["horizon"] == horizon]
+        cut = int(len(sample) * 0.70)
+        train, holdout = sample[:cut], sample[cut:]
+        magnitudes = sorted(abs(row["signal"]) for row in train if row["signal"] != 0)
+        if not magnitudes:
+            continue
+        for quantile in (0.50, 0.75, 0.90):
+            rank = max(0, min(len(magnitudes) - 1, math.ceil(quantile * len(magnitudes)) - 1))
+            threshold = magnitudes[rank]
+            selected = [
+                row for row in holdout
+                if abs(row["signal"]) >= threshold and row["forward_return_pct"] != 0
+            ]
+            metrics = calculate_metrics(selected, directional=True)
+            diagnostics.append({
+                "feature": feature,
+                "horizon_sessions": horizon,
+                "training_quantile": quantile,
+                "training_nonzero_observations": len(magnitudes),
+                "absolute_quantity_threshold": threshold,
+                "holdout_selected_observations": metrics["directional_observation_count"],
+                "holdout_total_rows": len(selected),
+                "crowd_follow_hit_rate_pct": metrics["directional_hit_rate_pct"],
+                "pdmp_contrarian_hit_rate_pct": metrics["contrarian_hit_rate_pct"],
+                "crowd_follow_false_signals": metrics["false_signals"],
+                "pdmp_contrarian_false_signals": metrics["contrarian_false_signals"],
+                "holdout_avg_forward_return_pct": metrics["avg_forward_return_pct"],
+            })
+    return diagnostics
+
 def analyze_index(index_name, symbol, records):
     prices, price_validation = load_index_prices(symbol)
     price_dates = sorted(prices)
@@ -553,6 +595,7 @@ def analyze_index(index_name, symbol, records):
             "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
+        "client_option_quantity_magnitude_threshold_diagnostics": magnitude_threshold_diagnostics(rows_by_feature),
     }
 
 
