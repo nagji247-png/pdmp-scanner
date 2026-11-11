@@ -812,19 +812,20 @@ def build_asset_component_breakdowns(
                 }
 
         if name in index_names:
-            oi_component = index_oi_balance_component(
-                index_oi_archive, name, news_source_date,
-                weight=PROVISIONAL_WEIGHTS["eod_oi"], sessions=5,
-                max_age_days=3,
-            )
-            if oi_component:
-                provisional_components["eod_oi"] = oi_component
-            else:
-                excluded["eod_oi"] = {
-                    "applicable": True, "included": False,
-                    "source": "NSE F&O UDiFF · nearest-expiry PE/CE open-interest balance",
-                    "reason": "सबसे नया official index OI observation scan date से 3 calendar days से अधिक पुराना या अधूरा है; provisional Final से बाहर रखा गया।",
-                }
+            if name != "SENSEX":
+                oi_component = index_oi_balance_component(
+                    index_oi_archive, name, news_source_date,
+                    weight=PROVISIONAL_WEIGHTS["eod_oi"], sessions=5,
+                    max_age_days=3,
+                )
+                if oi_component:
+                    provisional_components["eod_oi"] = oi_component
+                else:
+                    excluded["eod_oi"] = {
+                        "applicable": True, "included": False,
+                        "source": "NSE F&O UDiFF · nearest-expiry PE/CE open-interest balance",
+                        "reason": "सबसे नया official index OI observation scan date से 3 calendar days से अधिक पुराना या अधूरा है; provisional Final से बाहर रखा गया।",
+                    }
             marketwide_components = client_marketwide_components(
                 client_context, scan_date=news_source_date, max_age_days=3
             )
