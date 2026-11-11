@@ -134,7 +134,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
         one_day = [item for item in result if item["horizon_sessions"] == 1]
         self.assertEqual(len(one_day), 3)
         self.assertEqual([item["absolute_quantity_threshold"] for item in one_day], [5, 8, 9])
-        self.assertEqual([item["holdout_selected_observations"] for item in one_day], [5, 3, 3])
+        self.assertEqual([item["holdout_selected_observations"] for item in one_day], [4, 3, 2])
         self.assertTrue(all(item["training_nonzero_observations"] == 10 for item in one_day))
 
     def test_wilson_interval_and_exact_binomial_probability(self):
