@@ -1365,7 +1365,7 @@ function classifyThreeWayCrowdMood(t) {
   if (!values.every(value => Number.isFinite(value) && value >= 0 && value <= 100)
       || Math.abs(bull + bear + neutral - 100) > 2) return null;
   const directionalTotal = bull + bear;
-  if (directionalTotal <= 0) {
+  if (directionalTotal < 1.0) {
     return { state: "NEUTRAL", direction: "NEUTRAL", color: "#aab4c4", extreme: false, bull, bear, neutral, directionalBullPct: null };
   }
   const directionalBullPct = bull / directionalTotal * 100;
@@ -1398,11 +1398,15 @@ function renderCrowd(data) {
   const mood = hasFreshOneDayMood ? classifyThreeWayCrowdMood(t) : null;
   if (mood) {
     const { bull, bear, neutral } = mood;
+    const directionalHtml = mood.directionalBullPct == null
+      ? `<div class="sub" style="margin-top:6px">दिशात्मक खोज संकेत पर्याप्त नहीं; Neutral जानकारी वाली खोजें अलग</div>`
+      : `<div class="sub" style="margin-top:6px">सिर्फ़ दिशात्मक खोजों में: बुलिश ${mood.directionalBullPct.toFixed(1)}% · बियरिश ${(100-mood.directionalBullPct).toFixed(1)}%</div>`;
     moodHtml = `
       ${t.cached ? `<div class="sub">Google Trends कैश · स्रोत समय: ${esc(istTime(t.as_of))}</div>` : ""}
       <div style="margin:12px 0 8px;font-size:25px;font-weight:900;letter-spacing:.2px;color:${mood.color}">${mood.state}</div>
       <div class="mood-bar"><div class="mood-bull" style="width:${bull}%"></div><div class="mood-bear" style="width:${bear}%"></div><div style="width:${neutral}%;background:#6b7280"></div></div>
       <div class="mood-split" style="flex-wrap:wrap;gap:6px"><span class="pos">बुलिश ${bull.toFixed(1)}%</span><span class="neg">बियरिश ${bear.toFixed(1)}%</span><span style="color:#aab4c4">NEUTRAL ${neutral.toFixed(1)}%</span></div>
+      ${directionalHtml}
       <div class="sub" style="margin-top:8px">मूड बुलिश बनाम बियरिश दिशात्मक खोजों के अनुपात से तय होता है; NEUTRAL जानकारी वाली खोजें अलग दिखाई गई हैं। यह वास्तविक खरीद/बिक्री या लोगों की संख्या नहीं है।</div>`;
   } else {
     const why = !t.ok ? (t.error || "Google Trends डेटा उपलब्ध नहीं") :
