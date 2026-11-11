@@ -61,7 +61,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
     def test_three_way_mood_marks_only_dominant_direction_as_extreme(self):
         self.assertEqual(fetch_and_score.three_way_crowd_mood(80, 10, 10)[0], "BULLISH")
         self.assertEqual(fetch_and_score.three_way_crowd_mood(10, 80, 10)[0], "BEARISH")
-        self.assertEqual(fetch_and_score.three_way_crowd_mood(60, 20, 20)[0], "BULLISH")
+        self.assertEqual(fetch_and_score.three_way_crowd_mood(60, 20, 20)[0], "EXTREMELY BULLISH")
         self.assertEqual(fetch_and_score.three_way_crowd_mood(20, 20, 60)[0], "NEUTRAL")
 
     def test_asset_matched_information_searches_are_neutral(self):
