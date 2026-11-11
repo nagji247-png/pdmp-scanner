@@ -3971,6 +3971,37 @@ def tq_weight(v):
         return 100.0  # 'Breakout' जैसे मान
 
 
+def three_way_crowd_mood(bull_pct, bear_pct, neutral_pct):
+    """Classify mood from all three real search-interest groups, not bull-vs-bear alone."""
+    values = (bull_pct, bear_pct, neutral_pct)
+    try:
+        bull, bear, neutral = (float(value) for value in values)
+    except (TypeError, ValueError):
+        return "NO DATA", "पर्याप्त खोज डेटा नहीं"
+    if (not all(math.isfinite(value) and 0 <= value <= 100 for value in (bull, bear, neutral))
+            or abs(bull + bear + neutral - 100) > 2):
+        return "NO DATA", "पर्याप्त खोज डेटा नहीं"
+    if neutral >= bull and neutral >= bear:
+        return "NEUTRAL", "भीड़ का मूड तटस्थ"
+    if bull >= CROWD_EXTREME:
+        return "BULLISH", "ज़्यादातर बुलिश सोच"
+    if bear >= CROWD_EXTREME:
+        return "BEARISH", "ज़्यादातर बियरिश सोच"
+    if bull > bear:
+        return "BULLISH", "बुलिश झुकाव"
+    if bear > bull:
+        return "BEARISH", "बियरिश झुकाव"
+    return "NEUTRAL", "भीड़ का मूड तटस्थ"
+
+
+def three_way_crowd_component(bull_pct, bear_pct, neutral_pct):
+    """Map three-way net directional share to -10..+10; neutral interest adds no direction."""
+    mood, _label = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
+    if mood == "NO DATA":
+        return None
+    return round(max(-10.0, min(10.0, (float(bull_pct) - float(bear_pct)) / 100.0 * 10.0)), 1)
+
+
 def tq_aggregate(queries):
     """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
     bull_w = bear_w = neutral_w = 0.0
@@ -4005,14 +4036,12 @@ def tq_aggregate(queries):
         else:
             label = "सोच बँटी हुई"
         # Three-way mood percentages use the actual weight of each query group.
-        # Keep crowd_bull_pct on the historical bull-vs-bear basis for published-score compatibility.
+        # crowd_bull_pct remains a separate bull-vs-bear ratio for the Fear-vs-Greed display only.
         mood_total = bull_w + bear_w + neutral_w
         bull_score = round(bull_w / mood_total * 100, 1) if mood_total else None
         bear_score = round(bear_w / mood_total * 100, 1) if mood_total else None
         neutral_score = round(neutral_w / mood_total * 100, 1) if mood_total else None
-        # Direction label continues to compare directional searches only.
-        sentiment = ("BULLISH" if bull_w > bear_w
-                     else "BEARISH" if bear_w > bull_w else "NEUTRAL")
+        sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
     rising_all = [it for it in queries.values() if it.get("rising")]
     return {
         "crowd_bull_pct": pct, "crowd_label": label,
@@ -5874,21 +5903,20 @@ def main():
     # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
     # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
     fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
-    crowd_bull = trends.get("crowd_bull_pct") if fresh_trends else None
     crowd_total_bull = trends.get("bull_score_pct") if fresh_trends else None
     crowd_bear = trends.get("bear_score_pct") if fresh_trends else None
     crowd_neutral = trends.get("neutral_score_pct") if fresh_trends else None
-    crowd_bull_sum = trends.get("bull_sum_pct") if fresh_trends else None
-    crowd_bear_sum = trends.get("bear_sum_pct") if fresh_trends else None
     crowd_valid = (
-        isinstance(crowd_bull, (int, float)) and 0 <= crowd_bull <= 100
-        and isinstance(crowd_bull_sum, (int, float)) and crowd_bull_sum > 0
-        and isinstance(crowd_bear_sum, (int, float)) and crowd_bear_sum > 0
+        trends.get("today_basis") in {"now_1d_anchor_relative", "now_1d_related_queries"}
         and all(
-            isinstance(v, (int, float)) and 0 <= v <= 100
+            isinstance(v, (int, float)) and math.isfinite(float(v)) and 0 <= v <= 100
             for v in (crowd_total_bull, crowd_bear, crowd_neutral)
         )
-        and abs((crowd_total_bull or 0) + (crowd_bear or 0) + (crowd_neutral or 0) - 100) <= 2
+        and abs(float(crowd_total_bull) + float(crowd_bear) + float(crowd_neutral) - 100) <= 2
+    )
+    crowd_component = (
+        three_way_crowd_component(crowd_total_bull, crowd_bear, crowd_neutral)
+        if crowd_valid else None
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
     # Shadow calculation only: the published production score is not changed.
@@ -5900,7 +5928,7 @@ def main():
         _exp_news = _exp["news_score"]
         _exp_retail = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
         if crowd_valid and retail_valid:
-            _exp_crowd = max(-10.0, min(10.0, (float(crowd_bull) - 50.0) / 50.0 * 10.0))
+            _exp_crowd = crowd_component
             _exp_combined = _exp_news * 0.40 + _exp_crowd * 0.40 + _exp_retail * 0.20
             _exp_mode = "shadow_news24h_dedup_crowd_client"
         elif retail_valid:
@@ -5921,9 +5949,7 @@ def main():
             continue
         if crowd_valid and retail_valid:
             news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
-            # Crowd score uses bullish share among directional searches (bull vs bear).
-            # 50% is neutral; 0..100% maps linearly to -10..+10.
-            crowd_component = max(-10.0, min(10.0, (float(crowd_bull) - 50.0) / 50.0 * 10.0))
+            # Crowd score uses the three-way net directional share; neutral search interest has zero directional weight.
             retail_component = max(-10.0, min(10.0, float(adj) * 5))
             combined = news_component * 0.40 + crowd_component * 0.40 + retail_component * 0.20
             _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
