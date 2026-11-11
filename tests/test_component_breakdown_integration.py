@@ -30,6 +30,35 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             100.0,
         )
 
+    def test_tq_aggregate_label_uses_all_three_search_groups(self):
+        queries = {
+            "bull": {"term": "nifty breakout", "weight": 1.4, "rising": False},
+            "bear": {"term": "nifty correction", "weight": 0.4, "rising": False},
+            "neutral": {"term": "nifty today", "weight": 98.1, "rising": False},
+        }
+        result = fetch_and_score.tq_aggregate(queries)
+        self.assertEqual(result["crowd_label"], "भीड़ का मूड तटस्थ")
+        self.assertEqual(result["sentiment_label"], "NEUTRAL")
+        self.assertEqual(result["crowd_bull_pct"], 78)
+
+    def test_three_way_mood_stays_neutral_when_neutral_interest_dominates(self):
+        mood, label = fetch_and_score.three_way_crowd_mood(1.4, 0.4, 98.1)
+        self.assertEqual(mood, "NEUTRAL")
+        self.assertEqual(label, "भीड़ का मूड तटस्थ")
+        self.assertAlmostEqual(fetch_and_score.three_way_crowd_component(1.4, 0.4, 98.1), 0.1)
+
+    def test_three_way_crowd_component_uses_net_direction_not_directional_only_ratio(self):
+        self.assertEqual(fetch_and_score.three_way_crowd_component(80, 10, 10), 7.0)
+        self.assertEqual(fetch_and_score.three_way_crowd_component(10, 80, 10), -7.0)
+        self.assertEqual(fetch_and_score.three_way_crowd_component(20, 20, 60), 0.0)
+        self.assertIsNone(fetch_and_score.three_way_crowd_component(0, 0, 0))
+
+    def test_three_way_mood_marks_only_dominant_direction_as_extreme(self):
+        self.assertEqual(fetch_and_score.three_way_crowd_mood(80, 10, 10)[0], "BULLISH")
+        self.assertEqual(fetch_and_score.three_way_crowd_mood(10, 80, 10)[0], "BEARISH")
+        self.assertEqual(fetch_and_score.three_way_crowd_mood(60, 20, 20)[0], "BULLISH")
+        self.assertEqual(fetch_and_score.three_way_crowd_mood(20, 20, 60)[0], "NEUTRAL")
+
     def test_asset_matched_information_searches_are_neutral(self):
         cases = [
             ("nifty today", "NIFTY"),
