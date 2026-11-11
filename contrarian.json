@@ -973,7 +973,11 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance completed 5-minute candles",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 297.8,
+      "time": "2026-11-11T09:40:00Z",
+      "change_pct": -0.6,
+      "outcome": "reversed"
     },
     "after_60m": {
       "status": "pending"
