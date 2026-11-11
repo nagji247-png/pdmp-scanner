@@ -46,6 +46,14 @@ class ParticipantOISpecialSessionTests(unittest.TestCase):
         request.assert_called_once()
         self.assertIn("fao_participant_oi_08112026.csv", request.call_args.args[0])
 
+    def test_market_status_recognizes_budget_day_sunday_session(self):
+        before_session_utc = dt.datetime(2026, 2, 1, 3, 44, tzinfo=dt.timezone.utc)
+        during_session_utc = dt.datetime(2026, 2, 1, 3, 45, tzinfo=dt.timezone.utc)
+        after_session_utc = dt.datetime(2026, 2, 1, 10, 0, tzinfo=dt.timezone.utc)
+        self.assertTrue(fetch_and_score.market_closed_today(now_utc=before_session_utc))
+        self.assertFalse(fetch_and_score.market_closed_today(now_utc=during_session_utc))
+        self.assertTrue(fetch_and_score.market_closed_today(now_utc=after_session_utc))
+
     def test_regular_weekend_without_calendar_entry_is_not_requested(self):
         calendar = {"special_sessions": {"2026-11-08": {"name": "Muhurat"}}}
         with mock.patch.object(fetch_and_score, "load_json", return_value=calendar), \
