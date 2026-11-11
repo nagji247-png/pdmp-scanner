@@ -3972,7 +3972,7 @@ def tq_weight(v):
 
 
 def three_way_crowd_mood(bull_pct, bear_pct, neutral_pct):
-    """Classify mood from all three real search-interest groups, not bull-vs-bear alone."""
+    """Classify directional crowd bias; neutral information searches remain separately visible."""
     values = (bull_pct, bear_pct, neutral_pct)
     try:
         bull, bear, neutral = (float(value) for value in values)
@@ -3981,25 +3981,31 @@ def three_way_crowd_mood(bull_pct, bear_pct, neutral_pct):
     if (not all(math.isfinite(value) and 0 <= value <= 100 for value in (bull, bear, neutral))
             or abs(bull + bear + neutral - 100) > 2):
         return "NO DATA", "पर्याप्त खोज डेटा नहीं"
-    if neutral >= bull and neutral >= bear:
-        return "NEUTRAL", "भीड़ का मूड तटस्थ"
-    if bull >= CROWD_EXTREME:
-        return "BULLISH", "ज़्यादातर बुलिश सोच"
-    if bear >= CROWD_EXTREME:
-        return "BEARISH", "ज़्यादातर बियरिश सोच"
-    if bull > bear:
-        return "BULLISH", "बुलिश झुकाव"
-    if bear > bull:
-        return "BEARISH", "बियरिश झुकाव"
-    return "NEUTRAL", "भीड़ का मूड तटस्थ"
+    directional_total = bull + bear
+    if directional_total < 1.0:
+        return "NEUTRAL", "दिशात्मक खोज रुचि 1% से कम; मूड तय करने के लिए अपर्याप्त"
+    directional_bull_pct = bull / directional_total * 100.0
+    if directional_bull_pct >= CROWD_EXTREME:
+        return "BULLISH", "दिशात्मक खोजों में बेहद बुलिश झुकाव"
+    if directional_bull_pct <= CROWD_LOW:
+        return "BEARISH", "दिशात्मक खोजों में बेहद बियरिश झुकाव"
+    if directional_bull_pct > 50:
+        return "BULLISH", "दिशात्मक खोजों में बुलिश झुकाव"
+    if directional_bull_pct < 50:
+        return "BEARISH", "दिशात्मक खोजों में बियरिश झुकाव"
+    return "NEUTRAL", "बुलिश और बियरिश खोजें बराबर"
 
 
 def three_way_crowd_component(bull_pct, bear_pct, neutral_pct):
-    """Map three-way net directional share to -10..+10; neutral interest adds no direction."""
+    """Map the bull-vs-bear directional ratio to -10..+10; neutral searches stay contextual."""
     mood, _label = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
     if mood == "NO DATA":
         return None
-    return round(max(-10.0, min(10.0, (float(bull_pct) - float(bear_pct)) / 100.0 * 10.0)), 1)
+    bull, bear = float(bull_pct), float(bear_pct)
+    directional_total = bull + bear
+    if directional_total < 1.0:
+        return None
+    return round(max(-10.0, min(10.0, (bull - bear) / directional_total * 10.0)), 1)
 
 
 def tq_aggregate(queries):
@@ -5959,7 +5965,7 @@ def main():
         "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
         "weights": {"news": 40, "crowd": 40, "client": 20},
         "crowd_included": bool(crowd_valid),
-        "crowd_basis": "three_way_net_directional_share; (BULLISH%-BEARISH%)/100 maps to -10..+10; NEUTRAL contributes zero",
+        "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
         "crowd_bull_pct": crowd_bull if fresh_trends else None,
         "crowd_net_score": crowd_component if crowd_valid else None,
         "client_included": bool(retail_valid),
@@ -5974,7 +5980,7 @@ def main():
     }
 
     crowd_mood, _crowd_label = three_way_crowd_mood(crowd_total_bull, crowd_bear, crowd_neutral) if crowd_valid else ("NO DATA", "पर्याप्त खोज डेटा नहीं")
-    crowd_pct = crowd_bull if crowd_valid and crowd_mood in {"BULLISH", "BEARISH"} and (crowd_total_bull >= CROWD_EXTREME or crowd_bear >= CROWD_EXTREME) else None
+    crowd_pct = crowd_bull if crowd_valid and crowd_mood in {"BULLISH", "BEARISH"} and crowd_bull is not None and (crowd_bull >= CROWD_EXTREME or crowd_bull <= CROWD_LOW) else None
     nifty_ret = all_returns.get("NIFTY") or {}
     update_crowd(crowd_events, crowd_pct, today_str, nifty_ret)
     done = [e for e in crowd_events if e.get("outcome")]
