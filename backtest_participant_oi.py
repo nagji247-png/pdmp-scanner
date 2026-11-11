@@ -221,6 +221,40 @@ def normalized_net_change(current, previous, field):
     return long_change - short_change
 
 
+
+
+def client_option_quantity_features(current, previous):
+    """Return raw CLIENT option OI quantity changes with explicit directional signs.
+
+    Positive values mean CLIENT crowd added bullish exposure:
+    CE long additions and PE short additions are bullish; CE short and PE long
+    additions are bearish. Values are changes in open-interest positions, not
+    traded buy volume.
+    """
+    keys = (
+        "index_call_long", "index_call_short",
+        "index_put_long", "index_put_short",
+    )
+    changes = {}
+    for key in keys:
+        today = finite_number(current.get(key))
+        prior = finite_number(previous.get(key))
+        if today is None or prior is None:
+            return {}
+        changes[key] = today - prior
+
+    call_net = changes["index_call_long"] - changes["index_call_short"]
+    put_raw_net = changes["index_put_long"] - changes["index_put_short"]
+    put_directional = changes["index_put_short"] - changes["index_put_long"]
+    return {
+        "index_call_net_quantity": call_net,
+        "index_put_raw_net_quantity": put_raw_net,
+        "index_put_directional_net_quantity": put_directional,
+        "index_option_user_arithmetic_net_quantity": call_net + put_raw_net,
+        "index_option_directional_net_quantity": call_net + put_directional,
+    }
+
+
 def correlation(x, y, method):
     if len(x) < 5:
         return None
@@ -392,7 +426,12 @@ def analyze_index(index_name, symbol, records):
                             leg_value *= -1
                         features.append((f"{field}_{leg}_change_pct_prior_gross", leg_value))
 
-                for suffix, value in features:
+            if group == "CLIENT":
+                features.extend(client_option_quantity_features(
+                    current_groups[group], previous_groups[group]
+                ).items())
+
+            for suffix, value in features:
                     bucket = rows_by_feature.setdefault(f"{group}.{suffix}", [])
                     for horizon in HORIZONS:
                         target_position = price_position + horizon
@@ -422,6 +461,8 @@ def analyze_index(index_name, symbol, records):
     for feature, observations in sorted(rows_by_feature.items()):
         group, field_feature = feature.split(".", 1)
         futures_directional = field_feature.startswith("future_index")
+        options_directional = field_feature == "index_option_directional_net_quantity"
+        directional_signal = futures_directional or options_directional
         for horizon in HORIZONS:
             sample_rows = [row for row in observations if row["horizon"] == horizon]
             cut = int(len(sample_rows) * 0.70)
@@ -433,8 +474,10 @@ def analyze_index(index_name, symbol, records):
                 item = {
                     "feature": feature, "participant": group, "field": field_feature,
                     "horizon_sessions": horizon, "sample": split,
+                    "directional_futures": futures_directional,
+                    "directional_options": options_directional,
                 }
-                item.update(calculate_metrics(sample, directional=futures_directional))
+                item.update(calculate_metrics(sample, directional=directional_signal))
                 if split == "chronological_holdout_last_30pct":
                     item["regime_metrics"] = {
                         regime: calculate_metrics(
@@ -443,10 +486,10 @@ def analyze_index(index_name, symbol, records):
                         )
                         for regime in REGIMES
                     }
-                    if futures_directional:
+                    if directional_signal:
                         item["non_overlapping_holdout_phases"] = (
                             non_overlapping_phase_metrics(
-                                sample, horizon, directional=True
+                                sample, horizon, directional=directional_signal
                             )
                         )
                 results.append(item)
@@ -476,7 +519,8 @@ def analyze_index(index_name, symbol, records):
             "No same-day close entry."
         ),
         "false_signal_definition": (
-            "For futures only, every non-zero signed feature is a raw directional call. "
+            "For explicitly marked futures and CLIENT option directional-net features, "
+            "every non-zero signed quantity/feature is a raw directional call. "
             "Bullish signal followed by a negative return or bearish signal followed by "
             "a positive return is false. Zero-return observations are excluded; no "
             "optimized signal threshold is fitted."
