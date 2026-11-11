@@ -18,6 +18,11 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(mood, "NEUTRAL")
         self.assertIsNone(fetch_and_score.three_way_crowd_component(0, 0, 100))
 
+    def test_weak_directional_interest_is_not_enough_to_set_mood(self):
+        mood, _ = fetch_and_score.three_way_crowd_mood(0.4, 0.3, 99.3)
+        self.assertEqual(mood, "NEUTRAL")
+        self.assertIsNone(fetch_and_score.three_way_crowd_component(0.4, 0.3, 99.3))
+
     def test_balanced_directional_queries_are_neutral(self):
         mood, _ = fetch_and_score.three_way_crowd_mood(35, 35, 30)
         self.assertEqual(mood, "NEUTRAL")
