@@ -71,7 +71,13 @@ jobs:
                   print(f"Published data is fresh ({age_minutes:.1f} minutes old); no scan needed.")
                   raise SystemExit(0)
 
-              runs = api(f"/repos/{repo}/actions/runs?workflow_id=389470309&per_page=20")
+              # Resolve the PDMP Scan workflow by its stable file path. The
+              # numeric workflow ID can change if GitHub recreates the workflow.
+              scan_workflow = api(f"/repos/{repo}/actions/workflows/scan.yml")
+              scan_workflow_id = scan_workflow.get("id")
+              if not scan_workflow_id:
+                  raise RuntimeError("PDMP Scan workflow ID could not be resolved")
+              runs = api(f"/repos/{repo}/actions/workflows/{scan_workflow_id}/runs?per_page=20")
               active = [
                   run for run in runs.get("workflow_runs", [])
                   if run.get("status") in ("queued", "in_progress", "waiting", "requested", "pending")
