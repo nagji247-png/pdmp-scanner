@@ -14,7 +14,7 @@ from fetch_and_score import (
 
 
 class AssetSearchCoverageQualityTests(unittest.TestCase):
-    def test_index_lookup_phrases_are_neutral_not_unclassified(self):
+    def test_index_lookup_phrases_are_information_intent_not_neutral(self):
         cases = [
             ("nifty 50", "NIFTY"),
             ("gift nifty", "NIFTY"),
@@ -25,7 +25,7 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
         ]
         for term, asset in cases:
             with self.subTest(term=term, asset=asset):
-                self.assertEqual(_asset_search_direction(term, asset), "neutral")
+                self.assertEqual(_asset_search_direction(term, asset), "informational")
 
     def test_cross_asset_terms_are_out_of_scope_not_unclassified(self):
         cases = [
@@ -53,7 +53,7 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
             "sensex": [
                 ("bse sensex", 100), ("sensex share", 40),
                 ("sensex today", 20), ("sensex rally", 10),
-                ("sensex crash", 5), ("nifty", 50),
+                ("sensex crash", 5), ("sensex sideways", 3), ("nifty", 50),
             ],
             "bank nifty": [
                 ("bank nifty 50", 100), ("bank nifty today", 40),
@@ -115,8 +115,9 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
             with self.subTest(asset=asset):
                 self.assertTrue(snapshot["valid"], snapshot.get("reason"))
                 self.assertEqual(snapshot["out_of_scope_queries"], 1)
-                self.assertEqual(snapshot["in_scope_queries"], snapshot["classified_queries"])
+                self.assertEqual(snapshot["in_scope_queries"], snapshot["classified_queries"] + snapshot["informational_queries"])
                 self.assertEqual(snapshot["classification_coverage_pct"], 100.0)
+                self.assertGreater(snapshot["informational_queries"], 0)
                 self.assertEqual(snapshot["raw_queries"],
                                  snapshot["in_scope_queries"] + snapshot["out_of_scope_queries"])
 

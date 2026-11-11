@@ -683,7 +683,7 @@ def build_asset_component_breakdowns(
                 diagnostic_fields = (
                     "valid", "seed", "source", "timeframe", "source_data_time",
                     "raw_queries", "in_scope_queries", "out_of_scope_queries", "out_of_scope_weight", "classified_queries", "unclassified_queries",
-                    "classification_coverage_pct", "bull_pct", "bear_pct",
+                    "classification_coverage_pct", "informational_queries", "informational_weight", "informational_terms", "bull_pct", "bear_pct",
                     "neutral_pct", "directional_bull_pct", "reason", "terms",
                     "unclassified_terms", "rising_queries",
                     "rising_classified_queries", "rising_direction_counts",
@@ -4433,9 +4433,8 @@ def _asset_search_direction(term, asset):
         return "bull" if has_bull else "bear"
 
     # Explicit flat/range-bound language is neutral crowd intent.
-    # The dashboard's agreed three-way crowd model also treats asset-matched
-    # information-intent searches (today/live/price/option-chain/prediction)
-    # as Neutral. This is search intent, not a claim about trader positioning.
+    # Only explicit flat/range-bound wording is neutral crowd intent.
+    # Navigation and information-seeking queries are not a mood vote.
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
@@ -4456,15 +4455,14 @@ def _asset_search_direction(term, asset):
         "आज", "लाइव", "वर्तमान", "चार्ट", "अनुमान", "भविष्यवाणी",
         "ऑप्शन", "चेन", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
-    # These are explicit index/instrument lookup phrases, not directional views.
-    # Keep them neutral only after the asset identity above has matched.
+    # Index/instrument lookup phrases are information intent, not neutral mood.
     informational_phrases = (
         "nifty 50", "gift nifty", "sgx nifty", "nse nifty",
         "nifty share", "nifty stock", "sensex share", "sensex stock",
         "bse sensex", "bank nifty 50",
     )
     if tokens & informational or any(phrase in text for phrase in informational_phrases):
-        return "neutral"
+        return "informational"
     return None
 
 
@@ -4475,18 +4473,18 @@ def _asset_rising_diagnostics(rising, asset):
         return {
             "rising_queries": 0,
             "rising_classified_queries": 0,
-            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0},
+            "rising_direction_counts": {"bull": 0, "bear": 0, "neutral": 0, "informational": 0, "unclassified": 0},
             "rising_terms": [],
         }
 
-    counts = {"bull": 0, "bear": 0, "neutral": 0, "unclassified": 0}
+    counts = {"bull": 0, "bear": 0, "neutral": 0, "informational": 0, "unclassified": 0}
     terms = []
     for _, row in rising.iterrows():
         term = str(row.get("query", "")).strip()
         if not term:
             continue
         direction = _asset_search_direction(term, asset)
-        category = direction if direction in ("bull", "bear", "neutral") else "unclassified"
+        category = direction if direction in ("bull", "bear", "neutral", "informational") else "unclassified"
         counts[category] += 1
         raw_value = row.get("value", "")
         value = str(raw_value).strip()
@@ -4644,8 +4642,9 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
     rising_diagnostics = _asset_rising_diagnostics(pack.get("rising"), asset)
     totals = {"bull": 0.0, "bear": 0.0, "neutral": 0.0}
     classified_terms = []
+    informational_terms = []
     raw_query_count = unclassified_count = out_of_scope_count = in_scope_count = 0
-    unclassified_weight = out_of_scope_weight = 0.0
+    unclassified_weight = out_of_scope_weight = informational_weight = 0.0
     unclassified_terms = []
     if top is not None and not top.empty and "query" in top and "value" in top:
         for _, row in top.iterrows():
@@ -4663,7 +4662,11 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
                 continue
             in_scope_count += 1
             direction = _asset_search_direction(term, asset)
-            if direction is None:
+            if direction == "informational":
+                informational_weight += value
+                informational_terms.append({"term": term, "weight": round(value, 1)})
+                continue
+            if direction not in totals:
                 unclassified_count += 1
                 unclassified_weight += value
                 unclassified_terms.append({"term": term, "weight": round(value, 1)})
@@ -4672,6 +4675,7 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
             classified_terms.append({"term": term, "direction": direction, "weight": round(value, 1)})
     bull, bear, neutral = totals["bull"], totals["bear"], totals["neutral"]
     total = bull + bear + neutral
+    coverage_denominator = total + unclassified_weight + informational_weight
     if len(classified_terms) < 3 or total <= 0:
         return {
             "valid": False, "scope": "asset_specific_google_related_queries_shadow",
@@ -4683,10 +4687,13 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
             "classified_queries": len(classified_terms),
             "unclassified_queries": unclassified_count,
             "unclassified_weight": round(unclassified_weight, 1),
-            "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+            "classification_coverage_pct": round((total + informational_weight) / coverage_denominator * 100.0, 1) if coverage_denominator > 0 else None,
             "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
+            "informational_queries": len(informational_terms),
+            "informational_weight": round(informational_weight, 1),
+            "informational_terms": sorted(informational_terms, key=lambda x: x["weight"], reverse=True)[:10],
             **rising_diagnostics,
-            "reason": f"पर्याप्त स्वतंत्र one-day classified queries नहीं (classified={len(classified_terms)}, total_weight={total:.1f})",
+            "reason": f"पर्याप्त directional/explicit-neutral queries नहीं (classified={len(classified_terms)}, informational={len(informational_terms)}, total_weight={total:.1f})",
             "production_score_used": False,
         }
     bull_pct, bear_pct, neutral_pct = bull / total * 100.0, bear / total * 100.0, neutral / total * 100.0
@@ -4705,7 +4712,10 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
         "classified_queries": len(classified_terms), "unclassified_queries": unclassified_count,
         "unclassified_weight": round(unclassified_weight, 1),
         "unclassified_terms": sorted(unclassified_terms, key=lambda x: x["weight"], reverse=True)[:10],
-        "classification_coverage_pct": round(total / (total + unclassified_weight) * 100.0, 1) if total + unclassified_weight > 0 else None,
+        "informational_queries": len(informational_terms),
+        "informational_weight": round(informational_weight, 1),
+        "informational_terms": sorted(informational_terms, key=lambda x: x["weight"], reverse=True)[:10],
+        "classification_coverage_pct": round((total + informational_weight) / coverage_denominator * 100.0, 1) if coverage_denominator > 0 else None,
         "bull_pct": round(bull_pct, 1), "bear_pct": round(bear_pct, 1), "neutral_pct": round(neutral_pct, 1),
         "directional_bull_pct": round(bull / directional_total * 100.0, 1) if directional_total > 0 else None,
         "neutral_aware_score": round(max(-10.0, min(10.0, (bull_pct - bear_pct) / 100.0 * 10.0)), 2) if directional_total > 0 else None,
