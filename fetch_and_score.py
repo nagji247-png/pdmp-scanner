@@ -100,8 +100,8 @@ BEAR_TERMS = [
     "निफ्टी में करेक्शन", "सेंसेक्स में करेक्शन", "तेजी पर बिकवाली", "सेंसेक्स में भारी गिरावट",
 ]
 NEUTRAL_TERMS = [
-    "nifty today", "sensex today", "share market", "option chain",
-    "निफ्टी आज", "सेंसेक्स आज", "शेयर बाजार", "शेयर बाजार आज",
+    "nifty sideways", "sensex sideways", "market flat", "nifty rangebound",
+    "sensex stable", "market consolidation", "बाजार स्थिर", "निफ्टी सपाट",
 ]
 TERM_CHUNK = 4
 
@@ -3966,17 +3966,21 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन"]
-# सामान्य/दिशाहीन खोजों को स्पष्ट neutral bucket में रखें; अज्ञात queries को mood में न गिनें।
-TQ_NEUTRAL_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
-                    "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
-                    "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
-                    "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
-                    "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
+# केवल वास्तविक flat/sideways queries neutral mood हैं।
+TQ_NEUTRAL_WORDS = ["sideways", "sideway", "flat", "stable", "stability", "rangebound",
+                    "range-bound", "consolidation", "consolidating", "unchanged", "steady",
+                    "सपाट", "स्थिर", "बिना बदलाव", "सीमित दायरा", "दायरे में", "एक ही स्तर"]
+# Navigation/information intent is tracked separately and never counted as neutral mood.
+TQ_INFORMATION_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
+                        "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
+                        "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
+                        "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
+                        "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
 TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero reading स्वीकार; शून्य/अनुपलब्ध डेटा अस्वीकार
 
 
 def tq_dir(q):
-    """खोज-वाक्यांश की दिशा: bull/bear/neutral; अस्पष्ट query को None रखें।"""
+    """खोज-वाक्यांश की दिशा; जानकारी/नेविगेशन को neutral mood न मानें।"""
     text = str(q or "").lower()
     tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
     bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
@@ -3987,6 +3991,8 @@ def tq_dir(q):
         return "bear"
     if not bull and not bear and any(w.lower() in tk for w in TQ_NEUTRAL_WORDS):
         return "neutral"
+    if not bull and not bear and any(w.lower() in tk for w in TQ_INFORMATION_WORDS):
+        return "informational"
     return None
 
 
@@ -4036,8 +4042,8 @@ def three_way_crowd_component(bull_pct, bear_pct, neutral_pct):
 
 def tq_aggregate(queries):
     """असली खोजें (related queries) -> भीड़ का मूड, स्कोर और सूचियाँ।"""
-    bull_w = bear_w = neutral_w = 0.0
-    crowd_terms, spikes = [], []
+    bull_w = bear_w = neutral_w = informational_w = 0.0
+    crowd_terms, spikes, informational_terms = [], [], []
     for item in queries.values():
         d = tq_dir(item["term"])
         if d == "bull":
@@ -4046,6 +4052,9 @@ def tq_aggregate(queries):
             bear_w += item["weight"]
         elif d == "neutral":
             neutral_w += item["weight"]
+        elif d == "informational":
+            informational_w += item["weight"]
+            informational_terms.append({"term": item["term"], "weight": round(item["weight"], 1)})
         if d:
             crowd_terms.append({"term": item["term"], "dir": d, "now": round(item["weight"], 1),
                                 "avg": round(item["weight"], 1), "today_pct": None, "yesterday_pct": None})
@@ -4084,6 +4093,9 @@ def tq_aggregate(queries):
         "hidden_spikes": max(0, len(rising_all) - len(spikes)),
         "bull_score_pct": bull_score, "bear_score_pct": bear_score,
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "informational_weight": round(informational_w, 1),
+        "informational_queries": len(informational_terms),
+        "informational_terms": informational_terms,
         "today_bull_pct": None, "today_label": "डेटा उपलब्ध नहीं", "today_basis": "related_queries_7d",
         "yesterday_bull_pct": None, "yesterday_label": "कल का डेटा उपलब्ध नहीं",
         "queries_total": len(queries),
@@ -4131,14 +4143,17 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
                     "rising": False, "direction": direction
                 }
 
+    # Classify each phrase by its actual intent, not merely by the request batch.
+    for item in queries.values():
+        item["direction"] = tq_dir(item["term"])
     bull_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bull")
     bear_total = sum(x["weight"] for x in queries.values() if x["direction"] == "bear")
     neutral_total = sum(x["weight"] for x in queries.values() if x["direction"] == "neutral")
+    informational_items = [x for x in queries.values() if x["direction"] == "informational"]
+    informational_total = sum(x["weight"] for x in informational_items)
     total = bull_total + bear_total + neutral_total
     if total <= 0:
-        raise ValueError("Google Trends के तीनों समूहों का कुल डेटा शून्य है")
-    # A real neutral-only reading is valid crowd data. Do not reject it merely
-    # because one/both directional keyword groups have no measurable interest.
+        raise ValueError("Google Trends के directional/explicit-neutral समूहों का कुल डेटा शून्य है")
     directional_complete = (
         bull_total >= TQ_MIN_WEIGHT and bear_total >= TQ_MIN_WEIGHT
     )
@@ -4154,9 +4169,6 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     bull_score = round(bull_pct, 1)
     bear_score = round(bear_pct, 1)
     neutral_score = round(neutral_pct, 1)
-    # If either directional side is missing, absence is not proof of the
-    # opposite direction. Keep the observed percentages, but classify mood as
-    # NEUTRAL until both bull and bear evidence are measurable.
     crowd_direction_pct = (
         bull_total / (bull_total + bear_total) * 100
         if directional_complete else 50.0
@@ -4164,7 +4176,6 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     if directional_complete:
         sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
     else:
-        # एक directional side गायब हो तो उसे उलटी दिशा का प्रमाण न मानें।
         label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
 
     crowd_terms = [{
@@ -4181,6 +4192,9 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_score, "bear_score_pct": bear_score,
         "neutral_score_pct": neutral_score, "sentiment_label": sentiment,
+        "informational_weight": round(informational_total, 2),
+        "informational_queries": len(informational_items),
+        "informational_terms": [x["term"] for x in informational_items],
         "today_bull_pct": round(crowd_direction_pct, 1) if timeframe == "now 1-d" else None,
         "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी खोज-रुचि" if timeframe == "now 1-d" else "डेटा उपलब्ध नहीं",
         "today_basis": "now_1d_anchor_relative" if timeframe == "now 1-d" else timeframe + "_anchor_relative",
@@ -4236,7 +4250,7 @@ def _trends_related_queries(timeframe="now 1-d"):
         if top is None or top.empty or "query" not in top or "value" not in top:
             continue
 
-        bull = bear = neutral = 0.0
+        bull = bear = neutral = informational = 0.0
         rows = 0
         for _, row in top.iterrows():
             term = str(row.get("query", "")).strip()
@@ -4249,25 +4263,26 @@ def _trends_related_queries(timeframe="now 1-d"):
             if weight <= 0:
                 continue
             direction = tq_dir(term)
-            # अनजान/general queries को mood प्रतिशत में न मिलाएँ; केवल पहचानी दिशा गिनें।
             if direction is None:
+                continue
+            key = term.casefold()
+            entry = {"term": term, "weight": weight, "direction": direction}
+            if key not in all_terms or weight > all_terms[key]["weight"]:
+                all_terms[key] = entry
+            if direction == "informational":
+                informational += weight
                 continue
             rows += 1
             if direction == "bull":
                 bull += weight
             elif direction == "bear":
                 bear += weight
-            else:
+            elif direction == "neutral":
                 neutral += weight
-            key = term.casefold()
-            entry = {"term": term, "weight": weight, "direction": direction}
-            if key not in all_terms or weight > all_terms[key]["weight"]:
-                all_terms[key] = entry
 
         total = bull + bear + neutral
         if rows >= 3 and total > 0:
             per_seed.append((bull / total * 100, bear / total * 100, neutral / total * 100))
-
     if len(per_seed) < 3:
         raise ValueError(
             f"Google Trends related searches में 5 में से कम-से-कम 3 बाजार विषयों का "
@@ -4312,6 +4327,17 @@ def _trends_related_queries(timeframe="now 1-d"):
         "spikes": [], "hidden_spikes": 0,
         "bull_score_pct": bull_pct, "bear_score_pct": bear_pct,
         "neutral_score_pct": neutral_pct, "sentiment_label": sentiment,
+        "informational_weight": round(sum(
+            item["weight"] for item in all_terms.values()
+            if item["direction"] == "informational"
+        ), 1),
+        "informational_queries": sum(
+            1 for item in all_terms.values() if item["direction"] == "informational"
+        ),
+        "informational_terms": [
+            item["term"] for item in all_terms.values()
+            if item["direction"] == "informational"
+        ][:20],
         "today_bull_pct": crowd_bull_pct, "today_label": "पिछले 24 घंटे की related searches",
         "today_basis": "now_1d_related_queries" if timeframe == "now 1-d" else "related_queries_other",
         "source_timeframe": timeframe + " related queries",
