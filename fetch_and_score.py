@@ -3982,8 +3982,8 @@ def three_way_crowd_mood(bull_pct, bear_pct, neutral_pct):
             or abs(bull + bear + neutral - 100) > 2):
         return "NO DATA", "पर्याप्त खोज डेटा नहीं"
     directional_total = bull + bear
-    if directional_total <= 0:
-        return "NEUTRAL", "दिशात्मक खोज संकेत नहीं; जानकारी वाली खोजें अलग"
+    if directional_total < 1.0:
+        return "NEUTRAL", "दिशात्मक खोज रुचि 1% से कम; मूड तय करने के लिए अपर्याप्त"
     directional_bull_pct = bull / directional_total * 100.0
     if directional_bull_pct >= CROWD_EXTREME:
         return "BULLISH", "दिशात्मक खोजों में बेहद बुलिश झुकाव"
@@ -4003,7 +4003,7 @@ def three_way_crowd_component(bull_pct, bear_pct, neutral_pct):
         return None
     bull, bear = float(bull_pct), float(bear_pct)
     directional_total = bull + bear
-    if directional_total <= 0:
+    if directional_total < 1.0:
         return None
     return round(max(-10.0, min(10.0, (bull - bear) / directional_total * 10.0)), 1)
 
