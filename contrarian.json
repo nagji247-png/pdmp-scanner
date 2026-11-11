@@ -814,8 +814,8 @@
     "date": "2026-11-09",
     "instrument": "HDFCBANK",
     "score": 6.6,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 1.06,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -834,8 +834,8 @@
     "date": "2026-11-09",
     "instrument": "HINDALCO",
     "score": 7.2,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.24,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -854,8 +854,8 @@
     "date": "2026-11-09",
     "instrument": "BANKNIFTY",
     "score": 6.0,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 1.76,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -874,8 +874,8 @@
     "date": "2026-11-10",
     "instrument": "ADANIPORTS",
     "score": 6.0,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": -1.84,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -980,7 +980,8 @@
       "outcome": "reversed"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "unavailable",
+      "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली या स्रोत ने डेटा नहीं दिया"
     }
   }
 ]

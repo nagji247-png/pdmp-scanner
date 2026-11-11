@@ -7122,8 +7122,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.84
   },
   {
     "key": "2026-11-10|EICHERMOT|div",
@@ -7164,8 +7164,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.48
   },
   {
     "key": "2026-11-11|ADANIPORTS|div",
@@ -7206,8 +7206,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.84
   },
   {
     "key": "2026-11-11|EICHERMOT|div",
@@ -7248,8 +7248,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.48
   },
   {
     "key": "2026-11-11|HINDALCO|div",
@@ -7290,8 +7290,8 @@
         "score": 3
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.24
   },
   {
     "key": "2026-11-11|APOLLOHOSP|div",
@@ -7332,8 +7332,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.64
   },
   {
     "key": "2026-11-11|USDINR|div",
@@ -7498,6 +7498,48 @@
         "source": "MarketWatch",
         "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNMkg4bUNJQk5GdWlTOHVmUWVob1NxTmRsNnBtWVBMS0pMZWM4eHZ4X1ljcjM0TENBbUNDTG10Q0I3eU5Ca1FJUWloNGVZelpneDhlQmtDZm5qYVZlQm5Jd1hQc2NIMUhudmRUQWxad1VQcm4tMzhOYkRWSnIxS3djWmJreTNGWnZqY2JOWVkyU3I3a1g5cHB0NHJmVkw3Yks5M1JVeEFXQ2pOelE1dW9mR3NJX0I4UUw2VmIyMUVoaUwwbjg?oc=5",
         "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-11|BITCOIN|div",
+    "date": "2026-11-11",
+    "instrument": "BITCOIN",
+    "score": -3.6,
+    "price_change": 0.34,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "BTC price range on Nov 11, 2026 at 7am EST Prediction Market",
+        "source": "Robinhood",
+        "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQYXR2eENDbXJQb01pcHdMb293cjdmYUpIa1RWV0s4NDBNcDhMZXRqU01jTlhkQkx4NmppU3FiU1NfX2JoeHhoOVpqYkxTZm5mVHA2ZlpudTR1dWlaZDZENHNfSFVnMkIwbm9kMVFES3RxUVVsN09heHcxZlRZbUdndnR0NG9Cc3JsN2tvbFdSUnNza2MxLUQ3RzBub3FpZjdIYjk5cldOdE9KemRiV1BubnJfSFJUZw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Crypto Prices Today: Bitcoin Slips Near USD 73,800 as Zcash and Solana Lead Declines",
+        "source": "Analytics Insight",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPYWp4MXFRdnoxeVpJekI1T1NBTFJkNTA4b0VpMVlLSmNYeHdXLUJYbFJTVUszQWtrWjZkcmtpcnllWEJ1U3JRTmFVQWhOUHV6eG1VUHhmMGdZZV9jZU9DNExKNUxqNEhYZHJXT0t4LW1OVUdVMkp2bXduSnFKZjdqWjNzeGJMQVdrYXZfckxmTnh4N3ZVS0txNGxiNzBYVmdxRTZFSmtFa1B3LW9IcFZEY191RExQUUpHRkZjSzJLSlg2VXlnLXlrWkd30gHXAUFVX3lxTE9GZkN1SkNTSGpXNU4wVnFnTTVkRWxGOUJyVWdZOGhGQjZhaG53WThnT2xyaTRYLWpKWUJlV1h4cHh3Ry1teXFJUkhQbDh3ZUEydVMxMlc5MFl0cDhtTFhkVExRdlR6ekVkOVFyR3h4bUY3YXdUTG92OHdhbGhPVGRTbVlIbno0Sm94VXdHMW1zVmNsQ3l3am1uZllCNmhfeHU3LW15UllrdlNyOGs4Q2I4bVB1OHVESXQ4TldscGtYcGR0eXp0T1FBNm1xVXhlV1l1eERYbXJj?oc=5",
+        "score": -2
+      },
+      {
+        "title": "BTC to INR: Bitcoin Price in Indian Rupee",
+        "source": "CoinGecko",
+        "link": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9PTW5semFLSXhGRzI4cWZxMjJfc012QmZfRkFxbDk1d3Q1ZUpjX3RfVEhWNi1Ob3UwSFFFRHpQMnVQemN5VFpJQWhwRWRFanJaOHppaFFIaGlUdw?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Bitcoin Price Crashes to $72,787 After Hotter-Than-Expected CPI",
+        "source": "Bitcoin News",
+        "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQbzVmNHN3X2tFNjEtXzNUaHhIaUNCejhBQ1FfLVExOG5fQnBOMmszbTFYb01ka21KVkgwTmY4cVRXWUdwU3BHYXNNRURPaGJVdUxmTDRodzFTWkxVUW5jdmpQQnpSVG9zVTRUMlRLWVBRMXlvTGo0VXVWTEQ0bEMzTUplUEd6TkRNU1NxZjJMMHlBcFBNQW1xOQ?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Live news: Bitcoin falls to nearly three-month low after disappointing inflation data",
+        "source": "CoinDesk",
+        "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxQQnU5VnVnbk42eXZLZUNaLXg3ZVc2dDVjM040Uk0xajJKeUQxWmd1cW9DanNxNnRDZnBGOHU5RTI4MmFndWhWanVaNDYtSXdwcVFPVFpHZlVNakJFcURVNW44NEhQOWFIVnpnVWdMaVlhWmZPcmgxZ0lnWnpEOVBmbTZhajJUUURsUXMwWkxKUm9ha1M5bWNkNzQ4LU56ZkpwQXJ6RkwtNm42UDgzZXlLdEFuOGdSNWNTZ2FCeEZkMndzbDA?oc=5",
+        "score": -1
       }
     ],
     "outcome": null,
