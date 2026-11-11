@@ -4024,6 +4024,9 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     # दोनों timeframe में Google का आख़िरी वास्तविक observation 30 मिनट के भीतर होना चाहिए।
     last_utc = _trends_observation_time(base_df, "Google Trends base")
     source_data_time = last_utc.isoformat()
+    # _trends_observation_time validated this exact source observation; keep
+    # its provenance explicit so downstream freshness checks do not fail.
+    timestamp_basis = "source_observation"
     base = float(base_df.mean(axis=1).mean())
     recent = float(base_df.tail(recent_points).mean(axis=1).mean())
     attention = round(recent - base, 1)
