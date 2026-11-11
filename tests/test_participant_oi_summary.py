@@ -6,6 +6,7 @@ from summarize_participant_oi_backtest import (
     holm_adjust_pvalues,
     wilson_interval,
 )
+from backtest_participant_oi import magnitude_threshold_diagnostics
 
 
 def metric(feature, participant, field, horizon, sample, hit=None, false_rate=None, regimes=None):
@@ -118,6 +119,23 @@ class ParticipantOISummaryTests(unittest.TestCase):
         )
         self.assertFalse(result["score_changed"])
         self.assertFalse(result["eligible_for_live_score"])
+
+    def test_option_quantity_thresholds_are_learned_on_train_and_applied_to_holdout(self):
+        feature = "CLIENT.index_option_directional_net_quantity"
+        rows = []
+        # First 10 rows form training data; last 5 are holdout.
+        for position, signal in enumerate([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 2, 5, 8, 11, 20]):
+            rows.append({
+                "horizon": 1,
+                "signal": signal,
+                "forward_return_pct": 0.5 if position % 2 == 0 else -0.5,
+            })
+        result = magnitude_threshold_diagnostics({feature: rows})
+        one_day = [item for item in result if item["horizon_sessions"] == 1]
+        self.assertEqual(len(one_day), 3)
+        self.assertEqual([item["absolute_quantity_threshold"] for item in one_day], [5, 8, 9])
+        self.assertEqual([item["holdout_selected_observations"] for item in one_day], [5, 3, 3])
+        self.assertTrue(all(item["training_nonzero_observations"] == 10 for item in one_day))
 
     def test_wilson_interval_and_exact_binomial_probability(self):
         interval = wilson_interval(10, 20)
