@@ -4846,6 +4846,17 @@ def fetch_index_trends_shadow():
     }
 
 
+def is_google_trends_rate_limited(message):
+    """Recognize provider throttling so fallback calls do not amplify a 429."""
+    lowered = str(message or "").lower()
+    return any(token in lowered for token in ("429", "too many requests", "rate limit", "ratelimit"))
+
+
+def should_run_asset_directional_diagnostics(slot_id):
+    """Run the six extra phrase batches once daily, in the final scheduled slot."""
+    return str(slot_id or "").strip() == "1900"
+
+
 def fetch_trends():
     """पहले 1-दिन/7-दिन hourly डेटा; विफल होने पर असली related searches से सीमित fallback."""
     try:
@@ -4869,6 +4880,9 @@ def fetch_trends():
             break
         except Exception as exc:
             errors.append(f"{name}: {exc}")
+            if is_google_trends_rate_limited(exc):
+                print(f"Google Trends {name} hit provider rate limit; stopping fallback requests: {exc}")
+                break
             print(f"Google Trends {name} failed; trying next real-data source: {exc}")
 
     if result is None:
@@ -5896,12 +5910,20 @@ def main():
         _fresh_asset_search = fetch_asset_trends_shadow()
     elif trends_scan and slot_id in {"0915", "1100", "1300", "1900"}:
         if trends.get("ok"):
-            print("ASSET_TRENDS_REFRESH: scheduled five asset seeds + CRUDEOIL + per-asset directional phrase diagnostics")
-            _fresh_asset_search = fetch_asset_trends_shadow(
-                include_directional_diagnostics=True, include_crude=True
+            run_phrase_diagnostics = should_run_asset_directional_diagnostics(slot_id)
+            print(
+                "ASSET_TRENDS_REFRESH: scheduled five asset seeds + CRUDEOIL; "
+                + ("daily six-asset phrase diagnostics enabled" if run_phrase_diagnostics
+                   else "extra phrase diagnostics deferred to 19:00 IST to protect quota")
             )
+            _fresh_asset_search = fetch_asset_trends_shadow(
+                include_directional_diagnostics=run_phrase_diagnostics,
+                include_crude=True,
+            )
+        elif is_google_trends_rate_limited(trends.get("error")):
+            print("ASSET_TRENDS_REFRESH: Google Trends rate limit detected; all secondary requests skipped")
         else:
-            print("ASSET_TRENDS_REFRESH: primary Crowd Trends failed; running CRUDEOIL-only scheduled batch")
+            print("ASSET_TRENDS_REFRESH: primary Crowd Trends unavailable; running only the independent CRUDEOIL batch")
             _fresh_asset_search = fetch_crude_trends_shadow()
     elif should_refresh_asset_search(trends_scan, os.getenv("GITHUB_EVENT_NAME", "")):
         if trends.get("ok"):
