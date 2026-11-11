@@ -349,6 +349,27 @@ def summarize_index(name, index):
             "interpretation": "No live-score eligibility; use only as a conservative diagnostic.",
         },
         "features": features,
+        "client_option_quantity_magnitude_thresholds": [
+            {
+                "training_quantile": row.get("training_quantile"),
+                "training_nonzero_observations": row.get("training_nonzero_observations"),
+                "absolute_quantity_threshold": row.get("absolute_quantity_threshold"),
+                "holdout_selected_observations": row.get("holdout_selected_observations"),
+                "holdout_total_rows": row.get("holdout_total_rows"),
+                "crowd_follow_hit_rate_pct": row.get("crowd_follow_hit_rate_pct"),
+                "crowd_follow_false_signals": row.get("crowd_follow_false_signals"),
+                "pdmp_contrarian_correct_signals": row.get("crowd_follow_false_signals"),
+                "pdmp_contrarian_false_signals": (
+                    row.get("holdout_selected_observations") - row.get("crowd_follow_false_signals")
+                    if isinstance(row.get("holdout_selected_observations"), int)
+                    and isinstance(row.get("crowd_follow_false_signals"), int) else None
+                ),
+                "pdmp_contrarian_hit_rate_pct": row.get("pdmp_contrarian_hit_rate_pct"),
+                "holdout_avg_forward_return_pct": row.get("holdout_avg_forward_return_pct"),
+            }
+            for row in (index.get("client_option_quantity_magnitude_threshold_diagnostics") or [])
+            if isinstance(row, dict)
+        ],
         "best_holdout_futures_exploratory_only": [
             {
                 "feature": item["feature"],
