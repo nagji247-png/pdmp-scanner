@@ -569,6 +569,34 @@ function esc(s) {
 function updateTradeGuard(data) {
   const box = document.getElementById("trade-guard");
   if (!box) return;
+
+  const updated = data && data.updated ? new Date(data.updated) : null;
+  const validTime = updated && Number.isFinite(updated.getTime());
+  const ageMin = validTime ? (Date.now() - updated.getTime()) / 60000 : Infinity;
+  const reasons = [];
+
+  if (!validTime) reasons.push("डेटा अपडेट का सही टाइमस्टैम्प नहीं मिला");
+  else if (ageMin < -5) reasons.push("डेटा अपडेट का टाइमस्टैम्प भविष्य में है");
+  else if (ageMin > 45) reasons.push("डेटा " + Math.round(ageMin) + " मिनट पुराना है (सीमा 45 मिनट)");
+
+  // किसी भी nested source (Trends/news/FII-DII आदि) का stale flag ट्रेड रोकता है।
+  function hasStaleFlag(value) {
+    if (!value || typeof value !== "object") return false;
+    if (value.stale === true) return true;
+    return Object.keys(value).some(key => hasStaleFlag(value[key]));
+  }
+  if (hasStaleFlag(data)) reasons.push("कम-से-कम एक डेटा स्रोत पुराना/fallback डेटा दिखा रहा है");
+
+  if (reasons.length) {
+    box.className = "block";
+    box.setAttribute("aria-label", "NO TRADE — डेटा भरोसेमंद नहीं");
+    box.innerHTML = '<div class="guard-title">⛔ NO TRADE — डेटा भरोसेमंद नहीं</div>' +
+      reasons.map(esc).join(" • ") +
+      '<div class="guard-meta">पुराने या अमान्य डेटा पर ट्रेड न करें। नया स्कैन आने और सभी स्रोतों की पुष्टि होने तक प्रतीक्षा करें।</div>';
+    return;
+  }
+
+  // सामान्य स्थिति में मौजूदा TRINETRA लोगो और डिज़ाइन जस का तस रखें।
   box.className = "brand-logo-only";
   box.setAttribute("aria-label", "TRINETRA");
   box.innerHTML = '<div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng4" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng4)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng4)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng4)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div>';
@@ -2892,7 +2920,11 @@ async function load() {
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
     const guard = document.getElementById("trade-guard");
-    if (guard) { guard.className = "brand-logo-only"; guard.innerHTML = '<div class="mini-brand-mark" aria-hidden="true">👁️</div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div>'; }
+    if (guard) {
+      guard.className = "block";
+      guard.setAttribute("aria-label", "NO TRADE — डेटा लोड विफल");
+      guard.innerHTML = '<div class="guard-title">⛔ NO TRADE — डेटा लोड विफल</div>पुराना डेटा देखकर ट्रेड न करें। पेज रीफ्रेश करें और डेटा स्रोत की जाँच करें।';
+    }
   } finally {
     loading = false;
   }
