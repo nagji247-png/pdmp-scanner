@@ -165,6 +165,7 @@ class ParticipantOISummaryTests(unittest.TestCase):
                                "chronological_holdout_last_30pct", 55.0, 45.0),
                     ],
                     "client_option_quantity_magnitude_threshold_diagnostics": [{
+                        "horizon_sessions": 5,
                         "training_quantile": 0.9,
                         "training_nonzero_observations": 100,
                         "absolute_quantity_threshold": 500000,
