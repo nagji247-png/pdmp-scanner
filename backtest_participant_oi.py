@@ -585,7 +585,8 @@ def run():
                 "Other option features remain correlation-only."
             ),
             "false_signal_rate": (
-                "Non-zero futures feature sign versus forward return sign; zero-return "
+                "Non-zero signed futures and explicitly directional CLIENT option "
+                "quantity feature signs versus forward return sign; zero-return "
                 "observations excluded; no optimized threshold."
             ),
             "regime_method": "signal-date-only SMA20 and its five-session slope",
