@@ -137,6 +137,33 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertEqual([item["holdout_selected_observations"] for item in one_day], [4, 3, 2])
         self.assertTrue(all(item["training_nonzero_observations"] == 10 for item in one_day))
 
+    def test_threshold_diagnostics_get_global_holm_adjusted_inference(self):
+        raw = {
+            "NIFTY": {"client_option_quantity_magnitude_threshold_diagnostics": [{
+                "horizon_sessions": 1, "training_quantile": 0.9,
+                "holdout_selected_observations": 20,
+                "pdmp_contrarian_correct_signals": 15,
+                "pdmp_contrarian_false_signals": 5,
+            }]},
+            "SENSEX": {"client_option_quantity_magnitude_threshold_diagnostics": [{
+                "horizon_sessions": 1, "training_quantile": 0.9,
+                "holdout_selected_observations": 20,
+                "pdmp_contrarian_correct_signals": 10,
+                "pdmp_contrarian_false_signals": 10,
+            }]},
+        }
+        from summarize_participant_oi_backtest import attach_magnitude_threshold_inference
+        summaries = {"NIFTY": {}, "SENSEX": {}}
+        attach_magnitude_threshold_inference(summaries, raw)
+        nifty = summaries["NIFTY"]["client_option_quantity_magnitude_threshold_diagnostics"][0]
+        self.assertEqual(nifty["pdmp_contrarian_hit_rate_pct"], 75.0)
+        self.assertIsNotNone(nifty["statistical_evidence"]["hit_rate_ci95_pct"])
+        self.assertEqual(nifty["statistical_evidence"]["holm_family_size"], 2)
+        self.assertFalse(nifty["statistical_evidence"]["holm_adjusted_p_below_05"])
+        self.assertEqual(
+            summaries["SENSEX"]["magnitude_threshold_inference"]["family_size"], 2
+        )
+
     def test_wilson_interval_and_exact_binomial_probability(self):
         interval = wilson_interval(10, 20)
         self.assertIsNotNone(interval)

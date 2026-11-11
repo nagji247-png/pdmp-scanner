@@ -325,6 +325,68 @@ def summarize_index(name, index):
     }
 
 
+
+def attach_magnitude_threshold_inference(summary_indices, raw_indices):
+    """Attach Wilson intervals and Holm correction across all index/threshold tests."""
+    pending = []
+    for name, raw_index in raw_indices.items():
+        summary_index = summary_indices.get(name)
+        if not isinstance(summary_index, dict) or not isinstance(raw_index, dict):
+            continue
+        diagnostics = raw_index.get("client_option_quantity_magnitude_threshold_diagnostics")
+        if not isinstance(diagnostics, list):
+            continue
+        enriched = []
+        for position, item in enumerate(diagnostics):
+            if not isinstance(item, dict):
+                continue
+            trials = item.get("holdout_selected_observations")
+            successes = item.get("pdmp_contrarian_correct_signals")
+            if not isinstance(trials, int) or isinstance(trials, bool) or trials <= 0:
+                continue
+            if not isinstance(successes, int) or isinstance(successes, bool) or not 0 <= successes <= trials:
+                continue
+            interval = wilson_interval(successes, trials)
+            pvalue = exact_binomial_two_sided_pvalue(successes, trials)
+            key = f"{name}:{position}"
+            pending.append((key, name, pvalue))
+            enriched.append({
+                **item,
+                "pdmp_contrarian_hit_rate_pct": round(successes / trials * 100.0, 2),
+                "_inference_key": key,
+                "_ci95": [round(interval[0], 2), round(interval[1], 2)] if interval else None,
+                "_pvalue": pvalue,
+            })
+        summary_index["client_option_quantity_magnitude_threshold_diagnostics"] = enriched
+
+    adjusted = holm_adjust_pvalues({key: p for key, _, p in pending if p is not None})
+    family_size = len(adjusted)
+    for name, summary_index in summary_indices.items():
+        diagnostics = summary_index.get("client_option_quantity_magnitude_threshold_diagnostics")
+        if not isinstance(diagnostics, list):
+            continue
+        for item in diagnostics:
+            key = item.pop("_inference_key", None)
+            interval = item.pop("_ci95", None)
+            pvalue = item.pop("_pvalue", None)
+            adjusted_p = adjusted.get(key)
+            item["statistical_evidence"] = {
+                "hit_rate_ci95_pct": interval,
+                "p_value_vs_50pct_two_sided_nominal": round(pvalue, 8) if pvalue is not None else None,
+                "holm_adjusted_p_value_across_all_index_threshold_tests": round(adjusted_p, 8) if adjusted_p is not None else None,
+                "holm_family_size": family_size,
+                "holm_adjusted_p_below_05": adjusted_p < 0.05 if adjusted_p is not None else False,
+            }
+        summary_index["magnitude_threshold_inference"] = {
+            "confidence_interval": "95% Wilson score interval",
+            "chance_test": "exact two-sided binomial test against 50% contrarian hit rate",
+            "multiple_testing": "Holm family-wise correction across every available index × horizon × training-quantile threshold test",
+            "family_size": family_size,
+            "dependence_warning": "Tests share the same market-wide CLIENT OI signal and overlapping return horizons. Holm correction is conservative for multiplicity but does not remove dependence or make these exploratory results confirmatory.",
+            "live_score_eligible": False,
+        }
+
+
 def build_summary(report):
     status = report.get("status", "unavailable")
     base = {
@@ -359,6 +421,7 @@ def build_summary(report):
         base["indices"][name] = summarize_index(name, index)
     if not base["indices"]:
         raise ValueError("no valid index metrics could be summarized")
+    attach_magnitude_threshold_inference(base["indices"], indices)
     return base
 
 
