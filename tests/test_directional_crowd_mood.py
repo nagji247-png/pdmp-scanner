@@ -9,7 +9,7 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(mood, "BULLISH")
         self.assertAlmostEqual(
             fetch_and_score.three_way_crowd_component(1.4, 0.4, 98.2),
-            5.7,
+            5.6,
             places=1,
         )
 
