@@ -444,6 +444,23 @@ def build_summary(report):
         base["indices"][name] = summarize_index(name, index)
     if not base["indices"]:
         raise ValueError("no valid index metrics could be summarized")
+    attach_magnitude_threshold_inference(base["indices"])
+    base["magnitude_threshold_inference"] = {
+        "method": "95% Wilson interval and exact two-sided binomial test against 50% PDMP hit rate",
+        "multiple_testing": "One Holm family-wise correction across every available index × horizon × training-quantile threshold comparison in this report",
+        "family_size": sum(
+            1 for index in base["indices"].values()
+            for row in index.get("client_option_quantity_magnitude_thresholds", [])
+            if (row.get("statistical_evidence") or {}).get("p_value_vs_50pct_two_sided") is not None
+        ),
+        "dependence_warning": (
+            "Exploratory only. The same market-wide CLIENT OI input is reused for all index price series; "
+            "1/3/5-session forward windows overlap; threshold quantiles are fixed from training data only. "
+            "Holm correction controls the listed family under its assumptions but does not make these "
+            "correlated observations independent or establish a tradable edge."
+        ),
+        "live_score_eligible": False,
+    }
     return base
 
 
