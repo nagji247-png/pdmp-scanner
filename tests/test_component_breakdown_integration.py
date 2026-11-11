@@ -18,7 +18,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         queries = {
             "a": {"term": "nifty breakout", "weight": 60, "rising": False},
             "b": {"term": "nifty correction", "weight": 20, "rising": False},
-            "c": {"term": "nifty today", "weight": 20, "rising": False},
+            "c": {"term": "nifty sideways", "weight": 20, "rising": False},
         }
         result = fetch_and_score.tq_aggregate(queries)
         self.assertEqual(result["crowd_bull_pct"], 75)
@@ -34,7 +34,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         queries = {
             "bull": {"term": "nifty breakout", "weight": 1.4, "rising": False},
             "bear": {"term": "nifty correction", "weight": 0.4, "rising": False},
-            "neutral": {"term": "nifty today", "weight": 98.1, "rising": False},
+            "neutral": {"term": "nifty sideways", "weight": 98.1, "rising": False},
         }
         result = fetch_and_score.tq_aggregate(queries)
         self.assertEqual(result["crowd_label"], "दिशात्मक खोजों में बेहद बुलिश झुकाव")
