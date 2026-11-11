@@ -351,6 +351,11 @@ def experimental_news_scores(
     return output
 
 
+def should_refresh_asset_search(trends_scan, event_name):
+    """Allow bounded asset Search refresh on manual scans and explicit validation pushes."""
+    return bool(trends_scan and str(event_name or "").lower() in {"workflow_dispatch", "push"})
+
+
 def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fresh_results=None):
     """Attach each asset's own one-day Trends snapshot without extra polling.
 
@@ -5848,9 +5853,9 @@ def main():
         else:
             print("ASSET_TRENDS_REFRESH: primary Crowd Trends failed; running CRUDEOIL-only scheduled batch")
             _fresh_asset_search = fetch_crude_trends_shadow()
-    elif trends_scan and os.getenv("GITHUB_EVENT_NAME", "").lower() == "workflow_dispatch":
+    elif should_refresh_asset_search(trends_scan, os.getenv("GITHUB_EVENT_NAME", "")):
         if trends.get("ok"):
-            print("ASSET_TRENDS_REFRESH: manual scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+            print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
             _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
         else:
             print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends failed; extra asset requests skipped to protect Google Trends quota")
