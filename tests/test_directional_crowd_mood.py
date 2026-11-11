@@ -28,6 +28,23 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(mood, "NEUTRAL")
         self.assertEqual(fetch_and_score.three_way_crowd_component(35, 35, 30), 0.0)
 
+    def test_information_intent_is_not_neutral_mood(self):
+        self.assertEqual(fetch_and_score.tq_dir("nifty today"), "informational")
+        self.assertEqual(fetch_and_score.tq_dir("option chain"), "informational")
+        self.assertEqual(fetch_and_score.tq_dir("nifty sideways"), "neutral")
+
+        result = fetch_and_score.tq_aggregate({
+            "bull": {"term": "nifty rally", "weight": 2.0},
+            "bear": {"term": "nifty fall", "weight": 1.0},
+            "info": {"term": "nifty today", "weight": 90.0},
+            "flat": {"term": "nifty sideways", "weight": 1.0},
+        })
+        self.assertAlmostEqual(result["bull_score_pct"], 50.0, places=1)
+        self.assertAlmostEqual(result["bear_score_pct"], 25.0, places=1)
+        self.assertAlmostEqual(result["neutral_score_pct"], 25.0, places=1)
+        self.assertEqual(result["informational_queries"], 1)
+        self.assertAlmostEqual(result["informational_weight"], 90.0, places=1)
+
     def test_invalid_percentages_fail_closed(self):
         mood, _ = fetch_and_score.three_way_crowd_mood(80, 10, 30)
         self.assertEqual(mood, "NO DATA")
