@@ -35,9 +35,11 @@ console.log(JSON.stringify(result));
         cls.results = json.loads(completed.stdout.strip())
 
     def test_directional_bull_ratio_wins_while_neutral_interest_remains_visible(self):
-        result = self.results["neutral"]
-        self.assertEqual(result["state"], "NEUTRAL")
-        self.assertFalse(result["extreme"])
+        result = self.results["neutralDominantBullish"]
+        self.assertEqual(result["state"], "EXTREMELY BULLISH")
+        self.assertTrue(result["extreme"])
+        self.assertAlmostEqual(result["directionalBullPct"], 77.7777, places=3)
+        self.assertEqual(self.results["neutralOnly"]["state"], "NEUTRAL")
 
     def test_extreme_bullish_and_bearish_need_70_percent_directional_share(self):
         self.assertEqual(self.results["bullish"]["state"], "EXTREMELY BULLISH")
