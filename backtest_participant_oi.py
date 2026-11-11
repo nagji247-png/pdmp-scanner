@@ -278,6 +278,9 @@ def calculate_metrics(rows, directional=False):
             "false_bullish_signals": 0 if directional else None,
             "false_bearish_signals": 0 if directional else None,
             "false_signal_rate_pct": None, "directional_hit_rate_pct": None,
+            "contrarian_correct_signals": 0 if directional else None,
+            "contrarian_false_signals": 0 if directional else None,
+            "contrarian_hit_rate_pct": None, "contrarian_false_signal_rate_pct": None,
             "bullish_signal_avg_return_pct": None, "bearish_signal_avg_return_pct": None,
             "bull_bear_return_spread_pct": None,
         }
@@ -324,6 +327,11 @@ def calculate_metrics(rows, directional=False):
         "false_bearish_signals": false_bearish if directional else None,
         "false_signal_rate_pct": round(false_count / count * 100.0, 2) if directional and count else None,
         "directional_hit_rate_pct": round(correct / count * 100.0, 2) if directional and count else None,
+        # PDMP is contrarian: every crowd-follow miss is a contrarian hit, and vice versa.
+        "contrarian_correct_signals": false_count if directional else None,
+        "contrarian_false_signals": correct if directional else None,
+        "contrarian_hit_rate_pct": round(false_count / count * 100.0, 2) if directional and count else None,
+        "contrarian_false_signal_rate_pct": round(correct / count * 100.0, 2) if directional and count else None,
         "bullish_signal_avg_return_pct": round(bullish_avg, 4) if bullish_avg is not None else None,
         "bearish_signal_avg_return_pct": round(bearish_avg, 4) if bearish_avg is not None else None,
         "bull_bear_return_spread_pct": (
@@ -383,6 +391,10 @@ def non_overlapping_phase_metrics(rows, horizon, directional):
             "false_signals": metrics["false_signals"],
             "false_signal_rate_pct": metrics["false_signal_rate_pct"],
             "directional_hit_rate_pct": metrics["directional_hit_rate_pct"],
+            "contrarian_correct_signals": metrics["contrarian_correct_signals"],
+            "contrarian_false_signals": metrics["contrarian_false_signals"],
+            "contrarian_hit_rate_pct": metrics["contrarian_hit_rate_pct"],
+            "contrarian_false_signal_rate_pct": metrics["contrarian_false_signal_rate_pct"],
             "avg_forward_return_pct": metrics["avg_forward_return_pct"],
         })
     return results

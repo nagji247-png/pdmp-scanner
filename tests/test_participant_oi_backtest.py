@@ -48,6 +48,10 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         self.assertEqual(result["false_bearish_signals"], 1)
         self.assertEqual(result["directional_hit_rate_pct"], 50.0)
         self.assertEqual(result["false_signal_rate_pct"], 50.0)
+        self.assertEqual(result["contrarian_correct_signals"], 2)
+        self.assertEqual(result["contrarian_false_signals"], 2)
+        self.assertEqual(result["contrarian_hit_rate_pct"], 50.0)
+        self.assertEqual(result["contrarian_false_signal_rate_pct"], 50.0)
         self.assertEqual(result["signal_coverage_pct"], 83.33)
 
 

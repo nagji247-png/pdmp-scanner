@@ -21,11 +21,15 @@ DIRECTIONAL_FIELDS = (
     "directional_observation_count", "correct_signals", "false_signals",
     "false_bullish_signals", "false_bearish_signals",
     "false_signal_rate_pct", "directional_hit_rate_pct",
+    "contrarian_correct_signals", "contrarian_false_signals",
+    "contrarian_hit_rate_pct", "contrarian_false_signal_rate_pct",
     "bullish_signal_avg_return_pct", "bearish_signal_avg_return_pct",
     "bull_bear_return_spread_pct",
 )
 REGIME_DIRECTIONAL_FIELDS = (
     "n", "directional_observation_count", "directional_hit_rate_pct",
+    "contrarian_correct_signals", "contrarian_false_signals",
+    "contrarian_hit_rate_pct", "contrarian_false_signal_rate_pct",
     "false_signals", "false_signal_rate_pct", "avg_forward_return_pct",
 )
 WILSON_Z_95 = 1.959963984540054
@@ -208,6 +212,10 @@ def summarize_index(name, index):
                 "false_signals": phase.get("false_signals"),
                 "false_signal_rate_pct": phase.get("false_signal_rate_pct"),
                 "directional_hit_rate_pct": phase.get("directional_hit_rate_pct"),
+                "contrarian_correct_signals": phase.get("contrarian_correct_signals"),
+                "contrarian_false_signals": phase.get("contrarian_false_signals"),
+                "contrarian_hit_rate_pct": phase.get("contrarian_hit_rate_pct"),
+                "contrarian_false_signal_rate_pct": phase.get("contrarian_false_signal_rate_pct"),
                 "avg_forward_return_pct": phase.get("avg_forward_return_pct"),
             })
         features.append({

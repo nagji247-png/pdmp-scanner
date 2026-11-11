@@ -74,7 +74,7 @@ jobs:
               for row in rows:
                   holdout = row.get("holdout") or {}
                   train = row.get("train") or {}
-                  print(f"| {row.get('horizon_sessions')} | {holdout.get('directional_observation_count')} | {holdout.get('directional_hit_rate_pct')}% | {holdout.get('false_signals')} | {train.get('directional_hit_rate_pct')}% |")
+                  print(f"| {row.get('horizon_sessions')} | {holdout.get('directional_observation_count')} | {holdout.get('directional_hit_rate_pct')}% | {holdout.get('contrarian_hit_rate_pct')}% | {holdout.get('false_signals')} |")
           print("\nThis tests index direction from next-session open to the 1/3/5-session close; it does not test option premium profitability.")
           print("NSE CLIENT options OI is market-wide aggregate positioning, not separate index-level CLIENT positioning.")
           PY
