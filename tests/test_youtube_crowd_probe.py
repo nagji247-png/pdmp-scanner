@@ -15,5 +15,10 @@ class ProbeTests(unittest.TestCase):
     def test_six_assets(self):
         self.assertEqual(set(probe.ASSETS), {"NIFTY","SENSEX","BANKNIFTY","GOLD","SILVER","CRUDEOIL"})
 
+    def test_queries_use_alternatives(self):
+        for query in probe.ASSETS.values():
+            self.assertIn("|", query)
+            self.assertTrue(any(ord(ch) > 127 for ch in query), "Hindi terms should be included")
+
 if __name__ == "__main__":
     unittest.main()
