@@ -5916,6 +5916,7 @@ def main():
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
     # Shadow calculation only: the published production score is not changed.
+    # Neutral-only/weak directional Trends may be valid descriptive mood data but cannot enter a numeric crowd score.
     experimental_news = experimental_news_scores(result["instruments"], now_utc=now_utc)
     for _n, _exp in experimental_news.items():
         _d = result["instruments"].get(_n)
@@ -5923,7 +5924,7 @@ def main():
             continue
         _exp_news = _exp["news_score"]
         _exp_retail = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
-        if crowd_valid and retail_valid:
+        if crowd_valid and crowd_component is not None and retail_valid:
             _exp_crowd = crowd_component
             _exp_combined = _exp_news * 0.40 + _exp_crowd * 0.40 + _exp_retail * 0.20
             _exp_mode = "shadow_news24h_dedup_crowd_client"
@@ -5943,7 +5944,7 @@ def main():
         _d = result["instruments"].get(_n)
         if not _d:
             continue
-        if crowd_valid and retail_valid:
+        if crowd_valid and crowd_component is not None and retail_valid:
             news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
             # Crowd score uses the three-way net directional share; neutral search interest has zero directional weight.
             retail_component = max(-10.0, min(10.0, float(adj) * 5))
