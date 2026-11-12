@@ -1546,44 +1546,53 @@ function renderTrapDetector(data) {
   const t = data.trends || {};
   const n = (((data.signals || {}).state || {}).NIFTY) || {};
   const dir = Number(n.price_dir);
-  const freshMood = t.ok && !t.stale && t.today_bull_pct != null
-    && ["now_1d_anchor_relative", "now_1d_related_queries"].includes(t.today_basis);
+  const last = n.last_30m || null;
+  const session = n.session_open_close || null;
+  const priceEvidence = `
+    <div class="sub" style="margin-top:10px;font-weight:800">NIFTY — वास्तविक कीमत प्रमाण</div>
+    <div class="detail-grid" style="margin-top:7px">
+      <div class="detail-stat"><span>आख़िरी पूरी 30-मिनट कैंडल</span><b>${last ? last.open.toLocaleString("en-IN") + " → " + last.close.toLocaleString("en-IN") : "कैंडल डेटा नहीं मिला"}</b><small>${last ? (last.direction > 0 ? "ऊपर" : last.direction < 0 ? "नीचे" : "स्थिर") + " · " + last.end : "स्रोत से पुनः जाँच जारी"}</small></div>
+      <div class="detail-stat"><span>Opening Price</span><b>${session ? session.open.toLocaleString("en-IN") : "आज का ओपनिंग रिकॉर्ड प्रतीक्षित"}</b></div>
+      <div class="detail-stat"><span>${session && session.status === "complete" ? "Closing Price" : "अब तक का अंतिम भाव"}</span><b>${session ? session.latest_close.toLocaleString("en-IN") : "अंतिम पूरा बार उपलब्ध होने पर"}</b><small>${session ? (session.change_pct > 0 ? "+" : "") + session.change_pct.toFixed(2) + "% · " + (session.status === "complete" ? "आज का सत्र पूरा" : "सत्र जारी") : ""}</small></div>
+    </div>`;
+  const freshMood = t.ok && !t.stale && t.today_bull_pct != null &&
+    ["now_1d_anchor_relative", "now_1d_related_queries"].includes(t.today_basis);
   const mood = freshMood ? classifyThreeWayCrowdMood(t) : null;
-
   if (!mood) {
-    box.innerHTML = '<div class="warn">DATA INSUFFICIENT — भीड़ की दिशा तय नहीं</div><div class="sub">Google Trends का ताज़ा और मान्य तीन-तरफ़ा डेटा नहीं है। समाचार स्कोर को रिटेल की असली पोज़िशन नहीं माना जाएगा।</div>';
+    box.innerHTML = '<div class="warn">भीड़ का ताज़ा रुझान उपलब्ध नहीं</div><div class="sub">कीमत का रिकॉर्ड अलग से जारी रहेगा; पुरानी Crowd Reading से आज का Trap तय नहीं होगा।</div>' + priceEvidence;
     return;
   }
   if (!mood.extreme) {
-    const biasText = mood.direction === "BULLISH"
-      ? 'बुलिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं'
-      : mood.direction === "BEARISH"
-        ? 'बियरिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं'
-        : 'बुलिश और बियरिश खोजें बराबर हैं';
-    const directionalText = mood.directionalBullPct == null
-      ? 'दिशात्मक अनुपात उपलब्ध नहीं'
-      : 'दिशात्मक अनुपात: बुलिश ' + mood.directionalBullPct.toFixed(1) + '% · बियरिश ' + (100 - mood.directionalBullPct).toFixed(1) + '%';
-    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:#aab4c4">' + biasText + '</div><div class="sub">कुल खोज-वज़न: BULLISH ' + mood.bull.toFixed(1) + '% · BEARISH ' + mood.bear.toFixed(1) + '% · NEUTRAL ' + mood.neutral.toFixed(1) + '%.</div><div class="sub">' + directionalText + '। 70% extreme सीमा अभी पार नहीं हुई।</div>';
+    const biasText = mood.direction === "BULLISH" ? "बुलिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं" :
+      mood.direction === "BEARISH" ? "बियरिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं" : "बुलिश और बियरिश खोजें बराबर हैं";
+    const directionalText = mood.directionalBullPct == null ? "दिशात्मक अनुपात उपलब्ध नहीं" :
+      "दिशात्मक अनुपात: बुलिश " + mood.directionalBullPct.toFixed(1) + "% · बियरिश " + (100-mood.directionalBullPct).toFixed(1) + "%";
+    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:#aab4c4">' + biasText +
+      '</div><div class="sub">कुल खोज-वज़न: BULLISH ' + mood.bull.toFixed(1) + '% · BEARISH ' +
+      mood.bear.toFixed(1) + '% · NEUTRAL ' + mood.neutral.toFixed(1) + '%.</div><div class="sub">' +
+      directionalText + '। 70% extreme सीमा अभी पार नहीं हुई।</div>' + priceEvidence;
     return;
   }
-  if (dir !== 1 && dir !== -1) {
-    box.innerHTML = '<div class="warn">TRAP WATCH — कीमत की दिशा उपलब्ध नहीं</div><div class="sub">भीड़ का एकतरफ़ा झुकाव दिख रहा है, लेकिन NIFTY की पूरी हुई 30-मिनट चाल से उलटाव की पुष्टि करने योग्य दिशा उपलब्ध नहीं।</div>';
-    return;
-  }
-
   const crowdBull = mood.direction === "BULLISH";
-  const marketUp = dir === 1;
-  const opposite = crowdBull !== marketUp;
-  if (opposite) {
-    const title = crowdBull ? 'BULL TRAP RISK — भीड़ तेजी में, कीमत कमजोर' : 'BEAR TRAP RISK — भीड़ मंदी में, कीमत मजबूत';
-    const color = '#ffb84d';
-    const note = crowdBull
-      ? 'तेजी की खोज-रुचि 70% से ऊपर है, लेकिन NIFTY की आख़िरी पूरी हुई 30-मिनट चाल नीचे की है। CE में देर से एंट्री का जोखिम देखें।'
-      : 'मंदी की खोज-रुचि 70% से ऊपर है, लेकिन NIFTY की आख़िरी पूरी हुई 30-मिनट चाल ऊपर की है। PE में देर से एंट्री का जोखिम देखें।';
-    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:'+color+'">'+title+'</div><div class="mood-split" style="flex-wrap:wrap;gap:6px"><span class="pos">बुलिश '+mood.bull.toFixed(1)+'%</span><span class="neg">बियरिश '+mood.bear.toFixed(1)+'%</span><span style="color:#aab4c4">NEUTRAL '+mood.neutral.toFixed(1)+'%</span></div><div class="sub" style="margin-top:8px">'+note+'</div><div class="sub" style="margin-top:8px">यह शुरुआती विरोधाभास है, ट्रैप की गारंटी नहीं। विकल्प प्रीमियम/ऑर्डर फ्लो उपलब्ध न हो तो उसे अनुमान से नहीं भरा जाएगा।</div>';
-  } else {
-    box.innerHTML = '<div style="font-size:18px;font-weight:900;color:#aab4c4">भीड़ और कीमत एक दिशा में</div><div class="sub">अभी तीन-तरफ़ा Google Trends में एकतरफ़ा भीड़ और NIFTY की आख़िरी पूरी हुई 30-मिनट चाल विपरीत नहीं हैं। इससे ट्रैप खारिज नहीं होता; केवल विरोधाभास का संकेत नहीं मिला।</div>';
-  }
+  const has30m = dir === 1 || dir === -1 || dir === 0;
+  const sessionDir = session && session.status === "complete" ? Number(session.direction) : null;
+  const opposite = has30m && (crowdBull !== (dir === 1));
+  const title = !has30m ? "30-मिनट OHLC डेटा स्रोत से अभी नहीं आया" :
+    opposite ? (crowdBull ? "BULL TRAP RISK — भीड़ तेजी में, 30-मिनट कीमत नीचे" :
+      "BEAR TRAP RISK — भीड़ मंदी में, 30-मिनट कीमत ऊपर") : "30-मिनट चाल में भीड़ के विरुद्ध पुष्टि नहीं";
+  let closeHtml = sessionDir === null ?
+    '<div class="sub" style="margin-top:8px">Opening–Closing अंतिम पुष्टि बाजार बंद होने और अंतिम पूरी कैंडल मिलने पर होगी।</div>' :
+    '<div class="sub" style="margin-top:8px">Opening–Closing पुष्टि: ' +
+      (crowdBull !== (sessionDir === 1) ? (crowdBull ? "संभावित Bull Trap" : "संभावित Bear Trap") :
+      "भीड़ की दिशा के अनुरूप") + ' · दिन का बदलाव ' +
+      (session.change_pct > 0 ? "+" : "") + session.change_pct.toFixed(2) + "%</div>";
+  box.innerHTML = '<div style="font-size:18px;font-weight:900;color:' +
+    (opposite ? "#ffb84d" : "#aab4c4") + '">' + title + '</div>' +
+    '<div class="mood-split" style="flex-wrap:wrap;gap:6px;margin-top:7px"><span class="pos">बुलिश ' +
+    mood.bull.toFixed(1) + '%</span><span class="neg">बियरिश ' + mood.bear.toFixed(1) +
+    '%</span><span style="color:#aab4c4">NEUTRAL ' + mood.neutral.toFixed(1) + '%</span></div>' +
+    priceEvidence + closeHtml +
+    '<div class="sub" style="margin-top:8px">यह शोध-आधारित विरोधाभास है, ट्रैप या ट्रेड की गारंटी नहीं।</div>';
 }
 
 function renderFlow(f) {

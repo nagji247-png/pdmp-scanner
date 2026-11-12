@@ -128,7 +128,18 @@ def update_archive(archive, result, captured_at=None):
     def recent(row):
         stamp = _parse_stamp(row.get("captured_at_utc"))
         return stamp is not None and stamp >= cutoff
+    signal_state = (((result.get("signals") or {}).get("state") or {}).get("NIFTY") or {})
+    archived_bars = list(archive.get("intraday_30m_bars") or [])
+    known_bars = {x.get("end") for x in archived_bars if isinstance(x, dict)}
+    for bar in signal_state.get("completed_30m_bars") or []:
+        if not isinstance(bar, dict) or not bar.get("end") or bar.get("end") in known_bars:
+            continue
+        archived_bars.append({"index": "NIFTY", **bar})
+        known_bars.add(bar.get("end"))
+    archived_bars.sort(key=lambda x: str(x.get("end") or ""))
+    archived_bars = archived_bars[-4000:]
     archive.update({"schema_version": 1, "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
         "updated_at": captured.isoformat(), "events": [x for x in events if recent(x)][-400:],
-        "price_snapshots": [x for x in snapshots if recent(x)][-14400:]})
+        "price_snapshots": [x for x in snapshots if recent(x)][-14400:],
+        "intraday_30m_bars": archived_bars})
     return archive
