@@ -96,41 +96,62 @@ def index_oi_balance_component(archive, asset, scan_date, weight=20.0, sessions=
 
 
 def client_marketwide_components(context, scan_date=None, max_age_days=3):
-    """Create provisional contrarian scores from dated CLIENT percentage changes."""
+    """Build a shared market-wide CLIENT CE/PE quantity-balance component.
+
+    The score is intentionally shared by NIFTY, SENSEX and BANKNIFTY because
+    NSE participant-wise CLIENT option positions are market-wide aggregates.
+    It is a provisional crowd-positioning diagnostic, not index-specific data
+    and not a validated trading predictor. CLIENT futures remain excluded.
+    """
     if not isinstance(context, dict) or not context.get("available"):
         return {}
-    evidence = context.get("evidence_components") or {}
     source = context.get("source") or "NSE official participant-wise OI · CLIENT"
     source_date = context.get("source_date")
+    if not source_date:
+        return {}
     if scan_date is not None and not source_date_is_fresh(
         source_date, scan_date, max_age_days
     ):
         return {}
-    output = {}
-    groups = {
-        "client_ce_pe": ("ce_long", "ce_short", "pe_long", "pe_short"),
-        "client_futures": ("futures_long", "futures_short"),
-    }
-    for component_name, names in groups.items():
-        values = []
-        for name in names:
-            item = evidence.get(name) or {}
-            pct = finite_number(item.get("change_pct_prior_gross"))
-            bias = item.get("contrarian_bias")
-            if pct is None or bias not in ("bullish", "bearish"):
-                continue
-            direction = 1.0 if bias == "bullish" else -1.0
-            values.append(max(-10.0, min(10.0, pct * direction)))
-        if len(values) != len(names) or not source_date:
-            continue
-        score = sum(values) / len(values)
-        weight = PROVISIONAL_WEIGHTS[component_name]
-        output[component_name] = build_component(
-            score, source, source_date, weight,
-            scope="market-wide CLIENT aggregate; same context across NIFTY, SENSEX and BANKNIFTY",
-            method="प्रत्येक CLIENT बदलाव का prior-gross % × contrarian direction; उपलब्ध सभी पक्षों का औसत",
-            validation_status="प्रारंभिक; market-wide directional validation जारी",
-            evidence_fields=list(names),
-            previous_source_date=context.get("previous_date"),
-        )
-    return output
+
+    evidence = context.get("evidence_components") or {}
+    keys = ("ce_long", "ce_short", "pe_long", "pe_short")
+    changes = {}
+    for key in keys:
+        row = evidence.get(key)
+        change = finite_number(row.get("change")) if isinstance(row, dict) else None
+        if change is None:
+            return {}
+        changes[key] = change
+
+    # Keep the user's quantity-based construction transparent:
+    # (CALL Long - CALL Short) + (PUT Long - PUT Short).
+    ce_net = changes["ce_long"] - changes["ce_short"]
+    pe_net = changes["pe_long"] - changes["pe_short"]
+    net_change = ce_net + pe_net
+    gross_change = sum(abs(value) for value in changes.values())
+    if gross_change <= 0:
+        return {}
+
+    score = clamp_score(10.0 * net_change / gross_change)
+    if score is None:
+        return {}
+    component = build_component(
+        score,
+        source,
+        source_date,
+        PROVISIONAL_WEIGHTS["client_ce_pe"],
+        scope="shared market-wide CLIENT aggregate; same component on NIFTY, SENSEX and BANKNIFTY; not index-specific",
+        method="10 × [(CALL Long change − CALL Short change) + (PUT Long change − PUT Short change)] ÷ sum(abs(all four CE/PE changes)); clamp −10..+10",
+        validation_status="PROVISIONAL_DIAGNOSTIC · quantity-based; predictive holdout validation pending",
+        directional_reading="bullish_client_positioning" if net_change > 0 else ("bearish_client_positioning" if net_change < 0 else "balanced_client_positioning"),
+        call_net_change=round(ce_net, 4),
+        put_net_change=round(pe_net, 4),
+        combined_net_change=round(net_change, 4),
+        gross_absolute_change=round(gross_change, 4),
+        evidence_fields=list(keys),
+        previous_source_date=context.get("previous_date"),
+        not_index_specific=True,
+        not_validated_predictor=True,
+    )
+    return {"client_ce_pe": component} if component else {}

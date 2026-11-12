@@ -848,29 +848,43 @@ def build_asset_component_breakdowns(
             marketwide_components = client_marketwide_components(
                 client_context, scan_date=news_source_date, max_age_days=3
             )
-            # NSE participant-wise CLIENT OI/Futures is a market-wide aggregate,
-            # not an index-specific observation. Keep diagnostics in context only.
-            # Never inject them into NIFTY, SENSEX, or BANKNIFTY provisional Finals.
-            for component_name in ("client_ce_pe", "client_futures"):
-                diagnostic = marketwide_components.get(component_name)
-                excluded[component_name] = {
+            # CLIENT CE/PE is a shared market-wide crowd-positioning component.
+            # It is included in each index's provisional Final with explicit
+            # scope metadata; it is never represented as index-specific data.
+            client_ce_pe_component = marketwide_components.get("client_ce_pe")
+            if client_ce_pe_component:
+                provisional_components["client_ce_pe"] = client_ce_pe_component
+                if isinstance(client_context, dict):
+                    client_context["included_in_provisional_final"] = True
+                    client_context["provisional_component_scope"] = (
+                        "shared market-wide CLIENT CE/PE component; same input on NIFTY, SENSEX and BANKNIFTY"
+                    )
+            else:
+                excluded["client_ce_pe"] = {
                     "applicable": True,
                     "included": False,
-                    "source": (
-                        diagnostic.get("source") if isinstance(diagnostic, dict)
-                        else (client_context or {}).get("source")
-                    ) or "NSE participant-wise OI · CLIENT",
-                    "source_date": (
-                        diagnostic.get("source_date") if isinstance(diagnostic, dict)
-                        else (client_context or {}).get("source_date")
-                    ),
+                    "source": (client_context or {}).get("source") or "NSE participant-wise OI · CLIENT",
+                    "source_date": (client_context or {}).get("source_date"),
                     "scope": "market-wide CLIENT aggregate; not index-specific",
                     "reason": (
-                        "CLIENT CE/PE और Futures पूरे बाजार का aggregate है, "
-                        "NIFTY/SENSEX/BANKNIFTY का अलग-अलग डेटा नहीं। यह केवल "
-                        "client_market_context में diagnostic रहेगा; index provisional Final से बाहर।"
+                        "ताज़ा तारीख़ वाला पूरा CLIENT CE/PE quantity snapshot उपलब्ध नहीं; "
+                        "चारों CALL/PUT Long/Short बदलावों के बिना score नहीं बनाया गया।"
                     ),
                 }
+
+            # CLIENT Futures stays diagnostic-only until its own directional
+            # method passes chronological holdout validation.
+            excluded["client_futures"] = {
+                "applicable": True,
+                "included": False,
+                "source": (client_context or {}).get("source") or "NSE participant-wise OI · CLIENT",
+                "source_date": (client_context or {}).get("source_date"),
+                "scope": "market-wide CLIENT Futures aggregate; not index-specific",
+                "reason": (
+                    "CLIENT Futures का डेटा मौजूद हो सकता है, लेकिन market-wide "
+                    "directional scoring का holdout edge अभी प्रमाणित नहीं; इसलिए Final से बाहर।"
+                ),
+            }
 
         provisional_final = combine_components(
             provisional_components, PROVISIONAL_WEIGHTS
@@ -898,7 +912,7 @@ def build_asset_component_breakdowns(
         }[coverage_status]
         item["component_breakdown"] = {
             "version": 1,
-            "scope": "per-asset shadow score; published PDMP score is unchanged",
+            "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
             "score_range": "-10..+10",
             "component_weights": DEFAULT_COMPONENT_WEIGHTS,
             "provisional_weights": PROVISIONAL_WEIGHTS,
@@ -928,7 +942,7 @@ def build_asset_component_breakdowns(
         "score_range": "-10..+10",
         "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
         "news_rule": "Only publisher-timestamped asset-specific headlines no older than 24 hours; age is recomputed from published_at; source_date is newest eligible headline date in IST; cross-index duplicate stories excluded.",
-        "participant_oi_scope": "NSE participant-wise CLIENT CE/PE/Futures is market-wide aggregate context, not index-specific and not included in index final scores.",
+        "participant_oi_scope": "CLIENT CE/PE is a shared market-wide provisional component in NIFTY/SENSEX/BANKNIFTY provisional Finals; CLIENT Futures remains diagnostic-only; neither is index-specific.",
         "published_score_changed": False,
     }
 
