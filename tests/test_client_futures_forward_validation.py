@@ -8,7 +8,7 @@ from backtest_participant_oi import client_futures_recent_direction_check
 class ClientFuturesForwardValidationTests(unittest.TestCase):
     def make_data(self, signal_sessions=14):
         start = dt.date(2026, 11, 12)
-        dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(signal_sessions + 1)]
+        dates = [(start + dt.timedelta(days=i)).isoformat() for i in range(signal_sessions + 2)]
         records = []
         for index, date in enumerate(dates):
             records.append({
@@ -27,7 +27,7 @@ class ClientFuturesForwardValidationTests(unittest.TestCase):
         return records, prices
 
     def test_only_new_sessions_after_anchor_are_counted(self):
-        records, prices = self.make_data(14)
+        records, prices = self.make_data(7)
         result = client_futures_recent_direction_check(
             records, prices, sessions=7, anchor_date="2026-11-12"
         )
