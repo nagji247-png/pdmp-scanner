@@ -33,12 +33,15 @@ def participant_row(date):
 
 class ParticipantOIBacktestTests(unittest.TestCase):
     def test_incomplete_current_daily_bar_is_excluded_before_1600_ist(self):
-        index = pd.DatetimeIndex(
-            ["2026-11-11 15:30", "2026-11-12 13:30"],
-            tz="Asia/Kolkata",
+        completed = pd.date_range(
+            end="2026-11-11 15:30", periods=30, freq="B", tz="Asia/Kolkata"
         )
+        index = completed.append(
+            pd.DatetimeIndex(["2026-11-12 13:30"], tz="Asia/Kolkata")
+        )
+        values = [100.0 + position for position in range(len(index))]
         frame = pd.DataFrame(
-            {"Open": [100.0, 101.0], "Close": [100.5, 101.5]},
+            {"Open": values, "Close": [value + 0.5 for value in values]},
             index=index,
         )
 
@@ -52,7 +55,7 @@ class ParticipantOIBacktestTests(unittest.TestCase):
 
         self.assertEqual(
             prices,
-            {"2026-11-11": {"open": 100.0, "close": 100.5}},
+            {"2026-10-01": {"open": 100.0, "close": 100.5}},
         )
         self.assertEqual(
             validation["incomplete_current_session_excluded_date"],
@@ -60,12 +63,15 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         )
 
     def test_current_daily_bar_is_allowed_after_1600_ist(self):
-        index = pd.DatetimeIndex(
-            ["2026-11-11 15:30", "2026-11-12 15:30"],
-            tz="Asia/Kolkata",
+        completed = pd.date_range(
+            end="2026-11-11 15:30", periods=30, freq="B", tz="Asia/Kolkata"
         )
+        index = completed.append(
+            pd.DatetimeIndex(["2026-11-12 15:30"], tz="Asia/Kolkata")
+        )
+        values = [100.0 + position for position in range(len(index))]
         frame = pd.DataFrame(
-            {"Open": [100.0, 101.0], "Close": [100.5, 101.5]},
+            {"Open": values, "Close": [value + 0.5 for value in values]},
             index=index,
         )
 
