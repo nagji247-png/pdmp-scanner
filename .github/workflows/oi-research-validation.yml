@@ -47,7 +47,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       # The participant archive is committed and the price fetch is limited to three
       # daily index histories. This is read-only research; it never changes data.json.
-      - name: Run CLIENT option quantity directional backtest
+      - name: Run CLIENT OI quantity and Futures directional backtest
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
         run: |
           python backtest_participant_oi.py
@@ -77,10 +77,10 @@ jobs:
               print(f"- Correct: **{futures7.get('correct_signals', 0)}** · Wrong: **{futures7.get('wrong_signals', 0)}**")
               print(f"- Direction accuracy: **{futures7.get('directional_hit_rate_pct')}%**")
               print(f"- Dates: **{futures7.get('first_signal_date')} to {futures7.get('last_signal_date')}**")
-              print("| Signal date | CLIENT Futures score | Predicted | Next session | NIFTY close change | Actual | Result |")
+              print("| Signal date | CLIENT Futures score | Predicted | Next session | Index close change | Actual | Result |")
               print("|---|---:|---|---|---:|---|---|")
               for row in futures7.get("observations") or []:
-                  result = "RIGHT" if row.get("correct") else ("WRONG" if row.get("actual_direction") != "FLAT" else "FLAT")
+                  result = "NO CALL/FLAT" if row.get("predicted_direction") == "NEUTRAL" or row.get("actual_direction") == "FLAT" else ("RIGHT" if row.get("correct") else "WRONG")
                   print(f"| {row.get('signal_date')} | {row.get('score')} | {row.get('predicted_direction')} | {row.get('next_session')} | {row.get('next_session_close_change_pct')}% | {row.get('actual_direction')} | {result} |")
               rows = [x for x in (item.get("features") or []) if x.get("feature") == "CLIENT.index_option_directional_net_quantity"]
               print("| Horizon | Holdout samples | Hit rate | False signals | Train hit rate |")
