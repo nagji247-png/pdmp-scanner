@@ -2817,6 +2817,61 @@ function pickFo(k) {
   }
 }
 
+
+let clientFuturesValidationPromise = null;
+function fmtValidationDate(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "—";
+  const [y,m,d] = value.split("-");
+  return d + "/" + m + "/" + y;
+}
+function renderClientFuturesValidation(report) {
+  const box = document.getElementById("clientFuturesValidationPanel");
+  if (!box) return;
+  const nifty = report && report.indices && report.indices.NIFTY;
+  const seven = nifty && nifty.client_futures_recent_7_session_check;
+  const fourteen = nifty && nifty.client_futures_new_14_session_check;
+  if (!seven || !fourteen) {
+    box.innerHTML = '<div class="sub">CLIENT Futures का नया validation report अभी उपलब्ध नहीं है।</div>';
+    return;
+  }
+  const pct = value => value == null ? "—" : Number(value).toFixed(1) + "%";
+  const progress = item => Math.min(item.sample_sessions || 0, item.requested_sessions || 0);
+  const card = (label, item) => {
+    const n = progress(item), total = item.requested_sessions;
+    const rows = (item.observations || []).map(row =>
+      '<tr><td>' + fmtValidationDate(row.signal_date) + '</td><td>' + fmtValidationDate(row.next_session) +
+      '</td><td style="text-align:right">' + Number(row.score).toFixed(2) +
+      '</td><td>' + row.predicted_direction + '</td><td>' + row.actual_direction +
+      '</td><td style="color:' + (row.correct ? '#2ecc71' : '#e74c3c') + '">' + (row.correct ? 'सही' : 'गलत') +
+      '</td></tr>').join("");
+    return '<div style="border:1px solid #303751;border-radius:9px;padding:10px;margin-top:8px">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + label + '</b><b>' +
+      n + '/' + total + ' नए सत्र</b></div>' +
+      '<div style="height:6px;background:#252b45;border-radius:6px;margin:8px 0"><div style="height:6px;width:' +
+      (total ? (n / total * 100) : 0) + '%;background:#36c9a0;border-radius:6px"></div></div>' +
+      '<div class="sub">सीधा सही: ' + (item.directional_observation_count ? item.correct_signals + '/' + item.directional_observation_count + ' · ' + pct(item.directional_hit_rate_pct) : 'परिणाम प्रतीक्षित') +
+      ' · उलटा सही: ' + (item.directional_observation_count ? item.contrarian_correct_signals + '/' + item.directional_observation_count + ' · ' + pct(item.contrarian_hit_rate_pct) : 'परिणाम प्रतीक्षित') + '</div>' +
+      '<div class="sub">नए signal: ' + fmtValidationDate(item.first_signal_date) + ' से ' + fmtValidationDate(item.last_signal_date) +
+      ' · आधार तारीख के बाद ही गिनती</div>' +
+      (rows ? '<div style="overflow-x:auto;margin-top:8px"><table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap"><thead><tr><th>Signal</th><th>Next</th><th>Score</th><th>Futures</th><th>NIFTY</th><th>नतीजा</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '') +
+      '</div>';
+  };
+  box.innerHTML = '<div class="box" style="margin-top:12px"><div style="font-weight:800;color:#cfd4e6">🧪 CLIENT FUTURES · नए सत्रों का परीक्षण</div>' +
+    '<div class="sub" style="margin-top:4px">NSE participant-wise market-wide Futures · आधार तारीख 12/11/2026 · अगले कारोबारी दिन के NIFTY Close-to-Close से तुलना</div>' +
+    card('पहला चेक', seven) + card('दूसरा चेक', fourteen) +
+    '<div class="sub" style="margin-top:8px">यह केवल परीक्षण है। 7/14 सत्र पूरे होने से Futures अपने आप Final Score में शामिल नहीं होगा; पहले तय validation नियम पूरा होना जरूरी है।</div></div>';
+}
+async function loadClientFuturesValidation() {
+  const box = document.getElementById("clientFuturesValidationPanel");
+  if (!box) return;
+  if (!clientFuturesValidationPromise) {
+    clientFuturesValidationPromise = fetch("participant_oi_backtest_summary.json?t=" + Date.now(), { cache: "no-store" })
+      .then(res => res.ok ? res.json() : null)
+      .catch(() => null);
+  }
+  renderClientFuturesValidation(await clientFuturesValidationPromise);
+}
+
 function renderFoPanel(po, instData) {
   foLast = { po: po || null, inst: instData || null };
   const box = document.getElementById("foPanel");
@@ -2917,8 +2972,11 @@ function renderFoPanel(po, instData) {
       ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
     </div>
     <div id="foDetail"></div>
+    <div id="clientFuturesValidationPanel"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
   renderFoDetail();
+  clientFuturesValidationPromise = null;
+  loadClientFuturesValidation();
 }
 
 const CHART_SYMBOLS = {

@@ -460,7 +460,7 @@ def magnitude_threshold_diagnostics(rows_by_feature):
     return diagnostics
 
 
-def client_futures_recent_direction_check(records, prices, sessions=7):
+def client_futures_recent_direction_check(records, prices, sessions=7, anchor_date=None):
     """Check latest CLIENT Futures OI signals against next-session close direction."""
     if not isinstance(sessions, int) or isinstance(sessions, bool) or sessions < 1:
         raise ValueError("sessions must be a positive integer")
@@ -513,7 +513,11 @@ def client_futures_recent_direction_check(records, prices, sessions=7):
             "contrarian_correct": (prediction == "BULLISH" and actual == "DOWN") or
                                   (prediction == "BEARISH" and actual == "UP"),
         })
-    recent = observations[-sessions:]
+    # Only count genuinely new signal dates after the agreed baseline.
+    new_observations = observations if anchor_date is None else [
+        row for row in observations if row["signal_date"] > anchor_date
+    ]
+    recent = new_observations[-sessions:]
     directional = [
         row for row in recent
         if row["predicted_direction"] != "NEUTRAL" and row["actual_direction"] != "FLAT"
@@ -523,6 +527,10 @@ def client_futures_recent_direction_check(records, prices, sessions=7):
     count = len(directional)
     return {
         "status": "ready" if len(recent) >= sessions else "insufficient_sessions",
+        "collection_status": "ready" if len(recent) >= sessions else "collecting_new_sessions",
+        "anchor_date_exclusive": anchor_date,
+        "new_completed_observations": len(new_observations),
+        "remaining_observations": max(0, sessions - len(recent)),
         "method": "CLIENT Futures EOD OI Δ(Long−Short), scaled by prior gross exposure to ±10; compare direct and contrarian signs with next NSE session close-to-close index direction",
         "requested_sessions": sessions, "sample_sessions": len(recent),
         "directional_observation_count": count, "correct_signals": correct,
@@ -691,7 +699,8 @@ def analyze_index(index_name, symbol, records):
             "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
-        "client_futures_recent_7_session_check": client_futures_recent_direction_check(records, prices, sessions=7),
+        "client_futures_recent_7_session_check": client_futures_recent_direction_check(records, prices, sessions=7, anchor_date="2026-11-12"),
+        "client_futures_new_14_session_check": client_futures_recent_direction_check(records, prices, sessions=14, anchor_date="2026-11-12"),
         "client_option_quantity_magnitude_threshold_diagnostics": magnitude_threshold_diagnostics(rows_by_feature),
     }
 
