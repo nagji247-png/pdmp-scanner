@@ -2788,7 +2788,8 @@ function renderFoDetail() {
          <div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#e74c3c;margin-right:8px"></span>Put Change</div>
          <div style="display:flex;align-items:center;gap:8px"><b class="${valCls(putNet, putBull)}">${fmtLakh(putNet)}</b>${putBull == null ? "" : badge(putBull ? "BULLISH" : "BEARISH", putBull)}</div></div>` +
       `<div style="background:#2a2f47;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font-size:12px;color:#cfd4e6">
-         <span>Put Long OI Chg <b>${fmtLakh(pLong)}</b></span><span>Put Short OI Chg <b>${fmtLakh(pShort)}</b></span></div>`
+         <span>Put Long OI Chg <b>${fmtLakh(pLong)}</b></span><span>Put Short OI Chg <b>${fmtLakh(pShort)}</b></span></div>` +
+      (foSel === "retail" ? '<div id="clientFuturesValidationPanel"></div>' : '')
     );
     return;
   }
@@ -2987,11 +2988,12 @@ function renderFoPanel(po, instData) {
       ${card("inst", "F&amp;O INSTITUTIONAL (FII + DII)", instBody)}
     </div>
     <div id="foDetail"></div>
-    <div id="clientFuturesValidationPanel"></div>
     <div class="sub" style="margin-top:8px">PCR / OI बदलाव: ${dash} (option chain का स्रोत नहीं जुड़ा)</div>`;
   renderFoDetail();
-  clientFuturesValidationPromise = null;
-  loadClientFuturesValidation();
+  if (foSel === "retail") {
+    clientFuturesValidationPromise = null;
+    loadClientFuturesValidation();
+  }
 }
 
 const CHART_SYMBOLS = {
