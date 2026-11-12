@@ -822,7 +822,7 @@ def build_asset_component_breakdowns(
                     "source_date": basket_date,
                     "reason": (
                         "पूरा daily basket diagnostic उपलब्ध है, लेकिन यह research-only/equal-weight है "
-                        "या official weighted score eligibility और 100% constituent coverage सत्यापित नहीं; "
+                        "या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; "
                         "इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
                         if basket.get("research_only") is True or basket.get("score_eligible") is False
                         else "Stock Basket का official snapshot scan date से 3 calendar days से अधिक पुराना, missing या incomplete है; provisional Final से बाहर रखा गया।"
