@@ -1,13 +1,14 @@
 name: Contrarian Capture Validation
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "fetch_and_score.py"
       - ".github/workflows/contrarian-capture-validation.yml"
   push:
     branches:
-      - "fix/retry-contrarian-candle-capture-20261112"
+      - "main"
     paths:
       - "fetch_and_score.py"
       - ".github/workflows/contrarian-capture-validation.yml"
