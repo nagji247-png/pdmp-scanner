@@ -191,6 +191,36 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             )
 
 
+    def test_legacy_oi_only_record_is_enriched_only_from_same_file_hash(self):
+        payload = b"official legacy bhavcopy bytes"
+        digest = __import__("hashlib").sha256(payload).hexdigest()
+        archive = {"schema_version": 1, "records": [{
+            "date": "2026-11-06", "sha256": digest,
+            "symbols": {"NIFTY": {}, "BANKNIFTY": {}},
+        }]}
+        option_contracts = {
+            symbol: {"contracts": [{
+                "expiry": "2026-11-26", "side": "CE", "strike": 25000,
+                "close": 100.0, "open_interest": 1000,
+            }]} for symbol in ("NIFTY", "BANKNIFTY")
+        }
+        self.assertTrue(append_archive(
+            archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
+            payload, {"NIFTY": {}, "BANKNIFTY": {}}, "2026-11-13T14:00:00Z",
+            option_contracts=option_contracts,
+        ))
+        self.assertEqual(archive["schema_version"], 2)
+        self.assertEqual(
+            archive["records"][0]["option_contracts"]["NIFTY"]["contracts"][0]["close"],
+            100.0,
+        )
+        with self.assertRaisesRegex(ValueError, "different file"):
+            append_archive(
+                archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
+                b"different bhavcopy", {"NIFTY": {}, "BANKNIFTY": {}},
+                "2026-11-13T14:01:00Z", option_contracts=option_contracts,
+            )
+
     def test_atomic_archive_write_persists_complete_json_and_cleans_temp(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "nse_index_option_oi.json"
