@@ -134,14 +134,14 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
             weight=PROVISIONAL_WEIGHTS["eod_oi"],
         ))
 
-    def test_marketwide_client_ce_pe_and_futures_scores_are_separate(self):
+    def test_marketwide_client_ce_pe_quantity_score_is_separate_from_futures(self):
         evidence = {
-            "ce_long": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
-            "ce_short": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
-            "pe_long": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
-            "pe_short": {"change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
-            "futures_long": {"change_pct_prior_gross": 4.0, "contrarian_bias": "bearish"},
-            "futures_short": {"change_pct_prior_gross": 2.0, "contrarian_bias": "bullish"},
+            "ce_long": {"change": 10, "change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
+            "ce_short": {"change": 5, "change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
+            "pe_long": {"change": 4, "change_pct_prior_gross": 5.0, "contrarian_bias": "bullish"},
+            "pe_short": {"change": 2, "change_pct_prior_gross": 5.0, "contrarian_bias": "bearish"},
+            "futures_long": {"change": 4, "change_pct_prior_gross": 4.0, "contrarian_bias": "bearish"},
+            "futures_short": {"change": 2, "change_pct_prior_gross": 2.0, "contrarian_bias": "bullish"},
         }
         result = client_marketwide_components({
             "available": True,
@@ -150,11 +150,10 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
             "previous_date": "2026-11-05",
             "evidence_components": evidence,
         })
-        self.assertEqual(set(result), {"client_ce_pe", "client_futures"})
-        self.assertEqual(result["client_ce_pe"]["score"], 0.0)
-        self.assertEqual(result["client_futures"]["score"], -1.0)
+        self.assertEqual(set(result), {"client_ce_pe"})
+        self.assertAlmostEqual(result["client_ce_pe"]["score"], 10.0 * 7 / 21, places=4)
         self.assertIn("market-wide", result["client_ce_pe"]["scope"])
-        self.assertEqual(result["client_futures"]["source_date"], "2026-11-06")
+        self.assertTrue(result["client_ce_pe"]["not_validated_predictor"])
 
     def test_client_components_reject_stale_participant_report(self):
         evidence = {
