@@ -13,6 +13,8 @@ on:
       - "tests/test_provisional_component_scoring.py"
       - "tests/test_component_breakdown_integration.py"
       - "backtest_participant_oi.py"
+      - "client_futures_promotion.py"
+      - "tests/test_client_futures_promotion.py"
       - "tests/test_client_futures_forward_validation.py"
       - "upstox_market_data.py"
       - ".github/workflows/scan.yml"
@@ -24,6 +26,7 @@ on:
       - "tests/test_upstox_market_data.py"
       - "backtest_participant_oi.py"
       - "summarize_participant_oi_backtest.py"
+      - "client_futures_promotion.py"
       - ".github/workflows/scan.yml"
   schedule:
     # सामान्य PDMP स्कैन हर 30 मिनट; Trends केवल तय चार स्लॉट पर।
@@ -61,10 +64,11 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Validate Python syntax and Upstox fallback tests
         run: |
-          python -m py_compile fetch_and_score.py provisional_component_scoring.py upstox_market_data.py crowd_mood_intraday.py backtest_participant_oi.py summarize_participant_oi_backtest.py
+          python -m py_compile fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py upstox_market_data.py crowd_mood_intraday.py backtest_participant_oi.py summarize_participant_oi_backtest.py
           python -m unittest discover -s tests -p 'test_upstox_market_data.py' -v
           python -m unittest discover -s tests -p 'test_client_ce_pe_provisional_score.py' -v
           python -m unittest discover -s tests -p 'test_client_futures_forward_validation.py' -v
+          python -m unittest discover -s tests -p 'test_client_futures_promotion.py' -v
       - name: Run PDMP scan
         env:
           # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।
