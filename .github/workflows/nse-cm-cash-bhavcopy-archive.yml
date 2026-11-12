@@ -1,6 +1,24 @@
 name: NSE CM Cash Bhavcopy EOD Archive
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "nse_cm_bhavcopy_archive.py"
+      - "bse_cm_bhavcopy_archive.py"
+      - "index_constituent_rosters.py"
+      - "run_three_index_cash_basket.py"
+      - "nse_cash_basket_breadth.py"
+      - "evaluate_cash_basket_forward.py"
+      - "tests/test_evaluate_cash_basket_forward.py"
+      - "tests/test_nse_cm_bhavcopy_archive.py"
+      - "tests/test_bse_cm_bhavcopy_archive.py"
+      - "tests/test_index_constituent_rosters.py"
+      - "tests/test_run_three_index_cash_basket.py"
+      - "tests/test_nse_cash_basket_breadth.py"
+      - "tests/test_three_index_cash_basket_validation.py"
+      - "exchange_calendar.json"
+      - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   pull_request:
     paths:
       - "nse_cm_bhavcopy_archive.py"
