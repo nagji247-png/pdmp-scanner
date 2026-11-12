@@ -1,5 +1,8 @@
 import datetime as dt
 import unittest
+from unittest.mock import patch
+
+import pandas as pd
 
 import backtest_participant_oi as backtest
 
@@ -29,6 +32,54 @@ def participant_row(date):
 
 
 class ParticipantOIBacktestTests(unittest.TestCase):
+    def test_incomplete_current_daily_bar_is_excluded_before_1600_ist(self):
+        index = pd.DatetimeIndex(
+            ["2026-11-11 15:30", "2026-11-12 13:30"],
+            tz="Asia/Kolkata",
+        )
+        frame = pd.DataFrame(
+            {"Open": [100.0, 101.0], "Close": [100.5, 101.5]},
+            index=index,
+        )
+
+        class FakeTicker:
+            def history(self, **kwargs):
+                return frame
+
+        now_utc = dt.datetime(2026, 11, 12, 7, 57, tzinfo=dt.timezone.utc)
+        with patch.object(backtest.yf, "Ticker", return_value=FakeTicker()):
+            prices, validation = backtest.load_index_prices("^NSEI", now_utc=now_utc)
+
+        self.assertEqual(
+            prices,
+            {"2026-11-11": {"open": 100.0, "close": 100.5}},
+        )
+        self.assertEqual(
+            validation["incomplete_current_session_excluded_date"],
+            "2026-11-12",
+        )
+
+    def test_current_daily_bar_is_allowed_after_1600_ist(self):
+        index = pd.DatetimeIndex(
+            ["2026-11-11 15:30", "2026-11-12 15:30"],
+            tz="Asia/Kolkata",
+        )
+        frame = pd.DataFrame(
+            {"Open": [100.0, 101.0], "Close": [100.5, 101.5]},
+            index=index,
+        )
+
+        class FakeTicker:
+            def history(self, **kwargs):
+                return frame
+
+        now_utc = dt.datetime(2026, 11, 12, 10, 31, tzinfo=dt.timezone.utc)
+        with patch.object(backtest.yf, "Ticker", return_value=FakeTicker()):
+            prices, validation = backtest.load_index_prices("^NSEI", now_utc=now_utc)
+
+        self.assertIn("2026-11-12", prices)
+        self.assertIsNone(validation["incomplete_current_session_excluded_date"])
+
     def test_false_signal_counts_for_futures(self):
         rows = [
             {"signal": 1.0, "forward_return_pct": 0.4},
