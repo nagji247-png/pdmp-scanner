@@ -21,6 +21,7 @@ import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
 from upstox_market_data import fetch_upstox_candles
+from crowd_trap_detector import build_crowd_trap_snapshot
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -3380,71 +3381,57 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 # ---- संकेत-बदलाव लॉग ----
 
 def intraday_snapshot(sym):
-    """30-मिनट के पूरे बार से कीमत, VWAP और वॉल्यूम अनुपात; Yahoo के बाद Upstox fallback."""
+    """30-minute completed OHLC bars, VWAP and volume; Yahoo first, authenticated broker fallback."""
     frame = None
     try:
-        frame = yf.Ticker(sym).history(period="5d", interval="30m")
+        frame = yf.Ticker(sym).history(period="5d", interval="30m", prepost=False)
     except Exception as exc:
         print(f"Yahoo intraday error {sym}: {str(exc)[:120]}")
-
+    now_utc = dt.datetime.now(dt.timezone.utc)
+    rows = []
     if frame is not None and not frame.empty:
         try:
-            idx_utc = frame.index
-            if getattr(idx_utc, "tz", None) is None:
-                idx_utc = idx_utc.tz_localize("UTC")
-            else:
-                idx_utc = idx_utc.tz_convert("UTC")
-            now_utc = dt.datetime.now(dt.timezone.utc)
-            frame = frame.loc[idx_utc + dt.timedelta(minutes=30) <= now_utc]
-            if not frame.empty:
-                last = frame.iloc[-1]
-                price = float(last["Close"])
-                vol_total = float(frame["Volume"].sum()) if "Volume" in frame.columns else 0.0
-                snap = {"price": price, "vwap": None, "vol_ratio": None,
-                        "vol_ok": vol_total > 0, "source": "Yahoo Finance"}
-                if snap["vol_ok"]:
-                    today = frame.index[-1].date()
-                    td = frame[[d.date() == today for d in frame.index]]
-                    tv = float(td["Volume"].sum())
-                    if tv > 0 and all(col in td.columns for col in ("High", "Low", "Close")):
-                        tp = (td["High"] + td["Low"] + td["Close"]) / 3
-                        snap["vwap"] = float((tp * td["Volume"]).sum() / tv)
-                    avg = float(frame["Volume"].mean())
-                    if avg > 0:
-                        snap["vol_ratio"] = float(last["Volume"]) / avg
-                if math.isfinite(price) and price > 0:
-                    return snap
+            for stamp, row in frame.iterrows():
+                start = stamp.to_pydatetime() if hasattr(stamp, "to_pydatetime") else stamp
+                if start.tzinfo is None:
+                    start = start.replace(tzinfo=dt.timezone.utc)
+                else:
+                    start = start.astimezone(dt.timezone.utc)
+                rows.append({"time": start, "open": row.get("Open"), "high": row.get("High"),
+                             "low": row.get("Low"), "close": row.get("Close"), "volume": row.get("Volume", 0)})
+            snap = build_crowd_trap_snapshot(rows, now_utc)
+            if snap:
+                bars = snap["completed_30m_bars"]
+                today = now_utc.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat()
+                selected = [x for x in bars if dt.datetime.fromisoformat(x["start"].replace("Z","+00:00")).astimezone(
+                    dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat() == today] or bars
+                total = sum(x["volume"] for x in selected)
+                vwap = sum(((x["high"]+x["low"]+x["close"])/3)*x["volume"] for x in selected)/total if total > 0 else None
+                vols = [x["volume"] for x in selected]
+                avg = sum(vols)/len(vols) if vols else 0
+                snap.update({"vwap":vwap,"vol_ratio":vols[-1]/avg if avg > 0 else None,
+                             "vol_ok":total > 0,"source":"Yahoo Finance"})
+                return snap
         except Exception as exc:
             print(f"Yahoo intraday parse error {sym}: {str(exc)[:120]}")
-
-    # Yahoo empty/stale: fetch official broker feed only for mapped instruments.
     candles = fetch_upstox_candles(sym, 30)
-    now_utc = dt.datetime.now(dt.timezone.utc)
-    completed = [
-        row for row in candles
-        if row["time"] + dt.timedelta(minutes=30) <= now_utc
-    ]
-    if not completed:
+    rows = [{"time":x["time"],"open":x["open"],"high":x["high"],"low":x["low"],
+             "close":x["close"],"volume":x["volume"]} for x in candles]
+    snap = build_crowd_trap_snapshot(rows, now_utc)
+    if not snap:
+        print(f"30-minute OHLC unavailable from Yahoo/Upstox for {sym}")
         return None
-    today_ist = now_utc.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date()
-    today_rows = [
-        row for row in completed
-        if row["time"].astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date() == today_ist
-    ]
-    selected = today_rows or completed
-    last = completed[-1]
-    volume_total = sum(row["volume"] for row in selected)
-    vwap = None
-    if volume_total > 0:
-        vwap = sum(((row["high"] + row["low"] + row["close"]) / 3) * row["volume"]
-                   for row in selected) / volume_total
-    volumes = [row["volume"] for row in selected]
-    avg_volume = sum(volumes) / len(volumes) if volumes else 0
-    return {
-        "price": last["close"], "vwap": vwap,
-        "vol_ratio": last["volume"] / avg_volume if avg_volume > 0 else None,
-        "vol_ok": volume_total > 0, "source": "Upstox API V3",
-    }
+    bars = snap["completed_30m_bars"]
+    today = now_utc.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat()
+    selected = [x for x in bars if dt.datetime.fromisoformat(x["start"].replace("Z","+00:00")).astimezone(
+        dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat() == today] or bars
+    total = sum(x["volume"] for x in selected)
+    vwap = sum(((x["high"]+x["low"]+x["close"])/3)*x["volume"] for x in selected)/total if total > 0 else None
+    vols = [x["volume"] for x in selected]
+    avg = sum(vols)/len(vols) if vols else 0
+    snap.update({"vwap":vwap,"vol_ratio":vols[-1]/avg if avg > 0 else None,
+                 "vol_ok":total > 0,"source":"Upstox API V3"})
+    return snap
 
 def _band(x, band):
     if x >= band:
@@ -3497,12 +3484,15 @@ def update_signals(instruments, state, log, now_iso):
         cur = {
             "score": d["score"],
             "sent": _band(d["score"], SIG_SCORE_BAND),
-            "price_dir": _band(d["change_pct"], SIG_PRICE_BAND),
+            "price_dir": snap.get("price_dir") if snap else None,
             "vwap_side": vwap_side,
             "vol_hi": vol_hi,
             "vol_ok": bool(snap and snap["vol_ok"]),
             "price_now": price_now,
             "price_source": snap.get("source") if snap else None,
+            "last_30m": snap.get("last_30m") if snap else None,
+            "session_open_close": snap.get("session_open_close") if snap else None,
+            "completed_30m_bars": snap.get("completed_30m_bars", []) if snap else [],
             "time": now_iso,
         }
 
@@ -3559,6 +3549,9 @@ def signal_summary(state):
             "vol_hi": s.get("vol_hi"),
             "vol_ok": s.get("vol_ok"),
             "since": s.get("since"),
+            "last_30m": s.get("last_30m"),
+            "session_open_close": s.get("session_open_close"),
+            "completed_30m_bars": s.get("completed_30m_bars", []),
         }
     return out
 
