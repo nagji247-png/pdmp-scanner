@@ -459,6 +459,85 @@ def magnitude_threshold_diagnostics(rows_by_feature):
             })
     return diagnostics
 
+
+def client_futures_recent_direction_check(records, prices, sessions=7):
+    """Check latest CLIENT Futures OI signals against next-session close direction."""
+    if not isinstance(sessions, int) or isinstance(sessions, bool) or sessions < 1:
+        raise ValueError("sessions must be a positive integer")
+    price_dates = sorted(prices)
+    price_index = {date: position for position, date in enumerate(price_dates)}
+    ordered = sorted(records, key=lambda row: row["date"])
+    observations = []
+    for position in range(1, len(ordered)):
+        previous, current = ordered[position - 1], ordered[position]
+        signal_date = current.get("date")
+        previous_date = previous.get("date")
+        if signal_date not in price_index or previous_date not in price_index:
+            continue
+        signal_pos = price_index[signal_date]
+        if signal_pos - price_index[previous_date] != 1 or signal_pos + 1 >= len(price_dates):
+            continue
+        current_client = (current.get("participants") or {}).get("CLIENT") or {}
+        previous_client = (previous.get("participants") or {}).get("CLIENT") or {}
+        long_now = finite_number(current_client.get("future_index_long"))
+        long_before = finite_number(previous_client.get("future_index_long"))
+        short_now = finite_number(current_client.get("future_index_short"))
+        short_before = finite_number(previous_client.get("future_index_short"))
+        if None in (long_now, long_before, short_now, short_before):
+            continue
+        long_change, short_change = long_now - long_before, short_now - short_before
+        previous_gross = long_before + short_before
+        if previous_gross <= 0:
+            continue
+        # Scale the net change against prior total exposure. Dividing by the
+        # absolute changes would saturate nearly every one-sided move at +/-10.
+        score = max(-10.0, min(10.0, 10.0 * (long_change - short_change) / previous_gross))
+        next_date = price_dates[signal_pos + 1]
+        base_close = finite_number(prices[signal_date].get("close"))
+        next_close = finite_number(prices[next_date].get("close"))
+        if base_close is None or next_close is None or base_close <= 0 or next_close <= 0:
+            continue
+        forward_return = (next_close / base_close - 1.0) * 100.0
+        prediction = "BULLISH" if score > 0 else ("BEARISH" if score < 0 else "NEUTRAL")
+        actual = "UP" if forward_return > 0 else ("DOWN" if forward_return < 0 else "FLAT")
+        observations.append({
+            "signal_date": signal_date, "next_session": next_date,
+            "client_futures_long_change": round(long_change, 2),
+            "client_futures_short_change": round(short_change, 2),
+            "previous_gross_exposure": round(previous_gross, 2),
+            "score": round(score, 2), "predicted_direction": prediction,
+            "next_session_close_change_pct": round(forward_return, 4),
+            "actual_direction": actual,
+            "correct": (prediction == "BULLISH" and actual == "UP") or
+                       (prediction == "BEARISH" and actual == "DOWN"),
+            "contrarian_correct": (prediction == "BULLISH" and actual == "DOWN") or
+                                  (prediction == "BEARISH" and actual == "UP"),
+        })
+    recent = observations[-sessions:]
+    directional = [
+        row for row in recent
+        if row["predicted_direction"] != "NEUTRAL" and row["actual_direction"] != "FLAT"
+    ]
+    correct = sum(1 for row in directional if row["correct"])
+    contrarian_correct = sum(1 for row in directional if row["contrarian_correct"])
+    count = len(directional)
+    return {
+        "status": "ready" if len(recent) >= sessions else "insufficient_sessions",
+        "method": "CLIENT Futures EOD OI Δ(Long−Short), scaled by prior gross exposure to ±10; compare direct and contrarian signs with next NSE session close-to-close index direction",
+        "requested_sessions": sessions, "sample_sessions": len(recent),
+        "directional_observation_count": count, "correct_signals": correct,
+        "wrong_signals": count - correct,
+        "directional_hit_rate_pct": round(correct / count * 100.0, 2) if count else None,
+        "contrarian_correct_signals": contrarian_correct,
+        "contrarian_hit_rate_pct": round(contrarian_correct / count * 100.0, 2) if count else None,
+        "neutral_or_flat_excluded": len(recent) - count,
+        "first_signal_date": recent[0]["signal_date"] if recent else None,
+        "last_signal_date": recent[-1]["signal_date"] if recent else None,
+        "observations": recent, "score_changed": False,
+        "eligible_for_live_score": False,
+        "scope": "NSE participant-wise CLIENT Index Futures aggregate; market-wide, not index-specific",
+    }
+
 def analyze_index(index_name, symbol, records):
     prices, price_validation = load_index_prices(symbol)
     price_dates = sorted(prices)
@@ -612,6 +691,7 @@ def analyze_index(index_name, symbol, records):
             "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
+        "client_futures_recent_7_session_check": client_futures_recent_direction_check(records, prices, sessions=7),
         "client_option_quantity_magnitude_threshold_diagnostics": magnitude_threshold_diagnostics(rows_by_feature),
     }
 

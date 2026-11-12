@@ -32,6 +32,46 @@ def participant_row(date):
 
 
 class ParticipantOIBacktestTests(unittest.TestCase):
+
+    def test_client_futures_recent_seven_session_direction_check(self):
+        start = dt.date(2026, 1, 1)
+        records = []
+        prices = {}
+        for position in range(9):
+            date = (start + dt.timedelta(days=position)).isoformat()
+            client = {
+                "future_index_long": 100 + position * 10,
+                "future_index_short": 80,
+            }
+            records.append({"date": date, "participants": {"CLIENT": client}})
+            close = 100.0 + position
+            prices[date] = {"open": close, "close": close}
+        # Two of the seven next-session outcomes move against the bullish signal.
+        prices[(start + dt.timedelta(days=4)).isoformat()]["close"] = 99.0
+        prices[(start + dt.timedelta(days=6)).isoformat()]["close"] = 100.0
+        result = backtest.client_futures_recent_direction_check(records, prices, sessions=7)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["sample_sessions"], 7)
+        self.assertEqual(result["directional_observation_count"], 7)
+        self.assertEqual(result["correct_signals"], 5)
+        self.assertEqual(result["wrong_signals"], 2)
+        self.assertEqual(result["directional_hit_rate_pct"], 71.43)
+        self.assertEqual(result["contrarian_correct_signals"], 2)
+        self.assertEqual(result["contrarian_hit_rate_pct"], 28.57)
+        self.assertFalse(result["eligible_for_live_score"])
+        self.assertEqual(result["observations"][0]["signal_date"], "2026-01-02")
+
+    def test_client_futures_recent_check_reports_insufficient_sessions(self):
+        prices = {"2026-01-01": {"close": 100}, "2026-01-02": {"close": 101}}
+        records = [
+            {"date": "2026-01-01", "participants": {"CLIENT": {"future_index_long": 10, "future_index_short": 5}}},
+            {"date": "2026-01-02", "participants": {"CLIENT": {"future_index_long": 11, "future_index_short": 5}}},
+        ]
+        result = backtest.client_futures_recent_direction_check(records, prices, sessions=7)
+        self.assertEqual(result["status"], "insufficient_sessions")
+        self.assertEqual(result["sample_sessions"], 0)
+        self.assertIsNone(result["directional_hit_rate_pct"])
+
     def test_incomplete_current_daily_bar_is_excluded_before_1600_ist(self):
         completed = pd.date_range(
             end="2026-11-11 15:30", periods=30, freq="B", tz="Asia/Kolkata"
