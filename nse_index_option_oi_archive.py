@@ -334,12 +334,18 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
         if existing.get("sha256") != digest:
             raise ValueError(f"archive already contains a different file for {day}")
         existing_contracts = existing.get("option_contracts") or {}
+        incoming_contracts = option_contracts or {}
+        incoming_enriched = all(
+            isinstance(incoming_contracts.get(symbol), dict)
+            and bool(incoming_contracts[symbol].get("contracts"))
+            for symbol in SYMBOLS
+        )
         already_enriched = all(
             isinstance(existing_contracts.get(symbol), dict)
             and bool(existing_contracts[symbol].get("contracts"))
             for symbol in SYMBOLS
         )
-        if already_enriched:
+        if already_enriched or not incoming_enriched:
             return False
         # Enrich a legacy OI-only record from the exact same official file hash.
         # This is a data-schema upgrade, not a replacement with a different source.
