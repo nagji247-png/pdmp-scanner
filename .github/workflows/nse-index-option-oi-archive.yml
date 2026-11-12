@@ -1,6 +1,7 @@
 name: NSE Index Option OI EOD Archive
 
 on:
+  workflow_dispatch:
   schedule:
     # 19:30 IST on NSE weekdays, after the F&O UDiFF EOD report is normally published.
     - cron: "0 14 * * 1-5"
