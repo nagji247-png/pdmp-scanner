@@ -16,6 +16,7 @@ from provisional_component_scoring import (
 )
 from validate_market_signal_history import market_snapshot_completeness
 from crowd_mood_intraday import update_archive as update_crowd_mood_archive
+from nse_option_buildup import build_option_buildup_diagnostic
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -932,6 +933,13 @@ def build_asset_component_breakdowns(
             "provisional_components": provisional_components,
             "provisional_final": provisional_final,
             "stock_basket_diagnostic": stock_basket_diagnostics.get(name),
+            "option_buildup_diagnostic": (
+                build_option_buildup_diagnostic(
+                    index_oi_archive, name, as_of_date=news_source_date,
+                    max_age_days=3, min_matched_contracts=20,
+                )
+                if name in ("NIFTY", "BANKNIFTY") else None
+            ),
             "excluded_components": excluded,
             "coverage": {
                 "status": coverage_status,
