@@ -47,9 +47,11 @@ on:
   repository_dispatch:
     types: [scan-watchdog]
   # GITHUB_TOKEN archive commits do not trigger other workflows. Run a normal
-  # no-Trends PDMP refresh after the official cash-basket archive completes.
+  # no-Trends PDMP refresh after official cash-basket or index-option EOD archives complete.
   workflow_run:
-    workflows: ["NSE CM Cash Bhavcopy EOD Archive"]
+    workflows:
+      - "NSE CM Cash Bhavcopy EOD Archive"
+      - "NSE Index Option OI EOD Archive"
     types: [completed]
     branches: [main]
 
