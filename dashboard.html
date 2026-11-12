@@ -1448,7 +1448,15 @@ function renderTrapDetector(data) {
     return;
   }
   if (!mood.extreme) {
-    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:#aab4c4">भीड़ का मूड स्पष्ट नहीं</div><div class="sub">BULLISH ' + mood.bull.toFixed(1) + '% · BEARISH ' + mood.bear.toFixed(1) + '% · NEUTRAL ' + mood.neutral.toFixed(1) + '%. एकतरफ़ा 70% भीड़ का प्रमाण नहीं मिला।</div>';
+    const biasText = mood.direction === "BULLISH"
+      ? 'बुलिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं'
+      : mood.direction === "BEARISH"
+        ? 'बियरिश झुकाव है, लेकिन अभी बेहद एकतरफ़ा नहीं'
+        : 'बुलिश और बियरिश खोजें बराबर हैं';
+    const directionalText = mood.directionalBullPct == null
+      ? 'दिशात्मक अनुपात उपलब्ध नहीं'
+      : 'दिशात्मक अनुपात: बुलिश ' + mood.directionalBullPct.toFixed(1) + '% · बियरिश ' + (100 - mood.directionalBullPct).toFixed(1) + '%';
+    box.innerHTML = '<div style="font-size:19px;font-weight:900;color:#aab4c4">' + biasText + '</div><div class="sub">कुल खोज-वज़न: BULLISH ' + mood.bull.toFixed(1) + '% · BEARISH ' + mood.bear.toFixed(1) + '% · NEUTRAL ' + mood.neutral.toFixed(1) + '%.</div><div class="sub">' + directionalText + '। 70% extreme सीमा अभी पार नहीं हुई।</div>';
     return;
   }
   if (dir !== 1 && dir !== -1) {
