@@ -2851,6 +2851,7 @@ def _update_intraday_horizon(event, field, minutes, bars):
         horizon.update({
             "status": "complete", "price": round(candidate["price"], 4),
             "time": candidate["time"].isoformat(timespec="seconds").replace("+00:00", "Z"),
+            "source": candidate.get("source") or event.get("baseline_source"),
             "change_pct": move, "outcome": outcome,
         })
     elif dt.datetime.now(dt.timezone.utc) > target + dt.timedelta(minutes=10):
@@ -2880,7 +2881,7 @@ def update_contrarian(events, name, score, today_str, returns, sym):
                  "score": score, "event_time_utc": event_time.isoformat(timespec="seconds").replace("+00:00", "Z"),
                  "outcome": None, "next_change": None,
                  "baseline_price": None, "baseline_time": None, "baseline_attempted": False,
-                 "intraday_source": "Yahoo Finance completed 5-minute candles",
+                 "intraday_source": "Awaiting verified 5-minute candle source",
                  "after_30m": {"status": "pending", "reason": "शुरुआती पूरी candle का इंतज़ार"},
                  "after_60m": {"status": "pending", "reason": "शुरुआती पूरी candle का इंतज़ार"}}
         events.append(event)
@@ -2935,6 +2936,8 @@ def update_contrarian(events, name, score, today_str, returns, sym):
             existing["baseline_attempted"] = True
             existing["baseline_price"] = round(baseline["price"], 4)
             existing["baseline_time"] = baseline["time"].isoformat(timespec="seconds").replace("+00:00", "Z")
+            existing["baseline_source"] = baseline.get("source") or "Source not tagged"
+            existing["intraday_source"] = existing["baseline_source"]
             existing["after_30m"] = {"status": "pending"}
             existing["after_60m"] = {"status": "pending"}
         elif event_age > 30:
