@@ -1192,6 +1192,8 @@ function closeStockBasketDetails() {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeStockBasketDetails();
 });
+// Stock Basket refreshes from the latest complete official EOD diagnostic after archive recovery.
+// Keep this panel research-only and score-ineligible.
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
