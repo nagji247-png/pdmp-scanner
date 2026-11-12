@@ -191,20 +191,61 @@ def capture_one(archive, trade_date):
     }
 
 
+def is_exchange_session(trade_date, calendar):
+    day = parse_date(trade_date)
+    key = day.isoformat()
+    if not isinstance(calendar, dict):
+        return day.weekday() < 5
+    if key in calendar.get("special_sessions", {}):
+        return True
+    holidays = {str(item.get("date")) for item in calendar.get("holidays", [])
+                if isinstance(item, dict) and item.get("date")}
+    return day.weekday() < 5 and key not in holidays
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--date", help="One BSE session date YYYY-MM-DD; defaults to current IST date")
+    parser.add_argument("--date", help="One BSE session date YYYY-MM-DD; defaults to a rolling recent window")
+    parser.add_argument("--backfill-days", type=int, default=7,
+                        help="Retry every missing exchange session in this many calendar days")
     parser.add_argument("--archive", default=str(ARCHIVE_PATH))
+    parser.add_argument("--calendar", default="exchange_calendar.json")
     args = parser.parse_args()
+    if args.backfill_days < 1 or args.backfill_days > 31:
+        parser.error("--backfill-days must be between 1 and 31")
     path = Path(args.archive)
     archive = load_archive(path)
-    trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
-    result = capture_one(archive, trade_date)
-    if result["status"] == "captured":
+    calendar_path = Path(args.calendar)
+    calendar = json.loads(calendar_path.read_text(encoding="utf-8")) if calendar_path.exists() else None
+    if args.date:
+        dates = [parse_date(args.date)]
+    else:
+        today = dt.datetime.now(IST).date()
+        dates = [today - dt.timedelta(days=offset)
+                 for offset in range(args.backfill_days - 1, -1, -1)]
+    results = []
+    changed = False
+    for trade_date in dates:
+        if not is_exchange_session(trade_date, calendar):
+            results.append({"date": trade_date.isoformat(), "status": "skipped_non_session",
+                            "date_attempts": 0})
+            continue
+        try:
+            result = capture_one(archive, trade_date)
+            changed = changed or result.get("status") == "captured"
+        except Exception as exc:
+            result = {"date": trade_date.isoformat(), "status": "unavailable",
+                      "error": str(exc), "date_attempts": 1}
+        results.append(result)
+    if changed:
         write_archive_atomic(path, archive)
-    result["archive_sessions"] = len(archive.get("records", []))
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-    return 0
+    print(json.dumps({
+        "results": results, "archive_sessions": len(archive.get("records", [])),
+        "captured": sum(item.get("status") == "captured" for item in results),
+        "unavailable": sum(item.get("status") == "unavailable" for item in results),
+        "research_only": True, "included_in_asset_final": False,
+    }, ensure_ascii=False, sort_keys=True))
+    return 1 if any(item.get("status") == "unavailable" for item in results) else 0
 
 
 if __name__ == "__main__":

@@ -61,14 +61,14 @@ jobs:
       - name: Attempt one dated official NSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python nse_cm_bhavcopy_archive.py
+        run: python nse_cm_bhavcopy_archive.py --backfill-days 7
       - name: Fetch one dated official BSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python bse_cm_bhavcopy_archive.py
+        run: python bse_cm_bhavcopy_archive.py --backfill-days 7
       - name: Run offline full-universe cash basket checks
         if: github.event_name != 'pull_request'
-        run: python run_three_index_cash_basket.py
+        run: python run_three_index_cash_basket.py --backfill-days 7
       - name: Evaluate historical cash-basket signals against next captured closes
         if: github.event_name != 'pull_request'
         continue-on-error: true

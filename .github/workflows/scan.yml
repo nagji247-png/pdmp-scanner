@@ -27,6 +27,7 @@ on:
       - "backtest_participant_oi.py"
       - "summarize_participant_oi_backtest.py"
       - "nse_index_option_oi.json"
+      - "index_cash_basket_diagnostics.json"
       - "client_futures_promotion.py"
       - ".github/workflows/scan.yml"
   schedule:
