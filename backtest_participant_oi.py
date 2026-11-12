@@ -11,6 +11,7 @@ import json
 import math
 from collections import Counter
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
@@ -25,6 +26,7 @@ FIELDS = ("future_index", "index_call", "index_put")
 REGIMES = ("bull", "bear", "sideways", "unknown")
 RESEARCH_TARGET_SESSIONS = 250
 MIN_VALID_OI_SESSIONS = 20
+INDIA_TZ = ZoneInfo("Asia/Kolkata")
 
 
 def finite_number(value):
@@ -114,7 +116,16 @@ def load_oi_records():
     return validate_oi_records(payload.get("records", []))
 
 
-def load_index_prices(symbol):
+def incomplete_current_session_date(now_utc=None):
+    """Return today's IST date until 16:00; an intraday daily candle is not a close."""
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    now_ist = now.astimezone(INDIA_TZ)
+    return now_ist.date().isoformat() if now_ist.time() < dt.time(16, 0) else None
+
+
+def load_index_prices(symbol, now_utc=None):
     history = yf.Ticker(symbol).history(period="2y", interval="1d", auto_adjust=False)
     if history is None or history.empty:
         raise RuntimeError(f"Yahoo Finance returned no daily OHLC history for {symbol}")
@@ -123,12 +134,17 @@ def load_index_prices(symbol):
     if not {"Open", "Close"}.issubset(history.columns):
         raise RuntimeError(f"Yahoo Finance daily Open/Close missing for {symbol}")
 
+    incomplete_date = incomplete_current_session_date(now_utc)
+    incomplete_excluded_date = None
     prices = {}
     seen = set()
     duplicates = set()
     invalid_rows = 0
     for stamp, row in history.iterrows():
         date = stamp.date().isoformat()
+        if date == incomplete_date:
+            incomplete_excluded_date = date
+            continue
         if date in seen:
             duplicates.add(date)
             continue
@@ -152,6 +168,7 @@ def load_index_prices(symbol):
         "ohlc_sessions": len(prices),
         "ohlc_first_date": min(prices),
         "ohlc_last_date": max(prices),
+        "incomplete_current_session_excluded_date": incomplete_excluded_date,
     }
 
 
