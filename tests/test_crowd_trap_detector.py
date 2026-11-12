@@ -23,4 +23,16 @@ class CrowdTrapDetectorTests(unittest.TestCase):
   now=dt.datetime(2026,11,13,10,31,tzinfo=UTC)
   rows=[{"time":dt.datetime(2026,11,13,10,0,tzinfo=UTC),"open":100,"high":98,"low":99,"close":101,"volume":10}]
   self.assertIsNone(build_crowd_trap_snapshot(rows,now))
+
+ def test_after_hours_uses_latest_completed_trading_session(self):
+  # 00:31 IST on Nov 13; the latest bars belong to Nov 12.
+  now=dt.datetime(2026,11,12,19,1,tzinfo=UTC)
+  rows=[{"time":dt.datetime(2026,11,12,3,45,tzinfo=UTC),"open":100,"high":101,"low":99,"close":100.5,"volume":10},
+        {"time":dt.datetime(2026,11,12,9,30,tzinfo=UTC),"open":100.5,"high":102,"low":100,"close":101,"volume":12}]
+  out=build_crowd_trap_snapshot(rows,now)
+  self.assertEqual(out["session_open_close"]["market_date"],"2026-11-12")
+  self.assertEqual(out["session_open_close"]["status"],"complete")
+  self.assertEqual(out["session_open_close"]["open"],100)
+  self.assertEqual(out["session_open_close"]["latest_close"],101)
+
 if __name__=="__main__": unittest.main()
