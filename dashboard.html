@@ -879,7 +879,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
   };
   const rowHtml = Object.entries(labels).map(([key, label]) => {
     const item = components[key];
-    const reasonKey = key === "client_futures" ? "futures" : key;
+    const reasonKey = key;
     const reason = excluded[reasonKey] && excluded[reasonKey].reason
       ? excluded[reasonKey].reason : "";
     const hasScore = item && item.score != null && Number.isFinite(Number(item.score));
