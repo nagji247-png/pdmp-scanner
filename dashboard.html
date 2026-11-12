@@ -890,6 +890,8 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const directional = key === "search" && b.search_diagnostic
       ? (b.search_diagnostic.directional_query_diagnostic || {}) : {};
     const directionalAvailable = directional.available === true;
+    const clientContextAvailable = key.startsWith("client_") &&
+      b.client_market_context && b.client_market_context.available === true;
     const source = item && item.source ? item.source
       : (directionalAvailable && directional.source ? directional.source
       : (key.startsWith("client_") && b.client_market_context ? b.client_market_context.source
@@ -900,9 +902,13 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       : (excluded[reasonKey] && excluded[reasonKey].source_date) || ""));
     const detail = item
       ? [item.method, item.validation_status, item.scope].filter(Boolean).join(" · ")
-      : (directionalAvailable
-        ? "चयनित asset-specific खोज-शब्दों का Google Trends डेटा मिला; अभी Final Score में शामिल नहीं"
-        : reason);
+      : (clientContextAvailable
+        ? (key === "client_ce_pe"
+          ? "NSE CLIENT के CALL/PUT Long और Short बदलाव उपलब्ध हैं; ये पूरे Index F&O बाजार का aggregate हैं, किसी एक index के नहीं। इसलिए डेटा diagnostic में दिखेगा, asset Final Score में नहीं।"
+          : "NSE CLIENT Index Futures Long/Short बदलाव उपलब्ध हैं; ये पूरे बाजार का aggregate हैं, किसी एक index के नहीं। इसलिए डेटा diagnostic में दिखेगा, asset Final Score में नहीं।")
+        : (directionalAvailable
+          ? "चयनित asset-specific खोज-शब्दों का Google Trends डेटा मिला; अभी Final Score में शामिल नहीं"
+          : reason));
     const mix = directional.query_interest_mix_pct || {};
     const terms = directional.query_terms || {};
     const directionalDetail = directionalAvailable
@@ -914,9 +920,13 @@ function renderComponentBreakdown(b, observedAt, assetName) {
         '<div class="hl-meta">यह चयनित phrase-set का relative search-interest mix है, पूरे बाजार की crowd percentage नहीं।</div>'
       : "";
     const valueText = hasScore ? scoreText(score)
-      : (directionalAvailable ? "डेटा मिला · Score सत्यापन बाकी" : "डेटा उपलब्ध नहीं");
+      : (clientContextAvailable
+        ? "डेटा मौजूद · Diagnostic"
+        : (directionalAvailable ? "डेटा मिला · Score सत्यापन बाकी" : "डेटा उपलब्ध नहीं"));
     const statusText = item ? "गणना में शामिल"
-      : (directionalAvailable ? "दिशात्मक डेटा मिला · Final Score में अभी शामिल नहीं" : "अभी शामिल नहीं");
+      : (clientContextAvailable
+        ? "डेटा उपलब्ध · Market-wide aggregate · Final से बाहर"
+        : (directionalAvailable ? "दिशात्मक डेटा मिला · Final Score में अभी शामिल नहीं" : "अभी शामिल नहीं"));
     return '<div class="hl" style="margin-top:6px">' +
       '<div class="hl-title"><b>' + esc(label) + '</b> · <b class="' + cls + '">' +
       valueText + '</b></div>' +
