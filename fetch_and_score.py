@@ -12,6 +12,7 @@ from provisional_component_scoring import (
     client_marketwide_components, source_date_is_fresh,
 )
 from validate_market_signal_history import market_snapshot_completeness
+from crowd_mood_intraday import update_archive as update_crowd_mood_archive
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -5936,6 +5937,12 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
+    # Archive daily extreme crowd mood and already-fetched index quotes; no extra requests.
+    crowd_mood_archive = update_crowd_mood_archive(
+        load_json("crowd_mood_history.json", {}), result, updated
+    )
+    with open("crowd_mood_history.json", "w", encoding="utf-8") as f:
+        json.dump(crowd_mood_archive, f, ensure_ascii=False, indent=2, allow_nan=False)
     # Refresh asset-specific Search on scheduled slots and explicit manual scans.
     # Manual scans use one five-seed batch plus one CRUDEOIL batch; they do not
     # launch the six extra directional phrase requests, keeping 429 risk bounded.
