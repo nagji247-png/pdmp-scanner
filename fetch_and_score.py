@@ -3465,6 +3465,7 @@ def update_signals(instruments, state, log, now_iso):
             "vol_hi": vol_hi,
             "vol_ok": bool(snap and snap["vol_ok"]),
             "price_now": price_now,
+            "price_source": snap.get("source") if snap else None,
             "time": now_iso,
         }
 
