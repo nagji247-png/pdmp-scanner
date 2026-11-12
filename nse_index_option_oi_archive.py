@@ -331,9 +331,34 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
     records = archive.setdefault("records", [])
     existing = next((item for item in records if item.get("date") == day), None)
     if existing:
-        if existing.get("sha256") == digest:
+        if existing.get("sha256") != digest:
+            raise ValueError(f"archive already contains a different file for {day}")
+        existing_contracts = existing.get("option_contracts") or {}
+        incoming_contracts = option_contracts or {}
+        incoming_enriched = all(
+            isinstance(incoming_contracts.get(symbol), dict)
+            and bool(incoming_contracts[symbol].get("contracts"))
+            for symbol in SYMBOLS
+        )
+        already_enriched = all(
+            isinstance(existing_contracts.get(symbol), dict)
+            and bool(existing_contracts[symbol].get("contracts"))
+            for symbol in SYMBOLS
+        )
+        if already_enriched or not incoming_enriched:
             return False
-        raise ValueError(f"archive already contains a different file for {day}")
+        # Enrich a legacy OI-only record from the exact same official file hash.
+        # This is a data-schema upgrade, not a replacement with a different source.
+        existing.update({
+            "source_url": source_url,
+            "fetched_at": fetched_at,
+            "symbols": symbols,
+            "index_futures": index_futures or {},
+            "option_contracts": option_contracts or {},
+        })
+        archive["schema_version"] = 2
+        archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, and FUTIDX price/OI by exact expiry"
+        return True
     records.append({
         "date": day,
         "source": "NSE F&O UDiFF Common Bhavcopy Final",
@@ -384,8 +409,17 @@ def load_archive(path):
 def capture_one(archive, trade_date):
     """Capture one exchange date; existing dates are skipped before any HTTP request."""
     date_key = trade_date.isoformat()
-    if any(isinstance(item, dict) and item.get("date") == date_key
-           for item in archive.get("records", [])):
+    existing = next((
+        item for item in archive.get("records", [])
+        if isinstance(item, dict) and item.get("date") == date_key
+    ), None)
+    existing_contracts = (existing or {}).get("option_contracts") or {}
+    already_enriched = existing is not None and all(
+        isinstance(existing_contracts.get(symbol), dict)
+        and bool(existing_contracts[symbol].get("contracts"))
+        for symbol in SYMBOLS
+    )
+    if already_enriched:
         return {"date": date_key, "status": "skipped_existing", "date_attempts": 0}
     payload, source_url = fetch_official_bhavcopy(trade_date)
     rows = decode_udiff_zip(payload)
