@@ -151,7 +151,11 @@ class ProvisionalComponentScoringTests(unittest.TestCase):
             "evidence_components": evidence,
         })
         self.assertEqual(set(result), {"client_ce_pe"})
-        self.assertAlmostEqual(result["client_ce_pe"]["score"], 10.0 * 7 / 21, places=4)
+        self.assertAlmostEqual(result["client_ce_pe"]["score"], 10.0 * 3 / 21, places=4)
+        self.assertEqual(result["client_ce_pe"]["call_net_change"], 5)
+        self.assertEqual(result["client_ce_pe"]["put_net_change"], -2)
+        self.assertEqual(result["client_ce_pe"]["combined_net_change"], 3)
+        self.assertEqual(result["client_ce_pe"]["directional_reading"], "bullish_client_positioning")
         self.assertIn("market-wide", result["client_ce_pe"]["scope"])
         self.assertTrue(result["client_ce_pe"]["not_validated_predictor"])
 
