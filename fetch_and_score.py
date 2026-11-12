@@ -830,15 +830,29 @@ def build_asset_component_breakdowns(
             marketwide_components = client_marketwide_components(
                 client_context, scan_date=news_source_date, max_age_days=3
             )
-            provisional_components.update(marketwide_components)
-            if client_context and client_context.get("available") and not marketwide_components:
-                for component_name in ("client_ce_pe", "client_futures"):
-                    excluded[component_name] = {
-                        "applicable": True, "included": False,
-                        "source": client_context.get("source") or "NSE participant-wise OI · CLIENT",
-                        "source_date": client_context.get("source_date"),
-                        "reason": "CLIENT participant report scan date से 3 calendar days से अधिक पुरानी या आवश्यक dated fields से अधूरी है; provisional Final से बाहर रखा गया।",
-                    }
+            # NSE participant-wise CLIENT OI/Futures is a market-wide aggregate,
+            # not an index-specific observation. Keep diagnostics in context only.
+            # Never inject them into NIFTY, SENSEX, or BANKNIFTY provisional Finals.
+            for component_name in ("client_ce_pe", "client_futures"):
+                diagnostic = marketwide_components.get(component_name)
+                excluded[component_name] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": (
+                        diagnostic.get("source") if isinstance(diagnostic, dict)
+                        else (client_context or {}).get("source")
+                    ) or "NSE participant-wise OI · CLIENT",
+                    "source_date": (
+                        diagnostic.get("source_date") if isinstance(diagnostic, dict)
+                        else (client_context or {}).get("source_date")
+                    ),
+                    "scope": "market-wide CLIENT aggregate; not index-specific",
+                    "reason": (
+                        "CLIENT CE/PE और Futures पूरे बाजार का aggregate है, "
+                        "NIFTY/SENSEX/BANKNIFTY का अलग-अलग डेटा नहीं। यह केवल "
+                        "client_market_context में diagnostic रहेगा; index provisional Final से बाहर।"
+                    ),
+                }
 
         provisional_final = combine_components(
             provisional_components, PROVISIONAL_WEIGHTS
