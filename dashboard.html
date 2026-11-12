@@ -957,11 +957,33 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const item = evidence[key] || {};
     const change = item.change;
     const pct = item.change_pct_prior_gross;
-    const changeText = change == null ? "डेटा नहीं" :
-      ((Number(change) > 0 ? "+" : "") + Number(change).toLocaleString("en-IN"));
-    const pctText = pct == null ? "—" :
-      ((Number(pct) > 0 ? "+" : "") + Number(pct).toFixed(2) + "%");
-    return '<div class="hl-meta">' + label + ': ' + changeText + ' (' + pctText + ')</div>';
+    const numericChange = change == null ? null : Number(change);
+    const numericPct = pct == null ? null : Number(pct);
+    const changeText = numericChange == null || !Number.isFinite(numericChange) ? "डेटा नहीं" :
+      ((numericChange > 0 ? "+" : "") + numericChange.toLocaleString("en-IN"));
+    const pctText = numericPct == null || !Number.isFinite(numericPct) ? "—" :
+      ((numericPct > 0 ? "+" : "") + numericPct.toFixed(2) + "%");
+    // Positive change is bullish for CE Long / PE Short and bearish for CE Short / PE Long.
+    // Futures Long/Short follow their own positioning direction. Tiny moves are neutral.
+    const bullishOnIncrease = key === "ce_long" || key === "pe_short";
+    const futuresLong = key === "futures_long";
+    const futuresShort = key === "futures_short";
+    let direction = null;
+    if (numericChange != null && Number.isFinite(numericChange)) {
+      if (Math.abs(numericPct == null ? 0 : numericPct) < 0.10) direction = "zero";
+      else {
+        const increaseIsBullish = bullishOnIncrease || futuresLong;
+        const increaseIsBearish = key === "ce_short" || key === "pe_long" || futuresShort;
+        if (numericChange > 0) direction = increaseIsBullish ? "pos" : increaseIsBearish ? "neg" : "zero";
+        else if (numericChange < 0) direction = increaseIsBullish ? "neg" : increaseIsBearish ? "pos" : "zero";
+        else direction = "zero";
+      }
+    }
+    const meaning = direction === "pos" ? "Bullish" :
+      direction === "neg" ? "Bearish" :
+      direction === "zero" ? "Neutral / मामूली बदलाव" : "दिशा उपलब्ध नहीं";
+    return '<div class="hl-meta">' + label + ': <b class="' + (direction || "zero") + '">' +
+      changeText + ' (' + pctText + ')</b> · ' + meaning + '</div>';
   }).join("");
   const clientDetail = client.available
     ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>CLIENT CE/PE और Futures · मूल बदलाव</b></div>' +
