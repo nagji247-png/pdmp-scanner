@@ -1,8 +1,9 @@
+import datetime as dt
 import json
 import tempfile
 import unittest
 from pathlib import Path
-from mcx_bhavcopy_archive import append_session,filter_contract_rows,write_archive_atomic
+from mcx_bhavcopy_archive import append_session,default_trade_date,filter_contract_rows,write_archive_atomic
 
 def sample(date="06 Nov 2026"):
  return [
@@ -12,6 +13,16 @@ def sample(date="06 Nov 2026"):
   {"InstrumentName":"FUTIDX","Symbol":"NIFTY","DateDisplay":date,"ExpiryDate":"10NOV2026","OptionType":"-","OpenInterest":"1","Close":"25000"},
  ]
 class MCXBhavcopyArchiveTests(unittest.TestCase):
+ def test_default_trade_date_handles_delayed_overnight_run(self):
+  delayed=dt.datetime(2026,11,12,4,58,tzinfo=dt.timezone(dt.timedelta(hours=5,minutes=30)))
+  self.assertEqual(default_trade_date(delayed).isoformat(),"2026-11-11")
+ def test_default_trade_date_uses_current_date_after_eod_window(self):
+  after_eod=dt.datetime(2026,11,11,22,50,tzinfo=dt.timezone(dt.timedelta(hours=5,minutes=30)))
+  self.assertEqual(default_trade_date(after_eod).isoformat(),"2026-11-11")
+ def test_default_trade_date_skips_weekends(self):
+  monday_morning=dt.datetime(2026,11,16,4,0,tzinfo=dt.timezone(dt.timedelta(hours=5,minutes=30)))
+  self.assertEqual(default_trade_date(monday_morning).isoformat(),"2026-11-13")
+
  def test_filters_commodity_futcom_and_preserves_expiries(self):
   got=filter_contract_rows(sample(),"2026-11-06")
   self.assertEqual(len(got),3); self.assertEqual([x["Symbol"] for x in got],["GOLD","GOLD","SILVER"])

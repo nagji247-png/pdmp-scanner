@@ -80,6 +80,25 @@ def load_archive(path):
         return archive
     return {"schema_version":1,"source":SOURCE,"retention_sessions":260,"records":[]}
 
+def default_trade_date(now=None):
+    """Return the latest completed MCX EOD trade date, even after a delayed overnight run.
+
+    The scheduled archive runs after the 22:45 IST publication window. If GitHub
+    starts that run after midnight, the target remains the previous calendar
+    trading day rather than silently switching to today's not-yet-published file.
+    """
+    current = now or dt.datetime.now(IST)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=IST)
+    else:
+        current = current.astimezone(IST)
+    target = current.date()
+    if current.time() < dt.time(22, 45):
+        target -= dt.timedelta(days=1)
+    while target.weekday() >= 5:
+        target -= dt.timedelta(days=1)
+    return target
+
 def capture_one(archive,date,fetch_rows):
     key=dt.date.fromisoformat(str(date)).isoformat()
     if any(isinstance(x,dict) and x.get("date")==key for x in archive.get("records",[])):
@@ -126,7 +145,7 @@ def main():
                           "results":results,"archive_sessions":len(archive.get("records",[])),
                           "research_only":True,"included_in_asset_final":False},sort_keys=True))
         return 0
-    date=args.date or dt.datetime.now(IST).date().isoformat()
+    date=args.date or default_trade_date().isoformat()
     day=dt.date.fromisoformat(date)
     if day.weekday()>=5:
         print("MCX_ARCHIVE_SKIP weekend; no request made"); return 0
