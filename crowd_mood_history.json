@@ -1,8 +1,156 @@
 {
   "schema_version": 1,
   "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
-  "updated_at": "2026-11-12T02:05:00+00:00",
-  "events": [],
+  "updated_at": "2026-11-12T02:22:00+00:00",
+  "events": [
+    {
+      "event_key": "2026-10-20|legacy|EXTREME_BEARISH",
+      "market_date": "2026-10-20",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": null,
+      "bear_pct": 26.0,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 26.0,
+      "mood": "EXTREME_BEARISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-10-21|legacy|EXTREME_BULLISH",
+      "market_date": "2026-10-21",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": 100.0,
+      "bear_pct": null,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 100.0,
+      "mood": "EXTREME_BULLISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-04|legacy|EXTREME_BEARISH",
+      "market_date": "2026-11-04",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": null,
+      "bear_pct": 1.3,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 1.3,
+      "mood": "EXTREME_BEARISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-05|legacy|EXTREME_BEARISH",
+      "market_date": "2026-11-05",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": null,
+      "bear_pct": 27.5,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 27.5,
+      "mood": "EXTREME_BEARISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-06|legacy|EXTREME_BEARISH",
+      "market_date": "2026-11-06",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": null,
+      "bear_pct": 17.5,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 17.5,
+      "mood": "EXTREME_BEARISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-09|legacy|EXTREME_BULLISH",
+      "market_date": "2026-11-09",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": 72.4,
+      "bear_pct": null,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 72.4,
+      "mood": "EXTREME_BULLISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-11|legacy|EXTREME_BULLISH",
+      "market_date": "2026-11-11",
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "trends_source_timestamp_utc": null,
+      "basis": "legacy_daily_crowd_stats",
+      "bull_pct": 76.2,
+      "bear_pct": null,
+      "neutral_pct": null,
+      "directional_bull_share_pct": 76.2,
+      "mood": "EXTREME_BULLISH",
+      "mood_source": "legacy_crowd_stats",
+      "time_precision": "daily_only",
+      "intraday_event_eligible": false,
+      "index_scope": [
+        "NIFTY"
+      ],
+      "legacy_outcome_not_imported": true,
+      "outcomes": {},
+      "research_only": true
+    }
+  ],
   "price_snapshots": [
     {
       "captured_at_utc": "2026-11-12T02:05:00+00:00",
@@ -33,6 +181,48 @@
       "price": 60792.4,
       "price_as_of": "11/11/2026",
       "price_time": "03:30 PM IST",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "scan_market_date": "2026-11-12",
+      "market_date": "2026-11-11",
+      "index": "NIFTY",
+      "price": 25255.05,
+      "price_as_of": "11/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-11",
+      "quote_kind": "closing",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "scan_market_date": "2026-11-12",
+      "market_date": "2026-11-11",
+      "index": "SENSEX",
+      "price": 81879.4,
+      "price_as_of": "2026-11-11",
+      "price_time": "03:32 PM IST · पिछला बंद भाव",
+      "quote_market_date": "2026-11-11",
+      "quote_kind": "closing",
+      "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-12T02:22:00+00:00",
+      "scan_market_date": "2026-11-12",
+      "market_date": "2026-11-11",
+      "index": "BANKNIFTY",
+      "price": 60792.4,
+      "price_as_of": "11/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-11",
+      "quote_kind": "closing",
       "price_source": "NSE India allIndices API · पिछला बंद भाव",
       "quote_timestamp_utc": null,
       "intraday_eligible": false
