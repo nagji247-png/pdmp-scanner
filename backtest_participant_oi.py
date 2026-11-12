@@ -486,10 +486,12 @@ def client_futures_recent_direction_check(records, prices, sessions=7):
         if None in (long_now, long_before, short_now, short_before):
             continue
         long_change, short_change = long_now - long_before, short_now - short_before
-        gross_change = abs(long_change) + abs(short_change)
-        if gross_change <= 0:
+        previous_gross = long_before + short_before
+        if previous_gross <= 0:
             continue
-        score = max(-10.0, min(10.0, 10.0 * (long_change - short_change) / gross_change))
+        # Scale the net change against prior total exposure. Dividing by the
+        # absolute changes would saturate nearly every one-sided move at +/-10.
+        score = max(-10.0, min(10.0, 10.0 * (long_change - short_change) / previous_gross))
         next_date = price_dates[signal_pos + 1]
         base_close = finite_number(prices[signal_date].get("close"))
         next_close = finite_number(prices[next_date].get("close"))
@@ -502,12 +504,14 @@ def client_futures_recent_direction_check(records, prices, sessions=7):
             "signal_date": signal_date, "next_session": next_date,
             "client_futures_long_change": round(long_change, 2),
             "client_futures_short_change": round(short_change, 2),
-            "gross_absolute_change": round(gross_change, 2),
+            "previous_gross_exposure": round(previous_gross, 2),
             "score": round(score, 2), "predicted_direction": prediction,
             "next_session_close_change_pct": round(forward_return, 4),
             "actual_direction": actual,
             "correct": (prediction == "BULLISH" and actual == "UP") or
                        (prediction == "BEARISH" and actual == "DOWN"),
+            "contrarian_correct": (prediction == "BULLISH" and actual == "DOWN") or
+                                  (prediction == "BEARISH" and actual == "UP"),
         })
     recent = observations[-sessions:]
     directional = [
@@ -515,14 +519,17 @@ def client_futures_recent_direction_check(records, prices, sessions=7):
         if row["predicted_direction"] != "NEUTRAL" and row["actual_direction"] != "FLAT"
     ]
     correct = sum(1 for row in directional if row["correct"])
+    contrarian_correct = sum(1 for row in directional if row["contrarian_correct"])
     count = len(directional)
     return {
         "status": "ready" if len(recent) >= sessions else "insufficient_sessions",
-        "method": "CLIENT Futures EOD OI Δ(Long−Short), normalized to ±10; compare with next NSE session close-to-close index direction",
+        "method": "CLIENT Futures EOD OI Δ(Long−Short), scaled by prior gross exposure to ±10; compare direct and contrarian signs with next NSE session close-to-close index direction",
         "requested_sessions": sessions, "sample_sessions": len(recent),
         "directional_observation_count": count, "correct_signals": correct,
         "wrong_signals": count - correct,
         "directional_hit_rate_pct": round(correct / count * 100.0, 2) if count else None,
+        "contrarian_correct_signals": contrarian_correct,
+        "contrarian_hit_rate_pct": round(contrarian_correct / count * 100.0, 2) if count else None,
         "neutral_or_flat_excluded": len(recent) - count,
         "first_signal_date": recent[0]["signal_date"] if recent else None,
         "last_signal_date": recent[-1]["signal_date"] if recent else None,
