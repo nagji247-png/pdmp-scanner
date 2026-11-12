@@ -5147,11 +5147,17 @@ def retail_adjust(po):
 
 def validated_news_crowd_score(news_component, crowd_component=None, crowd_valid=False):
     """Score only validated News and crowd components; participant OI stays diagnostic."""
-    news = finite_number(news_component)
-    if news is None:
+    try:
+        news = float(news_component)
+    except (TypeError, ValueError):
         raise ValueError("news component must be a finite number")
-    crowd = finite_number(crowd_component)
-    if crowd_valid and crowd is not None:
+    if not math.isfinite(news):
+        raise ValueError("news component must be a finite number")
+    try:
+        crowd = float(crowd_component) if crowd_component is not None else None
+    except (TypeError, ValueError):
+        crowd = None
+    if crowd_valid and crowd is not None and math.isfinite(crowd):
         combined = news * 0.50 + crowd * 0.50
         mode = "news_crowd"
         normalized_weights = {"news": 50.0, "crowd": 50.0}
