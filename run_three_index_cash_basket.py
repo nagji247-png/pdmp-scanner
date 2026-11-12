@@ -102,7 +102,20 @@ def main():
             if isinstance(row, dict) and row.get("date")
             and first.isoformat() <= str(row["date"]) <= today.isoformat()
         }
-        days = sorted(archived_days)
+        # Do not replay already-complete dates: append_diagnostic intentionally
+        # refuses to overwrite an equally complete record.
+        saved = load_json(args.output, {"records": []})
+        completed_days = set()
+        for row in saved.get("records", []) if isinstance(saved, dict) else []:
+            indices = row.get("indices", {}) if isinstance(row, dict) else {}
+            complete = sum(
+                1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
+                if isinstance(indices.get(key), dict)
+                and indices[key].get("status") == "complete_diagnostic"
+            )
+            if complete == 3:
+                completed_days.add(str(row.get("date")))
+        days = sorted(archived_days - completed_days)
     results = []
     for day in days:
         result = calculate_three_index_baskets(
