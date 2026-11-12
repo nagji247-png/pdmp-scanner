@@ -19,8 +19,8 @@ on:
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # One request per exchange after cash-market EOD publication; no retries.
-    - cron: "0 13 * * 1-5"
+    # Run after official EOD files have had time to publish (20:00 IST); one request per exchange, no retry loop.
+    - cron: "30 14 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -58,8 +58,9 @@ jobs:
         run: |
           python -m py_compile evaluate_cash_basket_forward.py
           python -m unittest discover -s tests -p "test_evaluate_cash_basket_forward.py" -v
-      - name: Fetch one dated official NSE CM UDiFF archive
+      - name: Attempt one dated official NSE CM UDiFF archive
         if: github.event_name != 'pull_request'
+        continue-on-error: true
         run: python nse_cm_bhavcopy_archive.py
       - name: Fetch one dated official BSE CM UDiFF archive
         if: github.event_name != 'pull_request'
@@ -70,6 +71,7 @@ jobs:
         run: python run_three_index_cash_basket.py
       - name: Evaluate historical cash-basket signals against next captured closes
         if: github.event_name != 'pull_request'
+        continue-on-error: true
         run: |
           if [ ! -s market_signal_history.json ]; then
             echo "MARKET_SIGNAL_HISTORY_MISSING; forward evaluation withheld"
@@ -82,11 +84,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ ! -f nse_cm_bhavcopy_archive.json ]; then
-            echo "NSE_CM_ARCHIVE_FILE_NOT_CREATED"
-            exit 1
+          if [ -f nse_cm_bhavcopy_archive.json ]; then
+            git add -f -- nse_cm_bhavcopy_archive.json
+          else
+            echo "NSE CM archive unavailable; daily basket diagnostic will record the gap"
           fi
-          git add -f -- nse_cm_bhavcopy_archive.json
           if [ -f bse_cm_bhavcopy_archive.json ]; then
             git add -f -- bse_cm_bhavcopy_archive.json
           else
@@ -100,10 +102,9 @@ jobs:
           if [ -s cash_basket_forward_evaluation.json ]; then
             git add -f -- cash_basket_forward_evaluation.json
           else
-            echo "CASH_BASKET_FORWARD_EVALUATION_MISSING"
-            exit 1
+            echo "Cash-basket forward evaluation unavailable; daily diagnostic is still retained"
           fi
-          if git diff --cached --quiet -- nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json index_cash_basket_diagnostics.json cash_basket_forward_evaluation.json; then
+          if git diff --cached --quiet; then
             echo "EXCHANGE_CASH_ARCHIVES_NO_CHANGE"
           else
             git commit -m "Archive exchange cash and daily index basket diagnostics"
