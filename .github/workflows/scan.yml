@@ -10,6 +10,8 @@ on:
       - "dashboard.html"
       - "tests/test_upstox_market_data.py"
       - "tests/test_client_ce_pe_provisional_score.py"
+      - "tests/test_provisional_component_scoring.py"
+      - "tests/test_component_breakdown_integration.py"
       - "upstox_market_data.py"
       - ".github/workflows/scan.yml"
   push:
