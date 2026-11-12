@@ -60,15 +60,26 @@ def build_crowd_trap_snapshot(rows, now_utc=None):
     last = bars[-1]
     now_ist = now.astimezone(IST)
     today = now_ist.date().isoformat()
-    todays = [b for b in bars if _stamp(b["start"]).astimezone(IST).date().isoformat() == today]
+    # After-hours and pre-open scans must still use the latest available trading
+    # session, not the next calendar date (which has no bars yet).
+    available_dates = sorted({
+        _stamp(b["start"]).astimezone(IST).date().isoformat() for b in bars
+    })
+    session_date = today if today in available_dates else (available_dates[-1] if available_dates else None)
+    session_bars = [b for b in bars
+                    if _stamp(b["start"]).astimezone(IST).date().isoformat() == session_date] if session_date else []
     session = None
-    if todays:
-        first, final = todays[0], todays[-1]
+    if session_bars:
+        first, final = session_bars[0], session_bars[-1]
         move = (final["close"] / first["open"] - 1) * 100
-        is_closed = (now_ist.time() >= SESSION_CLOSE
-                     and _stamp(final["end"]).astimezone(IST).time() >= SESSION_CLOSE)
+        final_end_ist = _stamp(final["end"]).astimezone(IST)
+        is_closed = (
+            final_end_ist.time() >= SESSION_CLOSE
+            and (now_ist.date().isoformat() > session_date
+                 or (now_ist.date().isoformat() == session_date and now_ist.time() >= SESSION_CLOSE))
+        )
         session = {
-            "market_date": today, "open": first["open"], "latest_close": final["close"],
+            "market_date": session_date, "open": first["open"], "latest_close": final["close"],
             "change_pct": round(move, 4),
             "direction": 1 if move > 0.000001 else -1 if move < -0.000001 else 0,
             "status": "complete" if is_closed else "in_progress",
