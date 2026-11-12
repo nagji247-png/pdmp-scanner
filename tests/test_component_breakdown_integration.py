@@ -928,7 +928,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("row_count_not_one", result["reason"])
 
 
-    def test_marketwide_client_components_never_enter_index_provisional_finals(self):
+    def test_marketwide_client_ce_pe_is_shared_in_provisional_finals_but_futures_is_excluded(self):
         now = datetime(2026, 11, 12, 14, 0, tzinfo=timezone.utc)
         instruments = {
             name: {"headlines": [], "score": 0}
@@ -936,19 +936,16 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         }
         marketwide = {
             "client_ce_pe": {
-                "score": 8.0, "source": "NSE participant CLIENT",
-                "source_date": "2026-11-12", "included": True,
-            },
-            "client_futures": {
-                "score": 7.0, "source": "NSE participant CLIENT Futures",
-                "source_date": "2026-11-12", "included": True,
+                "score": 1.25, "source": "NSE participant CLIENT",
+                "source_date": "2026-11-11", "weight": 15.0, "included": True,
+                "scope": "shared market-wide CLIENT aggregate; not index-specific",
             },
         }
         with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \
              mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={}), \
              mock.patch.object(fetch_and_score, "client_oi_context", return_value={
                  "available": True, "source": "NSE participant CLIENT",
-                 "source_date": "2026-11-12", "evidence_components": {},
+                 "source_date": "2026-11-11", "evidence_components": {},
              }), \
              mock.patch.object(fetch_and_score, "client_marketwide_components", return_value=marketwide), \
              mock.patch("builtins.open", side_effect=FileNotFoundError):
@@ -956,24 +953,25 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 instruments, now.isoformat(), now,
                 participant_today={}, participant_changes_data={},
             )
+        shared_scores = []
         for name, item in instruments.items():
             with self.subTest(asset=name):
                 breakdown = item["component_breakdown"]
-                self.assertNotIn("client_ce_pe", breakdown["provisional_components"])
+                self.assertIn("client_ce_pe", breakdown["provisional_components"])
+                self.assertNotIn("client_ce_pe", breakdown["excluded_components"])
                 self.assertNotIn("client_futures", breakdown["provisional_components"])
-                self.assertEqual(
-                    breakdown["provisional_final"]["included_components"], []
-                )
-                self.assertFalse(
-                    breakdown["excluded_components"]["client_ce_pe"]["included"]
-                )
                 self.assertFalse(
                     breakdown["excluded_components"]["client_futures"]["included"]
                 )
-                self.assertIn(
-                    "market-wide",
-                    breakdown["excluded_components"]["client_ce_pe"]["scope"],
+                self.assertIn("client_ce_pe", breakdown["provisional_final"]["included_components"])
+                self.assertEqual(
+                    breakdown["provisional_final"]["normalized_weights_pct"]["client_ce_pe"],
+                    100.0,
                 )
+                shared_scores.append(
+                    breakdown["provisional_components"]["client_ce_pe"]["score"]
+                )
+        self.assertEqual(shared_scores, [1.25, 1.25, 1.25])
 
 
 if __name__ == "__main__":
