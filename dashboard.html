@@ -2859,7 +2859,9 @@ function renderClientFuturesValidation(report) {
   box.innerHTML = '<div class="box" style="margin-top:12px"><div style="font-weight:800;color:#cfd4e6">🧪 CLIENT FUTURES · नए सत्रों का परीक्षण</div>' +
     '<div class="sub" style="margin-top:4px">NSE participant-wise market-wide Futures · आधार तारीख 12/11/2026 · अगले कारोबारी दिन के NIFTY Close-to-Close से तुलना</div>' +
     card('पहला चेक', seven) + card('दूसरा चेक', fourteen) +
-    '<div class="sub" style="margin-top:8px">यह केवल परीक्षण है। 7/14 सत्र पूरे होने से Futures अपने आप Final Score में शामिल नहीं होगा; पहले तय validation नियम पूरा होना जरूरी है।</div></div>';
+    '<div class="sub" style="margin-top:8px">Auto-promotion नियम: तीनों indices में 14 नए परिणाम, कम-से-कम 4 bullish + 4 bearish signals, hit-rate ≥60% और 95% Wilson lower bound >50%। नियम पास होने पर Futures अपने आप provisional Final में जुड़ेगा; Published PDMP Main Score नहीं बदलेगा।</div>' +
+    (report.client_futures_promotion ? '<div class="sub" style="margin-top:6px"><b>स्वचालित निर्णय: ' + (report.client_futures_promotion.status === 'promoted' ? 'PROMOTED · ' + report.client_futures_promotion.orientation.toUpperCase() : String(report.client_futures_promotion.status || 'जाँच जारी').toUpperCase()) + '</b><br>' + (report.client_futures_promotion.reason || '') + '</div>' : '') +
+    '</div>';
 }
 async function loadClientFuturesValidation() {
   const box = document.getElementById("clientFuturesValidationPanel");
