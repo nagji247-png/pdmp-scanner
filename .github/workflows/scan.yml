@@ -26,6 +26,7 @@ on:
       - "tests/test_upstox_market_data.py"
       - "backtest_participant_oi.py"
       - "summarize_participant_oi_backtest.py"
+      - "nse_index_option_oi.json"
       - "client_futures_promotion.py"
       - ".github/workflows/scan.yml"
   schedule:
