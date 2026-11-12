@@ -70,9 +70,19 @@ jobs:
           if report.get("status") != "exploratory_only":
               print(f"- Reason: {report.get('reason', 'research report unavailable')}")
           for asset, item in (report.get("indices") or {}).items():
-              features = item.get("features") or []
-              rows = [x for x in features if x.get("feature") == "CLIENT.index_option_directional_net_quantity"]
-              print(f"\n### {asset}")
+              futures7 = item.get("client_futures_recent_7_session_check") or {}
+              print(f"\n### {asset} — CLIENT Futures recent 7 sessions")
+              print(f"- Status: **{futures7.get('status')}**")
+              print(f"- Sample: **{futures7.get('sample_sessions', 0)}/7 sessions**")
+              print(f"- Correct: **{futures7.get('correct_signals', 0)}** · Wrong: **{futures7.get('wrong_signals', 0)}**")
+              print(f"- Direction accuracy: **{futures7.get('directional_hit_rate_pct')}%**")
+              print(f"- Dates: **{futures7.get('first_signal_date')} to {futures7.get('last_signal_date')}**")
+              print("| Signal date | CLIENT Futures score | Predicted | Next session | NIFTY close change | Actual | Result |")
+              print("|---|---:|---|---|---:|---|---|")
+              for row in futures7.get("observations") or []:
+                  result = "RIGHT" if row.get("correct") else ("WRONG" if row.get("actual_direction") != "FLAT" else "FLAT")
+                  print(f"| {row.get('signal_date')} | {row.get('score')} | {row.get('predicted_direction')} | {row.get('next_session')} | {row.get('next_session_close_change_pct')}% | {row.get('actual_direction')} | {result} |")
+              rows = [x for x in (item.get("features") or []) if x.get("feature") == "CLIENT.index_option_directional_net_quantity"]
               print("| Horizon | Holdout samples | Hit rate | False signals | Train hit rate |")
               print("|---:|---:|---:|---:|---:|")
               for row in rows:
