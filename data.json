@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-12T19:01Z",
+  "updated": "2026-11-12T19:02Z",
   "instruments": {
     "NIFTY": {
       "type": "index",
@@ -34,7 +34,7 @@
           "source": "Traders Union",
           "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxQR2hFRXhMaktyaEh6NHJFY09tb3ZBaWxEaTVuWlc3cERMazg2cnBFTk5FU3ZFMXYwY19ZU250SHB6Qmw4T2ZSc3JDbnNyX212elZBaUZOVlJ6RXFKUW5NZ19IMnFselBLX2xVOHlmU2lqcHhuTzZPQlhzMThNbUx2ejBB?oc=5",
           "score": 1,
-          "age_h": 6.5,
+          "age_h": 6.6,
           "published_at": "2026-11-12T12:29:43Z"
         },
         {
@@ -66,7 +66,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNTW1qS1hZRzcwR1VBSmgwc1FYV1k5eFhoTFU3bVo0emVNb2pmbzdRbnpDUGwxdjVILTJNUVY0SXpkc3VtVXZhMThFNUd4Z2MzT3ZUa2YyYmwzZGJKZXY2YUlkcGlwUEdyak01RUpGWGIzUVNOYjAyMm9STTFBVWVIcnNuQ2ljeXYzeEUwTk05eXFXd1FWeDVTZHZGNzNaVGpfcHUxc2ZnQkRmRE4ydWFaZ3NEOXppRTg?oc=5",
           "score": -1,
-          "age_h": 10.8,
+          "age_h": 10.9,
           "published_at": "2026-11-12T08:11:37Z"
         },
         {
@@ -74,7 +74,7 @@
           "source": "Bloomberg.com",
           "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQVVZhUFFPeFh0UDc2cnhCcUN3aEszSXRSQ01lcWtvdnEtUVdVUWl3OHFHRVJjX0FDSHVsVlc0RjhlUWVrZmcycDZSLTZqdFNPTTFJWlF3LW5zdGpuclhuT3FVOWZ0WGloU3FOclJaNDdiX1ZIbkoxTDJzZGVpbVF2bENTNHEzQ0JvZnNjME1oUXBLZVg2SXkwYlk0WEpfZzlrLW5SS0NKT2N4Z2c2ZzdzaEVDT0JYWjFxUi1uZmVOel83ajJkamtsR19raw?oc=5",
           "score": 2,
-          "age_h": 10.9,
+          "age_h": 11.0,
           "published_at": "2026-11-12T08:05:27Z"
         }
       ],
@@ -194,7 +194,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T15:55:49Z",
             "oldest_headline_published_at": "2026-11-12T08:05:27Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -208,7 +208,7 @@
               "TradingView"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 3.1,
+            "newest_headline_age_h": 3.12,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -220,7 +220,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T15:55:49Z",
             "oldest_headline_published_at": "2026-11-12T08:05:27Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -234,7 +234,7 @@
               "TradingView"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 3.1,
+            "newest_headline_age_h": 3.12,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -1096,8 +1096,8 @@
       "price_unit": "",
       "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
       "news_query": "\"BSE Sensex\" OR Sensex index India",
-      "score": 4.0,
-      "headline_score": 2.0,
+      "score": 3.6,
+      "headline_score": 1.8,
       "headlines": [
         {
           "title": "SENSEX off the day’s high, NIFTY trades flat in noon deals; Bajaj Finance, Cupid, Ola Electric among buzzing stocks",
@@ -1106,6 +1106,14 @@
           "score": 0,
           "age_h": 10.9,
           "published_at": "2026-11-12T08:10:49Z"
+        },
+        {
+          "title": "Stock market outlook today, 12 Nov: Sensex, Nifty prediction - DJIA, S&P, NASDAQ, GIFT Nifty, Kospi, Nikkei, Taiwan cues",
+          "source": "Livemint",
+          "link": "https://news.google.com/rss/articles/CBMihAJBVV95cUxOZGkyZUJibHBlNGFOR3l3U0NCWUxqLWdySXhqNmRseXB5SnY0ZldhSTl2azlqNm9JbWRHbmhyYWJGWTlQdnlSZ2ExOVh6Vi1iTEU5eW1wS09IMFhWS3dBRmN6V0FIdVRCM3BOZzlxaF9meFhXa0VIdmI5TzZvb3BYTzdTQ1ItS0FlUDliR19hRzZOSmNCdlRDSWRWel9DS2JGYzRfRkxxTy1yZnRPcGFGNUJvSFhpSW5JeUQxZkRreG5lanZtTFpUcTJ3Q19ZM2IxeEtGdTdRLTZtcjZZQloydm5USlNpQm1kTVV4NUhSeEJITzRTV0xVYVZteTlCb0xsak5CY9IBigJBVV95cUxNemJwUGVpY3MyNGI4am1kVG9zbHo5eC1oTDBydG5JWjhuU0pzazNyblF4alVZa3RMb3ZYWGQtelozbFE1NDN6dEQ3Y1Z3ZFR6b2lsSGpZNU4tdWJ1UjNySll1eHZwakRQSjZNaVF1RTFQU0d6em1lZjZtcmRENGozM2lIbjQ2MTN2SmtqUmRpTHpnMzlRNFNKWjU2YjY2ZEVhcE12STl4M1M2cTFXemNoaXRMS25ETFpPSW5wUVVET0xvVmhpNXlHQ2prR1NyaUEzNzJvamtJRkpwbklEdl91b0RJYkJYSXppSVVEd3ZxUmk3MkxwaEZVdzl2Zm9meE5CR3pYQUtpa3hwdw?oc=5",
+          "score": 0,
+          "age_h": 17.8,
+          "published_at": "2026-11-12T01:15:59Z"
         },
         {
           "title": "Indian Stocks Rally as Sensex Jumps 773 Points, Nifty Closes Above 25,250",
@@ -1154,14 +1162,6 @@
           "score": 0,
           "age_h": 2436.0,
           "published_at": "2026-08-03T07:00:00Z"
-        },
-        {
-          "title": "Indian Benchmark Indices Drop Over 2.5%: Sensex Falls 2,222 Points, Nifty Down 662 Points",
-          "source": "News On AIR",
-          "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQbnZ3dEdFT0RXVDRoek8wNHZlSnJMN3RsdVE1WHBUczdNUDdxRnRZcHlUeGxPNlBmVVozWTVSQ3VQT0ZlRGNTWmNwQXgtbmNtTEF5VUlINmM2YkpBZnZfM195SHA3ajdRcXJOV2JlQ25UbFhyeGdZbll4aGl3LVZWQjVmamh2ZnM3ZkxYMWo0R3d6QWRkNEJObkNZQ0JMajE4VC1KX08tUklIUms4VWdpNA?oc=5",
-          "score": -2,
-          "age_h": 3629.5,
-          "published_at": "2026-06-14T13:29:10Z"
         }
       ],
       "pos_n": 3,
@@ -1296,16 +1296,17 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T08:10:49Z",
-            "oldest_headline_published_at": "2026-11-12T08:10:49Z",
+            "oldest_headline_published_at": "2026-11-12T01:15:59Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 1,
+            "evidence_count": 2,
             "publishers": [
+              "Livemint",
               "Upstox"
             ],
             "query": "\"BSE Sensex\" OR Sensex index India",
-            "newest_headline_age_h": 10.85,
+            "newest_headline_age_h": 10.87,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -1317,16 +1318,17 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T08:10:49Z",
-            "oldest_headline_published_at": "2026-11-12T08:10:49Z",
+            "oldest_headline_published_at": "2026-11-12T01:15:59Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 1,
+            "evidence_count": 2,
             "publishers": [
+              "Livemint",
               "Upstox"
             ],
             "query": "\"BSE Sensex\" OR Sensex index India",
-            "newest_headline_age_h": 10.85,
+            "newest_headline_age_h": 10.87,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -1941,8 +1943,8 @@
       "experimental_news_score": 0.0,
       "experimental_score": 0.0,
       "experimental_score_mode": "shadow_news24h_dedup_only",
-      "experimental_headline_count": 1,
-      "experimental_excluded_old_or_unknown": 7,
+      "experimental_headline_count": 2,
+      "experimental_excluded_old_or_unknown": 6,
       "experimental_excluded_cross_index_duplicates": 0,
       "score_mode": "news_only"
     },
@@ -1987,7 +1989,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxQUkhPNlk5elpoQ0ZCdFRMR1JqVl9nWXF0ODRNUUNRUlJ2c0lkc2NJSGlkMUY4b3FtM291N1NuUDZXdGJmOVpoZkNBWExVWVEtbzlHZ1J4TEJjYjZFRUNhRkhWTFlkS1RhTkZuc0FxdEJLVHlXNnVlVnphRm14U0I0RjhZUjd1R2J0SGlyWkZSMTVJV1kyaC1kREZYdGk5aWlpRFhqREJkQWhWemhEXzhmRl9KWEt2WVJ3TmhfakhLSnNROVJrWnBxOUpkajBiUUMxbkh6b01QdjZDcEMtNzgwMEY4cGYzUdIB6wFBVV95cUxQdzBOdnlhM1pPSTlpRlF4c2tBa2xLQjdmMEJfeDBNUk81N1AxTjYzb0JIWTdhWWp1dl9ySVJBUHI4TExHN3g4b2NDcEtSb1JKX3VCTkROSG9ZOThIUDc4UTY5dVdMdnY1ZXBfVW1zOGU2a2RWU1RTUnNoSUhYd1JMVVZzelVDRnYwMTV3WUNkbmRSZ19nY2NaRVQyWENtQTlyOUhTd0NOaGNla1gwYXJlbzVWNHEwTnpUd0RTblVibmlzdkZHUmM1RnBsQVR4dnB1NG5BY0N4Y1kyLXpzTURRNDhjcFRWQlBvR21r?oc=5",
           "score": 2,
-          "age_h": 11.2,
+          "age_h": 11.3,
           "published_at": "2026-11-12T07:47:34Z"
         },
         {
@@ -1995,7 +1997,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxNczlzTnhteVlaOFpsRmNSZmxoa2RzQ3VjVXhrdkNWR0NQWEFFMXBVRG8xVWhaUlpkYUhlVkk3QXlPX3ZaeFdrNTdzbkllQTJXMVNTaWY0dlFaUU45cmpIeWQxdWYzc1JYUmVwWUlkQkFNWS1vZzVrRTl2WWFWTG5vS1RhTUZuWFh6cENBdFluME5wRzVhbmpaZVkwSnVxekc5TGo3YnVMUGU1NWVJcWdVQWVOb09XdzJDbHNmTzZjTElVRTNxRk84TmxnZFR5cVRpOFdTWGdZeFRSVzZDbzlZeEdyZkxpaG9hbG1pMzhlT3nSAfYBQVVfeXFMTzR5YlJpREFUS0otYk5lQnNzbWY2akN4UHEyZEdVZi1xSkltY1FwOWhCYlJPNVc4MGg3dnB0UGtFbVdPU3Eyd0R2MzNfVG1ncUhhMTNzbGhYWHpuU2hLVk5fcmNzN29nbHZuaEEyUUpQMjVKLVVNSklsQTRGelkwOUxsclEzX0t5MTlRdkhLWXQ4M2hQd010Rms0Nl9vRnYwTzFyN0hMNk9ETG5QTVRjNjN5YzhHMnNGUlk0bkNFYTgyaVdVLXpMVTJ6REtGRXdCTVNSY2E1MTBJZ3FMS21Cb2JyUTNDSkQ1TWsxd2F4dzB0TXFjYjJR?oc=5",
           "score": -1,
-          "age_h": 13.1,
+          "age_h": 13.2,
           "published_at": "2026-11-12T05:53:39Z"
         },
         {
@@ -2125,7 +2127,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T10:45:20Z",
             "oldest_headline_published_at": "2026-11-12T00:30:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2137,7 +2139,7 @@
               "bfsi.economictimes.indiatimes.com"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 8.28,
+            "newest_headline_age_h": 8.29,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -2149,7 +2151,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T10:45:20Z",
             "oldest_headline_published_at": "2026-11-12T00:30:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2161,7 +2163,7 @@
               "bfsi.economictimes.indiatimes.com"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 8.28,
+            "newest_headline_age_h": 8.29,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -2779,7 +2781,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T11:25:10Z",
             "oldest_headline_published_at": "2026-11-12T04:44:41Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2791,7 +2793,7 @@
               "Howl.Link"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 7.61,
+            "newest_headline_age_h": 7.63,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2803,7 +2805,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T11:25:10Z",
             "oldest_headline_published_at": "2026-11-12T04:44:41Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -2815,7 +2817,7 @@
               "Howl.Link"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 7.61,
+            "newest_headline_age_h": 7.63,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -2915,7 +2917,7 @@
           "source": "FXEmpire",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPTUdUT19RcTAya0lEYlp4Y3FVRnJEbmpfOUZBdV9nQnNsbTI2bE5iU1VBVV9wOXQtakNGWEI5YVVuU21OdmxoVjFYbjZNRDF2YnFuRE9qMUpfLVhnd3h5cUlkY1M0cXZZcC1ibW1oQkxOOVpUY0hOMml1bXU3MjdYNFpWODNRazIzdDE4YVJYdHhlNGpYWjFDMUpVQWJTYTItZjk5dzdvMnVpc1pYaHlrb29pMUlESVU?oc=5",
           "score": -1,
-          "age_h": 8.6,
+          "age_h": 8.7,
           "published_at": "2026-11-12T10:23:40Z"
         },
         {
@@ -2931,7 +2933,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxQQWVId3JPVy1ocWtXdlFaVnF5TlJQQm1OMkhzdXJsbXlLekt2bEtPR3JyaUQtclItbjFKRHFVOVhWYzlPLW5rTEdYN2RIWkRJOEJRa1ZvRUc0TmVsaElCV3JfRFNndUkyZXZRYXFJcHU2QkZiaVRuRFR1el9lQllWM2tSRnB5Ymxteml4ZXIxM1NSN0lCSEF2NlBicVctSWZIelBQTnA5RmY0MFRNTVoybnpBWGE1VENIdmRxZWNRM2xjM3JGM0FZcTZMOFBDd3ZiUWFaLU9zTzFsTUF6azNhQjhSOURJUTN5czZZNFdaajg3Q3c?oc=5",
           "score": -1,
-          "age_h": 13.3,
+          "age_h": 13.4,
           "published_at": "2026-11-12T05:41:04Z"
         }
       ],
@@ -3091,7 +3093,7 @@
             "source_date": "2026-11-13",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T18:31:43Z",
             "oldest_headline_published_at": "2026-11-12T05:41:04Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3107,7 +3109,7 @@
               "Upstox"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 0.5,
+            "newest_headline_age_h": 0.52,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -3119,7 +3121,7 @@
             "source_date": "2026-11-13",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T18:31:43Z",
             "oldest_headline_published_at": "2026-11-12T05:41:04Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -3135,7 +3137,7 @@
               "Upstox"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 0.5,
+            "newest_headline_age_h": 0.52,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -3329,8 +3331,8 @@
       "price_unit": "₹/kg (Estimate)",
       "price_source": "MCX पिछला बंद भाव + 3% GST Estimate",
       "news_query": "silver price",
-      "score": -5.3,
-      "headline_score": -5.3,
+      "score": -3.8,
+      "headline_score": -3.8,
       "headlines": [
         {
           "title": "Gold and silver prices decline",
@@ -3365,14 +3367,6 @@
           "published_at": "2026-11-12T11:16:53Z"
         },
         {
-          "title": "Gold falls below $4,000, silver slips too: What's weighing on precious metal prices?",
-          "source": "Business Today",
-          "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOeXlGZ2U3MFhsVGFYM2xyWk1XSXByQ2FrQ254NjdlN0NsNXNDLV9Ha0F2TGFwNEQyWWsxYXFHUnN6WTl6bVFoZW9JZ0FPbGNDR0hiSDM3Xy1CYnBBdWFUd09ZeTRSeXQ0MTJ0TDJfZ19HSTBEX1pNQmVBVjZVSi1Ibm5IWWNSVGpRaVI0NWQtcFZ6MElZZTJBTTdrQWNndEpGRzU2Zk1DVmZ5ckxpWlB0V2RfZGREM3pZN1VzcHE1eFNPV1c2NkN3MF9fU0trOWZCZWtYaEd2aUQtSVYxT2JF0gHkAUFVX3lxTE5tdUU1OXlsd2RjaVhqS3ZnVUxJd0g0ZEc1RjFhUlVZclFodHh5Z1JpUHNGamVMMEx6bEJMUkJvTEg2Q3EyRnEyaU14S0M1S3Fua0NETm5DN29hM3BvTG5QTFhtRG1LbzFYV1ZoR3puaDRRTUVjelNOUWg5ZWlSbF9xcDhtZjNTcU8wV3JDeVRJN0FLejU4aXBuM2RERGJfVlRFTGRqOV9BeXlmZ3lxbHBnNFpVbGFVYW56dWk5aHE0NnlJY0Y3WjA3SG1FdEdHS1E4SU9Gd2k4UjUwX19rNy10NDVNaw?oc=5",
-          "score": -3,
-          "age_h": 8.3,
-          "published_at": "2026-11-12T10:43:17Z"
-        },
-        {
           "title": "As gold falls from Rs 1.8 lakh peak to Rs 1.42 lakh per 10 grams, Indians buy 30% more, spending Rs 72,00",
           "source": "The Times of India",
           "link": "https://news.google.com/rss/articles/CBMizwJBVV95cUxNdW5QSTRUUHo5LXpGY3d3NVpvbzlKbE0wTl83WWhuZHJWTkd5MjBiVEFWZ29rcWxhZmNXRTdQSG9BWVMwU2NfVUl5TUdyYWNlSW00XzE5Ukk2ZTlrdGNfeURpREk0YVZ4VFFxeTctMktuX1p6Yk5rcmtDcEgtWWl3Qkk4U2hBRDBJVzRyU290cGdScV9tWWNzOGloaUpUTjRKdkExQW9QbU0xblRhVG1zX1VyZnFSU1RCUzE4Z0F0TWtIN0xDOTlFMUx1OEdJQXV3NkdsRkhDRXE4LWNnR2ViN2hvb2Z4M0tmeVNsWEMzQXhCdTFYU3NWVV8zd0RZSjJCQ1prOEVsVWpUQUYtOE4wcUJ4MkRJMFRhSmpXbHhfOTJXMWFtTU5uSWFCRzFlUmlUUW1xdEY0SHZjT0dwVW9CSHFwUGpsREN6cEZfQ1hjd9IB1AJBVV95cUxQNlVlYW53YzVTSmhzWlk2ck1OeUNaM2dGdlZBcDJOWm40cXVaMkNyeE5qMVZYSlgyQmhpUUt1R2RDVDNVdzI1SklLM3ZkTFNGLWNLamhFY21BOEpYUWpGZnl5VktJODZtR05kMjVNUUVuM2ZfTjVCWnp3eGZZWEVYQ2pJMURyQmlwSDRFeVZJVEVVTWItTVVnWjJkNzM3TlV6cG1KaUxvbkdGS19XNzNPNHA0WGlwczRtR0JxMnk1UGxvZGZQeFVGWDBnOTZ4by11ZkgtN0pUUzV4NFBLRVY5NGswQmlpNUM1U3RqaEgzREZNM2dkLWgwR2dVeGllRXB4RU5wXzh2NFF5ckExT19xQ3RGdG00RDN2ODEzM3pqaEdaTmRIUUl4Z2E4VkliZjJoT3RuVFFJYW9YTm5QbllsVXB3VDZGSEpmTUp1YVhKdnJEOF96?oc=5",
@@ -3389,6 +3383,14 @@
           "published_at": "2026-11-12T09:30:56Z"
         },
         {
+          "title": "Gold, silver slide in India as Fed rate hike bets hit 100%, rupee offers little relief",
+          "source": "The Financial Express",
+          "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxOSW9JVVd6a2dEbkE0Z1JkRWpqWTJHOS1LUDRQa29TU3ZYYTJTQVNUTktQOHl4Z0VSUU04Rk9NNXlxMklnWnBxc1RHM1B4R3p2Y19DYy1sTjdORjdGRFlWTFd1d0JHYUctc1h5cW05U2J3OGtMRDVhTnRWdFZ2dzJ3Y2VzQjA3U2dJZHRKQzZmVTk3OXlhWUtRTjZmWWNoRkNJMEYxRWVwQjdJZENfV0p2dUUxai1Ba24tdkt5NHhkTVpjSWhEWTFHd3FIZGp1Wkhna2JjLVVtc2U5Mk3SAeIBQVVfeXFMTmhoSkRUS2Jmck1henJwdnZpQklHc00xOTRkOF9CdlR1RkJLSzFRQXJ3anNienVyRWpXdEJ3eC1VaVZKaEJPTHFJVFYyTmtTQjJRNnpxLU1jY2pWTzdqZm9iTzVEczkxX0ZYMG9veDNpYmJXYmVkM2NYWVByb29kdXM4RDJEUmNTc3BaNkFGeEgzN3h3dExzbjhRN0JiU09mZVMyVTNoRzRHbmE2WHFaV3lvVXV0eWNvTUZHU2hVUkhfeXg3ZV8zalctQ2dRNm1zdjh2YkhMNjhyTklvdTdwYjNBUQ?oc=5",
+          "score": -1,
+          "age_h": 10.8,
+          "published_at": "2026-11-12T08:12:53Z"
+        },
+        {
           "title": "Gold Prices Fall By Rs 1,300 To Below Rs 1,39,000; Silver Rates Slump By Rs 2,800",
           "source": "NDTV Profit",
           "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOTzIwNUFWYmhaUF9zREh6MTI4TS1FajdPejJrLVZfa2hmOUhFOHdLal9KbEVCS2ZyZkxIdHhEaVpTTzB5Z3g3NFVsZ3RGMzFmWXp2SGdiZ1JnOWJmLUlpU3JNVTZqM1AyVjhPVnhsci1tQTd1ZnFLMktKMUhoZTlDWHZnV1dpRVZFUElKdzl2NTZrSU4tMVI2dHBuc2xPa3NrWmY3RmJIX2RWS3lGbV9hekNWcHV4MWpQZklsMlFhSlRhd9IBygFBVV95cUxOU3dzelp1R185OHB5YTJLdzN2LWN4YkloRjJJcHRKNFc1NFd1Z2lRbHhybnNBbTRGakJTNzNNM1lMNDVjTThCakVhWTFlZ0VxN1hpTmZBYlczRFpaclA1dTd5ZHBWaTlLQkV5YkVsRmFRRmpnUlo2TF9zeE5uX0JLU3hpbndJYnpTeUdNb1A3VEw4WXJZLXZZcE1CTUQwMlQzTUd0ZDdUM2FRRTJwTXlXQWFiUEhUN3Q3clF2TDBEYk1LbTRRRVBlVVFB?oc=5",
@@ -3397,8 +3399,8 @@
           "published_at": "2026-11-12T07:39:15Z"
         }
       ],
-      "pos_n": 0,
-      "neg_n": 8,
+      "pos_n": 1,
+      "neg_n": 7,
       "indicator_label": "BUILDUP DATA UNAVAILABLE",
       "indicator_reason": "एक ही कॉन्ट्रैक्ट का भरोसेमंद Open Interest डेटा उपलब्ध नहीं",
       "asset_search_shadow": {
@@ -3521,61 +3523,61 @@
         },
         "components": {
           "news": {
-            "score": -1.45,
+            "score": -1.19,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T13:55:02Z",
             "oldest_headline_published_at": "2026-11-12T07:39:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
             "evidence_count": 8,
             "publishers": [
-              "Business Today",
               "CNBC TV18",
               "FXStreet",
               "Fortune",
               "NDTV Profit",
               "News On AIR",
+              "The Financial Express",
               "The Times of India"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 5.11,
+            "newest_headline_age_h": 5.13,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": -1.45,
+            "score": -1.19,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T13:55:02Z",
             "oldest_headline_published_at": "2026-11-12T07:39:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
             "evidence_count": 8,
             "publishers": [
-              "Business Today",
               "CNBC TV18",
               "FXStreet",
               "Fortune",
               "NDTV Profit",
               "News On AIR",
+              "The Financial Express",
               "The Times of India"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 5.11,
+            "newest_headline_age_h": 5.13,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": -1.45,
+          "score": -1.19,
           "included_components": [
             "news"
           ],
@@ -3712,7 +3714,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -1.45,
+          "score": -1.19,
           "included_components": [
             "news"
           ],
@@ -3749,7 +3751,7 @@
           "source": "PSU Watch",
           "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQUm5zTVhYX2NLMTRsZUpiRXppdk5TWm9hU2VFSVQ3QzJVbUhkbHdFR3JiSm9PWW1fY2R5UHVoZFpFX1JNQy05LVRHZ2ZRQVVPYnBjTXRkZW5kRnhRRXZyNUdhR3lhM19GeVRIVENaX1dQQ0pCeklIeE1tOE8zcjJTQktFQmt3bUZqeHJLTGdnY1RYQ0FTZ1ZrNkZ5Z2NVb2pRSHo2YjNfa9IBtAFBVV95cUxOejJiN21BOXRGZG44LU1Xby14Uy1ncWo4eEJNUldxR2Q1UGpTZlgxMzhTTnNUeVBMbXhMNjBrTG03U0pEN1F2aEtReTdrWFJQY3RMa09nSVZQdzIyNW9uRmdhdUdJVFZHenNwMERGZzFFVGs2dGo4enQ5X0FNZ0xoTGlLbG1BZUxfbWF2U2RnTU9aSlhGdGtlSkJ6M1g5SFE2TUJUYTVzQjBXQk1JbHo0Mk5yS3Q?oc=5",
           "score": -3,
-          "age_h": 73.8,
+          "age_h": 73.9,
           "published_at": "2026-11-09T17:11:43Z"
         },
         {
@@ -3777,14 +3779,6 @@
           "published_at": "2026-09-04T07:00:00Z"
         },
         {
-          "title": "MCX launches crude sunflower oil futures as India imports nearly 2.8 million tonnes annually",
-          "source": "ANI News",
-          "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPMldoUnZyaW9rNXZyYUtjTUN3RUFMTzNHNVFrRDl5eHZmZy1SQ0pFeEJZdzFLLUZnb0hNRGtMOVotam9tSEpfSjQ0QmxHTUQzWnpsNVlQOXZWQXNIbF92ME9LZUVZNG81YnJqVVpQZktzZ2VQYlo5ZERvcHV2aURCR0dBS3AzY25JblI5NlJaLWVxSVhTamJBak1MQ2ExUFE2X3JmY0VPQ29NTXhUMFIxbXJ3b2VXdEt2M1pTekx4STZsYWMxWlNQT3BJOHBQR0JjZzIxakhCYmFyQQ?oc=5",
-          "score": 0,
-          "age_h": 2172.0,
-          "published_at": "2026-08-14T07:00:00Z"
-        },
-        {
           "title": "MCX Crude Oil Climbs Over 4% as Middle East Conflict Raises Supply Disruption Risks",
           "source": "NiftyTrader",
           "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE16YVpOd2IxX3VJUWNtb1o5elpwRjM1cjkzb2tYOVNxeEJpbnhLVTE5Q05jNS1EQmVfd09nS0prSGl0Nk9tcmtGdjhJbWE5ekMwaHBOeEFQRF9zd2JCN2dKX1U5dHh6M1h4aFdkeDFhcFQ?oc=5",
@@ -3799,6 +3793,14 @@
           "score": 0,
           "age_h": 2772.0,
           "published_at": "2026-07-20T07:00:00Z"
+        },
+        {
+          "title": "Crude oil futures fall on weak global cues",
+          "source": "ET Auto",
+          "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQRmpBZGdaMllzd1EzOWJCc0ZJWGx5eU5PakV6TF9La1FDdlNRQzlFZkg2M29MQzJCNW5qdGhOU0hkQ1lPTXFHMWRTa1puQ1VtS0NIUlE1OS1BVWkwdkNHN09ROUVVZHgtUF9LX2hUUUFxenBYWUJTakxtREdlem5KemZPQUNxcWJxLVQ0VWhRR0hyVC1GZWN2UlpNT2pSaTF5MGs5Y1lydGlrVHc2TjFLMjJTcnRpT29fZ1o0QtIBwgFBVV95cUxPT0Q3eXlvVEd1dVBZM1h6Y0hmR19Db2lOLVp3VHlneWI1YW55N3h4TE9hMGdrWXpIUkVtenM2MVBUYl9IZTEyZUFEVm5uLTUxMmktYkdQY0RBb2drVVFBcmhjWktUaDY0cUliUTZhcTRqeGthXzNUSUhyNHhxVGNBdlBReloyTnpVZHRxa1hDOU5wU0otbElLR3kzSW9CS3FuMEg4a2xhcE9kcmljeUtKaVdVcTlDNFVBeGZ1NWxMSDdEdw?oc=5",
+          "score": -1,
+          "age_h": 3108.0,
+          "published_at": "2026-07-06T07:00:00Z"
         }
       ],
       "pos_n": 2,
@@ -4119,15 +4121,15 @@
     },
     "BITCOIN": {
       "type": "index",
-      "change_pct": -3.2,
-      "price": 71565.12,
+      "change_pct": -3.33,
+      "price": 71465.35,
       "price_time": "12.32 AM IST",
       "price_as_of": "2026-11-13",
       "price_unit": "",
       "price_source": "Coinbase BTC-USD latest executed trade",
       "news_query": "bitcoin price",
-      "score": -1.6,
-      "headline_score": -1.6,
+      "score": -2.9,
+      "headline_score": -2.9,
       "headlines": [
         {
           "title": "Bitcoin price below $72,000: why BTC is falling today",
@@ -4144,6 +4146,14 @@
           "score": 0,
           "age_h": 2.9,
           "published_at": "2026-11-12T16:07:16Z"
+        },
+        {
+          "title": "Why Is Crypto Crashing? $560 Billion Wiped Out as Bitcoin Price Falls Below $72K",
+          "source": "Coinpedia",
+          "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNckRxOHdNWDJGVWtRcU4tVV83RU5lN3ZzQm1CT3NmdXlOY0FpM3VOc3J2NVlOSlRkZ3c1cmZsX0ltVTVTNWE5ODlSaVF1TlpweGdWa2tTZTF1Q2I4SVdBbngxOEs3MHdWQnotdGtUNjFrWEREaGg2VWZwYUZDRkZjNkVvZ0w0eWZtUGJSajAxVmhPcjV4d3pjRUtkWVh4ZnhjVTJaREo0aHHSAa4BQVVfeXFMUC02M291NENVYmRKVGFaTjhqcEEyV1F4NTdiWGFQZm5tVDRvVGdaTUpPamh2eWtIOEhYMVN5dmJ2aTQxQ0pVTTJHdjM3bXdnVE1Hc0dFM1E1RGRQaEtabGRDdUJrNFZxX01GdG5TcGpSNEI4TWFMNllCRllHSkxyZUV2Qk82UlZIeGNJNlJmQXp4anBReE5YZHUxX1Z6WjdxcUZoNnBLSjM4alM0N2hn?oc=5",
+          "score": -3,
+          "age_h": 3.4,
+          "published_at": "2026-11-12T15:37:06Z"
         },
         {
           "title": "Bitcoin Price Crashes to $72,700 as Leveraged Traders Buy the Dip: Is the Bottom In?",
@@ -4195,7 +4205,7 @@
         }
       ],
       "pos_n": 1,
-      "neg_n": 5,
+      "neg_n": 6,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -4222,7 +4232,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T17:42:06Z",
             "oldest_headline_published_at": "2026-11-12T12:15:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4237,7 +4247,7 @@
               "Yahoo Finance"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 1.33,
+            "newest_headline_age_h": 1.35,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -4249,7 +4259,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T17:42:06Z",
             "oldest_headline_published_at": "2026-11-12T12:15:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4264,7 +4274,7 @@
               "Yahoo Finance"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 1.33,
+            "newest_headline_age_h": 1.35,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -4311,13 +4321,13 @@
       "type": "index",
       "change_pct": -0.28,
       "price": 25393.7,
-      "price_time": "2:00 PM ET",
+      "price_time": "2:01 PM ET",
       "price_as_of": "2026-11-12",
       "price_unit": "",
       "price_source": "Google Finance direct NASDAQ quote",
       "news_query": "Nasdaq stock market",
-      "score": 0.7,
-      "headline_score": 0.7,
+      "score": 0.8,
+      "headline_score": 0.8,
       "headlines": [
         {
           "title": "Wall St recovers as energy shares climb; Nvidia woes deepen",
@@ -4334,14 +4344,6 @@
           "score": 0,
           "age_h": 5.1,
           "published_at": "2026-11-12T13:55:52Z"
-        },
-        {
-          "title": "NASDAQ Composite (^IXIC) Charts, Data & News - Yahoo Finance",
-          "source": "Yahoo! Finance Canada",
-          "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE55SE52Znc2bUEzcnF5ZWFEanBnTWVFZHhMY0xuc2JVbGpLV0JoMVkzRUZfTFRabWpDUEJOSlBYV0tPZEo1ZHNQUW8xSGJtOG9BSGFucFV3?oc=5",
-          "score": 0,
-          "age_h": 5.3,
-          "published_at": "2026-11-12T13:43:36Z"
         },
         {
           "title": "US stock market today: Nasdaq futures fall as Nvidia slides 9% on Jensen Huang reports",
@@ -4382,6 +4384,14 @@
           "score": 0,
           "age_h": 14.7,
           "published_at": "2026-11-12T04:20:32Z"
+        },
+        {
+          "title": "Stock Market Today: Major Indexes Pare Earlier Gains But Finish Trading Day Solidly Higher",
+          "source": "Investor's Business Daily",
+          "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNc0NzMVRVZjloM3pod2ZMMzE2UnBBTjF3ZjZET0t1ektJb1VycmxDdFJqbjNISzU4bXc0ZmxJY21pcDdldzFTRkhBSFZCWlVZTDlGOWYxaUV3NTRYcXlJZEowdzAtb3U1c1QzRUNMNXdKa2tBYlltMkxSMng5VU9JWlpYWWpaUmhqZGl3SFVZNm9xbmRPVkh1Qi1CZGRmSEREVF9yVGxsZGZhU3l2YnNkRWZEanpUVzM3ZVBSWkpGcDU?oc=5",
+          "score": 2,
+          "age_h": 21.7,
+          "published_at": "2026-11-11T21:22:00Z"
         }
       ],
       "pos_n": 4,
@@ -4407,59 +4417,59 @@
         },
         "components": {
           "news": {
-            "score": -0.22,
+            "score": -0.07,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T17:16:53Z",
-            "oldest_headline_published_at": "2026-11-12T04:20:32Z",
+            "oldest_headline_published_at": "2026-11-11T21:22:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
             "evidence_count": 8,
             "publishers": [
               "CNBC TV18",
               "Investing.com India",
+              "Investor's Business Daily",
               "MarketWatch",
               "Reuters",
-              "TradingView",
-              "Yahoo! Finance Canada"
+              "TradingView"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 1.75,
+            "newest_headline_age_h": 1.77,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": -0.22,
+            "score": -0.07,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T17:16:53Z",
-            "oldest_headline_published_at": "2026-11-12T04:20:32Z",
+            "oldest_headline_published_at": "2026-11-11T21:22:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
             "evidence_count": 8,
             "publishers": [
               "CNBC TV18",
               "Investing.com India",
+              "Investor's Business Daily",
               "MarketWatch",
               "Reuters",
-              "TradingView",
-              "Yahoo! Finance Canada"
+              "TradingView"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 1.75,
+            "newest_headline_age_h": 1.77,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": -0.22,
+          "score": -0.07,
           "included_components": [
             "news"
           ],
@@ -4483,7 +4493,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -0.22,
+          "score": -0.07,
           "included_components": [
             "news"
           ],
@@ -4498,14 +4508,14 @@
     "DJI": {
       "type": "index",
       "change_pct": -0.03,
-      "price": 52468.44,
-      "price_time": "1:59 PM ET",
+      "price": 52469.68,
+      "price_time": "2:02 PM ET",
       "price_as_of": "2026-11-12",
       "price_unit": "",
       "price_source": "Google Finance direct DOW JONES quote",
       "news_query": "Dow Jones stock market",
-      "score": 0.8,
-      "headline_score": 0.8,
+      "score": -0.3,
+      "headline_score": -0.3,
       "headlines": [
         {
           "title": "US stocks steady after sharp swings in Nvidia, oil prices: Stock Market Live Updates",
@@ -4532,20 +4542,20 @@
           "published_at": "2026-11-12T17:28:56Z"
         },
         {
+          "title": "Nasdaq gains more than 1% as CoreWeave spike revitalizes AI trade",
+          "source": "CNBC",
+          "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5tNUpWaERRaEpZWXFmM0tBRnFQQlBPVzlJUm9ldF9teW53ZjY0WHZ5X1FBdXZRWk1UR0dWRlZXX19VTDAyT2N5QVA4RzlST1FFcFpBUEVMek5OTVN1Vzk3eUNra1puWVlyVk9SMVVXX01YWm1BbUVZ?oc=5",
+          "score": 1,
+          "age_h": 1.6,
+          "published_at": "2026-11-12T17:28:11Z"
+        },
+        {
           "title": "Stock market today: Dow, S&P 500, Nasdaq turn higher as Nvidia stock slides after CEO Jensen Huang resigns",
           "source": "Yahoo Finance",
           "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxOel9ORW9FeDlVOXdlLUFtUlNOT2NkNkNkNjZqcVVXTVRRS0VGdHAxdHVrNFJldVoyaDRNVi00ZWNabnowV2RFT2EyMDRldnd1U0hUWE1ZVzN2czJYdmJRa25UbVRvZVJqWTVGdHV4TFlCSWtULS1HMVl1WVkwTFgza0tRdWJWbG9EdEtCQm51clRlVnl4bGI0eVJPbDhuZGR1dFFzY1g0cElTblJISWg2aHlRbDBuZHFKWnpjQWRXSGtBNWxYT1lMaGxuaFRmdUxSRmRMUXpHczc4Yjdoa1VsNVphMFd0ZE5q?oc=5",
           "score": 0,
           "age_h": 2.1,
           "published_at": "2026-11-12T16:56:32Z"
-        },
-        {
-          "title": "Stocks Slide on Nvidia Troubles, Oil Edges Lower: Markets Wrap",
-          "source": "Bloomberg.com",
-          "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPYmF2Z05ObnRwSVdvWGJrWC1XZlIzVXlYMTV3eVRwQWlScGY3TGpuamVOTEpremJZQnhJU3hkOWl2ck4xNFdzQWM1VTh2OEVBQ3FCTzNiYThfOTlzSHpqX0hHeWQ3dzZTcnRsVzYtMzFWeElmZVdVWUdQcnhIbEp1SS1lejVoM2Y1OGdScGpLbzJPVWhk?oc=5",
-          "score": -2,
-          "age_h": 3.0,
-          "published_at": "2026-11-12T16:01:18Z"
         },
         {
           "title": "Tech Futures Fall; Nvidia Dives As It Mulls Ousting CEO Huang",
@@ -4572,8 +4582,8 @@
           "published_at": "2026-11-12T13:01:00Z"
         }
       ],
-      "pos_n": 6,
-      "neg_n": 4,
+      "pos_n": 5,
+      "neg_n": 5,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -4595,12 +4605,12 @@
         },
         "components": {
           "news": {
-            "score": -0.45,
+            "score": 0.0,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-13",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T18:48:29Z",
             "oldest_headline_published_at": "2026-11-12T13:01:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4616,19 +4626,19 @@
               "Yahoo Finance"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 0.22,
+            "newest_headline_age_h": 0.24,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": -0.45,
+            "score": 0.0,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-13",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T18:48:29Z",
             "oldest_headline_published_at": "2026-11-12T13:01:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4644,14 +4654,14 @@
               "Yahoo Finance"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 0.22,
+            "newest_headline_age_h": 0.24,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": -0.45,
+          "score": 0.0,
           "included_components": [
             "news"
           ],
@@ -4675,7 +4685,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -0.45,
+          "score": 0.0,
           "included_components": [
             "news"
           ],
@@ -4712,7 +4722,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOcDBtOWtWN3NEMjBFRVhoSloyU3JKNG5DNnlHTE5ndFRnZzQ5VmNMQjVULVJOVDRseEU4dnpCb0dSOEdRX1JsZUVCWHVtRjhMRkZvU3lfa2oxemIzZG1CZE80REdRSFpJTU9QWGNMckNZdTJDdE9jRV9XU3YxVVFyS3BacHRkdzFqWU1DRzR5Q0FLTDUtYUY3ZlJIY1BvbzJTR0p1dlI3LVRobnB0b0JYNWF2TmhGZDNLaXRrRENsU3RNaG5uR0MtQW5MQQ?oc=5",
           "score": -1,
-          "age_h": 372.0,
+          "age_h": 372.1,
           "published_at": "2026-10-28T07:00:00Z"
         },
         {
@@ -4720,7 +4730,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQbzlvU0V2bjNVOTlYLTdtRDNabjgxUUM2U3JKUEQyZXZWQXdsMnJMX3ozazFUVzBBMDk1RFZqVzNkTG1PdXBsT2JNVEJyMFR0ajVqWERWckhzTVZ4THFPd2x3UWRBQ3p1ZXo2NXVSMHJySmItdmV5cTVhZkNyY0IxZjBzWjVZNk9UbkVMTC0xX01zMXN4c19RWi1n?oc=5",
           "score": 0,
-          "age_h": 420.0,
+          "age_h": 420.1,
           "published_at": "2026-10-26T07:00:00Z"
         },
         {
@@ -4728,7 +4738,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxOVm96SVh1TGp3Y0J4SldnWUdkQUd3T1R2cWxJMUEtWkh1TUhzRGJWWVNrYzJqY1UxanlraFNRc0JmY1FFMnBMbWRwTGc4TXRabG9pTGU5aGZlWS1oQzBNQU5nRjRaVDdOUzhqTnJqa0RDZUYwVkNySmRjYXBoZUNRU3VhVGJiZ0s2Z3lkUFM4TUg1UzJVcjI0NVdZYU1kWk4tN2pVQ3ZETXdJYkZGSmVZTTFSUXI4emc1VHhhR0RBcmFiRzZSUkVFNElVQVc3UVUt0gHWAUFVX3lxTFBud2lyYTdvdnY0UGhFZ0ZBbmpKaHJrN0xRckdzZWd1MFMtajFvS3BJMEo4ZFZ4WGp3Rko5RExoekUtY3NoYXVnbk1LU2FsLWVQeVJ5U25fYjgtdjRMdm96NmUzTTRvYzYxcTIxUy1MeE01aWJ5eF9BMlRMOWpaQUdab0gxeXkwb0dXSkNQemVIS1NYcFNGS1NVM2lrZmxUZk1UYlgtZk51cWtJRGNQaE40eFBMUVZTVkV6Nnp5cXlqRTBJYVR4UHcwbDBKWnZmNDFBZWxrUWc?oc=5",
           "score": 0,
-          "age_h": 756.0,
+          "age_h": 756.1,
           "published_at": "2026-10-12T07:00:00Z"
         },
         {
@@ -4736,15 +4746,15 @@
           "source": "Business Today",
           "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPb2x2dzkzY1pCWXBCNTAtWTBDekdmZ0c2SlFoY0RMZ2EzNjdGcVc5a3ByMjRqRXBGV1JvWjFKRURmcF9yenBwR2JFMl9EX3RaUlZqdGt4aHJLVTdlRFdleVlFa1o1WWo2aFBMTld2cDlZOE9qSEEzNGtIdXJUSkM5TGhPZUhoZG01Z1AzUEsyOWJtMks2cEZJTFc0OXFJdUloZllBYWJnWi1TX2x0ZGhPOGJleWNSNEp6UWZjR2dRaE5IQVllUnJQSk130gHPAUFVX3lxTE92Mmh2TjktZ0FTRkMtVUY2SHppQ0lpX19aWGVVMW15QUNPMUFhWUw1NVE3Qy11bllsalAzUzdRX2JSQ1RYZUY1NnRzd0RyN2ZyMVE3SGRzeEVSaVdOb0pIVEx3QWlNOXdFaG9uaVVrcGZkakJsei1uTlRyQU94c0hoUFUyZ3kxMGJwc3I1NXNyOXRpWjRkTW5JcWxORzZWTlAzeVJ0cThHb2N6RC1nVTlmRE8yNHJGV2p3SERDSzlkRFE4aDRrMS1IZXZybWZ3Zw?oc=5",
           "score": 0,
-          "age_h": 828.0,
+          "age_h": 828.1,
           "published_at": "2026-10-09T07:00:00Z"
         },
         {
-          "title": "Reliance Industries down 2%, at 17-month low; what's making Street nervous?",
+          "title": "Reliance Industries down 2%, at 17-month low; what's making Street nervous? | Markets News",
           "source": "Business Standard",
-          "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxNb0NmTDhIZTBuQUQ0bnZGNnFCekpCYlFsQXFrRFdPNklFSUdDdFJ0dC1FQkNWRFl0TXN0aTBKTHh4SVpObjhzaU15Zmp4OXh3bEdWWV85ZDV3NFllR015d0FoT3RETHEyMDZUdW5SRmw5eUJ6dVJVbGVodUR2T0c4OVl2aF9nc3JTdXhZdlE5NUkwNlA5amhwRzd6MUVRNUtNcnVsYTF3YzJ3bE13REpaeVBaV1FDVnAxV2g3OG9PazlWZXVTS1FXVnFSbkYtWG5PTWNqadIB2gFBVV95cUxNalc5U1MzaVRQeFg1RHJWdkJNVUU2OWdYM1ZhVDNORjR3M1BtblNjcy1VQ2hVVE5BZGVTRkdYXzIzOEtrcGhIZ3ZyMDhvbVhuZ3o4cHQ3bGNUcEdGUEJkZTJuU1dxamNBRlFTMWFwOG1TUXhzM1VtUlViVktxSTEyQXBOcWRzc0tGNlBaLVVBdjB2cVZhdmhuTTh6d3BlbHptb2NxNTJ3VnQ1cmt4cng1QVNncWk1Z3dyalVraUlabWMzb1NiSUh0X3RHX2laR1I3X1dZNENBaHRMZw?oc=5",
+          "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxNb0NmTDhIZTBuQUQ0bnZGNnFCekpCYlFsQXFrRFdPNklFSUdDdFJ0dC1FQkNWRFl0TXN0aTBKTHh4SVpObjhzaU15Zmp4OXh3bEdWWV85ZDV3NFllR015d0FoT3RETHEyMDZUdW5SRmw5eUJ6dVJVbGVodUR2T0c4OVl2aF9nc3JTdXhZdlE5NUkwNlA5amhwRzd6MUVRNUtNcnVsYTF3YzJ3bE13REpaeVBaV1FDVnAxV2g3OG9PazlWZXVTS1FXVnFSbkYtWG5PTWNqaQ?oc=5",
           "score": 0,
-          "age_h": 1188.0,
+          "age_h": 1188.1,
           "published_at": "2026-09-24T07:00:00Z"
         },
         {
@@ -4752,7 +4762,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQMVRrblVsclpia1V3S05PcGZZWThfekRxdTJpNkF2TWJGb3hCYk5EVjVURXFILVkxcVpDMXdrczlTTW5VYjVTMWpqSy1FYkxmRVF4c1gzdjJTU1NSQmdzUnpIWFpBbmlsZ3doX1pkRGVhRFdwbVBSa0stcDdDQl83a1Z5cFhxOTljbnEzMTJzYTlJN3ZOQ3pZdGxHbjBXXy1rM1NJWktIRkdjTGluSGNnWEJsbVhkOUU3ZUtLRVdDOGR6OGRLLTZva2E1eXBxUdIB0wFBVV95cUxQT2Z1bDlUQ216ejJfVEZFVUlBSGVqT2UxZmVQQ3ItM2tBZDhyNktIaXljUWFsQ3hwNVpPUFBhc1A2NUJHR3dIZXZGS3p6RU1BcTd6YlZzc29OMlNNSW9jS19hdUgwemlIR2Iyb3Y0S1VpQ0Z3Yk93MzBQamJDNGQ0a0hUUVNFNGJwU21jM3Zwcms1cTBuYjZ2eHlJUU51UDF3enBIWDVTQV82R29HT1d3ZjNUaXdpdUZ3MFNCeS1MRG9WTkJORGtjaEdGT3JrTW1uWDZF?oc=5",
           "score": 0,
-          "age_h": 1740.0,
+          "age_h": 1740.1,
           "published_at": "2026-09-01T07:00:00Z"
         },
         {
@@ -4760,7 +4770,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQWHVqWEdydmZxMmJVVnV2NlN6MUxJZlFlUk1VQWszOFBlZW1ydFdQcXBTanR5UmpFTGZ3Y0JNNGFvWXRheHlFLW1rLVpJWWZRSlc4ZjlMX0ducDAwckJzRm93WXVjQ3ozaXluTUVrQXNhNHBOVGpWc0lYVnl5WVAzaEdJMDZROF9xMVBmd2lJdFY4enVYSjRQbFd6dklKTWxuTHFBU3ExMEtTWEZSTHJCMWNhdV96cElh?oc=5",
           "score": 3,
-          "age_h": 2364.0,
+          "age_h": 2364.1,
           "published_at": "2026-08-06T07:00:00Z"
         }
       ],
@@ -4792,7 +4802,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T14:20:03Z",
             "oldest_headline_published_at": "2026-11-12T14:20:03Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4801,7 +4811,7 @@
               "CNBC TV18"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 4.7,
+            "newest_headline_age_h": 4.71,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -4813,7 +4823,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T14:20:03Z",
             "oldest_headline_published_at": "2026-11-12T14:20:03Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4822,7 +4832,7 @@
               "CNBC TV18"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 4.7,
+            "newest_headline_age_h": 4.71,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -4874,8 +4884,8 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "HDFC Bank share",
-      "score": 2.7,
-      "headline_score": 2.7,
+      "score": 2.4,
+      "headline_score": 2.4,
       "headlines": [
         {
           "title": "RBI approves HDFC Bank re-appointment of V. Srinivasa Rangan",
@@ -4970,7 +4980,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T12:07:49Z",
             "oldest_headline_published_at": "2026-11-12T06:49:21Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4981,7 +4991,7 @@
               "scanx.trade"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 6.9,
+            "newest_headline_age_h": 6.92,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -4993,7 +5003,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T12:07:49Z",
             "oldest_headline_published_at": "2026-11-12T06:49:21Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5004,7 +5014,7 @@
               "scanx.trade"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 6.9,
+            "newest_headline_age_h": 6.92,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5088,7 +5098,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOakR4QWR1X25RSXZTejVzLW1lcTZCOWM1d2hlZ0NiUUtpa2pRU2ZXVFJEeHpkVHVpWVZpdFpwSlhjQzhmeDJYTXg4YVVycEl6NktaRjlpQnBjcE5LR3ZmQ1owaklaYUhrODF5bDlhdWliWjN6eFJDTVU1b1EtT1BYMmN1ejlpTzIzR3hmc2JVd1dWMlFoYkFtdmJ3Mk4wNkVI?oc=5",
           "score": 0,
-          "age_h": 203.0,
+          "age_h": 203.1,
           "published_at": "2026-11-04T08:00:00Z"
         },
         {
@@ -5096,7 +5106,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxORGRoZWFlV1ljdjFlam03SGRXYkVRZmswQ0Y5ZmFKM1FrdmJyX0IzTWVnZE0ySk00Wm5pVkVET19jbTZyMDZQRVBIRi02eXMwR01PZ0I5Zm42YzZRa2k1Vi1kXzFqc2ZyX2tZTmEzWDJ3Qm1PVzNYdWVQbF9MRU5aVXR5SkxKcVBfY1BJY3ZkU1hScFhVV284YXFUM1BmdFU0WEQ0X2M2Tm9pdzZWZ2F1RDdqUzh1eFBJbnp4SDB4OG5wV05qc1dfTXRYTTF0U0RsRkR6Y3NmU0ZpVnZjd1d6VHMtWHlrak41eVNyUdIB8gFBVV95cUxOVjZmREhwWHp3LVdkVU1xNUNKa1F5Zm5IRlpuU2xkaTdYYUtuRHdCSWdHRF9lTm9OQ1BqRmpVRFppY2d2U3k5bzJiZ2xzTk9KSWtUeU4xM2MzekdJVzk4NTBOcUtqeHRvdXFrNk9YMHRLU0pwNGx6ckh3Z3dURGpGcFhVb3hGZHRXYjYydlpBcGY5UnlyTlNzUmVrMHNzVjFsV2ZpTlcyUGM2NTdCTXhya1VoN242OTNmVllmNXVlWkFKVEFnZkxHeldLVGFDdlIzeFh6bHhWRW5QeGtTbU44MUZ6RDJWN3hiUEFnQXhueDR2UQ?oc=5",
           "score": 1,
-          "age_h": 660.0,
+          "age_h": 660.1,
           "published_at": "2026-10-16T07:00:00Z"
         },
         {
@@ -5104,7 +5114,7 @@
           "source": "Team-BHP",
           "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQajBKR2d4OER4UzhGcFZVZjVpSzlZNHo3bkRvWU1NcTkwWHh3YkhNLU9OYnFnX0c2MkJyVTBvM2NOZk1FWUszUkktN3NpcW1lOWpXYUhaNnliTS1EVTkzbEdoZjJoYWVXRmRxYjl0Z2pXdUJlc21UMm5LUEY5RGJRSkdMel9oVUtJUlZOQlFBNjhPc3pKeW1B0gGcAUFVX3lxTE9Ld3V4Y01sdFJOZjkxXzU5TktVMGdQVUtja241VG5HemNNS1RHNDA1TTdWOFNTSkwwS3Nwc1pMQ0luTERpVlZTVm5MNnFTbEFTQmdfNDk5SFlMV1E4cEVyeHR0QmNHSWFfU0hoNkk3d05yMDZFQ0Q4SHd2TjBpaTJzNkJyWjV5cjhnODIyX0xMdjJhUndxRGV5QzFNdw?oc=5",
           "score": 0,
-          "age_h": 1068.0,
+          "age_h": 1068.1,
           "published_at": "2026-09-29T07:00:00Z"
         },
         {
@@ -5112,7 +5122,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQWTB6ZHMyeHVVT1JoOWxSU3dTbDZDNFFuN2NIWVItSzNDSmZJalJ0bVpLVGJTWnJ6ZTVNYlZ4Q2cwTkpNWi13dFZNbFZiakhTdjVLaXBWakxKd01Dd2JZRHJjeWY1OVI4b0UxYm96TGlLTGpFQTZrMTgxUkh4RkFuV3VfUGxCZkxVZ05LVDIzWlRUY19RY2c?oc=5",
           "score": 1,
-          "age_h": 1668.0,
+          "age_h": 1668.1,
           "published_at": "2026-09-04T07:00:00Z"
         },
         {
@@ -5120,7 +5130,7 @@
           "source": "Reuters",
           "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxObE1WaVZxeTZhNjJZNDRPWGIwdDREX3NEZTZYbllpMm1YRUI3R1ltbEozQ1FEQUdxTlpQTll1M09mSTFKWEdBU09UM05zOWg3RHRLX0xGRWhCcUhkdTExQTFvSWEyVDV1bEYzeEYxaDdTMlNCLXFFdUdUMjBCVGpnbmY0Q0pEUkhJS2REOURLb25maVh6cVFZcWl6UGg2dlBoWnFvbms5SnpKa3hfRWJ4amJwM0xuZkRJMWpteHRjX0lHams?oc=5",
           "score": -2,
-          "age_h": 2172.0,
+          "age_h": 2172.1,
           "published_at": "2026-08-14T07:00:00Z"
         }
       ],
@@ -5254,7 +5264,7 @@
           "source": "Equitypandit",
           "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE12WW9yeHYxQXN5TW5TdjJ0NHRKR1dyeWZKMklBX205NGJWaXNQWVFySlVsdGQ1M25jWHBzbjM3RTR0V2JIY2lBSktKc0Q2S1RrT201NG1zVlk0Qk83bkRwNnpjWkh2X0d6MXRv?oc=5",
           "score": 0,
-          "age_h": 107.0,
+          "age_h": 107.1,
           "published_at": "2026-11-08T08:00:00Z"
         },
         {
@@ -5294,7 +5304,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T09:30:56Z",
             "oldest_headline_published_at": "2026-11-12T02:23:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5304,7 +5314,7 @@
               "TradingView"
             ],
             "query": "Hindalco share",
-            "newest_headline_age_h": 9.52,
+            "newest_headline_age_h": 9.53,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5316,7 +5326,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T09:30:56Z",
             "oldest_headline_published_at": "2026-11-12T02:23:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5326,7 +5336,7 @@
               "TradingView"
             ],
             "query": "Hindalco share",
-            "newest_headline_age_h": 9.52,
+            "newest_headline_age_h": 9.53,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5378,8 +5388,8 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Adani Ports share",
-      "score": 3.6,
-      "headline_score": 3.6,
+      "score": 3.5,
+      "headline_score": 3.5,
       "headlines": [
         {
           "title": "Adani Ports taps more global lenders for $2.9-billion Evos acquisition funding",
@@ -5418,7 +5428,7 @@
           "source": "Business Today",
           "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQUURUQjA3aDgyVmE4V1B1Q085UHo3ZGhOZTRiYUFPdkVUSnJyNGlOR1Ftb0Zzc2h1OWc4X1djTFR0VnFwVmxUcTd3MHJtd1E5UGhqU0JSZWU3VjAzckJUOXJLUDRiTHlCaXN3VDNWNVhFR0dobW90Tk12ZHNNZFUxeFV4Y1pRRW1WTWxOQUxDejNjcG5SMXZNMWNBOFJJb25RSk4yR1VuMTBYckhrQlpmUDVuaG0tY0M2U29FU2J5LVMzYmtPM0syTE9tX1paYnNuRUtfOUJZcEp4UdIB3wFBVV95cUxQNUh2WVdudC02RDdRN1VlcW9HRDVFU0hKeXVlYllBSnp5SHYydi1tRWpWMDJ4Z2gwTXlqY25XZHZKS3JfSF9ETl94YzhOV25yd2pTckpUNkV6ZUU4OEdJQ3BMbXpRM3o0WXExMGJFbEY2T0NhOUVZM3VHUEk0MXFsUWhpV21fTjlhUWN0NWhoaDdoaklaaF92ZHU3Sm9WX3BGMWxocWhNMHMwLWhFcWVPWGlLUl9XU1g2d0ZOMFEzSTEzMDFUcElUUVZLTWZEdEt3eDlTbE1vdzVLNmlzWEpR?oc=5",
           "score": 1,
-          "age_h": 86.9,
+          "age_h": 87.0,
           "published_at": "2026-11-09T04:05:25Z"
         },
         {
@@ -5426,7 +5436,7 @@
           "source": "Equitypandit",
           "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5FT1l3UUZHRzNza24zRnFmeEVkVW9yMVRQb3R3WHVtenRUbFVPTUhwdHNEQklodFRUOWtQLUhzOHBJSThYYk9qNVZJdy1xcjlkeE9NUm5mUmk4SE9XUS1hZ0ZfX09VckFpR25ZWnNR?oc=5",
           "score": 0,
-          "age_h": 107.0,
+          "age_h": 107.1,
           "published_at": "2026-11-08T08:00:00Z"
         },
         {
@@ -5434,20 +5444,20 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPRHBHd1FqN3Nmbng5c2VSYTJ6WjgtekRhbzh5MDRndlZwUm8zX09XY2ZLb0taYUktY0JOZEdNU05nMkM3bWg4N2JGeWdzRUpZMHAzTlJoNm9lNXdIblM4UFFCV01kWGk5ZzFRWTV0WDh2QUI1cTR3YkFYTDluS1hnQ3BWVkExR19QUk5XaVVfNC1nN1NzeGtyVDlBZw?oc=5",
           "score": 3,
-          "age_h": 348.0,
+          "age_h": 348.1,
           "published_at": "2026-10-29T07:00:00Z"
         },
         {
-          "title": "Adani Ports Share Price Rallies Over 2% After Record August Cargo Volume; JPMorgan, Macquarie, HSBC Stay Bullish",
-          "source": "NDTV Profit",
-          "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxOVGVoUmtHZzVhVXBmcmJJU2VjRXJBSnZTT0dwVVp5d0dDajFjNDhKS2JsLVBHanJMWlI1Yjg4dDJDYmJPcTV3cURiX3htMWc2RWdEcGM0RUdJZVRPU2ZhYmI2eW04bi1oRGZ3UVo5eW14MWt3RlhWNUF5UG1Qa1h6aWJUVkZUZ3ZKME9iWlN5NG1WRkU1Y0ttblJSTm8wa0djNnZxaXhIMkwxdWstRXlTbllMQzJhdkVzQnVmTG9FUE1hbUxaYlpXWFlUNmk0bGk3OFRFLVgxd2FDOTNqQkRoc3pQWkjSAewBQVVfeXFMTjF1TXRuRVBRaHFrai11YW9sRXZQN1lJV1dUQk5hbzVSd0tKbUttSXlsbjIzdFBNcVdEcUhfNnJsM29VOHZib2JCa3h0cGJuVjVLc2ZxLVhjUlhzcE51MWFSc2VWeHA3TjUxaWhPQllITklOYjRpdGhtamtGOXdGdHEtNEdKdEhFRFRaMmRQak5qZTkyVTNLYTlZZXBjV2JkNWtFVWlpRU9YMGxaaFRTYmRJV0Jpb2xnZXhKNlBFUUJ1VW5DeEF0SnZOZzJ6S3dmTlZSbEJDUTVfTGZHQy1TWmZrOVpDUS1MUDFlSDg?oc=5",
-          "score": 4,
-          "age_h": 1692.0,
-          "published_at": "2026-09-03T07:00:00Z"
+          "title": "Adani Ports Share Price Fall: Valuation and Sector View",
+          "source": "Univest",
+          "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPdm9yaTR0cE5YZzNjMGY4endtRVI0ZHhNLXBQNUpxOGNWT25kWmhNdUFYN0ZhTzUzaktuRUVWLWlsLXFMM3J5dnQ5OFZlNXZkZFBxd0hoeGlzcFNGYUo4T3QzRk9zaDNfQjB5Y19Zek5BZUxtOG13QWNnQ3FVZ1dDRFFYcTZMbzlHakVCanp1WXIzZGNVTkp2X293?oc=5",
+          "score": -1,
+          "age_h": 876.1,
+          "published_at": "2026-10-07T07:00:00Z"
         }
       ],
       "pos_n": 6,
-      "neg_n": 1,
+      "neg_n": 2,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -5474,7 +5484,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T10:24:17Z",
             "oldest_headline_published_at": "2026-11-12T07:45:39Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5484,7 +5494,7 @@
               "Upstox"
             ],
             "query": "Adani Ports share",
-            "newest_headline_age_h": 8.63,
+            "newest_headline_age_h": 8.64,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5496,7 +5506,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T10:24:17Z",
             "oldest_headline_published_at": "2026-11-12T07:45:39Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5506,7 +5516,7 @@
               "Upstox"
             ],
             "query": "Adani Ports share",
-            "newest_headline_age_h": 8.63,
+            "newest_headline_age_h": 8.64,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5558,15 +5568,15 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Coal India share",
-      "score": 1.0,
-      "headline_score": 1.0,
+      "score": 1.6,
+      "headline_score": 1.6,
       "headlines": [
         {
           "title": "Mahanadi Coalfields IPO: SEBI Nod, $1 Bn OFS and Key Details",
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQSkduNmRsTXkzMHFQcjg5QjFNdVFqanh5bVR6aFREZDJvZTdIMmZUajAtanZUZGdoUGNjN0Vmdk9qTkVZS0JaV0ZrN2c3OVdTSlRwc1Jzc3hOaFhMZ3NxLVc2WS1XLWJJMEg1NHNoZzgyWlJBX3ozVmpvZHZ5cXliWkx1VWJYUUVXNmpNMjRubzZyX1dZdGtDQnc2VQ?oc=5",
           "score": 0,
-          "age_h": 9.1,
+          "age_h": 9.2,
           "published_at": "2026-11-12T09:54:00Z"
         },
         {
@@ -5582,7 +5592,7 @@
           "source": "cfo.economictimes.indiatimes.com",
           "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPUXMzM3BQbEFNS3BsdDR0bl9mc09QUmJBcmJzcHYzclh5MzF5VzdvY1lzMFVVYjhUZWF3VGh0MTI5SVhua2FSbzFTRmhBLW9nVVBMWkxyaFVTdm9iMnU0bXh1MVhsZXA2NGxtQnNPekNDd2oyTjR2WHpkLWZqNXBKcktUNXpHa0drTUdkcW8yNWwtN3I4ZFU3ZW0xaUpBQmVCbU1faGZybVBrN3JKSlNKTHBTMEgxWGRXWS1ZU3VIZmRpTW42YmfSAcsBQVVfeXFMTldGSGs4MWU2Y0ZqenhPeHI5ZGZDQVo4R0lxbm9WYjBNWF9yWGhVcE1jbjFaUmxuQ1pOZFcySUdDaGF3cVM2M3VjdEo0R1I4SmhlREJ6UWh3WG9nYWp3bVA1NjFjLVg1amRfanZHa1BhLUtQbWNBaW11UHA4OGJXVm1ZcXczaTgyR29wTE4wQnRwS3l3bGdsT3MzX010dXVINVZQbzRXT2lGNW44SUFoTWxrUnFKRmU4WWZ2RVpOUUY2aG50SFluTTlFMXc?oc=5",
           "score": 0,
-          "age_h": 58.0,
+          "age_h": 58.1,
           "published_at": "2026-11-10T08:59:27Z"
         },
         {
@@ -5590,7 +5600,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMijgJBVV95cUxNWlBkM2pJVEc3LWIyVHB1b2VYZFREcVVaNzBLNDVQcldYVEdpOUIyOHlWbS1sdk1TVjVjd1FFWlVFY2VSVGNrVlNES1htMTlzU3VYS2d1ZENzNVhJNnkteTNNVHBZbERLb2taWGs3RW56YU9VZWV4NHFKSEs4dGNFZjhRTm5jSjY1bHdGOVVqRHpzSlJJNFBFRmRLQU0xZUpHek41Z2VZS1RDZmxVY3NXaU9PZ2pmZzNacDZhdkJ6NG5tMHZRdUVPTnZ2OF91VG41VnQ3M2txS0ZoY2tmMXI5MU1JWjZIUjVQUHV3UWhOX3F4bk0tVGNmSnZ4WVVWc3lGSXhGRVRQRFNhdmtRM3fSAZMCQVVfeXFMTV9oMmd2amlYbHJZSS1tUFo3bDFfVjdtcG0wRTVrM2ZsV2JISjhwY0Q5TTFEVEdtVFNXNDVQeXlNdDROTWZFc3lsYTIzVVh1VFZwaTJjVFA4cVdqWFI0MEtCTzZIM3RXNzBUbDhCWjlta2F3Wl81RGFxdE5ydldaRWtaTzdhTi1USlR6V1RFTE9RdXFqdkxWdE5adF90N2hMSmdES3RjYU5SX0tUeFlmdEQwSTZNdk1KWEVQZGpmRHpGTE5wenBIaUxQR2RKNFhnT2NlZ0xaLVRJSFlhX1E5RnY4akJxSWtGbkd2VDdRdGxGU1VVdDVvVURUUVR2d255cFQ2c2U1eGdGczQwbkxuU09SWG8?oc=5",
           "score": 0,
-          "age_h": 516.0,
+          "age_h": 516.1,
           "published_at": "2026-10-22T07:00:00Z"
         },
         {
@@ -5598,7 +5608,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE56ZlB5eGUzdGpHam1aZ3lpbzJkbUtyODlqa3ZOSHdWcmZJUGx0aW92dmx0MjNFV0h0SEFwQTFJSVJ1R0VVb3A5dThHLXpuUVg2UG9mRFBuMFRCanpkU1VoUmlycjlUa2FPT1l5SE5qZ1VoRDJjREE?oc=5",
           "score": -1,
-          "age_h": 540.0,
+          "age_h": 540.1,
           "published_at": "2026-10-21T07:00:00Z"
         },
         {
@@ -5614,7 +5624,7 @@
           "source": "LinkedIn",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNdDM0dVVVOWo5WFVBZURGazFlMkNna21melMwWG5HWG1KamNNLV95QzJPM3lEQlkxYjh3OWQ5VmFuMXExZlgyTWkwNmtsNkI1NXI1NFNqTVZMQlNhaXZVbDFNaFRYSUNIdENSS1F2NFlsMmFieHByejlXd2Q2Y2U4bl92Q3dCa3lpajVMQ1dXWjBhTXpQa3N0aVplV1Bkd2Y5MXBydmtHX0ZjYVEzaFdrcElvSEZDblU?oc=5",
           "score": 0,
-          "age_h": 1164.0,
+          "age_h": 1164.1,
           "published_at": "2026-09-25T07:00:00Z"
         },
         {
@@ -5622,7 +5632,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQUVVUMkMxQmtuU0VBSTlkMFNQUE15LW9vdTNEajFjNXhuandBWDR6RzB5MkgzcENSY0N0cUY0MFJRdzRXNFp1TEUwTzdNX2VrbzhBMWh5bUI4WXQySWFhLUZDZEVlZExIcHJzazgxZzROV1FLVlhBRElDTlZ2Q3MzQkxyWVU4aEMwYWZYeE1xbC1GaHhoa2JYLTFHWElKMTY2QWVn?oc=5",
           "score": 0,
-          "age_h": 1212.0,
+          "age_h": 1212.1,
           "published_at": "2026-09-23T07:00:00Z"
         }
       ],
@@ -5654,7 +5664,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T09:54:00Z",
             "oldest_headline_published_at": "2026-11-12T06:47:06Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5664,7 +5674,7 @@
               "Univest"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 9.13,
+            "newest_headline_age_h": 9.15,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5676,7 +5686,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T09:54:00Z",
             "oldest_headline_published_at": "2026-11-12T06:47:06Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -5686,7 +5696,7 @@
               "Univest"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 9.13,
+            "newest_headline_age_h": 9.15,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -5762,7 +5772,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQbE1RWXRZWlQxX0pkVUtHUDRubXRCRnJFanJ1cG1GQUpxLWNMaFZZdWVRd0RsNk0tX1ZnMkIwYUo3Y0x6ZmZnelR5b3FySFhUb0p5YXltRG85ek1EQ0dJVTB3X3Z3bV9HMjJGSV83TGN1VDFDamxtaEtOQUZ0UkF1U2dfQmtwRFBKd3A2VXBn?oc=5",
           "score": 0,
-          "age_h": 251.0,
+          "age_h": 251.1,
           "published_at": "2026-11-02T08:00:00Z"
         },
         {
@@ -5770,7 +5780,7 @@
           "source": "NDTV Profit",
           "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxOalp5N2VPalBMXzlkcEhuWkxyejQ5aXNzVEZ3bUd1M0d1UlN0SF9hUlloVUJrYkJBZDJYN1hJQWRHRVVoV2x0dE9kTkNNR0tCUWlhWUdhc3dtTGk5TjhNcmN6UTdsMTAtTng3c2dHbDBxS0FzYjJxSUgyUFZqaUR2VEl0aWJPXzBuYVVnM1B4YWFDdW1UWDlFT1h5cm9fYXNwbWdrRHFqVURNN1VjZUFqdnBYWFdSQWsyb0xBMXR3bk9KWkpQYkpRa21lQ0hNNjRxQ1JJVFZLME03dmdKQmplU0J4Y0FLS3FTcFHSAfIBQVVfeXFMTXE5QnVyTk1DMVNFaFVWYldMeXFQY3BCa1ZzVV9KVFpGazVlMlpESkRUSVlEUHcwT3Q3NUZkNGdoY19rb2hXSnBKRDhVNWF5dm53QThYY2cyeGlHMFN1TWx1V1c5SXhhZllCTExLQjFsd2NFTDhsMk5CYU9kQXdhalJPajJwU0pwRHFMdkd3aTVyc0hUMHVRWWhEdXRZN1MtNWxyMlhIbThxLWhQQnRsS2ZfS2paODJYZnBvTWY2OU5yaEd3eFZoN2NkcU82SHFyMzZXWTdQSVRDSmlrNmYwS0dlenNCVHNzbXRtQmV0YjY0dnc?oc=5",
           "score": 2,
-          "age_h": 996.0,
+          "age_h": 996.1,
           "published_at": "2026-10-02T07:00:00Z"
         },
         {
@@ -5778,7 +5788,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNclQyX28zWVdxellqSHJkdk12RGVBMEJKcHdlS0JGVnpaZzB5VEJQSkRmV21Qdnh5bEtaRkNPaDFMdG56TmZrWVhWbGhnY3N1dkUwYTgtd1hJOGpweDhjRWRjQTRVbWs4OURVbldwZEFXSjVIbURZcDE2bnluTC1vVjBHNTJGT3JPcGR0bUJHVDZnWEFzdFJnNDBlVlVkemNKM3c4ME12SHk0QW04RnNEMFI3TFMzUlNsTjdJeTY5dkF2bTZtemgtalNxTnRfUDBaTVlUZnM0T2d4UTlOa25zMkoyd3MzWDY2MloyTWVHNjVzbm1CeVU00gH8AUFVX3lxTE9lVWItekVRX052cHFMaU9ENzJ5VTZ2aGNZbHdNOWFNUmJSTk5Ec3o4TWljNm1zcUhhWUlrN0ZmZUdoS2x0YmVXR1Y1b3pWaV81dWo0YmE2QThTZXpjbkFUWlk5blhIakhWcnhzZzBnTmNDRXNqc1BSOEhUVUE0dFVjYXc2c3gwUV9leXhnSElOM21rMXRDRUhsYmZkbDAxZTd6eU5kbm9lZ1U2U0JMUm02anNqUmhoTTJheUpaLTBtaDVEYVNETl9wNS1UTWhoc3MwYm5mR3RvcFZrbXpTYVp0YnlKMjBBZE0zVWxRMU53a0M1Rjd1V2NPLXVreg?oc=5",
           "score": 0,
-          "age_h": 1716.0,
+          "age_h": 1716.1,
           "published_at": "2026-09-02T07:00:00Z"
         },
         {
@@ -5786,7 +5796,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPZUx3VkZJbnBqajdrOFJlMS0wZGV5TUxVdnc5LTRlWE5CZnBucV94ZDZlc2tyTnF0SmFOMHVsZkdhM1AwTFJ2d0RtUGowOVRZRkR6dWxSd1dKTXRoaDVoX3JxanFxc2dqcG1xX3FMOENZOWdlUmFSdFphYXhuVVBYMXRVUmprSi1tUF9oZk9XdjRfQnNJYnVrdnYzTFV1Ni1BcnMtUW96alJVNnJ3ejFPUU44Y0REWjQydng0cDR0dWhIeG1KUFpKbWQ3eGtzd9IB0wFBVV95cUxPMWw0VDhWaUpLSGg4UVhYQjdKX3E5UFJWeE92RklTM1NJNkFBLU1XNklQRG1lN1hxNWRkd2FIbEJDeWFYTU9EV3lEUk1nQl9FX0R6a1pOcFJuUF9fSmlaY2FQZ0ZUaFIwakNXN0lLQXo1cV9SNVE3dWUzZ2lwVkk2STM5T0IxWktlR29aVnVpSTVpZ0tMM19SUEcyVHdVZUo1bWc0RU5EZUVlRjdXdkZySUhpdEJsemlVbnppdzZtQ3o4eWRVT1M2VFo4MW5BQ0ZQc04w?oc=5",
           "score": 0,
-          "age_h": 1740.0,
+          "age_h": 1740.1,
           "published_at": "2026-09-01T07:00:00Z"
         },
         {
@@ -5794,7 +5804,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxNckh3NXlwMTBiU21HQnFzSGRvVHVIeW5WM015WVAtSGUwd2tXbHBOMmdSTk5uUUxFcWFRcTl3TkNHbGdPNmdGZERtcFdPOXYtcHNYTmJVLTV1Zi1yVC1OcjdiMEJuYzBORjh0bEFUTFdXWE5qMU0zOVBZWTBTTm9GQ1JnOTJydUlNVGpCOHhqMi1KV3NZRWp6RGJNWXVpWERqVjJyMW9WZ3oxcTZwTjF4cEMwUWNxd0ZMUktKLUsycUZaVUVUNU1qUERsa1dWZHk0WG5OVlV6UUt5dVAx0gHiAUFVX3lxTFA0bTdzRHhua0xQb2QyaEY1TTNQS0tfdXlORl9JQVNJaW1ReFdPNEJlc29YaldOXzhMcXBPTG1FWUZ0SnB1NERXVWtBaXh6TVh5dEtCZlIwWVFzaXZrb19WZEpQMUM2aTYyN1N3ZkRndzBjNXpPbkxSaFlCV01sVHpKdldBTjdObTB5UmNsZHNEM1lnbG1hQkZvUkZKU2tpRUJvZHpPSTBnQXBaTHVTeVN6b3RYRGlOZ0g3TmZxRGpkbEVqb0ZXc3YxOWYzbkdhaXBRdVQ2ME9vaktzeVBoUUJJcGc?oc=5",
           "score": 1,
-          "age_h": 2604.0,
+          "age_h": 2604.1,
           "published_at": "2026-07-27T07:00:00Z"
         },
         {
@@ -5802,7 +5812,7 @@
           "source": "Business Today",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQN1FqNElmN2Qya3JDYU1YUktMMmV2X1F5S3lwWG9GR01ldWhxdUdnSkx0aVFtWURqTjlaNWlXMzVBYzJpaTNBWFNCZjlBNzFZbjRxMjJCMDV3elI4QXQ4ZGlRSmh2SDZUYlp0OXRFbEkteHFXSy1Lcm9laV81WjdnT0NHaUN2SFVKZTlhQmtuR29IUThPQzVnQkxfYWFoZ3NpNHJxa1lYeGJJYUFMdzJzVVN2cEM5RVo50gG-AUFVX3lxTE9IdWtyS0VTT3psMUZrZWstN041dkM5S2Y5QTBmdzdqb1NxTVQ3alZ1MDVrNm9NSjczVENYYm5rdi1ESHJtYkJLbXlpMXgzdmZMS0dXVU53b3ZFM2txN1pMS0s5elFiUDhyM0pUeW1jUW5zQ2gwd2loRVJBMkRUbVNNV3FhX0N4RGJPMXFLd3FnUklBbzhkcVJadGxWSjlLQ0RkRWNXUTVCbjZYenRIb29kSG1VaHJOT2VzRm92N1E?oc=5",
           "score": -2,
-          "age_h": 3252.0,
+          "age_h": 3252.1,
           "published_at": "2026-06-30T07:00:00Z"
         }
       ],
@@ -5888,7 +5898,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPdGMyQkNfT2lUNWxwU1hOa2pUc05vSVptQUpJeWV4MC1sRmhRX1hKQVBWQ3E5YU14eGQ0MVo4TVllWDVmb3k0SDhZT2d4Z2RNU2JKVGR5WUtYcWZQWnlpWVhydXctdHF4bE5tc0VpZ2YwWFZJbndRQzhaT1pCY3pVU01DRm1vUTJxZlBkV3R2SW5VUnFiM3lLN19HdW5OTC1E?oc=5",
           "score": 0,
-          "age_h": 131.0,
+          "age_h": 131.1,
           "published_at": "2026-11-07T08:00:00Z"
         },
         {
@@ -5896,7 +5906,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOREFSeF8xbVZkdnVlUjhyTkpvQzJ0Vi1mMU15a0EwSFdlZjdLZHZuWjN2d3VTN2wwNWlpcVJCMkRsRWVVZThfeEhqNDRETW9LdVM2cngySnMwaFlnOFhUamlhVU1QdjhrWXhnZFJ0WndmZHYyQWgwS3VmQWhiYlQ2M2kzMlRpS0ZxNDNpZg?oc=5",
           "score": -1,
-          "age_h": 588.0,
+          "age_h": 588.1,
           "published_at": "2026-10-19T07:00:00Z"
         },
         {
@@ -5904,7 +5914,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxPWVpIZHVsdEZPZGJkNWh2cGdSWi1tdFM1VURsV0d4V1FCQWpfdUVHeE00b21mZmtoSVJGOU00TXZzTHZGNE0zQjJBRXJqUk43U1RGLVg0R09ONEhVU0xpaGVRdEJRZ0llYWt0dDF2MEhXSHQzMml4YVloeUhDQVVQcnVVUGdtOHpRZTY0MnYweHd1MkQtTTFFSElyNzFLRXVxU00tRy14NE40TUx0dFExT2tSRk56d2RUMmF5cGtlSkhYZUJYZjd1cklJTU54SVdwWEt5V0paUFYtbGRDSW1hWC1odzZjMGFNNlZFdnlZc9IB9AFBVV95cUxOU1FjUExQT1RITkk1UEJ1VWIxZEowR05xWGg2U1hOT0NiM0JnSjVsT1lNRjlMcDh4bk4tZFVzd0FaSmVIc2h1NnB4clhhLXRnRDZxUHlJNUNQRkVWRDJrMFFVWFltMFFKYS1oanR5dmxwMHl2LVZ2TGRXZWJWVHowR0NiOFBhT0YxQzk2TEh5SFZMTU1XTGthQnZvRXh3VG93eVJRLTktNGVjZlA0Qkx6RFF1WG1LOE5CLUtYaFdGd2NaS1gzTEU2VFdZckpfRml3TS1WXzRhVjV5N2ZEODdVbDlQMDdUX2dFVUs0bGpVUnhVOXhu?oc=5",
           "score": 0,
-          "age_h": 756.0,
+          "age_h": 756.1,
           "published_at": "2026-10-12T07:00:00Z"
         },
         {
@@ -5912,7 +5922,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQVzdSNEM0ZWpWRnRhckh6clk2blpTTEJ5RnBFN1ByM2dPVTJ2OE1rMEJFczdKM21zelIwaGt0cjZXUjlNUWJ0OG5hWXdRdDlVdG9DQlhaYmo4NkdnX3hCNXJ5MEVEQWFvdnBhd0VKYnQ2RmlnY2o1ekVmNWtmbV8wNUVTZmxpWkVFZS1hcEVLMk1FUQ?oc=5",
           "score": 1,
-          "age_h": 2172.0,
+          "age_h": 2172.1,
           "published_at": "2026-08-14T07:00:00Z"
         },
         {
@@ -5920,7 +5930,7 @@
           "source": "Facebook",
           "link": "https://news.google.com/rss/articles/CBMiogVBVV95cUxNMU9CUTZLQzVVWUlFdGhVODliS1BaM3B6TTFKdlJYWFJER3ZlTWZtRTZfeV9odEtDcVN4TTFsVGw5cGZ1WFdmckl5TkJCaUhYOHlFMHNWTFdLWHZRSWtBdWhGanRROFlnWG9SR3JTRXZTQ2R2LXRpc2JGOEVhamxFRm9lOC1JRXBvR1JrUnlobWlXdHFJU0xIRjZaZElXLUxsaExxQjFRWHpnRlRCdzBDWDhGU1ZDSVFzTWo4M1NrWHl2bWpnYWJ1d1dwMXhqUGc0M0JCM3R0SHZZWmFkVVh5MDJPbDhlYlUwNGlwdVR3UlMxQlJiUUttWi1fTzl5anhlODlyVVBhN0pKblNUN0llYnA2WlJtcUpZeThhcXdubjJzclVSS0ZmczRLYTFOM3JaT04zNWpkSkpOX1BPM0Z2Z1pDVUluMmZCYjR2aXVQdHRUQm5aZGlJRFJZRGhzNzJqeGEySGRVRlhDbzRIZEVjOEZLMk5yTGdxN2VoYXJ3N3VrbUNGMFl6ZWdWQ2ZGLTgyU3k5RDhFZjZocjZ3OU1lZXEyTWVtZHJxRjBUazMyNjc0Xy1GalpyLVBGb2hxWlVHaUZPU2gwVFVSTEUxdGEtSk1vOFJoeUVxY2ZXejMtRWR2dGdTWGxjWDhPbnZhN2xPVmZfcTFyWkloaF9LQmNpZnUtc0pFcnM0bURJYzl1LWtFbkVXazRSMDl0MHJpTldCYkMzTmNCRjV3cU9XZ1BqN1ZtOXpxR18wZWlBcUY5d0dLay10Q09xUVZiM0wxVndMU2w2WDJiSkJuUzdvMm1CVHlWdHRaNHlqalN2Q1VYQU8wVGpwMmJjdkxWSGhsVk43aEdIOXlYZUhsYlpTT1VicmtsQmNUTHFuYXpYckJ2VFRCZw?oc=5",
           "score": 0,
-          "age_h": 2244.0,
+          "age_h": 2244.1,
           "published_at": "2026-08-11T07:00:00Z"
         },
         {
@@ -5928,7 +5938,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxQOWNBWVllUnNYN3Zza1g1OTlJUGFuVGdWLTFqc19Tem9MOF9OT1htdlZnOVRNc3g1MEhzdXJKRUxfZW5EMEZ3RkFyZWNFUkh0QVIxODZZZURwMG93MTRSNDdlWnUxUEhiSDBkMXI5V0FraHNKNUF6VTdzMUZENmItUjZob2JlRGt3ZDlOS3puS1M0ZnRGYTVsWTQ3eF9XRDBxSUNpTW5QSV93MS1MLXRzWlpNWXFkM3dvQndKaDRGeU9TRl9vd0FweV9ldHR4SnVITjhuMzBGcUhhY3kxYU9oMm1rcw?oc=5",
           "score": 0,
-          "age_h": 4212.0,
+          "age_h": 4212.1,
           "published_at": "2026-05-21T07:00:00Z"
         },
         {
@@ -5936,7 +5946,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNQW13Y2ZRQzAyZW9fR0ZQazhRS2dCQUI3QUgwUUlTRUM4SkhJMUZwUlhDOG5yTzFMUlJveXEydjBUUklnY3pWaGRQWjZGTTA1NFViZUprbElfVVN1WWxoeWIxNlEwU2lic0JtRVJFZ0tzUjFBcnpSM1MxdHFqNllUWXh0V0I3YjM4ODNmMzMyV2VwV280dk93LTQ1d1dmSlF2UlBnNHdCN2hYekxrb29KeUsxdjE2R0N0MVBqcEJsNnVzUjhPN3AxNlB6T3A3WGlLREHSAdcBQVVfeXFMUG9aQ19SaGZjXzV0bUNYS1o5WU1JQktxMF81bjJzTDFxRlFhOWs1TVlyMjNFQS12d09IVWFJU0ZJNHZBVVp5TURtcjJybFdvT2ZWajF6SU1JZ2RxbnM0b013RFNYWXVjN1ctc0w0Z1l5blk0UXQ5ZFlvNkhpR3RUQ0NmSzBUQV9LMk82RUxUMnVpMExUak55dEhzdXJVd3FHalIzQURSb0ZyTWpkNDVyYUhJbWkzUDJNRUtrZUt1VFRXT3BMSk1WM3VQeUItclBKb21ZbTEwTlk?oc=5",
           "score": 1,
-          "age_h": 4212.0,
+          "age_h": 4212.1,
           "published_at": "2026-05-21T07:00:00Z"
         },
         {
@@ -5944,7 +5954,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxOSjlwUXdDNXhtdTFhazZyZlltMGRvQVpOQnV4OU9nRk5tZkN5ZHFJbGhvMlpWdjQxMjZOSHpUY2VvVmlnY3BMSHp3X0RHd0h0bGc3NUh6Um9oVUN2RjF1TThVMHZBT2MzMGtpMTBUZ2pNRTlVaDFWbGhQdHFZZGVfRmVKXzNjQk03eGtZZ1JsaXRaSjUzZHFrdXFZWU9zSm1lRThGNG1IZ0xWaHR0NFFMcEVTc1RRNHRKSW1HQVpvOURpaW91NzRXRkIzWWpmVFlsLUdhd2tGMHlVZFR3alBnY1FTQ1d5UG1OQWl4ZWpmX1BTRG01YjhaMGVPWDliWDRjbGtUZGJR?oc=5",
           "score": 0,
-          "age_h": 4236.0,
+          "age_h": 4236.1,
           "published_at": "2026-05-20T07:00:00Z"
         }
       ],
@@ -6072,16 +6082,16 @@
           "source": "Equitypandit",
           "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5RQjVNcXM1Mmp0d0NaT1NMUWh5S1ByaDdEeGlQQkd5TzgwbkpwNTUyOVRZRnVaVHBhSkZYU1VDQmhZLUJ4TkZJNU1SbUFRSTgyUHFQMjBSbzJlUEtvTGptM29QNEdMZw?oc=5",
           "score": 0,
-          "age_h": 107.0,
+          "age_h": 107.1,
           "published_at": "2026-11-08T08:00:00Z"
         },
         {
-          "title": "SBI share price outlook: Brokerages bullish post Q2 results on margins, asset quality, but flag one-off...",
-          "source": "Moneycontrol.com",
-          "link": "https://news.google.com/rss/articles/CBMigAJBVV95cUxPRmw0Yk1IWWIwMU5YYmVTcjJ5QlhMSEktdTRFMGVVWVZOaWwzeXBBSUlQUnVPdlA5YlJhZGlVNmI2Q0NyVTRCYl91Z24tdmtjb2JrV2UxVmcxY3NIbng2WnVJTnkzbUhRY1JkdmZyUVZHX21oY1lLWW5OQ0ZUQXNPdzhVdVc5MmNGZ28xTkdCMXdxZ2lLWWRvRWlYSm5vbDFYNlNzWU5pWkhvb1dUeFdySEZXRmt3cTZkWVhRX3FVSFhOWExmajlQb1ItbEc2ek9reW9ndnAtdUxZS29wLUVCd092eGZiT2NrUzBXQ1E4WUIwNmloQk5VanNmemxoS2Vt0gGGAkFVX3lxTE41NEphcDB0dmVCT2NPLTN1NUlIeWgtZ1VRaGNZbkpjNmFTZC1EQUlOZWs4bENrNEt1emY2MkFoNER3RWZqbmw1b3hkT3JsV2VTLWt6MkZnMnJ0dUNrMGQybTkxSG5vNzdzc2EyU2ZsV0gyLTZQb3JBNmNoR3ZubjNqdGt2UFpaRGRZMXl4bWVEREhGZHdPd2t3d0FJWDA4cXBkMFkzYndWeWd6MUU0NHNPbGtiTXNGSUJ1djRaZk9yVml4THdpcnVMUXJjWmhsQTNkWE1mUWFnbmZlN1FxbjVYWkVlSUY4bFVoWV9aSVY0UWZPS3V0eGVKRXZGcUE4bkFQSWlma3c?oc=5",
-          "score": 2,
-          "age_h": 203.0,
-          "published_at": "2026-11-04T08:00:00Z"
+          "title": "Where Could SBI Share Price Potentially be in the Next 5 Years?",
+          "source": "Equitymaster",
+          "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQQkZVSWFxV0lzWlQ0NndkY2dMNWh4dTdmUFBtaDVWcjRGVTgxdnRmQ2NRaHRNeTY5d0V6Q19XRGJlREthTHkzNDh0WVl3bGhZam1fdm16dWdYUVpSTVotdFZmTHVSbzdpVWQyNVl1M2hRaFJFa2hfdnJydEdnS1l4YVBrWXBZNmRwb3QyM0loSWxVb19iRkVjRlJHQm5NUDBBRGxWZkFwdHNpR2dGR3hEMGYtN0F1aExYcVdWeGJfVV9GdFdsWGEtZjdWVWo?oc=5",
+          "score": 0,
+          "age_h": 1356.1,
+          "published_at": "2026-09-17T07:00:00Z"
         }
       ],
       "pos_n": 6,
@@ -6118,7 +6128,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T13:51:30Z",
             "oldest_headline_published_at": "2026-11-11T20:40:50Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -6132,7 +6142,7 @@
               "Upstox"
             ],
             "query": "SBI share",
-            "newest_headline_age_h": 5.17,
+            "newest_headline_age_h": 5.19,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -6144,7 +6154,7 @@
             "source_date": "2026-11-12",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-12T19:01Z",
+            "observed_at": "2026-11-12T19:02Z",
             "newest_headline_published_at": "2026-11-12T13:51:30Z",
             "oldest_headline_published_at": "2026-11-11T20:40:50Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -6158,7 +6168,7 @@
               "Upstox"
             ],
             "query": "SBI share",
-            "newest_headline_age_h": 5.17,
+            "newest_headline_age_h": 5.19,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -8409,7 +8419,7 @@
   ],
   "headline_split": {
     "pos": 12,
-    "neg": 4,
+    "neg": 3,
     "unique_headlines": 21,
     "scope": "NIFTY+SENSEX+BANKNIFTY; duplicate titles removed"
   },
@@ -8419,7 +8429,7 @@
     "fii": 7830.6,
     "dii": -6331.17,
     "stale": false,
-    "as_of_run": "2026-11-12T19:01Z"
+    "as_of_run": "2026-11-12T19:02Z"
   },
   "participant_oi": {
     "ok": true,
@@ -8738,7 +8748,7 @@
         "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE9tdm9KQUE0MXhfbEswV3U2bU8yMUJCbmF6cTh6bmJwY280TW91RmZ3OWFPcXlFd0g1TGx5Z3hIR2xWcUxJM1g0TXpvRUdkTWotVkpLd2JtbnVQYmxqbFIwbHVuTkU0WXNZUUlR?oc=5",
         "score": -1,
         "impact": "तटस्थ",
-        "age_h": 2.6
+        "age_h": 2.7
       },
       {
         "topic": "कच्चा तेल",
@@ -8823,7 +8833,7 @@
       }
     ],
     "stale": false,
-    "as_of": "2026-11-12T19:01Z"
+    "as_of": "2026-11-12T19:02Z"
   },
   "trends": {
     "ok": false,
@@ -8912,7 +8922,7 @@
         "vwap_side": null,
         "vol_hi": null,
         "vol_ok": false,
-        "since": "2026-11-12T19:01Z",
+        "since": "2026-11-12T19:02Z",
         "last_30m": {
           "start": "2026-11-12T09:30:00Z",
           "end": "2026-11-12T10:00:00Z",
@@ -11120,7 +11130,7 @@
         ]
       },
       "HDFCBANK": {
-        "score": 2.7,
+        "score": 2.4,
         "sent": 1,
         "price_dir": 1,
         "vwap_side": 1,
@@ -12085,7 +12095,7 @@
         "direction": "लगभग स्थिर"
       },
       {
-        "time": "2026-11-12T19:01Z",
+        "time": "2026-11-12T19:02Z",
         "instrument": "NIFTY",
         "prev_score": 10.0,
         "new_score": 10.0,
@@ -12093,7 +12103,7 @@
           "कीमत"
         ],
         "vol_data": false,
-        "held_minutes": 305,
+        "held_minutes": 306,
         "price_at_change": 25299.3496,
         "price_after": null,
         "move_pct": null,
