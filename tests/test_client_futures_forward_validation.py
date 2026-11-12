@@ -54,7 +54,8 @@ class ClientFuturesForwardValidationTests(unittest.TestCase):
         )
         self.assertEqual(result["sample_sessions"], 4)
         self.assertEqual(result["remaining_observations"], 10)
-        self.assertEqual(result["status"], "collecting_new_sessions")
+        self.assertEqual(result["status"], "insufficient_sessions")
+        self.assertEqual(result["collection_status"], "collecting_new_sessions")
 
 
 if __name__ == "__main__":
