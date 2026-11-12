@@ -905,7 +905,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       : (clientContextAvailable
         ? (key === "client_ce_pe"
           ? "NSE CLIENT के CALL/PUT Long और Short बदलाव उपलब्ध हैं; ये पूरे Index F&O बाजार का aggregate हैं, किसी एक index के नहीं। इसलिए डेटा diagnostic में दिखेगा, asset Final Score में नहीं।"
-          : "NSE CLIENT Index Futures Long/Short बदलाव उपलब्ध हैं; ये पूरे बाजार का aggregate हैं, किसी एक index के नहीं। इसलिए डेटा diagnostic में दिखेगा, asset Final Score में नहीं।")
+          : "NSE CLIENT Index Futures को CE/PE से अलग Futures component के रूप में दिखाया जाता है। Futures Net = Long बदलाव − Short बदलाव; दोनों बदलाव उपलब्ध होने पर NET BUY/NET SELL निकलेगा। ध्यान दें: NSE रिपोर्ट पूरे Index Futures बाजार का aggregate है, NIFTY/SENSEX/BANKNIFTY की अलग-अलग CLIENT positions नहीं। इसलिए यह अभी diagnostic-only है, asset Final Score में शामिल नहीं।")
         : (directionalAvailable
           ? "चयनित asset-specific खोज-शब्दों का Google Trends डेटा मिला; अभी Final Score में शामिल नहीं"
           : reason));
