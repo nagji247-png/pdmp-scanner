@@ -22,6 +22,29 @@ class CrowdMoodArchiveTests(unittest.TestCase):
         self.assertEqual(len(archive["events"]), 1)
         self.assertEqual(len(archive["price_snapshots"]), 6)
 
+    def test_legacy_daily_event_is_backfilled_but_not_intraday_eligible(self):
+        row = {"updated": "2026-11-12T04:00:00Z", "trends": {}, "instruments": {},
+            "crowd_stats": {"events": [{"date": "2026-11-11", "direction": "bull",
+                "crowd_pct": 76.2, "next_change": None, "outcome": None}]}}
+        archive = update_archive({}, row)
+        event = archive["events"][0]
+        self.assertEqual(event["market_date"], "2026-11-11")
+        self.assertEqual(event["mood"], "EXTREME_BULLISH")
+        self.assertEqual(event["mood_source"], "legacy_crowd_stats")
+        self.assertFalse(event["intraday_event_eligible"])
+        self.assertIsNone(event["trends_source_timestamp_utc"])
+
+    def test_quote_market_date_is_not_scan_date(self):
+        row = {"updated": "2026-11-12T04:00:00Z", "trends": {}, "instruments": {
+            "NIFTY": {"price": 25255.05, "price_as_of": "11/11/2026",
+                "price_time": "03:30 PM IST", "price_source": "NSE India · पिछला बंद भाव"}}}
+        archive = update_archive({}, row)
+        nifty = next(x for x in archive["price_snapshots"] if x["index"] == "NIFTY")
+        self.assertEqual(nifty["market_date"], "2026-11-11")
+        self.assertEqual(nifty["scan_market_date"], "2026-11-12")
+        self.assertEqual(nifty["quote_kind"], "closing")
+        self.assertFalse(nifty["intraday_eligible"])
+
     def test_last_close_is_not_intraday_quote(self):
         row = {"updated": "2026-11-12T04:00:00Z", "trends": {}, "instruments": {
             "NIFTY": {"price": 25000, "price_as_of": "2026-11-12", "price_time": "09:30",
