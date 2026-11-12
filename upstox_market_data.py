@@ -93,6 +93,13 @@ def fetch_upstox_candles(symbol, interval_minutes, token=None, session=None):
                     or high < max(opening, close) or low > min(opening, close)
                     or high < low):
                 continue
+            oi = None
+            if len(row) > 6 and row[6] is not None:
+                try:
+                    candidate_oi = float(row[6])
+                    oi = candidate_oi if math.isfinite(candidate_oi) else None
+                except (TypeError, ValueError, OverflowError):
+                    oi = None
             result.append({
                 "time": stamp,
                 "open": opening,
@@ -101,10 +108,7 @@ def fetch_upstox_candles(symbol, interval_minutes, token=None, session=None):
                 "close": close,
                 "price": close,
                 "volume": volume,
-                "open_interest": (
-                    float(row[6]) if len(row) > 6 and row[6] is not None
-                    and math.isfinite(float(row[6])) else None
-                ),
+                "open_interest": oi,
                 "source": "Upstox API V3",
             })
         return sorted(result, key=lambda item: item["time"])
