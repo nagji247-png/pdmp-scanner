@@ -66,19 +66,28 @@ class ParticipantOISpecialSessionTests(unittest.TestCase):
 
     def test_backfill_checks_missing_special_sessions_even_after_target_met(self):
         start = dt.date(2025, 1, 1)
+        special_dates = {"2026-02-01", "2026-11-08"}
+        dates = []
+        cursor = start
+        while len(dates) < 500:
+            if cursor.isoformat() not in special_dates:
+                dates.append(cursor.isoformat())
+            cursor += dt.timedelta(days=1)
         records = [
-            {"date": (start + dt.timedelta(days=i)).isoformat(),
+            {"date": date,
              "source": "NSE official participant-wise OI",
              "scope": "Index F&O participant totals",
              "participants": participant_snapshot("2025-01-01")["participants"]}
-            for i in range(252)
+            for date in dates
         ]
         archive = {
             "records": records,
             "backfill": {
-                "version": 6,
+                "version": 8,
                 "attempted_at": "2026-11-10T00:00Z",
-                "target_sessions": 250,
+                "target_sessions": 500,
+                "next_date": "2024-12-31",
+                "calendar_days_remaining": 421,
             },
         }
         calendar = {
@@ -99,7 +108,7 @@ class ParticipantOISpecialSessionTests(unittest.TestCase):
             result = fetch_and_score.update_participant_oi_history()
         dates = {row["date"] for row in result["records"]}
         self.assertTrue({"2026-02-01", "2026-11-08"}.issubset(dates))
-        self.assertEqual(len(result["records"]), 254)
+        self.assertEqual(len(result["records"]), 502)
         self.assertEqual(result["backfill"]["sessions_added"], 2)
         self.assertEqual(result["backfill"]["missing_special_dates"], [])
         self.assertEqual(fetch.call_count, 2)
