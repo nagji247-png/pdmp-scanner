@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "indices": {
+    "NIFTY": {
+      "sample_count": 3,
+      "minimum_samples_required": 60,
+      "status": "insufficient_sample",
+      "pearson_correlation": -0.9799,
+      "continuation_directional_hits": 2,
+      "contrarian_directional_hits": 1,
+      "directional_sample_count": 3,
+      "continuation_hit_rate_pct": 66.67,
+      "contrarian_hit_rate_pct": 33.33,
+      "samples": [
+        {
+          "signal_date": "2026-11-06",
+          "next_captured_date": "2026-11-09",
+          "breadth_score": 8.0,
+          "next_captured_return_pct": 0.0571
+        },
+        {
+          "signal_date": "2026-11-09",
+          "next_captured_date": "2026-11-11",
+          "breadth_score": -1.4,
+          "next_captured_return_pct": 0.8401
+        },
+        {
+          "signal_date": "2026-11-11",
+          "next_captured_date": "2026-11-12",
+          "breadth_score": 4.8,
+          "next_captured_return_pct": 0.1754
+        }
+      ],
+      "research_only": true,
+      "score_eligible": false
+    },
+    "BANKNIFTY": {
+      "sample_count": 3,
+      "minimum_samples_required": 60,
+      "status": "insufficient_sample",
+      "pearson_correlation": -0.5108,
+      "continuation_directional_hits": 3,
+      "contrarian_directional_hits": 0,
+      "directional_sample_count": 3,
+      "continuation_hit_rate_pct": 100.0,
+      "contrarian_hit_rate_pct": 0.0,
+      "samples": [
+        {
+          "signal_date": "2026-11-06",
+          "next_captured_date": "2026-11-09",
+          "breadth_score": 4.29,
+          "next_captured_return_pct": 1.109
+        },
+        {
+          "signal_date": "2026-11-09",
+          "next_captured_date": "2026-11-11",
+          "breadth_score": 3.57,
+          "next_captured_return_pct": 1.7595
+        },
+        {
+          "signal_date": "2026-11-11",
+          "next_captured_date": "2026-11-12",
+          "breadth_score": 8.57,
+          "next_captured_return_pct": 1.1944
+        }
+      ],
+      "research_only": true,
+      "score_eligible": false
+    },
+    "SENSEX": {
+      "sample_count": 3,
+      "minimum_samples_required": 60,
+      "status": "insufficient_sample",
+      "pearson_correlation": -0.8267,
+      "continuation_directional_hits": 2,
+      "contrarian_directional_hits": 1,
+      "directional_sample_count": 3,
+      "continuation_hit_rate_pct": 66.67,
+      "contrarian_hit_rate_pct": 33.33,
+      "samples": [
+        {
+          "signal_date": "2026-11-06",
+          "next_captured_date": "2026-11-09",
+          "breadth_score": 9.33,
+          "next_captured_return_pct": 0.097
+        },
+        {
+          "signal_date": "2026-11-09",
+          "next_captured_date": "2026-11-11",
+          "breadth_score": -2.33,
+          "next_captured_return_pct": 0.9528
+        },
+        {
+          "signal_date": "2026-11-11",
+          "next_captured_date": "2026-11-12",
+          "breadth_score": 3.33,
+          "next_captured_return_pct": 0.0386
+        }
+      ],
+      "research_only": true,
+      "score_eligible": false
+    }
+  },
+  "minimum_samples_required": 60,
+  "research_only": true,
+  "score_eligible": false,
+  "production_mutation": false,
+  "note": "Next captured EOD close, not guaranteed to be the immediately following exchange session; review gaps before interpreting. Correlation and hit rates are descriptive, not proof of predictive power."
+}
