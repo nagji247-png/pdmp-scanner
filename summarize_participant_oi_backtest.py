@@ -351,6 +351,7 @@ def summarize_index(name, index):
         },
         "features": features,
         "client_futures_recent_7_session_check": index.get("client_futures_recent_7_session_check") or {"status": "unavailable", "directional_hit_rate_pct": None},
+        "client_futures_new_14_session_check": index.get("client_futures_new_14_session_check") or {"status": "unavailable", "directional_hit_rate_pct": None},
         "client_option_quantity_magnitude_thresholds": [
             {
                 "horizon_sessions": row.get("horizon_sessions"),
