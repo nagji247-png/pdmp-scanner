@@ -91,8 +91,20 @@ def main():
     nse_archive = load_json(args.nse_archive, {"records": []})
     bse_archive = load_json(args.bse_archive, {"records": []})
     roster_bundle = load_json(args.rosters, {})
+    saved = load_json(args.output, {"records": []})
+    completed_days = set()
+    for row in saved.get("records", []) if isinstance(saved, dict) else []:
+        indices = row.get("indices", {}) if isinstance(row, dict) else {}
+        complete = sum(
+            1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
+            if isinstance(indices.get(key), dict)
+            and indices[key].get("status") == "complete_diagnostic"
+        )
+        if complete == 3:
+            completed_days.add(str(row.get("date")))
     if args.date:
-        days = [dt.date.fromisoformat(args.date).isoformat()]
+        requested_day = dt.date.fromisoformat(args.date).isoformat()
+        days = [] if requested_day in completed_days else [requested_day]
     else:
         today = dt.datetime.now(IST).date()
         first = today - dt.timedelta(days=args.backfill_days - 1)
@@ -104,17 +116,6 @@ def main():
         }
         # Do not replay already-complete dates: append_diagnostic intentionally
         # refuses to overwrite an equally complete record.
-        saved = load_json(args.output, {"records": []})
-        completed_days = set()
-        for row in saved.get("records", []) if isinstance(saved, dict) else []:
-            indices = row.get("indices", {}) if isinstance(row, dict) else {}
-            complete = sum(
-                1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
-                if isinstance(indices.get(key), dict)
-                and indices[key].get("status") == "complete_diagnostic"
-            )
-            if complete == 3:
-                completed_days.add(str(row.get("date")))
         days = sorted(archived_days - completed_days)
     results = []
     for day in days:
