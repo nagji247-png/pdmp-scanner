@@ -5127,9 +5127,7 @@ def stock_refresh_slot(now_utc):
 
 
 def retail_adjust(po):
-    """रिटेल (CLIENT) की इंडेक्स ऑप्शन स्थिति से स्कोर का समायोजन (-2 से +2)।
-    CE का Long हिस्सा PE के Long हिस्से से जितना ज़्यादा, उतना बुलिश। (CE% − PE%) ÷ 10, सीमा ±2।
-    यह कल का (EOD) डेटा है। न मिले तो 0।"""
+    """CLIENT option-position adjustment kept as a dated diagnostic, not a score input."""
     if not po or not po.get("ok"):
         return 0.0, None
     c = (po.get("participants") or {}).get("CLIENT") or {}
@@ -5145,6 +5143,23 @@ def retail_adjust(po):
     adj = round(max(-2.0, min(2.0, (ce - pe) / 10)), 2)
     bias = "Bullish" if adj > 0 else ("Bearish" if adj < 0 else "Neutral")
     return adj, {"ce_pct": ce, "pe_pct": pe, "bias": bias, "date": po.get("date"), "adj": adj}
+
+
+def validated_news_crowd_score(news_component, crowd_component=None, crowd_valid=False):
+    """Score only validated News and crowd components; participant OI stays diagnostic."""
+    news = finite_number(news_component)
+    if news is None:
+        raise ValueError("news component must be a finite number")
+    crowd = finite_number(crowd_component)
+    if crowd_valid and crowd is not None:
+        combined = news * 0.50 + crowd * 0.50
+        mode = "news_crowd"
+        normalized_weights = {"news": 50.0, "crowd": 50.0}
+    else:
+        combined = news
+        mode = "news_only"
+        normalized_weights = {"news": 100.0}
+    return round(max(-10.0, min(10.0, combined)), 1), mode, normalized_weights
 
 
 def participant_changes(today, prev):
@@ -5778,7 +5793,6 @@ def main():
         if _d and rinfo is not None:
             _d["headline_score"] = _d["score"]
             _d["retail_adj"] = adj
-            _d["score"] = round(_d["score"] + adj, 1)
     result["retail_mood"] = rinfo
 
     market_news = pick_with_fallback(fetch_market_news(), previous.get("market_news") or {})
@@ -6039,9 +6053,8 @@ def main():
         result["participant_oi"].get("changes"),
     )
 
-    # अंतिम इंडेक्स स्कोर: खबरें 40%, Google Trends crowd 40%, NSE CLIENT OI 20%.
-    # हर घटक -10..+10 पर सामान्यीकृत है। कोई आवश्यक स्रोत न मिले तो crowd composite
-    # का दावा नहीं करें; पुराना news+CLIENT score सुरक्षित रखें।
+    # अंतिम इंडेक्स स्कोर: केवल सत्यापित News और Google Trends; दोनों उपलब्ध हों तो 50/50.
+    # NSE participant OI और CLIENT adjustment अलग diagnostic हैं, final score में शामिल नहीं।
     fresh_trends = bool(trends.get("ok") and not trends.get("stale"))
     crowd_bull = trends.get("crowd_bull_pct") if fresh_trends else None
     crowd_total_bull = trends.get("bull_score_pct") if fresh_trends else None
@@ -6060,27 +6073,25 @@ def main():
         if crowd_valid else None
     )
     retail_valid = isinstance(rinfo, dict) and isinstance(adj, (int, float))
-    # Shadow calculation only: the published production score is not changed.
-    # Neutral-only/weak directional Trends may be valid descriptive mood data but cannot enter a numeric crowd score.
+    crowd_score_valid = bool(crowd_valid and crowd_component is not None)
+    # Shadow calculation only; unvalidated CLIENT OI is retained as a separate diagnostic.
+    # Neutral-only/weak directional Trends may be descriptive but cannot enter a numeric crowd score.
     experimental_news = experimental_news_scores(result["instruments"], now_utc=now_utc)
     for _n, _exp in experimental_news.items():
         _d = result["instruments"].get(_n)
         if not _d:
             continue
         _exp_news = _exp["news_score"]
-        _exp_retail = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
-        if crowd_valid and crowd_component is not None and retail_valid:
-            _exp_crowd = crowd_component
-            _exp_combined = _exp_news * 0.40 + _exp_crowd * 0.40 + _exp_retail * 0.20
-            _exp_mode = "shadow_news24h_dedup_crowd_client"
-        elif retail_valid:
-            _exp_combined = _exp_news * (40.0 / 60.0) + _exp_retail * (20.0 / 60.0)
-            _exp_mode = "shadow_news24h_dedup_client_only"
-        else:
-            _exp_combined = _exp_news
-            _exp_mode = "shadow_news24h_dedup_only"
+        _exp_combined, _exp_mode_base, _ = validated_news_crowd_score(
+            _exp_news, crowd_component, crowd_score_valid
+        )
+        _exp_mode = (
+            "shadow_news24h_dedup_crowd"
+            if _exp_mode_base == "news_crowd"
+            else "shadow_news24h_dedup_only"
+        )
         _d["experimental_news_score"] = round(_exp_news, 1)
-        _d["experimental_score"] = round(max(-10.0, min(10.0, _exp_combined)), 1)
+        _d["experimental_score"] = _exp_combined
         _d["experimental_score_mode"] = _exp_mode
         _d["experimental_headline_count"] = _exp["headline_count"]
         _d["experimental_excluded_old_or_unknown"] = _exp["excluded_old_or_unknown"]
@@ -6089,32 +6100,29 @@ def main():
         _d = result["instruments"].get(_n)
         if not _d:
             continue
-        if crowd_valid and crowd_component is not None and retail_valid:
-            news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
-            # Crowd score uses the three-way net directional share; neutral search interest has zero directional weight.
-            retail_component = max(-10.0, min(10.0, float(adj) * 5))
-            combined = news_component * 0.40 + crowd_component * 0.40 + retail_component * 0.20
-            _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
-            _d["score_mode"] = "news_crowd_client"
-        else:
-            # Trends अमान्य/अनुपलब्ध हों तो News और CLIENT को उपलब्ध 60% भार पर
-            # normalize करें; पुराने scan का score गलती से carry forward न हो।
-            news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
-            retail_component = max(-10.0, min(10.0, float(adj) * 5)) if retail_valid else 0.0
-            if retail_valid:
-                combined = news_component * (40.0 / 60.0) + retail_component * (20.0 / 60.0)
-            else:
-                combined = news_component
-            _d["score"] = round(max(-10.0, min(10.0, combined)), 1)
-            _d["score_mode"] = "news_client_only"
+        news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
+        _score, _mode, _normalized_weights = validated_news_crowd_score(
+            news_component, crowd_component, crowd_score_valid
+        )
+        _d["score"] = _score
+        _d["score_mode"] = _mode
     result["index_score_method"] = {
-        "mode": "news_crowd_client" if crowd_valid and retail_valid else "news_client_only",
-        "weights": {"news": 40, "crowd": 40, "client": 20},
-        "crowd_included": bool(crowd_valid),
+        "mode": "news_crowd" if crowd_score_valid else "news_only",
+        "weights": {"news": 50, "crowd": 50},
+        "normalized_weights_pct": (
+            {"news": 50.0, "crowd": 50.0}
+            if crowd_score_valid else {"news": 100.0}
+        ),
+        "crowd_included": bool(crowd_score_valid),
+        "crowd_source_valid": bool(crowd_valid),
         "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
         "crowd_bull_pct": crowd_bull if fresh_trends else None,
-        "crowd_net_score": crowd_component if crowd_valid else None,
-        "client_included": bool(retail_valid),
+        "crowd_net_score": crowd_component if crowd_score_valid else None,
+        "client_included": False,
+        "client_diagnostic_only": True,
+        "client_diagnostic_available": bool(retail_valid),
+        "client_adjustment_diagnostic": adj if retail_valid else None,
+        "client_excluded_reason": "NSE participant OI has not demonstrated a validated out-of-sample predictive edge; it remains diagnostic only.",
     }
 
     # अब signal history भी इसी अंतिम स्कोर से बनेगी।
