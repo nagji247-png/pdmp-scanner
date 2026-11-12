@@ -57,5 +57,5 @@ class ClientFuturesForwardValidationTests(unittest.TestCase):
         self.assertEqual(result["status"], "collecting_new_sessions")
 
 
-if __ (name__ == "__main__"):
+if __name__ == "__main__":
     unittest.main()
