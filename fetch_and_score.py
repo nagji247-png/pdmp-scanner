@@ -7,6 +7,9 @@ from component_scoring import (
     parse_utc_timestamp,
     compare_mcx_bhavcopy_contract_oi, compare_nse_udiff_index_futures_oi,
 )
+from client_futures_promotion import (
+    build_client_futures_component, load_client_futures_promotion,
+)
 from provisional_component_scoring import (
     PROVISIONAL_WEIGHTS, index_oi_balance_component,
     client_marketwide_components, source_date_is_fresh,
@@ -577,6 +580,7 @@ def build_asset_component_breakdowns(
         news_source_date = str(updated or "")[:10]
 
     stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date)
+    client_futures_promotion = load_client_futures_promotion(news_source_date)
     try:
         with open("nse_index_option_oi.json", "r", encoding="utf-8") as handle:
             index_oi_archive = json.load(handle)
@@ -872,19 +876,27 @@ def build_asset_component_breakdowns(
                     ),
                 }
 
-            # CLIENT Futures stays diagnostic-only until its own directional
-            # method passes chronological holdout validation.
-            excluded["client_futures"] = {
-                "applicable": True,
-                "included": False,
-                "source": (client_context or {}).get("source") or "NSE participant-wise OI · CLIENT",
-                "source_date": (client_context or {}).get("source_date"),
-                "scope": "market-wide CLIENT Futures aggregate; not index-specific",
-                "reason": (
-                    "CLIENT Futures का डेटा मौजूद हो सकता है, लेकिन market-wide "
-                    "directional scoring का holdout edge अभी प्रमाणित नहीं; इसलिए Final से बाहर।"
-                ),
-            }
+            # CLIENT Futures may enter only after a fresh, prospective 14-session
+            # gate passes on all three index price series with both signal directions.
+            futures_component = build_client_futures_component(
+                client_context, news_source_date, client_futures_promotion,
+                weight=PROVISIONAL_WEIGHTS["client_futures"], max_age_days=3,
+            )
+            if futures_component:
+                provisional_components["client_futures"] = futures_component
+                if isinstance(client_context, dict):
+                    client_context["client_futures_included_in_provisional_final"] = True
+                    client_context["client_futures_validation_orientation"] = client_futures_promotion.get("orientation")
+            else:
+                excluded["client_futures"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": (client_context or {}).get("source") or "NSE participant-wise OI · CLIENT",
+                    "source_date": (client_context or {}).get("source_date"),
+                    "scope": "shared market-wide CLIENT Futures aggregate; not index-specific",
+                    "validation_status": client_futures_promotion.get("status"),
+                    "reason": client_futures_promotion.get("reason") or "14-session validation gate पास नहीं हुआ या ताज़ा CLIENT Futures snapshot उपलब्ध नहीं।",
+                }
 
         provisional_final = combine_components(
             provisional_components, PROVISIONAL_WEIGHTS
@@ -942,7 +954,7 @@ def build_asset_component_breakdowns(
         "score_range": "-10..+10",
         "search_rule": "Only fresh asset-specific Google Trends related_queries with timeframe now 1-d; no global NIFTY or 7-day fallback.",
         "news_rule": "Only publisher-timestamped asset-specific headlines no older than 24 hours; age is recomputed from published_at; source_date is newest eligible headline date in IST; cross-index duplicate stories excluded.",
-        "participant_oi_scope": "CLIENT CE/PE is a shared market-wide provisional component in NIFTY/SENSEX/BANKNIFTY provisional Finals; CLIENT Futures remains diagnostic-only; neither is index-specific.",
+        "participant_oi_scope": "CLIENT CE/PE is shared market-wide; CLIENT Futures enters provisional Finals only after fresh 14-session all-index promotion gate; neither is index-specific.",
         "published_score_changed": False,
     }
 
