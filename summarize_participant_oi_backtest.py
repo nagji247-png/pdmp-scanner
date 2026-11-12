@@ -350,6 +350,7 @@ def summarize_index(name, index):
             "interpretation": "No live-score eligibility; use only as a conservative diagnostic.",
         },
         "features": features,
+        "client_futures_recent_7_session_check": index.get("client_futures_recent_7_session_check") or {"status": "unavailable", "directional_hit_rate_pct": None},
         "client_option_quantity_magnitude_thresholds": [
             {
                 "horizon_sessions": row.get("horizon_sessions"),
