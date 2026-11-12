@@ -31,6 +31,36 @@ def append_diagnostic(output_path, result):
     if existing:
         if existing == result:
             return False
+        # A one-shot EOD fetch can fail while the exchange archive is publishing.
+        # Permit a same-session retry to upgrade a withheld record only when the
+        # new result has strictly more fully verified index baskets. Never allow
+        # a retry to downgrade or silently replace an equally complete record.
+        def complete_count(record):
+            indices = record.get("indices") if isinstance(record, dict) else None
+            if not isinstance(indices, dict):
+                return int(bool(record.get("all_three_complete")))
+            return sum(
+                1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
+                if isinstance(indices.get(key), dict)
+                and indices[key].get("status") == "complete_diagnostic"
+            )
+        if complete_count(result) > complete_count(existing):
+            archive["records"] = [
+                result if row is existing else row for row in archive["records"]
+            ]
+            archive["records"].sort(key=lambda row: row["date"])
+            archive["schema_version"] = 1
+            archive["research_only"] = True
+            archive["score_eligible"] = False
+            target = Path(output_path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_suffix(target.suffix + ".tmp")
+            temporary.write_text(
+                json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+                encoding="utf-8",
+            )
+            temporary.replace(target)
+            return True
         raise ValueError(f"cash basket diagnostic already exists for {day}; refusing overwrite")
     archive["records"].append(result)
     archive["records"].sort(key=lambda row: row["date"])
