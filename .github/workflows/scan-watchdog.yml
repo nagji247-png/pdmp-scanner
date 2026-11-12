@@ -4,7 +4,7 @@ on:
   # Schedule registration refresh: check every 10 minutes; dispatch only if published scan data is stale.
   # This keeps recovery ahead of the dashboard's 45-minute NO TRADE cutoff.
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:
 
 permissions:
