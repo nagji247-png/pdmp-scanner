@@ -5937,12 +5937,6 @@ def main():
         trends["daily_status_note"] = "दैनिक औसत अधूरा (" + "; ".join(details) + ")"
 
     result["trends"] = trends
-    # Archive daily extreme crowd mood and already-fetched index quotes; no extra requests.
-    crowd_mood_archive = update_crowd_mood_archive(
-        load_json("crowd_mood_history.json", {}), result, updated
-    )
-    with open("crowd_mood_history.json", "w", encoding="utf-8") as f:
-        json.dump(crowd_mood_archive, f, ensure_ascii=False, indent=2, allow_nan=False)
     # Refresh asset-specific Search on scheduled slots and explicit manual scans.
     # Manual scans use one five-seed batch plus one CRUDEOIL batch; they do not
     # launch the six extra directional phrase requests, keeping 429 risk bounded.
@@ -6082,6 +6076,14 @@ def main():
         "followed": len([e for e in done if e["outcome"] == "followed"]),
         "events": crowd_events[-10:],
     }
+
+    # Archive after crowd_stats exists so pre-archive daily events can be backfilled.
+    # This reuses existing data and makes no additional provider requests.
+    crowd_mood_archive = update_crowd_mood_archive(
+        load_json("crowd_mood_history.json", {}), result, updated
+    )
+    with open("crowd_mood_history.json", "w", encoding="utf-8") as f:
+        json.dump(crowd_mood_archive, f, ensure_ascii=False, indent=2, allow_nan=False)
 
     result = clean(result)
     update_market_signal_history(result)
