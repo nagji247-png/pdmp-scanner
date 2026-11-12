@@ -63,6 +63,10 @@ jobs:
           print(f"- Status: **{report.get('status')}**")
           print(f"- OI sessions: **{report.get('oi_sessions')}** ({report.get('oi_first_date')} to {report.get('oi_last_date')})")
           print(f"- Production score changed: **No**")
+          inference = report.get("magnitude_threshold_inference") or {}
+          print(f"- Threshold comparisons: **{inference.get('family_size', 0)}**")
+          print(f"- Statistical method: **{inference.get('method', 'not available')}**")
+          print(f"- Live score eligible: **{inference.get('live_score_eligible', False)}**")
           if report.get("status") != "exploratory_only":
               print(f"- Reason: {report.get('reason', 'research report unavailable')}")
           for asset, item in (report.get("indices") or {}).items():
@@ -75,6 +79,17 @@ jobs:
                   holdout = row.get("holdout") or {}
                   train = row.get("train") or {}
                   print(f"| {row.get('horizon_sessions')} | {holdout.get('directional_observation_count')} | {holdout.get('directional_hit_rate_pct')}% | {holdout.get('contrarian_hit_rate_pct')}% | {holdout.get('false_signals')} |")
+              thresholds = item.get("client_option_quantity_magnitude_thresholds") or []
+              if thresholds:
+                  print("\\n**CLIENT quantity magnitude thresholds (chronological holdout)**")
+                  print("| Horizon | Train quantile | Absolute quantity | Holdout n | PDMP hit rate | 95% CI | Holm p |")
+                  print("|---:|---:|---:|---:|---:|---:|---:|")
+                  for threshold in thresholds:
+                      evidence = threshold.get("statistical_evidence") or {}
+                      interval = evidence.get("pdmp_hit_rate_ci95_pct")
+                      ci = f"{interval[0]}–{interval[1]}%" if interval else "—"
+                      pvalue = evidence.get("holm_adjusted_p_value")
+                      print(f"| {threshold.get('horizon_sessions')} | {threshold.get('training_quantile')} | {threshold.get('absolute_quantity_threshold')} | {threshold.get('holdout_selected_observations')} | {threshold.get('pdmp_contrarian_hit_rate_pct')}% | {ci} | {pvalue} |")
           print("\nThis tests index direction from next-session open to the 1/3/5-session close; it does not test option premium profitability.")
           print("NSE CLIENT options OI is market-wide aggregate positioning, not separate index-level CLIENT positioning.")
           PY
