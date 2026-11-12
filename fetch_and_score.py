@@ -2929,12 +2929,13 @@ def update_contrarian(events, name, score, today_str, returns, sym):
             # Keep it retryable while the event-time candle may still be fetched.
             existing["after_30m"] = {"status": "pending", "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"}
             existing["after_60m"] = {"status": "pending", "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"}
-    if bars:
-        for e in relevant:
-            if not e.get("baseline_time"):
-                continue
-            _update_intraday_horizon(e, "after_30m", 30, bars)
-            _update_intraday_horizon(e, "after_60m", 60, bars)
+    # Run the horizon state machine even when Yahoo returns no bars:
+    # pending checks must still retry and eventually time out honestly.
+    for e in relevant:
+        if not e.get("baseline_time"):
+            continue
+        _update_intraday_horizon(e, "after_30m", 30, bars)
+        _update_intraday_horizon(e, "after_60m", 60, bars)
 
 
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
