@@ -330,9 +330,10 @@ def summarize_index(name, index):
             "confidence_interval": "95% Wilson score interval",
             "chance_test": "exact two-sided binomial test against 50% directional hit rate",
             "multiple_testing": (
-                "Holm family-wise correction across all explicitly directional "
+                "Holm correction within this index across explicitly directional "
                 "futures and CLIENT option quantity participant/field/horizon tests"
             ),
+            "multiple_testing_scope": "within_index",
             "family_size": sum(
                 1 for item in features
                 if (item.get("directional_futures") or item.get("directional_options"))
@@ -411,11 +412,55 @@ def summarize_index(name, index):
     }
 
 
+def attach_global_directional_inference(indices):
+    """Apply one Holm family across every index × directional feature × horizon test."""
+    raw_pvalues = {}
+    evidence_by_key = {}
+    for index_name, index in indices.items():
+        for position, item in enumerate(index.get("features") or []):
+            evidence = item.get("statistical_evidence")
+            if not isinstance(evidence, dict):
+                continue
+            pvalue = evidence.get("p_value_vs_50pct_two_sided_nominal")
+            if (isinstance(pvalue, (int, float)) and not isinstance(pvalue, bool)
+                    and math.isfinite(pvalue) and 0.0 <= pvalue <= 1.0):
+                key = f"{index_name}:{position}"
+                raw_pvalues[key] = float(pvalue)
+                evidence_by_key[key] = evidence
+
+    adjusted = holm_adjust_pvalues(raw_pvalues)
+    significant = 0
+    for key, evidence in evidence_by_key.items():
+        value = adjusted[key]
+        evidence["holm_adjusted_p_value_across_indices_nominal"] = round(value, 8)
+        evidence["global_holm_family_size"] = len(raw_pvalues)
+        evidence["global_holm_p_below_05"] = value < 0.05
+        significant += value < 0.05
+
+    return {
+        "confidence_interval": "95% Wilson score interval",
+        "chance_test": "exact two-sided binomial test against 50% directional hit rate",
+        "multiple_testing": (
+            "One Holm family across all available index × participant/field × "
+            "horizon directional tests"
+        ),
+        "family_size": len(raw_pvalues),
+        "significant_tests_below_05": significant,
+        "live_score_eligible": False,
+        "dependence_warning": (
+            "The same market-wide NSE participant OI inputs are reused across NIFTY, "
+            "SENSEX and BANKNIFTY; 1/3/5-session forward windows overlap and outcomes "
+            "may be serially dependent. Global Holm correction is more conservative, "
+            "but does not make observations independent or establish a tradable edge."
+        ),
+    }
+
+
 def build_summary(report):
     status = report.get("status", "unavailable")
     base = {
-        "schema_version": 3,
-        "summary_format": "compact_v3_inference",
+        "schema_version": 4,
+        "summary_format": "compact_v4_global_directional_inference",
         "status": status,
         "generated_at_utc": report.get("generated_at_utc"),
         "oi_source": report.get("oi_source"),
@@ -446,6 +491,7 @@ def build_summary(report):
     if not base["indices"]:
         raise ValueError("no valid index metrics could be summarized")
     attach_magnitude_threshold_inference(base["indices"])
+    base["global_directional_inference"] = attach_global_directional_inference(base["indices"])
     base["magnitude_threshold_inference"] = {
         "method": "95% Wilson interval and exact two-sided binomial test against 50% PDMP hit rate",
         "multiple_testing": "One Holm family-wise correction across every available index × horizon × training-quantile threshold comparison in this report",

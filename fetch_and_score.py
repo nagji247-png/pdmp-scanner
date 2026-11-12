@@ -5167,7 +5167,12 @@ def participant_changes(today, prev):
 
 
 PARTICIPANT_HISTORY_FILE = "participant_oi_history.json"
-PARTICIPANT_HISTORY_KEEP = 260
+PARTICIPANT_HISTORY_KEEP = 520
+PARTICIPANT_OI_BACKFILL_VERSION = 8
+PARTICIPANT_OI_BACKFILL_TARGET = 500
+PARTICIPANT_OI_BACKFILL_MAX_REQUESTS = 3
+PARTICIPANT_OI_BACKFILL_RETRY_SECONDS = 86400
+PARTICIPANT_OI_BACKFILL_CALENDAR_DAYS = 421
 
 
 def update_participant_oi_history(*snapshots):
@@ -5217,7 +5222,7 @@ def update_participant_oi_history(*snapshots):
             "participants": participants,
         }
 
-    # One-time, rate-limited backfill toward 250 official NSE trading sessions.
+    # One-time, rate-limited backfill toward 500 official NSE trading sessions.
     # Exact-date archive requests only; retry at most once per 24 hours if incomplete.
     backfill_state = archive.get("backfill") if isinstance(archive.get("backfill"), dict) else {}
     now = dt.datetime.now(dt.timezone.utc)
@@ -5231,8 +5236,6 @@ def update_participant_oi_history(*snapshots):
         last_attempt = None
 
     backfilled = 0
-    BACKFILL_VERSION = 7
-    BACKFILL_TARGET = 250
     special_session_dates = sorted(
         date for date in nse_special_session_dates()
         if date <= now.date().isoformat()
@@ -5243,28 +5246,28 @@ def update_participant_oi_history(*snapshots):
     # Keep the ordinary PDMP scan from issuing hundreds of historical NSE
     # requests in one run. Resume a dated cursor and make at most three
     # exact-session requests per 24-hour backfill window.
-    retry_due = (backfill_state.get("version") != BACKFILL_VERSION
+    retry_due = (backfill_state.get("version") != PARTICIPANT_OI_BACKFILL_VERSION
                   or last_attempt is None
-                  or (now - last_attempt).total_seconds() >= 86400)
-    needs_backfill = len(by_date) < BACKFILL_TARGET or bool(missing_special_dates)
+                  or (now - last_attempt).total_seconds() >= PARTICIPANT_OI_BACKFILL_RETRY_SECONDS)
+    needs_backfill = len(by_date) < PARTICIPANT_OI_BACKFILL_TARGET or bool(missing_special_dates)
     if needs_backfill and retry_due:
-        if backfill_state.get("version") == BACKFILL_VERSION:
+        if backfill_state.get("version") == PARTICIPANT_OI_BACKFILL_VERSION:
             try:
                 cursor_date = dt.date.fromisoformat(backfill_state.get("next_date", ""))
                 days_remaining = max(0, int(backfill_state.get("calendar_days_remaining", 0)))
             except (TypeError, ValueError):
                 cursor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
-                days_remaining = 421
+                days_remaining = PARTICIPANT_OI_BACKFILL_CALENDAR_DAYS
         else:
             cursor_date = dt.date.fromisoformat(min(by_date)) - dt.timedelta(days=1) if by_date else now.date() - dt.timedelta(days=1)
-            days_remaining = 421
+            days_remaining = PARTICIPANT_OI_BACKFILL_CALENDAR_DAYS
 
         requests_this_run = 0
         special_sessions_checked = []
         # Special weekend sessions are explicit exchange-calendar entries.
-        # Check them even when the ordinary 250-session target is already met.
+        # Check them even when the ordinary 500-session target is already met.
         for special_date in missing_special_dates:
-            if requests_this_run >= 3:
+            if requests_this_run >= PARTICIPANT_OI_BACKFILL_MAX_REQUESTS:
                 break
             requests_this_run += 1
             special_sessions_checked.append(special_date)
@@ -5285,7 +5288,7 @@ def update_participant_oi_history(*snapshots):
             }
             backfilled += 1
 
-        while (len(by_date) < BACKFILL_TARGET and requests_this_run < 3
+        while (len(by_date) < PARTICIPANT_OI_BACKFILL_TARGET and requests_this_run < PARTICIPANT_OI_BACKFILL_MAX_REQUESTS
                and days_remaining > 0):
             target_day = cursor_date
             cursor_date -= dt.timedelta(days=1)
@@ -5316,12 +5319,12 @@ def update_participant_oi_history(*snapshots):
             date for date in special_session_dates if date not in by_date
         ]
         backfill_state = {
-            "version": BACKFILL_VERSION,
-            "status": "complete" if len(by_date) >= BACKFILL_TARGET and not missing_special_dates else "partial",
+            "version": PARTICIPANT_OI_BACKFILL_VERSION,
+            "status": "complete" if len(by_date) >= PARTICIPANT_OI_BACKFILL_TARGET and not missing_special_dates else "partial",
             "attempted_at": now.isoformat(timespec="minutes").replace("+00:00", "Z"),
             "sessions_added": backfilled,
             "requests_this_run": requests_this_run,
-            "target_sessions": BACKFILL_TARGET,
+            "target_sessions": PARTICIPANT_OI_BACKFILL_TARGET,
             "special_sessions_checked": special_sessions_checked,
             "missing_special_dates": missing_special_dates,
             "next_date": cursor_date.isoformat(),

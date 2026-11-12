@@ -217,7 +217,9 @@ class MarketSignalHistoryTests(unittest.TestCase):
             archive = fetch_and_score.update_participant_oi_history()
 
         self.assertLessEqual(fetch.call_count, 3)
-        self.assertEqual(archive["backfill"]["version"], 7)
+        self.assertEqual(archive["backfill"]["version"], 8)
+        self.assertEqual(archive["backfill"]["target_sessions"], 500)
+        self.assertLessEqual(archive["backfill"]["requests_this_run"], 3)
         self.assertEqual(archive["backfill"]["requests_this_run"], fetch.call_count)
         self.assertIsNotNone(archive["backfill"]["next_date"])
         self.assertGreaterEqual(archive["backfill"]["calendar_days_remaining"], 0)
