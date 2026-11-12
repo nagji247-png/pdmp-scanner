@@ -6,6 +6,8 @@ import json
 import math
 from pathlib import Path
 
+from client_futures_promotion import evaluate_client_futures_promotion
+
 ROOT = Path(__file__).resolve().parent
 INPUT = ROOT / "participant_oi_backtest.json"
 OUTPUT = ROOT / "participant_oi_backtest_summary.json"
@@ -494,6 +496,7 @@ def build_summary(report):
         raise ValueError("no valid index metrics could be summarized")
     attach_magnitude_threshold_inference(base["indices"])
     base["global_directional_inference"] = attach_global_directional_inference(base["indices"])
+    base["client_futures_promotion"] = evaluate_client_futures_promotion(base)
     base["magnitude_threshold_inference"] = {
         "method": "95% Wilson interval and exact two-sided binomial test against 50% PDMP hit rate",
         "multiple_testing": "One Holm family-wise correction across every available index × horizon × training-quantile threshold comparison in this report",
