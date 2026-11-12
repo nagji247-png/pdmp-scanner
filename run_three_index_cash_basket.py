@@ -56,7 +56,7 @@ def append_diagnostic(output_path, result):
             target.parent.mkdir(parents=True, exist_ok=True)
             temporary = target.with_suffix(target.suffix + ".tmp")
             temporary.write_text(
-                json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\\n",
+                json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
                 encoding="utf-8",
             )
             temporary.replace(target)
