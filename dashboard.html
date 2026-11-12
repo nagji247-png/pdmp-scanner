@@ -969,7 +969,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       '<div class="hl-meta">स्रोत: ' + esc(client.source || "NSE participant report") +
       ' · तारीख़: ' + esc(dateText(client.source_date)) +
       ' · दायरा: ' + esc(client.scope || "Market-wide aggregate") + '</div>' +
-      '<div class="hl-meta">इन बदलावों को contrarian दिशा में provisional score में तभी शामिल माना जाएगा जब संबंधित component ऊपर गणना में शामिल दिखे। Market-wide CLIENT डेटा को किसी एक Index की अलग पोज़िशन नहीं कहा गया है।</div></div>'
+      '<div class="hl-meta">CLIENT CE/PE का quantity-based provisional score तीनों Index Final में एक ही market-wide input के रूप में शामिल है; यह किसी एक Index की अलग पोज़िशन नहीं है। CLIENT Futures अभी diagnostic-only है।</div></div>'
     : "";
   const searchReason = b.search_diagnostic && b.search_diagnostic.reason
     ? '<div class="hl-meta">Google Trends जाँच: ' + esc(b.search_diagnostic.reason) + '</div>' : "";
