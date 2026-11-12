@@ -939,6 +939,43 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       directionalDetail +
       '</div>';
   }).join("");
+  const optionBuildup = b.option_buildup_diagnostic || {};
+  const optionBuildupLabels = {
+    long_build_up: "LONG BUILD-UP",
+    short_build_up: "SHORT BUILD-UP",
+    short_covering: "SHORT COVERING",
+    long_unwinding: "LONG UNWINDING"
+  };
+  const optionBuildupDetail = (assetName === "NIFTY" || assetName === "BANKNIFTY")
+    ? '<div class="hl" style="margin-top:8px">' +
+      '<div class="hl-title"><b>BUILD-UP / UNWINDING · NSE EOD</b> · <b class="' +
+      (optionBuildup.available === true ? "pos" : "zero") + '">' +
+      (optionBuildup.available === true ? "डेटा उपलब्ध" : "UNAVAILABLE / डेटा प्रतीक्षित") +
+      '</b></div>' +
+      (optionBuildup.available === true
+        ? Object.entries(optionBuildupLabels).map(([key, label]) => {
+            const item = optionBuildup.categories && optionBuildup.categories[key] || {};
+            const quantity = Number(item.oi_quantity || 0);
+            const contracts = Number(item.contracts || 0);
+            const cls = quantity > 0 ? "pos" : "zero";
+            return '<div class="hl-meta"><b>' + label + '</b>: <span class="' + cls + '">' +
+              quantity.toLocaleString("en-IN") + '</span> OI quantity · ' +
+              contracts.toLocaleString("en-IN") + ' कॉन्ट्रैक्ट' +
+              ' (CE ' + Number(item.ce_oi_quantity || 0).toLocaleString("en-IN") +
+              ' · PE ' + Number(item.pe_oi_quantity || 0).toLocaleString("en-IN") + ')</div>';
+          }).join("")
+        : '<div class="hl-meta">' + esc(optionBuildup.reason || "दो तुलनीय NSE EOD सत्रों का डेटा उपलब्ध नहीं") + '</div>') +
+      (optionBuildup.source_date
+        ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildup.source_date)) +
+          (optionBuildup.previous_source_date
+            ? ' · पिछला सत्र: ' + esc(dateText(optionBuildup.previous_source_date)) : '') + '</div>'
+        : '') +
+      '<div class="hl-meta">स्रोत: NSE F&O UDiFF Common Bhavcopy Final · दैनिक Closing Premium और OI की उसी Expiry, Strike तथा CE/PE कॉन्ट्रैक्ट से तुलना। यह EOD diagnostic है, 5-मिनट LIVE नहीं और Final Score में शामिल नहीं।</div>' +
+      '<div class="hl-meta">मिलान किए गए कॉन्ट्रैक्ट: ' +
+      Number(optionBuildup.matched_contracts || 0).toLocaleString("en-IN") +
+      ' · वर्गीकृत: ' + Number(optionBuildup.classified_contracts || 0).toLocaleString("en-IN") +
+      ' · ऐतिहासिक accuracy validation बाकी।</div></div>'
+    : "";
   const total = weightsMatch ? final.score : null;
   const totalNumber = total == null || !Number.isFinite(Number(total)) ? null : Number(total);
   const totalClass = totalNumber == null ? "zero" : totalNumber > 0 ? "pos" : totalNumber < 0 ? "neg" : "zero";
@@ -1038,7 +1075,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + (isCrudeOil ? '/2</div>' : '/6</div>') +
     '<div class="hl-meta">कुल उपलब्ध वजन: ' + (weightsMatch && final.weight_total != null ? Number(final.weight_total).toFixed(2) : "अगली गणना पर") +
     (weightsMatch ? '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") : ' · मौजूदा snapshot पुरानी weightage पर है; नया स्कोर अगली Auto Run पर बनेगा') + '</div>' +
-    rowHtml + clientDetail + searchReason + (isCrudeOil ? renderCrudeOilHistoricalCase() : "") +
+    rowHtml + optionBuildupDetail + clientDetail + searchReason + (isCrudeOil ? renderCrudeOilHistoricalCase() : "") +
     (isCrudeOil
       ? '<div class="hl-meta" style="margin-top:8px">गणना: NEWS और Google Trends Search Score का weighted average; अनुपलब्ध घटक का वजन हटाकर उपलब्ध घटक का वजन normalize किया जाता है। यह केवल CRUDEOIL कार्ड का नया Final Score है।</div>'
       : '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>') +
