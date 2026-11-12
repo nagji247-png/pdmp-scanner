@@ -61,7 +61,16 @@ def _quote(item):
             except ValueError:
                 pass
     closing = any(x in source.lower() for x in ("last closing", "previous close", "पिछला बंद", "closing price"))
+    quote_date = None
+    if isinstance(day, str):
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                quote_date = dt.datetime.strptime(day[:10], fmt).date().isoformat()
+                break
+            except ValueError:
+                pass
     return {"price": price if valid else None, "price_as_of": day, "price_time": clock,
+            "quote_market_date": quote_date, "quote_kind": "closing" if closing else "intraday_or_unknown",
             "price_source": source or None, "quote_timestamp_utc": stamp.isoformat() if stamp else None,
             "intraday_eligible": bool(valid and stamp and not closing)}
 
@@ -86,9 +95,35 @@ def update_archive(archive, result, captured_at=None):
                 "bear_pct": trends.get("bear_score_pct"), "neutral_pct": trends.get("neutral_score_pct"),
                 "directional_bull_share_pct": share, "mood": mood, "index_scope": list(INDEXES),
                 "outcomes": {}, "research_only": True})
+    # Backfill older daily crowd events, but never use them for intraday denominators.
+    legacy_events = (result.get("crowd_stats") or {}).get("events") or []
+    for legacy in legacy_events:
+        date = legacy.get("date")
+        direction = str(legacy.get("direction") or "").lower()
+        try:
+            pct = float(legacy.get("crowd_pct"))
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(date, str) or direction not in ("bull", "bear") or not math.isfinite(pct):
+            continue
+        if (direction == "bull" and pct < 70) or (direction == "bear" and pct > 30):
+            continue
+        legacy_mood = "EXTREME_BULLISH" if direction == "bull" else "EXTREME_BEARISH"
+        key = date + "|legacy|" + legacy_mood
+        if not any(x.get("event_key") == key or (x.get("market_date") == date and x.get("mood_source") == "fresh_google_trends") for x in events):
+            events.append({"event_key": key, "market_date": date,
+                "captured_at_utc": captured.isoformat(), "trends_source_timestamp_utc": None,
+                "basis": "legacy_daily_crowd_stats", "bull_pct": pct if direction == "bull" else None,
+                "bear_pct": pct if direction == "bear" else None, "neutral_pct": None,
+                "directional_bull_share_pct": pct, "mood": legacy_mood,
+                "mood_source": "legacy_crowd_stats", "time_precision": "daily_only",
+                "intraday_event_eligible": False, "index_scope": ["NIFTY"],
+                "legacy_outcome_not_imported": True, "outcomes": {}, "research_only": True})
     for name in INDEXES:
-        snapshots.append({"captured_at_utc": captured.isoformat(), "market_date": market_date,
-                          "index": name, **_quote((result.get("instruments") or {}).get(name) or {})})
+        quote = _quote((result.get("instruments") or {}).get(name) or {})
+        snapshots.append({"captured_at_utc": captured.isoformat(), "scan_market_date": market_date,
+                          "market_date": quote.get("quote_market_date") or market_date,
+                          "index": name, **quote})
     cutoff = captured - dt.timedelta(days=400)
     def recent(row):
         stamp = _parse_stamp(row.get("captured_at_utc"))
