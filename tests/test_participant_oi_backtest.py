@@ -56,6 +56,8 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         self.assertEqual(result["correct_signals"], 5)
         self.assertEqual(result["wrong_signals"], 2)
         self.assertEqual(result["directional_hit_rate_pct"], 71.43)
+        self.assertEqual(result["contrarian_correct_signals"], 2)
+        self.assertEqual(result["contrarian_hit_rate_pct"], 28.57)
         self.assertFalse(result["eligible_for_live_score"])
         self.assertEqual(result["observations"][0]["signal_date"], "2026-01-02")
 
