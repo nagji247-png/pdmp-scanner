@@ -1004,9 +1004,26 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     cePeNetClass + '">' + (cePeNet == null ? "डेटा अधूरा" :
       ((cePeNet > 0 ? "+" : "") + cePeNet.toLocaleString("en-IN"))) +
     '</span> · <span class="' + cePeNetClass + '">' + cePeNetMeaning + '</span></b></div>';
+  // CLIENT Futures net change: increase in Long positioning minus increase in Short positioning.
+  // This is a diagnostic net CHANGE, not an absolute open-interest position; require both legs.
+  const futuresLongChange = evidence.futures_long && evidence.futures_long.change;
+  const futuresShortChange = evidence.futures_short && evidence.futures_short.change;
+  const futuresNetAvailable = futuresLongChange != null && futuresShortChange != null &&
+    Number.isFinite(Number(futuresLongChange)) && Number.isFinite(Number(futuresShortChange));
+  const futuresNet = futuresNetAvailable
+    ? Number(futuresLongChange) - Number(futuresShortChange)
+    : null;
+  const futuresNetClass = futuresNet == null || futuresNet === 0 ? "zero" : futuresNet > 0 ? "pos" : "neg";
+  const futuresNetMeaning = futuresNet == null ? "गणना उपलब्ध नहीं" :
+    futuresNet > 0 ? "NET BUY · BULLISH" :
+    futuresNet < 0 ? "NET SELL · BEARISH" : "NET NEUTRAL";
+  const futuresNetRow = '<div class="hl-meta" style="margin-top:5px;padding-top:6px;border-top:1px solid #183252"><b>CLIENT Futures Net (Long − Short बदलाव): <span class="' +
+    futuresNetClass + '">' + (futuresNet == null ? "डेटा अधूरा" :
+      ((futuresNet > 0 ? "+" : "") + futuresNet.toLocaleString("en-IN"))) +
+    '</span> · <span class="' + futuresNetClass + '">' + futuresNetMeaning + '</span></b></div>';
   const clientDetail = client.available
     ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>CLIENT CE/PE और Futures · मूल बदलाव</b></div>' +
-      clientRows + cePeNetRow +
+      clientRows + cePeNetRow + futuresNetRow +
       '<div class="hl-meta">स्रोत: ' + esc(client.source || "NSE participant report") +
       ' · तारीख़: ' + esc(dateText(client.source_date)) +
       ' · दायरा: ' + esc(client.scope || "Market-wide aggregate") + '</div>' +
