@@ -761,8 +761,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             "method": "equal-weight breadth",
         }
         instruments = {"NIFTY": {"score": 0, "headlines": []}}
-        with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \\
-             mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={"NIFTY": basket}), \\
+        with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \
+             mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={"NIFTY": basket}), \
              mock.patch("builtins.open", side_effect=FileNotFoundError):
             fetch_and_score.build_asset_component_breakdowns(
                 instruments, now.isoformat(), now,
