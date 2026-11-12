@@ -777,7 +777,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(instruments["NIFTY"]["score"], 0)
 
 
-    def test_partial_watchlist_never_enters_index_stock_basket_final(self):
+    def test_unvalidated_equal_weight_basket_never_enters_index_stock_basket_final(self):
         instruments = {
             name: {"score": 1.25, "headlines": []}
             for name in ("NIFTY", "SENSEX", "BANKNIFTY")
@@ -793,7 +793,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             excluded = breakdown["excluded_components"]["stock_basket"]
             self.assertTrue(excluded["applicable"])
             self.assertFalse(excluded["included"])
-            self.assertIn("full-basket daily snapshot", excluded["reason"])
+            self.assertIn("research-only/equal-weight", excluded["reason"])
             self.assertIn("60-session directional validation", excluded["reason"])
             self.assertEqual(item["score"], 1.25)
 
