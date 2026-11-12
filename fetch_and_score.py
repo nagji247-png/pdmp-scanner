@@ -16,6 +16,7 @@ from crowd_mood_intraday import update_archive as update_crowd_mood_archive
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
+from upstox_market_data import fetch_upstox_candles
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -2779,15 +2780,21 @@ def fetch_participant_oi(base_date=None, lookback_days=7):
 
 
 def _completed_5m_bars(sym):
-    """NSE cash instrument की केवल पूरी हुई 5-minute candles लौटाएँ (UTC end time)."""
+    """NSE cash instrument की केवल पूरी हुई 5-minute candles लौटाएँ (UTC end time).
+
+    Yahoo primary है; खाली/विफल होने पर optional Upstox V3 से उसी interval का
+    वास्तविक OHLCV लिया जाता है। कोई अनुमानित candle नहीं बनती।
+    """
     if not (sym.endswith(".NS") or sym in ("^NSEI", "^NSEBANK", "^BSESN")):
         return []
+    frame = None
     try:
         frame = yf.Ticker(sym).history(period="5d", interval="5m", prepost=False)
-        if frame is None or frame.empty or "Close" not in frame.columns:
-            return []
-        now = dt.datetime.now(dt.timezone.utc)
-        bars = []
+    except Exception as exc:
+        print(f"Yahoo 5-minute candles unavailable {sym}: {str(exc)[:120]}")
+    now = dt.datetime.now(dt.timezone.utc)
+    bars = []
+    if frame is not None and not frame.empty and "Close" in frame.columns:
         for stamp, close in frame["Close"].dropna().items():
             bar_start = stamp.to_pydatetime() if hasattr(stamp, "to_pydatetime") else stamp
             if bar_start.tzinfo is None:
@@ -2797,12 +2804,22 @@ def _completed_5m_bars(sym):
             bar_end = bar_start + dt.timedelta(minutes=5)
             price = float(close)
             if bar_end <= now and math.isfinite(price) and price > 0:
-                bars.append({"time": bar_end, "price": price})
+                bars.append({"time": bar_end, "price": price, "source": "Yahoo Finance"})
+    if bars:
         return sorted(bars, key=lambda item: item["time"])
-    except Exception as exc:
-        print(f"Contrarian 5-minute candles unavailable {sym}: {str(exc)[:160]}")
-        return []
 
+    # Backup only after Yahoo produced no completed bars; one request per symbol.
+    backup = fetch_upstox_candles(sym, 5)
+    for candle in backup:
+        bar_end = candle["time"] + dt.timedelta(minutes=5)
+        price = candle["close"]
+        if bar_end <= now and math.isfinite(price) and price > 0:
+            bars.append({"time": bar_end, "price": price, "source": candle["source"]})
+    if bars:
+        print(f"Contrarian 5-minute candles source switched to Upstox V3 for {sym}")
+    else:
+        print(f"Contrarian 5-minute candles unavailable from Yahoo/Upstox for {sym}")
+    return sorted(bars, key=lambda item: item["time"])
 
 def _update_intraday_horizon(event, field, minutes, bars):
     """लक्ष्य समय के बाद 10 मिनट के भीतर की पहली पूरी candle लें; gap को अनुमान न बनाएँ."""
@@ -3326,46 +3343,71 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 # ---- संकेत-बदलाव लॉग ----
 
 def intraday_snapshot(sym):
-    """30-मिनट के बार से ताज़ा कीमत, आज का VWAP और वॉल्यूम का अनुपात।
-    डेटा न मिले तो None लौटता है।"""
+    """30-मिनट के पूरे बार से कीमत, VWAP और वॉल्यूम अनुपात; Yahoo के बाद Upstox fallback."""
+    frame = None
     try:
-        h = yf.Ticker(sym).history(period="5d", interval="30m")
-        if h is None or h.empty:
-            return None
+        frame = yf.Ticker(sym).history(period="5d", interval="30m")
+    except Exception as exc:
+        print(f"Yahoo intraday error {sym}: {str(exc)[:120]}")
 
-        # अधूरी चलती 30-मिनट कैंडल को संकेत में शामिल न करें।
-        # Yahoo candle index आम तौर पर bar-start होता है; केवल वही bar लें
-        # जिसका 30-मिनट समय पूरा हो चुका है।
-        idx_utc = h.index
-        if getattr(idx_utc, "tz", None) is None:
-            idx_utc = idx_utc.tz_localize("UTC")
-        else:
-            idx_utc = idx_utc.tz_convert("UTC")
-        now_utc = dt.datetime.now(dt.timezone.utc)
-        completed = idx_utc + dt.timedelta(minutes=30) <= now_utc
-        h = h.loc[completed]
-        if h.empty:
-            return None
+    if frame is not None and not frame.empty:
+        try:
+            idx_utc = frame.index
+            if getattr(idx_utc, "tz", None) is None:
+                idx_utc = idx_utc.tz_localize("UTC")
+            else:
+                idx_utc = idx_utc.tz_convert("UTC")
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            frame = frame.loc[idx_utc + dt.timedelta(minutes=30) <= now_utc]
+            if not frame.empty:
+                last = frame.iloc[-1]
+                price = float(last["Close"])
+                vol_total = float(frame["Volume"].sum()) if "Volume" in frame.columns else 0.0
+                snap = {"price": price, "vwap": None, "vol_ratio": None,
+                        "vol_ok": vol_total > 0, "source": "Yahoo Finance"}
+                if snap["vol_ok"]:
+                    today = frame.index[-1].date()
+                    td = frame[[d.date() == today for d in frame.index]]
+                    tv = float(td["Volume"].sum())
+                    if tv > 0 and all(col in td.columns for col in ("High", "Low", "Close")):
+                        tp = (td["High"] + td["Low"] + td["Close"]) / 3
+                        snap["vwap"] = float((tp * td["Volume"]).sum() / tv)
+                    avg = float(frame["Volume"].mean())
+                    if avg > 0:
+                        snap["vol_ratio"] = float(last["Volume"]) / avg
+                if math.isfinite(price) and price > 0:
+                    return snap
+        except Exception as exc:
+            print(f"Yahoo intraday parse error {sym}: {str(exc)[:120]}")
 
-        last = h.iloc[-1]
-        price = float(last["Close"])
-        vol_total = float(h["Volume"].sum())
-        snap = {"price": price, "vwap": None, "vol_ratio": None, "vol_ok": vol_total > 0}
-        if snap["vol_ok"]:
-            today = h.index[-1].date()
-            td = h[[d.date() == today for d in h.index]]
-            tv = float(td["Volume"].sum())
-            if tv > 0:
-                tp = (td["High"] + td["Low"] + td["Close"]) / 3
-                snap["vwap"] = float((tp * td["Volume"]).sum() / tv)
-            avg = float(h["Volume"].mean())
-            if avg > 0:
-                snap["vol_ratio"] = float(last["Volume"]) / avg
-        return snap
-    except Exception as e:
-        print(f"intraday error {sym}: {e}")
+    # Yahoo empty/stale: fetch official broker feed only for mapped instruments.
+    candles = fetch_upstox_candles(sym, 30)
+    now_utc = dt.datetime.now(dt.timezone.utc)
+    completed = [
+        row for row in candles
+        if row["time"] + dt.timedelta(minutes=30) <= now_utc
+    ]
+    if not completed:
         return None
-
+    today_ist = now_utc.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date()
+    today_rows = [
+        row for row in completed
+        if row["time"].astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date() == today_ist
+    ]
+    selected = today_rows or completed
+    last = completed[-1]
+    volume_total = sum(row["volume"] for row in selected)
+    vwap = None
+    if volume_total > 0:
+        vwap = sum(((row["high"] + row["low"] + row["close"]) / 3) * row["volume"]
+                   for row in selected) / volume_total
+    volumes = [row["volume"] for row in selected]
+    avg_volume = sum(volumes) / len(volumes) if volumes else 0
+    return {
+        "price": last["close"], "vwap": vwap,
+        "vol_ratio": last["volume"] / avg_volume if avg_volume > 0 else None,
+        "vol_ok": volume_total > 0, "source": "Upstox API V3",
+    }
 
 def _band(x, band):
     if x >= band:
