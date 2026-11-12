@@ -135,6 +135,33 @@ class ParticipantOISummaryTests(unittest.TestCase):
         self.assertFalse(result["score_changed"])
         self.assertFalse(result["eligible_for_live_score"])
 
+    def test_directional_holm_correction_spans_all_three_indices(self):
+        feature = "FII.future_index_long_change_pct_prior_gross"
+        field = "future_index_long_change_pct_prior_gross"
+        index_reports = {}
+        for name, hit in (("NIFTY", 100.0), ("SENSEX", 88.89), ("BANKNIFTY", 66.67)):
+            index_reports[name] = {
+                "metrics": [
+                    metric(feature, "FII", field, 3, "train_first_70pct", 55.0, 45.0),
+                    metric(feature, "FII", field, 3, "chronological_holdout_last_30pct", hit, 100.0 - hit),
+                ],
+                "client_option_quantity_magnitude_threshold_diagnostics": [],
+            }
+
+        result = build_summary({"status": "exploratory_only", "indices": index_reports})
+        global_result = result["global_directional_inference"]
+        self.assertEqual(global_result["family_size"], 3)
+        self.assertEqual(global_result["significant_tests_below_05"], 2)
+        self.assertFalse(global_result["live_score_eligible"])
+        nifty_feature = result["indices"]["NIFTY"]["features"][0]
+        evidence = nifty_feature["statistical_evidence"]
+        self.assertEqual(evidence["global_holm_family_size"], 3)
+        self.assertGreater(
+            evidence["holm_adjusted_p_value_across_indices_nominal"],
+            evidence["holm_adjusted_p_value_nominal"],
+        )
+        self.assertTrue(evidence["global_holm_p_below_05"])
+
     def test_option_quantity_thresholds_are_learned_on_train_and_applied_to_holdout(self):
         feature = "CLIENT.index_option_directional_net_quantity"
         rows = []
