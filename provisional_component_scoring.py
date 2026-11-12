@@ -124,10 +124,12 @@ def client_marketwide_components(context, scan_date=None, max_age_days=3):
             return {}
         changes[key] = change
 
-    # Keep the user's quantity-based construction transparent:
-    # (CALL Long - CALL Short) + (PUT Long - PUT Short).
+    # Option-position direction: CE buy and PE sell are bullish;
+    # CE sell and PE buy are bearish.
+    # Therefore CALL net = CE Long - CE Short, while PUT net is
+    # reversed = PE Short - PE Long.
     ce_net = changes["ce_long"] - changes["ce_short"]
-    pe_net = changes["pe_long"] - changes["pe_short"]
+    pe_net = changes["pe_short"] - changes["pe_long"]
     net_change = ce_net + pe_net
     gross_change = sum(abs(value) for value in changes.values())
     if gross_change <= 0:
@@ -142,7 +144,7 @@ def client_marketwide_components(context, scan_date=None, max_age_days=3):
         source_date,
         PROVISIONAL_WEIGHTS["client_ce_pe"],
         scope="shared market-wide CLIENT aggregate; same component on NIFTY, SENSEX and BANKNIFTY; not index-specific",
-        method="10 × [(CALL Long change − CALL Short change) + (PUT Long change − PUT Short change)] ÷ sum(abs(all four CE/PE changes)); clamp −10..+10",
+        method="10 × [(CE Long − CE Short) + (PE Short − PE Long)] ÷ sum(abs(all four CE/PE changes)); CE Buy + PE Sell bullish; clamp −10..+10",
         validation_status="PROVISIONAL_DIAGNOSTIC · quantity-based; predictive holdout validation pending",
         directional_reading="bullish_client_positioning" if net_change > 0 else ("bearish_client_positioning" if net_change < 0 else "balanced_client_positioning"),
         call_net_change=round(ce_net, 4),
