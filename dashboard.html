@@ -985,9 +985,28 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     return '<div class="hl-meta">' + label + ': <b class="' + (direction || "zero") + '">' +
       changeText + ' (' + pctText + ')</b> · ' + meaning + '</div>';
   }).join("");
+  // Directional CLIENT CE/PE net: CE Long - CE Short + PE Short - PE Long.
+  // Require all four legs; never present a partial total as a complete net.
+  const cePeKeys = ["ce_long", "ce_short", "pe_long", "pe_short"];
+  const cePeValues = cePeKeys.map(key => {
+    const value = evidence[key] && evidence[key].change;
+    return value == null || !Number.isFinite(Number(value)) ? null : Number(value);
+  });
+  const cePeNetAvailable = cePeValues.every(value => value != null);
+  const cePeNet = cePeNetAvailable
+    ? cePeValues[0] - cePeValues[1] + cePeValues[3] - cePeValues[2]
+    : null;
+  const cePeNetClass = cePeNet == null || cePeNet === 0 ? "zero" : cePeNet > 0 ? "pos" : "neg";
+  const cePeNetMeaning = cePeNet == null ? "गणना उपलब्ध नहीं" :
+    cePeNet > 0 ? "NET BUY · BULLISH" :
+    cePeNet < 0 ? "NET SELL · BEARISH" : "NET NEUTRAL";
+  const cePeNetRow = '<div class="hl-meta" style="margin-top:5px;padding-top:6px;border-top:1px solid #183252"><b>Total CE/PE Net: <span class="' +
+    cePeNetClass + '">' + (cePeNet == null ? "डेटा अधूरा" :
+      ((cePeNet > 0 ? "+" : "") + cePeNet.toLocaleString("en-IN"))) +
+    '</span> · <span class="' + cePeNetClass + '">' + cePeNetMeaning + '</span></b></div>';
   const clientDetail = client.available
     ? '<div class="hl" style="margin-top:8px"><div class="hl-title"><b>CLIENT CE/PE और Futures · मूल बदलाव</b></div>' +
-      clientRows +
+      clientRows + cePeNetRow +
       '<div class="hl-meta">स्रोत: ' + esc(client.source || "NSE participant report") +
       ' · तारीख़: ' + esc(dateText(client.source_date)) +
       ' · दायरा: ' + esc(client.scope || "Market-wide aggregate") + '</div>' +
