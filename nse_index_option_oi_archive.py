@@ -63,6 +63,89 @@ def positive_number(value, field):
     return number
 
 
+def aggregate_option_contracts(rows, trade_date):
+    """Retain per-contract premium/OI for the nearest two expiries per index.
+
+    Keeping two expiries allows a same-contract comparison across weekly expiry
+    rolls. No strike/side is matched to a different contract.
+    """
+    target_date = parse_date(trade_date)
+    collected = {symbol: [] for symbol in SYMBOLS}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("malformed UDiFF row")
+        if str(row.get("FinInstrmTp") or "").strip().upper() != "IDO":
+            continue
+        symbol = str(row.get("TckrSymb") or "").strip().upper()
+        if symbol not in SYMBOLS:
+            continue
+        if str(row.get("Sgmt") or "").strip().upper() not in ("", "FO"):
+            raise ValueError(f"unexpected segment for {symbol}")
+        if str(row.get("Src") or "").strip().upper() not in ("", "NSE"):
+            raise ValueError(f"unexpected source for {symbol}")
+        if parse_date(row.get("BizDt")) != target_date:
+            raise ValueError(f"trade date mismatch for {symbol}")
+        side = str(row.get("OptnTp") or "").strip().upper()
+        if side not in ("CE", "PE"):
+            raise ValueError(f"invalid option side for {symbol}: {side!r}")
+        expiry = parse_date(row.get("XpryDt"))
+        if expiry < target_date:
+            raise ValueError(f"expired contract in {symbol} bhavcopy")
+        strike = positive_number(row.get("StrkPric"), "StrkPric")
+        close_text = str(row.get("ClsPric") if row.get("ClsPric") is not None else "").strip().replace(",", "")
+        try:
+            close = float(close_text)
+        except (TypeError, ValueError, OverflowError):
+            raise ValueError(f"invalid ClsPric: {close_text!r}")
+        if not math.isfinite(close) or close < 0:
+            raise ValueError(f"invalid ClsPric: {close_text!r}")
+        oi = integer(row.get("OpnIntrst"), "OpnIntrst")
+        if oi < 0:
+            raise ValueError("negative open interest")
+        # Zero-close / untraded options cannot supply a usable premium direction.
+        # Skip those contracts without discarding the otherwise valid bhavcopy.
+        if close == 0:
+            continue
+        collected[symbol].append({
+            "expiry": expiry.isoformat(),
+            "side": side,
+            "strike": round(strike, 4),
+            "close": round(close, 6),
+            "open_interest": oi,
+        })
+
+    result = {}
+    for symbol, contracts in collected.items():
+        expiries = sorted({item["expiry"] for item in contracts})
+        if len(expiries) < 2:
+            raise ValueError(f"fewer than two option expiries for {symbol}")
+        selected = set(expiries[:2])
+        retained = [
+            item for item in contracts if item["expiry"] in selected
+        ]
+        keys = [
+            (item["expiry"], item["side"], item["strike"])
+            for item in retained
+        ]
+        if len(keys) != len(set(keys)):
+            raise ValueError(f"duplicate retained option contract for {symbol}")
+        if not any(item["side"] == "CE" for item in retained) or not any(
+            item["side"] == "PE" for item in retained
+        ):
+            raise ValueError(f"missing CE or PE retained contracts for {symbol}")
+        result[symbol] = {
+            "expiry_dates": sorted(selected),
+            "contract_count": len(retained),
+            "contracts": sorted(
+                retained,
+                key=lambda item: (item["expiry"], item["strike"], item["side"]),
+            ),
+            "coverage_validated": False,
+            "included_in_asset_final": False,
+        }
+    return result
+
+
 def aggregate_udiff_rows(rows, trade_date):
     """Aggregate contract OI by exact symbol, expiry and option side.
 
@@ -242,7 +325,7 @@ def fetch_official_bhavcopy(trade_date, session=None):
     raise RuntimeError("official NSE UDiFF Bhavcopy unavailable: " + " | ".join(failures))
 
 
-def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at, index_futures=None):
+def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at, index_futures=None, option_contracts=None):
     day = parse_date(trade_date).isoformat()
     digest = hashlib.sha256(payload).hexdigest()
     records = archive.setdefault("records", [])
@@ -259,13 +342,14 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
         "fetched_at": fetched_at,
         "symbols": symbols,
         "index_futures": index_futures or {},
+        "option_contracts": option_contracts or {},
     })
     records.sort(key=lambda item: item["date"])
     archive["records"] = records[-KEEP_SESSIONS:]
-    archive["schema_version"] = 1
+    archive["schema_version"] = 2
     archive["source"] = "NSE India official F&O UDiFF Common Bhavcopy Final"
     archive["symbols"] = list(SYMBOLS)
-    archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI and FUTIDX price/OI by exact expiry"
+    archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, and FUTIDX price/OI by exact expiry"
     archive["research_only"] = True
     archive["included_in_asset_final"] = False
     return True
@@ -307,9 +391,11 @@ def capture_one(archive, trade_date):
     rows = decode_udiff_zip(payload)
     symbols = aggregate_udiff_rows(rows, trade_date)
     index_futures = aggregate_index_futures_rows(rows, trade_date)
+    option_contracts = aggregate_option_contracts(rows, trade_date)
     fetched_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     changed = append_archive(
-        archive, trade_date, source_url, payload, symbols, fetched_at, index_futures
+        archive, trade_date, source_url, payload, symbols, fetched_at,
+        index_futures, option_contracts
     )
     return {
         "date": date_key, "status": "captured" if changed else "skipped_existing",
@@ -327,6 +413,11 @@ def capture_one(archive, trade_date):
                      "coverage_validated": value["coverage_validated"],
                      "included_in_asset_final": value["included_in_asset_final"]}
             for symbol, value in index_futures.items()
+        },
+        "option_contracts": {
+            symbol: {"contract_count": value["contract_count"],
+                     "expiry_dates": value["expiry_dates"]}
+            for symbol, value in option_contracts.items()
         }
     }
 

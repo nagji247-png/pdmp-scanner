@@ -12,6 +12,7 @@ from component_scoring import aggregate_nse_udiff_index_option_oi
 from nse_index_option_oi_archive import (
     aggregate_udiff_rows,
     aggregate_index_futures_rows,
+    aggregate_option_contracts,
     append_archive,
     decode_udiff_zip,
     write_archive_atomic,
@@ -42,6 +43,21 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         self.assertEqual(result["NIFTY"]["by_expiry"]["2026-11-26"]["PE"]["change_in_oi"], -50)
         self.assertEqual(result["BANKNIFTY"]["by_expiry"]["2026-11-26"]["PE"]["open_interest"], 3000)
         self.assertFalse(result["NIFTY"]["coverage_validated"])
+        self.assertFalse(result["NIFTY"]["included_in_asset_final"])
+
+    def test_nearest_two_expiries_keep_contract_close_and_oi_by_exact_key(self):
+        rows = self.rows()
+        extra = []
+        for row in self.rows():
+            extra.append({**row, "XpryDt": "2026-12-03", "StrkPric": str(float(row["StrkPric"]) + 100)})
+        result = aggregate_option_contracts(rows + extra, "2026-11-06")
+        self.assertEqual(result["NIFTY"]["expiry_dates"],
+                         ["2026-11-26", "2026-12-03"])
+        self.assertEqual(result["NIFTY"]["contract_count"], 4)
+        ce = next(item for item in result["NIFTY"]["contracts"]
+                  if item["expiry"] == "2026-11-26" and item["side"] == "CE")
+        self.assertEqual(ce["close"], 25050.5)
+        self.assertEqual(ce["open_interest"], 1000)
         self.assertFalse(result["NIFTY"]["included_in_asset_final"])
 
     def test_exact_nse_index_futures_are_archived_by_symbol_and_expiry(self):

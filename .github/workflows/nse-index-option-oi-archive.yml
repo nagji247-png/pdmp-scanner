@@ -7,7 +7,11 @@ on:
     paths:
       - ".github/workflows/nse-index-option-oi-archive.yml"
       - "nse_index_option_oi_archive.py"
+      - "nse_option_buildup.py"
+      - "fetch_and_score.py"
+      - "dashboard.html"
       - "tests/test_nse_index_option_oi_archive.py"
+      - "tests/test_nse_option_buildup.py"
   schedule:
     # 19:30 IST on NSE weekdays, after the F&O UDiFF EOD report is normally published.
     - cron: "0 14 * * 1-5"
@@ -34,6 +38,8 @@ jobs:
         run: |
           python -m py_compile nse_index_option_oi_archive.py
           python -m unittest discover -s tests -p 'test_nse_index_option_oi_archive.py' -v
+          python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
+          python -m py_compile fetch_and_score.py nse_option_buildup.py
       - name: Backfill the latest five NSE trading dates (idempotent)
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
