@@ -44,7 +44,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Validate Python syntax
-        run: python -m py_compile fetch_and_score.py backtest_participant_oi.py summarize_participant_oi_backtest.py
+        run: python -m py_compile fetch_and_score.py crowd_mood_intraday.py backtest_participant_oi.py summarize_participant_oi_backtest.py
       - run: pip install yfinance feedparser requests pytrends
       - name: Run PDMP scan
         env:
@@ -62,7 +62,7 @@ jobs:
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
-          for f in data.json history.csv participant_oi_history.json participant_oi_backtest.json participant_oi_backtest_summary.json market_signal_history.json contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json mcx_silver.json mcx_gold.json mcx_crudeoil.json; do
+          for f in data.json history.csv participant_oi_history.json participant_oi_backtest.json participant_oi_backtest_summary.json market_signal_history.json crowd_mood_history.json contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json mcx_silver.json mcx_gold.json mcx_crudeoil.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if git diff --cached --quiet; then
