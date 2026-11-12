@@ -53,10 +53,10 @@ class ParticipantOIBacktestTests(unittest.TestCase):
         with patch.object(backtest.yf, "Ticker", return_value=FakeTicker()):
             prices, validation = backtest.load_index_prices("^NSEI", now_utc=now_utc)
 
-        self.assertEqual(
-            prices,
-            {"2026-10-01": {"open": 100.0, "close": 100.5}},
-        )
+        self.assertEqual(len(prices), 30)
+        self.assertEqual(min(prices), "2026-10-01")
+        self.assertEqual(max(prices), "2026-11-11")
+        self.assertEqual(validation["ohlc_sessions"], 30)
         self.assertEqual(
             validation["incomplete_current_session_excluded_date"],
             "2026-11-12",
