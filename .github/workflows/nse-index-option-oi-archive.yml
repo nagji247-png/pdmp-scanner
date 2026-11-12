@@ -2,6 +2,12 @@ name: NSE Index Option OI EOD Archive
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/nse-index-option-oi-archive.yml"
+      - "nse_index_option_oi_archive.py"
+      - "tests/test_nse_index_option_oi_archive.py"
   schedule:
     # 19:30 IST on NSE weekdays, after the F&O UDiFF EOD report is normally published.
     - cron: "0 14 * * 1-5"
@@ -16,7 +22,7 @@ concurrency:
 jobs:
   archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -28,17 +34,32 @@ jobs:
         run: |
           python -m py_compile nse_index_option_oi_archive.py
           python -m unittest discover -s tests -p 'test_nse_index_option_oi_archive.py' -v
-      - name: Download and archive official NSE F&O UDiFF index-option OI
-        run: python nse_index_option_oi_archive.py
+      - name: Backfill the latest five NSE trading dates (idempotent)
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
+          import datetime as dt
+          from zoneinfo import ZoneInfo
+          today = dt.datetime.now(ZoneInfo("Asia/Kolkata")).date()
+          start = today - dt.timedelta(days=6)
+          print(f"START_DATE={start.isoformat()}")
+          print(f"END_DATE={today.isoformat()}")
+          PY
+          source "$RUNNER_TEMP/nse_oi_window.env"
+          echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 weekday attempts)"
+          python nse_index_option_oi_archive.py \
+            --from-date "$START_DATE" \
+            --to-date "$END_DATE" \
+            --max-sessions 5 \
+            --delay-seconds 3
       - name: Commit archive only
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
           git add nse_index_option_oi.json
           if git diff --cached --quiet; then
-            echo "No new NSE OI archive session; commit skipped."
+            echo "No new validated NSE OI sessions; commit skipped."
           else
-            git commit -m "archive NSE index option OI $(date -u +%Y-%m-%d)"
+            git commit -m "backfill recent NSE index option OI sessions"
             git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
