@@ -6,8 +6,11 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
-      - "upstox_market_data.py"
+      - "provisional_component_scoring.py"
+      - "dashboard.html"
       - "tests/test_upstox_market_data.py"
+      - "tests/test_client_ce_pe_provisional_score.py"
+      - "upstox_market_data.py"
       - ".github/workflows/scan.yml"
   push:
     branches: [main]
@@ -54,8 +57,9 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Validate Python syntax and Upstox fallback tests
         run: |
-          python -m py_compile fetch_and_score.py upstox_market_data.py crowd_mood_intraday.py backtest_participant_oi.py summarize_participant_oi_backtest.py
+          python -m py_compile fetch_and_score.py provisional_component_scoring.py upstox_market_data.py crowd_mood_intraday.py backtest_participant_oi.py summarize_participant_oi_backtest.py
           python -m unittest discover -s tests -p 'test_upstox_market_data.py' -v
+          python -m unittest discover -s tests -p 'test_client_ce_pe_provisional_score.py' -v
       - name: Run PDMP scan
         env:
           # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।
