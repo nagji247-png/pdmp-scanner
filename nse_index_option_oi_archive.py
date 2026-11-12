@@ -92,10 +92,20 @@ def aggregate_option_contracts(rows, trade_date):
         if expiry < target_date:
             raise ValueError(f"expired contract in {symbol} bhavcopy")
         strike = positive_number(row.get("StrkPric"), "StrkPric")
-        close = positive_number(row.get("ClsPric"), "ClsPric")
+        close_text = str(row.get("ClsPric") if row.get("ClsPric") is not None else "").strip().replace(",", "")
+        try:
+            close = float(close_text)
+        except (TypeError, ValueError, OverflowError):
+            raise ValueError(f"invalid ClsPric: {close_text!r}")
+        if not math.isfinite(close) or close < 0:
+            raise ValueError(f"invalid ClsPric: {close_text!r}")
         oi = integer(row.get("OpnIntrst"), "OpnIntrst")
         if oi < 0:
             raise ValueError("negative open interest")
+        # Zero-close / untraded options cannot supply a usable premium direction.
+        # Skip those contracts without discarding the otherwise valid bhavcopy.
+        if close == 0:
+            continue
         collected[symbol].append({
             "expiry": expiry.isoformat(),
             "side": side,
