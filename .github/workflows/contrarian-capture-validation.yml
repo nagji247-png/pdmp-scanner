@@ -1,0 +1,41 @@
+name: Contrarian Capture Validation
+
+on:
+  pull_request:
+    paths:
+      - "fetch_and_score.py"
+      - ".github/workflows/contrarian-capture-validation.yml"
+  push:
+    branches:
+      - "fix/retry-contrarian-candle-capture-20261112"
+    paths:
+      - "fetch_and_score.py"
+      - ".github/workflows/contrarian-capture-validation.yml"
+
+jobs:
+  syntax-and-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile scanner
+        run: python -m py_compile fetch_and_score.py
+      - name: Verify retry and no-lookahead safeguards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path("fetch_and_score.py").read_text(encoding="utf-8")
+          required = [
+              '"event_time_utc": event_time.isoformat',
+              'bar["time"] <= event_time',
+              'target + dt.timedelta(minutes=60)',
+              'retry_count',
+              'Run the horizon state machine even when Yahoo returns no bars',
+          ]
+          missing = [item for item in required if item not in source]
+          if missing:
+              raise SystemExit("Missing safeguards: " + ", ".join(missing))
+          print("Contrarian capture retry safeguards present.")
+          PY

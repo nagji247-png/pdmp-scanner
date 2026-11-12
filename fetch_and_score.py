@@ -2837,12 +2837,20 @@ def _update_intraday_horizon(event, field, minutes, bars):
             "change_pct": move, "outcome": outcome,
         })
     elif dt.datetime.now(dt.timezone.utc) > target + dt.timedelta(minutes=10):
-        # स्रोत से कोई candle न लौटे (जैसे Yahoo 429/खाली response) तब भी
-        # लक्ष्य विंडो बीतने के बाद pending अनिश्चितकाल तक नहीं रहना चाहिए।
-        horizon.update({
-            "status": "unavailable",
-            "reason": "लक्ष्य समय के 10 मिनट के भीतर पूरी candle नहीं मिली या स्रोत ने डेटा नहीं दिया",
-        })
+        # Yahoo 429/खाली response पर अगले Auto Run में दोबारा जाँचें।
+        # लक्ष्य candle के बाद 60 मिनट तक retry करें; उसके बाद ही unavailable।
+        checked_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        if dt.datetime.now(dt.timezone.utc) <= target + dt.timedelta(minutes=60):
+            horizon["last_checked_at"] = checked_at
+            horizon["retry_count"] = int(horizon.get("retry_count") or 0) + 1
+            horizon["status"] = "pending"
+            horizon["reason"] = "पूरी candle अभी स्रोत से नहीं मिली; अगले Auto Run में फिर जाँच होगी"
+        else:
+            horizon.update({
+                "status": "unavailable",
+                "reason": "लक्ष्य candle 60 मिनट की retry अवधि में भी स्रोत से नहीं मिली",
+                "last_checked_at": checked_at,
+            })
 
 
 def update_contrarian(events, name, score, today_str, returns, sym):
@@ -2850,12 +2858,14 @@ def update_contrarian(events, name, score, today_str, returns, sym):
     key = f"{today_str}|{name}"
     existing = next((e for e in events if e.get("key") == key), None)
     if abs(score) >= CONTRARIAN_LIMIT and not SKIP_EVENTS and existing is None:
+        event_time = dt.datetime.now(dt.timezone.utc)
         event = {"key": key, "date": today_str, "instrument": name,
-                 "score": score, "outcome": None, "next_change": None,
+                 "score": score, "event_time_utc": event_time.isoformat(timespec="seconds").replace("+00:00", "Z"),
+                 "outcome": None, "next_change": None,
                  "baseline_price": None, "baseline_time": None, "baseline_attempted": False,
                  "intraday_source": "Yahoo Finance completed 5-minute candles",
-                 "after_30m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"},
-                 "after_60m": {"status": "unavailable", "reason": "ताज़ा शुरुआती candle नहीं मिली"}}
+                 "after_30m": {"status": "pending", "reason": "शुरुआती पूरी candle का इंतज़ार"},
+                 "after_60m": {"status": "pending", "reason": "शुरुआती पूरी candle का इंतज़ार"}}
         events.append(event)
         existing = event
 
@@ -2879,37 +2889,53 @@ def update_contrarian(events, name, score, today_str, returns, sym):
                     same_sign = (nxt > 0) == (float(e.get("score") or 0) > 0)
                     e["outcome"] = "continued" if same_sign else "reversed"
 
-    # Intraday horizons are prospective only. Old records without a baseline stay legacy.
+    # Intraday horizons and the original baseline are retried by Auto Run.
+    # Never substitute a later session's candle for the event-time baseline.
     needs_bars = any(
         e.get("baseline_time") and any(
             isinstance(e.get(field), dict) and e[field].get("status") == "pending"
             for field in ("after_30m", "after_60m")
         ) for e in relevant
     )
-    new_baseline_needed = bool(existing and existing.get("baseline_attempted") is False)
+    new_baseline_needed = bool(
+        existing and not existing.get("baseline_time")
+        and existing.get("baseline_attempted") is not True
+        and existing.get("event_time_utc")
+    )
     bars = _completed_5m_bars(sym) if (needs_bars or new_baseline_needed) else []
     if new_baseline_needed:
-        # Baseline केवल उसी scan में लें जिसमें extreme event पहली बार दर्ज हुआ।
-        # अगली सुबह की candle को पिछली शाम के संकेत का शुरुआती भाव नहीं मानना है।
-        existing["baseline_attempted"] = True
-        latest = bars[-1] if bars else None
-        age = ((dt.datetime.now(dt.timezone.utc) - latest["time"]).total_seconds() / 60
-               if latest else None)
-        if latest and -1 <= age <= 15:
-            existing["baseline_price"] = round(latest["price"], 4)
-            existing["baseline_time"] = latest["time"].isoformat(timespec="seconds").replace("+00:00", "Z")
+        event_time = dt.datetime.fromisoformat(existing["event_time_utc"].replace("Z", "+00:00"))
+        if event_time.tzinfo is None:
+            event_time = event_time.replace(tzinfo=dt.timezone.utc)
+        # Pick the latest completed candle at/before the signal timestamp.
+        # A candle after the signal would introduce look-ahead bias.
+        candidates = [bar for bar in bars if bar["time"] <= event_time]
+        baseline = candidates[-1] if candidates else None
+        baseline_age = ((event_time - baseline["time"]).total_seconds() / 60
+                        if baseline else None)
+        event_age = (dt.datetime.now(dt.timezone.utc) - event_time).total_seconds() / 60
+        if baseline and 0 <= baseline_age <= 15:
+            existing["baseline_attempted"] = True
+            existing["baseline_price"] = round(baseline["price"], 4)
+            existing["baseline_time"] = baseline["time"].isoformat(timespec="seconds").replace("+00:00", "Z")
             existing["after_30m"] = {"status": "pending"}
             existing["after_60m"] = {"status": "pending"}
-        else:
-            reason = "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+        elif event_age > 30:
+            existing["baseline_attempted"] = True
+            reason = "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
             existing["after_30m"] = {"status": "unavailable", "reason": reason}
             existing["after_60m"] = {"status": "unavailable", "reason": reason}
-    if bars:
-        for e in relevant:
-            if not e.get("baseline_time"):
-                continue
-            _update_intraday_horizon(e, "after_30m", 30, bars)
-            _update_intraday_horizon(e, "after_60m", 60, bars)
+        else:
+            # Keep it retryable while the event-time candle may still be fetched.
+            existing["after_30m"] = {"status": "pending", "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"}
+            existing["after_60m"] = {"status": "pending", "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"}
+    # Run the horizon state machine even when Yahoo returns no bars:
+    # pending checks must still retry and eventually time out honestly.
+    for e in relevant:
+        if not e.get("baseline_time"):
+            continue
+        _update_intraday_horizon(e, "after_30m", 30, bars)
+        _update_intraday_horizon(e, "after_60m", 60, bars)
 
 
 def update_divergence(events, name, score, change, today_str, returns, headlines=None):
