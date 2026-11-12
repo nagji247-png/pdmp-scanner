@@ -6,6 +6,8 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
+      - "crowd_trap_detector.py"
+      - "tests/test_crowd_trap_detector.py"
       - "provisional_component_scoring.py"
       - "dashboard.html"
       - "tests/test_upstox_market_data.py"
@@ -22,6 +24,8 @@ on:
     branches: [main]
     paths:
       - "fetch_and_score.py"
+      - "crowd_trap_detector.py"
+      - "tests/test_crowd_trap_detector.py"
       - "upstox_market_data.py"
       - "tests/test_upstox_market_data.py"
       - "backtest_participant_oi.py"
