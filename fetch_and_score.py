@@ -787,10 +787,21 @@ def build_asset_component_breakdowns(
         basket = stock_basket_diagnostics.get(name)
         if isinstance(basket, dict):
             basket_date = basket.get("source_date")
-            if source_date_is_fresh(basket_date, news_source_date, max_age_days=3):
+            basket_is_verified_for_score = (
+                basket.get("status") == "complete_diagnostic"
+                and basket.get("score_eligible") is True
+                and basket.get("research_only") is not True
+                and int(basket.get("expected") or 0) > 0
+                and int(basket.get("matched") or 0) == int(basket.get("expected") or 0)
+                and float(basket.get("coverage_pct") or 0) == 100.0
+            )
+            if (
+                basket_is_verified_for_score
+                and source_date_is_fresh(basket_date, news_source_date, max_age_days=3)
+            ):
                 basket_component = build_component(
                     basket.get("score"),
-                    basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                    basket.get("source") or "Official NSE/BSE weighted constituent basket",
                     basket_date,
                     PROVISIONAL_WEIGHTS["stock_basket"],
                     method=basket.get("method"),
@@ -799,8 +810,8 @@ def build_asset_component_breakdowns(
                     expected=basket.get("expected"),
                     matched=basket.get("matched"),
                     coverage_pct=basket.get("coverage_pct"),
-                    validation_status="प्रारंभिक; 60-session परीक्षण जारी",
-                    weighting_method="equal-weight breadth",
+                    validation_status=basket.get("validation_status") or "पूर्ण coverage और score eligibility सत्यापित",
+                    weighting_method=basket.get("weighting_method") or "official constituent weights",
                 )
                 if basket_component:
                     provisional_components["stock_basket"] = basket_component
@@ -809,7 +820,13 @@ def build_asset_component_breakdowns(
                     "applicable": True, "included": False,
                     "source": basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
                     "source_date": basket_date,
-                    "reason": "Stock Basket का official snapshot scan date से 3 calendar days से अधिक पुराना, missing या future-dated है; provisional Final से बाहर रखा गया।",
+                    "reason": (
+                        "पूरा daily basket diagnostic उपलब्ध है, लेकिन यह research-only/equal-weight है "
+                        "या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; "
+                        "इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
+                        if basket.get("research_only") is True or basket.get("score_eligible") is False
+                        else "Stock Basket का official snapshot scan date से 3 calendar days से अधिक पुराना, missing या incomplete है; provisional Final से बाहर रखा गया।"
+                    ),
                 }
 
         if name in index_names:

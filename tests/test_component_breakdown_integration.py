@@ -750,7 +750,34 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             self.assertEqual(item["score"], 1.25)
 
 
-    def test_partial_watchlist_never_enters_index_stock_basket_final(self):
+    def test_fresh_research_only_equal_weight_basket_never_enters_provisional_final(self):
+        now = datetime(2026, 11, 12, 14, 0, tzinfo=timezone.utc)
+        basket = {
+            "score": 8.0, "source": "Official NSE CM UDiFF · equal-weight breadth",
+            "source_date": "2026-11-12", "research_only": True,
+            "score_eligible": False, "included": False,
+            "status": "complete_diagnostic", "expected": 50, "matched": 50,
+            "coverage_pct": 100.0, "advances": 45, "declines": 5,
+            "method": "equal-weight breadth",
+        }
+        instruments = {"NIFTY": {"score": 0, "headlines": []}}
+        with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \
+             mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={"NIFTY": basket}), \
+             mock.patch("builtins.open", side_effect=FileNotFoundError):
+            fetch_and_score.build_asset_component_breakdowns(
+                instruments, now.isoformat(), now,
+                participant_today={}, participant_changes_data={},
+            )
+        breakdown = instruments["NIFTY"]["component_breakdown"]
+        self.assertNotIn("stock_basket", breakdown["provisional_components"])
+        self.assertNotIn("stock_basket", breakdown["provisional_final"]["included_components"])
+        excluded = breakdown["excluded_components"]["stock_basket"]
+        self.assertFalse(excluded["included"])
+        self.assertIn("research-only/equal-weight", excluded["reason"])
+        self.assertEqual(instruments["NIFTY"]["score"], 0)
+
+
+    def test_unvalidated_equal_weight_basket_never_enters_index_stock_basket_final(self):
         instruments = {
             name: {"score": 1.25, "headlines": []}
             for name in ("NIFTY", "SENSEX", "BANKNIFTY")
@@ -766,7 +793,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             excluded = breakdown["excluded_components"]["stock_basket"]
             self.assertTrue(excluded["applicable"])
             self.assertFalse(excluded["included"])
-            self.assertIn("full-basket daily snapshot", excluded["reason"])
+            self.assertIn("research-only/equal-weight", excluded["reason"])
             self.assertIn("60-session directional validation", excluded["reason"])
             self.assertEqual(item["score"], 1.25)
 
