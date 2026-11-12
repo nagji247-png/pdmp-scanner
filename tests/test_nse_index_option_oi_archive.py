@@ -234,7 +234,17 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             path = Path(directory) / "nse_index_option_oi.json"
             path.write_text(json.dumps({
                 "schema_version": 1,
-                "records": [{"date": "2026-11-06"}],
+                "records": [{
+                    "date": "2026-11-06",
+                    "option_contracts": {
+                        symbol: {"contracts": [{
+                            "expiry": "2026-11-26", "side": "CE",
+                            "strike": 25000, "close": 100.0,
+                            "open_interest": 1000,
+                        }]}
+                        for symbol in ("NIFTY", "BANKNIFTY")
+                    },
+                }],
             }), encoding="utf-8")
             with patch("sys.argv", [
                 "nse_index_option_oi_archive.py",
