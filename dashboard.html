@@ -1548,7 +1548,7 @@ function card(name, d, participantOI, observedAt) {
         ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
       </details>
     ` : ""}
-    <button type="button" class="asset-detail-open data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
     <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
       <div class="asset-detail-content">
         ${componentBreakdown}
