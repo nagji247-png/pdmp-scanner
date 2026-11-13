@@ -1524,7 +1524,7 @@ function card(name, d, participantOI, observedAt) {
       </div>
     </div>
 
-    <div class="asset-score-history">${spark(scoreHistory[name], color)}</div>
+    ${name === "SENSEX" ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
         <summary>Click for details</summary>
@@ -1549,11 +1549,11 @@ function card(name, d, participantOI, observedAt) {
           <div class="hl-title">कीमत का बदलाव</div>
           <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
         </div>
-      </details>
-      <details>
-        <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
-        ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
       </details>` : ""}
+    <details>
+      <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
+      ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
+    </details>
 `;
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
