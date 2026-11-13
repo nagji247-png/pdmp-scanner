@@ -8,6 +8,8 @@ on:
       - "fetch_and_score.py"
       - "stock_basket_freshness.py"
       - "tests/test_stock_basket_loader_freshness.py"
+      - "stock_basket_freshness.py"
+      - "tests/test_stock_basket_loader_freshness.py"
       - "crowd_trap_detector.py"
       - "tests/test_crowd_trap_detector.py"
       - "provisional_component_scoring.py"
@@ -26,6 +28,8 @@ on:
     branches: [main]
     paths:
       - "fetch_and_score.py"
+      - "stock_basket_freshness.py"
+      - "tests/test_stock_basket_loader_freshness.py"
       - "crowd_trap_detector.py"
       - "tests/test_crowd_trap_detector.py"
       - "upstox_market_data.py"
