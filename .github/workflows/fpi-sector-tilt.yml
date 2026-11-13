@@ -4,6 +4,11 @@ on:
   schedule:
     # NSDL releases fortnightly reports after period-end.
     - cron: "25 2 8,23 * *"
+  push:
+    branches: [main]
+    paths:
+      - "fpi_sector_tilt.py"
+      - ".github/workflows/fpi-sector-tilt.yml"
 permissions:
   contents: write
 concurrency:
