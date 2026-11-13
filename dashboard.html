@@ -452,6 +452,9 @@
   /* Mobile card-width correction: keep every asset card inside its grid cell. */
   .panel .grid{box-sizing:border-box;width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}
   .panel .grid>.card{box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden}
+  /* Keep the lower chart and disclosure rows visible on the two affected index cards. */
+  #indexes>.card[data-asset-name="NIFTY"],#indexes>.card[data-asset-name="BANKNIFTY"]{height:auto!important;min-height:max-content!important;max-height:none!important;overflow:visible!important}
+  #indexes>.card[data-asset-name="NIFTY"] .asset-score-history,#indexes>.card[data-asset-name="BANKNIFTY"] .asset-score-history,#indexes>.card[data-asset-name="NIFTY"]>details,#indexes>.card[data-asset-name="BANKNIFTY"]>details{display:block!important;visibility:visible!important;max-height:none!important;overflow:visible!important}
   .card .compact-score-price{display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0;width:100%}
   .card .compact-score-price>*{min-width:0}
   .card .compact-score-price .big{flex:0 1 auto;overflow-wrap:anywhere}
@@ -1461,6 +1464,7 @@ function card(name, d, participantOI, observedAt) {
       + ' <span style="font-weight:900;color:' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "#2ecc71" : Number(d.change_pct) < 0 ? "#e74c3c" : "#aab2c5") : "#aab2c5") + '">' + (d.change_pct != null && Number.isFinite(Number(d.change_pct)) ? (Number(d.change_pct) > 0 ? "+" : "") + Number(d.change_pct).toFixed(2) + "%" : (name === "USDINR" && d.reference_price != null ? "दैनिक संदर्भ · लाइव नहीं" : "बदलाव डेटा नहीं")) + '</span><small style="display:block;line-height:1.35">' + priceMeta + '</small>';
   const el = document.createElement("div");
   el.className = "card " + cls;
+  el.dataset.assetName = name;
   const compactSource = String(d.price_source || "").trim()
     .replace(/National Stock Exchange of India|NSE India/gi, "NSE")
     .replace(/Multi Commodity Exchange|MCX live quote[^,]*/gi, "MCX")
