@@ -793,7 +793,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             excluded = breakdown["excluded_components"]["stock_basket"]
             self.assertTrue(excluded["applicable"])
             self.assertFalse(excluded["included"])
-            self.assertIn("research-only/equal-weight", excluded["reason"])
+            self.assertIn("full-basket daily snapshot", excluded["reason"])
             self.assertIn("60-session directional validation", excluded["reason"])
             self.assertEqual(item["score"], 1.25)
 
