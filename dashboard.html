@@ -1511,7 +1511,21 @@ function card(name, d, participantOI, observedAt) {
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
-    ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI), isIndianIndex ? `
+    ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
+    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
+      <div class="asset-detail-content">
+        ${componentBreakdown}
+        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+        ${experimentalScoreLine}
+        ${detailSignals}
+        ${detailIndicator}
+        ${detailPrice}
+      </div>
+    </div>
+
+    <div class="asset-score-history">${spark(scoreHistory[name], color)}</div>
+    ${isIndianIndex ? `
       <details>
         <summary>Click for details</summary>
         <div class="hl">
@@ -1539,20 +1553,7 @@ function card(name, d, participantOI, observedAt) {
       <details>
         <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
         ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
-      </details>` : "")}
-    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
-    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
-      <div class="asset-detail-content">
-        ${componentBreakdown}
-        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
-        ${experimentalScoreLine}
-        ${detailSignals}
-        ${detailIndicator}
-        ${detailPrice}
-      </div>
-    </div>
-
-    <div class="asset-score-history">${spark(scoreHistory[name], color)}</div>
+      </details>` : ""}
 `;
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
