@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
-  "updated_at": "2026-11-13T05:59:00+00:00",
+  "updated_at": "2026-11-13T07:15:00+00:00",
   "events": [
     {
       "event_key": "2026-10-20|legacy|EXTREME_BEARISH",
@@ -2028,6 +2028,48 @@
       "price_source": "NSE India allIndices API",
       "quote_timestamp_utc": null,
       "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-13T07:15:00+00:00",
+      "scan_market_date": "2026-11-13",
+      "market_date": "2026-11-13",
+      "index": "NIFTY",
+      "price": 25115.35,
+      "price_as_of": "13/11/2026",
+      "price_time": "12:44 PM IST",
+      "quote_market_date": "2026-11-13",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "NSE India allIndices API",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-13T07:15:00+00:00",
+      "scan_market_date": "2026-11-13",
+      "market_date": "2026-11-13",
+      "index": "SENSEX",
+      "price": 81471.68,
+      "price_as_of": "13/11/2026",
+      "price_time": "12:44 PM IST",
+      "quote_market_date": "2026-11-13",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "Google Finance direct SENSEX quote",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-13T07:15:00+00:00",
+      "scan_market_date": "2026-11-13",
+      "market_date": "2026-11-13",
+      "index": "BANKNIFTY",
+      "price": 61021.4,
+      "price_as_of": "13/11/2026",
+      "price_time": "12:44 PM IST",
+      "quote_market_date": "2026-11-13",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "NSE India allIndices API",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
     }
   ],
   "intraday_30m_bars": [
@@ -2869,6 +2911,30 @@
       "close": 25173.0508,
       "volume": 0.0,
       "change_pct": -0.1063,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-13T06:00:00Z",
+      "end": "2026-11-13T06:30:00Z",
+      "open": 25172.6992,
+      "high": 25176.1992,
+      "low": 25134.5996,
+      "close": 25146.5996,
+      "volume": 0.0,
+      "change_pct": -0.1037,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-13T06:30:00Z",
+      "end": "2026-11-13T07:00:00Z",
+      "open": 25146.6992,
+      "high": 25159.0,
+      "low": 25081.6504,
+      "close": 25112.3008,
+      "volume": 0.0,
+      "change_pct": -0.1368,
       "direction": -1
     }
   ]
