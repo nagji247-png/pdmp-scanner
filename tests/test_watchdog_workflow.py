@@ -18,7 +18,9 @@ class WatchdogWorkflowConfigTests(unittest.TestCase):
 
     def test_watchdog_keeps_ten_minute_stale_data_check(self):
         watchdog = Path(".github/workflows/scan-watchdog.yml").read_text(encoding="utf-8")
-        self.assertIn('cron: "3,13,23,33,43,53 * * * *"', watchdog)
+        self.assertIn('cron: "*/5 4-9 * * 1-5"', watchdog)
+        self.assertIn('cron: "0,5,10 10 * * 1-5"', watchdog)
+        self.assertIn('cron: "3,33 10-23,0-2 * * 1-5"', watchdog)
         self.assertIn("age_minutes <= 35", watchdog)
 
 
