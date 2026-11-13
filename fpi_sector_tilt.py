@@ -47,11 +47,11 @@ def fetch_period(end):
     with urlopen(req,timeout=25) as response: raw=response.read().decode("utf-8",errors="replace")
     parser=Rows(); parser.feed(raw); sectors=[]
     for row in parser.rows:
-        if len(row)<32 or not re.fullmatch(r"\d+",row[0].strip()): continue
+        if len(row)<44 or not re.fullmatch(r"\d+",row[0].strip()): continue
         name=html.unescape(row[1]).strip()
         if not name or name in SKIP: continue
         # NSDL table: 4 six-column groups precede the current fortnight's INR group.
-        flow=number(row[26])
+        flow=number(row[40])
         if flow is not None: sectors.append({"name":name,"net_equity_cr":round(flow,2)})
     if len(sectors)<18: raise ValueError(f"only {len(sectors)} valid industry rows")
     start=end.replace(day=1) if end.day==15 else end.replace(day=16)
