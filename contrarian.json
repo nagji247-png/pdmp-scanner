@@ -1009,8 +1009,8 @@
     "date": "2026-11-11",
     "instrument": "NASDAQ",
     "score": 7.3,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": -0.39,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1029,8 +1029,8 @@
     "date": "2026-11-11",
     "instrument": "DJI",
     "score": 6.4,
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": -0.36,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1102,6 +1102,27 @@
     "after_60m": {
       "status": "unavailable",
       "reason": "इवेंट दर्ज होते समय ताज़ा पूरी 5-मिनट candle नहीं मिली"
+    }
+  },
+  {
+    "key": "2026-11-13|BANKNIFTY",
+    "date": "2026-11-13",
+    "instrument": "BANKNIFTY",
+    "score": 12.3,
+    "event_time_utc": "2026-11-13T02:21:46Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
     }
   }
 ]

@@ -7710,8 +7710,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -2.17
   },
   {
     "key": "2026-11-12|CRUDEOIL|div",
@@ -7752,8 +7752,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": 2.71
   },
   {
     "key": "2026-11-12|ADANIPORTS|div",
@@ -8214,8 +8214,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -2.84
   },
   {
     "key": "2026-11-12|DJI|div",
@@ -8256,8 +8256,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": -0.36
   },
   {
     "key": "2026-11-12|NASDAQ|div",
@@ -8296,6 +8296,174 @@
         "source": "CNBC TV18",
         "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNOUFOV1c5SmJZZnF4enhUUUU5Wmx0NVFXWnhHaFFjNVZlb0dzLUFSV0gtLTMtaUhGc28yTnE1V2hzNzRRNEpyNVhLZ0VvRWRFSEUwUjFmQmtrRW1zM0Q4WFdwM3lTeWFJWmpKQ2ZwNjZ4eEgwakRNTDNJZHR1Vll0N0tqcWhQa25wTjFnS0sybzVNdlZEdG9xTzNhaVBBNTluMzUwdFJpeE9WNmZfdGd2MzlUZURKNGdXTnlpQ01n0gHDAUFVX3lxTE82eXVGTUQyekp0NHY4S2FWcFY1bWJfOWJXRlZPaXNhTFQzUEhQY0xiWlNmSkRaRVFTYTJFX3RGeG1iNmVSaHBMZHBVa3JGZE5YS3FndWtidFlMd0lrSG52ZF9FZkpKYXhZTjVteXc2UHVMQndOTVJsUkNHR3B5WXBReXZFazl3dFdlVk14QVpDUzdYWkZxY0NrRkRFMTJVdy02azJNaHl0NGVqYU5kajhtWFBSODY1Q1JKV2hoNHF2ME1SOA?oc=5",
         "score": -2
+      }
+    ],
+    "outcome": "price",
+    "next_change": -0.39
+  },
+  {
+    "key": "2026-11-13|CRUDEOIL|div",
+    "date": "2026-11-13",
+    "instrument": "CRUDEOIL",
+    "score": -1.2,
+    "price_change": 2.71,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "Brent crude oil futures tumble over 5% to ₹8,125 per barrel",
+        "source": "ET Auto",
+        "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPVUtSUVh3ZXBQbXpJanBiOTBmd0tkUDZ5STZVYVV6QzdyVnl5cnNPM0xRSVgyWm94aTRsNEt0UmVmblNiZE8tSmc5RUR4V2FMckhmcXRoQ1RERE9fWWx5MWsyLS1YYUdoS1E0NjVnU0xiMkplRHZ2Mm4wZFJtTGFqSjBfRV9weDVwNkE0XzhGYzNXc2diZ1QzVVVfVktjLWxQTkJSMGFsM0NEdEF3WWVrNjRuUGtKNXU1S1JoVTV5UjVYS21iakHSAcsBQVVfeXFMTVB1TEVqYVIwT0x0NEdjdjdHREJhQVRXc1ZVcFNfOU9EWlJibXJRbGtrRjJXRzNDZzZ0N2NENG5yTmxKUnI2S1hRX3dvZGoxTmZyMWN5TUFhMGppMmt3WVVNc19nczhfaHVHemgzWlRkYTNtSm14M0pyb0RKeUlvQXkwWHBiR3NkWE1GRnQtandwLVB5dXgxS0xKRzNIWGk2S2hVREpUUE0zbmdqdDZ3eXo0VDdVMVEtX25nUWJHS2U1d0I2WlQxeXh3dkk?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Crude Oil Futures Up Rs 23 to Rs 8,577 Amid Global Trends",
+        "source": "Rediff MoneyWiz",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQdHNUQlhJTGY4RVpxaU8xc0UxNU13Z0J3VlB1WTJ3bC1QM1VUYV9CSUU3N0pucHdwZzQ0eXZVRFN1LTZ4dE51cDJzV0Z0UTlmNFIwdllqX3dSNFUyTlE3RzhtandIR184MEhTQW5Wb1ExMEZ0dTg4NzNiRnQ1VlNfQ1h0NktJeHg3aGtJQlFUaXI1R3N6T0pJd3BYQk5LaXZEUU5leFBWbG5rNDE5WFHSAbMBQVVfeXFMTW8xMEdaLVVkLTJKa0YwckpvcjFscGF2ZTJrOE5VZVdOOENWZEdGSTlnRzBWSk1oSDVPejVXZGlLSERjOWlHNUlWQTZVQzJtdXluazZyajA4Uy1jLUFncGFSQThKWlZrWF9ZdG5HR3Bqd1pQZVhtSlM5czZQSWhSTWdnR3lYYlZ4RFU2ODJmNEMwR3RmVmRXUXc5ZU03cGhqdTdGLXFjMDBGTGlPSE4wakNHNHM?oc=5",
+        "score": 0
+      },
+      {
+        "title": "November 2026 F&O Monthly Expiry",
+        "source": "Groww",
+        "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1MbDhrd01qWkVHejFJaHhvNHhRQ21SRVVxUnNPWlkxRXZzQnp6WTZSRnNSTHhTeEdYVUxmT2RJX2l4c1U3ZjVtcWtLNU1WUjZ2Y3V3TktiVQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Crude Oil Falls Nearly 1% to ₹8,565 on MCX as Global Prices Ease",
+        "source": "HDFC Sky",
+        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPVTB0azVWOW1zNWNseVoyUVhvTjNJVXVWV2hvOVpZLV94NjFoclNOUks0aUg2bkpjWkw3RE1HVE81ckNQbU45RjUtWks1OGZ5R0hfLXhqaXgzQXFVTzdoVTAtZGJ0ZGxSZExCS01rRFhYNUZ4TnhSOWRYbVpvUGhDXzJVZC1Cc3Voanpoa1NncVhoakdqZjlYNVhxWEhMN19BTlY0NGVRWTM?oc=5",
+        "score": -1
+      },
+      {
+        "title": "MCX Crude Oil Climbs Over 4% as Middle East Conflict Raises Supply Disruption Risks",
+        "source": "NiftyTrader",
+        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE16YVpOd2IxX3VJUWNtb1o5elpwRjM1cjkzb2tYOVNxeEJpbnhLVTE5Q05jNS1EQmVfd09nS0prSGl0Nk9tcmtGdjhJbWE5ekMwaHBOeEFQRF9zd2JCN2dKX1U5dHh6M1h4aFdkeDFhcFQ?oc=5",
+        "score": 1
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-13|TATAMOTORS|div",
+    "date": "2026-11-13",
+    "instrument": "TATAMOTORS",
+    "score": 1.3,
+    "price_change": -0.67,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "EVs Drive Tata Motors' Edge Over Mahindra in Intense PV Market Race",
+        "source": "Rediff",
+        "link": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQdW5Tc3lLeHpfWTB1cUdSODVVRVZSTzA2NEdCZEV1WUVJLWI4WDQ5R0tGWGl0RUdSQ2xsb1pWR1IyS01jd0N1UFVzbVFXanYwNTd4cU1JLU9Wc19yZF9SVnJxUVQzNFdnbmVRQlhXX1YyOGY2S2NfdzZoM0p6eGllX0NXNC1ZNkFGWHZpeHF2bFRHSGJzRlhteTdpRzRfeFBMSjl1NVltVld2Sm9EbGJ4S292akdQSktmTjkzcUdrdmVJZ016ZmNtVHJtSDBWZGw0WlVnU1JaeUt6RkJDdFNBUlNLWWx3WC1PSzBORHlBY1hsd9IB9AFBVV95cUxPRUtMRjhLUWpORmw5VHl5YzZrdU82dnJBcFc1bkR5dm45OHlHekJMZnp1a083eUllMEZtS2hfTk5ITE9yNE5fbnRPa0VxYmxlRHFWb1FkM3dPTGFVQlp0blNaMS15ODUxTjlFek1RMDF5LXNzc1FObmFqVnpPdWZ4SjFBOVFaaDRoeGQtOHBlak9oZ2FaNlhBakZ1WF9NN2NfWmhxUmdVTnZncklENi1fQWtGR0kwQkt5OXluWk9Tb2dvcG5HY0Vjc0xKU2haLU51cGFpeVRrMTJVdVZnaVZWd0FZR29LSVZRWHFtY3RkZmVuU3Jo?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Weekly News Wrap: Tata Raises Iveco Stake, Mahindra Accelerates Expansion, Bosch Eyes Chip Growth ",
+        "source": "Autocar Professional",
+        "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQTGJXRUt5cXh2NW00dW1YRTdXUWdpY2tyWk81WlQ1SzlYQTU4OVBqc2VHV0hESzhBRzNRVC1yOEFkdll0NGZCWDJWc2RtVkpMM1Q2b2VBTEFOQ3FVT1c0SXpKSmZZNTRESUNLb040TFFOcDg4QkIzYnl6QnVzOTk4OHNsNE1jTl9QT3EzdXlnOC1leVRHNnI4SkNTZHNaVFo2TWl4RXUwNUhNSlB5aEtpcDE2cGdPT294WF90Vno4bmJuTkRpN2FoS2p5bjTSAdQBQVVfeXFMTVQ0OGhlZGV5bHBoeFFSbm43ckZLM1E4ZEFzS3BnQWlDYjVJMFRIeUpxUWZjZnJ1S2h3Wjc1YWcyQ29vcXFxRUhlMm15aUpVR0VmWDdzLVZzSTJrVEVBVEFLM1FGd2xmZGRUeTMyMG1DVmg3Vk1LamtKTnpFdXJRdzJ0em16SVZzaDV0U2tCSEhjQ0prV2l4UmNSN2JRSzJvNGJaZFoyS3ljMGVvekFNb21yaU1vSDk1WHY3MGx6OFZ5ejlqUm1GdEhlZUo2UUF5SXZvaDQ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Muhurat Trading 2026: Sensex, Nifty open higher in special session; Tata Steel, Sun Pharma shares among top gainers",
+        "source": "Business Today",
+        "link": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxQS2xVNU54SzFiT284WUdRRTNzYmtMaktYcjdrVm9sZ0RnTDdURC1mRU5CMS03dHlNM3FlTkRDNGRZMjJITWoyV0NMTG83Vm8wRThvbXFhdEs1QTdDOTFYZ0MtV3FWbjlId3RBeXhfcDNMTFhCOGQ3TUNzTldGRnp4bFA5ODZqR0lwMGtMTGlIV1dkMWNPcHJNT3Z1LTFYeWdqWU9xa05CcUN5Zzg4LUNlandxQ2l3eTJDSUJsSi1hWWlOVFlaTWpNeEV2MW1aRWtjT3U3cU1DUjBJQ1drLUxBNEttekVSRkhZeHA0SlVES0NxcHhDcVFpNVk3dnRJOTRra3NpYVlIOTd6UjDSAZACQVVfeXFMTjZ5dEVmbWg4OUY2Y0NTN1lkSl9MV0c3WmZrbEdhc0owSmFHZ1ZYdmNITVFUNXlPeFdrOEJtLUV4dXh2MmRubGpmN01WdFBNX09ESl82d1QwSDdsV01nTTVfTWk0V3RIN0lYS2hCamNrRkZFRkV3NmNoUWtCRlhOS2JWdG5IdzUxaGtmWHhkdkRWRHU4eHdLT3VPTTNWNG5oNWdYT2lDWHNjb1hIWUtDOUo1XzBVaWtPRUtObWJKdkhNaTRSWFVIeWhvc3R4RUpHQWctZnpwdG1hb012Uks4Mm1XdUVjbENjSktqYXRRYWRITmNBOWdYOEpzUURjYnNlU3VJa0hYVmJJN1ZPcl8zZm8?oc=5",
+        "score": 2
+      },
+      {
+        "title": "Tata Motors Passenger Vehicles (BSE:500570) Stock Forecast & Analyst Predictions",
+        "source": "Simply Wall St",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOakR4QWR1X25RSXZTejVzLW1lcTZCOWM1d2hlZ0NiUUtpa2pRU2ZXVFJEeHpkVHVpWVZpdFpwSlhjQzhmeDJYTXg4YVVycEl6NktaRjlpQnBjcE5LR3ZmQ1owaklaYUhrODF5bDlhdWliWjN6eFJDTVU1b1EtT1BYMmN1ejlpTzIzR3hmc2JVd1dWMlFoYkFtdmJ3Mk4wNkVI?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Is Now The Time To Look At Buying Tata Motors Passenger Vehicles Limited (NSE:TMPV)?",
+        "source": "Simply Wall St",
+        "link": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxORGRoZWFlV1ljdjFlam03SGRXYkVRZmswQ0Y5ZmFKM1FrdmJyX0IzTWVnZE0ySk00Wm5pVkVET19jbTZyMDZQRVBIRi02eXMwR01PZ0I5Zm42YzZRa2k1Vi1kXzFqc2ZyX2tZTmEzWDJ3Qm1PVzNYdWVQbF9MRU5aVXR5SkxKcVBfY1BJY3ZkU1hScFhVV284YXFUM1BmdFU0WEQ0X2M2Tm9pdzZWZ2F1RDdqUzh1eFBJbnp4SDB4OG5wV05qc1dfTXRYTTF0U0RsRkR6Y3NmU0ZpVnZjd1d6VHMtWHlrak41eVNyUdIB8gFBVV95cUxOVjZmREhwWHp3LVdkVU1xNUNKa1F5Zm5IRlpuU2xkaTdYYUtuRHdCSWdHRF9lTm9OQ1BqRmpVRFppY2d2U3k5bzJiZ2xzTk9KSWtUeU4xM2MzekdJVzk4NTBOcUtqeHRvdXFrNk9YMHRLU0pwNGx6ckh3Z3dURGpGcFhVb3hGZHRXYjYydlpBcGY5UnlyTlNzUmVrMHNzVjFsV2ZpTlcyUGM2NTdCTXhya1VoN242OTNmVllmNXVlWkFKVEFnZkxHeldLVGFDdlIzeFh6bHhWRW5QeGtTbU44MUZ6RDJWN3hiUEFnQXhueDR2UQ?oc=5",
+        "score": 1
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-13|EICHERMOT|div",
+    "date": "2026-11-13",
+    "instrument": "EICHERMOT",
+    "score": 2.1,
+    "price_change": -0.57,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Eicher Motors Ltd Downgraded to Hold Amid Valuation and Technical Concerns",
+        "source": "MarketsMojo",
+        "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNeHpCcmNQajF0TUU2cmNGUDlUSHBuYlBwbFZTMExhcmZYdWdLUUFFMFRsWVgwTHVkcmFfUjNQR2Y0LWhNT3NEcHVfeldGNThRZlUwOW1VMDJ4STJRWU1URUF6X0JSZHhTaTlZMVJpbUI5LTJ3cjhrRllJSGpLS0NMYXI3Z0JyaUNQdzJkWWxZRE9SMDJ0UHVuTEc0dVVnVzhXVFI3VmJ5UktSNkJIMEhzQ2hGWnRmMThuVDRpdFgtT0RJcUxibFBZQjhfWFRDTnJBT3c?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Eicher Motors (NSEI:EICHERMOT) Stock Forecast & Analyst Predictions",
+        "source": "Simply Wall St",
+        "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQbE1RWXRZWlQxX0pkVUtHUDRubXRCRnJFanJ1cG1GQUpxLWNMaFZZdWVRd0RsNk0tX1ZnMkIwYUo3Y0x6ZmZnelR5b3FySFhUb0p5YXltRG85ek1EQ0dJVTB3X3Z3bV9HMjJGSV83TGN1VDFDamxtaEtOQUZ0UkF1U2dfQmtwRFBKd3A2VXBn?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Buy, Sell Or Hold: Eicher Motors, Mahindra, Pine Labs, Belrise Industries, Data Patterns, Crompton Greaves — Ask Profit",
+        "source": "NDTV Profit",
+        "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxOalp5N2VPalBMXzlkcEhuWkxyejQ5aXNzVEZ3bUd1M0d1UlN0SF9hUlloVUJrYkJBZDJYN1hJQWRHRVVoV2x0dE9kTkNNR0tCUWlhWUdhc3dtTGk5TjhNcmN6UTdsMTAtTng3c2dHbDBxS0FzYjJxSUgyUFZqaUR2VEl0aWJPXzBuYVVnM1B4YWFDdW1UWDlFT1h5cm9fYXNwbWdrRHFqVURNN1VjZUFqdnBYWFdSQWsyb0xBMXR3bk9KWkpQYkpRa21lQ0hNNjRxQ1JJVFZLME03dmdKQmplU0J4Y0FLS3FTcFHSAfIBQVVfeXFMTXE5QnVyTk1DMVNFaFVWYldMeXFQY3BCa1ZzVV9KVFpGazVlMlpESkRUSVlEUHcwT3Q3NUZkNGdoY19rb2hXSnBKRDhVNWF5dm53QThYY2cyeGlHMFN1TWx1V1c5SXhhZllCTExLQjFsd2NFTDhsMk5CYU9kQXdhalJPajJwU0pwRHFMdkd3aTVyc0hUMHVRWWhEdXRZN1MtNWxyMlhIbThxLWhQQnRsS2ZfS2paODJYZnBvTWY2OU5yaEd3eFZoN2NkcU82SHFyMzZXWTdQSVRDSmlrNmYwS0dlenNCVHNzbXRtQmV0YjY0dnc?oc=5",
+        "score": 2
+      },
+      {
+        "title": "Eicher Motors, Hero Motocorp shares fall up to 5% after August Sales data; should you buy, sell or hold?",
+        "source": "Moneycontrol.com",
+        "link": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNclQyX28zWVdxellqSHJkdk12RGVBMEJKcHdlS0JGVnpaZzB5VEJQSkRmV21Qdnh5bEtaRkNPaDFMdG56TmZrWVhWbGhnY3N1dkUwYTgtd1hJOGpweDhjRWRjQTRVbWs4OURVbldwZEFXSjVIbURZcDE2bnluTC1vVjBHNTJGT3JPcGR0bUJHVDZnWEFzdFJnNDBlVlVkemNKM3c4ME12SHk0QW04RnNEMFI3TFMzUlNsTjdJeTY5dkF2bTZtemgtalNxTnRfUDBaTVlUZnM0T2d4UTlOa25zMkoyd3MzWDY2MloyTWVHNjVzbm1CeVU00gH8AUFVX3lxTE9lVWItekVRX052cHFMaU9ENzJ5VTZ2aGNZbHdNOWFNUmJSTk5Ec3o4TWljNm1zcUhhWUlrN0ZmZUdoS2x0YmVXR1Y1b3pWaV81dWo0YmE2QThTZXpjbkFUWlk5blhIakhWcnhzZzBnTmNDRXNqc1BSOEhUVUE0dFVjYXc2c3gwUV9leXhnSElOM21rMXRDRUhsYmZkbDAxZTd6eU5kbm9lZ1U2U0JMUm02anNqUmhoTTJheUpaLTBtaDVEYVNETl9wNS1UTWhoc3MwYm5mR3RvcFZrbXpTYVp0YnlKMjBBZE0zVWxRMU53a0M1Rjd1V2NPLXVreg?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Eicher Motors sells 1.26 lakh motorcycles in Aug'26",
+        "source": "Business Standard",
+        "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPZUx3VkZJbnBqajdrOFJlMS0wZGV5TUxVdnc5LTRlWE5CZnBucV94ZDZlc2tyTnF0SmFOMHVsZkdhM1AwTFJ2d0RtUGowOVRZRkR6dWxSd1dKTXRoaDVoX3JxanFxc2dqcG1xX3FMOENZOWdlUmFSdFphYXhuVVBYMXRVUmprSi1tUF9oZk9XdjRfQnNJYnVrdnYzTFV1Ni1BcnMtUW96alJVNnJ3ejFPUU44Y0REWjQydng0cDR0dWhIeG1KUFpKbWQ3eGtzd9IB0wFBVV95cUxPMWw0VDhWaUpLSGg4UVhYQjdKX3E5UFJWeE92RklTM1NJNkFBLU1XNklQRG1lN1hxNWRkd2FIbEJDeWFYTU9EV3lEUk1nQl9FX0R6a1pOcFJuUF9fSmlaY2FQZ0ZUaFIwakNXN0lLQXo1cV9SNVE3dWUzZ2lwVkk2STM5T0IxWktlR29aVnVpSTVpZ0tMM19SUEcyVHdVZUo1bWc0RU5EZUVlRjdXdkZySUhpdEJsemlVbnppdzZtQ3o4eWRVT1M2VFo4MW5BQ0ZQc04w?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": null,
+    "next_change": null
+  },
+  {
+    "key": "2026-11-13|APOLLOHOSP|div",
+    "date": "2026-11-13",
+    "instrument": "APOLLOHOSP",
+    "score": 1.9,
+    "price_change": -1.03,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Apollo Hospitals Enterprise (NSEI:APOLLOHOSP) Stock Forecast & Analyst Predictions",
+        "source": "Simply Wall St",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPdGMyQkNfT2lUNWxwU1hOa2pUc05vSVptQUpJeWV4MC1sRmhRX1hKQVBWQ3E5YU14eGQ0MVo4TVllWDVmb3k0SDhZT2d4Z2RNU2JKVGR5WUtYcWZQWnlpWVhydXctdHF4bE5tc0VpZ2YwWFZJbndRQzhaT1pCY3pVU01DRm1vUTJxZlBkV3R2SW5VUnFiM3lLN19HdW5OTC1E?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Apollo Hospitals Share Price Falls 2.06%: Valuation Check",
+        "source": "Univest",
+        "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOREFSeF8xbVZkdnVlUjhyTkpvQzJ0Vi1mMU15a0EwSFdlZjdLZHZuWjN2d3VTN2wwNWlpcVJCMkRsRWVVZThfeEhqNDRETW9LdVM2cngySnMwaFlnOFhUamlhVU1QdjhrWXhnZFJ0WndmZHYyQWgwS3VmQWhiYlQ2M2kzMlRpS0ZxNDNpZg?oc=5",
+        "score": -1
+      },
+      {
+        "title": "Explained - Why Apollo Hospitals, Fortis, Aster DM, Park Medi world sold off again on Monday",
+        "source": "CNBC TV18",
+        "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxPWVpIZHVsdEZPZGJkNWh2cGdSWi1tdFM1VURsV0d4V1FCQWpfdUVHeE00b21mZmtoSVJGOU00TXZzTHZGNE0zQjJBRXJqUk43U1RGLVg0R09ONEhVU0xpaGVRdEJRZ0llYWt0dDF2MEhXSHQzMml4YVloeUhDQVVQcnVVUGdtOHpRZTY0MnYweHd1MkQtTTFFSElyNzFLRXVxU00tRy14NE40TUx0dFExT2tSRk56d2RUMmF5cGtlSkhYZUJYZjd1cklJTU54SVdwWEt5V0paUFYtbGRDSW1hWC1odzZjMGFNNlZFdnlZc9IB9AFBVV95cUxOU1FjUExQT1RITkk1UEJ1VWIxZEowR05xWGg2U1hOT0NiM0JnSjVsT1lNRjlMcDh4bk4tZFVzd0FaSmVIc2h1NnB4clhhLXRnRDZxUHlJNUNQRkVWRDJrMFFVWFltMFFKYS1oanR5dmxwMHl2LVZ2TGRXZWJWVHowR0NiOFBhT0YxQzk2TEh5SFZMTU1XTGthQnZvRXh3VG93eVJRLTktNGVjZlA0Qkx6RFF1WG1LOE5CLUtYaFdGd2NaS1gzTEU2VFdZckpfRml3TS1WXzRhVjV5N2ZEODdVbDlQMDdUX2dFVUs0bGpVUnhVOXhu?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Apollo Hospitals Enterprise Share Price Rises 3.02% Today",
+        "source": "Univest",
+        "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQVzdSNEM0ZWpWRnRhckh6clk2blpTTEJ5RnBFN1ByM2dPVTJ2OE1rMEJFczdKM21zelIwaGt0cjZXUjlNUWJ0OG5hWXdRdDlVdG9DQlhaYmo4NkdnX3hCNXJ5MEVEQWFvdnBhd0VKYnQ2RmlnY2o1ekVmNWtmbV8wNUVTZmxpWkVFZS1hcEVLMk1FUQ?oc=5",
+        "score": 1
+      },
+      {
+        "title": "कैसे रहेंगे Apollo Hospitals के नतीजे? आय, मुनाफे में कैसी रहेगी ग्रोथ? #ApolloHospitals #ApolloHospitalsResults #ApolloHospitalsQ1",
+        "source": "Facebook",
+        "link": "https://news.google.com/rss/articles/CBMiogVBVV95cUxNMU9CUTZLQzVVWUlFdGhVODliS1BaM3B6TTFKdlJYWFJER3ZlTWZtRTZfeV9odEtDcVN4TTFsVGw5cGZ1WFdmckl5TkJCaUhYOHlFMHNWTFdLWHZRSWtBdWhGanRROFlnWG9SR3JTRXZTQ2R2LXRpc2JGOEVhamxFRm9lOC1JRXBvR1JrUnlobWlXdHFJU0xIRjZaZElXLUxsaExxQjFRWHpnRlRCdzBDWDhGU1ZDSVFzTWo4M1NrWHl2bWpnYWJ1d1dwMXhqUGc0M0JCM3R0SHZZWmFkVVh5MDJPbDhlYlUwNGlwdVR3UlMxQlJiUUttWi1fTzl5anhlODlyVVBhN0pKblNUN0llYnA2WlJtcUpZeThhcXdubjJzclVSS0ZmczRLYTFOM3JaT04zNWpkSkpOX1BPM0Z2Z1pDVUluMmZCYjR2aXVQdHRUQm5aZGlJRFJZRGhzNzJqeGEySGRVRlhDbzRIZEVjOEZLMk5yTGdxN2VoYXJ3N3VrbUNGMFl6ZWdWQ2ZGLTgyU3k5RDhFZjZocjZ3OU1lZXEyTWVtZHJxRjBUazMyNjc0Xy1GalpyLVBGb2hxWlVHaUZPU2gwVFVSTEUxdGEtSk1vOFJoeUVxY2ZXejMtRWR2dGdTWGxjWDhPbnZhN2xPVmZfcTFyWkloaF9LQmNpZnUtc0pFcnM0bURJYzl1LWtFbkVXazRSMDl0MHJpTldCYkMzTmNCRjV3cU9XZ1BqN1ZtOXpxR18wZWlBcUY5d0dLay10Q09xUVZiM0wxVndMU2w2WDJiSkJuUzdvMm1CVHlWdHRaNHlqalN2Q1VYQU8wVGpwMmJjdkxWSGhsVk43aEdIOXlYZUhsYlpTT1VicmtsQmNUTHFuYXpYckJ2VFRCZw?oc=5",
+        "score": 0
       }
     ],
     "outcome": null,
