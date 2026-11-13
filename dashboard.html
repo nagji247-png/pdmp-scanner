@@ -1608,6 +1608,25 @@ function card(name, d, participantOI, observedAt) {
       </details>
     ` : ""}
 `;
+  // The component-detail HTML can contain nested legacy markup. In mobile
+  // browsers that may cause the chart and its two disclosure sections to be
+  // parsed inside the hidden detail source. Move only these presentation
+  // sections back to the card root; leave the detail modal content untouched.
+  if (name === "NIFTY" || name === "BANKNIFTY") {
+    const detailSource = el.querySelector(".asset-detail-source");
+    if (detailSource) {
+      const chartSection = detailSource.querySelector(".asset-score-history");
+      const disclosureSections = Array.from(detailSource.querySelectorAll("details")).filter(section => {
+        const summary = section.querySelector(":scope > summary");
+        return summary && /^Click for details/.test(summary.textContent.trim());
+      });
+      let anchor = detailSource;
+      for (const section of [chartSection, ...disclosureSections].filter(Boolean)) {
+        anchor.insertAdjacentElement("afterend", section);
+        anchor = section;
+      }
+    }
+  }
   // Keep the lower sections on NIFTY/BANKNIFTY visible even if mobile CSS/grid
   // sizing behaves differently in the embedded browser.
   if (name === "NIFTY" || name === "BANKNIFTY") {
