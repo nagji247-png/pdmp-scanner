@@ -487,13 +487,21 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
             expected_date = expected_latest_completed_session(scan_timestamp, load_exchange_calendar())
         except ValueError:
             return {}
+        matching = [
+            row for row in records
+            if isinstance(row, dict) and row.get("date") == expected_date
+        ]
+        selected_records = matching[:1]
     else:
-        expected_date = str(scan_date)
-    matching = [
-        row for row in records
-        if isinstance(row, dict) and row.get("date") == expected_date
-    ]
-    for record in matching[:1]:
+        # Compatibility for offline callers that supply only a date. The
+        # production scan always supplies its full timestamp and uses the
+        # exact expected EOD session above.
+        selected_records = sorted(
+            (row for row in records if isinstance(row, dict)
+             and isinstance(row.get("date"), str) and row.get("date") <= str(scan_date)),
+            key=lambda row: row["date"], reverse=True,
+        )
+    for record in selected_records:
         indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
         for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
             if index_name in output:
