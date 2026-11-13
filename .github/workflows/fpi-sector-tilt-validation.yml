@@ -1,0 +1,27 @@
+name: FPI Sector Tilt Validation
+on:
+  pull_request:
+    paths:
+      - "dashboard.html"
+      - "fpi_sector_tilt.py"
+      - "fpi-sector-data.json"
+      - ".github/workflows/fpi-sector-tilt.yml"
+      - ".github/workflows/fpi-sector-tilt-validation.yml"
+      - "tests/test_fpi_sector_tilt.py"
+      - "tests/test_dashboard_stale_guard.py"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile FPI fetcher
+        run: python -m py_compile fpi_sector_tilt.py
+      - name: Test FPI report parsing and period selection
+        run: python -m unittest discover -s tests -p "test_fpi_sector_tilt.py" -v
+      - name: Protect existing NO TRADE guard
+        run: python -m unittest discover -s tests -p "test_dashboard_stale_guard.py" -v
