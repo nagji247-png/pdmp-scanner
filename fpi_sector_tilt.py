@@ -60,7 +60,7 @@ def fetch_period(end):
         if name in ("Sovereign","Others"):
             excluded_flows[name]=flow or 0
             continue
-        if not name or name in SKIP or not re.fullmatch(r"\\d+",row[0].strip()):
+        if not name or name in SKIP or not re.fullmatch(r"\d+",row[0].strip()):
             continue
         if flow is not None:
             sectors.append({"name":name,"net_equity_cr":round(flow,2)})
