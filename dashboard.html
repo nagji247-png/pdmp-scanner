@@ -2086,18 +2086,36 @@ function renderInstruments(instruments, participantOI, observedAt) {
         const rect = el.getBoundingClientRect();
         const history = el.querySelector(".asset-score-history");
         const details = Array.from(el.querySelectorAll(":scope > details"));
+        const allDetails = Array.from(el.querySelectorAll("details"));
         const describe = node => {
           if (!node) return "missing";
           const s = getComputedStyle(node);
           const r = node.getBoundingClientRect();
-          return "display=" + s.display + ",visibility=" + s.visibility +
+          return node.tagName.toLowerCase() + (node.className ? "." + String(node.className).replace(/\\s+/g, ".") : "") +
+            ":display=" + s.display + ",visibility=" + s.visibility +
             ",h=" + Math.round(r.height) + ",w=" + Math.round(r.width);
         };
+        const childSummary = Array.from(el.children).map(node =>
+          describe(node) + ",text=" + String(node.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 45)
+        ).join(" || ");
+        const historyChain = [];
+        for (let node = history, depth = 0; node && depth < 5; node = node.parentElement, depth++) {
+          historyChain.push(describe(node));
+          if (node === el) break;
+        }
         lines.push(asset + ": card h=" + Math.round(rect.height) +
           ",w=" + Math.round(rect.width) + ",display=" + cs.display +
           ",visibility=" + cs.visibility + ",overflow=" + cs.overflow);
-        lines.push("  chart: " + describe(history));
-        lines.push("  details(" + details.length + "): " + details.map(describe).join(" | "));
+        lines.push("  chart: " + describe(history) +
+          "; svg=" + (history ? history.querySelectorAll("svg").length : 0) +
+          "; spark=" + (history ? history.querySelectorAll(".spark").length : 0) +
+          "; html=" + (history ? history.innerHTML.slice(0, 120).replace(/\\s+/g, " ") : "missing"));
+        lines.push("  details direct=" + details.length + ", total=" + allDetails.length +
+          ": " + allDetails.map(describe).join(" | "));
+        lines.push("  children: " + childSummary);
+        lines.push("  chart ancestors: " + historyChain.join(" <- "));
+        lines.push("  detail buttons=" + el.querySelectorAll(".asset-detail-open").length +
+          "; detail sources=" + el.querySelectorAll(".asset-detail-source").length);
         const gridStyle = getComputedStyle(idx);
         lines.push("  grid: display=" + gridStyle.display + ",h=" +
           Math.round(idx.getBoundingClientRect().height) +
