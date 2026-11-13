@@ -1,7 +1,7 @@
 name: PDMP Scan Watchdog
 
 on:
-  # IST market-hours recovery checks: every 5 minutes from 08:30 to 15:40,
+  # IST market-hours recovery checks: every 5 minutes from 09:00 to 15:40,
   # Monday-Friday. UTC is 5 hours 30 minutes behind IST.
   # Outside market hours, check every 30 minutes; night-time delay is acceptable.
   schedule:
