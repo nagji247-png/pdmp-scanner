@@ -1356,18 +1356,14 @@ document.addEventListener("keydown", event => {
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
-  const final = b && b.provisional_final ? b.provisional_final : {};
   const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
   stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
-  const weightsMatch = b && b.provisional_weights && Number(b.provisional_weights.news) === 15
-    && Number(b.provisional_weights.stock_basket) === 20
-    && Number(b.provisional_weights.eod_oi) === 15
-    && Number(b.provisional_weights.client_ce_pe) === 15
-    && Number(b.provisional_weights.client_futures) === 15
-    && Number(b.provisional_weights.search) === 20;
-  const validScore = weightsMatch && final.status === "available" && Number.isFinite(Number(final.score))
-    && Number(final.score) >= -10 && Number(final.score) <= 10;
-  const score = validScore ? Number(final.score) : null;
+  // The compact STOCK BASKET row must show the same diagnostic score as its detail modal.
+  // Never use provisional_final.score here: that is a separate multi-component score.
+  const validScore = component && component.status === "complete_diagnostic"
+    && Number.isFinite(Number(component.score))
+    && Number(component.score) >= -10 && Number(component.score) <= 10;
+  const score = validScore ? Number(component.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
   const label = validScore
     ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10")
