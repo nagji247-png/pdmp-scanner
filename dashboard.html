@@ -1524,7 +1524,7 @@ function card(name, d, participantOI, observedAt) {
       </div>
     </div>
 
-    ${name === "SENSEX" ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
+    ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
     ${isIndianIndex ? `
       <details>
         <summary>Click for details</summary>
