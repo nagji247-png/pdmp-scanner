@@ -1517,6 +1517,19 @@ function card(name, d, participantOI, observedAt) {
     ${compactTechnicalDivergence}
     ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
     ${(name === "NIFTY" || name === "BANKNIFTY") ? `
+          <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+          <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
+            <div class="asset-detail-content">
+              ${componentBreakdown}
+              ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+              ${experimentalScoreLine}
+              ${detailSignals}
+              ${detailIndicator}
+              ${detailPrice}
+            </div>
+          </div>
+    ` : ""}
+    ${(name === "NIFTY" || name === "BANKNIFTY") ? `
       ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
       ${isIndianIndex ? `
         <details>
@@ -1548,17 +1561,32 @@ function card(name, d, participantOI, observedAt) {
         ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
       </details>
     ` : ""}
-    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
-    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
-      <div class="asset-detail-content">
-        ${componentBreakdown}
-        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
-        ${experimentalScoreLine}
-        ${detailSignals}
-        ${detailIndicator}
-        ${detailPrice}
-      </div>
-    </div>
+    ${(name === "NIFTY" || name === "BANKNIFTY") ? `
+          <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+          <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
+            <div class="asset-detail-content">
+              ${componentBreakdown}
+              ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+              ${experimentalScoreLine}
+              ${detailSignals}
+              ${detailIndicator}
+              ${detailPrice}
+            </div>
+          </div>
+    ` : ""}
+    ${(name !== "NIFTY" && name !== "BANKNIFTY") ? `
+          <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+          <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
+            <div class="asset-detail-content">
+              ${componentBreakdown}
+              ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+              ${experimentalScoreLine}
+              ${detailSignals}
+              ${detailIndicator}
+              ${detailPrice}
+            </div>
+          </div>
+    ` : ""}
 
     ${(name !== "NIFTY" && name !== "BANKNIFTY") ? `
       ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
