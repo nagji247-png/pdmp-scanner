@@ -1114,15 +1114,15 @@
     "next_change": null,
     "baseline_price": null,
     "baseline_time": null,
-    "baseline_attempted": false,
+    "baseline_attempted": true,
     "intraday_source": "Awaiting verified 5-minute candle source",
     "after_30m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     },
     "after_60m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
   }
 ]
