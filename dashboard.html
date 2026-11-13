@@ -115,6 +115,13 @@
   .option-buildup-table { width:100%; min-width:510px; border-collapse:collapse; font-size:11px; }
   .option-buildup-table th,.option-buildup-table td { text-align:left; padding:7px 6px; border-bottom:1px solid #203a5a; white-space:nowrap; }
   .option-buildup-table th { color:#8fb4d8; font-weight:700; }
+  .option-strike-detail { min-width:92px; }
+  .option-strike-detail summary { color:#7fe5ff; cursor:pointer; font-weight:900; list-style-position:inside; }
+  .option-strike-detail summary span { color:#9db4d0; font-size:9px; font-weight:700; }
+  .option-strike-expanded { display:grid; grid-template-columns:1fr 1fr; gap:6px; min-width:220px; margin-top:7px; padding:8px; border:1px solid #285078; border-radius:7px; background:#09182d; white-space:normal; }
+  .option-strike-expanded div { display:flex; flex-direction:column; gap:2px; }
+  .option-strike-expanded small { color:#8fb4d8; font-size:9px; }
+  .option-strike-expanded b { color:#e7f2ff; font-size:11px; }
   @media(max-width:560px) { .option-buildup-filters { grid-template-columns:1fr 1fr; } .option-buildup-filters input { grid-column:1/-1; } }
 
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
@@ -1011,7 +1018,13 @@ function renderComponentBreakdown(b, observedAt, assetName) {
           const rows = Array.isArray(entry.item.contract_details) ? entry.item.contract_details : [];
           const rowHtml = rows.map(row =>
             '<tr data-option-row="' + prefix + '" data-side="' + esc(row.side) + '" data-expiry="' + esc(row.expiry) + '" data-strike="' + esc(row.strike) + '">' +
-            '<td>' + esc(dateText(row.expiry)) + '</td><td>' + Number(row.strike).toLocaleString("en-IN") + '</td>' +
+            '<td>' + esc(dateText(row.expiry)) + '</td><td><details class="option-strike-detail"><summary>' + Number(row.strike).toLocaleString("en-IN") + ' <span>विवरण</span></summary>' +
+            '<div class="option-strike-expanded"><div><small>पिछला OI</small><b>' + formatSigned(row.previous_oi) + '</b></div>' +
+            '<div><small>आज का OI</small><b>' + formatSigned(row.current_oi) + '</b></div>' +
+            '<div><small>OI में बदलाव</small><b class="' + (Number(row.oi_change) > 0 ? "pos" : "neg") + '">' + formatSigned(row.oi_change) + '</b></div>' +
+            '<div><small>बदलाव वाले कॉन्ट्रैक्ट</small><b>' + Number(row.oi_quantity || 0).toLocaleString("en-IN") + '</b></div>' +
+            '<div><small>पिछला प्रीमियम</small><b>' + formatPremium(row.previous_close) + '</b></div>' +
+            '<div><small>आज का प्रीमियम</small><b>' + formatPremium(row.current_close) + '</b></div></div></details></td>' +
             '<td><b class="' + (row.side === "CE" ? "pos" : "neg") + '">' + esc(row.side) + '</b></td>' +
             '<td>' + formatPremium(row.previous_close) + ' → ' + formatPremium(row.current_close) + '</td>' +
             '<td class="' + (Number(row.oi_change) > 0 ? "pos" : "neg") + '">' + formatSigned(row.oi_change) + '</td></tr>'
