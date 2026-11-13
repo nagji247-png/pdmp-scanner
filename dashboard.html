@@ -1608,6 +1608,21 @@ function card(name, d, participantOI, observedAt) {
       </details>
     ` : ""}
 `;
+  // Keep the lower sections on NIFTY/BANKNIFTY visible even if mobile CSS/grid
+  // sizing behaves differently in the embedded browser.
+  if (name === "NIFTY" || name === "BANKNIFTY") {
+    el.style.setProperty("height", "auto", "important");
+    el.style.setProperty("min-height", "max-content", "important");
+    el.style.setProperty("max-height", "none", "important");
+    el.style.setProperty("overflow", "visible", "important");
+    el.style.setProperty("align-self", "start", "important");
+    el.querySelectorAll(".asset-score-history, details").forEach(section => {
+      section.style.setProperty("display", "block", "important");
+      section.style.setProperty("visibility", "visible", "important");
+      section.style.setProperty("max-height", "none", "important");
+      section.style.setProperty("overflow", "visible", "important");
+    });
+  }
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
     const inner = ev.target.closest && ev.target.closest("details, a, button");
