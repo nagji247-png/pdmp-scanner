@@ -1,15 +1,25 @@
 name: PDMP Scan Watchdog
 
 on:
-  # Schedule registration refresh: check every 10 minutes; dispatch only if published scan data is stale.
-  # This keeps recovery ahead of the dashboard's 45-minute NO TRADE cutoff.
+  # IST market-hours recovery checks: every 5 minutes from 08:30 to 15:40,
+  # Monday-Friday. UTC is 5 hours 30 minutes behind IST.
+  # Outside market hours, check every 30 minutes; night-time delay is acceptable.
   schedule:
-    - cron: "3,13,23,33,43,53 * * * *"
+    - cron: "30,35,40,45,50,55 3 * * 1-5"
+    - cron: "*/5 4-9 * * 1-5"
+    - cron: "0,5,10 10 * * 1-5"
+    - cron: "3,33 10-23,0-2 * * 1-5"
   workflow_dispatch:
 
 permissions:
   actions: read
   contents: write
+
+# Avoid overlapping watchdog checks; the PDMP Scan workflow has its own
+# separate concurrency group to prevent simultaneous data-writing scans.
+concurrency:
+  group: pdmp-scan-watchdog
+  cancel-in-progress: false
 
 jobs:
   recover-stale-scan:
@@ -88,7 +98,7 @@ jobs:
 
               api(f"/repos/{repo}/dispatches", method="POST", payload={
                   "event_type": "scan-watchdog",
-                  "client_payload": {"reason": "published data older than 35 minutes"},
+                  "client_payload": {"reason": "published data older than 35 minutes; preempt 45-minute dashboard NO TRADE guard"},
               })
               print(f"Recovery scan dispatched; published data was {age_minutes:.1f} minutes old.")
           except SystemExit:
