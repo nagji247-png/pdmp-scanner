@@ -102,6 +102,21 @@
   .detail-stat { background:#111c35; border:1px solid #243658; border-radius:8px; padding:9px; }
   .detail-stat span { display:block; color:#8a90a8; font-size:11px; margin-bottom:4px; }
   .detail-stat b { font-size:12px; line-height:1.4; }
+
+  .option-buildup-panel { border:1px solid #21476f; border-radius:10px; padding:9px; background:rgba(4,14,31,.48); }
+  .option-buildup-dominant { margin:8px 0; padding:10px; border:1px solid #31577b; border-radius:9px; background:linear-gradient(110deg,#102a49,#171d38); }
+  .option-buildup-dominant-name { font-size:14px; font-weight:900; color:#ff8d91; margin-top:4px; }
+  .option-buildup-dominant-value { font-size:23px; font-weight:900; color:#ffd36a; margin:2px 0; }
+  .option-buildup-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:10px 0; }
+  .option-buildup-filters input,.option-buildup-filters select { min-width:0; width:100%; padding:8px 6px; color:#e7f2ff; background:#0b1b34; border:1px solid #285078; border-radius:7px; font-size:11px; }
+  .option-buildup-category { border-top:1px solid #244363; padding:5px 0; }
+  .option-buildup-category summary { color:#dceeff; font-size:12px; }
+  .option-buildup-table-wrap { width:100%; overflow-x:auto; margin-top:7px; }
+  .option-buildup-table { width:100%; min-width:510px; border-collapse:collapse; font-size:11px; }
+  .option-buildup-table th,.option-buildup-table td { text-align:left; padding:7px 6px; border-bottom:1px solid #203a5a; white-space:nowrap; }
+  .option-buildup-table th { color:#8fb4d8; font-weight:700; }
+  @media(max-width:560px) { .option-buildup-filters { grid-template-columns:1fr 1fr; } .option-buildup-filters input { grid-column:1/-1; } }
+
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 
   :root { color-scheme: dark; --bg:#050916; --panel:#0b1730; --line:#143967; --cyan:#24e5ff; --violet:#9b59ff; }
@@ -841,6 +856,22 @@ function renderCrudeOilHistoricalCase() {
     '</div>';
 }
 
+function filterOptionBuildupRows(prefix) {
+  const panel = document.querySelector(".option-buildup-panel");
+  if (!panel) return;
+  const filters = panel.querySelector(".option-buildup-filters");
+  if (!filters) return;
+  const search = (filters.querySelector('input[type="search"]')?.value || "").replace(/,/g, "").trim().toLowerCase();
+  const side = filters.querySelectorAll("select")[0]?.value || "";
+  const expiry = filters.querySelectorAll("select")[1]?.value || "";
+  panel.querySelectorAll('tr[data-option-row="' + prefix + '"]').forEach(row => {
+    const strike = String(row.dataset.strike || "").replace(/,/g, "").toLowerCase();
+    const visible = (!search || strike.includes(search)) &&
+      (!side || row.dataset.side === side) && (!expiry || row.dataset.expiry === expiry);
+    row.hidden = !visible;
+  });
+}
+
 function renderComponentBreakdown(b, observedAt, assetName) {
   if (!b || typeof b !== "object") return "";
   const isCrudeOil = assetName === "CRUDEOIL";
@@ -946,35 +977,77 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     short_covering: "SHORT COVERING",
     long_unwinding: "LONG UNWINDING"
   };
+  const optionBuildupHindi = {
+    long_build_up: "तेजी की नई बाजी — भाव बढ़ा और OI भी बढ़ा।",
+    short_build_up: "गिरावट की नई बाजी — भाव गिरा और OI बढ़ा।",
+    short_covering: "मंदी वालों का पीछे हटना — भाव बढ़ा और OI घटा।",
+    long_unwinding: "तेजी वालों का पीछे हटना — भाव गिरा और OI घटा।"
+  };
   const optionBuildupDetail = (assetName === "NIFTY" || assetName === "BANKNIFTY")
-    ? '<div class="hl" style="margin-top:8px">' +
-      '<div class="hl-title"><b>BUILD-UP / UNWINDING · NSE EOD</b> · <b class="' +
-      (optionBuildup.available === true ? "pos" : "zero") + '">' +
-      (optionBuildup.available === true ? "डेटा उपलब्ध" : "UNAVAILABLE / डेटा प्रतीक्षित") +
-      '</b></div>' +
-      (optionBuildup.available === true
-        ? Object.entries(optionBuildupLabels).map(([key, label]) => {
-            const item = optionBuildup.categories && optionBuildup.categories[key] || {};
-            const quantity = Number(item.oi_quantity || 0);
-            const contracts = Number(item.contracts || 0);
-            const cls = quantity > 0 ? "pos" : "zero";
-            return '<div class="hl-meta"><b>' + label + '</b>: <span class="' + cls + '">' +
-              quantity.toLocaleString("en-IN") + '</span> OI quantity · ' +
-              contracts.toLocaleString("en-IN") + ' कॉन्ट्रैक्ट' +
-              ' (CE ' + Number(item.ce_oi_quantity || 0).toLocaleString("en-IN") +
-              ' · PE ' + Number(item.pe_oi_quantity || 0).toLocaleString("en-IN") + ')</div>';
-          }).join("")
-        : '<div class="hl-meta">' + esc(optionBuildup.reason || "दो तुलनीय NSE EOD सत्रों का डेटा उपलब्ध नहीं") + '</div>') +
-      (optionBuildup.source_date
-        ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildup.source_date)) +
-          (optionBuildup.previous_source_date
-            ? ' · पिछला सत्र: ' + esc(dateText(optionBuildup.previous_source_date)) : '') + '</div>'
-        : '') +
-      '<div class="hl-meta">स्रोत: NSE F&O UDiFF Common Bhavcopy Final · दैनिक Closing Premium और OI की उसी Expiry, Strike तथा CE/PE कॉन्ट्रैक्ट से तुलना। यह EOD diagnostic है, 5-मिनट LIVE नहीं और Final Score में शामिल नहीं।</div>' +
-      '<div class="hl-meta">मिलान किए गए कॉन्ट्रैक्ट: ' +
-      Number(optionBuildup.matched_contracts || 0).toLocaleString("en-IN") +
-      ' · वर्गीकृत: ' + Number(optionBuildup.classified_contracts || 0).toLocaleString("en-IN") +
-      ' · ऐतिहासिक accuracy validation बाकी।</div></div>'
+    ? (() => {
+        const prefix = assetName.toLowerCase() + "-option-buildup";
+        const categories = optionBuildup.categories || {};
+        const categoryEntries = Object.entries(optionBuildupLabels).map(([key, label]) => {
+          const item = categories[key] || {};
+          return {key, label, item, quantity: Number(item.oi_quantity || 0), contracts: Number(item.contracts || 0)};
+        });
+        const dominant = categoryEntries.reduce((best, item) =>
+          item.quantity > (best ? best.quantity : -1) ? item : best, null);
+        const formatPremium = value => Number.isFinite(Number(value))
+          ? Number(value).toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "—";
+        const formatSigned = value => Number.isFinite(Number(value))
+          ? (Number(value) > 0 ? "+" : "") + Number(value).toLocaleString("en-IN") : "—";
+        const formatCrore = value => (Number(value) / 10000000).toFixed(2) + " करोड़";
+        const expiries = [...new Set(categoryEntries.flatMap(entry =>
+          (entry.item.contract_details || []).map(row => String(row.expiry || ""))
+        ).filter(Boolean))].sort();
+        const filters = '<div class="option-buildup-filters">' +
+          '<input type="search" placeholder="Strike खोजें…" aria-label="Strike खोजें" oninput="filterOptionBuildupRows(\'' + prefix + '\')">' +
+          '<select aria-label="CE या PE चुनें" onchange="filterOptionBuildupRows(\'' + prefix + '\')"><option value="">CE + PE</option><option value="CE">केवल CE</option><option value="PE">केवल PE</option></select>' +
+          '<select aria-label="Expiry चुनें" onchange="filterOptionBuildupRows(\'' + prefix + '\')"><option value="">सभी Expiry</option>' +
+          expiries.map(expiry => '<option value="' + esc(expiry) + '">' + esc(dateText(expiry)) + '</option>').join("") +
+          '</select></div>';
+        const categoryHtml = categoryEntries.map(entry => {
+          const rows = Array.isArray(entry.item.contract_details) ? entry.item.contract_details : [];
+          const rowHtml = rows.map(row =>
+            '<tr data-option-row="' + prefix + '" data-side="' + esc(row.side) + '" data-expiry="' + esc(row.expiry) + '" data-strike="' + esc(row.strike) + '">' +
+            '<td>' + esc(dateText(row.expiry)) + '</td><td>' + Number(row.strike).toLocaleString("en-IN") + '</td>' +
+            '<td><b class="' + (row.side === "CE" ? "pos" : "neg") + '">' + esc(row.side) + '</b></td>' +
+            '<td>' + formatPremium(row.previous_close) + ' → ' + formatPremium(row.current_close) + '</td>' +
+            '<td class="' + (Number(row.oi_change) > 0 ? "pos" : "neg") + '">' + formatSigned(row.oi_change) + '</td></tr>'
+          ).join("");
+          return '<details class="option-buildup-category"><summary><b>' + entry.label + '</b> · ' +
+            formatCrore(entry.quantity) + ' · ' + entry.contracts.toLocaleString("en-IN") + ' कॉन्ट्रैक्ट</summary>' +
+            '<div class="hl-meta">' + optionBuildupHindi[entry.key] + '</div>' +
+            '<div class="option-buildup-table-wrap"><table class="option-buildup-table"><thead><tr><th>Expiry</th><th>Strike</th><th>CE/PE</th><th>प्रीमियम: पिछला → आज</th><th>बदलाव OI</th></tr></thead><tbody>' +
+            (rowHtml || '<tr><td colspan="5">इस श्रेणी में कोई वर्गीकृत कॉन्ट्रैक्ट नहीं।</td></tr>') +
+            '</tbody></table></div><div class="hl-meta">इस श्रेणी के ' + rows.length.toLocaleString("en-IN") + ' वर्गीकृत कॉन्ट्रैक्ट।</div></details>';
+        }).join("");
+        return '<div class="hl option-buildup-panel" style="margin-top:8px">' +
+          '<div class="hl-title"><b>BUILD-UP / UNWINDING · NSE EOD</b> · <b class="' +
+          (optionBuildup.available === true ? "pos" : "zero") + '">' +
+          (optionBuildup.available === true ? "डेटा उपलब्ध" : "UNAVAILABLE / डेटा प्रतीक्षित") + '</b></div>' +
+          (optionBuildup.available === true
+            ? '<div class="option-buildup-dominant"><b>बाजार में किसकी बाजी भारी?</b><div class="option-buildup-dominant-name">' +
+              (dominant ? dominant.label : "—") + '</div><div class="option-buildup-dominant-value">' +
+              (dominant ? formatCrore(dominant.quantity) : "—") + '</div><div class="hl-meta">सबसे अधिक कुल OI बदलाव की मात्रा · ' +
+              (dominant ? dominant.contracts.toLocaleString("en-IN") : "0") + ' कॉन्ट्रैक्ट। यह तुलना की सबसे बड़ी श्रेणी है, भविष्य की दिशा की पक्की भविष्यवाणी नहीं।</div>' +
+              categoryEntries.map(entry => '<div class="hl-meta"><b>' + entry.label + '</b>: ' +
+                formatCrore(entry.quantity) + ' · ' + entry.contracts.toLocaleString("en-IN") +
+                ' कॉन्ट्रैक्ट (CE ' + Number(entry.item.ce_oi_quantity || 0).toLocaleString("en-IN") +
+                ' · PE ' + Number(entry.item.pe_oi_quantity || 0).toLocaleString("en-IN") + ')</div>').join("") +
+              filters + categoryHtml
+            : '<div class="hl-meta">' + esc(optionBuildup.reason || "दो तुलनीय NSE EOD सत्रों का डेटा उपलब्ध नहीं") + '</div>') +
+          (optionBuildup.source_date
+            ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildup.source_date)) +
+              (optionBuildup.previous_source_date ? ' · पिछला सत्र: ' + esc(dateText(optionBuildup.previous_source_date)) : '') + '</div>'
+            : '') +
+          '<div class="hl-meta">स्रोत: NSE F&O UDiFF Common Bhavcopy Final · उसी Expiry, Strike और CE/PE का पिछला व आज का Closing Premium तथा OI मिलान। यह EOD diagnostic है, LIVE नहीं और Final Score में शामिल नहीं।</div>' +
+          '<div class="hl-meta">मिलान किए गए कॉन्ट्रैक्ट: ' +
+          Number(optionBuildup.matched_contracts || 0).toLocaleString("en-IN") +
+          ' · वर्गीकृत: ' + Number(optionBuildup.classified_contracts || 0).toLocaleString("en-IN") +
+          ' · बिना वर्गीकरण वाले कॉन्ट्रैक्ट अलग हैं। ऐतिहासिक accuracy validation बाकी।</div></div>';
+      })()
     : "";
   const total = weightsMatch ? final.score : null;
   const totalNumber = total == null || !Number.isFinite(Number(total)) ? null : Number(total);
