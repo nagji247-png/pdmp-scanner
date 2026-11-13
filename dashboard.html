@@ -1516,6 +1516,38 @@ function card(name, d, participantOI, observedAt) {
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
     ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
+    ${(name === "NIFTY" || name === "BANKNIFTY") ? `
+      ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
+      ${isIndianIndex ? `
+        <details>
+            <summary>Click for details</summary>
+            <div class="hl">
+              <div class="hl-title">समाचार भावना</div>
+              <div class="hl-meta">कुल वर्गीकृत: ${hTotal}</div>
+              <details>
+                  <summary>🟢 सकारात्मक हेडलाइन देखें (${positiveHeads.length})</summary>
+                  ${listHeads(positiveHeads) || '<div class="hl-meta">कोई सकारात्मक हेडलाइन नहीं मिली।</div>'}
+              </details>
+              <details>
+                  <summary>🔴 नकारात्मक हेडलाइन देखें (${negativeHeads.length})</summary>
+                  ${listHeads(negativeHeads) || '<div class="hl-meta">कोई नकारात्मक हेडलाइन नहीं मिली।</div>'}
+              </details>
+              <div class="hl-meta">शीर्षक पर टैप करके मूल खबर खोलें।</div>
+            </div>
+            <div class="hl">
+              <div class="hl-title">स्कोर का मतलब</div>
+              <div class="hl-meta">यह स्कोर उपलब्ध समाचारों की भावना का संकेत है; यह वास्तविक CE/PE खरीद, सभी रिटेल ट्रेडरों की पोज़िशन या पक्का ट्रेड सिग्नल नहीं है।</div>
+            </div>
+            <div class="hl">
+              <div class="hl-title">कीमत का बदलाव</div>
+              <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
+            </div>
+        </details>` : ""}
+      <details>
+        <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
+        ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
+      </details>
+    ` : ""}
     <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
     <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
       <div class="asset-detail-content">
@@ -1528,36 +1560,38 @@ function card(name, d, participantOI, observedAt) {
       </div>
     </div>
 
-    ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
-    ${isIndianIndex ? `
+    ${(name !== "NIFTY" && name !== "BANKNIFTY") ? `
+      ${isIndianIndex ? '<div class="asset-score-history">' + spark(scoreHistory[name], color) + '</div>' : spark(scoreHistory[name], color)}
+      ${isIndianIndex ? `
+        <details>
+            <summary>Click for details</summary>
+            <div class="hl">
+              <div class="hl-title">समाचार भावना</div>
+              <div class="hl-meta">कुल वर्गीकृत: ${hTotal}</div>
+              <details>
+                  <summary>🟢 सकारात्मक हेडलाइन देखें (${positiveHeads.length})</summary>
+                  ${listHeads(positiveHeads) || '<div class="hl-meta">कोई सकारात्मक हेडलाइन नहीं मिली।</div>'}
+              </details>
+              <details>
+                  <summary>🔴 नकारात्मक हेडलाइन देखें (${negativeHeads.length})</summary>
+                  ${listHeads(negativeHeads) || '<div class="hl-meta">कोई नकारात्मक हेडलाइन नहीं मिली।</div>'}
+              </details>
+              <div class="hl-meta">शीर्षक पर टैप करके मूल खबर खोलें।</div>
+            </div>
+            <div class="hl">
+              <div class="hl-title">स्कोर का मतलब</div>
+              <div class="hl-meta">यह स्कोर उपलब्ध समाचारों की भावना का संकेत है; यह वास्तविक CE/PE खरीद, सभी रिटेल ट्रेडरों की पोज़िशन या पक्का ट्रेड सिग्नल नहीं है।</div>
+            </div>
+            <div class="hl">
+              <div class="hl-title">कीमत का बदलाव</div>
+              <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
+            </div>
+        </details>` : ""}
       <details>
-        <summary>Click for details</summary>
-        <div class="hl">
-          <div class="hl-title">समाचार भावना</div>
-          <div class="hl-meta">कुल वर्गीकृत: ${hTotal}</div>
-          <details>
-            <summary>🟢 सकारात्मक हेडलाइन देखें (${positiveHeads.length})</summary>
-            ${listHeads(positiveHeads) || '<div class="hl-meta">कोई सकारात्मक हेडलाइन नहीं मिली।</div>'}
-          </details>
-          <details>
-            <summary>🔴 नकारात्मक हेडलाइन देखें (${negativeHeads.length})</summary>
-            ${listHeads(negativeHeads) || '<div class="hl-meta">कोई नकारात्मक हेडलाइन नहीं मिली।</div>'}
-          </details>
-          <div class="hl-meta">शीर्षक पर टैप करके मूल खबर खोलें।</div>
-        </div>
-        <div class="hl">
-          <div class="hl-title">स्कोर का मतलब</div>
-          <div class="hl-meta">यह स्कोर उपलब्ध समाचारों की भावना का संकेत है; यह वास्तविक CE/PE खरीद, सभी रिटेल ट्रेडरों की पोज़िशन या पक्का ट्रेड सिग्नल नहीं है।</div>
-        </div>
-        <div class="hl">
-          <div class="hl-title">कीमत का बदलाव</div>
-          <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
-        </div>
-      </details>` : ""}
-    <details>
-      <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
-      ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
-    </details>
+        <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
+        ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
+      </details>
+    ` : ""}
 `;
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
