@@ -8382,8 +8382,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -3.31
   },
   {
     "key": "2026-11-13|EICHERMOT|div",
@@ -8424,8 +8424,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.34
   },
   {
     "key": "2026-11-13|APOLLOHOSP|div",
@@ -8466,8 +8466,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.13
   },
   {
     "key": "2026-11-13|COALINDIA|div",
@@ -8508,8 +8508,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.2
   },
   {
     "key": "2026-11-13|NIFTY|div",
@@ -8550,8 +8550,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.61
   },
   {
     "key": "2026-11-13|SENSEX|div",
@@ -8592,8 +8592,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.39
   },
   {
     "key": "2026-11-13|BANKNIFTY|div",
@@ -8634,8 +8634,8 @@
         "score": 2
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.79
   },
   {
     "key": "2026-11-13|RELIANCE|div",
@@ -8676,8 +8676,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 0.0
   },
   {
     "key": "2026-11-13|HDFCBANK|div",
@@ -8718,8 +8718,8 @@
         "score": 3
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.02
   },
   {
     "key": "2026-11-13|HINDALCO|div",
@@ -8760,8 +8760,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -2.12
   },
   {
     "key": "2026-11-13|ADANIPORTS|div",
@@ -8802,8 +8802,8 @@
         "score": 3
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.38
   },
   {
     "key": "2026-11-13|SBIN|div",
@@ -8841,6 +8841,48 @@
         "title": "SBI MF leads institutional AUM; JioBlackRock has highest institutional share",
         "source": "Cafemutual",
         "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPb1I0RkVJekRnSHloOEUxNzE4dzd1bDRKWkEta3Zmc0dxZ04wVFVPM05fWFFrUm1WQUxITWpUb2NvSG1NSFR2N0UxdUNKNzItclB5ekd5WWRZRjQ3Tm43OGtuMDh6YldoOGhLeldDcWZfQy0tZHdXbXZOQWRBcTE3aWxTQ2NvU3dJQnhYdi12Rm5aU1RURzBWYUZOZ1BPdWtlVEFoT0R4aWNtM2l2XzduTFJxaDlVcVJXd0E?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": "price",
+    "next_change": -0.6
+  },
+  {
+    "key": "2026-11-13|DJI|div",
+    "date": "2026-11-13",
+    "instrument": "DJI",
+    "score": 1.9,
+    "price_change": -0.36,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "US Stocks Drift Before Inflation Test of Fed Bets: Markets Wrap",
+        "source": "Bloomberg.com",
+        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPTmVnUHB5bWw0Y052NTU5ZkNsOGdwUXVCWnIwczVnQWJKWmJiaUZta09PNGhNYVZWSENvOFVReWJIVldFcDJNcmlOQ3RyMWhHQThNcmtnU0FIZldHWHJ4NldqbkVrYUlseVNBN0xycmRrUjdFVWRQQll6MzhBUHNOS2NidGtDc01LeWlNd01WNGJxcm5E?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Stock Market Today: Dow Jones, S&P 500 Futures Rise, Nvidia CEO Exit Remains in Focus — CSCO, AMAT, NU in",
+        "source": "Benzinga",
+        "link": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxPUWxTN1gtLUgyQ25ic3ZNYW1jandqR0puRlpMQ0I0QjlMdUdIVmFnWVlxemdSU3NkcGlULVVqcUhac2d2eE9oOXYzaGxYNldkOXBfelRkNFFvVGhMVGVJeTJiUlcxNEhOakZHU3RnZEtGLXdfdlppV09IdEtFU21uU2VmeF9xaFBzdUhaRDQwSXlsVlBFSVhmVDV0UHhnTk5ERlNDT01Vb0hXdF9LRUtkbDg3NEdHVTVTSGdiUEczal9Vby0ySlZFTWRHeU1seDJYMEdqVVhHeElNVzNEcGNmU3VuancydU5xZ01VaWNWTVZhQQ?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Nasdaq Composite slides as Nvidia shares tumble on Jensen Huang’s exit; oil prices jump",
+        "source": "CNBC",
+        "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE00cTdQYjhOUVlzVEZnQndNN1NKNzBJSjIta1lDWVlVXzhDcXkwWWpVRnE3c1VMTVF2bkZ5WnhHU2NSd2ZRZlI4RVRjREJvbG9xWDZJRF9QMG1MNE40ZGdESkpmZXhsOUhCTUcyZGZiOGhfTjdiSUk40gF8QVVfeXFMTWN0NjJIZlNoTmVNdFV3NUVBOXBZTVdvWWJYU2ZteENJN0ZvVDE1d3BlaGV2NWhLZHVoWnhtaEVIWDJjWWx0LU9rbm5qMWh4RUV3amJrMG93Q3RfVFVNa0p5WEl1emJ1NDJPSXZCekt0Mk5LdEtQZ3hWWG0wTQ?oc=5",
+        "score": -2
+      },
+      {
+        "title": "Dow Futures Rise After Resilient Session; AMD, Arista Are Buys",
+        "source": "Investor's Business Daily",
+        "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPSHdBUXNwWlkwRldKTGNVWW9NWkFaSzVQaEx4RTRQYUNiVnQ2bGVPMGc0cmM4OVRGTUlmdG4yTlRXWm1QRTh1TE9lRTdLYmVsSGxaanBjUzZLOG9uQ1RNaWRodms3Zk9DTHJTVDdXV2l2aTFicWxDeXhxYXVCcFktd2VQRThkVUFkejFJUzJGb2EwazRCSVVQMFh2c3d0ZTNxeVplUVlsUHBVMm9xTlU5bVFHblVWa2ttR0RHSUN3c2ZVX1RsVlN2SkMyQTZsVlItaGZsWQ?oc=5",
+        "score": 2
+      },
+      {
+        "title": "Stock Market News From Nov. 12, 2026: Market Survives Its First Day After Jensen",
+        "source": "Barron's",
+        "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBud0JrOUVqVnVkdGNSdVJfMzFTQUZGT1hNSWxyMHFpM016MXdNZEVOSTIwUUEzSWJpR3Z0eGd4YzdfU2VZM1RneU5STzVNaC1hOTd6VlFGVWNRTEdOekwyTTNWQUdpMmhoMHNscWw3RW45UVJwOEE?oc=5",
         "score": 0
       }
     ],
