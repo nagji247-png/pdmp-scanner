@@ -65,6 +65,59 @@ jobs:
           expected = parse_timestamp(source_data.get("updated"))
           print(f"Repository data.json updated: {expected.isoformat()}")
 
+          calendar_request = urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/contents/exchange_calendar.json?ref=main",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "Bearer " + token,
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "pdmp-pages-freshness-verifier",
+              },
+          )
+          with urllib.request.urlopen(calendar_request, timeout=20) as response:
+              calendar_file = json.loads(response.read().decode("utf-8"))
+          calendar = json.loads(base64.b64decode(calendar_file["content"]).decode("utf-8"))
+
+          ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+          local_scan = expected.astimezone(ist)
+          expected_day = local_scan.date()
+
+          def is_session(day):
+              key = day.isoformat()
+              special = calendar.get("special_sessions", {})
+              if isinstance(special, dict) and key in special:
+                  return True
+              holidays = {
+                  str(item.get("date")) for item in calendar.get("holidays", [])
+                  if isinstance(item, dict) and item.get("date")
+              }
+              return day.weekday() < 5 and key not in holidays
+
+          if is_session(expected_day) and local_scan.time().replace(tzinfo=None) < dt.time(20, 0):
+              expected_day -= dt.timedelta(days=1)
+          while not is_session(expected_day):
+              expected_day -= dt.timedelta(days=1)
+          expected_basket_date = expected_day.isoformat()
+
+          def validate_basket_freshness(data, label):
+              instruments = data.get("instruments", {}) if isinstance(data, dict) else {}
+              problems = []
+              for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
+                  item = instruments.get(index_name, {})
+                  breakdown = item.get("component_breakdown", {}) if isinstance(item, dict) else {}
+                  basket = breakdown.get("stock_basket_diagnostic", {}) if isinstance(breakdown, dict) else {}
+                  source_date = basket.get("source_date") if isinstance(basket, dict) else None
+                  if source_date != expected_basket_date:
+                      problems.append(f"{index_name}={source_date or 'missing'}")
+              if problems:
+                  raise SystemExit(
+                      f"FAIL: {label} STOCK BASKET date mismatch; expected "
+                      f"{expected_basket_date}; " + ", ".join(problems)
+                  )
+              print(f"PASS: {label} NIFTY/SENSEX/BANKNIFTY STOCK BASKET dates={expected_basket_date}")
+
+          validate_basket_freshness(source_data, "Repository")
+
           deadline = time.monotonic() + 15 * 60
           last_problem = "Pages data has not yet been checked"
           while time.monotonic() < deadline:
@@ -83,6 +136,7 @@ jobs:
                       published_data = json.loads(response.read().decode("utf-8"))
                   published = parse_timestamp(published_data.get("updated"))
                   if published >= expected:
+                      validate_basket_freshness(published_data, "Published Pages")
                       print(
                           "PASS: live GitHub Pages data.json is current "
                           f"(published updated={published.isoformat()}, "

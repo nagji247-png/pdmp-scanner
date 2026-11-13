@@ -22,6 +22,7 @@ import requests
 from curl_cffi import requests as curl_requests
 from upstox_market_data import fetch_upstox_candles
 from crowd_trap_detector import build_crowd_trap_snapshot
+from stock_basket_freshness import expected_latest_completed_session, load_exchange_calendar
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -463,7 +464,7 @@ def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fr
             }
 
 
-def load_latest_stock_basket_diagnostics(scan_date, archive=None):
+def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp=None):
     """Load the latest complete dated cash-basket breadth per index for display only.
 
     This diagnostic is deliberately separate from the weighted component map used
@@ -477,11 +478,30 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None):
             return {}
     records = archive.get("records", []) if isinstance(archive, dict) else []
     output = {}
-    for record in sorted(
-        (row for row in records if isinstance(row, dict)
-         and isinstance(row.get("date"), str) and row.get("date") <= str(scan_date)),
-        key=lambda row: row["date"], reverse=True,
-    ):
+    # Cash breadth is an EOD-only diagnostic. Before 20:00 IST retain the
+    # prior session; after 20:00 expect today's session. Crucially, inspect
+    # only that exact expected session: an older complete record must never
+    # leak forward when today's archive/diagnostic is missing or incomplete.
+    if scan_timestamp:
+        try:
+            expected_date = expected_latest_completed_session(scan_timestamp, load_exchange_calendar())
+        except ValueError:
+            return {}
+        matching = [
+            row for row in records
+            if isinstance(row, dict) and row.get("date") == expected_date
+        ]
+        selected_records = matching[:1]
+    else:
+        # Compatibility for offline callers that supply only a date. The
+        # production scan always supplies its full timestamp and uses the
+        # exact expected EOD session above.
+        selected_records = sorted(
+            (row for row in records if isinstance(row, dict)
+             and isinstance(row.get("date"), str) and row.get("date") <= str(scan_date)),
+            key=lambda row: row["date"], reverse=True,
+        )
+    for record in selected_records:
         indices = record.get("indices") if isinstance(record.get("indices"), dict) else {}
         for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
             if index_name in output:
@@ -581,7 +601,7 @@ def build_asset_component_breakdowns(
     except (TypeError, ValueError):
         news_source_date = str(updated or "")[:10]
 
-    stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date)
+    stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date, scan_timestamp=updated)
     client_futures_promotion = load_client_futures_promotion(news_source_date)
     try:
         with open("nse_index_option_oi.json", "r", encoding="utf-8") as handle:

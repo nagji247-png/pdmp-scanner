@@ -31,12 +31,16 @@ class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
             self.assertFalse(append_diagnostic(path, result))
             self.assertEqual(len(load_json(path, {})["records"]), 1)
 
-    def test_changed_same_date_record_is_not_silently_overwritten(self):
+    def test_same_completeness_retry_does_not_replace_existing_record(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "diagnostics.json"
-            append_diagnostic(path, {"date": "2026-11-09", "status": "withheld_incomplete"})
-            with self.assertRaisesRegex(ValueError, "refusing overwrite"):
-                append_diagnostic(path, {"date": "2026-11-09", "status": "complete_diagnostic"})
+            original = {"date": "2026-11-09", "status": "withheld_incomplete",
+                        "reason": "first attempt"}
+            append_diagnostic(path, original)
+            retry = {"date": "2026-11-09", "status": "withheld_incomplete",
+                     "reason": "retry"}
+            self.assertFalse(append_diagnostic(path, retry))
+            self.assertEqual(load_json(path, {})["records"][0]["reason"], "first attempt")
 
     def test_incomplete_same_day_record_can_be_upgraded_after_exchange_archive_arrives(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -93,8 +97,8 @@ class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
                 },
             }
             self.assertTrue(append_diagnostic(path, complete))
-            with self.assertRaisesRegex(ValueError, "refusing overwrite"):
-                append_diagnostic(path, withheld)
+            self.assertFalse(append_diagnostic(path, withheld))
+            self.assertTrue(load_json(path, {})["records"][0]["all_three_complete"])
 
 
 if __name__ == "__main__":

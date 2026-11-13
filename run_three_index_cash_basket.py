@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from nse_cash_basket_breadth import calculate_three_index_baskets
+from stock_basket_freshness import exchange_sessions_in_window, is_exchange_session, load_exchange_calendar
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
 
@@ -61,7 +62,10 @@ def append_diagnostic(output_path, result):
             )
             temporary.replace(target)
             return True
-        raise ValueError(f"cash basket diagnostic already exists for {day}; refusing overwrite")
+        # Keep an equally complete or more complete record. Incomplete
+        # sessions are retried on later archive runs and may be upgraded once
+        # official exchange files arrive; a retry must never downgrade data.
+        return False
     archive["records"].append(result)
     archive["records"].sort(key=lambda row: row["date"])
     archive["records"] = archive["records"][-260:]
@@ -91,6 +95,7 @@ def main():
     nse_archive = load_json(args.nse_archive, {"records": []})
     bse_archive = load_json(args.bse_archive, {"records": []})
     roster_bundle = load_json(args.rosters, {})
+    calendar = load_exchange_calendar()
     saved = load_json(args.output, {"records": []})
     completed_days = set()
     for row in saved.get("records", []) if isinstance(saved, dict) else []:
@@ -104,19 +109,14 @@ def main():
             completed_days.add(str(row.get("date")))
     if args.date:
         requested_day = dt.date.fromisoformat(args.date).isoformat()
-        days = [] if requested_day in completed_days else [requested_day]
+        days = [] if requested_day in completed_days or not is_exchange_session(requested_day, calendar) else [requested_day]
     else:
         today = dt.datetime.now(IST).date()
-        first = today - dt.timedelta(days=args.backfill_days - 1)
-        archived_days = {
-            str(row.get("date")) for archive in (nse_archive, bse_archive)
-            for row in archive.get("records", [])
-            if isinstance(row, dict) and row.get("date")
-            and first.isoformat() <= str(row["date"]) <= today.isoformat()
-        }
-        # Do not replay already-complete dates: append_diagnostic intentionally
-        # refuses to overwrite an equally complete record.
-        days = sorted(archived_days - completed_days)
+        # Include every exchange session in the window, not only dates found
+        # in one of the archives. Missing NSE/BSE files therefore create an
+        # explicit withheld record instead of silently reusing an older day.
+        sessions = exchange_sessions_in_window(today, args.backfill_days, calendar)
+        days = sorted(day.isoformat() for day in sessions if day.isoformat() not in completed_days)
     results = []
     for day in days:
         result = calculate_three_index_baskets(
