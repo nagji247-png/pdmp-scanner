@@ -2062,6 +2062,50 @@ function renderInstruments(instruments, participantOI, observedAt) {
       idx.appendChild(card(name, d, participantOI, observedAt));
     }
   }
+  // Temporary, opt-in mobile diagnostics. Normal dashboard UI is unchanged unless
+  // the URL explicitly contains ?trinetra_diag=1.
+  if (new URLSearchParams(window.location.search).get("trinetra_diag") === "1") {
+    let diag = document.getElementById("trinetraCardDiag");
+    if (!diag) {
+      diag = document.createElement("pre");
+      diag.id = "trinetraCardDiag";
+      diag.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 12px;padding:10px;border:1px solid #f0c36d;border-radius:8px;background:#17130a;color:#ffe7a3;font:11px/1.45 monospace";
+      const heading = idx.parentElement.querySelector("h2");
+      if (heading) heading.insertAdjacentElement("afterend", diag);
+      else idx.parentElement.insertBefore(diag, idx);
+    }
+    requestAnimationFrame(() => {
+      const lines = ["TRINETRA CARD DIAGNOSTIC · " + new Date().toISOString()];
+      for (const asset of ["NIFTY", "BANKNIFTY"]) {
+        const el = idx.querySelector('.card[data-asset-name="' + asset + '"]');
+        if (!el) {
+          lines.push(asset + ": CARD NOT FOUND");
+          continue;
+        }
+        const cs = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        const history = el.querySelector(".asset-score-history");
+        const details = Array.from(el.querySelectorAll(":scope > details"));
+        const describe = node => {
+          if (!node) return "missing";
+          const s = getComputedStyle(node);
+          const r = node.getBoundingClientRect();
+          return "display=" + s.display + ",visibility=" + s.visibility +
+            ",h=" + Math.round(r.height) + ",w=" + Math.round(r.width);
+        };
+        lines.push(asset + ": card h=" + Math.round(rect.height) +
+          ",w=" + Math.round(rect.width) + ",display=" + cs.display +
+          ",visibility=" + cs.visibility + ",overflow=" + cs.overflow);
+        lines.push("  chart: " + describe(history));
+        lines.push("  details(" + details.length + "): " + details.map(describe).join(" | "));
+        const gridStyle = getComputedStyle(idx);
+        lines.push("  grid: display=" + gridStyle.display + ",h=" +
+          Math.round(idx.getBoundingClientRect().height) +
+          "; panel h=" + Math.round(idx.parentElement.getBoundingClientRect().height));
+      }
+      diag.textContent = lines.join("\\n");
+    });
+  }
 }
 function renderTrends(t) {
   const box = document.getElementById("trends");
