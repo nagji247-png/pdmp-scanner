@@ -6,6 +6,8 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
+      - "stock_basket_freshness.py"
+      - "tests/test_stock_basket_loader_freshness.py"
       - "crowd_trap_detector.py"
       - "tests/test_crowd_trap_detector.py"
       - "provisional_component_scoring.py"
@@ -79,7 +81,8 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Validate Python syntax and Upstox fallback tests
         run: |
-          python -m py_compile fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py upstox_market_data.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py
+          python -m py_compile fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py upstox_market_data.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py stock_basket_freshness.py
+          python -m unittest discover -s tests -p 'test_stock_basket_loader_freshness.py' -v
           python -m unittest discover -s tests -p 'test_crowd_trap_detector.py' -v
           python -m unittest discover -s tests -p 'test_upstox_market_data.py' -v
           python -m unittest discover -s tests -p 'test_client_ce_pe_provisional_score.py' -v
