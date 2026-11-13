@@ -710,7 +710,7 @@ function spark(values, color) {
     <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg>`;
 }
 
-function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml) {
+function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtml, extraDetailsHtml = "") {
   const hasSentiment = score != null && String(score).trim() !== "" && Number.isFinite(Number(score));
   const hasPriceChange = change != null && String(change).trim() !== "" && Number.isFinite(Number(change));
   const s = hasSentiment ? Number(score) : NaN;
@@ -753,6 +753,7 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
       <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
       <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
       <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
+      ${extraDetailsHtml}
     </div>
   </details>`;
 }
@@ -1510,21 +1511,7 @@ function card(name, d, participantOI, observedAt) {
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
-    ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
-    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
-    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
-      <div class="asset-detail-content">
-        ${componentBreakdown}
-        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
-        ${experimentalScoreLine}
-        ${detailSignals}
-        ${detailIndicator}
-        ${detailPrice}
-      </div>
-    </div>
-
-    <div class="asset-score-history">${spark(scoreHistory[name], color)}</div>
-    ${isIndianIndex ? `
+    ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI), isIndianIndex ? `
       <details>
         <summary>Click for details</summary>
         <div class="hl">
@@ -1548,11 +1535,25 @@ function card(name, d, participantOI, observedAt) {
           <div class="hl-title">कीमत का बदलाव</div>
           <div class="hl-meta">${hasChange ? sign + Number(d.change_pct).toFixed(2) + "%" : "बदलाव डेटा उपलब्ध नहीं"} · स्रोत का समय डैशबोर्ड के अपडेट समय में देखें।</div>
         </div>
-      </details>` : ""}
-    <details>
-      <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
-      ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
-    </details>`;
+      </details>
+      <details>
+        <summary>Click for details · खबरें (${(d.headlines || []).length})</summary>
+        ${heads || '<div class="hl-meta">कोई हेडलाइन नहीं मिली</div>'}
+      </details>` : "")}
+    <button type="button" class="asset-detail-open" data-asset-detail-key="${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" onclick="openAssetDetailModal(this.dataset.assetDetailKey)">👁️ विस्तृत जानकारी खोलें</button>
+    <div id="asset-detail-${String(name).replace(/[^A-Za-z0-9_-]/g, "_")}" hidden aria-hidden="true" class="asset-detail-source">
+      <div class="asset-detail-content">
+        ${componentBreakdown}
+        ${name === "GOLD" ? '<div class="hl-meta">दुकानों के भाव MCX भाव से अलग हो सकते हैं। इसमें 3% GST शामिल है।</div>' : ""}
+        ${experimentalScoreLine}
+        ${detailSignals}
+        ${detailIndicator}
+        ${detailPrice}
+      </div>
+    </div>
+
+    <div class="asset-score-history">${spark(scoreHistory[name], color)}</div>
+`;
   el.style.cursor = "pointer";
   el.addEventListener("click", (ev) => {
     const inner = ev.target.closest && ev.target.closest("details, a, button");
