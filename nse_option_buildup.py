@@ -92,7 +92,8 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
     common = sorted(set(old) & set(new))
     totals = {
         key: {"label": label, "oi_quantity": 0, "contracts": 0,
-              "ce_oi_quantity": 0, "pe_oi_quantity": 0}
+              "ce_oi_quantity": 0, "pe_oi_quantity": 0,
+              "contract_details": []}
         for key, label in CATEGORIES.items()
     }
     for contract in common:
@@ -114,6 +115,22 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
         totals[category]["contracts"] += 1
         side_key = "ce_oi_quantity" if contract[1] == "CE" else "pe_oi_quantity"
         totals[category][side_key] += quantity
+        totals[category]["contract_details"].append({
+            "expiry": contract[0],
+            "side": contract[1],
+            "strike": contract[2],
+            "previous_close": before["close"],
+            "current_close": after["close"],
+            "previous_oi": before["open_interest"],
+            "current_oi": after["open_interest"],
+            "oi_change": oi_change,
+            "oi_quantity": quantity,
+        })
+
+    for item in totals.values():
+        item["contract_details"].sort(
+            key=lambda row: (-row["oi_quantity"], row["expiry"], row["strike"], row["side"])
+        )
 
     classified = sum(item["contracts"] for item in totals.values())
     result = {
