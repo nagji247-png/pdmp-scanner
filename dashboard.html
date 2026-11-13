@@ -567,6 +567,8 @@
 
 <section class="panel" style="grid-column:1 / -1"><h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2><div class="box" id="signals"></div></section>
 
+<section class="panel" style="grid-column:1 / -1"><h2>FPI SECTOR TILT <span style="font-size:11px;color:#aab4c4;font-weight:600">· अलग संदर्भ</span></h2><div class="box" id="fpi-sector-tilt"><div class="sub">NSDL का पखवाड़े वाला Equity डेटा लोड हो रहा है…</div></div></section>
+
 <section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
@@ -3378,6 +3380,83 @@ function openChart(name) {
   window.open("https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(sym), "_blank", "noopener");
 }
 
+let fpiSectorCache = null;
+let fpiSectorFetchedAt = 0;
+
+function renderFpiSectorTilt(payload) {
+  const box = document.getElementById("fpi-sector-tilt");
+  if (!box) return;
+  const history = payload && Array.isArray(payload.history) ? payload.history : [];
+  const latest = history[0];
+  if (!latest || !Array.isArray(latest.sectors) || !latest.sectors.length) {
+    box.innerHTML = '<div class="sub">NSDL का सत्यापित Equity सेक्टर डेटा अभी उपलब्ध नहीं। कोई अनुमानित आँकड़ा नहीं दिखाया गया।</div>';
+    return;
+  }
+  const fmt = value => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    return (n > 0 ? "+" : n < 0 ? "−" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", {maximumFractionDigits: 0}) + " Cr";
+  };
+  const top = latest.sectors.filter(x => Number.isFinite(Number(x.net_equity_cr)));
+  const buys = top.filter(x => Number(x.net_equity_cr) > 0).sort((a,b) => Number(b.net_equity_cr)-Number(a.net_equity_cr)).slice(0,3);
+  const sells = top.filter(x => Number(x.net_equity_cr) < 0).sort((a,b) => Number(a.net_equity_cr)-Number(b.net_equity_cr)).slice(0,3);
+  const row = (item, i) => '<div class="ev"><div>' + (i+1) + '. ' + esc(item.name) + '</div><b class="' + (Number(item.net_equity_cr)>0 ? "pos" : "neg") + '">' + fmt(item.net_equity_cr) + '</b></div>';
+  const previous = history[1];
+  const prevMap = new Map((previous && Array.isArray(previous.sectors) ? previous.sectors : []).map(x => [x.name, Number(x.net_equity_cr)]));
+  const reversals = previous ? top.map(x => {
+    const before = prevMap.get(x.name), now = Number(x.net_equity_cr);
+    return {name:x.name,before,now};
+  }).filter(x => Number.isFinite(x.before) && ((x.before < 0 && x.now > 0) || (x.before > 0 && x.now < 0)))
+    .sort((a,b) => Math.abs(b.now-b.before)-Math.abs(a.now-a.before)).slice(0,4) : [];
+  const historyRows = top.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(x => {
+    const cells = history.map(period => {
+      const found = (period.sectors || []).find(y => y.name === x.name);
+      const n = found ? Number(found.net_equity_cr) : NaN;
+      return '<td style="text-align:right;white-space:nowrap" class="' + (n>0 ? "pos" : n<0 ? "neg" : "zero") + '">' + fmt(n).replace("₹","") + '</td>';
+    }).join("");
+    return '<tr><td style="white-space:nowrap">' + esc(x.name) + '</td>' + cells + '</tr>';
+  }).join("");
+  const headings = history.map(p => '<th style="text-align:right;white-space:nowrap">' + esc(p.end_date.slice(5)) + '</th>').join("");
+  box.innerHTML =
+    '<div class="hl-title">इक्विटी · ' + esc(latest.label || latest.end_date) + '</div>' +
+    '<div class="sub">NSDL · Equity net investment · ₹ करोड़ · रिपोर्ट अवधि समाप्त: ' + esc(latest.end_date) + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:9px">' +
+      '<div class="hl"><b>सबसे ज़्यादा खरीदारी</b>' + (buys.length ? buys.map(row).join("") : '<div class="sub">इस अवधि में कोई शुद्ध खरीदारी वाला उद्योग सेक्टर नहीं।</div>') + '</div>' +
+      '<div class="hl"><b>सबसे ज़्यादा बिकवाली</b>' + (sells.length ? sells.map(row).join("") : '<div class="sub">इस अवधि में कोई शुद्ध बिकवाली वाला उद्योग सेक्टर नहीं।</div>') + '</div>' +
+    '</div>' +
+    '<div class="hl" style="margin-top:9px"><b>पलटाव और पिछली चाल</b>' +
+      (previous ? (reversals.length ? reversals.map(x => '<div class="ev"><div><b>' + esc(x.name) + '</b><div class="sub">' + fmt(x.before) + ' → ' + fmt(x.now) + '</div></div><b class="' + (x.now>0 ? "pos" : "neg") + '">' + (x.now>0 ? "खरीदारी" : "बिकवाली") + '</b></div>').join("") : '<div class="sub">पिछले पखवाड़े से इस अवधि में कोई स्पष्ट खरीद-बिक्री पलटाव नहीं।</div>') : '<div class="sub">पिछले पखवाड़े का डेटा अभी जमा हो रहा है।</div>') +
+    '</div>' +
+    '<div class="sub" style="margin-top:9px">पिछले ' + history.length + ' उपलब्ध पखवाड़ों का रुझान: हर सेक्टर की अपनी अलग चाल।</div>' +
+    '<details style="margin-top:7px"><summary style="cursor:pointer;color:#4fc3f7;font-weight:800">सेक्टर की पूरी सूची और इतिहास खोलें</summary>' +
+      '<div style="overflow-x:auto;margin-top:8px"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th style="text-align:left">सेक्टर</th>' + headings + '</tr></thead><tbody>' + historyRows + '</tbody></table></div>' +
+      '<div class="sub" style="margin-top:7px">डेटा स्रोत: <a href="' + esc(payload.source_url || "https://pilot.fpi.nsdl.co.in/") + '" target="_blank" rel="noopener">NSDL की आधिकारिक रिपोर्ट</a> · ' + esc(payload.source || "") + '</div>' +
+      '<div class="sub">' + esc(payload.note || "केवल Equity net investment; PDMP Final Score से अलग।") + '</div>' +
+    '</details>';
+}
+
+async function loadFpiSectorTilt(force = false) {
+  const now = Date.now();
+  if (!force && fpiSectorCache && now - fpiSectorFetchedAt < 6 * 60 * 60 * 1000) {
+    renderFpiSectorTilt(fpiSectorCache);
+    return;
+  }
+  try {
+    const response = await fetch("fpi-sector-data.json?t=" + now, {cache:"no-store"});
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const payload = await response.json();
+    fpiSectorCache = payload;
+    fpiSectorFetchedAt = now;
+    renderFpiSectorTilt(payload);
+  } catch (error) {
+    if (fpiSectorCache) renderFpiSectorTilt(fpiSectorCache);
+    else {
+      const box = document.getElementById("fpi-sector-tilt");
+      if (box) box.innerHTML = '<div class="sub">FPI सेक्टर संदर्भ अभी लोड नहीं हुआ। दैनिक PDMP डेटा और Final Score इससे प्रभावित नहीं हैं।</div>';
+    }
+  }
+}
+
 async function load() {
   if (loading) return;
   loading = true;
@@ -3410,6 +3489,7 @@ async function load() {
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
+    loadFpiSectorTilt();
     renderNews(data.market_news);
     renderSectorMap(data);
     renderFoPanel(data.participant_oi, data.instruments);
