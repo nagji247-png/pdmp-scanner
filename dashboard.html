@@ -1075,7 +1075,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
           (optionBuildup.available === true ? "डेटा उपलब्ध" : "UNAVAILABLE / डेटा प्रतीक्षित") + '</b></div>' +
           (optionBuildup.available === true
             ? '<div class="option-buildup-dominant"><b>बाजार में किसकी बाजी भारी?</b><div class="option-buildup-dominant-name">' +
-              (dominant ? dominant.label : "—") + '</div><div class="option-buildup-dominant-value">' +
+              (dominant ? ({long_build_up: "तेजी का दबाव", short_build_up: "मंदी का दबाव", short_covering: "मंदी वाले पीछे हटे", long_unwinding: "तेजी वाले पीछे हटे"}[dominant.key] + '<br>' + dominant.label) : "—") + '</div><div class="option-buildup-dominant-value">' +
               (dominant ? formatCrore(dominant.quantity) : "—") + '</div><div class="hl-meta">सबसे अधिक कुल OI बदलाव की मात्रा · ' +
               (dominant ? dominant.contracts.toLocaleString("en-IN") : "0") + ' कॉन्ट्रैक्ट। यह तुलना की सबसे बड़ी श्रेणी है, भविष्य की दिशा की पक्की भविष्यवाणी नहीं।</div>' +
               categoryEntries.map(entry => '<div class="hl-meta"><b>' + entry.label + '</b>: ' +
