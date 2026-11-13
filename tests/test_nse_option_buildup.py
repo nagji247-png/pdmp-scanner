@@ -37,6 +37,16 @@ class NSEOptionBuildupTests(unittest.TestCase):
         self.assertEqual(result["categories"]["long_unwinding"]["oi_quantity"], 300)
         self.assertEqual(result["classified_contracts"], 4)
         self.assertFalse(result["included_in_asset_final"])
+        detail = result["categories"]["long_build_up"]["contract_details"][0]
+        self.assertEqual(detail["expiry"], "2026-11-17")
+        self.assertEqual(detail["side"], "CE")
+        self.assertEqual(detail["strike"], 25000)
+        self.assertEqual(detail["previous_close"], 100)
+        self.assertEqual(detail["current_close"], 110)
+        self.assertEqual(detail["oi_change"], 200)
+        self.assertEqual(detail["previous_oi"], 1000)
+        self.assertEqual(detail["current_oi"], 1200)
+        self.assertEqual(len(result["categories"]["short_build_up"]["contract_details"]), 1)
 
     def test_does_not_match_different_expiry_or_strike(self):
         archive = {"records": [
