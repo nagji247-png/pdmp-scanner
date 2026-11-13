@@ -46,7 +46,7 @@ def fetch_period(end):
     req=Request(url,headers={"User-Agent":"Mozilla/5.0 TRINETRA research dashboard"})
     with urlopen(req,timeout=25) as response: raw=response.read().decode("utf-8",errors="replace")
     parser=Rows(); parser.feed(raw); sectors=[]
-    if end_date.day == 31 and end_date.month == 10:
+    if end.day == 31 and end.month == 10:
         for debug_row in parser.rows:
             if debug_row and debug_row[0].strip() == '1':
                 print('NSDL_DEBUG_ROW', len(debug_row), repr(list(enumerate(debug_row))))
