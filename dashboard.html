@@ -3489,7 +3489,7 @@ async function load() {
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
-    await loadFpiSectorTilt();
+    loadFpiSectorTilt();
     renderNews(data.market_news);
     renderSectorMap(data);
     renderFoPanel(data.participant_oi, data.instruments);
