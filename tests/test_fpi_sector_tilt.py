@@ -1,7 +1,7 @@
 import datetime as dt
 import unittest
 
-from fpi_sector_tilt import Rows, candidates, number
+from fpi_sector_tilt import Rows, candidates, number, EQUITY_TOTAL_TOLERANCE_CR
 
 
 class FpiSectorTiltTests(unittest.TestCase):
@@ -12,6 +12,11 @@ class FpiSectorTiltTests(unittest.TestCase):
         parser = Rows()
         parser.feed(markup)
         self.assertEqual(number(parser.rows[0][50]), -1234.0)
+
+    def test_rounding_tolerance_keeps_consecutive_fortnight(self):
+        self.assertEqual(EQUITY_TOTAL_TOLERANCE_CR, 5.0)
+        self.assertLessEqual(abs(16618.0 - 16621.0), EQUITY_TOTAL_TOLERANCE_CR)
+        self.assertGreater(abs(16614.0 - 16621.0), EQUITY_TOTAL_TOLERANCE_CR)
 
     def test_missing_or_dash_values_are_not_zero(self):
         self.assertIsNone(number(""))
