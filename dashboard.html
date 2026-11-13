@@ -752,7 +752,8 @@ function divergence(score, change, isIndianIndex, headlineHtml, participantOIHtm
       <div class="hl-meta"><b>विश्लेषण:</b> ${reason}</div>
       <div class="hl-meta">यह केवल खबरों और कीमत की विपरीत दिशा बताता है; अपने-आप में खरीद/बिक्री का सिग्नल नहीं है।</div>
       <details><summary>📰 हेडलाइन देखें (${headlineHtml.count})</summary>${headlineHtml.html || '<div class="hl-meta">अभी हेडलाइन उपलब्ध नहीं है।</div>'}</details>
-      <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>\n      ${extraDetailsHtml}
+      <details><summary>👥 NSE का वास्तविक F&O पोज़िशन डेटा देखें — DII / PRO / CLIENT / FII</summary>${participantOIHtml}</details>
+      ${extraDetailsHtml}
     </div>
   </details>`;
 }
