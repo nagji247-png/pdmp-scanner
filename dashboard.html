@@ -109,6 +109,23 @@
   .option-buildup-dominant-value { font-size:23px; font-weight:900; color:#ffd36a; margin:2px 0; }
   .option-buildup-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:10px 0; }
   .option-buildup-filters input,.option-buildup-filters select { min-width:0; width:100%; padding:8px 6px; color:#e7f2ff; background:#0b1b34; border:1px solid #285078; border-radius:7px; font-size:11px; }
+  .option-buildup-cards { display:grid; grid-template-columns:1fr; gap:8px; margin:10px 0; }
+  .option-buildup-card { border:1px solid #31506d; border-radius:10px; padding:10px; margin:8px 0; }
+  .option-buildup-card > summary { display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; list-style:none; }
+  .option-buildup-card > summary::-webkit-details-marker { display:none; }
+  .option-buildup-card.bull { background:rgba(28,150,105,.15); border-color:#2c896c; }
+  .option-buildup-card.bear { background:rgba(205,65,78,.15); border-color:#a94c5a; }
+  .option-buildup-card-copy { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .option-buildup-card-copy > b:first-child { color:#e7f2ff; font-size:13px; }
+  .option-buildup-card-copy > span { color:#b9c9df; font-size:11px; line-height:1.4; }
+  .option-buildup-card-copy > strong { font-size:22px; line-height:1.15; }
+  .option-buildup-card.bull .option-buildup-card-copy > strong { color:#55dda9; }
+  .option-buildup-card.bear .option-buildup-card-copy > strong { color:#ff858c; }
+  .option-buildup-contracts { color:#e7f2ff; font-size:12px; }
+  .option-buildup-card-copy > small { color:#9db4d0; font-size:10px; }
+  .option-buildup-eye { flex:0 0 auto; padding:7px 9px; border:1px solid currentColor; border-radius:8px; color:#9de8d0; font-size:17px; }
+  .option-buildup-card.bear .option-buildup-eye { color:#ffabb0; }
+  .option-buildup-card-content { margin-top:10px; padding-top:8px; border-top:1px solid rgba(130,170,205,.25); }
   .option-buildup-category { border-top:1px solid #244363; padding:5px 0; }
   .option-buildup-category summary { color:#dceeff; font-size:12px; }
   .option-buildup-table-wrap { width:100%; overflow-x:auto; margin-top:7px; }
@@ -1014,11 +1031,18 @@ function renderComponentBreakdown(b, observedAt, assetName) {
           '<select aria-label="Expiry चुनें" onchange="filterOptionBuildupRows(\'' + prefix + '\')"><option value="">सभी Expiry</option>' +
           expiries.map(expiry => '<option value="' + esc(expiry) + '">' + esc(dateText(expiry)) + '</option>').join("") +
           '</select></div>';
-        const categoryHtml = categoryEntries.map(entry => {
+        const categoryHtml = categoryEntries.map((entry, index) => {
           const rows = Array.isArray(entry.item.contract_details) ? entry.item.contract_details : [];
+          const tone = entry.key === "long_build_up" || entry.key === "short_covering" ? "bull" : "bear";
+          const meaning = {
+            long_build_up: "भाव ऊपर गया और OI भी बढ़ा। यानी तेजी की तरफ नए सौदे जुड़े।",
+            short_build_up: "भाव नीचे गया और OI बढ़ा। यानी गिरावट की तरफ नए सौदे जुड़े।",
+            short_covering: "भाव ऊपर गया और OI घटा। यानी पुराने मंदी वाले सौदे बंद हुए।",
+            long_unwinding: "भाव नीचे गया और OI घटा। यानी पुराने तेजी वाले सौदे बंद हुए।"
+          }[entry.key];
           const rowHtml = rows.map(row =>
             '<tr data-option-row="' + prefix + '" data-side="' + esc(row.side) + '" data-expiry="' + esc(row.expiry) + '" data-strike="' + esc(row.strike) + '">' +
-            '<td>' + esc(dateText(row.expiry)) + '</td><td><details class="option-strike-detail"><summary>' + Number(row.strike).toLocaleString("en-IN") + ' <span>विवरण</span></summary>' +
+            '<td>' + esc(dateText(row.expiry)) + '</td><td><details class="option-strike-detail"><summary>' + Number(row.strike).toLocaleString("en-IN") + ' <span>👁 विवरण</span></summary>' +
             '<div class="option-strike-expanded"><div><small>पिछला OI</small><b>' + formatSigned(row.previous_oi) + '</b></div>' +
             '<div><small>आज का OI</small><b>' + formatSigned(row.current_oi) + '</b></div>' +
             '<div><small>OI में बदलाव</small><b class="' + (Number(row.oi_change) > 0 ? "pos" : "neg") + '">' + formatSigned(row.oi_change) + '</b></div>' +
@@ -1029,12 +1053,18 @@ function renderComponentBreakdown(b, observedAt, assetName) {
             '<td>' + formatPremium(row.previous_close) + ' → ' + formatPremium(row.current_close) + '</td>' +
             '<td class="' + (Number(row.oi_change) > 0 ? "pos" : "neg") + '">' + formatSigned(row.oi_change) + '</td></tr>'
           ).join("");
-          return '<details class="option-buildup-category"><summary><b>' + entry.label + '</b> · ' +
-            formatCrore(entry.quantity) + ' · ' + entry.contracts.toLocaleString("en-IN") + ' कॉन्ट्रैक्ट</summary>' +
-            '<div class="hl-meta">' + optionBuildupHindi[entry.key] + '</div>' +
+          return '<details class="option-buildup-card ' + tone + '">' +
+            '<summary><div class="option-buildup-card-copy"><b>' + (index + 1) + '. ' + entry.label + '</b>' +
+            '<span>' + meaning + '</span><strong>' + formatCrore(entry.quantity) + '</strong>' +
+            '<b class="option-buildup-contracts">' + entry.contracts.toLocaleString("en-IN") + ' कॉन्ट्रैक्ट</b>' +
+            '<small>CE: ' + Number(entry.item.ce_oi_quantity || 0).toLocaleString("en-IN") +
+            ' · PE: ' + Number(entry.item.pe_oi_quantity || 0).toLocaleString("en-IN") + '</small></div>' +
+            '<span class="option-buildup-eye" aria-label="Strike खोलें">👁️</span></summary>' +
+            '<div class="option-buildup-card-content">' +
+            '<div class="hl-meta">' + rows.length.toLocaleString("en-IN") + ' वर्गीकृत कॉन्ट्रैक्ट · Strike पर टैप करके पूरा विवरण देखें</div>' +
             '<div class="option-buildup-table-wrap"><table class="option-buildup-table"><thead><tr><th>Expiry</th><th>Strike</th><th>CE/PE</th><th>प्रीमियम: पिछला → आज</th><th>बदलाव OI</th></tr></thead><tbody>' +
             (rowHtml || '<tr><td colspan="5">इस श्रेणी में कोई वर्गीकृत कॉन्ट्रैक्ट नहीं।</td></tr>') +
-            '</tbody></table></div><div class="hl-meta">इस श्रेणी के ' + rows.length.toLocaleString("en-IN") + ' वर्गीकृत कॉन्ट्रैक्ट।</div></details>';
+            '</tbody></table></div></div></details>';
         }).join("");
         return '<div class="hl option-buildup-panel" style="margin-top:8px">' +
           '<div class="hl-title"><b>BUILD-UP / UNWINDING · NSE EOD</b> · <b class="' +
