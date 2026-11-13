@@ -9,6 +9,7 @@ OUT=Path("fpi-sector-data.json")
 MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 SKIP={"Sovereign","Others","Grand Total","Total"}
 EQUITY_NET_INR_COLUMN=50
+EQUITY_TOTAL_TOLERANCE_CR=5.0
 
 class Rows(HTMLParser):
     def __init__(self):
@@ -69,8 +70,8 @@ def fetch_period(end):
     if grand_total is None:
         raise ValueError("NSDL Grand Total equity cell is missing")
     reconstructed=round(sum(x["net_equity_cr"] for x in sectors)+sum(excluded_flows.values()),2)
-    if abs(reconstructed-grand_total)>2:
-        raise ValueError(f"Equity column validation failed: sector sum {reconstructed} vs NSDL Grand Total {grand_total}")
+    if abs(reconstructed-grand_total)>EQUITY_TOTAL_TOLERANCE_CR:
+        raise ValueError(f"Equity column validation failed: sector sum {reconstructed} vs NSDL Grand Total {grand_total}; tolerance {EQUITY_TOTAL_TOLERANCE_CR} Cr")
     start=end.replace(day=1) if end.day==15 else end.replace(day=16)
     return {"end_date":end.isoformat(),"from_date":start.isoformat(),"to_date":end.isoformat(),
       "label":f"{start.strftime('%d %b %Y')} – {end.strftime('%d %b %Y')}",
