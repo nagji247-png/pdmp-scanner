@@ -264,7 +264,7 @@ class MarketLensCsvImportTests(unittest.TestCase):
             "DEF": ("Auto Components & Equipments", "Automobile and Auto Components", "Consumer Discretionary"),
             "GHI": ("Speciality Retail", "Consumer Services", "Consumer Discretionary"),
             "JKL": ("Gas Transmission/Marketing", "Oil, Gas & Consumable Fuels", "Energy"),
-            "MNO": ("NBFC", "Financial Services", "Financial Services"),
+            "MNO": ("Non Banking Financial Company (NBFC)", "Financial Services", "Financial Services"),
             "PQR": ("Industrial Manufacturing", "Capital Goods", "Industrials"),
             "STU": ("Ship Building & Allied Services", "Capital Goods", "Industrials"),
             "VWX": ("IT Enabled Services", "Information Technology", "Information Technology"),
