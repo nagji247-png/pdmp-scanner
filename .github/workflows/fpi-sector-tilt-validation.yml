@@ -10,6 +10,8 @@ on:
       - ".github/workflows/fpi-sector-tilt-validation.yml"
       - "tests/test_fpi_sector_tilt.py"
       - "tests/test_fpi_stock_tags.py"
+      - "nse-fo-stock-sector-master.json"
+      - "tests/test_nse_fo_sector_master.py"
       - "tests/test_dashboard_stale_guard.py"
 permissions:
   contents: read
@@ -27,5 +29,7 @@ jobs:
         run: python -m unittest discover -s tests -p "test_fpi_sector_tilt.py" -v
       - name: Test stock-level FPI tag direction and safety gates
         run: python -m unittest discover -s tests -p "test_fpi_stock_tags.py" -v
+      - name: Validate complete NSE F&O universe and fail-closed sector master
+        run: python -m unittest discover -s tests -p "test_nse_fo_sector_master.py" -v
       - name: Protect existing NO TRADE guard
         run: python -m unittest discover -s tests -p "test_dashboard_stale_guard.py" -v
