@@ -13,9 +13,9 @@
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
     "sector_taxonomy": "NSDL FPI 22-sector names; NSDL cites BSE Industry Classification under the common BSE–NSE structure",
-    "verified_count": 31,
-    "pending_count": 187,
-    "note": "31 mappings are currently supported by existing watchlist evidence or official NSE MarketLens company rows whose Sub Sector exactly matches an NSDL FPI 22-sector label. They are not represented as independently audited BSE company-level confirmations. The remaining 187 company classifications are pending; broad labels are not inferred and pending records fail closed.",
+    "verified_count": 48,
+    "pending_count": 166,
+    "note": "Verified rows are supported by official NSE MarketLens CSV records whose Sub Sector exactly matches one of the NSDL FPI 22-sector labels, or by separately verified existing watchlist mappings. Duplicate, missing, unmatched or ambiguous rows remain pending and fail closed.",
     "fpi_reference_source": "NSDL Fortnightly Sector-wise FPI Investment Data states that its sector classification follows BSE Industry Classification",
     "fpi_reference_source_url": "https://pilot.fpi.nsdl.co.in/StaticReports/Fortnightly_Sector_wise_FII_Investment_Data/FIIInvestSector_Oct312026.html",
     "common_structure_source_url": "https://www.bseindia.com/Downloads1/India_Industry_Classification_Structure.pdf"
@@ -43,9 +43,12 @@
       "status": "pending_official_company_classification"
     },
     "ADANIENSOL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Power",
+      "sector": "Utilities",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ADANIENT": {
       "industry": null,
@@ -57,21 +60,23 @@
       "sector": "Utilities",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ADANIPORTS": {
       "industry": "Transport Infrastructure",
       "sector": "Services",
-      "status": "verified_existing_mapping",
-      "verified_on": "2026-11-14"
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ADANIPOWER": {
       "industry": "Power",
       "sector": "Utilities",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ABCAPITAL": {
@@ -105,9 +110,12 @@
       "status": "pending_official_company_classification"
     },
     "APOLLOHOSP": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Healthcare Services",
+      "sector": "Healthcare",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ASHOKLEY": {
       "industry": null,
@@ -144,13 +152,16 @@
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BSE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Capital Markets",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BAJAJ-AUTO": {
       "industry": null,
@@ -162,7 +173,7 @@
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BAJAJFINSV": {
@@ -170,7 +181,7 @@
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BANDHANBNK": {
@@ -179,9 +190,12 @@
       "status": "pending_official_company_classification"
     },
     "BANKBARODA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BANKINDIA": {
       "industry": null,
@@ -223,7 +237,7 @@
       "sector": "Telecommunication",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "BIOCON": {
@@ -242,9 +256,12 @@
       "status": "pending_official_company_classification"
     },
     "BRITANNIA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Food Products",
+      "sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "CGPOWER": {
       "industry": null,
@@ -252,9 +269,12 @@
       "status": "pending_official_company_classification"
     },
     "CANBK": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "CDSL": {
       "industry": null,
@@ -262,9 +282,12 @@
       "status": "pending_official_company_classification"
     },
     "CHOLAFIN": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "CIPLA": {
       "industry": null,
@@ -347,7 +370,7 @@
       "sector": "Healthcare",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "DIXON": {
@@ -356,9 +379,12 @@
       "status": "pending_official_company_classification"
     },
     "DRREDDY": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ETERNAL": {
       "industry": null,
@@ -431,7 +457,7 @@
       "sector": "Information Technology",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "HDFCAMC": {
@@ -442,13 +468,18 @@
     "HDFCBANK": {
       "industry": "Banks",
       "sector": "Financial Services",
-      "status": "verified_existing_mapping",
-      "verified_on": "2026-11-14"
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "HDFCLIFE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Insurance",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "HAVELLS": {
       "industry": null,
@@ -481,7 +512,7 @@
       "sector": "Fast Moving Consumer Goods",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "HINDZINC": {
@@ -504,7 +535,7 @@
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ICICILIFE": {
@@ -527,13 +558,16 @@
       "sector": "Fast Moving Consumer Goods",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "INDIANB": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "IEX": {
       "industry": null,
@@ -575,7 +609,7 @@
       "sector": "Information Technology",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "INOXWIND": {
@@ -588,7 +622,7 @@
       "sector": "Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "JINDALSTEL": {
@@ -607,9 +641,12 @@
       "status": "pending_official_company_classification"
     },
     "JIOFIN": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "JUBLFOOD": {
       "industry": null,
@@ -647,11 +684,11 @@
       "status": "pending_official_company_classification"
     },
     "KOTAKBANK": {
-      "industry": "Private Sector Bank",
+      "industry": "Banks",
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "LTF": {
@@ -665,9 +702,12 @@
       "status": "pending_official_company_classification"
     },
     "LTM": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "IT - Software",
+      "sector": "Information Technology",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "LT": {
       "industry": null,
@@ -675,16 +715,19 @@
       "status": "pending_official_company_classification"
     },
     "LAURUSLABS": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "LICI": {
-      "industry": "Life Insurance",
+      "industry": "Insurance",
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "LODHA": {
@@ -713,9 +756,12 @@
       "status": "pending_official_company_classification"
     },
     "MARICO": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "MARUTI": {
       "industry": null,
@@ -777,7 +823,7 @@
       "sector": "Utilities",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "NATIONALUM": {
@@ -791,11 +837,11 @@
       "status": "pending_official_company_classification"
     },
     "NESTLEIND": {
-      "industry": "Packaged Foods",
+      "industry": "Food Products",
       "sector": "Fast Moving Consumer Goods",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "NAM-INDIA": {
@@ -819,9 +865,12 @@
       "status": "pending_official_company_classification"
     },
     "PAYTM": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Financial Technology (Fintech)",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "OFSS": {
       "industry": null,
@@ -884,11 +933,11 @@
       "status": "pending_official_company_classification"
     },
     "POWERGRID": {
-      "industry": "Power - Transmission",
+      "industry": "Power",
       "sector": "Utilities",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "PREMIERENE": {
@@ -902,9 +951,12 @@
       "status": "pending_official_company_classification"
     },
     "PNB": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "RBLBANK": {
       "industry": null,
@@ -943,9 +995,12 @@
       "status": "pending_official_company_classification"
     },
     "SBILIFE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Insurance",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "SHREECEM": {
       "industry": null,
@@ -963,11 +1018,11 @@
       "status": "pending_official_company_classification"
     },
     "SHRIRAMFIN": {
-      "industry": "Non Banking Financial Company (NBFC)",
+      "industry": "Finance",
       "sector": "Financial Services",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ENRIN": {
@@ -991,10 +1046,12 @@
       "status": "pending_official_company_classification"
     },
     "SBIN": {
-      "industry": "Public Sector Bank",
+      "industry": "Banks",
       "sector": "Financial Services",
-      "status": "verified_existing_mapping",
-      "verified_on": "2026-11-14"
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "SAIL": {
       "industry": null,
@@ -1002,11 +1059,11 @@
       "status": "pending_official_company_classification"
     },
     "SUNPHARMA": {
-      "industry": "Pharmaceuticals",
+      "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "SUPREMEIND": {
@@ -1040,11 +1097,11 @@
       "status": "pending_official_company_classification"
     },
     "TCS": {
-      "industry": "Computers - Software & Consulting",
+      "industry": "IT - Software",
       "sector": "Information Technology",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "TATAELXSI": {
@@ -1068,11 +1125,11 @@
       "status": "pending_official_company_classification"
     },
     "TECHM": {
-      "industry": "Computers - Software & Consulting",
+      "industry": "IT - Software",
       "sector": "Information Technology",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "FEDERALBNK": {
@@ -1096,11 +1153,11 @@
       "status": "pending_official_company_classification"
     },
     "TORNTPHARM": {
-      "industry": "Pharmaceuticals",
+      "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "TRENT": {
@@ -1134,9 +1191,12 @@
       "status": "pending_official_company_classification"
     },
     "UNIONBANK": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "UNITDSPR": {
       "industry": null,
@@ -1144,9 +1204,12 @@
       "status": "pending_official_company_classification"
     },
     "VBL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Beverages",
+      "sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "VEDL": {
       "industry": null,
@@ -1159,9 +1222,12 @@
       "status": "pending_official_company_classification"
     },
     "IDEA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Telecom - Services",
+      "sector": "Telecommunication",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "VOLTAS": {
       "industry": null,
@@ -1178,7 +1244,7 @@
       "sector": "Information Technology",
       "status": "verified_nse_marketlens_sector_match",
       "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener company row; sector accepted only where Sub Sector exactly matches NSDL FPI sector label",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
       "source_url": "https://marketlens.nseindia.com/screener"
     },
     "YESBANK": {
@@ -1187,9 +1253,12 @@
       "status": "pending_official_company_classification"
     },
     "ZYDUSLIFE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     }
   }
 }
