@@ -3404,7 +3404,8 @@ function renderStockFpiTags(dashboardData, payload, sectorMap) {
     const flow = flows.get(mapping.sector);
     if (!Number.isFinite(flow) || Math.abs(flow) < 50) continue;
     const recent = (Array.isArray(instrument.headlines) ? instrument.headlines : []).filter(item =>
-      Number.isFinite(Number(item.age_h)) && Number(item.age_h) >= 0 && Number(item.age_h) <= 48
+      item && item.age_h != null && item.score != null
+      && Number.isFinite(Number(item.age_h)) && Number(item.age_h) >= 0 && Number(item.age_h) <= 48
       && Number.isFinite(Number(item.score))
     );
     const directional = recent.filter(item => Number(item.score) !== 0);
@@ -3486,25 +3487,27 @@ function renderFpiSectorTilt(payload) {
 
 async function loadFpiSectorTilt(dashboardData, force = false) {
   const now = Date.now();
-  if (!force && fpiSectorCache && fpiStockMapCache && now - fpiSectorFetchedAt < 6 * 60 * 60 * 1000) {
+  if (!force && fpiSectorCache && now - fpiSectorFetchedAt < 6 * 60 * 60 * 1000) {
     renderFpiSectorTilt(fpiSectorCache);
-    renderStockFpiTags(dashboardData, fpiSectorCache, fpiStockMapCache);
+    if (fpiStockMapCache) renderStockFpiTags(dashboardData, fpiSectorCache, fpiStockMapCache);
     return;
   }
   try {
-    const [sectorResponse, mapResponse] = await Promise.all([
-      fetch("fpi-sector-data.json?t=" + now, {cache:"no-store"}),
-      fetch("fpi-stock-sector-map.json?t=" + now, {cache:"no-store"})
-    ]);
+    const sectorResponse = await fetch("fpi-sector-data.json?t=" + now, {cache:"no-store"});
     if (!sectorResponse.ok) throw new Error("FPI data HTTP " + sectorResponse.status);
-    if (!mapResponse.ok) throw new Error("sector map HTTP " + mapResponse.status);
     const payload = await sectorResponse.json();
-    const sectorMap = await mapResponse.json();
     fpiSectorCache = payload;
-    fpiStockMapCache = sectorMap;
     fpiSectorFetchedAt = now;
     renderFpiSectorTilt(payload);
-    renderStockFpiTags(dashboardData, payload, sectorMap);
+    try {
+      const mapResponse = await fetch("fpi-stock-sector-map.json?t=" + now, {cache:"no-store"});
+      if (!mapResponse.ok) throw new Error("sector map HTTP " + mapResponse.status);
+      fpiStockMapCache = await mapResponse.json();
+      renderStockFpiTags(dashboardData, payload, fpiStockMapCache);
+    } catch (mapError) {
+      fpiStockMapCache = null;
+      document.querySelectorAll(".fpi-stock-tag").forEach(node => node.remove());
+    }
   } catch (error) {
     if (fpiSectorCache) renderFpiSectorTilt(fpiSectorCache);
     if (fpiSectorCache && fpiStockMapCache) renderStockFpiTags(dashboardData, fpiSectorCache, fpiStockMapCache);
