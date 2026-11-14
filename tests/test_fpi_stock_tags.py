@@ -19,7 +19,15 @@ const fn = FUNCTION_SOURCE;
 Date.now = () => Date.parse("2026-11-14T01:18:00Z");
 function run({flow, scores, updated = "2026-11-14T01:12:00Z", endDate = "2026-10-31", verifiedOn = "2026-11-14"}) {
   const tags = [];
-  const nameNode = { appendChild(tag) { tags.push(tag); } };
+  const nameNode = { insertAdjacentElement(_position, tag) { tags.push(tag); } };
+  function element() {
+    return {
+      children: [], attributes: {},
+      append(...children) { this.children.push(...children); },
+      setAttribute(key, value) { this.attributes[key] = value; },
+      textContent: "", title: "", className: ""
+    };
+  }
   const cards = [{ dataset: { assetName: "TEST" }, querySelector(sel) { return sel === ".name" ? nameNode : null; } }];
   global.document = {
     querySelectorAll(sel) {
@@ -27,7 +35,7 @@ function run({flow, scores, updated = "2026-11-14T01:12:00Z", endDate = "2026-10
       if (sel === ".card[data-asset-name]") return cards;
       return [];
     },
-    createElement() { return { style: {}, setAttribute() {}, textContent: "", title: "" }; }
+    createElement() { return element(); }
   };
   const headlines = scores.map((score, i) => ({ age_h: 4 + i, score }));
   const data = { updated, instruments: { TEST: { headlines } } };
@@ -35,7 +43,10 @@ function run({flow, scores, updated = "2026-11-14T01:12:00Z", endDate = "2026-10
   const map = { verified_on: verifiedOn, stocks: { TEST: { sector: "Test Sector" } } };
   eval(fn);
   renderStockFpiTags(data, payload, map);
-  return tags.map(x => x.textContent);
+  return tags.map(x => ({
+    label: x.children[0].textContent,
+    details: x.children[1].children.map(child => child.textContent).join(" ")
+  }));
 }
 console.log(JSON.stringify({
   aligned: run({flow: 100, scores: [2, 2]}),
@@ -51,10 +62,16 @@ console.log(JSON.stringify({
         cls.results = json.loads(completed.stdout.strip())
 
     def test_aligned_news_and_fpi_show_hawa_saath(self):
-        self.assertEqual(self.results["aligned"], ["हवा साथ"])
+        self.assertEqual(self.results["aligned"][0]["label"], "हवा साथ 👁️")
 
     def test_opposite_news_and_fpi_show_hawa_ultee(self):
-        self.assertEqual(self.results["opposite"], ["हवा उल्टी"])
+        self.assertEqual(self.results["opposite"][0]["label"], "हवा उल्टी 👁️")
+
+    def test_expanded_detail_shows_separate_news_and_real_fpi_flow(self):
+        detail = self.results["opposite"][0]["details"]
+        self.assertIn("खबरों का रुख: बुलिश", detail)
+        self.assertIn("FPI सेक्टर प्रवाह: −₹100 करोड़ · बिकवाली", detail)
+        self.assertIn("अपने-आप में बेचने का संकेत नहीं", detail)
 
     def test_weak_or_insufficient_evidence_suppresses_tag(self):
         self.assertEqual(self.results["weak"], [])
