@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import re
 from datetime import date
 from pathlib import Path
 
@@ -26,16 +25,15 @@ def allowed_fpi_sectors() -> set[str]:
 
 
 def normalized_headers(headers):
-    return {re.sub(r"[^a-z]", "", (h or "").lower()): h for h in headers}
+    return {"".join(ch for ch in (h or "").lower() if ch.isalnum()): h for h in headers}
 
 
 def symbol_from_company(value: str, universe: set[str]) -> str | None:
-    value = (value or "").strip()
-    # MarketLens exports the ticker as the final token of the Company column.
-    candidates = re.findall(r"[A-Za-z0-9&.-]+", value.upper())
-    for token in reversed(candidates):
-        if token in universe:
-            return token
+    value = (value or "").strip().upper()
+    # Match the full ticker suffix, including symbols containing '&' or '-'.
+    for symbol in sorted(universe, key=len, reverse=True):
+        if value == symbol or value.endswith(" " + symbol):
+            return symbol
     return None
 
 
@@ -73,9 +71,6 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
                     "source_url": MARKETLENS_URL,
                 }
 
-    # Replace only classifications supported by this export. Existing verified
-    # mappings are retained if the CSV omits that symbol; conflicting current
-    # rows are not silently overridden unless the exact row is present.
     for symbol in universe:
         if symbol in imported:
             master["stocks"][symbol] = imported[symbol]
