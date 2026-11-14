@@ -8,7 +8,7 @@ from scripts.import_marketlens_sector_csv import import_marketlens_csv
 
 
 class MarketLensCsvImportTests(unittest.TestCase):
-    def test_exact_match_and_duplicate_ticker_revoke_stale_verification(self):
+    def test_industry_crosswalk_and_duplicate_ticker_revoke_stale_verification(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             master = {
@@ -18,7 +18,7 @@ class MarketLensCsvImportTests(unittest.TestCase):
                     "XYZ": {
                         "industry": "Banks",
                         "sector": "Financial Services",
-                        "status": "verified_nse_marketlens_sector_match",
+                        "status": "verified_nse_marketlens_industry_crosswalk",
                         "verified_on": "2026-11-13",
                         "source": "older import",
                         "source_url": "https://marketlens.nseindia.com/screener",
@@ -44,13 +44,49 @@ class MarketLensCsvImportTests(unittest.TestCase):
             self.assertEqual(result, {
                 "csv_rows_mapped": 1,
                 "ambiguous_symbols": ["XYZ"],
+                "rejected_symbols": [],
                 "verified": 1,
                 "pending": 1,
             })
+            self.assertEqual(updated["stocks"]["ABC"]["industry"], "IT - Software")
             self.assertEqual(updated["stocks"]["ABC"]["sector"], "Information Technology")
+            self.assertEqual(updated["stocks"]["ABC"]["status"], "verified_nse_marketlens_industry_crosswalk")
             self.assertIsNone(updated["stocks"]["XYZ"]["sector"])
             self.assertEqual(updated["stocks"]["XYZ"]["status"], "pending_official_company_classification")
             self.assertEqual(set(mapped["stocks"]), {"ABC"})
+
+    def test_energy_industry_crosswalk_and_unknown_macro_alias_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            master = {
+                "classification": {"verified_count": 0, "pending_count": 2, "note": ""},
+                "stocks": {
+                    "ABC": {"industry": None, "sector": None, "status": "pending_official_company_classification"},
+                    "DEF": {"industry": None, "sector": None, "status": "pending_official_company_classification"},
+                },
+            }
+            sector_map = {"stocks": {}, "source": "", "source_url": "", "note": ""}
+            master_path, map_path, csv_path = root / "master.json", root / "map.json", root / "marketlens.csv"
+            master_path.write_text(json.dumps(master), encoding="utf-8")
+            map_path.write_text(json.dumps(sector_map), encoding="utf-8")
+            with csv_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=["Company", "Sector", "Sub Sector"])
+                writer.writeheader()
+                writer.writerow({"Company": "ABC LIMITED ABC", "Sector": "Petroleum Products", "Sub Sector": "Energy"})
+                writer.writerow({"Company": "DEF LIMITED DEF", "Sector": "Automobiles", "Sub Sector": "M&M"})
+            result = import_marketlens_csv(csv_path, master_path, map_path, "2026-11-14")
+            updated = json.loads(master_path.read_text(encoding="utf-8"))
+            self.assertEqual(result, {
+                "csv_rows_mapped": 1,
+                "ambiguous_symbols": [],
+                "rejected_symbols": ["DEF"],
+                "verified": 1,
+                "pending": 1,
+            })
+            self.assertEqual(updated["stocks"]["ABC"]["sector"], "Oil, Gas & Consumable Fuels")
+            self.assertEqual(updated["stocks"]["ABC"]["industry"], "Petroleum Products")
+            self.assertEqual(updated["stocks"]["ABC"]["macro_sector"], "Energy")
+            self.assertIsNone(updated["stocks"]["DEF"]["sector"])
 
     def test_existing_watchlist_mapping_is_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -74,7 +110,7 @@ class MarketLensCsvImportTests(unittest.TestCase):
             self.assertEqual(updated["stocks"]["ABC"]["sector"], "Financial Services")
             self.assertEqual(updated["stocks"]["ABC"]["status"], "verified_existing_mapping")
 
-    def test_missing_or_unmatched_rows_revoke_old_marketlens_verification(self):
+    def test_missing_or_macro_mismatched_rows_revoke_old_marketlens_verification(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             master = {
@@ -82,11 +118,11 @@ class MarketLensCsvImportTests(unittest.TestCase):
                 "stocks": {
                     "MISSING": {
                         "industry": "Banks", "sector": "Financial Services",
-                        "status": "verified_nse_marketlens_sector_match",
+                        "status": "verified_nse_marketlens_industry_crosswalk",
                     },
                     "UNMATCHED": {
                         "industry": "Power", "sector": "Power",
-                        "status": "verified_nse_marketlens_sector_match",
+                        "status": "verified_nse_marketlens_industry_crosswalk",
                     },
                     "VALID": {
                         "industry": None, "sector": None,
@@ -115,6 +151,7 @@ class MarketLensCsvImportTests(unittest.TestCase):
             self.assertEqual(result, {
                 "csv_rows_mapped": 1,
                 "ambiguous_symbols": [],
+                "rejected_symbols": ["UNMATCHED"],
                 "verified": 1,
                 "pending": 2,
             })
