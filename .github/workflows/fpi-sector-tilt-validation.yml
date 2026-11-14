@@ -12,6 +12,8 @@ on:
       - "tests/test_fpi_stock_tags.py"
       - "nse-fo-stock-sector-master.json"
       - "tests/test_nse_fo_sector_master.py"
+      - "scripts/import_marketlens_sector_csv.py"
+      - "tests/test_marketlens_sector_csv_import.py"
       - "tests/test_dashboard_stale_guard.py"
 permissions:
   contents: read
@@ -24,12 +26,14 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile FPI fetcher
-        run: python -m py_compile fpi_sector_tilt.py
+        run: python -m py_compile fpi_sector_tilt.py scripts/import_marketlens_sector_csv.py
       - name: Test FPI report parsing and period selection
         run: python -m unittest discover -s tests -p "test_fpi_sector_tilt.py" -v
       - name: Test stock-level FPI tag direction and safety gates
         run: python -m unittest discover -s tests -p "test_fpi_stock_tags.py" -v
       - name: Validate complete NSE F&O universe and fail-closed sector master
         run: python -m unittest discover -s tests -p "test_nse_fo_sector_master.py" -v
+      - name: Test official MarketLens CSV importer
+        run: python -m unittest discover -s tests -p "test_marketlens_sector_csv_import.py" -v
       - name: Protect existing NO TRADE guard
         run: python -m unittest discover -s tests -p "test_dashboard_stale_guard.py" -v
