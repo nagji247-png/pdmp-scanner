@@ -6,12 +6,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MASTER_PATH = ROOT / "nse-fo-stock-sector-master.json"
 WATCHLIST_MAP_PATH = ROOT / "fpi-stock-sector-map.json"
+FPI_DATA_PATH = ROOT / "fpi-sector-data.json"
 
 
 class NseFoSectorMasterTests(unittest.TestCase):
     def setUp(self):
         self.master = json.loads(MASTER_PATH.read_text(encoding="utf-8"))
         self.watchlist = json.loads(WATCHLIST_MAP_PATH.read_text(encoding="utf-8"))
+        self.allowed_fpi_sectors = {
+            item["name"]
+            for item in json.loads(FPI_DATA_PATH.read_text(encoding="utf-8"))["history"][0]["sectors"]
+        }
 
     def test_official_nse_fo_universe_count_and_uniqueness(self):
         stocks = self.master["stocks"]
@@ -43,31 +48,35 @@ class NseFoSectorMasterTests(unittest.TestCase):
             expected_status = (
                 "verified_existing_mapping"
                 if symbol in original_watchlist_symbols
-                else "verified_nse_marketlens_sector_match"
+                else "verified_nse_marketlens_industry_crosswalk"
             )
             self.assertEqual(record["status"], expected_status)
 
     def test_unverified_symbols_fail_closed(self):
+        allowed_statuses = {
+            "verified_existing_mapping",
+            "verified_nse_marketlens_industry_crosswalk",
+            "pending_official_company_classification",
+        }
         for symbol, record in self.master["stocks"].items():
-            self.assertIn(
-                record["status"],
-                {"verified_existing_mapping", "verified_nse_marketlens_sector_match", "pending_official_company_classification"},
-                msg=symbol,
-            )
+            self.assertIn(record["status"], allowed_statuses, msg=symbol)
             if record["status"] == "pending_official_company_classification":
                 self.assertIsNone(record["sector"], msg=symbol)
                 self.assertIsNone(record["industry"], msg=symbol)
 
-    def test_marketlens_verified_rows_use_exact_fpi_sector_labels(self):
-        allowed_sectors = {
-            "Financial Services", "Information Technology", "Fast Moving Consumer Goods",
-            "Healthcare", "Telecommunication", "Utilities", "Services",
-        }
+    def test_marketlens_verified_rows_use_exact_fpi_sector_labels_and_macro_check(self):
         for symbol, record in self.master["stocks"].items():
-            if record["status"] == "verified_nse_marketlens_sector_match":
-                self.assertIn(record["sector"], allowed_sectors, msg=symbol)
+            if record["status"] == "verified_nse_marketlens_industry_crosswalk":
+                self.assertIn(record["sector"], self.allowed_fpi_sectors, msg=symbol)
                 self.assertIn("marketlens.nseindia.com", record["source_url"])
+                self.assertIn("niftyindices.com", record["classification_reference_url"])
                 self.assertIsNotNone(record["industry"])
+                self.assertIn(record["macro_sector"], {
+                    "Commodities", "Consumer Discretionary", "Energy",
+                    "Fast Moving Consumer Goods", "Financial Services",
+                    "Healthcare", "Industrials", "Information Technology",
+                    "Services", "Telecommunication", "Utilities",
+                })
 
     def test_classification_counts_reconcile(self):
         verified = sum(1 for x in self.master["stocks"].values() if x["status"] != "pending_official_company_classification")
