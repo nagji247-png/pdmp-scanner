@@ -57,6 +57,20 @@ class NseFoSectorMasterTests(unittest.TestCase):
             )
             self.assertEqual(record["status"], expected_status)
 
+    def test_runtime_fpi_map_exactly_matches_all_verified_master_records(self):
+        verified = {
+            symbol: record
+            for symbol, record in self.master["stocks"].items()
+            if record["status"] != "pending_official_company_classification"
+        }
+        runtime_map = self.watchlist["stocks"]
+        self.assertEqual(len(verified), 218)
+        self.assertEqual(len(runtime_map), 218)
+        self.assertEqual(set(runtime_map), set(verified))
+        for symbol, record in verified.items():
+            self.assertEqual(runtime_map[symbol]["sector"], record["sector"], msg=symbol)
+            self.assertEqual(runtime_map[symbol]["industry"], record["industry"], msg=symbol)
+
     def test_unverified_symbols_fail_closed(self):
         allowed_statuses = {
             "verified_existing_mapping",
