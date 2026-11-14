@@ -3382,6 +3382,56 @@ function openChart(name) {
 
 let fpiSectorCache = null;
 let fpiSectorFetchedAt = 0;
+let fpiStockMapCache = null;
+
+function renderStockFpiTags(dashboardData, payload, sectorMap) {
+  document.querySelectorAll(".fpi-stock-tag").forEach(node => node.remove());
+  if (!dashboardData || !payload || !sectorMap || !sectorMap.stocks) return;
+  const observedAt = Date.parse(dashboardData.updated || "");
+  const latest = Array.isArray(payload.history) ? payload.history[0] : null;
+  const latestDate = Date.parse((latest && latest.end_date || "") + "T00:00:00Z");
+  const mapDate = Date.parse((sectorMap.verified_on || "") + "T00:00:00Z");
+  const now = Date.now();
+  if (!Number.isFinite(observedAt) || now - observedAt > 48 * 3600000 || observedAt > now + 3600000) return;
+  if (!Number.isFinite(latestDate) || now - latestDate > 45 * 86400000 || latestDate > now + 86400000) return;
+  if (!Number.isFinite(mapDate) || now - mapDate > 180 * 86400000 || mapDate > now + 86400000) return;
+
+  const flows = new Map((latest.sectors || []).map(item => [item.name, Number(item.net_equity_cr)]));
+  const instruments = dashboardData.instruments || {};
+  for (const [symbol, mapping] of Object.entries(sectorMap.stocks)) {
+    const instrument = instruments[symbol];
+    if (!instrument || !mapping || !mapping.sector) continue;
+    const flow = flows.get(mapping.sector);
+    if (!Number.isFinite(flow) || Math.abs(flow) < 50) continue;
+    const recent = (Array.isArray(instrument.headlines) ? instrument.headlines : []).filter(item =>
+      item && item.age_h != null && item.score != null
+      && Number.isFinite(Number(item.age_h)) && Number(item.age_h) >= 0 && Number(item.age_h) <= 48
+      && Number.isFinite(Number(item.score))
+    );
+    const directional = recent.filter(item => Number(item.score) !== 0);
+    if (directional.length < 2) continue;
+    const newsScore = recent.reduce((sum, item) => sum + Number(item.score), 0);
+    const newsDirection = newsScore >= 2 ? "bullish" : newsScore <= -2 ? "bearish" : null;
+    if (!newsDirection) continue;
+    const fpiDirection = flow > 0 ? "bullish" : "bearish";
+    const label = newsDirection === fpiDirection ? "हवा साथ" : "हवा उल्टी";
+    const cardNode = Array.from(document.querySelectorAll(".card[data-asset-name]"))
+      .find(node => node.dataset.assetName === symbol);
+    const nameNode = cardNode && cardNode.querySelector(".name");
+    if (!nameNode) continue;
+    const tag = document.createElement("span");
+    tag.className = "fpi-stock-tag";
+    tag.textContent = label;
+    tag.title = "NSE sector: " + mapping.sector + " · FPI " + (flow > 0 ? "खरीदारी " : "बिकवाली ") +
+      (flow > 0 ? "+" : "−") + Math.abs(flow).toLocaleString("en-IN") + " Cr · पिछले 48 घंटे की " +
+      (newsDirection === "bullish" ? "सकारात्मक" : "नकारात्मक") + " खबरें (" + directional.length + " दिशात्मक)";
+    tag.setAttribute("aria-label", tag.title + " · " + label);
+    tag.style.cssText = "display:inline-block;vertical-align:middle;margin-left:6px;padding:2px 5px;border:1px solid " +
+      (label === "हवा साथ" ? "#2e8b57" : "#b88732") + ";border-radius:5px;font-size:10px;line-height:1.35;font-weight:700;color:" +
+      (label === "हवा साथ" ? "#8fe0ad" : "#f2ca78") + ";";
+    nameNode.appendChild(tag);
+  }
+}
 
 function renderFpiSectorTilt(payload) {
   const box = document.getElementById("fpi-sector-tilt");
@@ -3435,22 +3485,34 @@ function renderFpiSectorTilt(payload) {
     '</details>';
 }
 
-async function loadFpiSectorTilt(force = false) {
+async function loadFpiSectorTilt(dashboardData, force = false) {
   const now = Date.now();
   if (!force && fpiSectorCache && now - fpiSectorFetchedAt < 6 * 60 * 60 * 1000) {
     renderFpiSectorTilt(fpiSectorCache);
+    if (fpiStockMapCache) renderStockFpiTags(dashboardData, fpiSectorCache, fpiStockMapCache);
     return;
   }
   try {
-    const response = await fetch("fpi-sector-data.json?t=" + now, {cache:"no-store"});
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    const payload = await response.json();
+    const sectorResponse = await fetch("fpi-sector-data.json?t=" + now, {cache:"no-store"});
+    if (!sectorResponse.ok) throw new Error("FPI data HTTP " + sectorResponse.status);
+    const payload = await sectorResponse.json();
     fpiSectorCache = payload;
     fpiSectorFetchedAt = now;
     renderFpiSectorTilt(payload);
+    try {
+      const mapResponse = await fetch("fpi-stock-sector-map.json?t=" + now, {cache:"no-store"});
+      if (!mapResponse.ok) throw new Error("sector map HTTP " + mapResponse.status);
+      fpiStockMapCache = await mapResponse.json();
+      renderStockFpiTags(dashboardData, payload, fpiStockMapCache);
+    } catch (mapError) {
+      fpiStockMapCache = null;
+      document.querySelectorAll(".fpi-stock-tag").forEach(node => node.remove());
+    }
   } catch (error) {
     if (fpiSectorCache) renderFpiSectorTilt(fpiSectorCache);
-    else {
+    if (fpiSectorCache && fpiStockMapCache) renderStockFpiTags(dashboardData, fpiSectorCache, fpiStockMapCache);
+    else document.querySelectorAll(".fpi-stock-tag").forEach(node => node.remove());
+    if (!fpiSectorCache) {
       const box = document.getElementById("fpi-sector-tilt");
       if (box) box.innerHTML = '<div class="sub">FPI सेक्टर संदर्भ अभी लोड नहीं हुआ। दैनिक PDMP डेटा और Final Score इससे प्रभावित नहीं हैं।</div>';
     }
@@ -3489,7 +3551,7 @@ async function load() {
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
     renderSignals(data.signals);
-    loadFpiSectorTilt();
+    loadFpiSectorTilt(data);
     renderNews(data.market_news);
     renderSectorMap(data);
     renderFoPanel(data.participant_oi, data.instruments);
