@@ -45,9 +45,14 @@ class NseFoSectorMasterTests(unittest.TestCase):
             record = self.master["stocks"][symbol]
             self.assertEqual(record["sector"], mapping["sector"])
             self.assertEqual(record["industry"], mapping["industry"])
+            company_crosswalk_symbols = {
+                "ICICILIFE", "IEX", "INOXWIND", "LTF", "M&M", "UJJIVANSFB",
+            }
             expected_status = (
                 "verified_existing_mapping"
                 if symbol in original_watchlist_symbols
+                else "verified_nse_company_industry_crosswalk"
+                if symbol in company_crosswalk_symbols
                 else "verified_nse_marketlens_industry_crosswalk"
             )
             self.assertEqual(record["status"], expected_status)
@@ -56,6 +61,7 @@ class NseFoSectorMasterTests(unittest.TestCase):
         allowed_statuses = {
             "verified_existing_mapping",
             "verified_nse_marketlens_industry_crosswalk",
+            "verified_nse_company_industry_crosswalk",
             "pending_official_company_classification",
         }
         for symbol, record in self.master["stocks"].items():
@@ -77,6 +83,15 @@ class NseFoSectorMasterTests(unittest.TestCase):
                     "Healthcare", "Industrials", "Information Technology",
                     "Services", "Telecommunication", "Utilities",
                 })
+
+    def test_nse_company_crosswalk_records_have_company_level_sources(self):
+        expected = {"ICICILIFE", "IEX", "INOXWIND", "LTF", "M&M", "UJJIVANSFB"}
+        for symbol in expected:
+            record = self.master["stocks"][symbol]
+            self.assertEqual(record["status"], "verified_nse_company_industry_crosswalk")
+            self.assertIsNotNone(record["industry"])
+            self.assertIn("niftyindices.com", record["classification_reference_url"])
+            self.assertTrue(record["source_url"].startswith("https://"))
 
     def test_classification_counts_reconcile(self):
         verified = sum(1 for x in self.master["stocks"].values() if x["status"] != "pending_official_company_classification")
