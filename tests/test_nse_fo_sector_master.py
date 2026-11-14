@@ -76,6 +76,17 @@ class NseFoSectorMasterTests(unittest.TestCase):
         self.assertEqual(self.master["classification"]["pending_count"], pending)
         self.assertEqual(verified + pending, 218)
 
+    def test_future_effective_symbols_are_not_included_early(self):
+        # NSE circular dated 06-Nov-2026 makes these contracts effective
+        # only from 25-Nov-2026; the 11-Nov underlying snapshot must exclude them.
+        future_effective_symbols = {"ACUTAAS", "APARINDS"}
+        self.assertTrue(future_effective_symbols.isdisjoint(self.master["stocks"]))
+
+    def test_tata_motors_current_underlying_uses_tmpv(self):
+        # The demerged Tata Motors F&O underlying is TMPV, not the retired ticker.
+        self.assertIn("TMPV", self.master["stocks"])
+        self.assertNotIn("TATAMOTORS", self.master["stocks"])
+
     def test_only_stock_underlyings_are_included(self):
         index_symbols = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50", "NIFTYFPI"}
         self.assertTrue(index_symbols.isdisjoint(self.master["stocks"]))
