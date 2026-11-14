@@ -4,7 +4,7 @@
   "source": "NSE MarketLens company industry labels joined to NSE Indices 4-tier Industry Classification Structure",
   "source_url": "https://marketlens.nseindia.com/screener",
   "structure_url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/nse-indices_industry-classification-structure-2023-07.pdf",
-  "note": "Only mappings supported by NSE company industry labels and the NSE Indices hierarchy are included. Unmapped watchlist symbols receive no tag.",
+  "note": "27 verified mappings are maintained across the existing watchlist and the NSE F&O research universe. Adding F&O symbols here does not create dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Remaining F&O symbols stay pending in nse-fo-stock-sector-master.json and produce no tag.",
   "stocks": {
     "RELIANCE": {
       "industry": "Refineries & Marketing",
@@ -33,6 +33,86 @@
     "SBIN": {
       "industry": "Public Sector Bank",
       "sector": "Financial Services"
+    },
+    "BHARTIARTL": {
+      "industry": "Telecom - Services",
+      "sector": "Telecommunication"
+    },
+    "ICICIBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "TCS": {
+      "industry": "Computers - Software & Consulting",
+      "sector": "Information Technology"
+    },
+    "BAJFINANCE": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "LICI": {
+      "industry": "Life Insurance",
+      "sector": "Financial Services"
+    },
+    "INFY": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "KOTAKBANK": {
+      "industry": "Private Sector Bank",
+      "sector": "Financial Services"
+    },
+    "HINDUNILVR": {
+      "industry": "Diversified FMCG",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "SUNPHARMA": {
+      "industry": "Pharmaceuticals",
+      "sector": "Healthcare"
+    },
+    "AXISBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "HCLTECH": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "ITC": {
+      "industry": "Diversified FMCG",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "BAJAJFINSV": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "DIVISLAB": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "POWERGRID": {
+      "industry": "Power - Transmission",
+      "sector": "Utilities"
+    },
+    "NESTLEIND": {
+      "industry": "Packaged Foods",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "WIPRO": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "INDIGO": {
+      "industry": "Transport Services",
+      "sector": "Services"
+    },
+    "TORNTPHARM": {
+      "industry": "Pharmaceuticals",
+      "sector": "Healthcare"
+    },
+    "TECHM": {
+      "industry": "Computers - Software & Consulting",
+      "sector": "Information Technology"
     }
   }
 }
