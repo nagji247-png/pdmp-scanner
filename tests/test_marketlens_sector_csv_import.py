@@ -258,5 +258,54 @@ class MarketLensCsvImportTests(unittest.TestCase):
 
 
 
+    def test_official_nse_basic_industry_labels_resolve_to_parent_sector(self):
+        cases = {
+            "ABC": ("Commodity Chemicals", "Chemicals", "Commodities"),
+            "DEF": ("Auto Components & Equipments", "Automobile and Auto Components", "Consumer Discretionary"),
+            "GHI": ("Speciality Retail", "Consumer Services", "Consumer Discretionary"),
+            "JKL": ("Gas Transmission/Marketing", "Oil, Gas & Consumable Fuels", "Energy"),
+            "MNO": ("NBFC", "Financial Services", "Financial Services"),
+            "PQR": ("Industrial Manufacturing", "Capital Goods", "Industrials"),
+            "STU": ("Ship Building & Allied Services", "Capital Goods", "Industrials"),
+            "VWX": ("IT Enabled Services", "Information Technology", "Information Technology"),
+            "YZA": ("Airline", "Services", "Services"),
+            "BCD": ("Power Generation", "Power", "Utilities"),
+            "EFG": ("Water Supply & Management", "Utilities", "Utilities"),
+            "HIJ": ("Telecom - Infrastructure", "Telecommunication", "Telecommunication"),
+            "KLM": ("Paper & Paper Products", "Forest Materials", "Commodities"),
+            "NOP": ("Dairy Products", "Fast Moving Consumer Goods", "Fast Moving Consumer Goods"),
+            "QRS": ("Medical Equipment & Supplies", "Healthcare", "Healthcare"),
+            "TUV": ("Securitisation", "Financial Services", "Financial Services"),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            master = {
+                "classification": {"verified_count": 0, "pending_count": len(cases), "note": ""},
+                "stocks": {
+                    symbol: {"industry": None, "sector": None, "status": "pending_official_company_classification"}
+                    for symbol in cases
+                },
+            }
+            sector_map = {"stocks": {}, "source": "", "source_url": "", "note": ""}
+            master_path, map_path, csv_path = root / "master.json", root / "map.json", root / "marketlens.csv"
+            master_path.write_text(json.dumps(master), encoding="utf-8")
+            map_path.write_text(json.dumps(sector_map), encoding="utf-8")
+            with csv_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=["Company", "Sector", "Sub Sector"])
+                writer.writeheader()
+                for symbol, (label, _sector, macro) in cases.items():
+                    writer.writerow({"Company": f"TEST COMPANY {symbol}", "Sector": label, "Sub Sector": macro})
+            result = import_marketlens_csv(csv_path, master_path, map_path, "2026-11-14")
+            updated = json.loads(master_path.read_text(encoding="utf-8"))
+            self.assertEqual(result["csv_rows_mapped"], len(cases))
+            self.assertEqual(result["verified"], len(cases))
+            self.assertEqual(result["pending"], 0)
+            for symbol, (label, sector, macro) in cases.items():
+                self.assertEqual(updated["stocks"][symbol]["industry"], label)
+                self.assertEqual(updated["stocks"][symbol]["sector"], sector)
+                self.assertEqual(updated["stocks"][symbol]["macro_sector"], macro)
+
+
+
 if __name__ == "__main__":
     unittest.main()
