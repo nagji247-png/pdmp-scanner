@@ -84,11 +84,15 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
             }
 
     for symbol in universe:
+        current = master["stocks"][symbol]
+        if current.get("status") == "verified_existing_mapping":
+            # Preserve the original, separately verified watchlist evidence.
+            continue
         if symbol in imported:
-            # Keep the original, separately verified watchlist evidence intact.
-            if master["stocks"][symbol].get("status") != "verified_existing_mapping":
-                master["stocks"][symbol] = imported[symbol]
-        elif master["stocks"][symbol].get("status") == "pending_official_company_classification":
+            master["stocks"][symbol] = imported[symbol]
+        else:
+            # A fresh export supersedes prior MarketLens imports. Missing,
+            # unmatched and duplicate rows must not retain stale verification.
             master["stocks"][symbol] = {
                 "industry": None,
                 "sector": None,
@@ -111,7 +115,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
     master["classification"]["note"] = (
         "Verified rows are supported by official NSE MarketLens CSV records whose "
         "Sub Sector exactly matches one of the NSDL FPI 22-sector labels. "
-        "Duplicate, unmatched or ambiguous rows remain pending and fail closed."
+        "Duplicate, missing, unmatched or ambiguous rows remain pending and fail closed."
     )
     stock_map["source"] = "NSE MarketLens company industry labels joined to NSDL FPI 22-sector labels"
     stock_map["source_url"] = MARKETLENS_URL
