@@ -24,9 +24,9 @@
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
     "sector_taxonomy": "NSDL FPI 22-sector names; NSDL cites BSE Industry Classification under the common BSE–NSE structure",
-    "verified_count": 207,
-    "pending_count": 11,
-    "note": "Verified rows are supported by the seven separately verified original watchlist mappings or official NSE MarketLens CSV company rows. For MarketLens rows, the Sector industry label is crosswalked to the NSDL FPI 22-sector taxonomy using the NSE Indices Industry Classification Structure; the Sub Sector macro-economic label must independently agree. Duplicate, missing, unrecognised or macro-inconsistent rows remain pending. MarketLens rows are not represented as independently audited BSE company-level confirmations. Eleven additional company rows from the 14-Nov-2026 MarketLens screener data were crosswalked and macro-sector checked: FORCEMOT, TATAELXSI, DATAPATTNS, AMBER, CUB, NBCC, CAMS, KFINTECH, PGEL, KPITTECH and CROMPTON. Two previously pending MarketLens labels were verified against the official NSE Indices hierarchy: Fertilizers & Agrochemicals → Chemicals (PIIND; Commodities macro) and IT - Services → Information Technology (SAGILITY; Information Technology macro). KAYNES remains pending until its exact company-level MarketLens row is verified. The official hierarchy crosswalk now includes Industrial Manufacturing → Capital Goods, but this sector path alone does not prove KAYNES's company classification. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched against the current 218-symbol F&O universe; 65 new pending symbols passed the industry-to-FPI-sector crosswalk and independent macro-sector check. Rows with blank/unrecognised or macro-inconsistent labels remain pending. Personal Products → Fast Moving Consumer Goods (DABUR, GODREJCP) and Minerals & Mining → Metals & Mining (NMDC) exact MarketLens labels were added to the importer crosswalk and regression-tested. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched and crosswalked with independent macro-sector checks: 360ONE, SWIGGY, NAVINFLUOR, POLICYBZR, PETRONET, MFSL, UPL, MPHASIS, COLPAL, PATANJALI, VMM, TIINDIA, VOLTAS, GODFRYPHLP, CONCOR, DELHIVERY, IREDA, BDL, PREMIERENE, PAGEIND, MANAPPURAM, ANGELONE, CDSL, COCHINSHIP, BLUESTARCO, KEI, PNBHOUSING, SYRMA, RVNL, SUPREMEIND, LICHSGFIN, KARURVYSYA, JUBLFOOD, ASTRAL, KAYNES. Additional supplied company rows also verified: ANANDRATHI and BANDHANBNK.",
+    "verified_count": 212,
+    "pending_count": 6,
+    "note": "Verified rows are supported by the seven separately verified original watchlist mappings or official NSE MarketLens CSV company rows. For MarketLens rows, the Sector industry label is crosswalked to the NSDL FPI 22-sector taxonomy using the NSE Indices Industry Classification Structure; the Sub Sector macro-economic label must independently agree. Duplicate, missing, unrecognised or macro-inconsistent rows remain pending. MarketLens rows are not represented as independently audited BSE company-level confirmations. Eleven additional company rows from the 14-Nov-2026 MarketLens screener data were crosswalked and macro-sector checked: FORCEMOT, TATAELXSI, DATAPATTNS, AMBER, CUB, NBCC, CAMS, KFINTECH, PGEL, KPITTECH and CROMPTON. Two previously pending MarketLens labels were verified against the official NSE Indices hierarchy: Fertilizers & Agrochemicals → Chemicals (PIIND; Commodities macro) and IT - Services → Information Technology (SAGILITY; Information Technology macro). KAYNES remains pending until its exact company-level MarketLens row is verified. The official hierarchy crosswalk now includes Industrial Manufacturing → Capital Goods, but this sector path alone does not prove KAYNES's company classification. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched against the current 218-symbol F&O universe; 65 new pending symbols passed the industry-to-FPI-sector crosswalk and independent macro-sector check. Rows with blank/unrecognised or macro-inconsistent labels remain pending. Personal Products → Fast Moving Consumer Goods (DABUR, GODREJCP) and Minerals & Mining → Metals & Mining (NMDC) exact MarketLens labels were added to the importer crosswalk and regression-tested. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched and crosswalked with independent macro-sector checks: 360ONE, SWIGGY, NAVINFLUOR, POLICYBZR, PETRONET, MFSL, UPL, MPHASIS, COLPAL, PATANJALI, VMM, TIINDIA, VOLTAS, GODFRYPHLP, CONCOR, DELHIVERY, IREDA, BDL, PREMIERENE, PAGEIND, MANAPPURAM, ANGELONE, CDSL, COCHINSHIP, BLUESTARCO, KEI, PNBHOUSING, SYRMA, RVNL, SUPREMEIND, LICHSGFIN, KARURVYSYA, JUBLFOOD, ASTRAL, KAYNES. Additional supplied company rows also verified: ANANDRATHI and BANDHANBNK. Five further exact company-level MarketLens rows supplied on 14-Nov-2026 were crosswalked and independently macro-sector checked: GODREJPROP, PFC, RADICO, TATACONSUM and TMPV. LTF remained pending because its exact row had blank Sector and Sub Sector; ICICILIFE, IEX, INOXWIND, M&M and UJJIVANSFB had no exact matching company row in the supplied batches.",
     "fpi_reference_source": "NSDL Fortnightly Sector-wise FPI Investment Data states that its sector classification follows BSE Industry Classification",
     "fpi_reference_source_url": "https://pilot.fpi.nsdl.co.in/StaticReports/Fortnightly_Sector_wise_FII_Investment_Data/FIIInvestSector_Oct312026.html",
     "common_structure_source_url": "https://www.bseindia.com/Downloads1/India_Industry_Classification_Structure.pdf"
@@ -762,9 +762,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "GODREJPROP": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Realty",
+      "sector": "Realty",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener rows supplied in this conversation; Sector industry label crosswalked through NSE Indices Industry Classification Structure; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "GRASIM": {
       "industry": "Cement & Cement Products",
@@ -1584,9 +1589,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PFC": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener rows supplied in this conversation; Sector industry label crosswalked through NSE Indices Industry Classification Structure; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "POWERGRID": {
       "industry": "Power",
@@ -1649,9 +1659,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "RADICO": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Beverages",
+      "sector": "Fast Moving Consumer Goods",
+      "macro_sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener rows supplied in this conversation; Sector industry label crosswalked through NSE Indices Industry Classification Structure; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "RVNL": {
       "industry": "Construction",
@@ -1846,9 +1861,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TATACONSUM": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods",
+      "macro_sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener rows supplied in this conversation; Sector industry label crosswalked through NSE Indices Industry Classification Structure; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TVSMOTOR": {
       "industry": "Automobiles",
@@ -1881,9 +1901,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TMPV": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener rows supplied in this conversation; Sector industry label crosswalked through NSE Indices Industry Classification Structure; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TATAPOWER": {
       "industry": "Power",
@@ -2130,5 +2155,6 @@
       "source_url": "https://marketlens.nseindia.com/screener",
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     }
-  }
+  },
+  "note": ""
 }
