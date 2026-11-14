@@ -42,12 +42,30 @@ class NseFoSectorMasterTests(unittest.TestCase):
         for symbol, record in self.master["stocks"].items():
             self.assertIn(
                 record["status"],
-                {"verified_existing_mapping", "pending_official_company_classification"},
+                {"verified_existing_mapping", "verified_nse_marketlens_sector_match", "pending_official_company_classification"},
                 msg=symbol,
             )
             if record["status"] == "pending_official_company_classification":
                 self.assertIsNone(record["sector"], msg=symbol)
                 self.assertIsNone(record["industry"], msg=symbol)
+
+    def test_marketlens_verified_rows_use_exact_fpi_sector_labels(self):
+        allowed_sectors = {
+            "Financial Services", "Information Technology", "Fast Moving Consumer Goods",
+            "Healthcare", "Telecommunication", "Utilities", "Services",
+        }
+        for symbol, record in self.master["stocks"].items():
+            if record["status"] == "verified_nse_marketlens_sector_match":
+                self.assertIn(record["sector"], allowed_sectors, msg=symbol)
+                self.assertIn("marketlens.nseindia.com", record["source_url"])
+                self.assertIsNotNone(record["industry"])
+
+    def test_classification_counts_reconcile(self):
+        verified = sum(1 for x in self.master["stocks"].values() if x["status"] != "pending_official_company_classification")
+        pending = sum(1 for x in self.master["stocks"].values() if x["status"] == "pending_official_company_classification")
+        self.assertEqual(self.master["classification"]["verified_count"], verified)
+        self.assertEqual(self.master["classification"]["pending_count"], pending)
+        self.assertEqual(verified + pending, 218)
 
     def test_only_stock_underlyings_are_included(self):
         index_symbols = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50", "NIFTYFPI"}
