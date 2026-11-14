@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-11-14",
+  "source": "NSE MarketLens company industry labels joined to NSE Indices 4-tier Industry Classification Structure",
+  "source_url": "https://marketlens.nseindia.com/screener",
+  "structure_url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/nse-indices_industry-classification-structure-2023-07.pdf",
+  "note": "Only mappings supported by NSE company industry labels and the NSE Indices hierarchy are included. Unmapped watchlist symbols receive no tag.",
+  "stocks": {
+    "RELIANCE": {
+      "industry": "Refineries & Marketing",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "HDFCBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "HINDALCO": {
+      "industry": "Non - Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "ADANIPORTS": {
+      "industry": "Transport Infrastructure",
+      "sector": "Services"
+    },
+    "COALINDIA": {
+      "industry": "Consumable Fuels",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "EICHERMOT": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "SBIN": {
+      "industry": "Public Sector Bank",
+      "sector": "Financial Services"
+    }
+  }
+}
