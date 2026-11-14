@@ -12,10 +12,13 @@
   "classification": {
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
-    "sector_taxonomy": "NSDL FPI fortnightly 22-sector names; must be matched through NSE Indices classification",
+    "sector_taxonomy": "NSDL FPI 22-sector names; NSDL cites BSE Industry Classification under the common BSE–NSE structure",
     "verified_count": 31,
     "pending_count": 187,
-    "note": "Company rows verified from official NSE MarketLens screener where its Sub Sector exactly matches an NSDL FPI 22-sector label. Broad labels such as Energy, Commodities, Industrials and Consumer Discretionary are not force-mapped. Remaining company classifications are pending and fail closed."
+    "note": "31 mappings are currently supported by existing watchlist evidence or official NSE MarketLens company rows whose Sub Sector exactly matches an NSDL FPI 22-sector label. They are not represented as independently audited BSE company-level confirmations. The remaining 187 company classifications are pending; broad labels are not inferred and pending records fail closed.",
+    "fpi_reference_source": "NSDL Fortnightly Sector-wise FPI Investment Data states that its sector classification follows BSE Industry Classification",
+    "fpi_reference_source_url": "https://pilot.fpi.nsdl.co.in/StaticReports/Fortnightly_Sector_wise_FII_Investment_Data/FIIInvestSector_Oct312026.html",
+    "common_structure_source_url": "https://www.bseindia.com/Downloads1/India_Industry_Classification_Structure.pdf"
   },
   "policy": "This is a research master only. It does not add dashboard cards or change the existing watchlist. Only verified sector records may be used for FPI stock tags. Pending records must fail closed and produce no tag.",
   "stocks": {
