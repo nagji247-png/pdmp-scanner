@@ -87,6 +87,14 @@ class NseFoSectorMasterTests(unittest.TestCase):
         self.assertIn("TMPV", self.master["stocks"])
         self.assertNotIn("TATAMOTORS", self.master["stocks"])
 
+    def test_fpi_sector_taxonomy_provenance_is_explicit(self):
+        classification = self.master["classification"]
+        self.assertIn("NSDL", classification["fpi_reference_source"])
+        self.assertIn("BSE", classification["fpi_reference_source"])
+        self.assertIn("nsdl.co.in", classification["fpi_reference_source_url"])
+        self.assertIn("bseindia.com", classification["common_structure_source_url"])
+        self.assertIn("not represented as independently audited BSE", classification["note"])
+
     def test_only_stock_underlyings_are_included(self):
         index_symbols = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50", "NIFTYFPI"}
         self.assertTrue(index_symbols.isdisjoint(self.master["stocks"]))
