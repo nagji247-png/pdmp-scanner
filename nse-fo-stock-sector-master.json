@@ -2,17 +2,19 @@
   "schema_version": 1,
   "as_of": "2026-11-14",
   "universe": {
-    "count": 218,
-    "source": "NSE List of Underlyings and Information · Derivatives on Individual Securities",
-    "source_url": "https://www.nseindia.com/products-services/equity-derivatives-list-underlyings-information",
-    "updated_on": "2026-11-11"
+    "candidate_count": 218,
+    "verification_status": "provisional_unreconciled",
+    "source": "Candidate symbol set; not yet reconciled against the official NSE individual-security underlyings list or dated NSE F&O contract file",
+    "official_reference_url": "https://www.nseindia.com/static/products-services/equity-derivatives-contract-information",
+    "reference_updated_on": "2026-11-11"
   },
   "classification": {
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
     "sector_taxonomy": "NSDL FPI fortnightly 22-sector names; must be matched through NSE Indices classification",
     "verified_count": 7,
-    "pending_count": 211
+    "pending_count": 211,
+    "note": "Only the seven pre-existing watchlist mappings are retained as verified. Remaining candidate symbols are pending official NSE company-level classification."
   },
   "policy": "This is a research master only. It does not add dashboard cards or change the existing watchlist. Only verified sector records may be used for FPI stock tags. Pending records must fail closed and produce no tag.",
   "stocks": {
