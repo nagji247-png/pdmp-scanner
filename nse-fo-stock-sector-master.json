@@ -15,7 +15,7 @@
     "sector_taxonomy": "NSDL FPI 22-sector names; NSDL cites BSE Industry Classification under the common BSE–NSE structure",
     "verified_count": 52,
     "pending_count": 166,
-    "note": "Verified rows are supported by official NSE MarketLens CSV records whose Sub Sector exactly matches one of the NSDL FPI 22-sector labels, or by separately verified existing watchlist mappings. Duplicate, missing, unmatched or ambiguous rows remain pending and fail closed.",
+    "note": "Verified rows are supported by the seven separately verified existing watchlist mappings or official NSE MarketLens CSV records whose Sub Sector exactly matches one of the NSDL FPI 22-sector labels. Duplicate, missing, unmatched or ambiguous rows remain pending and fail closed; the MarketLens rows are not represented as independently audited BSE company-level confirmations.",
     "fpi_reference_source": "NSDL Fortnightly Sector-wise FPI Investment Data states that its sector classification follows BSE Industry Classification",
     "fpi_reference_source_url": "https://pilot.fpi.nsdl.co.in/StaticReports/Fortnightly_Sector_wise_FII_Investment_Data/FIIInvestSector_Oct312026.html",
     "common_structure_source_url": "https://www.bseindia.com/Downloads1/India_Industry_Classification_Structure.pdf"
@@ -66,10 +66,8 @@
     "ADANIPORTS": {
       "industry": "Transport Infrastructure",
       "sector": "Services",
-      "status": "verified_nse_marketlens_sector_match",
-      "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
-      "source_url": "https://marketlens.nseindia.com/screener"
+      "status": "verified_existing_mapping",
+      "verified_on": "2026-11-14"
     },
     "ADANIPOWER": {
       "industry": "Power",
@@ -468,10 +466,8 @@
     "HDFCBANK": {
       "industry": "Banks",
       "sector": "Financial Services",
-      "status": "verified_nse_marketlens_sector_match",
-      "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
-      "source_url": "https://marketlens.nseindia.com/screener"
+      "status": "verified_existing_mapping",
+      "verified_on": "2026-11-14"
     },
     "HDFCLIFE": {
       "industry": "Insurance",
@@ -1046,12 +1042,10 @@
       "status": "pending_official_company_classification"
     },
     "SBIN": {
-      "industry": "Banks",
+      "industry": "Public Sector Bank",
       "sector": "Financial Services",
-      "status": "verified_nse_marketlens_sector_match",
-      "verified_on": "2026-11-14",
-      "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
-      "source_url": "https://marketlens.nseindia.com/screener"
+      "status": "verified_existing_mapping",
+      "verified_on": "2026-11-14"
     },
     "SAIL": {
       "industry": null,
