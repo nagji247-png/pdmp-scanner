@@ -31,12 +31,21 @@ class NseFoSectorMasterTests(unittest.TestCase):
         self.assertIn("nseindia.com", universe["source_url"])
 
     def test_existing_watchlist_mappings_are_preserved(self):
+        original_watchlist_symbols = {
+            "RELIANCE", "HDFCBANK", "HINDALCO", "ADANIPORTS",
+            "COALINDIA", "EICHERMOT", "SBIN",
+        }
         for symbol, mapping in self.watchlist["stocks"].items():
             self.assertIn(symbol, self.master["stocks"])
             record = self.master["stocks"][symbol]
             self.assertEqual(record["sector"], mapping["sector"])
             self.assertEqual(record["industry"], mapping["industry"])
-            self.assertEqual(record["status"], "verified_existing_mapping")
+            expected_status = (
+                "verified_existing_mapping"
+                if symbol in original_watchlist_symbols
+                else "verified_nse_marketlens_sector_match"
+            )
+            self.assertEqual(record["status"], expected_status)
 
     def test_unverified_symbols_fail_closed(self):
         for symbol, record in self.master["stocks"].items():
