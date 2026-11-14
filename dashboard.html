@@ -530,7 +530,7 @@
 </aside>
 <div class="app-main">
 <nav class="topnav" aria-label="Dashboard sections">
-  <a href="#trade-guard"><strong>Sentiment</strong></a><a href="#crowd"><strong>Retail Mood</strong></a><a href="#range"><strong>Range</strong></a><a href="#flow"><strong>FII/DII</strong></a><a href="#indexes"><strong>Indices</strong></a><a href="#stocks"><strong>Movers</strong></a><a href="#global"><strong>Global</strong></a><a href="#trends"><strong>Google Trends</strong></a>
+  <a href="#trade-guard"><strong>Sentiment</strong></a><a href="#crowd"><strong>Retail Mood</strong></a><a href="#range"><strong>Range</strong></a><a href="#flow"><strong>FII/DII</strong></a><a href="#indexes"><strong>Indices</strong></a><a href="#stocks"><strong>Movers</strong></a><a href="#global"><strong>Global</strong></a><a href="#trends"><strong>Google Trends</strong></a><a href="#market-activity"><strong>Activity</strong></a>
 </nav>
 <header class="brandbar" aria-label="TRINETRA Market Seer brand">
   <div class="brand-mark" aria-label="TRINETRA eye, candlesticks and upward market arrow logo">
@@ -576,6 +576,10 @@
 <section class="panel" style="grid-column:1 / -1"><h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2><div class="box" id="signals"></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>FPI SECTOR TILT <span style="font-size:11px;color:#aab4c4;font-weight:600">· अलग संदर्भ</span></h2><div class="box" id="fpi-sector-tilt"><div class="sub">NSDL का पखवाड़े वाला Equity डेटा लोड हो रहा है…</div></div></section>
+
+<section class="panel" style="grid-column:1 / -1" id="market-activity-panel"><h2>🧭 MARKET ACTIVITY — 218 F&amp;O स्टॉक · 18 सेक्टर</h2><div class="box market-activity-box" id="market-activity"><div class="market-activity-status">NSE F&amp;O सेक्टर मास्टर और उपलब्ध सत्यापित डेटा लोड हो रहा है…</div></div></section>
+
+
 
 <section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
 
@@ -3600,5 +3604,6 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", load);
 window.addEventListener("pageshow", load);
 </script>
+<script src="market-activity.js?v=1" defer></script>
 </body>
 </html>
