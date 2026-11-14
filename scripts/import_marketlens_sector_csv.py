@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Import an official NSE MarketLens CSV into the F&O sector research master.
+"""Import official NSE MarketLens rows into the F&O sector research master.
 
-MarketLens exports the NSE Indices Industry tier in its 'Sector' column and
-the macro-economic sector in 'Sub Sector'. The industry label is mapped to
-the corresponding NSE Indices Sector / NSDL FPI sector, and the macro-sector
-is checked as a second, independent consistency gate. Ambiguous rows fail
-closed; no company is classified from its name alone.
+MarketLens 'Sector' labels can correspond to either the NSE Indices Industry
+or Basic Industry tier. Each exact label is crosswalked to its parent NSE
+Indices Sector / NSDL FPI sector. The MarketLens 'Sub Sector' macro-economic
+label is checked independently. Ambiguous or unknown rows fail closed; no
+company is classified from its name alone.
 """
 from __future__ import annotations
 
@@ -22,43 +22,57 @@ MARKETLENS_URL = "https://marketlens.nseindia.com/screener"
 NSE_CLASSIFICATION_URL = "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
 FPI_DATA = ROOT / "fpi-sector-data.json"
 
-# MarketLens 'Sector' labels are the NSE Indices Industry tier. This
-# crosswalk maps each label observed in the supplied 14-Nov-2026 export to
-# the parent NSE Indices Sector, which is the NSDL FPI sector dimension.
-NSE_INDUSTRY_TO_FPI_SECTOR = {
+# MarketLens 'Sector' labels may be Industry- or Basic-Industry-level names.
+# Map only explicit labels to their parent NSE Indices Sector / NSDL FPI sector.
+NSE_MARKETLENS_LABEL_TO_FPI_SECTOR = {
     "Aerospace & Defense": "Capital Goods",
     "Agricultural Food & other Products": "Fast Moving Consumer Goods",
     "Agricultural, Commercial & Construction Vehicles": "Capital Goods",
     "Auto Components": "Automobile and Auto Components",
     "Automobiles": "Automobile and Auto Components",
+    "Passenger Cars & Utility Vehicles": "Automobile and Auto Components",
+    "2/3 Wheelers": "Automobile and Auto Components",
     "Banks": "Financial Services",
     "Beverages": "Fast Moving Consumer Goods",
     "Capital Markets": "Financial Services",
     "Cement & Cement Products": "Construction Materials",
     "Chemicals & Petrochemicals": "Chemicals",
     "Construction": "Construction",
+    "Civil Construction": "Construction",
     "Consumable Fuels": "Oil, Gas & Consumable Fuels",
     "Consumer Durables": "Consumer Durables",
+    "Gems, Jewellery And Watches": "Consumer Durables",
     "Diversified FMCG": "Fast Moving Consumer Goods",
     "Electrical Equipment": "Capital Goods",
     "Ferrous Metals": "Metals & Mining",
+    "Iron & Steel": "Metals & Mining",
     "Finance": "Financial Services",
     "Financial Technology (Fintech)": "Financial Services",
+    "Fertilizers & Agrochemicals": "Chemicals",
     "Food Products": "Fast Moving Consumer Goods",
+    "Packaged Foods": "Fast Moving Consumer Goods",
     "Gas": "Oil, Gas & Consumable Fuels",
     "Healthcare Services": "Healthcare",
     "IT - Software": "Information Technology",
+    "IT - Services": "Information Technology",
+    "Computers - Software & Consulting": "Information Technology",
     "Industrial Products": "Capital Goods",
     "Insurance": "Financial Services",
+    "Life Insurance": "Financial Services",
+    "Public Sector Bank": "Financial Services",
+    "Private Sector Bank": "Financial Services",
     "Leisure Services": "Consumer Services",
     "Metals & Minerals Trading": "Metals & Mining",
     "Non - Ferrous Metals": "Metals & Mining",
     "Oil": "Oil, Gas & Consumable Fuels",
     "Petroleum Products": "Oil, Gas & Consumable Fuels",
+    "Refineries & Marketing": "Oil, Gas & Consumable Fuels",
     "Pharmaceuticals & Biotechnology": "Healthcare",
     "Power": "Power",
+    "Power - Transmission": "Power",
     "Realty": "Realty",
     "Retailing": "Consumer Services",
+    "E-Retail/ E-Commerce": "Consumer Services",
     "Telecom - Services": "Telecommunication",
     "Transport Infrastructure": "Services",
     "Transport Services": "Services",
@@ -147,7 +161,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
             ambiguous.append(symbol)
             continue
         industry, macro_sector = rows[0]["industry"], rows[0]["macro_sector"]
-        fpi_sector = NSE_INDUSTRY_TO_FPI_SECTOR.get(industry)
+        fpi_sector = NSE_MARKETLENS_LABEL_TO_FPI_SECTOR.get(industry)
         expected_macro = MACRO_SECTOR_BY_FPI_SECTOR.get(fpi_sector or "")
         if (
             industry
