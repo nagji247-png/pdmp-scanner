@@ -13,9 +13,9 @@
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
     "sector_taxonomy": "NSDL FPI fortnightly 22-sector names; must be matched through NSE Indices classification",
-    "verified_count": 27,
-    "pending_count": 191,
-    "note": "Company rows verified from official NSE MarketLens screener where its Sub Sector exactly matches an NSDL FPI 22-sector label; broad macro labels such as Energy, Commodities, Industrials and Consumer Discretionary are not force-mapped. Remaining company classifications are pending and fail closed."
+    "verified_count": 31,
+    "pending_count": 187,
+    "note": "Company rows verified from official NSE MarketLens screener where its Sub Sector exactly matches an NSDL FPI 22-sector label. Broad labels such as Energy, Commodities, Industrials and Consumer Discretionary are not force-mapped. Remaining company classifications are pending and fail closed."
   },
   "policy": "This is a research master only. It does not add dashboard cards or change the existing watchlist. Only verified sector records may be used for FPI stock tags. Pending records must fail closed and produce no tag.",
   "stocks": {
@@ -50,9 +50,12 @@
       "status": "pending_official_company_classification"
     },
     "ADANIGREEN": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Power",
+      "sector": "Utilities",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ADANIPORTS": {
       "industry": "Transport Infrastructure",
@@ -61,9 +64,12 @@
       "verified_on": "2026-11-14"
     },
     "ADANIPOWER": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Power",
+      "sector": "Utilities",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ABCAPITAL": {
       "industry": null,
@@ -764,9 +770,12 @@
       "status": "pending_official_company_classification"
     },
     "NTPC": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Power",
+      "sector": "Utilities",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "NATIONALUM": {
       "industry": null,
@@ -951,9 +960,12 @@
       "status": "pending_official_company_classification"
     },
     "SHRIRAMFIN": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Non Banking Financial Company (NBFC)",
+      "sector": "Financial Services",
+      "status": "verified_nse_marketlens_sector_match",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row; Sub Sector exactly matches NSDL FPI sector label",
+      "source_url": "https://marketlens.nseindia.com/screener"
     },
     "ENRIN": {
       "industry": null,
