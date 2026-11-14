@@ -2,7 +2,8 @@
 """Import an official NSE MarketLens CSV into the F&O sector research master.
 
 Only exact matches between MarketLens 'Sub Sector' and the NSDL FPI 22-sector
-taxonomy are accepted. Broad/ambiguous labels remain pending (fail closed).
+taxonomy are accepted. Duplicate ticker rows are treated as ambiguous and fail
+closed instead of silently allowing the last row to win.
 """
 from __future__ import annotations
 
@@ -45,6 +46,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
     allowed = allowed_fpi_sectors()
     verified_on = verified_on or date.today().isoformat()
 
+    rows_by_symbol = {}
     with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         headers = normalized_headers(reader.fieldnames or [])
@@ -54,26 +56,38 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
         if not all((company_col, industry_col, fpi_sector_col)):
             raise ValueError("CSV must contain Company, Sector and Sub Sector columns")
 
-        imported = {}
         for row in reader:
             symbol = symbol_from_company(row.get(company_col, ""), universe)
             if not symbol:
                 continue
-            industry = (row.get(industry_col) or "").strip()
-            sector = (row.get(fpi_sector_col) or "").strip()
-            if industry and sector in allowed:
-                imported[symbol] = {
-                    "industry": industry,
-                    "sector": sector,
-                    "status": "verified_nse_marketlens_sector_match",
-                    "verified_on": verified_on,
-                    "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
-                    "source_url": MARKETLENS_URL,
-                }
+            rows_by_symbol.setdefault(symbol, []).append({
+                "industry": (row.get(industry_col) or "").strip(),
+                "sector": (row.get(fpi_sector_col) or "").strip(),
+            })
+
+    imported = {}
+    ambiguous = []
+    for symbol, rows in rows_by_symbol.items():
+        # Multiple rows for one ticker are not silently resolved by row order.
+        if len(rows) != 1:
+            ambiguous.append(symbol)
+            continue
+        industry, sector = rows[0]["industry"], rows[0]["sector"]
+        if industry and sector in allowed:
+            imported[symbol] = {
+                "industry": industry,
+                "sector": sector,
+                "status": "verified_nse_marketlens_sector_match",
+                "verified_on": verified_on,
+                "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+                "source_url": MARKETLENS_URL,
+            }
 
     for symbol in universe:
         if symbol in imported:
-            master["stocks"][symbol] = imported[symbol]
+            # Keep the original, separately verified watchlist evidence intact.
+            if master["stocks"][symbol].get("status") != "verified_existing_mapping":
+                master["stocks"][symbol] = imported[symbol]
         elif master["stocks"][symbol].get("status") == "pending_official_company_classification":
             master["stocks"][symbol] = {
                 "industry": None,
@@ -97,7 +111,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
     master["classification"]["note"] = (
         "Verified rows are supported by official NSE MarketLens CSV records whose "
         "Sub Sector exactly matches one of the NSDL FPI 22-sector labels. "
-        "All unmatched or ambiguous rows remain pending and fail closed."
+        "Duplicate, unmatched or ambiguous rows remain pending and fail closed."
     )
     stock_map["source"] = "NSE MarketLens company industry labels joined to NSDL FPI 22-sector labels"
     stock_map["source_url"] = MARKETLENS_URL
@@ -110,7 +124,12 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
 
     master_path.write_text(json.dumps(master, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     map_path.write_text(json.dumps(stock_map, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return {"csv_rows_mapped": len(imported), "verified": len(verified), "pending": pending_count}
+    return {
+        "csv_rows_mapped": len(imported),
+        "ambiguous_symbols": sorted(ambiguous),
+        "verified": len(verified),
+        "pending": pending_count,
+    }
 
 
 def main():
