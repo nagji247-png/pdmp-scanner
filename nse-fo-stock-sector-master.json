@@ -24,9 +24,9 @@
     "source": "NSE Indices Industry Classification · four-tier company classification",
     "source_url": "https://www.nseindia.com/static/products-services/industry-classification",
     "sector_taxonomy": "NSDL FPI 22-sector names; NSDL cites BSE Industry Classification under the common BSE–NSE structure",
-    "verified_count": 170,
-    "pending_count": 48,
-    "note": "Verified rows are supported by the seven separately verified original watchlist mappings or official NSE MarketLens CSV company rows. For MarketLens rows, the Sector industry label is crosswalked to the NSDL FPI 22-sector taxonomy using the NSE Indices Industry Classification Structure; the Sub Sector macro-economic label must independently agree. Duplicate, missing, unrecognised or macro-inconsistent rows remain pending. MarketLens rows are not represented as independently audited BSE company-level confirmations. Eleven additional company rows from the 14-Nov-2026 MarketLens screener data were crosswalked and macro-sector checked: FORCEMOT, TATAELXSI, DATAPATTNS, AMBER, CUB, NBCC, CAMS, KFINTECH, PGEL, KPITTECH and CROMPTON. Two previously pending MarketLens labels were verified against the official NSE Indices hierarchy: Fertilizers & Agrochemicals → Chemicals (PIIND; Commodities macro) and IT - Services → Information Technology (SAGILITY; Information Technology macro). KAYNES remains pending until its exact company-level MarketLens row is verified. The official hierarchy crosswalk now includes Industrial Manufacturing → Capital Goods, but this sector path alone does not prove KAYNES's company classification. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched against the current 218-symbol F&O universe; 65 new pending symbols passed the industry-to-FPI-sector crosswalk and independent macro-sector check. Rows with blank/unrecognised or macro-inconsistent labels remain pending. Personal Products → Fast Moving Consumer Goods (DABUR, GODREJCP) and Minerals & Mining → Metals & Mining (NMDC) exact MarketLens labels were added to the importer crosswalk and regression-tested.",
+    "verified_count": 205,
+    "pending_count": 13,
+    "note": "Verified rows are supported by the seven separately verified original watchlist mappings or official NSE MarketLens CSV company rows. For MarketLens rows, the Sector industry label is crosswalked to the NSDL FPI 22-sector taxonomy using the NSE Indices Industry Classification Structure; the Sub Sector macro-economic label must independently agree. Duplicate, missing, unrecognised or macro-inconsistent rows remain pending. MarketLens rows are not represented as independently audited BSE company-level confirmations. Eleven additional company rows from the 14-Nov-2026 MarketLens screener data were crosswalked and macro-sector checked: FORCEMOT, TATAELXSI, DATAPATTNS, AMBER, CUB, NBCC, CAMS, KFINTECH, PGEL, KPITTECH and CROMPTON. Two previously pending MarketLens labels were verified against the official NSE Indices hierarchy: Fertilizers & Agrochemicals → Chemicals (PIIND; Commodities macro) and IT - Services → Information Technology (SAGILITY; Information Technology macro). KAYNES remains pending until its exact company-level MarketLens row is verified. The official hierarchy crosswalk now includes Industrial Manufacturing → Capital Goods, but this sector path alone does not prove KAYNES's company classification. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched against the current 218-symbol F&O universe; 65 new pending symbols passed the industry-to-FPI-sector crosswalk and independent macro-sector check. Rows with blank/unrecognised or macro-inconsistent labels remain pending. Personal Products → Fast Moving Consumer Goods (DABUR, GODREJCP) and Minerals & Mining → Metals & Mining (NMDC) exact MarketLens labels were added to the importer crosswalk and regression-tested. Additional company-level MarketLens rows supplied on 14-Nov-2026 were exact-matched and crosswalked with independent macro-sector checks: 360ONE, SWIGGY, NAVINFLUOR, POLICYBZR, PETRONET, MFSL, UPL, MPHASIS, COLPAL, PATANJALI, VMM, TIINDIA, VOLTAS, GODFRYPHLP, CONCOR, DELHIVERY, IREDA, BDL, PREMIERENE, PAGEIND, MANAPPURAM, ANGELONE, CDSL, COCHINSHIP, BLUESTARCO, KEI, PNBHOUSING, SYRMA, RVNL, SUPREMEIND, LICHSGFIN, KARURVYSYA, JUBLFOOD, ASTRAL, KAYNES.",
     "fpi_reference_source": "NSDL Fortnightly Sector-wise FPI Investment Data states that its sector classification follows BSE Industry Classification",
     "fpi_reference_source_url": "https://pilot.fpi.nsdl.co.in/StaticReports/Fortnightly_Sector_wise_FII_Investment_Data/FIIInvestSector_Oct312026.html",
     "common_structure_source_url": "https://www.bseindia.com/Downloads1/India_Industry_Classification_Structure.pdf"
@@ -34,9 +34,14 @@
   "policy": "This is a research master only. It does not add dashboard cards or change the existing watchlist. Only verified sector records may be used for FPI stock tags. Pending records must fail closed and produce no tag.",
   "stocks": {
     "360ONE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Capital Markets",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "ABB": {
       "industry": "Electrical Equipment",
@@ -160,9 +165,14 @@
       "status": "pending_official_company_classification"
     },
     "ANGELONE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Capital Markets",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "APOLLOHOSP": {
       "industry": "Healthcare Services",
@@ -195,9 +205,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "ASTRAL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Products",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "ATHERENERG": {
       "industry": "Automobiles",
@@ -315,9 +330,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "BDL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "BEL": {
       "industry": "Aerospace & Defense",
@@ -380,9 +400,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "BLUESTARCO": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "BOSCHLTD": {
       "industry": "Auto Components",
@@ -425,9 +450,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "CDSL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Capital Markets",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "CHOLAFIN": {
       "industry": "Finance",
@@ -466,9 +496,14 @@
       "verified_on": "2026-11-14"
     },
     "COCHINSHIP": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "COFORGE": {
       "industry": "IT - Software",
@@ -481,9 +516,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "COLPAL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Personal Products",
+      "sector": "Fast Moving Consumer Goods",
+      "macro_sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "CAMS": {
       "industry": "Capital Markets",
@@ -496,9 +536,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "CONCOR": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Transport Services",
+      "sector": "Services",
+      "macro_sector": "Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "COROMANDEL": {
       "industry": "Fertilizers & Agrochemicals",
@@ -561,9 +606,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "DELHIVERY": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Transport Services",
+      "sector": "Services",
+      "macro_sector": "Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "DIVISLAB": {
       "industry": "Pharmaceuticals & Biotechnology",
@@ -682,9 +732,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "GODFRYPHLP": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Cigarettes & Tobacco Products",
+      "sector": "Fast Moving Consumer Goods",
+      "macro_sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "GODREJCP": {
       "industry": "Personal Products",
@@ -914,9 +969,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "IREDA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "INDUSTOWER": {
       "industry": "Telecom - Services",
@@ -1014,14 +1074,24 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "JUBLFOOD": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Leisure Services",
+      "sector": "Consumer Services",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "KEI": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Products",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "KPITTECH": {
       "industry": "IT - Software",
@@ -1044,14 +1114,24 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "KARURVYSYA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Banks",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "KAYNES": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "KFINTECH": {
       "industry": "Capital Markets",
@@ -1079,9 +1159,14 @@
       "status": "pending_official_company_classification"
     },
     "LICHSGFIN": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "LTM": {
       "industry": "IT - Software",
@@ -1149,9 +1234,14 @@
       "status": "pending_official_company_classification"
     },
     "MANAPPURAM": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "MANKIND": {
       "industry": "Pharmaceuticals & Biotechnology",
@@ -1184,9 +1274,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "MFSL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Insurance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "MAXHEALTH": {
       "industry": "Healthcare Services",
@@ -1219,9 +1314,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "MPHASIS": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "IT - Software",
+      "sector": "Information Technology",
+      "macro_sector": "Information Technology",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "MCX": {
       "industry": "Capital Markets",
@@ -1294,9 +1394,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "NAVINFLUOR": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals",
+      "macro_sector": "Commodities",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "NESTLEIND": {
       "industry": "Food Products",
@@ -1369,9 +1474,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "POLICYBZR": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Financial Technology (Fintech)",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PGEL": {
       "industry": "Consumer Durables",
@@ -1394,19 +1504,34 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PNBHOUSING": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Finance",
+      "sector": "Financial Services",
+      "macro_sector": "Financial Services",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PAGEIND": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Textiles & Apparels",
+      "sector": "Textiles",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PATANJALI": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods",
+      "macro_sector": "Fast Moving Consumer Goods",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PERSISTENT": {
       "industry": "IT - Software",
@@ -1419,9 +1544,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PETRONET": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Gas",
+      "sector": "Oil, Gas & Consumable Fuels",
+      "macro_sector": "Energy",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PIDILITIND": {
       "industry": "Chemicals & Petrochemicals",
@@ -1459,9 +1589,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PREMIERENE": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "PRESTIGE": {
       "industry": "Realty",
@@ -1509,9 +1644,14 @@
       "status": "pending_official_company_classification"
     },
     "RVNL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Construction",
+      "sector": "Construction",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "RELIANCE": {
       "industry": "Refineries & Marketing",
@@ -1656,9 +1796,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "SUPREMEIND": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Products",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "SUZLON": {
       "industry": "Electrical Equipment",
@@ -1671,14 +1816,24 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "SWIGGY": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Retailing",
+      "sector": "Consumer Services",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "SYRMA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods",
+      "macro_sector": "Industrials",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TATACONSUM": {
       "industry": null,
@@ -1811,9 +1966,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "TIINDIA": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "UNOMINDA": {
       "industry": "Auto Components",
@@ -1826,9 +1986,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "UPL": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Fertilizers & Agrochemicals",
+      "sector": "Chemicals",
+      "macro_sector": "Commodities",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "UJJIVANSFB": {
       "industry": null,
@@ -1886,9 +2051,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "VMM": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Retailing",
+      "sector": "Consumer Services",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "IDEA": {
       "industry": "Telecom - Services",
@@ -1901,9 +2071,14 @@
       "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "VOLTAS": {
-      "industry": null,
-      "sector": null,
-      "status": "pending_official_company_classification"
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables",
+      "macro_sector": "Consumer Discretionary",
+      "status": "verified_nse_marketlens_industry_crosswalk",
+      "verified_on": "2026-11-14",
+      "source": "NSE MarketLens official screener company row supplied in conversation; Sector industry label mapped through NSE Indices Industry Classification Structure to NSDL FPI Sector; Sub Sector macro label independently matched",
+      "source_url": "https://marketlens.nseindia.com/screener",
+      "classification_reference_url": "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
     },
     "WAAREEENER": {
       "industry": "Electrical Equipment",
