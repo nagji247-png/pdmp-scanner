@@ -143,6 +143,14 @@
   .option-strike-expanded b { color:#e7f2ff; font-size:11px; }
   @media(max-width:560px) { .option-buildup-filters { grid-template-columns:1fr 1fr; } .option-buildup-filters input { grid-column:1/-1; } }
 
+  .fpi-stock-tag { margin-top:5px; font-size:10px; line-height:1.4; color:#c6d8ee; }
+  .fpi-stock-tag summary { display:inline-block; cursor:pointer; list-style:none; padding:3px 6px; border:1px solid #b88732; border-radius:5px; color:#f2ca78; font-size:10px; font-weight:700; }
+  .fpi-stock-tag summary::-webkit-details-marker { display:none; }
+  .fpi-stock-tag[open] summary { margin-bottom:5px; }
+  .fpi-stock-tag-body { padding:7px 8px; border:1px solid #284766; border-radius:7px; background:rgba(4,14,31,.62); }
+  .fpi-stock-tag-body > div { margin:2px 0; color:#dcecff; }
+  .fpi-stock-tag-body small { display:block; margin-top:4px; color:#8fa8c5; font-size:9px; }
+  .fpi-stock-tag-body p { margin:5px 0 0; color:#b9c9df; font-size:10px; line-height:1.45; }
   .footer { font-size: 11px; color: #6b7290; padding: 0 16px 24px; line-height: 1.5; }
 
   :root { color-scheme: dark; --bg:#050916; --panel:#0b1730; --line:#143967; --cyan:#24e5ff; --violet:#9b59ff; }
@@ -3414,22 +3422,36 @@ function renderStockFpiTags(dashboardData, payload, sectorMap) {
     const newsDirection = newsScore >= 2 ? "bullish" : newsScore <= -2 ? "bearish" : null;
     if (!newsDirection) continue;
     const fpiDirection = flow > 0 ? "bullish" : "bearish";
-    const label = newsDirection === fpiDirection ? "हवा साथ" : "हवा उल्टी";
+    const aligned = newsDirection === fpiDirection;
+    const label = aligned ? "हवा साथ" : "हवा उल्टी";
     const cardNode = Array.from(document.querySelectorAll(".card[data-asset-name]"))
       .find(node => node.dataset.assetName === symbol);
     const nameNode = cardNode && cardNode.querySelector(".name");
     if (!nameNode) continue;
-    const tag = document.createElement("span");
-    tag.className = "fpi-stock-tag";
-    tag.textContent = label;
-    tag.title = "NSE sector: " + mapping.sector + " · FPI " + (flow > 0 ? "खरीदारी " : "बिकवाली ") +
-      (flow > 0 ? "+" : "−") + Math.abs(flow).toLocaleString("en-IN") + " Cr · पिछले 48 घंटे की " +
-      (newsDirection === "bullish" ? "सकारात्मक" : "नकारात्मक") + " खबरें (" + directional.length + " दिशात्मक)";
-    tag.setAttribute("aria-label", tag.title + " · " + label);
-    tag.style.cssText = "display:inline-block;vertical-align:middle;margin-left:6px;padding:2px 5px;border:1px solid " +
-      (label === "हवा साथ" ? "#2e8b57" : "#b88732") + ";border-radius:5px;font-size:10px;line-height:1.35;font-weight:700;color:" +
-      (label === "हवा साथ" ? "#8fe0ad" : "#f2ca78") + ";";
-    nameNode.appendChild(tag);
+
+    const detail = document.createElement("details");
+    detail.className = "fpi-stock-tag";
+    const summary = document.createElement("summary");
+    summary.textContent = label + " 👁️";
+    summary.title = "खोलकर खबरों और FPI सेक्टर प्रवाह का अलग-अलग संदर्भ देखें";
+    const body = document.createElement("div");
+    body.className = "fpi-stock-tag-body";
+    const newsLine = document.createElement("div");
+    newsLine.textContent = "खबरों का रुख: " + (newsDirection === "bullish" ? "बुलिश" : "बेयरिश");
+    const flowLine = document.createElement("div");
+    flowLine.textContent = "FPI सेक्टर प्रवाह: " + (flow > 0 ? "+" : "−") +
+      "₹" + Math.abs(flow).toLocaleString("en-IN", {maximumFractionDigits:0}) +
+      " करोड़ · " + (flow > 0 ? "खरीदारी" : "बिकवाली");
+    const periodLine = document.createElement("small");
+    periodLine.textContent = "अवधि: " + String(latest.label || latest.end_date || "—");
+    const explanation = document.createElement("p");
+    explanation.textContent = aligned
+      ? "खबरों और सेक्टर प्रवाह की दिशा एक जैसी है। यह संदर्भ है, अपने-आप में खरीदने का संकेत नहीं।"
+      : "खबरों का रुख और सेक्टर में विदेशी निवेशकों का पैसा विपरीत दिशा में है। यह विरोधाभास है, अपने-आप में बेचने का संकेत नहीं।";
+    body.append(newsLine, flowLine, periodLine, explanation);
+    detail.append(summary, body);
+    detail.setAttribute("aria-label", symbol + " · " + label + " · " + newsLine.textContent + " · " + flowLine.textContent);
+    nameNode.insertAdjacentElement("afterend", detail);
   }
 }
 
