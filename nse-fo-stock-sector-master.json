@@ -7,7 +7,18 @@
     "source": "NSE List of Underlyings and Information · Derivatives on Individual Securities",
     "source_url": "https://www.nseindia.com/products-services/equity-derivatives-list-underlyings-information",
     "updated_on": "2026-11-11",
-    "verification_note": "The 218-symbol master was reconciled against the official NSE individual-security underlyings list. The dated NSE contract file was not independently parsed in this validation."
+    "verification_note": "The 218-symbol master was reconciled against the official NSE individual-security underlyings list. The dated NSE contract file was not independently parsed in this validation.",
+    "secondary_cross_check": {
+      "source_file": "NSE_Round9_Full_3195_Progress_27Oct2026.xlsx",
+      "source_description": "Earlier project workbook built from NSE Main Board and SME listing CSVs",
+      "workbook_prepared_on": "2026-10-26",
+      "underlying_market_data_date": "2026-10-23",
+      "universe_symbol_count": 3195,
+      "current_fo_symbols_matched": 218,
+      "current_fo_symbols_unmatched": 0,
+      "result": "All 218 current F&O stock symbols are present in the earlier 3,195-symbol NSE universe.",
+      "limitation": "This workbook supplies symbol, company, ISIN, series and technical fields, but no company sector/industry classification. It is used only as a secondary symbol cross-check, not to infer or populate sector mappings."
+    }
   },
   "classification": {
     "source": "NSE Indices Industry Classification · four-tier company classification",
