@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Import an official NSE MarketLens CSV into the F&O sector research master.
 
-Only exact matches between MarketLens 'Sub Sector' and the NSDL FPI 22-sector
-taxonomy are accepted. Duplicate ticker rows are treated as ambiguous and fail
-closed instead of silently allowing the last row to win.
+MarketLens exports the NSE Indices Industry tier in its 'Sector' column and
+the macro-economic sector in 'Sub Sector'. The industry label is mapped to
+the corresponding NSE Indices Sector / NSDL FPI sector, and the macro-sector
+is checked as a second, independent consistency gate. Ambiguous rows fail
+closed; no company is classified from its name alone.
 """
 from __future__ import annotations
 
@@ -17,7 +19,78 @@ ROOT = Path(__file__).resolve().parents[1]
 MASTER_DEFAULT = ROOT / "nse-fo-stock-sector-master.json"
 MAP_DEFAULT = ROOT / "fpi-stock-sector-map.json"
 MARKETLENS_URL = "https://marketlens.nseindia.com/screener"
+NSE_CLASSIFICATION_URL = "https://www.niftyindices.com/docs/default-source/default-document-library/industry-classification/nse-indices_industry-classification-structure-2023-07.pdf"
 FPI_DATA = ROOT / "fpi-sector-data.json"
+
+# MarketLens 'Sector' labels are the NSE Indices Industry tier. This
+# crosswalk maps each label observed in the supplied 14-Nov-2026 export to
+# the parent NSE Indices Sector, which is the NSDL FPI sector dimension.
+NSE_INDUSTRY_TO_FPI_SECTOR = {
+    "Aerospace & Defense": "Capital Goods",
+    "Agricultural Food & other Products": "Fast Moving Consumer Goods",
+    "Agricultural, Commercial & Construction Vehicles": "Capital Goods",
+    "Auto Components": "Automobile and Auto Components",
+    "Automobiles": "Automobile and Auto Components",
+    "Banks": "Financial Services",
+    "Beverages": "Fast Moving Consumer Goods",
+    "Capital Markets": "Financial Services",
+    "Cement & Cement Products": "Construction Materials",
+    "Chemicals & Petrochemicals": "Chemicals",
+    "Construction": "Construction",
+    "Consumable Fuels": "Oil, Gas & Consumable Fuels",
+    "Consumer Durables": "Consumer Durables",
+    "Diversified FMCG": "Fast Moving Consumer Goods",
+    "Electrical Equipment": "Capital Goods",
+    "Ferrous Metals": "Metals & Mining",
+    "Finance": "Financial Services",
+    "Financial Technology (Fintech)": "Financial Services",
+    "Food Products": "Fast Moving Consumer Goods",
+    "Gas": "Oil, Gas & Consumable Fuels",
+    "Healthcare Services": "Healthcare",
+    "IT - Software": "Information Technology",
+    "Industrial Products": "Capital Goods",
+    "Insurance": "Financial Services",
+    "Leisure Services": "Consumer Services",
+    "Metals & Minerals Trading": "Metals & Mining",
+    "Non - Ferrous Metals": "Metals & Mining",
+    "Oil": "Oil, Gas & Consumable Fuels",
+    "Petroleum Products": "Oil, Gas & Consumable Fuels",
+    "Pharmaceuticals & Biotechnology": "Healthcare",
+    "Power": "Power",
+    "Realty": "Realty",
+    "Retailing": "Consumer Services",
+    "Telecom - Services": "Telecommunication",
+    "Transport Infrastructure": "Services",
+    "Transport Services": "Services",
+}
+
+# The MarketLens 'Sub Sector' must agree with the macro-economic parent of
+# the mapped NSE Indices Sector. Unrecognised labels (for example 'M&M') fail
+# closed rather than being guessed.
+MACRO_SECTOR_BY_FPI_SECTOR = {
+    "Automobile and Auto Components": "Consumer Discretionary",
+    "Capital Goods": "Industrials",
+    "Chemicals": "Commodities",
+    "Construction": "Industrials",
+    "Construction Materials": "Commodities",
+    "Consumer Durables": "Consumer Discretionary",
+    "Consumer Services": "Consumer Discretionary",
+    "Diversified": "Diversified",
+    "Fast Moving Consumer Goods": "Fast Moving Consumer Goods",
+    "Financial Services": "Financial Services",
+    "Forest Materials": "Commodities",
+    "Healthcare": "Healthcare",
+    "Information Technology": "Information Technology",
+    "Media, Entertainment & Publication": "Consumer Discretionary",
+    "Metals & Mining": "Commodities",
+    "Oil, Gas & Consumable Fuels": "Energy",
+    "Power": "Utilities",
+    "Realty": "Consumer Discretionary",
+    "Services": "Services",
+    "Telecommunication": "Telecommunication",
+    "Textiles": "Consumer Discretionary",
+    "Utilities": "Utilities",
+}
 
 
 def allowed_fpi_sectors() -> set[str]:
@@ -52,8 +125,8 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
         headers = normalized_headers(reader.fieldnames or [])
         company_col = headers.get("company") or headers.get("stock")
         industry_col = headers.get("sector")
-        fpi_sector_col = headers.get("subsector")
-        if not all((company_col, industry_col, fpi_sector_col)):
+        macro_sector_col = headers.get("subsector")
+        if not all((company_col, industry_col, macro_sector_col)):
             raise ValueError("CSV must contain Company, Sector and Sub Sector columns")
 
         for row in reader:
@@ -62,26 +135,42 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
                 continue
             rows_by_symbol.setdefault(symbol, []).append({
                 "industry": (row.get(industry_col) or "").strip(),
-                "sector": (row.get(fpi_sector_col) or "").strip(),
+                "macro_sector": (row.get(macro_sector_col) or "").strip(),
             })
 
     imported = {}
     ambiguous = []
+    rejected = []
     for symbol, rows in rows_by_symbol.items():
         # Multiple rows for one ticker are not silently resolved by row order.
         if len(rows) != 1:
             ambiguous.append(symbol)
             continue
-        industry, sector = rows[0]["industry"], rows[0]["sector"]
-        if industry and sector in allowed:
+        industry, macro_sector = rows[0]["industry"], rows[0]["macro_sector"]
+        fpi_sector = NSE_INDUSTRY_TO_FPI_SECTOR.get(industry)
+        expected_macro = MACRO_SECTOR_BY_FPI_SECTOR.get(fpi_sector or "")
+        if (
+            industry
+            and fpi_sector in allowed
+            and expected_macro
+            and macro_sector == expected_macro
+        ):
             imported[symbol] = {
                 "industry": industry,
-                "sector": sector,
-                "status": "verified_nse_marketlens_sector_match",
+                "sector": fpi_sector,
+                "macro_sector": macro_sector,
+                "status": "verified_nse_marketlens_industry_crosswalk",
                 "verified_on": verified_on,
-                "source": "NSE MarketLens official screener CSV; Sub Sector exactly matches NSDL FPI sector label",
+                "source": (
+                    "NSE MarketLens official screener CSV; Sector industry label "
+                    "mapped through NSE Indices Industry Classification Structure "
+                    "to NSDL FPI Sector; Sub Sector macro label independently matched"
+                ),
                 "source_url": MARKETLENS_URL,
+                "classification_reference_url": NSE_CLASSIFICATION_URL,
             }
+        else:
+            rejected.append(symbol)
 
     for symbol in universe:
         current = master["stocks"][symbol]
@@ -92,7 +181,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
             master["stocks"][symbol] = imported[symbol]
         else:
             # A fresh export supersedes prior MarketLens imports. Missing,
-            # unmatched and duplicate rows must not retain stale verification.
+            # unmatched, duplicate and macro-inconsistent rows fail closed.
             master["stocks"][symbol] = {
                 "industry": None,
                 "sector": None,
@@ -113,14 +202,22 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
     master["classification"]["verified_count"] = len(verified)
     master["classification"]["pending_count"] = pending_count
     master["classification"]["note"] = (
-        "Verified rows are supported by official NSE MarketLens CSV records whose "
-        "Sub Sector exactly matches one of the NSDL FPI 22-sector labels. "
-        "Duplicate, missing, unmatched or ambiguous rows remain pending and fail closed."
+        "Verified rows are supported by the seven separately verified original "
+        "watchlist mappings or by official NSE MarketLens CSV company rows. "
+        "For MarketLens rows, the Sector industry label is crosswalked to the "
+        "NSDL FPI 22-sector taxonomy using NSE Indices Industry Classification; "
+        "the Sub Sector macro-economic label must independently agree. "
+        "Duplicate, missing, unrecognised or macro-inconsistent rows remain pending."
     )
-    stock_map["source"] = "NSE MarketLens company industry labels joined to NSDL FPI 22-sector labels"
+    stock_map["source"] = (
+        "NSE MarketLens Industry label crosswalked to NSE Indices Sector / "
+        "NSDL FPI 22-sector taxonomy"
+    )
     stock_map["source_url"] = MARKETLENS_URL
     stock_map["note"] = (
-        f"{len(verified)} verified F&O company mappings. This research master does "
+        f"{len(verified)} verified F&O company mappings. MarketLens company "
+        "industry labels are mapped through the NSE Indices classification "
+        "structure and macro-sector cross-checked. This research master does "
         "not add dashboard cards or expand the watchlist; only currently rendered "
         "stock cards can display tags. Pending symbols produce no tag."
     )
@@ -131,6 +228,7 @@ def import_marketlens_csv(csv_path: Path, master_path: Path, map_path: Path,
     return {
         "csv_rows_mapped": len(imported),
         "ambiguous_symbols": sorted(ambiguous),
+        "rejected_symbols": sorted(rejected),
         "verified": len(verified),
         "pending": pending_count,
     }
