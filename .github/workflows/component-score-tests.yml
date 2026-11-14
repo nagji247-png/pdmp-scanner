@@ -7,6 +7,7 @@ on:
     paths:
       - "fetch_and_score.py"
       - "dashboard.html"
+      - "market-activity.js"
       - "component_scoring.py"
       - "provisional_component_scoring.py"
       - "archive_component_diagnostics.py"
@@ -61,3 +62,5 @@ jobs:
           PY
       - name: Dashboard JavaScript syntax validation
         run: node --check /tmp/pdmp-dashboard-inline.js
+      - name: Market Activity JavaScript syntax validation
+        run: node --check market-activity.js
