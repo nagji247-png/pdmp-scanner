@@ -8,7 +8,7 @@ from scripts.import_marketlens_sector_csv import import_marketlens_csv
 
 
 class MarketLensCsvImportTests(unittest.TestCase):
-    def test_exact_fpi_sector_matches_are_imported_and_ambiguous_rows_stay_pending(self):
+    def test_exact_match_and_duplicate_ticker_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             master = {
@@ -26,13 +26,19 @@ class MarketLensCsvImportTests(unittest.TestCase):
                 writer = csv.DictWriter(handle, fieldnames=["Company", "Sector", "Sub Sector"])
                 writer.writeheader()
                 writer.writerow({"Company": "ABC LIMITED ABC", "Sector": "IT - Software", "Sub Sector": "Information Technology"})
-                writer.writerow({"Company": "XYZ LIMITED XYZ", "Sector": "Energy", "Sub Sector": "Energy"})
+                writer.writerow({"Company": "XYZ LIMITED XYZ", "Sector": "Banks", "Sub Sector": "Financial Services"})
+                writer.writerow({"Company": "XYZ LIMITED XYZ", "Sector": "Oil", "Sub Sector": "Energy"})
             result = import_marketlens_csv(csv_path, master_path, map_path, "2026-11-14")
             updated = json.loads(master_path.read_text(encoding="utf-8"))
             mapped = json.loads(map_path.read_text(encoding="utf-8"))
-            self.assertEqual(result, {"csv_rows_mapped": 1, "verified": 1, "pending": 1})
+            self.assertEqual(result, {
+                "csv_rows_mapped": 1,
+                "ambiguous_symbols": ["XYZ"],
+                "verified": 1,
+                "pending": 1,
+            })
             self.assertEqual(updated["stocks"]["ABC"]["sector"], "Information Technology")
-            self.assertEqual(updated["stocks"]["XYZ"]["sector"], None)
+            self.assertIsNone(updated["stocks"]["XYZ"]["sector"])
             self.assertEqual(set(mapped["stocks"]), {"ABC"})
 
     def test_missing_required_columns_fails_without_writing(self):
