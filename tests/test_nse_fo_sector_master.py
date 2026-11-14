@@ -13,15 +13,15 @@ class NseFoSectorMasterTests(unittest.TestCase):
         self.master = json.loads(MASTER_PATH.read_text(encoding="utf-8"))
         self.watchlist = json.loads(WATCHLIST_MAP_PATH.read_text(encoding="utf-8"))
 
-    def test_official_fo_universe_count_and_uniqueness(self):
+    def test_candidate_symbol_set_is_unique_and_explicitly_unreconciled(self):
         stocks = self.master["stocks"]
-        self.assertEqual(self.master["universe"]["count"], 218)
-        self.assertEqual(len(stocks), 218)
+        self.assertEqual(self.master["universe"]["candidate_count"], len(stocks))
         self.assertEqual(len(stocks), len(set(stocks)))
         self.assertEqual(
-            self.master["universe"]["source"],
-            "NSE List of Underlyings and Information · Derivatives on Individual Securities",
+            self.master["universe"]["verification_status"],
+            "provisional_unreconciled",
         )
+        self.assertIn("not yet reconciled", self.master["universe"]["source"])
 
     def test_existing_watchlist_mappings_are_preserved(self):
         for symbol, mapping in self.watchlist["stocks"].items():
