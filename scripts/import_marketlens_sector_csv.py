@@ -177,6 +177,7 @@ NSE_MARKETLENS_LABEL_TO_FPI_SECTOR = {
     "Personal Care": "Fast Moving Consumer Goods",
     "Household Products": "Fast Moving Consumer Goods",
     "Stationary": "Fast Moving Consumer Goods",
+    "Non Banking Financial Company (NBFC)": "Financial Services",
     "Financial Institution": "Financial Services",
     "Housing Finance Company": "Financial Services",
     "Investment Company": "Financial Services",
