@@ -4,7 +4,7 @@
   "source": "NSE MarketLens company industry labels joined to NSE Indices 4-tier Industry Classification Structure",
   "source_url": "https://marketlens.nseindia.com/screener",
   "structure_url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/nse-indices_industry-classification-structure-2023-07.pdf",
-  "note": "27 verified mappings are maintained across the existing watchlist and the NSE F&O research universe. Adding F&O symbols here does not create dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Remaining F&O symbols stay pending in nse-fo-stock-sector-master.json and produce no tag.",
+  "note": "31 verified mappings are maintained across the existing watchlist and the NSE F&O research universe. Adding F&O symbols here does not create dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Remaining F&O symbols stay pending in nse-fo-stock-sector-master.json and produce no tag.",
   "stocks": {
     "RELIANCE": {
       "industry": "Refineries & Marketing",
@@ -113,6 +113,22 @@
     "TECHM": {
       "industry": "Computers - Software & Consulting",
       "sector": "Information Technology"
+    },
+    "ADANIPOWER": {
+      "industry": "Power",
+      "sector": "Utilities"
+    },
+    "ADANIGREEN": {
+      "industry": "Power",
+      "sector": "Utilities"
+    },
+    "NTPC": {
+      "industry": "Power",
+      "sector": "Utilities"
+    },
+    "SHRIRAMFIN": {
+      "industry": "Non Banking Financial Company (NBFC)",
+      "sector": "Financial Services"
     }
   }
 }
