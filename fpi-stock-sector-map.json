@@ -1,18 +1,26 @@
 {
   "schema_version": 1,
   "verified_on": "2026-11-14",
-  "source": "NSE MarketLens company industry labels joined to NSE Indices 4-tier Industry Classification Structure",
+  "source": "NSE MarketLens Industry label crosswalked to NSE Indices Sector / NSDL FPI 22-sector taxonomy",
   "source_url": "https://marketlens.nseindia.com/screener",
   "structure_url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/nse-indices_industry-classification-structure-2023-07.pdf",
-  "note": "52 verified F&O company mappings. This research master does not add dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Pending symbols produce no tag.",
+  "note": "89 verified F&O company mappings. MarketLens company industry labels are mapped through the NSE Indices classification structure and macro-sector cross-checked. This research master does not add dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Pending symbols produce no tag.",
   "stocks": {
+    "ABB": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
     "ADANIENSOL": {
       "industry": "Power",
-      "sector": "Utilities"
+      "sector": "Power"
+    },
+    "ADANIENT": {
+      "industry": "Metals & Minerals Trading",
+      "sector": "Metals & Mining"
     },
     "ADANIGREEN": {
       "industry": "Power",
-      "sector": "Utilities"
+      "sector": "Power"
     },
     "ADANIPORTS": {
       "industry": "Transport Infrastructure",
@@ -20,11 +28,19 @@
     },
     "ADANIPOWER": {
       "industry": "Power",
-      "sector": "Utilities"
+      "sector": "Power"
     },
     "APOLLOHOSP": {
       "industry": "Healthcare Services",
       "sector": "Healthcare"
+    },
+    "ASIANPAINT": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "DMART": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
     },
     "AXISBANK": {
       "industry": "Banks",
@@ -33,6 +49,10 @@
     "BSE": {
       "industry": "Capital Markets",
       "sector": "Financial Services"
+    },
+    "BAJAJ-AUTO": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
     },
     "BAJFINANCE": {
       "industry": "Finance",
@@ -46,13 +66,33 @@
       "industry": "Banks",
       "sector": "Financial Services"
     },
+    "BEL": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
+    "BHEL": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "BPCL": {
+      "industry": "Petroleum Products",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
     "BHARTIARTL": {
       "industry": "Telecom - Services",
       "sector": "Telecommunication"
     },
+    "BOSCHLTD": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
     "BRITANNIA": {
       "industry": "Food Products",
       "sector": "Fast Moving Consumer Goods"
+    },
+    "CGPOWER": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
     },
     "CANBK": {
       "industry": "Banks",
@@ -66,6 +106,14 @@
       "industry": "Consumable Fuels",
       "sector": "Oil, Gas & Consumable Fuels"
     },
+    "CUMMINSIND": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "DLF": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
     "DIVISLAB": {
       "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare"
@@ -74,9 +122,21 @@
       "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare"
     },
+    "ETERNAL": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
     "EICHERMOT": {
       "industry": "Automobiles",
       "sector": "Automobile and Auto Components"
+    },
+    "GAIL": {
+      "industry": "Gas",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "GRASIM": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
     },
     "HCLTECH": {
       "industry": "IT - Software",
@@ -94,9 +154,25 @@
       "industry": "Non - Ferrous Metals",
       "sector": "Metals & Mining"
     },
+    "HAL": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
     "HINDUNILVR": {
       "industry": "Diversified FMCG",
       "sector": "Fast Moving Consumer Goods"
+    },
+    "HINDZINC": {
+      "industry": "Non - Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "POWERINDIA": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "HYUNDAI": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
     },
     "ICICIBANK": {
       "industry": "Banks",
@@ -110,6 +186,10 @@
       "industry": "Banks",
       "sector": "Financial Services"
     },
+    "IOC": {
+      "industry": "Petroleum Products",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
     "INFY": {
       "industry": "IT - Software",
       "sector": "Information Technology"
@@ -117,6 +197,14 @@
     "INDIGO": {
       "industry": "Transport Services",
       "sector": "Services"
+    },
+    "JINDALSTEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "JSWSTEEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
     },
     "JIOFIN": {
       "industry": "Finance",
@@ -130,6 +218,10 @@
       "industry": "IT - Software",
       "sector": "Information Technology"
     },
+    "LT": {
+      "industry": "Construction",
+      "sector": "Construction"
+    },
     "LAURUSLABS": {
       "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare"
@@ -138,25 +230,45 @@
       "industry": "Insurance",
       "sector": "Financial Services"
     },
+    "LODHA": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
     "MARICO": {
       "industry": "Agricultural Food & other Products",
       "sector": "Fast Moving Consumer Goods"
     },
+    "MARUTI": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
     "NTPC": {
       "industry": "Power",
-      "sector": "Utilities"
+      "sector": "Power"
     },
     "NESTLEIND": {
       "industry": "Food Products",
       "sector": "Fast Moving Consumer Goods"
     },
+    "ONGC": {
+      "industry": "Oil",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
     "PAYTM": {
       "industry": "Financial Technology (Fintech)",
       "sector": "Financial Services"
     },
+    "PIDILITIND": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
+    },
+    "POLYCAB": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
     "POWERGRID": {
       "industry": "Power",
-      "sector": "Utilities"
+      "sector": "Power"
     },
     "PNB": {
       "industry": "Banks",
@@ -170,9 +282,21 @@
       "industry": "Insurance",
       "sector": "Financial Services"
     },
+    "MOTHERSON": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
     "SHRIRAMFIN": {
       "industry": "Finance",
       "sector": "Financial Services"
+    },
+    "SIEMENS": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "SOLARINDS": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
     },
     "SBIN": {
       "industry": "Public Sector Bank",
@@ -182,17 +306,41 @@
       "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare"
     },
+    "TVSMOTOR": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
     "TCS": {
       "industry": "IT - Software",
       "sector": "Information Technology"
+    },
+    "TATASTEEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
     },
     "TECHM": {
       "industry": "IT - Software",
       "sector": "Information Technology"
     },
+    "INDHOTEL": {
+      "industry": "Leisure Services",
+      "sector": "Consumer Services"
+    },
+    "TITAN": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
     "TORNTPHARM": {
       "industry": "Pharmaceuticals & Biotechnology",
       "sector": "Healthcare"
+    },
+    "TRENT": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "ULTRACEMCO": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
     },
     "UNIONBANK": {
       "industry": "Banks",
