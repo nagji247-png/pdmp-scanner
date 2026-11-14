@@ -1,37 +1,881 @@
 {
   "schema_version": 1,
   "verified_on": "2026-11-14",
-  "source": "NSE MarketLens company industry labels joined to NSE Indices 4-tier Industry Classification Structure",
+  "source": "NSE MarketLens Industry label crosswalked to NSE Indices Sector / NSDL FPI 22-sector taxonomy",
   "source_url": "https://marketlens.nseindia.com/screener",
   "structure_url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/nse-indices_industry-classification-structure-2023-07.pdf",
-  "note": "Only mappings supported by NSE company industry labels and the NSE Indices hierarchy are included. Unmapped watchlist symbols receive no tag.",
+  "note": "218 mapped F&O company classifications. MarketLens company industry labels are crosswalked through the NSE Indices classification structure and macro-sector checked. Six final company mappings (ICICILIFE, IEX, INOXWIND, LTF, M&M, UJJIVANSFB) use separately identified NSE-derived company-level four-tier classifications and corroborating records; they are not represented as supplied MarketLens CSV rows. This research master does not add dashboard cards or expand the watchlist; only currently rendered stock cards can display tags. Pending symbols produce no tag.",
   "stocks": {
-    "RELIANCE": {
-      "industry": "Refineries & Marketing",
-      "sector": "Oil, Gas & Consumable Fuels"
+    "ABB": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
     },
-    "HDFCBANK": {
+    "APLAPOLLO": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "AUBANK": {
       "industry": "Banks",
       "sector": "Financial Services"
     },
-    "HINDALCO": {
-      "industry": "Non - Ferrous Metals",
+    "ADANIENSOL": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "ADANIENT": {
+      "industry": "Metals & Minerals Trading",
       "sector": "Metals & Mining"
+    },
+    "ADANIGREEN": {
+      "industry": "Power",
+      "sector": "Power"
     },
     "ADANIPORTS": {
       "industry": "Transport Infrastructure",
       "sector": "Services"
     },
+    "ADANIPOWER": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "ABCAPITAL": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "ALKEM": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "AMBER": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "AMBUJACEM": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
+    },
+    "APOLLOHOSP": {
+      "industry": "Healthcare Services",
+      "sector": "Healthcare"
+    },
+    "ASHOKLEY": {
+      "industry": "Agricultural, Commercial & Construction Vehicles",
+      "sector": "Capital Goods"
+    },
+    "ASIANPAINT": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "ATHERENERG": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "AUROPHARMA": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "DMART": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "AXISBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "BSE": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "BAJAJ-AUTO": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "BAJFINANCE": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "BAJAJFINSV": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "BANKBARODA": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "BANKINDIA": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "MAHABANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "BEL": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
+    "BHARATFORG": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
+    "BHEL": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "BPCL": {
+      "industry": "Petroleum Products",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "BHARTIARTL": {
+      "industry": "Telecom - Services",
+      "sector": "Telecommunication"
+    },
+    "BIOCON": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "BOSCHLTD": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
+    "BRITANNIA": {
+      "industry": "Food Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "CGPOWER": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "CANBK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "CHOLAFIN": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "CIPLA": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "CUB": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
     "COALINDIA": {
       "industry": "Consumable Fuels",
       "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "COFORGE": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "CAMS": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "COROMANDEL": {
+      "industry": "Fertilizers & Agrochemicals",
+      "sector": "Chemicals"
+    },
+    "CROMPTON": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "CUMMINSIND": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "DLF": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "DABUR": {
+      "industry": "Personal Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "DATAPATTNS": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
+    "DIVISLAB": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "DIXON": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "DRREDDY": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "ETERNAL": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
     },
     "EICHERMOT": {
       "industry": "Automobiles",
       "sector": "Automobile and Auto Components"
     },
+    "FORCEMOT": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "NYKAA": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "FORTIS": {
+      "industry": "Healthcare Services",
+      "sector": "Healthcare"
+    },
+    "GAIL": {
+      "industry": "Gas",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "GVT&D": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "GMRAIRPORT": {
+      "industry": "Transport Infrastructure",
+      "sector": "Services"
+    },
+    "GLENMARK": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "GODREJCP": {
+      "industry": "Personal Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "GRASIM": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
+    },
+    "HCLTECH": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "HDFCAMC": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "HDFCBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "HDFCLIFE": {
+      "industry": "Insurance",
+      "sector": "Financial Services"
+    },
+    "HAVELLS": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "HEROMOTOCO": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "HINDALCO": {
+      "industry": "Non - Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "HAL": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
+    "HINDPETRO": {
+      "industry": "Petroleum Products",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "HINDUNILVR": {
+      "industry": "Diversified FMCG",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "HINDZINC": {
+      "industry": "Non - Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "POWERINDIA": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "HYUNDAI": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "ICICIBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "ICICIGI": {
+      "industry": "Insurance",
+      "sector": "Financial Services"
+    },
+    "IDFCFIRSTB": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "ITC": {
+      "industry": "Diversified FMCG",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "INDIANB": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "IOC": {
+      "industry": "Petroleum Products",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "IRFC": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "INDUSTOWER": {
+      "industry": "Telecom - Services",
+      "sector": "Telecommunication"
+    },
+    "INDUSINDBK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "NAUKRI": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "INFY": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "INDIGO": {
+      "industry": "Transport Services",
+      "sector": "Services"
+    },
+    "JINDALSTEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "JSWENERGY": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "JSWSTEEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "JIOFIN": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "KPITTECH": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "KALYANKJIL": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "KFINTECH": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "KOTAKBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "LTM": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "LT": {
+      "industry": "Construction",
+      "sector": "Construction"
+    },
+    "LAURUSLABS": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "LICI": {
+      "industry": "Insurance",
+      "sector": "Financial Services"
+    },
+    "LODHA": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "LUPIN": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "MANKIND": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "MARICO": {
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "MARUTI": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "MAXHEALTH": {
+      "industry": "Healthcare Services",
+      "sector": "Healthcare"
+    },
+    "MAZDOCK": {
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods"
+    },
+    "MOTILALOFS": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "MCX": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "MUTHOOTFIN": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "NBCC": {
+      "industry": "Construction",
+      "sector": "Construction"
+    },
+    "NHPC": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "NMDC": {
+      "industry": "Minerals & Mining",
+      "sector": "Metals & Mining"
+    },
+    "NTPC": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "NATIONALUM": {
+      "industry": "Non - Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "NESTLEIND": {
+      "industry": "Food Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "NAM-INDIA": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "OBEROIRLTY": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "ONGC": {
+      "industry": "Oil",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "OIL": {
+      "industry": "Oil",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "PAYTM": {
+      "industry": "Financial Technology (Fintech)",
+      "sector": "Financial Services"
+    },
+    "OFSS": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "PGEL": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "PIIND": {
+      "industry": "Fertilizers & Agrochemicals",
+      "sector": "Chemicals"
+    },
+    "PERSISTENT": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "PIDILITIND": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
+    },
+    "POLYCAB": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "POWERGRID": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "PRESTIGE": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "PNB": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "RBLBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "RECLTD": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "RELIANCE": {
+      "industry": "Refineries & Marketing",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "SAGILITY": {
+      "industry": "IT - Services",
+      "sector": "Information Technology"
+    },
+    "SBICARD": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "SBILIFE": {
+      "industry": "Insurance",
+      "sector": "Financial Services"
+    },
+    "SHREECEM": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
+    },
+    "SRF": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
+    },
+    "MOTHERSON": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
+    "SHRIRAMFIN": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "ENRIN": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "SIEMENS": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "SOLARINDS": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
+    },
+    "SONACOMS": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
     "SBIN": {
       "industry": "Public Sector Bank",
+      "sector": "Financial Services"
+    },
+    "SAIL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "SUNPHARMA": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "SUZLON": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "TVSMOTOR": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "TCS": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "TATAELXSI": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "TATAPOWER": {
+      "industry": "Power",
+      "sector": "Power"
+    },
+    "TATASTEEL": {
+      "industry": "Ferrous Metals",
+      "sector": "Metals & Mining"
+    },
+    "TECHM": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "FEDERALBNK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "INDHOTEL": {
+      "industry": "Leisure Services",
+      "sector": "Consumer Services"
+    },
+    "PHOENIXLTD": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "TITAN": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "TORNTPHARM": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "TRENT": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "UNOMINDA": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
+    "ULTRACEMCO": {
+      "industry": "Cement & Cement Products",
+      "sector": "Construction Materials"
+    },
+    "UNIONBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "UNITDSPR": {
+      "industry": "Beverages",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "VBL": {
+      "industry": "Beverages",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "VEDL": {
+      "industry": "Diversified Metals",
+      "sector": "Metals & Mining"
+    },
+    "IDEA": {
+      "industry": "Telecom - Services",
+      "sector": "Telecommunication"
+    },
+    "WAAREEENER": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "WIPRO": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "YESBANK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "ZYDUSLIFE": {
+      "industry": "Pharmaceuticals & Biotechnology",
+      "sector": "Healthcare"
+    },
+    "360ONE": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "SWIGGY": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "NAVINFLUOR": {
+      "industry": "Chemicals & Petrochemicals",
+      "sector": "Chemicals"
+    },
+    "POLICYBZR": {
+      "industry": "Financial Technology (Fintech)",
+      "sector": "Financial Services"
+    },
+    "PETRONET": {
+      "industry": "Gas",
+      "sector": "Oil, Gas & Consumable Fuels"
+    },
+    "MFSL": {
+      "industry": "Insurance",
+      "sector": "Financial Services"
+    },
+    "UPL": {
+      "industry": "Fertilizers & Agrochemicals",
+      "sector": "Chemicals"
+    },
+    "MPHASIS": {
+      "industry": "IT - Software",
+      "sector": "Information Technology"
+    },
+    "COLPAL": {
+      "industry": "Personal Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "PATANJALI": {
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "VMM": {
+      "industry": "Retailing",
+      "sector": "Consumer Services"
+    },
+    "TIINDIA": {
+      "industry": "Auto Components",
+      "sector": "Automobile and Auto Components"
+    },
+    "VOLTAS": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "GODFRYPHLP": {
+      "industry": "Cigarettes & Tobacco Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "CONCOR": {
+      "industry": "Transport Services",
+      "sector": "Services"
+    },
+    "DELHIVERY": {
+      "industry": "Transport Services",
+      "sector": "Services"
+    },
+    "IREDA": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "BDL": {
+      "industry": "Aerospace & Defense",
+      "sector": "Capital Goods"
+    },
+    "PREMIERENE": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "PAGEIND": {
+      "industry": "Textiles & Apparels",
+      "sector": "Textiles"
+    },
+    "MANAPPURAM": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "ANGELONE": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "CDSL": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "COCHINSHIP": {
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods"
+    },
+    "BLUESTARCO": {
+      "industry": "Consumer Durables",
+      "sector": "Consumer Durables"
+    },
+    "KEI": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "PNBHOUSING": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "SYRMA": {
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods"
+    },
+    "RVNL": {
+      "industry": "Construction",
+      "sector": "Construction"
+    },
+    "SUPREMEIND": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "LICHSGFIN": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "KARURVYSYA": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "JUBLFOOD": {
+      "industry": "Leisure Services",
+      "sector": "Consumer Services"
+    },
+    "ASTRAL": {
+      "industry": "Industrial Products",
+      "sector": "Capital Goods"
+    },
+    "KAYNES": {
+      "industry": "Industrial Manufacturing",
+      "sector": "Capital Goods"
+    },
+    "ANANDRATHI": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "BANDHANBNK": {
+      "industry": "Banks",
+      "sector": "Financial Services"
+    },
+    "GODREJPROP": {
+      "industry": "Realty",
+      "sector": "Realty"
+    },
+    "PFC": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "RADICO": {
+      "industry": "Beverages",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "TATACONSUM": {
+      "industry": "Agricultural Food & other Products",
+      "sector": "Fast Moving Consumer Goods"
+    },
+    "TMPV": {
+      "industry": "Automobiles",
+      "sector": "Automobile and Auto Components"
+    },
+    "ICICILIFE": {
+      "industry": "Life Insurance",
+      "sector": "Financial Services"
+    },
+    "IEX": {
+      "industry": "Capital Markets",
+      "sector": "Financial Services"
+    },
+    "INOXWIND": {
+      "industry": "Electrical Equipment",
+      "sector": "Capital Goods"
+    },
+    "LTF": {
+      "industry": "Finance",
+      "sector": "Financial Services"
+    },
+    "M&M": {
+      "industry": "Passenger Cars & Utility Vehicles",
+      "sector": "Automobile and Auto Components"
+    },
+    "UJJIVANSFB": {
+      "industry": "Other Bank",
       "sector": "Financial Services"
     }
   }
