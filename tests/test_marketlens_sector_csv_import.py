@@ -107,7 +107,7 @@ class MarketLensCsvImportTests(unittest.TestCase):
             with csv_path.open("w", newline="", encoding="utf-8") as handle:
                 writer = csv.DictWriter(handle, fieldnames=["Company", "Sector", "Sub Sector"])
                 writer.writeheader()
-                writer.writerow({"Company": "UNMATCHED LIMITED UNMATCHED", "Sector": "Power", "Sub Sector": "Utilities"})
+                writer.writerow({"Company": "UNMATCHED LIMITED UNMATCHED", "Sector": "Power", "Sub Sector": "Commodities"})
                 writer.writerow({"Company": "VALID LIMITED VALID", "Sector": "IT - Software", "Sub Sector": "Information Technology"})
             result = import_marketlens_csv(csv_path, master_path, map_path, "2026-11-14")
             updated = json.loads(master_path.read_text(encoding="utf-8"))
