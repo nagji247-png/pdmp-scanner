@@ -1,0 +1,166 @@
+name: NSE Company Research Live Smoke Test
+on:
+  pull_request:
+    paths:
+      - "stock_company_research.py"
+      - "nse_xbrl.py"
+      - "nse_integrated_xbrl.py"
+      - "nse-fo-stock-sector-master.json"
+      - "stock-company-data.json"
+      - "tests/test_stock_company_research.py"
+      - ".github/workflows/stock-company-research-smoke.yml"
+permissions:
+  contents: read
+concurrency:
+  group: nse-company-research-smoke-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install public-data client
+        run: pip install requests
+      - name: Prepare isolated ten-stock smoke run
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("stock-company-data.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["last_batch_date"] = None
+          data["next_index"] = 0
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+      - name: Fetch ten real NSE company records
+        env:
+          STOCK_RESEARCH_BATCH_SIZE: "10"
+        run: python stock_company_research.py
+      - name: Require a meaningful NSE EOD batch
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("stock-company-data.json").read_text(encoding="utf-8"))
+          batch = data.get("last_batch") or {}
+          print(json.dumps(batch, ensure_ascii=False, indent=2))
+          if batch.get("attempted") != 10 or batch.get("success", 0) < 5:
+              raise SystemExit("Live NSE EOD batch produced fewer than 5 usable stock records")
+          PY
+      - name: Validate actual ten-stock company and filing coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("stock-company-data.json").read_text(encoding="utf-8"))
+          batch = data.get("last_batch") or {}
+          stocks = data.get("stocks") or {}
+          symbols = batch.get("symbols") or []
+          if len(symbols) != 10:
+              raise SystemExit(f"Expected 10 smoke symbols, got {len(symbols)}")
+
+          checks = {
+              "company_name": lambda row: bool(row.get("company_name")),
+              "industry": lambda row: bool(row.get("industry")),
+              "sector": lambda row: bool(row.get("sector")),
+              "dated_eod_price": lambda row: row.get("price") is not None and bool(row.get("market_data_as_of")),
+              "shareholding_xbrl": lambda row: bool((row.get("shareholding") or {}).get("filing_url")),
+              "integrated_filing_xml": lambda row: bool((row.get("integrated_financials") or {}).get("filing", {}).get("url")),
+              "integrated_quarter": lambda row: bool((row.get("integrated_financials") or {}).get("parsed", {}).get("quarter")),
+          }
+          counts = {name: sum(bool(check(stocks.get(symbol) or {})) for symbol in symbols)
+                    for name, check in checks.items()}
+          print(json.dumps({"symbols": symbols, "coverage": counts}, ensure_ascii=False, indent=2))
+          required = ("company_name", "industry", "sector", "dated_eod_price",
+                      "shareholding_xbrl", "integrated_filing_xml", "integrated_quarter")
+          failures = {name: counts[name] for name in required if counts[name] != 10}
+          if failures:
+              raise SystemExit(f"Live NSE company/filing coverage incomplete: {failures}")
+
+          balance_sheet_count = sum(
+              bool((stocks.get(symbol) or {}).get("integrated_financials", {}).get("parsed", {}).get("balance_sheet", {}).get("total_assets_cr") is not None)
+              for symbol in symbols
+          )
+          market_cap_count = sum((stocks.get(symbol) or {}).get("market_cap_cr") is not None for symbol in symbols)
+          print(f"Optional fields: total_assets={balance_sheet_count}/10; market_cap={market_cap_count}/10")
+          PY
+      - name: Probe official NSE filings independently of quote API
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import requests, time
+          from stock_company_research import seed_nse_session, PAUSE_SECONDS, fetch_archive_xml, latest_integrated_filing
+          from nse_integrated_xbrl import parse_integrated_financial_xbrl
+          from nse_xbrl import filing_xml_url, parse_shareholding_xbrl
+
+          session = requests.Session()
+          seed_nse_session(session)
+          base = "https://www.nseindia.com/api"
+          referer = "https://www.nseindia.com/companies-listing/corporate-integrated-filing"
+          probes = [
+              ("integrated_filing", base + "/integrated-filing-results", {
+                  "index": "equities", "symbol": "360ONE", "issuer": "360ONE",
+                  "period_ended": "all", "type": "Integrated Filing- Financials",
+                  "page": 1, "size": 10,
+              }),
+              ("shareholding", base + "/corporate-share-holdings-master", {
+                  "index": "equities", "symbol": "360ONE",
+              }),
+              ("financial_results", base + "/results-comparision", {
+                  "index": "equities", "symbol": "360ONE",
+              }),
+          ]
+          for name, url, params in probes:
+              try:
+                  response = session.get(url, params=params,
+                      headers={"Referer": referer, "Accept": "application/json, text/plain, */*"},
+                      timeout=25)
+                  print(f"{name}: HTTP {response.status_code}; bytes={len(response.content)}")
+                  if response.ok:
+                      try:
+                          payload = response.json()
+                          print(f"{name}: JSON type={type(payload).__name__}; keys={list(payload)[:12] if isinstance(payload, dict) else 'list'}")
+                          if name == "integrated_filing" and isinstance(payload, dict):
+                              rows = payload.get("data") or []
+                              print(f"{name}: filing_rows={len(rows)}")
+                              for row in rows[:2]:
+                                  sample = {key: row.get(key) for key in ("quarterEndDate", "qe_Date", "broadcastDate", "xbrl", "xbrlFile") if key in row}
+                                  print(f"{name}: sample={sample}")
+                              filing = latest_integrated_filing(payload)
+                              if filing:
+                                  xml = fetch_archive_xml(session, filing["url"], referer)
+                                  parsed = parse_integrated_financial_xbrl(xml)
+                                  print(f"integrated_filing: XBRL download OK; bytes={len(xml)}; parsed_periods={list((parsed or {}).get('periods', {}).keys())}; parsed_fields={list((parsed or {}).keys())}")
+                          elif name == "shareholding" and isinstance(payload, list):
+                              print(f"shareholding: filing_rows={len(payload)}")
+                              if payload:
+                                  row = payload[0]
+                                  print(f"shareholding: sample_keys={list(row)[:20] if isinstance(row, dict) else type(row).__name__}")
+                                  if isinstance(row, dict):
+                                      xbrl_url = filing_xml_url(row)
+                                      if xbrl_url:
+                                          xml = fetch_archive_xml(session, xbrl_url, referer)
+                                          parsed = parse_shareholding_xbrl(xml)
+                                          print(f"shareholding: XBRL download OK; bytes={len(xml)}; parsed={parsed}")
+                          elif name == "financial_results" and isinstance(payload, dict):
+                              rows = payload.get("resCmpData") or []
+                              print(f"financial_results: result_rows={len(rows)}; sample_keys={list(rows[0])[:20] if rows and isinstance(rows[0], dict) else []}")
+                      except ValueError:
+                          print(f"{name}: response was not JSON")
+              except Exception as exc:
+                  print(f"{name}: ERROR {type(exc).__name__}: {str(exc)[:180]}")
+              time.sleep(PAUSE_SECONDS)
+          PY
+      - name: Upload isolated NSE smoke-test cache
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-company-research-smoke
+          path: stock-company-data.json
+          if-no-files-found: warn
+          retention-days: 7

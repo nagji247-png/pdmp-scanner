@@ -7,6 +7,14 @@ on:
       - ".github/workflows/market-activity-validation.yml"
       - "nse-fo-stock-sector-master.json"
       - "dashboard.html"
+      - "stock_company_research.py"
+      - "stock-company-data.json"
+      - "tests/test_stock_company_research.py"
+      - "nse_xbrl.py"
+      - "tests/test_nse_xbrl.py"
+      - "nse_integrated_xbrl.py"
+      - "tests/test_nse_integrated_xbrl.py"
+      - ".github/workflows/stock-company-research.yml"
 permissions:
   contents: read
 jobs:
@@ -20,9 +28,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Install NSE research test dependency
+        run: pip install requests
       - name: Check Market Activity JavaScript syntax
         run: node --check market-activity.js
       - name: Test Market Activity navigation and data safety
         run: python -m unittest discover -s tests -p "test_market_activity_dashboard.py" -v
+      - name: Test incremental NSE company research parsing
+        run: python -m unittest discover -s tests -p "test_stock_company_research.py" -v
+      - name: Test official NSE shareholding XBRL parser
+        run: python -m unittest discover -s tests -p "test_nse_xbrl.py" -v
+      - name: Test NSE Integrated Filing XBRL parser
+        run: python -m unittest discover -s tests -p "test_nse_integrated_xbrl.py" -v
       - name: Protect existing NO TRADE guard
         run: python -m unittest discover -s tests -p "test_dashboard_stale_guard.py" -v

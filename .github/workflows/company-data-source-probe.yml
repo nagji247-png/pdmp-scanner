@@ -1,0 +1,109 @@
+name: Public Company Data Source Probe
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/company-data-source-probe.yml"
+      - "stock_company_research.py"
+      - "nse-fo-stock-sector-master.json"
+      - "stock-company-data.json"
+permissions:
+  contents: read
+concurrency:
+  group: company-data-source-probe-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install public-data probe dependency
+        run: pip install requests
+      - name: Probe free public data sources
+        run: |
+          python - <<'PY'
+          import csv
+          import datetime as dt
+          import json
+          import time
+          from io import StringIO
+          from pathlib import Path
+          import requests
+
+          headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+          session = requests.Session()
+          session.headers.update(headers)
+          report = {"checked_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(), "sources": {}}
+
+          # Yahoo's public chart endpoint: quote/EOD fallback only, not an official exchange filing.
+          try:
+              response = session.get(
+                  "https://query1.finance.yahoo.com/v8/finance/chart/360ONE.NS?range=5d&interval=1d",
+                  timeout=20,
+              )
+              response.raise_for_status()
+              payload = response.json()
+              result = ((payload.get("chart") or {}).get("result") or [None])[0]
+              quote = ((result or {}).get("indicators") or {}).get("quote") or [{}]
+              closes = quote[0].get("close") or []
+              valid_closes = [x for x in closes if isinstance(x, (int, float))]
+              report["sources"]["yahoo_chart"] = {
+                  "status": "ok" if valid_closes else "no_quote_data",
+                  "http_status": response.status_code,
+                  "symbol": "360ONE.NS",
+                  "last_close": valid_closes[-1] if valid_closes else None,
+                  "timestamp_count": len((result or {}).get("timestamp") or []),
+                  "source_type": "secondary public market-data source",
+              }
+          except Exception as exc:
+              report["sources"]["yahoo_chart"] = {"status": "unavailable", "error": str(exc)[:240]}
+
+          # Official NSE EOD file: look back across recent weekdays to find the latest published session.
+          archive_ok = False
+          for offset in range(0, 10):
+              day = dt.date.today() - dt.timedelta(days=offset)
+              if day.weekday() >= 5:
+                  continue
+              url = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_" + day.strftime("%d%m%Y") + ".csv"
+              try:
+                  response = session.get(url, timeout=25)
+                  if response.status_code != 200 or len(response.content) < 1000:
+                      continue
+                  sample = response.content[:4096].decode("utf-8-sig", errors="replace")
+                  header = next(csv.reader(StringIO(sample)), [])
+                  if not header or not any("SYMBOL" in str(x).upper() for x in header):
+                      continue
+                  report["sources"]["nse_official_eod_archive"] = {
+                      "status": "ok",
+                      "http_status": response.status_code,
+                      "file_date": day.isoformat(),
+                      "bytes": len(response.content),
+                      "columns": header[:18],
+                      "source_type": "official NSE end-of-day archive",
+                  }
+                  archive_ok = True
+                  break
+              except Exception:
+                  continue
+              time.sleep(0.3)
+          if not archive_ok:
+              report["sources"]["nse_official_eod_archive"] = {"status": "unavailable", "error": "No valid recent full-bhavcopy CSV found in the 10-day probe window"}
+
+          Path("company-data-source-probe.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          if not any(v.get("status") == "ok" for v in report["sources"].values()):
+              raise SystemExit("No tested free public market-data source returned usable data")
+          PY
+      - name: Upload source probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: company-data-source-probe
+          path: company-data-source-probe.json
+          if-no-files-found: warn
+          retention-days: 7

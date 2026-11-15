@@ -1,0 +1,103 @@
+import unittest
+
+from nse_integrated_xbrl import parse_integrated_financial_xbrl
+
+
+class IntegratedFinancialXbrlTests(unittest.TestCase):
+    def xml(self):
+        return """<?xml version="1.0"?>
+        <xbrl xmlns="http://www.xbrl.org/2003/instance"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <unit id="INR"><measure>iso4217:INR</measure></unit>
+          <unit id="USD"><measure>iso4217:USD</measure></unit>
+          <context id="OneD"><entity><identifier>INE000A</identifier></entity>
+            <period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period></context>
+          <context id="FourD"><entity><identifier>INE000A</identifier></entity>
+            <period><startDate>2026-04-01</startDate><endDate>2026-09-30</endDate></period></context>
+          <context id="OneI"><entity><identifier>INE000A</identifier></entity>
+            <period><instant>2026-09-30</instant></period></context>
+          <context id="PY_I"><entity><identifier>INE000A</identifier></entity>
+            <period><instant>2025-09-30</instant></period></context>
+          <RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>
+          <ProfitLossForPeriod unitRef="INR" contextRef="OneD">18750000000</ProfitLossForPeriod>
+          <BasicEarningsLossPerShareFromContinuingOperations unitRef="INR" contextRef="OneD">12.5</BasicEarningsLossPerShareFromContinuingOperations>
+          <Assets unitRef="INR" contextRef="OneI">900000000000</Assets>
+          <EquityAndLiabilities unitRef="INR" contextRef="OneI">900000000000</EquityAndLiabilities>
+          <Equity unitRef="INR" contextRef="OneI">300000000000</Equity>
+          <CurrentFinancialLiabilities unitRef="INR" contextRef="OneI">100000000000</CurrentFinancialLiabilities>
+          <NoncurrentFinancialLiabilities unitRef="INR" contextRef="OneI">50000000000</NoncurrentFinancialLiabilities>
+          <RevenueFromOperations unitRef="INR" contextRef="FourD">566710500000</RevenueFromOperations>
+          <RevenueFromOperations unitRef="USD" contextRef="OneD">999999999999</RevenueFromOperations>
+          <RevenueFromOperations unitRef="INR" contextRef="PY_I">999999999999</RevenueFromOperations>
+        </xbrl>"""
+
+    def test_quarter_ytd_and_balance_sheet_mapping(self):
+        data = parse_integrated_financial_xbrl(self.xml())
+        self.assertEqual(data["quarter"]["revenue_cr"], 21127.65)
+        self.assertNotEqual(data["quarter"]["revenue_cr"], 99999.9999999)
+        self.assertEqual(data["quarter"]["net_profit_cr"], 1875.0)
+        self.assertEqual(data["quarter"]["basic_eps"], 12.5)
+        self.assertEqual(data["ytd"]["revenue_cr"], 56671.05)
+        self.assertEqual(data["balance_sheet"]["total_assets_cr"], 90000.0)
+        self.assertEqual(data["balance_sheet"]["total_equity_cr"], 30000.0)
+        self.assertNotIn("debt_equity_ratio", data["balance_sheet"])
+        self.assertNotIn("equity_and_liabilities_cr", data["balance_sheet"])
+        self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
+
+    def test_reported_financial_ratios_require_pure_unit(self):
+        xml = self.xml().replace(
+            '<unit id="USD"><measure>iso4217:USD</measure></unit>',
+            '<unit id="USD"><measure>iso4217:USD</measure></unit>'
+            '<unit id="PURE"><measure>xbrli:pure</measure></unit>'
+        ).replace(
+            '</xbrl>',
+            '<DebtEquityRatio unitRef="PURE" contextRef="OneD">0.25</DebtEquityRatio>'
+            '<DebtServiceCoverageRatio unitRef="PURE" contextRef="OneD">1.75</DebtServiceCoverageRatio>'
+            '<InterestServiceCoverageRatio unitRef="PURE" contextRef="OneD">3.5</InterestServiceCoverageRatio>'
+            '<DebtEquityRatio unitRef="INR" contextRef="OneD">999</DebtEquityRatio>'
+            '</xbrl>'
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["debt_equity_ratio"], 0.25)
+        self.assertEqual(data["quarter"]["debt_service_coverage_ratio"], 1.75)
+        self.assertEqual(data["quarter"]["interest_service_coverage_ratio"], 3.5)
+
+    def test_context_ids_are_classified_from_dates_not_fixed_names(self):
+        xml = self.xml()
+        for old_id, new_id in (("OneD", "ctx_9a"), ("FourD", "ctx_2b"),
+                               ("OneI", "instant_current"), ("PY_I", "instant_prior")):
+            xml = xml.replace(old_id, new_id)
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["revenue_cr"], 21127.65)
+        self.assertEqual(data["ytd"]["revenue_cr"], 56671.05)
+        self.assertEqual(data["balance_sheet"]["total_assets_cr"], 90000.0)
+        self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
+
+    def test_dimensional_segment_facts_do_not_replace_company_total(self):
+        xml = self.xml().replace(
+            '</context>\n          <context id="FourD">',
+            '</context>\n          <context id="SegmentQ"><entity><identifier>INE000A</identifier><segment><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></segment></entity>'
+            '<period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period></context>'
+            '\n          <context id="FourD">'
+        ).replace(
+            '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>',
+            '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>'
+            '<RevenueFromOperations unitRef="INR" contextRef="SegmentQ">999999999999</RevenueFromOperations>'
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["revenue_cr"], 21127.65)
+
+    def test_equity_and_liabilities_alone_does_not_masquerade_as_assets(self):
+        xml = self.xml().replace(
+            '<Assets unitRef="INR" contextRef="OneI">900000000000</Assets>', ''
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertNotIn("total_assets_cr", data["balance_sheet"])
+
+    def test_unknown_or_invalid_xml_is_unavailable(self):
+        self.assertIsNone(parse_integrated_financial_xbrl("<xbrl/>"))
+        self.assertIsNone(parse_integrated_financial_xbrl("not xml"))
+
+
+if __name__ == "__main__":
+    unittest.main()
