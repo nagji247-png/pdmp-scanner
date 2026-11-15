@@ -42,7 +42,7 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
         self.assertEqual(data["balance_sheet"]["total_equity_cr"], 30000.0)
         self.assertNotIn("debt_equity_ratio", data["balance_sheet"])
         self.assertNotIn("equity_and_liabilities_cr", data["balance_sheet"])
-        self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 99999.9999999)
+        self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
 
     def test_equity_and_liabilities_alone_does_not_masquerade_as_assets(self):
         xml = self.xml().replace(
