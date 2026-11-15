@@ -1,0 +1,42 @@
+name: Refresh NSE stock company research cache
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Maximum stocks to refresh (1-25)"
+        required: false
+        default: "10"
+  schedule:
+    # Daily at 20:15 IST, after the cash market closes.
+    - cron: "45 14 * * 1-5"
+permissions:
+  contents: write
+concurrency:
+  group: stock-company-research-cache
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install public-data client
+        run: pip install requests
+      - name: Refresh a small NSE batch
+        env:
+          STOCK_RESEARCH_BATCH_SIZE: \${{ github.event.inputs.batch_size || '10' }}
+        run: python stock_company_research.py
+      - name: Commit only company research cache
+        run: |
+          if [ -z "$(git status --porcelain -- stock-company-data.json)" ]; then
+            echo "No company research cache changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stock-company-data.json
+          git commit -m "Refresh incremental NSE stock company research cache"
+          git pull --rebase origin main
+          git push origin HEAD:main
