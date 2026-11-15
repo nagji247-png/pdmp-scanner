@@ -58,9 +58,8 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
     def test_dimensional_segment_facts_do_not_replace_company_total(self):
         xml = self.xml().replace(
             '</context>\n          <context id="FourD">',
-            '</context>\n          <context id="SegmentQ"><entity><identifier>INE000A</identifier></entity>'
-            '<period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period>'
-            '<segment><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></segment></entity></context>'
+            '</context>\n          <context id="SegmentQ"><entity><identifier>INE000A</identifier><segment><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></segment></entity>'
+            '<period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period></context>'
             '\n          <context id="FourD">'
         ).replace(
             '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>',
