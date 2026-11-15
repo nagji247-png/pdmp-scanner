@@ -169,6 +169,10 @@ def apply_eod_fallback(parsed, eod):
     if not quote_price_available and eod.get("price") is not None:
         result["quote_source"] = eod.get("quote_source")
         result["market_data_type"] = "end_of_day"
+        # The popup consumes price_as_of; keep the actual exchange session date
+        # rather than falling back to checked_at (the fetch timestamp).
+        if eod.get("market_data_as_of"):
+            result["price_as_of"] = eod["market_data_as_of"]
     return result
 
 
