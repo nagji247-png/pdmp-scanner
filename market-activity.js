@@ -100,6 +100,8 @@ root.innerHTML=nav(name)+'<div class="ma-kicker">SECTOR ACTIVITY</div><div class
 }
 
 var DRAWING_API="https://trinetra-drawing-api.suncity247.workers.dev";
+function drawingApiKey(symbol){return String(symbol).replace(/&/g,"_AMP_");}
+function drawingSymbolFromApiKey(key){return String(key).replace(/_AMP_/g,"&");}
 function drawingToken(){
   var token=sessionStorage.getItem("trinetraDrawingToken")||"";
   var expiry=Number(sessionStorage.getItem("trinetraDrawingTokenExp")||0);
@@ -162,7 +164,7 @@ root.addEventListener("click",function(e){
     var token=drawingToken();
     if(!token){modal.querySelector("[data-drawing-error]").textContent="Login की अवधि समाप्त हो गई। दोबारा Login करें।";modal.querySelector("[data-drawing-login]").hidden=false;modal.querySelector("[data-drawing-editor]").hidden=true;return;}
     if(!confirm(symbol+" का Drawing Preview हटाएँ?"))return;
-    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(symbol),{method:"DELETE",headers:{Authorization:"Bearer "+token}})
+    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(drawingApiKey(symbol)),{method:"DELETE",headers:{Authorization:"Bearer "+token}})
       .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Delete असफल");return d;});})
       .then(function(){delete drawings.snapshots[symbol];delete drawings.records[symbol];closeDrawingAdmin();render();})
       .catch(function(err){modal.querySelector("[data-drawing-error]").textContent=err.message||"Delete असफल";});
@@ -204,7 +206,7 @@ root.addEventListener("submit",function(e){
     var snapshotUrl=editor.elements.snapshotUrl.value.trim();
     var chartUrl=editor.elements.chartUrl.value.trim();
     error.textContent="Drawing सेव हो रही है…";
-    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(symbol),{method:"PUT",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({snapshotUrl:snapshotUrl,chartUrl:chartUrl})})
+    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(drawingApiKey(symbol)),{method:"PUT",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({snapshotUrl:snapshotUrl,chartUrl:chartUrl})})
       .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Save असफल");return d;});})
       .then(function(d){
         drawings.records=drawings.records||{};
@@ -251,6 +253,6 @@ root.innerHTML=nav(symbol)+chartPreviewHtml+drawingAdminHtml+'<div class="ma-kic
 '<div class="ma-panel"><h4>5. FPI FLOW + NEWS CONFIRMATION</h4><div class="ma-reason">सेक्टर FPI प्रवाह: '+money(flow)+'<br>अवधि: '+esc(period)+'<br>इसी सेक्टर की उपलब्ध स्टॉक खबरें: '+esc(sectorNewsDirection)+'<br>भीड़ का रुख: '+esc(crowdSummary())+'<br>दिशा तुलना: '+esc(sectorMatch)+'<br><br><b>क्यों?</b> तुलना इस सेक्टर के उपलब्ध quote वाले स्टॉक की कुल positive/negative news counts से की गई है; यह '+esc(symbol)+' की खबरों और FPI का सीधा मिलान नहीं है।<br><br><b>महत्वपूर्ण:</b> व्यक्तिगत स्टॉक FPI उपलब्ध नहीं; यह FPI पूरे '+esc(sector)+' सेक्टर का है।</div></div>';
 }
 function render(){if(!master||!master.stocks){root.innerHTML='<div class="ma-empty">NSE F&amp;O मास्टर लोड नहीं हुआ।</div>';return;}var v=stack[stack.length-1];if(v.type==="home")renderHome();else if(v.type==="radar")renderRadarList(v.kind);else if(v.type==="sector")renderSector(v.name);else renderStock(v.symbol,v.sector);}
-function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};}),fetch(DRAWING_API+"/api/drawings?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawing api");return r.json();}).catch(function(){return {};})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};drawings.snapshots=drawings.snapshots||{};drawings.records=v[4]||{};Object.keys(drawings.records).forEach(function(k){var rec=drawings.records[k];if(rec&&rec.snapshotUrl)drawings.snapshots[k]=rec.snapshotUrl;});render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
+function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};}),fetch(DRAWING_API+"/api/drawings?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawing api");return r.json();}).catch(function(){return {};})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};drawings.snapshots=drawings.snapshots||{};drawings.records=v[4]||{};Object.keys(drawings.records).forEach(function(k){var symbol=drawingSymbolFromApiKey(k),rec=drawings.records[k];if(symbol!==k){drawings.records[symbol]=rec;delete drawings.records[k];}if(rec&&rec.snapshotUrl)drawings.snapshots[symbol]=rec.snapshotUrl;});render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
 load();window.setInterval(load,5*60*1000);
 })();
