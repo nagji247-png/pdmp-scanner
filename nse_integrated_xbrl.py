@@ -18,7 +18,9 @@ MONEY_TAGS = {
     "Expenses": "total_expenses",
     "ProfitBeforeTax": "profit_before_tax",
     "ProfitLossForPeriod": "net_profit",
-    "EquityAndLiabilities": "total_assets",
+    # Assets is the actual balance-sheet asset fact. EquityAndLiabilities is
+    # deliberately not treated as Assets, even though totals should reconcile.
+    "Assets": "total_assets",
     "Equity": "total_equity",
     "CurrentFinancialLiabilities": "current_financial_liabilities",
     "NoncurrentFinancialLiabilities": "noncurrent_financial_liabilities",
