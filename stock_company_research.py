@@ -4,11 +4,13 @@
 This runs once daily and touches a small batch only. It is intentionally separate
 from the 30-minute PDMP scan to avoid multiplying NSE requests.
 """
+import csv
 import datetime as dt
 import json
 import os
 import time
 from pathlib import Path
+from io import StringIO
 
 import requests
 
@@ -80,6 +82,71 @@ def parse_company_quote(payload, trade_payload=None):
         "quote_source": "NSE India public quote-equity API",
         "market_cap_source": "NSE India public quote-equity trade_info API" if market_cap is not None else None,
     }
+
+
+def parse_nse_bhavcopy_row(row):
+    """Parse one verified NSE full-bhavcopy row without inventing company fundamentals."""
+    if not isinstance(row, dict):
+        return {}
+    close = number(row.get("CLOSE_PRICE"))
+    previous = number(row.get("PREV_CLOSE"))
+    change_pct = round((close / previous - 1) * 100, 4) if close is not None and previous not in (None, 0) else None
+    fields = {
+        "price": close,
+        "previous_close": previous,
+        "change_pct": change_pct,
+        "open": number(row.get("OPEN_PRICE")),
+        "high": number(row.get("HIGH_PRICE")),
+        "low": number(row.get("LOW_PRICE")),
+        "last_price": number(row.get("LAST_PRICE")),
+        "average_price": number(row.get("AVG_PRICE")),
+        "traded_quantity": number(row.get("TTL_TRD_QNTY")),
+        "turnover_lacs": number(row.get("TURNOVER_LACS")),
+        "trade_count": number(row.get("NO_OF_TRADES")),
+        "delivery_quantity": number(row.get("DELIV_QTY")),
+        "delivery_pct": number(row.get("DELIV_PER")),
+    }
+    return {key: value for key, value in fields.items() if value is not None}
+
+
+def fetch_latest_nse_bhavcopy(session, symbols, today=None):
+    """Fetch one recent official NSE EOD file and index its EQ rows by symbol."""
+    today = today or dt.date.today()
+    for offset in range(0, 10):
+        day = today - dt.timedelta(days=offset)
+        if day.weekday() >= 5:
+            continue
+        url = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_" + day.strftime("%d%m%Y") + ".csv"
+        try:
+            response = session.get(url, timeout=30)
+            if response.status_code != 200 or len(response.content) < 1000:
+                continue
+            text = response.content.decode("utf-8-sig", errors="replace")
+            reader = csv.DictReader(StringIO(text))
+            if not reader.fieldnames or not any("SYMBOL" in str(name).upper() for name in reader.fieldnames):
+                continue
+            rows = {}
+            for raw in reader:
+                row = {str(key).strip().upper(): (value.strip() if isinstance(value, str) else value)
+                       for key, value in raw.items() if key is not None}
+                symbol = str(row.get("SYMBOL") or "").strip().upper()
+                series = str(row.get("SERIES") or "").strip().upper()
+                if symbol in symbols and series == "EQ":
+                    parsed = parse_nse_bhavcopy_row(row)
+                    if parsed.get("price") is not None:
+                        parsed.update({
+                            "market_data_as_of": day.isoformat(),
+                            "quote_source": "NSE official full bhavcopy EOD archive",
+                            "market_data_type": "end_of_day",
+                        })
+                        rows[symbol] = parsed
+            if rows:
+                print(f"NSE official EOD bhavcopy {day.isoformat()}: matched {len(rows)} requested symbols")
+                return rows
+        except (requests.RequestException, UnicodeError, csv.Error) as exc:
+            print(f"NSE bhavcopy {day.isoformat()} unavailable: {str(exc)[:160]}")
+    print("NSE official EOD bhavcopy unavailable in the 10-day search window")
+    return {}
 
 
 def parse_shareholding(payload):
@@ -235,6 +302,8 @@ def main():
     })
     seed_nse_session(session)
     stocks = data.setdefault("stocks", {})
+    # One official EOD archive request per daily batch; never one request per symbol.
+    bhavcopy_rows = fetch_latest_nse_bhavcopy(session, set(batch))
     success = 0
     for symbol in batch:
         page = "https://www.nseindia.com/get-quotes/equity?symbol=" + symbol
@@ -329,7 +398,19 @@ def main():
             success += 1
             print(f"{symbol}: updated company/quote" + (" + shareholding" if ownership else " · shareholding unavailable"))
         except Exception as exc:
-            print(f"{symbol}: unavailable ({str(exc)[:180]}); previous cache retained")
+            # NSE quote/filing APIs may be blocked while its official EOD archive
+            # remains public. Save only the fields explicitly present in that file.
+            eod = bhavcopy_rows.get(symbol)
+            if eod:
+                old = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
+                merged = dict(old)
+                merged.update(eod)
+                merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+                stocks[symbol] = merged
+                success += 1
+                print(f"{symbol}: saved official NSE EOD fields; company fundamentals/filings unavailable ({str(exc)[:120]})")
+            else:
+                print(f"{symbol}: unavailable ({str(exc)[:180]}); previous cache retained")
         time.sleep(PAUSE_SECONDS)
 
     data["schema_version"] = 1
@@ -339,7 +420,7 @@ def main():
     data["last_batch"] = {"symbols": batch, "success": success, "attempted": len(batch)}
     data["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     data["source_note"] = (
-        "NSE public quote-equity, quarterly results comparison, Integrated Filing XBRL and Shareholding Pattern XBRL where available. "
+        "NSE official full bhavcopy EOD archive for dated price/volume/delivery fields when available; NSE quote-equity, quarterly results comparison, Integrated Filing XBRL and Shareholding Pattern XBRL where accessible. "
         "Promoter/FII/DII/Public values are parsed from filed XBRL facts; unavailable facts "
         "remain missing. Integrated Filing parser currently maps a conservative subset; sector-specific taxonomy validation is ongoing."
     )
