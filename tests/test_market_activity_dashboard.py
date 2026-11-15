@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=7"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=8"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
