@@ -320,6 +320,41 @@ def parsed_name_fallback(payload, symbol):
     return info.get("companyName") or payload.get("companyName") or symbol
 
 
+def safe_source(label, fetcher, fallback=None):
+    """Fetch one independent public source without discarding other source results."""
+    try:
+        return fetcher()
+    except Exception as exc:
+        print(f"{label} unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+        return fallback
+
+
+def extract_company_name(quote, integrated_payload=None, shareholding=None, master_record=None):
+    """Use an explicit company-name field from an NSE payload or verified master only."""
+    candidates = []
+    for payload in (quote, integrated_payload, shareholding):
+        if isinstance(payload, dict):
+            candidates.append(payload)
+            for key in ("info", "metadata", "data", "issuer", "company"):
+                value = payload.get(key)
+                if isinstance(value, dict):
+                    candidates.append(value)
+                elif isinstance(value, list):
+                    candidates.extend(row for row in value[:5] if isinstance(row, dict))
+        elif isinstance(payload, list):
+            candidates.extend(row for row in payload[:5] if isinstance(row, dict))
+    if isinstance(master_record, dict):
+        candidates.append(master_record)
+    for item in candidates:
+        for key in ("companyName", "company_name", "company", "issuerName", "issuer", "name"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                cleaned = value.strip()
+                if cleaned.upper() not in ("N/A", "NA", "NONE", "-"):
+                    return cleaned
+    return None
+
+
 def main():
     master = load_json(MASTER, {})
     symbols = sorted((master.get("stocks") or {}).keys())
@@ -346,81 +381,116 @@ def main():
     success = 0
     for symbol in batch:
         page = "https://www.nseindia.com/get-quotes/equity?symbol=" + symbol
-        try:
-            quote, trade, quote_error = fetch_quote_payloads(session, symbol, page)
-            if quote_error:
-                print(f"{symbol}: quote endpoint unavailable; continuing with independent NSE filings ({quote_error})")
-            time.sleep(PAUSE_SECONDS)
-            financial_payload = fetch_json(
+        quote, trade, quote_error = fetch_quote_payloads(session, symbol, page)
+        if quote_error:
+            print(f"{symbol}: quote endpoint unavailable; continuing with independent NSE filings ({quote_error})")
+
+        financial_payload = safe_source(
+            f"{symbol} financial results",
+            lambda: fetch_json(
                 session, BASE + "/results-comparision", {"index": "equities", "symbol": symbol},
                 "https://www.nseindia.com/companies-listing/corporate-filings-financial-results?symbol=" + symbol,
-            )
-            financials = parse_financial_results_comparison(financial_payload)
-            time.sleep(PAUSE_SECONDS)
-            integrated_financials = None
-            issuer = (quote.get("info") or quote.get("metadata") or {}).get("companyName") or parsed_name_fallback(quote, symbol)
-            integrated_payload = fetch_json(
+            ),
+        )
+        financials = safe_source(
+            f"{symbol} financial results parser",
+            lambda: parse_financial_results_comparison(financial_payload),
+        ) if financial_payload is not None else None
+        time.sleep(PAUSE_SECONDS)
+
+        integrated_financials = None
+        issuer = (quote.get("info") or quote.get("metadata") or {}).get("companyName") or parsed_name_fallback(quote, symbol)
+        integrated_payload = safe_source(
+            f"{symbol} integrated filings",
+            lambda: fetch_json(
                 session, BASE + "/integrated-filing-results",
                 {"index": "equities", "symbol": symbol, "issuer": issuer,
                  "period_ended": "all", "type": "Integrated Filing- Financials",
                  "page": 1, "size": 10},
                 "https://www.nseindia.com/companies-listing/corporate-integrated-filing",
-            )
-            filing = latest_integrated_filing(integrated_payload)
-            if filing:
+            ),
+        )
+        filing = safe_source(
+            f"{symbol} integrated filing selection",
+            lambda: latest_integrated_filing(integrated_payload),
+        ) if integrated_payload is not None else None
+        if filing:
+            def parse_integrated_document():
                 xml_content = fetch_archive_xml(
                     session, filing["url"],
                     "https://www.nseindia.com/companies-listing/corporate-integrated-filing",
                 )
                 parsed_xbrl = parse_integrated_financial_xbrl(xml_content)
-                if parsed_xbrl:
-                    filing_row = filing["row"]
-                    integrated_financials = {
-                        "filing": {
-                            "quarter_end": filing_row.get("quarterEndDate") or filing_row.get("qe_Date") or filing_row.get("to_date") or filing_row.get("periodEnded"),
-                            "broadcast_date": filing_row.get("broadcastDate") or filing_row.get("broadcast_Date") or filing_row.get("broadcastTime"),
-                            "audited": filing_row.get("audited"),
-                            "consolidated": filing_row.get("consolidated"),
-                            "submission_type": filing_row.get("typeOfSubmission") or filing_row.get("type_Sub"),
-                            "url": filing["url"],
-                        },
-                        "parsed": parsed_xbrl,
-                    }
-                time.sleep(PAUSE_SECONDS)
-            time.sleep(PAUSE_SECONDS)
-            shareholding = fetch_json(
+                if not parsed_xbrl:
+                    return None
+                filing_row = filing["row"]
+                return {
+                    "filing": {
+                        "quarter_end": filing_row.get("quarterEndDate") or filing_row.get("qe_Date") or filing_row.get("to_date") or filing_row.get("periodEnded"),
+                        "broadcast_date": filing_row.get("broadcastDate") or filing_row.get("broadcast_Date") or filing_row.get("broadcastTime"),
+                        "audited": filing_row.get("audited"),
+                        "consolidated": filing_row.get("consolidated"),
+                        "submission_type": filing_row.get("typeOfSubmission") or filing_row.get("type_Sub"),
+                        "url": filing["url"],
+                    },
+                    "parsed": parsed_xbrl,
+                }
+            integrated_financials = safe_source(f"{symbol} integrated XBRL", parse_integrated_document)
+        time.sleep(PAUSE_SECONDS)
+
+        shareholding = safe_source(
+            f"{symbol} shareholding",
+            lambda: fetch_json(
                 session, BASE + "/corporate-share-holdings-master",
                 {"index": "equities", "symbol": symbol},
                 "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern?symbol=" + symbol + "&tabIndex=equity",
-            )
-            parsed = apply_eod_fallback(parse_company_quote(quote, trade), bhavcopy_rows.get(symbol))
-            ownership = parse_shareholding(shareholding)
-            # Prefer the filed XBRL document for institution-level ownership.
-            # The summary endpoint alone exposes only promoter/public roll-ups.
-            filings = shareholding if isinstance(shareholding, list) else (
-                shareholding.get("data") if isinstance(shareholding, dict) else []
-            )
-            if isinstance(filings, list):
-                dated = [row for row in filings if isinstance(row, dict) and row.get("xbrl")]
-                dated.sort(key=filing_sort_key, reverse=True)
-                if dated:
-                    filing = dated[0]
-                    xbrl_url = filing_xml_url(filing)
-                    if xbrl_url:
+            ),
+        )
+        ownership = safe_source(
+            f"{symbol} shareholding parser",
+            lambda: parse_shareholding(shareholding),
+        ) if shareholding is not None else None
+        # Prefer the filed XBRL document for institution-level ownership.
+        # Failure to download/parse this optional document must not discard summary holdings.
+        filings = shareholding if isinstance(shareholding, list) else (
+            shareholding.get("data") if isinstance(shareholding, dict) else []
+        )
+        if isinstance(filings, list):
+            dated = [row for row in filings if isinstance(row, dict) and row.get("xbrl")]
+            dated.sort(key=filing_sort_key, reverse=True)
+            if dated:
+                filing_row = dated[0]
+                xbrl_url = safe_source("Shareholding XBRL URL", lambda: filing_xml_url(filing_row))
+                if xbrl_url:
+                    def parse_shareholding_document():
                         xml_content = fetch_archive_xml(
                             session, xbrl_url,
                             "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern",
                         )
-                        xbrl_ownership = parse_shareholding_xbrl(xml_content)
-                        if xbrl_ownership:
-                            ownership = dict(ownership or {})
-                            ownership.update(xbrl_ownership)
-                            ownership["as_of"] = filing.get("date") or ownership.get("as_of")
-                            ownership["filing_url"] = xbrl_url
-                            ownership["filing_type"] = "NSE SHP XBRL"
-                        time.sleep(PAUSE_SECONDS)
-            if not parsed.get("company_name") and not parsed.get("price") and not ownership and not integrated_financials:
-                raise ValueError("NSE returned no usable company, quote, or shareholding fields")
+                        return parse_shareholding_xbrl(xml_content)
+                    xbrl_ownership = safe_source(f"{symbol} shareholding XBRL", parse_shareholding_document)
+                    if xbrl_ownership:
+                        ownership = dict(ownership or {})
+                        ownership.update(xbrl_ownership)
+                        ownership["as_of"] = filing_row.get("date") or ownership.get("as_of")
+                        ownership["filing_url"] = xbrl_url
+                        ownership["filing_type"] = "NSE SHP XBRL"
+                    time.sleep(PAUSE_SECONDS)
+
+        parsed = apply_eod_fallback(parse_company_quote(quote, trade), bhavcopy_rows.get(symbol))
+        company_name = extract_company_name(
+            quote, integrated_payload, shareholding, (master.get("stocks") or {}).get(symbol)
+        )
+        if company_name and not parsed.get("company_name"):
+            parsed["company_name"] = company_name
+
+        has_new_data = bool(
+            any(value is not None for value in parsed.values())
+            or ownership or financials or integrated_financials
+        )
+        if not has_new_data:
+            print(f"{symbol}: no new usable fields; previous cache retained")
+        else:
             old = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
             merged = dict(old)
             for key, value in parsed.items():
@@ -435,21 +505,16 @@ def main():
             merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
             stocks[symbol] = merged
             success += 1
-            print(f"{symbol}: updated company/quote" + (" + shareholding" if ownership else " · shareholding unavailable"))
-        except Exception as exc:
-            # NSE quote/filing APIs may be blocked while its official EOD archive
-            # remains public. Save only the fields explicitly present in that file.
-            eod = bhavcopy_rows.get(symbol)
-            if eod:
-                old = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
-                merged = dict(old)
-                merged.update(eod)
-                merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
-                stocks[symbol] = merged
-                success += 1
-                print(f"{symbol}: saved official NSE EOD fields; company fundamentals/filings unavailable ({str(exc)[:120]})")
-            else:
-                print(f"{symbol}: unavailable ({str(exc)[:180]}); previous cache retained")
+            sources = []
+            if parsed.get("price") is not None:
+                sources.append(parsed.get("market_data_type") or "quote")
+            if ownership:
+                sources.append("shareholding")
+            if financials:
+                sources.append("financial results")
+            if integrated_financials:
+                sources.append("integrated XBRL")
+            print(f"{symbol}: saved " + ", ".join(sources or ["company metadata"]))
         time.sleep(PAUSE_SECONDS)
 
     data["schema_version"] = 1
