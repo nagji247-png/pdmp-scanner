@@ -13,6 +13,8 @@ from pathlib import Path
 import requests
 
 from nse_xbrl import filing_xml_url, parse_financial_results_comparison, parse_shareholding_xbrl
+from nse_integrated_xbrl import parse_integrated_financial_xbrl
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent
 MASTER = ROOT / "nse-fo-stock-sector-master.json"
@@ -124,11 +126,40 @@ def fetch_json(session, url, params, referer):
     return response.json()
 
 
+def latest_integrated_filing(payload):
+    """Return the newest filing row with a trusted NSE archive XBRL URL."""
+    rows = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        return None
+    candidates = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        url = row.get("xbrl") or row.get("xbrlFile") or row.get("attachmentFile")
+        if not isinstance(url, str) or not url.startswith("https://"):
+            continue
+        host = urlparse(url).hostname or ""
+        if host not in ("nsearchives.nseindia.com", "www.nseindia.com", "nseindia.com"):
+            continue
+        stamp = str(row.get("broadcastDate") or row.get("broadcastTime") or row.get("date") or "")
+        candidates.append((stamp, row, url))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    stamp, row, url = candidates[0]
+    return {"row": row, "url": url, "sort_date": stamp}
+
+
 def load_json(path, fallback):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return fallback
+
+
+def parsed_name_fallback(payload, symbol):
+    info = payload.get("info") or payload.get("metadata") or {}
+    return info.get("companyName") or payload.get("companyName") or symbol
 
 
 def main():
@@ -167,6 +198,39 @@ def main():
             )
             financials = parse_financial_results_comparison(financial_payload)
             time.sleep(PAUSE_SECONDS)
+            integrated_financials = None
+            issuer = (quote.get("info") or quote.get("metadata") or {}).get("companyName") or parsed_name_fallback(quote, symbol)
+            integrated_payload = fetch_json(
+                session, BASE + "/integrated-filing-results",
+                {"index": "equities", "symbol": symbol, "issuer": issuer,
+                 "period_ended": "all", "type": "Integrated Filing- Financials",
+                 "page": 1, "size": 10},
+                "https://www.nseindia.com/companies-listing/corporate-integrated-filing",
+            )
+            filing = latest_integrated_filing(integrated_payload)
+            if filing:
+                xml_response = session.get(
+                    filing["url"],
+                    headers={"Referer": "https://www.nseindia.com/companies-listing/corporate-integrated-filing"},
+                    timeout=30,
+                )
+                xml_response.raise_for_status()
+                parsed_xbrl = parse_integrated_financial_xbrl(xml_response.content)
+                if parsed_xbrl:
+                    filing_row = filing["row"]
+                    integrated_financials = {
+                        "filing": {
+                            "quarter_end": filing_row.get("quarterEndDate") or filing_row.get("to_date") or filing_row.get("periodEnded"),
+                            "broadcast_date": filing_row.get("broadcastDate") or filing_row.get("broadcastTime"),
+                            "audited": filing_row.get("audited"),
+                            "consolidated": filing_row.get("consolidated"),
+                            "submission_type": filing_row.get("typeOfSubmission"),
+                            "url": filing["url"],
+                        },
+                        "parsed": parsed_xbrl,
+                    }
+                time.sleep(PAUSE_SECONDS)
+            time.sleep(PAUSE_SECONDS)
             shareholding = fetch_json(
                 session, BASE + "/corporate-share-holdings-master",
                 {"index": "equities", "symbol": symbol},
@@ -200,7 +264,7 @@ def main():
                             ownership["filing_url"] = xbrl_url
                             ownership["filing_type"] = "NSE SHP XBRL"
                         time.sleep(PAUSE_SECONDS)
-            if not parsed.get("company_name") and not parsed.get("price") and not ownership:
+            if not parsed.get("company_name") and not parsed.get("price") and not ownership and not integrated_financials:
                 raise ValueError("NSE returned no usable company, quote, or shareholding fields")
             old = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
             merged = dict(old)
@@ -211,6 +275,8 @@ def main():
                 merged["shareholding"] = ownership
             if financials:
                 merged["financials"] = financials
+            if integrated_financials:
+                merged["integrated_financials"] = integrated_financials
             merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
             stocks[symbol] = merged
             success += 1
@@ -226,9 +292,9 @@ def main():
     data["last_batch"] = {"symbols": batch, "success": success, "attempted": len(batch)}
     data["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     data["source_note"] = (
-        "NSE public quote-equity plus quarterly Shareholding Pattern XBRL where available. "
+        "NSE public quote-equity, quarterly results comparison, Integrated Filing XBRL and Shareholding Pattern XBRL where available. "
         "Promoter/FII/DII/Public values are parsed from filed XBRL facts; unavailable facts "
-        "remain missing. Financial statements and derived valuation ratios are not yet populated."
+        "remain missing. Integrated Filing parser currently maps a conservative subset; sector-specific taxonomy validation is ongoing."
     )
     OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     print(f"Saved {success}/{len(batch)} symbols; cursor {start} -> {data['next_index']} of {len(symbols)}")
