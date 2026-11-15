@@ -51,6 +51,51 @@ jobs:
           if batch.get("attempted") != 10 or batch.get("success", 0) < 5:
               raise SystemExit("Live NSE EOD batch produced fewer than 5 usable stock records")
           PY
+      - name: Probe official NSE filings independently of quote API
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import requests, time
+          from stock_company_research import seed_nse_session, PAUSE_SECONDS
+
+          session = requests.Session()
+          seed_nse_session(session)
+          base = "https://www.nseindia.com/api"
+          referer = "https://www.nseindia.com/companies-listing/corporate-integrated-filing"
+          probes = [
+              ("integrated_filing", base + "/integrated-filing-results", {
+                  "index": "equities", "symbol": "360ONE", "issuer": "360ONE",
+                  "period_ended": "all", "type": "Integrated Filing- Financials",
+                  "page": 1, "size": 10,
+              }),
+              ("shareholding", base + "/corporate-share-holdings-master", {
+                  "index": "equities", "symbol": "360ONE",
+              }),
+              ("financial_results", base + "/results-comparision", {
+                  "index": "equities", "symbol": "360ONE",
+              }),
+          ]
+          for name, url, params in probes:
+              try:
+                  response = session.get(url, params=params,
+                      headers={"Referer": referer, "Accept": "application/json, text/plain, */*"},
+                      timeout=25)
+                  print(f"{name}: HTTP {response.status_code}; bytes={len(response.content)}")
+                  if response.ok:
+                      try:
+                          payload = response.json()
+                          print(f"{name}: JSON type={type(payload).__name__}; keys={list(payload)[:12] if isinstance(payload, dict) else 'list'}")
+                          if name == "integrated_filing" and isinstance(payload, dict):
+                              rows = payload.get("data") or []
+                              print(f"{name}: filing_rows={len(rows)}")
+                              for row in rows[:2]:
+                                  print(f"{name}: sample={{{k: row.get(k) for k in ('quarterEndDate','qe_Date','broadcastDate','xbrl','xbrlFile') if k in row}}}")
+                      except ValueError:
+                          print(f"{name}: response was not JSON")
+              except Exception as exc:
+                  print(f"{name}: ERROR {type(exc).__name__}: {str(exc)[:180]}")
+              time.sleep(PAUSE_SECONDS)
+          PY
       - name: Upload isolated NSE smoke-test cache
         if: always()
         uses: actions/upload-artifact@v4
