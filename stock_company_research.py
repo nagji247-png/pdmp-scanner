@@ -70,7 +70,14 @@ def parse_shareholding(payload):
     if not isinstance(payload, list) or not payload:
         return None
     rows = [row for row in payload if isinstance(row, dict) and row.get("date")]
-    rows.sort(key=lambda row: str(row.get("date")), reverse=True)
+    def filing_date(row):
+        for fmt in ("%d-%b-%Y", "%d-%b-%y"):
+            try:
+                return dt.datetime.strptime(str(row.get("date")), fmt).date()
+            except ValueError:
+                pass
+        return dt.date.min
+    rows.sort(key=filing_date, reverse=True)
     if not rows:
         return None
 
