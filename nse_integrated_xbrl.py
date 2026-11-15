@@ -6,10 +6,13 @@ Monetary INR facts are converted from absolute rupees to ₹ crore.
 """
 from __future__ import annotations
 
+import datetime as dt
 import math
 import xml.etree.ElementTree as ET
 
-CONTEXTS = {"OneD": "quarter", "FourD": "ytd", "OneI": "balance_sheet", "PY_I": "prior_balance_sheet"}
+# Legacy labels are only a fallback for malformed/undated contexts. Real
+# instances are classified from their reporting dates, not contextRef names.
+LEGACY_CONTEXTS = {"OneD": "quarter", "FourD": "ytd", "OneI": "balance_sheet", "PY_I": "prior_balance_sheet"}
 
 MONEY_TAGS = {
     "RevenueFromOperations": "revenue",
@@ -69,19 +72,77 @@ def parse_integrated_financial_xbrl(source):
         if unit_id:
             units[unit_id] = measures
 
-    contexts = {}
+    context_records = {}
     for node in root.iter():
         if _local(node.tag) != "context":
             continue
         cid = node.attrib.get("id")
-        if cid not in CONTEXTS:
+        if not cid:
+            continue
+        # Company-wide totals must not accidentally use segment/dimensional facts.
+        if any(_local(child.tag) in ("segment", "scenario") and
+               any(_local(desc.tag) in ("explicitMember", "typedMember") for desc in child.iter())
+               for child in node):
             continue
         period = next((child for child in node if _local(child.tag) == "period"), None)
         if period is None:
             continue
         dates = {_local(child.tag): (child.text or "").strip() for child in period}
-        contexts[cid] = dates
+        context_records[cid] = dates
 
+    if not context_records:
+        return None
+
+    def as_date(value):
+        try:
+            return dt.date.fromisoformat(value)
+        except (TypeError, ValueError):
+            return None
+
+    # XBRL context IDs are arbitrary. Classify from actual reporting periods.
+    classified = {}
+    instant_dates = []
+    duration_records = []
+    for cid, dates in context_records.items():
+        instant = as_date(dates.get("instant"))
+        start = as_date(dates.get("startDate"))
+        end = as_date(dates.get("endDate"))
+        if instant:
+            instant_dates.append((instant, cid))
+        elif start and end and end >= start:
+            duration_records.append((start, end, cid))
+
+    if instant_dates:
+        unique_instants = sorted({item[0] for item in instant_dates}, reverse=True)
+        latest_instant = unique_instants[0]
+        prior_instant = unique_instants[1] if len(unique_instants) > 1 else None
+        for instant, cid in instant_dates:
+            if instant == latest_instant:
+                classified[cid] = "balance_sheet"
+            elif prior_instant and instant == prior_instant:
+                classified[cid] = "prior_balance_sheet"
+
+    duration_groups = {"quarter": [], "ytd": []}
+    for start, end, cid in duration_records:
+        days = (end - start).days + 1
+        if 60 <= days <= 120:
+            duration_groups["quarter"].append((end, cid))
+        elif 150 <= days <= 300:
+            duration_groups["ytd"].append((end, cid))
+
+    for category, records in duration_groups.items():
+        if records:
+            latest_end = max(item[0] for item in records)
+            for end, cid in records:
+                if end == latest_end:
+                    classified[cid] = category
+
+    # Conservative compatibility fallback for known legacy IDs only.
+    for cid in context_records:
+        if cid not in classified and cid in LEGACY_CONTEXTS:
+            classified[cid] = LEGACY_classified[cid]
+
+    contexts = {cid: context_records[cid] for cid in classified}
     if not contexts:
         return None
 
@@ -110,21 +171,21 @@ def parse_integrated_financial_xbrl(source):
     result = {"periods": {}, "source": "NSE India · Integrated Filing - Financials XBRL",
               "unit": "₹ Crore for monetary values; ₹ per share for EPS"}
     for cid, dates in contexts.items():
-        result["periods"][CONTEXTS[cid]] = dates
+        result["periods"][classified[cid]] = dates
 
     for tag, field in MONEY_TAGS.items():
         if tag in facts:
             for cid, value in facts[tag].items():
-                result.setdefault(CONTEXTS[cid], {})[field + "_cr"] = round(value / 10000000.0, 6)
+                result.setdefault(classified[cid], {})[field + "_cr"] = round(value / 10000000.0, 6)
     for tag, field in PER_SHARE_TAGS.items():
         if tag in facts:
             for cid, value in facts[tag].items():
-                result.setdefault(CONTEXTS[cid], {})[field] = value
+                result.setdefault(classified[cid], {})[field] = value
 
     # No debt/equity ratio is inferred: financial liabilities are not identical to borrowings.
 
     result["raw_facts"] = {
-        tag: {CONTEXTS[cid]: value for cid, value in values.items()}
+        tag: {classified[cid]: value for cid, value in values.items()}
         for tag, values in facts.items()
     }
     result["taxonomy"] = next(((node.attrib.get("href") or node.attrib.get("{http://www.w3.org/1999/xlink}href"))
