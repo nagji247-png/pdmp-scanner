@@ -188,5 +188,28 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertIsNone(result["market_cap_cr"])
 
 
+    def test_quote_failure_does_not_abort_independent_filing_pipeline(self):
+        original_fetch_json = research.fetch_json
+        original_sleep = research.time.sleep
+        calls = []
+        def fake_fetch_json(_session, _url, params, _referer):
+            calls.append(params)
+            if len(calls) == 1:
+                raise RuntimeError("HTTP 403")
+            return {}
+        research.fetch_json = fake_fetch_json
+        research.time.sleep = lambda _seconds: None
+        try:
+            quote, trade, error = research.fetch_quote_payloads(
+                object(), "360ONE", "https://www.nseindia.com/get-quotes/equity?symbol=360ONE"
+            )
+        finally:
+            research.fetch_json = original_fetch_json
+            research.time.sleep = original_sleep
+        self.assertEqual(quote, {})
+        self.assertEqual(trade, {})
+        self.assertIn("HTTP 403", error)
+        self.assertEqual(len(calls), 1)
+
 if __name__ == "__main__":
     unittest.main()
