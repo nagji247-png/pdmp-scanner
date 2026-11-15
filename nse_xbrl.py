@@ -132,3 +132,60 @@ def filing_xml_url(filing: dict) -> str | None:
     if url.startswith("http://") or url.startswith("https://"):
         return url
     return None
+
+
+def parse_financial_results_comparison(payload: dict) -> dict | None:
+    """Parse NSE's filed quarterly results comparison payload.
+
+    Values for income and profit are reported in rupees lakhs by NSE and are
+    converted to crore. EPS and ratios retain their reported units. This is a
+    filing-summary feed, not a substitute for the complete XBRL statements.
+    """
+    if not isinstance(payload, dict):
+        return None
+    rows = payload.get("resCmpData")
+    if not isinstance(rows, list):
+        return None
+    parsed = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        end_date = row.get("re_to_dt")
+        if not end_date:
+            continue
+
+        def amount(key):
+            value = _number(row.get(key))
+            return round(value / 100.0, 4) if value is not None else None
+
+        parsed.append({
+            "period_end": end_date,
+            "period_start": row.get("re_from_dt"),
+            "revenue_cr": amount("re_total_inc") if amount("re_total_inc") is not None else amount("re_net_sale"),
+            "net_profit_cr": amount("re_net_profit") if amount("re_net_profit") is not None else amount("re_proloss_ord_act"),
+            "eps": _number(row.get("re_basic_eps_for_cont_dic_opr")) if _number(row.get("re_basic_eps_for_cont_dic_opr")) is not None else _number(row.get("re_basic_eps")),
+            "debt_equity": _number(row.get("re_debt_eqt_rat")),
+            "face_value": _number(row.get("re_face_val")),
+            "audited_status": row.get("re_res_type"),
+            "source": "NSE India Corporate Filings · Financial Results comparison",
+            "amount_unit": "₹ Crore (converted from NSE ₹ Lakhs)",
+        })
+    if not parsed:
+        return None
+    parsed.sort(key=lambda item: _parse_filing_date(item.get("period_end")), reverse=True)
+    return {
+        "latest": parsed[0],
+        "quarters": parsed[:8],
+        "source": "NSE India Corporate Filings · Financial Results comparison",
+        "note": "Quarterly filing summary; not full balance sheet/cash flow XBRL.",
+    }
+
+
+def _parse_filing_date(value):
+    raw = str(value or "")
+    for fmt in ("%d-%b-%Y", "%d-%b-%y", "%Y-%m-%d"):
+        try:
+            return __import__("datetime").datetime.strptime(raw, fmt).date()
+        except ValueError:
+            pass
+    return __import__("datetime").date.min
