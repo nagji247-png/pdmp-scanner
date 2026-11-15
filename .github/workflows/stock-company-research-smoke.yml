@@ -51,6 +51,44 @@ jobs:
           if batch.get("attempted") != 10 or batch.get("success", 0) < 5:
               raise SystemExit("Live NSE EOD batch produced fewer than 5 usable stock records")
           PY
+      - name: Validate actual ten-stock company and filing coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("stock-company-data.json").read_text(encoding="utf-8"))
+          batch = data.get("last_batch") or {}
+          stocks = data.get("stocks") or {}
+          symbols = batch.get("symbols") or []
+          if len(symbols) != 10:
+              raise SystemExit(f"Expected 10 smoke symbols, got {len(symbols)}")
+
+          checks = {
+              "company_name": lambda row: bool(row.get("company_name")),
+              "industry": lambda row: bool(row.get("industry")),
+              "sector": lambda row: bool(row.get("sector")),
+              "dated_eod_price": lambda row: row.get("price") is not None and bool(row.get("market_data_as_of")),
+              "shareholding_xbrl": lambda row: bool((row.get("shareholding") or {}).get("filing_url")),
+              "integrated_filing_xml": lambda row: bool((row.get("integrated_financials") or {}).get("filing", {}).get("url")),
+              "integrated_quarter": lambda row: bool((row.get("integrated_financials") or {}).get("parsed", {}).get("quarter")),
+          }
+          counts = {name: sum(bool(check(stocks.get(symbol) or {})) for symbol in symbols)
+                    for name, check in checks.items()}
+          print(json.dumps({"symbols": symbols, "coverage": counts}, ensure_ascii=False, indent=2))
+          required = ("company_name", "industry", "sector", "dated_eod_price",
+                      "shareholding_xbrl", "integrated_filing_xml", "integrated_quarter")
+          failures = {name: counts[name] for name in required if counts[name] != 10}
+          if failures:
+              raise SystemExit(f"Live NSE company/filing coverage incomplete: {failures}")
+
+          balance_sheet_count = sum(
+              bool((stocks.get(symbol) or {}).get("integrated_financials", {}).get("parsed", {}).get("balance_sheet", {}).get("total_assets_cr") is not None)
+              for symbol in symbols
+          )
+          market_cap_count = sum((stocks.get(symbol) or {}).get("market_cap_cr") is not None for symbol in symbols)
+          print(f"Optional fields: total_assets={balance_sheet_count}/10; market_cap={market_cap_count}/10")
+          PY
       - name: Probe official NSE filings independently of quote API
         continue-on-error: true
         run: |
