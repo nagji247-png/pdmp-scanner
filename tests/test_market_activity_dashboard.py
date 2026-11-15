@@ -77,6 +77,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_fpi_sector_rows_open_stock_list_and_stock_detail_is_company_only(self):
         self.assertIn('class="ma-flow ma-flow-button" data-sector="', self.script)
+        self.assertIn("sort(function(a,b){return b.flow-a.flow;})", self.script)
         self.assertIn("कंपनी का कारोबार", self.script)
         self.assertIn("Shareholding Pattern", self.script)
         self.assertIn("Fundamental Ratios", self.script)
