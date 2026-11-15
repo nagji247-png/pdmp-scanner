@@ -40,7 +40,7 @@ class StockCompanyResearchTests(unittest.TestCase):
             {"total_shares": 80000000, "as_of": "30-SEP-2026",
              "promoter_pct": 60.0, "public_pct": 40.0},
         )
-        self.assertEqual(result["market_cap_cr"], 10.0)
+        self.assertEqual(result["market_cap_cr"], 1000.0)
         self.assertEqual(result["market_cap_method"], "derived_price_x_nse_shareholding_total_shares")
         self.assertEqual(result["market_cap_price_as_of"], "2026-11-13")
         self.assertEqual(result["market_cap_shares_as_of"], "30-SEP-2026")
