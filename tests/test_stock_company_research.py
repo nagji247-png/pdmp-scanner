@@ -55,6 +55,12 @@ class StockCompanyResearchTests(unittest.TestCase):
         ]})
         self.assertEqual(result["url"], "https://nsearchives.nseindia.com/corporate/xbrl/new.xml")
 
+    def test_latest_integrated_filing_accepts_official_nseindia_in_archive_host(self):
+        url = "https://nsearchives.nseindia.in/corporate/xbrl/INTEGRATED_FILING_NBFC_INDAS_1739317_15102026070629_WEB.xml"
+        result = research.latest_integrated_filing({"data": [{"qe_Date": "30-SEP-2026", "xbrl": url}]})
+        self.assertIsNotNone(result)
+        self.assertEqual(result["url"], url)
+
     def test_latest_integrated_filing_uses_broadcast_time_for_same_day_rows(self):
         result = research.latest_integrated_filing({"data": [
             {"broadcast_Date": "14-Nov-2026 09:15:00",
