@@ -22,27 +22,38 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=2"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=3"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
 
-    def test_radar_has_requested_interactive_sections(self):
-        for text in ("MARKET ACTIVITY RADAR", "LATEST ACTIVITY ALERTS",
-                     "SECTOR ACTIVITY", "FPI FLOW + NEWS CONFIRMATION",
-                     "218 STOCK MASTER LIST", "data-stock",
-                     "ma-sector-grid", "data-sector", "data-back",
-                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं", "आपकी DRAWING PREVIEW", "stock-chart-drawings.json", "s3.tradingview.com/snapshots", "अपना TradingView Chart खोलें", "https://www.tradingview.com/chart/?symbol=NSE%3A"):
-
+    def test_radar_has_four_clickable_summary_counts(self):
+        for text in ("सबसे ऊपर — आज की हलचल", "MARKET ACTIVITY RADAR",
+                     "तेजी वाले सेक्टर", "मंदी वाले सेक्टर", "असामान्य स्टॉक",
+                     "FPI प्रवाह बदलाव", 'data-radar="bull"', 'data-radar="bear"',
+                     'data-radar="unusual"', 'data-radar="fpi"', "SECTOR ACTIVITY",
+                     "data-stock", "ma-sector-grid", "data-sector", "data-back",
+                     "stock-chart-drawings.json", "s3.tradingview.com/snapshots",
+                     "अपना TradingView Chart खोलें", "https://www.tradingview.com/chart/?symbol=NSE%3A"):
             self.assertIn(text, self.script)
+
+    def test_sector_and_stock_order_is_activity_first(self):
+        self.assertIn("function compareSectors", self.script)
+        self.assertIn("function compareStocks", self.script)
+        self.assertIn("function sectorOrder", self.script)
+        self.assertIn("function stockOrder", self.script)
+        self.assertIn("function fpiDeltaMap", self.script)
+        self.assertIn("पिछली अवधि से तुलना", self.script)
+        self.assertNotIn("LATEST ACTIVITY ALERTS", self.script)
+        self.assertNotIn("218 STOCK MASTER LIST", self.script)
+        self.assertNotIn("FPI FLOW + NEWS CONFIRMATION</div><div class=\"ma-intro\"", self.script)
 
     def test_uses_existing_static_data_and_does_not_invent_missing_fields(self):
         for text in ("nse-fo-stock-sector-master.json", "fpi-sector-data.json",
                      'fetch("data.json?', "वॉल्यूम:",
                      "crowd mood उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं"):
             self.assertIn(text, self.script)
-
 
     def test_navigation_is_progressive_and_back_control_stays_visible(self):
         self.assertIn('position:sticky', self.script)
@@ -52,8 +63,6 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn('requestAnimationFrame(scrollToActivityTop)', self.script)
         self.assertNotIn('render();window.scrollTo(0,0)', self.script)
         self.assertIn('window.addEventListener("popstate"', self.script)
-        self.assertIn('पूरी स्टॉक सूची खोलें', self.script)
-        self.assertIn('<div class="ma-master"><details>', self.script)
         self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
 
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
