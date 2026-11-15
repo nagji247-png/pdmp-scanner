@@ -73,7 +73,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn('requestAnimationFrame(scrollToActivityTop)', self.script)
         self.assertIn('window.addEventListener("popstate"', self.script)
         self.assertIn('sector:stk.getAttribute("data-sector-name")||"",scroll:0', self.script)
-        self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
+        self.assertIn('KNOW YOUR STOCK', self.script)
 
     def test_fpi_sector_rows_open_stock_list_and_stock_detail_is_company_only(self):
         self.assertIn('class="ma-flow ma-flow-button" data-sector="', self.script)
