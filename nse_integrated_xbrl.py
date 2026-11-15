@@ -101,13 +101,7 @@ def parse_integrated_financial_xbrl(source):
             for cid, value in facts[tag].items():
                 result.setdefault(CONTEXTS[cid], {})[field] = value
 
-    # Debt/equity is calculated only when both filed balance-sheet facts exist.
-    bs = result.get("balance_sheet", {})
-    debt_parts = [bs.get("current_financial_liabilities_cr"),
-                  bs.get("noncurrent_financial_liabilities_cr")]
-    if bs.get("total_equity_cr") not in (None, 0) and any(v is not None for v in debt_parts):
-        debt = sum(v or 0 for v in debt_parts)
-        bs["debt_equity_ratio"] = round(debt / bs["total_equity_cr"], 6)
+    # No debt/equity ratio is inferred: financial liabilities are not identical to borrowings.
 
     result["raw_facts"] = {
         tag: {CONTEXTS[cid]: value for cid, value in values.items()}
