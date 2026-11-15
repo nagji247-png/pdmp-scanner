@@ -83,6 +83,52 @@ class StockCompanyResearchTests(unittest.TestCase):
             {"broadcastDate": "15-Nov-2026", "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/attachment.pdf"},
         ]}))
 
+    def test_fetch_json_reseeds_nse_session_after_forbidden_response(self):
+        class Response:
+            def __init__(self, status, payload=None):
+                self.status_code = status
+                self._payload = payload or {}
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise RuntimeError(f"HTTP {self.status_code}")
+            def json(self):
+                return self._payload
+
+        class Session:
+            def __init__(self):
+                self.headers = {}
+                self.responses = [Response(403), Response(200), Response(200), Response(200, {"data": [1]})]
+                self.calls = []
+            def get(self, url, **kwargs):
+                self.calls.append(url)
+                return self.responses.pop(0)
+
+        session = Session()
+        old_sleep = research.time.sleep
+        research.time.sleep = lambda _seconds: None
+        try:
+            result = research.fetch_json(session, "https://www.nseindia.com/api/example", {}, "https://www.nseindia.com/")
+        finally:
+            research.time.sleep = old_sleep
+        self.assertEqual(result, {"data": [1]})
+        self.assertIn("https://www.nseindia.com/market-data/live-equity-market", session.calls)
+        self.assertEqual(len(session.calls), 4)
+
+    def test_archive_html_challenge_is_not_passed_to_xbrl_parser(self):
+        class Response:
+            status_code = 200
+            headers = {"Content-Type": "text/html"}
+            content = b"<!doctype html><html><title>Access Denied</title></html>"
+            def raise_for_status(self):
+                return None
+
+        class Session:
+            def get(self, _url, **_kwargs):
+                return Response()
+
+        with self.assertRaisesRegex(ValueError, "HTML challenge"):
+            research.fetch_archive_xml(Session(), "https://nsearchives.nseindia.com/corporate/xbrl/test.xml", "https://www.nseindia.com/")
+
     def test_invalid_numeric_fields_remain_missing(self):
         result = research.parse_company_quote({
             "info": {"companyName": "Example"},
