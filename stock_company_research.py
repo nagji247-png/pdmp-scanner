@@ -45,12 +45,14 @@ def pick(obj, *keys):
 
 def filing_sort_key(row):
     raw = str(row.get("broadcastDate") or row.get("broadcast_Date") or row.get("broadcastTime") or row.get("date") or row.get("filingDate") or row.get("qe_Date") or row.get("quarterEndDate") or "")
-    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
         try:
-            return dt.datetime.strptime(raw, fmt).date()
+            # Keep the time component so same-day revised filings are ordered
+            # by their actual broadcast timestamp, not API row order.
+            return dt.datetime.strptime(raw, fmt)
         except ValueError:
             pass
-    return dt.date.min
+    return dt.datetime.min
 
 
 def parse_company_quote(payload, trade_payload=None):
@@ -135,11 +137,17 @@ def latest_integrated_filing(payload):
     for row in rows:
         if not isinstance(row, dict):
             continue
-        url = row.get("xbrl") or row.get("xbrlFile") or row.get("attachmentFile")
+        # Only accept an explicit XBRL XML field. A generic attachmentFile
+        # may point to a PDF/HTML document and must never be sent to the XML parser.
+        url = row.get("xbrl") or row.get("xbrlFile")
         if not isinstance(url, str) or not url.startswith("https://"):
             continue
-        host = urlparse(url).hostname or ""
+        parsed_url = urlparse(url)
+        host = parsed_url.hostname or ""
+        path = parsed_url.path.lower()
         if host not in ("nsearchives.nseindia.com", "www.nseindia.com", "nseindia.com"):
+            continue
+        if "/corporate/xbrl/" not in path or not path.endswith(".xml"):
             continue
         stamp = str(row.get("broadcastDate") or row.get("broadcast_Date") or row.get("broadcastTime") or row.get("date") or row.get("qe_Date") or "")
         candidates.append((filing_sort_key(row), row, url, stamp))
