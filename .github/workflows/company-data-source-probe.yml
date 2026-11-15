@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install public-data probe dependency
+        run: pip install requests
       - name: Probe free public data sources
         run: |
           python - <<'PY'
