@@ -41,6 +41,16 @@ def pick(obj, *keys):
     return current
 
 
+def filing_sort_key(row):
+    raw = str(row.get("date") or row.get("filingDate") or "")
+    for fmt in ("%d-%b-%Y", "%d-%b-%y", "%Y-%m-%d"):
+        try:
+            return dt.datetime.strptime(raw, fmt).date()
+        except ValueError:
+            pass
+    return dt.date.min
+
+
 def parse_company_quote(payload, trade_payload=None):
     if not isinstance(payload, dict):
         return {}
@@ -165,7 +175,7 @@ def main():
             )
             if isinstance(filings, list):
                 dated = [row for row in filings if isinstance(row, dict) and row.get("xbrl")]
-                dated.sort(key=lambda row: filing_date(row), reverse=True)
+                dated.sort(key=filing_sort_key, reverse=True)
                 if dated:
                     filing = dated[0]
                     xbrl_url = filing_xml_url(filing)
