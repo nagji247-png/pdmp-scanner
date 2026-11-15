@@ -12,6 +12,8 @@ from pathlib import Path
 
 import requests
 
+from nse_xbrl import filing_xml_url, parse_shareholding_xbrl
+
 ROOT = Path(__file__).resolve().parent
 MASTER = ROOT / "nse-fo-stock-sector-master.json"
 OUT = ROOT / "stock-company-data.json"
@@ -156,6 +158,32 @@ def main():
             )
             parsed = parse_company_quote(quote, trade)
             ownership = parse_shareholding(shareholding)
+            # Prefer the filed XBRL document for institution-level ownership.
+            # The summary endpoint alone exposes only promoter/public roll-ups.
+            filings = shareholding if isinstance(shareholding, list) else (
+                shareholding.get("data") if isinstance(shareholding, dict) else []
+            )
+            if isinstance(filings, list):
+                dated = [row for row in filings if isinstance(row, dict) and row.get("xbrl")]
+                dated.sort(key=lambda row: filing_date(row), reverse=True)
+                if dated:
+                    filing = dated[0]
+                    xbrl_url = filing_xml_url(filing)
+                    if xbrl_url:
+                        xml_response = session.get(
+                            xbrl_url,
+                            headers={"Referer": "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern"},
+                            timeout=30,
+                        )
+                        xml_response.raise_for_status()
+                        xbrl_ownership = parse_shareholding_xbrl(xml_response.content)
+                        if xbrl_ownership:
+                            ownership = dict(ownership or {})
+                            ownership.update(xbrl_ownership)
+                            ownership["as_of"] = filing.get("date") or ownership.get("as_of")
+                            ownership["filing_url"] = xbrl_url
+                            ownership["filing_type"] = "NSE SHP XBRL"
+                        time.sleep(PAUSE_SECONDS)
             if not parsed.get("company_name") and not parsed.get("price") and not ownership:
                 raise ValueError("NSE returned no usable company, quote, or shareholding fields")
             old = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
@@ -180,9 +208,9 @@ def main():
     data["last_batch"] = {"symbols": batch, "success": success, "attempted": len(batch)}
     data["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     data["source_note"] = (
-        "NSE public quote-equity and quarterly shareholding filings. "
-        "FII/DII breakdown, business description, valuation ratios and financial statements "
-        "are intentionally not inferred from aggregate promoter/public data."
+        "NSE public quote-equity plus quarterly Shareholding Pattern XBRL where available. "
+        "Promoter/FII/DII/Public values are parsed from filed XBRL facts; unavailable facts "
+        "remain missing. Financial statements and derived valuation ratios are not yet populated."
     )
     OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     print(f"Saved {success}/{len(batch)} symbols; cursor {start} -> {data['next_index']} of {len(symbols)}")
