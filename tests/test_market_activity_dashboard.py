@@ -85,6 +85,10 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("NSE XBRL Quarter Net Profit", self.script)
         self.assertIn("NSE XBRL Basic EPS", self.script)
         self.assertIn("integrated_financials", self.script)
+        self.assertIn("function parseNsePeriod(value)", self.script)
+        self.assertIn("comparisonPeriodFresh", self.script)
+        self.assertIn("पुराना रिकॉर्ड", self.script)
+        self.assertIn("Integrated XBRL · ", self.script)
         self.assertIn("Valuation Scorecard", self.script)
         stock_detail = self.script.split("function renderStock(symbol,sector){", 1)[1].split("\nfunction render(){", 1)[0]
         self.assertNotIn("crowd", stock_detail.lower())
