@@ -264,7 +264,7 @@ def latest_integrated_filing(payload):
         parsed_url = urlparse(url)
         host = parsed_url.hostname or ""
         path = parsed_url.path.lower()
-        if host not in ("nsearchives.nseindia.com", "www.nseindia.com", "nseindia.com"):
+        if host not in ("nsearchives.nseindia.com", "nsearchives.nseindia.in", "www.nseindia.com", "nseindia.com"):
             continue
         if "/corporate/xbrl/" not in path or not path.endswith(".xml"):
             continue
