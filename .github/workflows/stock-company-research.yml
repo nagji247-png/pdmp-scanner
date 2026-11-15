@@ -1,5 +1,11 @@
 name: Refresh NSE stock company research cache
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'stock_company_research.py'
+      - 'nse-fo-stock-sector-master.json'
+      - '.github/workflows/stock-company-research.yml'
   workflow_dispatch:
     inputs:
       batch_size:
