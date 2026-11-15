@@ -134,8 +134,16 @@ def fetch_latest_nse_bhavcopy(session, symbols, today=None):
                 if symbol in symbols and series == "EQ":
                     parsed = parse_nse_bhavcopy_row(row)
                     if parsed.get("price") is not None:
+                        raw_date = str(row.get("DATE1") or "").strip()
+                        market_day = day
+                        for date_format in ("%d-%b-%Y", "%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d"):
+                            try:
+                                market_day = dt.datetime.strptime(raw_date, date_format).date()
+                                break
+                            except ValueError:
+                                continue
                         parsed.update({
-                            "market_data_as_of": day.isoformat(),
+                            "market_data_as_of": market_day.isoformat(),
                             "quote_source": "NSE official full bhavcopy EOD archive",
                             "market_data_type": "end_of_day",
                         })
