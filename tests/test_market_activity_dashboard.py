@@ -44,8 +44,10 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("function sectorOrder", self.script)
         self.assertIn("function stockOrder", self.script)
         self.assertIn("function fpiDeltaMap", self.script)
+        self.assertIn("function activityAlerts()", self.script)
+        self.assertIn("ma-chart-preview{border:1px solid #9272d6", self.script)
         self.assertIn("पिछली अवधि से तुलना", self.script)
-        self.assertNotIn("LATEST ACTIVITY ALERTS", self.script)
+        self.assertIn("LATEST ACTIVITY ALERTS", self.script)
         self.assertNotIn("218 STOCK MASTER LIST", self.script)
         self.assertNotIn("FPI FLOW + NEWS CONFIRMATION</div><div class=\"ma-intro\"", self.script)
 
