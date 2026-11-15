@@ -26,7 +26,7 @@ jobs:
         run: pip install requests
       - name: Refresh a small NSE batch
         env:
-          STOCK_RESEARCH_BATCH_SIZE: \${{ github.event.inputs.batch_size || '10' }}
+          STOCK_RESEARCH_BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
         run: python stock_company_research.py
       - name: Commit only company research cache
         run: |
