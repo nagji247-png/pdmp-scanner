@@ -93,7 +93,7 @@ def parse_nse_bhavcopy_row(row):
     change_pct = round((close / previous - 1) * 100, 4) if close is not None and previous not in (None, 0) else None
     fields = {
         "price": close,
-        "previous_close": previous,
+        "previous_close": previous if previous is not None and previous > 0 else None,
         "change_pct": change_pct,
         "open": number(row.get("OPEN_PRICE")),
         "high": number(row.get("HIGH_PRICE")),
@@ -119,7 +119,7 @@ def fetch_latest_nse_bhavcopy(session, symbols, today=None):
         url = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_" + day.strftime("%d%m%Y") + ".csv"
         try:
             response = session.get(url, timeout=30)
-            if response.status_code != 200 or len(response.content) < 1000:
+            if response.status_code != 200 or len(response.content) < 100:
                 continue
             text = response.content.decode("utf-8-sig", errors="replace")
             reader = csv.DictReader(StringIO(text))
