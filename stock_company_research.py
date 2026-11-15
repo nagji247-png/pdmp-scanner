@@ -122,10 +122,54 @@ def parse_shareholding(payload):
     }
 
 
+def seed_nse_session(session):
+    """Refresh ordinary NSE session cookies before retrying protected endpoints.
+
+    This does not bypass Akamai challenges or use private credentials. If NSE
+    requires a browser-issued challenge cookie, the request remains unavailable.
+    """
+    session.headers.update({
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Cache-Control": "no-cache",
+    })
+    session.get("https://www.nseindia.com", timeout=20)
+    time.sleep(PAUSE_SECONDS)
+    # NSE's own public client seeds this market-data page as well as the home page.
+    session.get("https://www.nseindia.com/market-data/live-equity-market", timeout=20)
+    time.sleep(PAUSE_SECONDS)
+
+
 def fetch_json(session, url, params, referer):
-    response = session.get(url, params=params, headers={"Referer": referer}, timeout=20)
-    response.raise_for_status()
-    return response.json()
+    last_response = None
+    for attempt in range(3):
+        response = session.get(url, params=params, headers={"Referer": referer}, timeout=25)
+        last_response = response
+        if response.status_code in (401, 403, 500) and attempt < 2:
+            seed_nse_session(session)
+            continue
+        response.raise_for_status()
+        return response.json()
+    last_response.raise_for_status()
+
+
+def fetch_archive_xml(session, url, referer):
+    """Fetch a verified NSE XBRL archive URL with the same seeded session."""
+    last_response = None
+    for attempt in range(3):
+        response = session.get(url, headers={"Referer": referer}, timeout=45)
+        last_response = response
+        if response.status_code in (401, 403, 500) and attempt < 2:
+            seed_nse_session(session)
+            continue
+        response.raise_for_status()
+        content_type = (response.headers.get("Content-Type") or "").lower()
+        if "html" in content_type or response.content[:100].lstrip().lower().startswith((b"<!doctype html", b"<html")):
+            raise ValueError("NSE archive returned an HTML challenge/page instead of XBRL XML")
+        return response.content
+    last_response.raise_for_status()
 
 
 def latest_integrated_filing(payload):
@@ -189,8 +233,7 @@ def main():
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
         "Cache-Control": "no-cache",
     })
-    session.get("https://www.nseindia.com", timeout=20).raise_for_status()
-    time.sleep(PAUSE_SECONDS)
+    seed_nse_session(session)
     stocks = data.setdefault("stocks", {})
     success = 0
     for symbol in batch:
@@ -217,13 +260,11 @@ def main():
             )
             filing = latest_integrated_filing(integrated_payload)
             if filing:
-                xml_response = session.get(
-                    filing["url"],
-                    headers={"Referer": "https://www.nseindia.com/companies-listing/corporate-integrated-filing"},
-                    timeout=30,
+                xml_content = fetch_archive_xml(
+                    session, filing["url"],
+                    "https://www.nseindia.com/companies-listing/corporate-integrated-filing",
                 )
-                xml_response.raise_for_status()
-                parsed_xbrl = parse_integrated_financial_xbrl(xml_response.content)
+                parsed_xbrl = parse_integrated_financial_xbrl(xml_content)
                 if parsed_xbrl:
                     filing_row = filing["row"]
                     integrated_financials = {
@@ -258,13 +299,11 @@ def main():
                     filing = dated[0]
                     xbrl_url = filing_xml_url(filing)
                     if xbrl_url:
-                        xml_response = session.get(
-                            xbrl_url,
-                            headers={"Referer": "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern"},
-                            timeout=30,
+                        xml_content = fetch_archive_xml(
+                            session, xbrl_url,
+                            "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern",
                         )
-                        xml_response.raise_for_status()
-                        xbrl_ownership = parse_shareholding_xbrl(xml_response.content)
+                        xbrl_ownership = parse_shareholding_xbrl(xml_content)
                         if xbrl_ownership:
                             ownership = dict(ownership or {})
                             ownership.update(xbrl_ownership)
