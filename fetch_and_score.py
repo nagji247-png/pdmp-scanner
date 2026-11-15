@@ -1660,6 +1660,120 @@ def nse_cash_quote(name, sym):
     return None
 
 
+
+def _parse_market_activity_timestamp(value):
+    """Parse an NSE bulk-index timestamp as exchange-local IST."""
+    if not value:
+        return None
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    parsed = None
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M",
+                "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            parsed = dt.datetime.strptime(str(value).strip(), fmt)
+            break
+        except ValueError:
+            pass
+    if parsed is None:
+        try:
+            parsed = dt.datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            return None
+    return parsed.replace(tzinfo=ist) if parsed.tzinfo is None else parsed.astimezone(ist)
+
+
+def market_activity_snapshot_is_fresh(snapshot, now=None):
+    """Keep cached bulk quotes only inside the live/closed-market freshness window."""
+    if not isinstance(snapshot, dict):
+        return False
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    current = current.replace(tzinfo=ist) if current.tzinfo is None else current.astimezone(ist)
+    stamp = _parse_market_activity_timestamp(snapshot.get("source_timestamp"))
+    if stamp is None:
+        return False
+    age_seconds = (current - stamp).total_seconds()
+    max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
+    return -120 <= age_seconds <= max_age
+
+
+def parse_nse_market_activity_bulk_payload(payload, expected_symbols, now=None):
+    """Parse one NSE NIFTY TOTAL MARKET snapshot for exact verified F&O symbols only."""
+    expected = {str(symbol).strip().upper() for symbol in expected_symbols}
+    empty = {"source": "NSE India equity-stockIndices · NIFTY TOTAL MARKET",
+             "source_timestamp": None,
+             "coverage": {"expected": len(expected), "matched": 0}, "instruments": {}}
+    if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+        return empty
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    current = current.replace(tzinfo=ist) if current.tzinfo is None else current.astimezone(ist)
+    stamp = _parse_market_activity_timestamp(payload.get("timestamp"))
+    if stamp is None:
+        raise ValueError("NSE bulk quote response has no valid exchange timestamp")
+    age_seconds = (current - stamp).total_seconds()
+    max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
+    if age_seconds < -120 or age_seconds > max_age:
+        raise ValueError("NSE bulk quote timestamp is outside the live/previous-close window")
+    source_date, source_time = stamp.strftime("%d/%m/%Y"), stamp.strftime("%I:%M %p IST")
+    instruments = {}
+    for row in payload["data"]:
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get("symbol") or "").strip().upper()
+        if symbol not in expected:
+            continue
+        price = _num(row.get("lastPrice"))
+        if price is None or price <= 0:
+            continue
+        change_pct, volume = _num(row.get("pChange")), _num(row.get("totalTradedVolume"))
+        instruments[symbol] = {
+            "type": "stock", "price": round(price, 2),
+            "change_pct": round(change_pct, 2) if change_pct is not None else None,
+            "volume": int(volume) if volume is not None and volume >= 0 else None,
+            "price_as_of": source_date, "price_time": source_time,
+            "price_source": "NSE India equity-stockIndices · NIFTY TOTAL MARKET API",
+            "volume_as_of": source_date,
+            "volume_source": "NSE India equity-stockIndices · totalTradedVolume",
+        }
+    return {
+        "source": "NSE India equity-stockIndices · NIFTY TOTAL MARKET",
+        "source_timestamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+        "coverage": {"expected": len(expected), "matched": len(instruments)},
+        "instruments": instruments,
+    }
+
+
+def fetch_nse_market_activity_bulk_quotes(expected_symbols):
+    """Fetch F&O market quotes in one NSE bulk request; never fan out 218 symbol calls."""
+    global NSE_DIRECT_WARMED
+    try:
+        if not NSE_DIRECT_WARMED:
+            warm = NSE_MCP_HTTP.get("https://www.nseindia.com", timeout=20)
+            warm.raise_for_status()
+            NSE_DIRECT_WARMED = True
+        response = NSE_MCP_HTTP.get(
+            "https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%20TOTAL%20MARKET",
+            headers={
+                "Accept": "application/json, text/plain, */*",
+                "Referer": "https://www.nseindia.com/market-data/live-equity-market",
+                "X-Requested-With": "XMLHttpRequest",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+                "Cache-Control": "no-cache",
+            }, timeout=25,
+        )
+        response.raise_for_status()
+        return parse_nse_market_activity_bulk_payload(response.json(), expected_symbols)
+    except Exception as exc:
+        print(f"NSE Market Activity bulk quote unavailable: {str(exc)[:220]}")
+        return {
+            "source": "NSE India equity-stockIndices · NIFTY TOTAL MARKET",
+            "source_timestamp": None,
+            "coverage": {"expected": len(expected_symbols), "matched": 0},
+            "instruments": {},
+        }
+
+
 def nse_stamp_fields(stamp):
     """NSE timestamps are exchange-local; output DD/MM/YYYY and 12-hour IST."""
     for fmt in ("%d-%b-%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S",
@@ -5727,6 +5841,30 @@ def main():
     for name, (sym, query) in STOCKS.items():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns)
+
+    # Market Activity uses one NSE bulk snapshot for the verified F&O master.
+    # This remains separate from the nine-stock PDMP watchlist and its scoring.
+    try:
+        activity_master = load_json("nse-fo-stock-sector-master.json", {})
+        activity_symbols = sorted((activity_master.get("stocks") or {}).keys())
+        activity_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        if not activity_quotes.get("instruments"):
+            cached_activity = previous.get("market_activity_quotes") or {}
+            if market_activity_snapshot_is_fresh(cached_activity):
+                activity_quotes = cached_activity
+        result["market_activity_quotes"] = activity_quotes
+        coverage = activity_quotes.get("coverage") or {}
+        print("MARKET_ACTIVITY_QUOTES "
+              f"matched={coverage.get('matched', 0)}/{coverage.get('expected', len(activity_symbols))} "
+              f"source_time={activity_quotes.get('source_timestamp') or 'unavailable'}")
+    except Exception as exc:
+        print(f"Market Activity bulk quote step skipped: {str(exc)[:220]}")
+        cached_activity = previous.get("market_activity_quotes") or {}
+        result["market_activity_quotes"] = (
+            cached_activity if market_activity_snapshot_is_fresh(cached_activity)
+            else {"source": "NSE India bulk quote", "source_timestamp": None,
+                  "coverage": {"expected": 218, "matched": 0}, "instruments": {}}
+        )
 
     # Add a clearly separate daily reference rate when the intraday FX quote is unavailable.
     # The live price field remains null unless a validated intraday quote exists.
