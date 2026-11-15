@@ -161,7 +161,7 @@ def parse_financial_results_comparison(payload: dict) -> dict | None:
         parsed.append({
             "period_end": end_date,
             "period_start": row.get("re_from_dt"),
-            "revenue_cr": amount("re_total_inc") if amount("re_total_inc") is not None else amount("re_net_sale"),
+            "revenue_cr": amount("re_net_sale") if amount("re_net_sale") is not None else amount("re_total_inc"),
             "net_profit_cr": amount("re_net_profit") if amount("re_net_profit") is not None else amount("re_proloss_ord_act"),
             "eps": _number(row.get("re_basic_eps_for_cont_dic_opr")) if _number(row.get("re_basic_eps_for_cont_dic_opr")) is not None else _number(row.get("re_basic_eps")),
             "debt_equity": _number(row.get("re_debt_eqt_rat")),
@@ -177,7 +177,7 @@ def parse_financial_results_comparison(payload: dict) -> dict | None:
         "latest": parsed[0],
         "quarters": parsed[:8],
         "source": "NSE India Corporate Filings · Financial Results comparison",
-        "note": "Quarterly filing summary; not full balance sheet/cash flow XBRL.",
+        "note": "Quarterly filing summary; sales prioritized over total income when reported. Not full balance sheet/cash flow XBRL.",
     }
 
 
