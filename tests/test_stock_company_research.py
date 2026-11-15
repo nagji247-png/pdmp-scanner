@@ -53,7 +53,16 @@ class StockCompanyResearchTests(unittest.TestCase):
             {"broadcastDate": "13-Nov-2026 10:00:00", "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/old.xml"},
             {"broadcastDate": "15-Nov-2026 10:00:00", "xbrl": "https://evil.example/corporate/xbrl/fake.xml"},
         ]})
-        self.assertEqual(result["url"], "https://nsearchives.nseindia.com/files/new.xml")
+        self.assertEqual(result["url"], "https://nsearchives.nseindia.com/corporate/xbrl/new.xml")
+
+    def test_latest_integrated_filing_uses_broadcast_time_for_same_day_rows(self):
+        result = research.latest_integrated_filing({"data": [
+            {"broadcast_Date": "14-Nov-2026 09:15:00",
+             "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/early.xml"},
+            {"broadcast_Date": "14-Nov-2026 16:45:00",
+             "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/late.xml"},
+        ]})
+        self.assertTrue(result["url"].endswith("late.xml"))
 
     def test_latest_integrated_filing_supports_nse_native_metadata_keys(self):
         result = research.latest_integrated_filing({"data": [
