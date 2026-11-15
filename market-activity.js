@@ -1,7 +1,7 @@
 (function(){
 "use strict";
 var root=document.getElementById("market-activity");if(!root)return;
-var master=null,fpi=null,marketData=null,searchTerm="",stack=[{type:"home",scroll:0}],loading=false;
+var master=null,fpi=null,marketData=null,drawings={snapshots:{}},searchTerm="",stack=[{type:"home",scroll:0}],loading=false;
 var css=[
 ".market-activity-box{min-width:0;color:#e7f2ff}",
 ".ma-kicker{font-size:10px;letter-spacing:1px;color:#6cecff;font-weight:900;margin:14px 0 6px}",
@@ -19,7 +19,7 @@ var css=[
 ".ma-stock-row{border-top:1px solid #1a3557}.ma-stock-button{padding:12px 10px}.ma-symbol{font-size:13px;font-weight:900;color:#6cecff}.ma-stock-meta{font-size:11px;color:#a9bfdc;line-height:1.6;margin-top:7px;overflow-wrap:anywhere}",
 ".ma-panel{padding:11px;margin:8px 0}.ma-panel h4{font-size:12px;margin:0 0 6px;color:#6cecff}.ma-reason{font-size:11px;line-height:1.65;color:#d5e2f3}.ma-signal{padding:10px;border-radius:8px;background:#101f39;border:1px solid #24466c;margin-top:9px;font-size:12px;line-height:1.6}",
 ".ma-flow{padding:10px;margin:7px 0}.ma-flow b{font-size:12px}.ma-flow small{display:block;font-size:10px;color:#9bb2d2;margin-top:4px}",
-".ma-foot,.ma-empty{font-size:10px;color:#9bb2d2;line-height:1.5;margin-top:10px}",
+".ma-foot,.ma-empty{font-size:10px;color:#9bb2d2;line-height:1.5;margin-top:10px}",".ma-chart-preview{border:1px solid #28709b;border-radius:10px;background:#0a1b32;padding:10px;margin:8px 0 12px}.ma-chart-preview img{display:block;width:100%;height:auto;border-radius:7px;background:#07152d}.ma-chart-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.ma-chart-link{display:inline-block;padding:9px 11px;border:1px solid #28709b;border-radius:7px;color:#6cecff;text-decoration:none;font-size:11px;font-weight:800}.ma-chart-missing{font-size:11px;color:#ffca72;line-height:1.6}",
 ".ma-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:8px 0 10px;background:#07152d;border-bottom:1px solid #24466c;margin-bottom:10px}",
 ".ma-back{border:1px solid #35709a;border-radius:8px;background:#102747;color:#6cecff;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}.ma-nav-title{font-size:13px;font-weight:900;color:#e7f2ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
 ".ma-search{width:100%;padding:11px;border:1px solid #285078;border-radius:9px;background:#07172d;color:#e7f2ff;font-size:13px;margin:4px 0 10px}",
@@ -70,6 +70,15 @@ root.innerHTML=nav(name)+'<div class="ma-kicker">SECTOR ACTIVITY</div><div class
 }
 function renderStock(symbol,sector){
 var info=master.stocks[symbol],q=quote(symbol),fm=fpiMap(),flow=fm[sector]==null?null:fm[sector],period=fpiPeriod(),c=q&&n(q.change_pct),headlines=q&&Array.isArray(q.headlines)?q.headlines.filter(function(h){return h&&h.title;}).slice(0,5):[];
+
+var rawSnapshot=drawings&&drawings.snapshots?drawings.snapshots[symbol]:"";
+var snapshotMatch=typeof rawSnapshot==="string"?rawSnapshot.match(/^https:\/\/www\.tradingview\.com\/x\/([A-Za-z0-9]+)\/?$/):null;
+var snapshotId=snapshotMatch?snapshotMatch[1]:null;
+var snapshotImage=snapshotId?"https://s3.tradingview.com/snapshots/"+snapshotId.charAt(0).toLowerCase()+"/"+snapshotId+".png":"";
+var layoutId=drawings&&/^[A-Za-z0-9]+$/.test(drawings.chart_layout_id||"")?drawings.chart_layout_id:"HIjMBtAv";
+var fullChartUrl="https://www.tradingview.com/chart/"+layoutId+"/?symbol=NSE%3A"+encodeURIComponent(symbol);
+var chartPreviewHtml=snapshotId?'<div class="ma-chart-preview"><div class="ma-stock-head"><b>आपकी DRAWING PREVIEW</b><span class="ma-tag">TradingView Snapshot</span></div><a href="'+esc(snapshotMatch[0])+'" target="_blank" rel="noopener"><img src="'+esc(snapshotImage)+'" alt="'+esc(symbol)+' TradingView Drawing Preview" loading="lazy"></a><div class="ma-chart-actions"><a class="ma-chart-link" href="'+esc(snapshotMatch[0])+'" target="_blank" rel="noopener">Drawing अलग से खोलें ↗</a><a class="ma-chart-link" href="'+esc(fullChartUrl)+'" target="_blank" rel="noopener">पूरा TradingView Chart ↗</a></div></div>':'<div class="ma-chart-preview"><b>DRAWING PREVIEW</b><div class="ma-chart-missing">इस स्टॉक का अलग Snapshot लिंक अभी जोड़ा नहीं गया है।</div><div class="ma-chart-actions"><a class="ma-chart-link" href="'+esc(fullChartUrl)+'" target="_blank" rel="noopener">पूरा TradingView Chart खोलें ↗</a></div></div>';
+
 var bd=q&&q.component_breakdown?q.component_breakdown:{},final=bd.final||{},components=Array.isArray(final.included_components)?final.included_components:[],pdmpScore=final.status==="available"?n(final.score):null;
 var sectorRows=stockRows(sector),sectorNewsUp=0,sectorNewsDown=0,sectorNewsCount=0;
 sectorRows.forEach(function(r){if(r.q&&(n(r.q.pos_n)!==null||n(r.q.neg_n)!==null)){sectorNewsUp+=Number(r.q.pos_n||0);sectorNewsDown+=Number(r.q.neg_n||0);sectorNewsCount++;}});
@@ -84,7 +93,7 @@ var pdmpText=pdmpScore===null?"संकेत बनाने के लिए 
 var retail=marketData&&marketData.retail_mood?marketData.retail_mood:null;
 var crowdText=retail?"बाजार-स्तरीय retail mood: "+esc(retail.bias||"मिश्रित")+" · CE "+esc(retail.ce_pct)+"% / PE "+esc(retail.pe_pct)+"% · तारीख़ "+esc(retail.date||"उपलब्ध नहीं"):"बाजार-स्तरीय retail mood उपलब्ध नहीं";
 var headlineHtml=headlines.length?headlines.map(function(h){return '<div class="ma-stock-meta">• '+(h.link?'<a target="_blank" rel="noopener" href="'+esc(h.link)+'">':'')+esc(h.title)+(h.link?'</a>':'')+' · '+esc(h.source||"स्रोत")+(h.published_at?" · "+esc(h.published_at):"")+'</div>';}).join(""):'<div class="ma-stock-meta">इस स्टॉक की खबरें उपलब्ध नहीं।</div>';
-root.innerHTML=nav(symbol)+'<div class="ma-kicker">STOCK WIND · '+esc(sector)+'</div><div class="ma-panel"><div class="ma-stock-head"><span class="ma-symbol">'+esc(symbol)+'</span><span class="ma-tag">'+esc(info.industry||"इंडस्ट्री उपलब्ध नहीं")+'</span></div><div class="ma-stock-meta">Tag: '+esc(symbol)+' · सेक्टर: '+esc(sector)+'</div></div>'+
+root.innerHTML=nav(symbol)+chartPreviewHtml+'<div class="ma-kicker">STOCK WIND · '+esc(sector)+'</div><div class="ma-panel"><div class="ma-stock-head"><span class="ma-symbol">'+esc(symbol)+'</span><span class="ma-tag">'+esc(info.industry||"इंडस्ट्री उपलब्ध नहीं")+'</span></div><div class="ma-stock-meta">Tag: '+esc(symbol)+' · सेक्टर: '+esc(sector)+'</div></div>'+
 '<div class="ma-panel"><h4>1. कीमत और वॉल्यूम</h4><div class="ma-reason">'+(q&&q.price!=null?"कीमत: ₹"+Number(q.price).toLocaleString("en-IN",{maximumFractionDigits:2}):"कीमत: डेटा उपलब्ध नहीं")+'<br>भाव तारीख़: '+esc(q&&q.price_as_of||"उपलब्ध नहीं")+'<br>'+esc(priceText)+'<br>वॉल्यूम: '+(q&&q.volume!=null?Number(q.volume).toLocaleString("en-IN"):"डेटा उपलब्ध नहीं")+'<br><b>वॉल्यूम पुष्टि:</b> औसत वॉल्यूम उपलब्ध नहीं, इसलिए सामान्य से ज्यादा/कम नहीं कहा जा सकता।</div></div>'+
 '<div class="ma-panel"><h4>2. खबरों का रुख</h4><div class="ma-reason">'+esc(stockNews)+'</div>'+headlineHtml+'</div>'+
 '<div class="ma-panel"><h4>3. भीड़ का रुख</h4><div class="ma-reason">इस स्टॉक का अलग crowd mood उपलब्ध नहीं।<br>'+crowdText+'<br>यह केवल पूरे बाजार का संदर्भ है, '+esc(symbol)+' की व्यक्तिगत भीड़ का संकेत नहीं।</div></div>'+
@@ -92,6 +101,6 @@ root.innerHTML=nav(symbol)+'<div class="ma-kicker">STOCK WIND · '+esc(sector)+'
 '<div class="ma-panel"><h4>5. FPI FLOW + NEWS CONFIRMATION</h4><div class="ma-reason">सेक्टर FPI प्रवाह: '+money(flow)+'<br>अवधि: '+esc(period)+'<br>इसी सेक्टर की उपलब्ध स्टॉक खबरें: '+esc(sectorNewsDirection)+'<br>दिशा तुलना: '+esc(sectorMatch)+'<br><br><b>क्यों?</b> तुलना इस सेक्टर के उपलब्ध quote वाले स्टॉक की कुल positive/negative news counts से की गई है; यह '+esc(symbol)+' की खबरों और FPI का सीधा मिलान नहीं है।<br><br><b>महत्वपूर्ण:</b> व्यक्तिगत स्टॉक FPI उपलब्ध नहीं; यह FPI पूरे '+esc(sector)+' सेक्टर का है।</div></div>';
 }
 function render(){if(!master||!master.stocks){root.innerHTML='<div class="ma-empty">NSE F&amp;O मास्टर लोड नहीं हुआ।</div>';return;}var v=stack[stack.length-1];if(v.type==="home")renderHome();else if(v.type==="sector")renderSector(v.name);else renderStock(v.symbol,v.sector);}
-function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
+function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
 load();window.setInterval(load,5*60*1000);
 })();
