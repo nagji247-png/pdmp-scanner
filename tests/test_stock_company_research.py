@@ -210,6 +210,30 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(preferred["quote_source"], "NSE live quote")
         self.assertEqual(preferred["market_data_as_of"], "2026-11-13")
 
+    def test_safe_source_keeps_other_sources_available_after_one_failure(self):
+        calls = []
+        def broken():
+            calls.append("broken")
+            raise RuntimeError("HTTP 403")
+        def healthy():
+            calls.append("healthy")
+            return {"rows": 3}
+        self.assertIsNone(research.safe_source("broken endpoint", broken))
+        self.assertEqual(research.safe_source("healthy endpoint", healthy), {"rows": 3})
+        self.assertEqual(calls, ["broken", "healthy"])
+
+    def test_extract_company_name_uses_explicit_nse_filing_name(self):
+        self.assertEqual(
+            research.extract_company_name(
+                {},
+                {"data": [{"issuerName": "Example Industries Limited"}]},
+                [],
+                {},
+            ),
+            "Example Industries Limited",
+        )
+        self.assertIsNone(research.extract_company_name({}, {}, [], {"industry": "Banks"}))
+
     def test_quote_failure_does_not_abort_independent_filing_pipeline(self):
         original_fetch_json = research.fetch_json
         original_sleep = research.time.sleep
