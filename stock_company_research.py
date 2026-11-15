@@ -329,6 +329,26 @@ def safe_source(label, fetcher, fallback=None):
         return fallback
 
 
+def apply_verified_master_classification(parsed, master_record):
+    """Add only explicitly verified company classification from the NSE research master."""
+    result = dict(parsed or {})
+    if not isinstance(master_record, dict):
+        return result
+    status = str(master_record.get("status") or "")
+    if not status.startswith("verified_"):
+        return result
+    for source_key, target_key in (("industry", "industry"), ("sector", "sector"), ("macro_sector", "macro_sector")):
+        value = master_record.get(source_key)
+        if isinstance(value, str) and value.strip():
+            result[target_key] = value.strip()
+    if result.get("industry"):
+        result["industry_classification_status"] = status
+        result["industry_as_of"] = master_record.get("verified_on")
+        result["industry_source"] = master_record.get("source")
+        result["industry_source_url"] = master_record.get("source_url")
+        result["industry_classification_reference_url"] = master_record.get("classification_reference_url")
+    return result
+
 def extract_company_name(quote, integrated_payload=None, shareholding=None, master_record=None):
     """Use an explicit company-name field from an NSE payload or verified master only."""
     candidates = []
@@ -477,9 +497,11 @@ def main():
                         ownership["filing_type"] = "NSE SHP XBRL"
                     time.sleep(PAUSE_SECONDS)
 
+        master_record = (master.get("stocks") or {}).get(symbol)
         parsed = apply_eod_fallback(parse_company_quote(quote, trade), bhavcopy_rows.get(symbol))
+        parsed = apply_verified_master_classification(parsed, master_record)
         company_name = extract_company_name(
-            quote, integrated_payload, shareholding, (master.get("stocks") or {}).get(symbol)
+            quote, integrated_payload, shareholding, master_record
         )
         if company_name and not parsed.get("company_name"):
             parsed["company_name"] = company_name
