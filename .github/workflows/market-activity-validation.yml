@@ -1,0 +1,28 @@
+name: Market Activity Mobile Navigation Validation
+on:
+  pull_request:
+    paths:
+      - "market-activity.js"
+      - "tests/test_market_activity_dashboard.py"
+      - ".github/workflows/market-activity-validation.yml"
+      - "nse-fo-stock-sector-master.json"
+      - "dashboard.html"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check Market Activity JavaScript syntax
+        run: node --check market-activity.js
+      - name: Test Market Activity navigation and data safety
+        run: python -m unittest discover -s tests -p "test_market_activity_dashboard.py" -v
+      - name: Protect existing NO TRADE guard
+        run: python -m unittest discover -s tests -p "test_dashboard_stale_guard.py" -v
