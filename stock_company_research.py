@@ -44,7 +44,7 @@ def pick(obj, *keys):
 
 
 def filing_sort_key(row):
-    raw = str(row.get("broadcastDate") or row.get("broadcastTime") or row.get("date") or row.get("filingDate") or "")
+    raw = str(row.get("broadcastDate") or row.get("broadcast_Date") or row.get("broadcastTime") or row.get("date") or row.get("filingDate") or row.get("qe_Date") or row.get("quarterEndDate") or "")
     for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
         try:
             return dt.datetime.strptime(raw, fmt).date()
@@ -141,7 +141,7 @@ def latest_integrated_filing(payload):
         host = urlparse(url).hostname or ""
         if host not in ("nsearchives.nseindia.com", "www.nseindia.com", "nseindia.com"):
             continue
-        stamp = str(row.get("broadcastDate") or row.get("broadcastTime") or row.get("date") or "")
+        stamp = str(row.get("broadcastDate") or row.get("broadcast_Date") or row.get("broadcastTime") or row.get("date") or row.get("qe_Date") or "")
         candidates.append((filing_sort_key(row), row, url, stamp))
     if not candidates:
         return None
@@ -220,11 +220,11 @@ def main():
                     filing_row = filing["row"]
                     integrated_financials = {
                         "filing": {
-                            "quarter_end": filing_row.get("quarterEndDate") or filing_row.get("to_date") or filing_row.get("periodEnded"),
-                            "broadcast_date": filing_row.get("broadcastDate") or filing_row.get("broadcastTime"),
+                            "quarter_end": filing_row.get("quarterEndDate") or filing_row.get("qe_Date") or filing_row.get("to_date") or filing_row.get("periodEnded"),
+                            "broadcast_date": filing_row.get("broadcastDate") or filing_row.get("broadcast_Date") or filing_row.get("broadcastTime"),
                             "audited": filing_row.get("audited"),
                             "consolidated": filing_row.get("consolidated"),
-                            "submission_type": filing_row.get("typeOfSubmission"),
+                            "submission_type": filing_row.get("typeOfSubmission") or filing_row.get("type_Sub"),
                             "url": filing["url"],
                         },
                         "parsed": parsed_xbrl,
