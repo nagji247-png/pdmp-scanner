@@ -37,6 +37,11 @@ MONEY_TAGS = {
     "CashAndCashEquivalents": "cash_and_cash_equivalents",
     "PaidUpValueOfEquityShareCapital": "paid_up_equity",
 }
+RATIO_TAGS = {
+    "DebtEquityRatio": "debt_equity_ratio",
+    "DebtServiceCoverageRatio": "debt_service_coverage_ratio",
+    "InterestServiceCoverageRatio": "interest_service_coverage_ratio",
+}
 PER_SHARE_TAGS = {
     "BasicEarningsLossPerShareFromContinuingOperations": "basic_eps",
     "DilutedEarningsLossPerShareFromContinuingOperations": "diluted_eps",
@@ -164,6 +169,10 @@ def parse_integrated_financial_xbrl(source):
             continue
         if tag in PER_SHARE_TAGS and "INR" not in measures:
             continue
+        # Reported financial ratios use the XBRL pure unit; never accept a
+        # monetary or unknown unit as a ratio.
+        if tag in RATIO_TAGS and "PURE" not in measures:
+            continue
         facts.setdefault(tag, {})[context_id] = value
 
     if not facts:
@@ -182,8 +191,12 @@ def parse_integrated_financial_xbrl(source):
         if tag in facts:
             for cid, value in facts[tag].items():
                 result.setdefault(classified[cid], {})[field] = value
+    for tag, field in RATIO_TAGS.items():
+        if tag in facts:
+            for cid, value in facts[tag].items():
+                result.setdefault(classified[cid], {})[field] = value
 
-    # No debt/equity ratio is inferred: financial liabilities are not identical to borrowings.
+    # Ratios above are published company facts, not ratios inferred from liabilities.
 
     result["raw_facts"] = {
         tag: {classified[cid]: value for cid, value in values.items()}
