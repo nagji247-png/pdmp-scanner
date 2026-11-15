@@ -11,15 +11,18 @@ class MarketActivityDashboardTests(unittest.TestCase):
         cls.dashboard = (ROOT / "dashboard.html").read_text(encoding="utf-8")
         cls.script = (ROOT / "market-activity.js").read_text(encoding="utf-8")
         cls.master = json.loads((ROOT / "nse-fo-stock-sector-master.json").read_text(encoding="utf-8"))
+        cls.drawings = json.loads((ROOT / "stock-chart-drawings.json").read_text(encoding="utf-8"))
 
     def test_verified_fno_master_is_218_stocks_across_18_sectors(self):
         self.assertEqual(len(self.master["stocks"]), 218)
         self.assertEqual(len({row["sector"] for row in self.master["stocks"].values()}), 18)
+        self.assertEqual(self.drawings["chart_layout_id"], "HIjMBtAv")
+        self.assertEqual(self.drawings["snapshots"], {})
 
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=1"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=2"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
