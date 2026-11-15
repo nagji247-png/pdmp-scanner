@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "market-activity.js"
+      - "fpi-sector-tilt.js"
       - "tests/test_market_activity_dashboard.py"
       - ".github/workflows/market-activity-validation.yml"
       - "nse-fo-stock-sector-master.json"
@@ -32,6 +33,8 @@ jobs:
         run: pip install requests
       - name: Check Market Activity JavaScript syntax
         run: node --check market-activity.js
+      - name: Check separate FPI popup JavaScript syntax
+        run: node --check fpi-sector-tilt.js
       - name: Test Market Activity navigation and data safety
         run: python -m unittest discover -s tests -p "test_market_activity_dashboard.py" -v
       - name: Test incremental NSE company research parsing
