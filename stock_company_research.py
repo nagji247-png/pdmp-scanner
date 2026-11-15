@@ -45,7 +45,7 @@ def pick(obj, *keys):
 
 def filing_sort_key(row):
     raw = str(row.get("date") or row.get("filingDate") or "")
-    for fmt in ("%d-%b-%Y", "%d-%b-%y", "%Y-%m-%d"):
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
         try:
             return dt.datetime.strptime(raw, fmt).date()
         except ValueError:
@@ -142,11 +142,11 @@ def latest_integrated_filing(payload):
         if host not in ("nsearchives.nseindia.com", "www.nseindia.com", "nseindia.com"):
             continue
         stamp = str(row.get("broadcastDate") or row.get("broadcastTime") or row.get("date") or "")
-        candidates.append((stamp, row, url))
+        candidates.append((filing_sort_key(row), row, url, stamp))
     if not candidates:
         return None
     candidates.sort(key=lambda item: item[0], reverse=True)
-    stamp, row, url = candidates[0]
+    _, row, url, stamp = candidates[0]
     return {"row": row, "url": url, "sort_date": stamp}
 
 
