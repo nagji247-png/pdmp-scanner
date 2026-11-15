@@ -6,6 +6,17 @@ import stock_company_research as research
 
 
 class StockCompanyResearchTests(unittest.TestCase):
+    def test_complete_company_batch_advances_cursor(self):
+        self.assertEqual(research.next_batch_cursor(0, 10, 10, 218), 10)
+        self.assertEqual(research.next_batch_cursor(210, 10, 10, 218), 2)
+
+    def test_partial_company_batch_retries_same_cursor(self):
+        self.assertEqual(research.next_batch_cursor(20, 10, 9, 218), 20)
+        self.assertEqual(research.next_batch_cursor(20, 10, 0, 218), 20)
+
+    def test_empty_universe_cursor_is_not_advanced(self):
+        self.assertEqual(research.next_batch_cursor(0, 10, 10, 0), 0)
+
     def test_company_quote_extracts_only_present_nse_fields(self):
         payload = {
             "info": {"companyName": "Example Industries Limited", "isin": "INE123A01010"},
