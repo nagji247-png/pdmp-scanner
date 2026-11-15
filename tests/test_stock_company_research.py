@@ -222,6 +222,32 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(research.safe_source("healthy endpoint", healthy), {"rows": 3})
         self.assertEqual(calls, ["broken", "healthy"])
 
+    def test_verified_master_classification_fills_missing_industry_without_overwriting_quote(self):
+        master = {
+            "industry": "Capital Markets",
+            "sector": "Financial Services",
+            "macro_sector": "Financial Services",
+            "status": "verified_nse_marketlens_industry_crosswalk",
+            "verified_on": "2026-11-14",
+            "source": "NSE MarketLens official screener",
+            "source_url": "https://marketlens.nseindia.com/screener",
+            "classification_reference_url": "https://example.com/classification.pdf",
+        }
+        result = research.apply_verified_master_classification({"industry": None, "nse_sector": "Existing NSE sector"}, master)
+        self.assertEqual(result["industry"], "Capital Markets")
+        self.assertEqual(result["sector"], "Financial Services")
+        self.assertEqual(result["macro_sector"], "Financial Services")
+        self.assertEqual(result["industry_as_of"], "2026-11-14")
+        self.assertEqual(result["nse_sector"], "Existing NSE sector")
+
+    def test_unverified_master_classification_is_not_published(self):
+        result = research.apply_verified_master_classification(
+            {"industry": None},
+            {"industry": "Banks", "sector": "Financial Services", "status": "pending"},
+        )
+        self.assertIsNone(result["industry"])
+        self.assertNotIn("sector", result)
+
     def test_extract_company_name_uses_explicit_nse_filing_name(self):
         self.assertEqual(
             research.extract_company_name(
