@@ -157,6 +157,21 @@ def fetch_latest_nse_bhavcopy(session, symbols, today=None):
     return {}
 
 
+def apply_eod_fallback(parsed, eod):
+    """Fill missing quote fields from the dated official NSE EOD archive."""
+    result = dict(parsed or {})
+    if not isinstance(eod, dict):
+        return result
+    quote_price_available = result.get("price") is not None
+    for key, value in eod.items():
+        if value is not None and result.get(key) is None:
+            result[key] = value
+    if not quote_price_available and eod.get("price") is not None:
+        result["quote_source"] = eod.get("quote_source")
+        result["market_data_type"] = "end_of_day"
+    return result
+
+
 def parse_shareholding(payload):
     if not isinstance(payload, list) or not payload:
         return None
@@ -378,7 +393,7 @@ def main():
                 {"index": "equities", "symbol": symbol},
                 "https://www.nseindia.com/companies-listing/corporate-filings-shareholding-pattern?symbol=" + symbol + "&tabIndex=equity",
             )
-            parsed = parse_company_quote(quote, trade)
+            parsed = apply_eod_fallback(parse_company_quote(quote, trade), bhavcopy_rows.get(symbol))
             ownership = parse_shareholding(shareholding)
             # Prefer the filed XBRL document for institution-level ownership.
             # The summary endpoint alone exposes only promoter/public roll-ups.
