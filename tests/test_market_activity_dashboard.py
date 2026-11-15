@@ -30,7 +30,8 @@ class MarketActivityDashboardTests(unittest.TestCase):
                      "SECTOR ACTIVITY", "FPI FLOW + NEWS CONFIRMATION",
                      "218 STOCK MASTER LIST", "data-stock",
                      "ma-sector-grid", "data-sector", "data-back",
-                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं"):
+                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं", "आपकी DRAWING PREVIEW", "stock-chart-drawings.json", "s3.tradingview.com/snapshots", "पूरा TradingView Chart"):
+
             self.assertIn(text, self.script)
 
     def test_uses_existing_static_data_and_does_not_invent_missing_fields(self):
