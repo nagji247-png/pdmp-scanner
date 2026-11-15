@@ -36,7 +36,7 @@ jobs:
           data["next_index"] = 0
           path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
-      - name: Fetch one real NSE company record
+      - name: Fetch ten real NSE company records
         env:
           STOCK_RESEARCH_BATCH_SIZE: "10"
         run: python stock_company_research.py
@@ -48,8 +48,8 @@ jobs:
           data = json.loads(Path("stock-company-data.json").read_text(encoding="utf-8"))
           batch = data.get("last_batch") or {}
           print(json.dumps(batch, ensure_ascii=False, indent=2))
-          if batch.get("attempted") != 1 or batch.get("success", 0) < 1:
-              raise SystemExit("Live NSE smoke test did not produce a successful company record")
+          if batch.get("attempted") != 10 or batch.get("success", 0) < 5:
+              raise SystemExit("Live NSE EOD batch produced fewer than 5 usable stock records")
           PY
       - name: Upload isolated NSE smoke-test cache
         if: always()
