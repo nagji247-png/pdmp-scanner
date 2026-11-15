@@ -44,6 +44,32 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
         self.assertNotIn("equity_and_liabilities_cr", data["balance_sheet"])
         self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
 
+    def test_context_ids_are_classified_from_dates_not_fixed_names(self):
+        xml = self.xml()
+        for old_id, new_id in (("OneD", "ctx_9a"), ("FourD", "ctx_2b"),
+                               ("OneI", "instant_current"), ("PY_I", "instant_prior")):
+            xml = xml.replace(old_id, new_id)
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["revenue_cr"], 21127.65)
+        self.assertEqual(data["ytd"]["revenue_cr"], 56671.05)
+        self.assertEqual(data["balance_sheet"]["total_assets_cr"], 90000.0)
+        self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
+
+    def test_dimensional_segment_facts_do_not_replace_company_total(self):
+        xml = self.xml().replace(
+            '</context>\n          <context id="FourD">',
+            '</context>\n          <context id="SegmentQ"><entity><identifier>INE000A</identifier></entity>'
+            '<period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period>'
+            '<scenario><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></scenario></context>'
+            '\n          <context id="FourD">'
+        ).replace(
+            '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>',
+            '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>'
+            '<RevenueFromOperations unitRef="INR" contextRef="SegmentQ">999999999999</RevenueFromOperations>'
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["revenue_cr"], 21127.65)
+
     def test_equity_and_liabilities_alone_does_not_masquerade_as_assets(self):
         xml = self.xml().replace(
             '<Assets unitRef="INR" contextRef="OneI">900000000000</Assets>', ''
