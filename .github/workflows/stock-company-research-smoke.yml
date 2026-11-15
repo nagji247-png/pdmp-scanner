@@ -98,7 +98,7 @@ jobs:
                                   xml = fetch_archive_xml(session, filing["url"], referer)
                                   parsed = parse_integrated_financial_xbrl(xml)
                                   print(f"integrated_filing: XBRL download OK; bytes={len(xml)}; parsed_periods={list((parsed or {}).get('periods', {}).keys())}; parsed_fields={list((parsed or {}).keys())}")
-                      elif name == "shareholding" and isinstance(payload, list):
+                          elif name == "shareholding" and isinstance(payload, list):
                           print(f"shareholding: filing_rows={len(payload)}")
                           if payload:
                               row = payload[0]
@@ -109,7 +109,7 @@ jobs:
                                       xml = fetch_archive_xml(session, xbrl_url, referer)
                                       parsed = parse_shareholding_xbrl(xml)
                                       print(f"shareholding: XBRL download OK; bytes={len(xml)}; parsed={parsed}")
-                      elif name == "financial_results" and isinstance(payload, dict):
+                          elif name == "financial_results" and isinstance(payload, dict):
                           rows = payload.get("resCmpData") or []
                           print(f"financial_results: result_rows={len(rows)}; sample_keys={list(rows[0])[:20] if rows and isinstance(rows[0], dict) else []}")
                       except ValueError:
