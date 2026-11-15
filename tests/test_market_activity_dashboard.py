@@ -55,7 +55,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         for text in ("nse-fo-stock-sector-master.json", "fpi-sector-data.json",
                      'fetch("data.json?', "वॉल्यूम:",
                      "crowd mood उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं",
-                     "market_activity_quotes", "NSE India equity-stockIndices"):
+                     "market_activity_quotes", "price_source"):
             self.assertIn(text, self.script)
 
     def test_navigation_drilldowns_stay_inside_fixed_scrollable_popup(self):
