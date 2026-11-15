@@ -188,6 +188,28 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertIsNone(result["market_cap_cr"])
 
 
+    def test_eod_fallback_fills_missing_quote_fields_without_overwriting_real_quote(self):
+        eod = {
+            "price": 125.0,
+            "previous_close": 120.0,
+            "market_data_as_of": "2026-11-13",
+            "market_data_type": "end_of_day",
+            "quote_source": "NSE official full bhavcopy EOD archive",
+        }
+        fallback = research.apply_eod_fallback(
+            {"price": None, "company_name": None, "quote_source": "NSE India public quote-equity API"}, eod
+        )
+        self.assertEqual(fallback["price"], 125.0)
+        self.assertEqual(fallback["previous_close"], 120.0)
+        self.assertEqual(fallback["market_data_as_of"], "2026-11-13")
+        self.assertEqual(fallback["market_data_type"], "end_of_day")
+        self.assertEqual(fallback["quote_source"], "NSE official full bhavcopy EOD archive")
+
+        preferred = research.apply_eod_fallback({"price": 130.0, "quote_source": "NSE live quote"}, eod)
+        self.assertEqual(preferred["price"], 130.0)
+        self.assertEqual(preferred["quote_source"], "NSE live quote")
+        self.assertEqual(preferred["market_data_as_of"], "2026-11-13")
+
     def test_quote_failure_does_not_abort_independent_filing_pipeline(self):
         original_fetch_json = research.fetch_json
         original_sleep = research.time.sleep
