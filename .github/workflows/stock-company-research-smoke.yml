@@ -89,7 +89,8 @@ jobs:
                               rows = payload.get("data") or []
                               print(f"{name}: filing_rows={len(rows)}")
                               for row in rows[:2]:
-                                  print(f"{name}: sample={{{k: row.get(k) for k in ('quarterEndDate','qe_Date','broadcastDate','xbrl','xbrlFile') if k in row}}}")
+                                  sample = {key: row.get(key) for key in ("quarterEndDate", "qe_Date", "broadcastDate", "xbrl", "xbrlFile") if key in row}
+                                  print(f"{name}: sample={sample}")
                       except ValueError:
                           print(f"{name}: response was not JSON")
               except Exception as exc:
