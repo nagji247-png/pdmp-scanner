@@ -129,6 +129,49 @@ class StockCompanyResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "HTML challenge"):
             research.fetch_archive_xml(Session(), "https://nsearchives.nseindia.com/corporate/xbrl/test.xml", "https://www.nseindia.com/")
 
+    def test_official_bhavcopy_row_parses_eod_market_fields(self):
+        result = research.parse_nse_bhavcopy_row({
+            "CLOSE_PRICE": "125.00",
+            "PREV_CLOSE": "100.00",
+            "OPEN_PRICE": "101.00",
+            "HIGH_PRICE": "128.00",
+            "LOW_PRICE": "99.00",
+            "LAST_PRICE": "124.50",
+            "AVG_PRICE": "115.00",
+            "TTL_TRD_QNTY": "250000",
+            "TURNOVER_LACS": "28750.00",
+            "NO_OF_TRADES": "1234",
+            "DELIV_QTY": "90000",
+            "DELIV_PER": "36.00",
+        })
+        self.assertEqual(result["price"], 125.0)
+        self.assertEqual(result["change_pct"], 25.0)
+        self.assertEqual(result["traded_quantity"], 250000.0)
+        self.assertEqual(result["delivery_quantity"], 90000.0)
+        self.assertEqual(result["delivery_pct"], 36.0)
+
+    def test_bhavcopy_missing_fields_are_not_fabricated(self):
+        result = research.parse_nse_bhavcopy_row({"CLOSE_PRICE": "100", "PREV_CLOSE": "0"})
+        self.assertEqual(result, {"price": 100.0})
+
+    def test_bhavcopy_fetch_selects_only_eq_rows_for_requested_symbols(self):
+        class Response:
+            status_code = 200
+            content = (
+                b"SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER\\n"
+                b"ABC,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
+                b"ABC,BE,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
+                b"XYZ,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
+            )
+        class Session:
+            def get(self, _url, **_kwargs):
+                return Response()
+        result = research.fetch_latest_nse_bhavcopy(Session(), {"ABC"}, today=research.dt.date(2026, 11, 16))
+        self.assertEqual(set(result), {"ABC"})
+        self.assertEqual(result["ABC"]["market_data_as_of"], "2026-11-13")
+        self.assertEqual(result["ABC"]["market_data_type"], "end_of_day")
+        self.assertEqual(result["ABC"]["quote_source"], "NSE official full bhavcopy EOD archive")
+
     def test_invalid_numeric_fields_remain_missing(self):
         result = research.parse_company_quote({
             "info": {"companyName": "Example"},
