@@ -25,7 +25,7 @@ jobs:
           python-version: "3.11"
       - name: Install public-data client
         run: pip install requests
-      - name: Prepare isolated one-stock smoke run
+      - name: Prepare isolated ten-stock smoke run
         run: |
           python - <<'PY'
           import json
@@ -38,9 +38,9 @@ jobs:
           PY
       - name: Fetch one real NSE company record
         env:
-          STOCK_RESEARCH_BATCH_SIZE: "1"
+          STOCK_RESEARCH_BATCH_SIZE: "10"
         run: python stock_company_research.py
-      - name: Require at least one successful NSE company record
+      - name: Require a meaningful NSE EOD batch
         run: |
           python - <<'PY'
           import json
