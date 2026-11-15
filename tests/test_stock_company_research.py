@@ -49,9 +49,9 @@ class StockCompanyResearchTests(unittest.TestCase):
 
     def test_latest_integrated_filing_prefers_newest_trusted_nse_archive(self):
         result = research.latest_integrated_filing({"data": [
-            {"broadcastDate": "14-Nov-2026 10:00:00", "xbrl": "https://nsearchives.nseindia.com/files/new.xml"},
-            {"broadcastDate": "13-Nov-2026 10:00:00", "xbrl": "https://nsearchives.nseindia.com/files/old.xml"},
-            {"broadcastDate": "15-Nov-2026 10:00:00", "xbrl": "https://evil.example/fake.xml"},
+            {"broadcastDate": "14-Nov-2026 10:00:00", "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/new.xml"},
+            {"broadcastDate": "13-Nov-2026 10:00:00", "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/old.xml"},
+            {"broadcastDate": "15-Nov-2026 10:00:00", "xbrl": "https://evil.example/corporate/xbrl/fake.xml"},
         ]})
         self.assertEqual(result["url"], "https://nsearchives.nseindia.com/files/new.xml")
 
@@ -64,12 +64,14 @@ class StockCompanyResearchTests(unittest.TestCase):
         ]})
         self.assertTrue(result["url"].endswith("latest.xml"))
         self.assertEqual(result["sort_date"], "14-Nov-2026 10:00:00")
-        self.assertEqual(research.filing_sort_key(result["row"]), research.dt.date(2026, 11, 14))
+        self.assertEqual(research.filing_sort_key(result["row"]), research.dt.datetime(2026, 11, 14, 10, 0, 0))
 
     def test_integrated_filing_without_archive_url_is_unavailable(self):
         self.assertIsNone(research.latest_integrated_filing({"data": [
-            {"broadcastDate": "14-Nov-2026", "xbrl": "http://nsearchives.nseindia.com/files/file.xml"},
-            {"broadcastDate": "14-Nov-2026", "xbrl": "https://evil.example/file.xml"},
+            {"broadcastDate": "14-Nov-2026", "xbrl": "http://nsearchives.nseindia.com/corporate/xbrl/file.xml"},
+            {"broadcastDate": "14-Nov-2026", "xbrl": "https://evil.example/corporate/xbrl/file.xml"},
+            {"broadcastDate": "15-Nov-2026", "attachmentFile": "https://nsearchives.nseindia.com/corporate/xbrl/attachment.xml"},
+            {"broadcastDate": "15-Nov-2026", "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/attachment.pdf"},
         ]}))
 
     def test_invalid_numeric_fields_remain_missing(self):
