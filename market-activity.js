@@ -238,7 +238,7 @@ function ratio(label,value){return '<div class="ma-stock-row"><div class="ma-sto
 var priceLabel=price===null?"कीमत उपलब्ध नहीं":"₹"+price.toLocaleString("en-IN",{maximumFractionDigits:2});
 var changeLabel=c===null?"बदलाव उपलब्ध नहीं":(c>0?"+":"")+c.toFixed(2)+"%";
 var changeClass=c===null?"ma-neutral":c>0?"ma-up":c<0?"ma-down":"ma-neutral";
-var quoteMeta="स्रोत: "+(q&&q.price_source||company.quote_source||"स्रोत उपलब्ध नहीं")+" · भाव समय: "+(q&&q.price_as_of||company.quote_timestamp||company.checked_at||"उपलब्ध नहीं");
+var quoteMeta="स्रोत: "+(q&&q.price_source||company.quote_source||"स्रोत उपलब्ध नहीं")+" · भाव तारीख़: "+(q&&q.price_as_of||company.price_as_of||company.market_data_as_of||company.quote_timestamp||company.checked_at||"उपलब्ध नहीं");
 var sectorName=sector||info.sector||company.nse_sector||"सेक्टर उपलब्ध नहीं";
 var industry=company.industry||info.industry||"इंडस्ट्री उपलब्ध नहीं";
 var companyName=company.company_name||"कंपनी नाम उपलब्ध नहीं";
