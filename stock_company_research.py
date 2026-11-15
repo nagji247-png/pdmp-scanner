@@ -485,7 +485,8 @@ def main():
             parsed["company_name"] = company_name
 
         has_new_data = bool(
-            any(value is not None for value in parsed.values())
+            any(value is not None for key, value in parsed.items()
+                if key not in ("quote_source", "market_cap_source"))
             or ownership or financials or integrated_financials
         )
         if not has_new_data:
