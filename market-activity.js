@@ -24,7 +24,8 @@ var css=[
 ".ma-back{border:1px solid #35709a;border-radius:8px;background:#102747;color:#6cecff;padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}.ma-nav-title{font-size:13px;font-weight:900;color:#e7f2ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
 ".ma-search{width:100%;padding:11px;border:1px solid #285078;border-radius:9px;background:#07172d;color:#e7f2ff;font-size:13px;margin:4px 0 10px}",
 ".ma-master{margin:8px 0}.ma-master>details{border:1px solid #1b426a;border-radius:10px;background:#0b1b33;padding:10px}.ma-master>details>summary{cursor:pointer;color:#6cecff;font-size:12px;font-weight:800}.ma-master-list details{border-top:1px solid #1a3557;padding:8px 2px}.ma-master-list summary{cursor:pointer;color:#d5e2f3;font-size:11px}",
-"@media(max-width:560px){.ma-sector-grid{grid-template-columns:1fr}.ma-stat{padding:9px}.ma-sector-button{padding:10px}}"
+"@media(max-width:560px){.ma-sector-grid{grid-template-columns:1fr}.ma-stat{padding:9px}.ma-sector-button{padding:10px}}",
+".ma-admin-open{width:100%;padding:10px;border:1px solid #28709b;border-radius:8px;background:#102747;color:#6cecff;font-size:12px;font-weight:800;cursor:pointer}.ma-drawing-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,5,16,.82)}.ma-drawing-dialog{width:min(100%,520px);max-height:86vh;overflow:auto;border:1px solid #28709b;border-radius:13px;background:#07152d;box-shadow:0 18px 55px rgba(0,0,0,.55);padding:13px}.ma-drawing-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:900;color:#6cecff}.ma-drawing-close,.ma-drawing-action{padding:9px 11px;border:1px solid #28709b;border-radius:7px;background:#102747;color:#d9edff;font-size:11px;font-weight:800;cursor:pointer}.ma-drawing-field{display:block;margin:12px 0 5px;color:#b9c9e8;font-size:11px;font-weight:700}.ma-drawing-input{width:100%;padding:11px;border:1px solid #285078;border-radius:8px;background:#050f22;color:#e7f2ff;font-size:13px}.ma-drawing-help{font-size:10px;line-height:1.5;color:#9bb2d2;margin:7px 0}.ma-drawing-error{font-size:11px;line-height:1.5;color:#ff929e;margin:8px 0}.ma-drawing-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.ma-drawing-action.primary{background:#123b43;border-color:#1b927c;color:#75f0ca}.ma-drawing-action.danger{border-color:#a94c5a;color:#ff929e}.ma-drawing-bottom{display:flex;justify-content:flex-end;margin-top:14px;padding-top:10px;border-top:1px solid #183252}@media(max-width:560px){.ma-drawing-overlay{padding:7px}.ma-drawing-dialog{max-height:90vh;padding:11px}}"
 ].join("");
 var st=document.createElement("style");st.textContent=css;document.head.appendChild(st);
 function esc(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -96,6 +97,128 @@ var s=allSectors().filter(function(x){return x.name===name;})[0];if(!s){root.inn
 var d=s.d,ordered=s.rows.slice().sort(compareStocks),rows=ordered.map(function(r){var c=r.q&&n(r.q.change_pct),group=stockOrder(r),label=c===null?"भाव उपलब्ध नहीं":c>0?"तेजी +"+c.toFixed(2)+"%":c<0?"मंदी "+c.toFixed(2)+"%":"सामान्य 0.00%";return '<div class="ma-stock-row '+(group===0?"bull":group===2?"bear":"neutral")+'"><button type="button" class="ma-stock-button" data-stock="'+esc(r.symbol)+'" data-sector-name="'+esc(name)+'"><div class="ma-stock-head"><span class="ma-symbol">'+esc(r.symbol)+'</span><span class="ma-tag '+(group===0?"ma-up":group===2?"ma-down":"")+'">'+esc(label)+'　›</span></div><div class="ma-stock-meta">'+esc(r.info.industry||"इंडस्ट्री उपलब्ध नहीं")+' · '+(r.q?"भाव "+esc(r.q.price_as_of||"तारीख़ उपलब्ध नहीं"):"भाव डेटा उपलब्ध नहीं")+'</div></button></div>';}).join("");
 root.innerHTML=nav(name)+'<div class="ma-kicker">SECTOR ACTIVITY</div><div class="ma-intro">इस सेक्टर के स्टॉक: तेजी ऊपर, सामान्य/भाव अनुपलब्ध बीच में और मंदी नीचे।</div><div class="ma-summary"><div class="ma-stat"><div class="ma-stat-button"><b>'+d.up+'</b><span>तेजी वाले स्टॉक</span></div></div><div class="ma-stat"><div class="ma-stat-button"><b>'+d.flat+'</b><span>सामान्य स्टॉक</span></div></div><div class="ma-stat"><div class="ma-stat-button"><b>'+d.down+'</b><span>मंदी वाले स्टॉक</span></div></div><div class="ma-stat"><div class="ma-stat-button"><b>'+(s.rows.length-d.covered)+'</b><span>भाव उपलब्ध नहीं</span></div></div></div><div class="ma-panel"><h4>सेक्टर की स्थिति</h4><div class="ma-reason">'+esc(sectorState(d))+' · '+esc(sectorNews(d))+'<br>FPI प्रवाह: '+money(s.flow)+'<br>अवधि: '+esc(fpiPeriod())+'<br>खबरों का रुख: '+esc(sectorNews(d))+'<br>भीड़ का रुख: '+esc(crowdSummary())+'<br>FPI + खबर पुष्टि: '+(s.flow===null||!d.newsN?"मिलान संभव नहीं":((s.flow>0&&d.newsUp>d.newsDown)||(s.flow<0&&d.newsDown>d.newsUp))?"दिशा समान":"दिशा अलग/मिश्रित")+'<br><b>ध्यान दें:</b> FPI डेटा पूरे सेक्टर का fortnightly Equity है; खबरें उपलब्ध स्टॉक-स्तरीय खबरों का सेक्टर योग हैं। भीड़ बाजार-स्तरीय संदर्भ है, स्टॉक-विशिष्ट नहीं।</div></div><div class="ma-kicker">STOCK WIND — '+esc(name)+'</div>'+rows;
 }
+
+var DRAWING_API="https://trinetra-drawing-api.suncity247.workers.dev";
+function drawingApiKey(symbol){return String(symbol).replace(/&/g,"_AMP_");}
+function drawingSymbolFromApiKey(key){return String(key).replace(/_AMP_/g,"&");}
+function drawingToken(){
+  var token=sessionStorage.getItem("trinetraDrawingToken")||"";
+  var expiry=Number(sessionStorage.getItem("trinetraDrawingTokenExp")||0);
+  if(!token||expiry<=Date.now()){
+    sessionStorage.removeItem("trinetraDrawingToken");
+    sessionStorage.removeItem("trinetraDrawingTokenExp");
+    return "";
+  }
+  return token;
+}
+function drawingModalHtml(symbol){
+  var record=drawings&&drawings.records&&drawings.records[symbol]||{};
+  return '<div class="ma-drawing-overlay" data-drawing-modal style="display:none"><div class="ma-drawing-dialog" role="dialog" aria-modal="true" aria-label="Drawing Admin">'+
+    '<div class="ma-drawing-dialog-head"><span>DRAWING ADMIN · '+esc(symbol)+'</span><button type="button" class="ma-drawing-close" data-drawing-close>✕ बंद करें</button></div>'+
+    '<div class="ma-drawing-error" data-drawing-error aria-live="polite"></div>'+
+    '<form data-drawing-login>'+
+      '<label class="ma-drawing-field">Admin Password</label><input class="ma-drawing-input" name="password" type="password" autocomplete="current-password" required maxlength="256" placeholder="अपना निजी Admin Password डालें">'+
+      '<div class="ma-drawing-help">यह पासवर्ड केवल सुरक्षित Login अनुरोध में भेजा जाएगा। इसे Dashboard में सेव नहीं किया जाएगा।</div>'+
+      '<div class="ma-drawing-actions"><button class="ma-drawing-action primary" type="submit">Login करें</button></div>'+
+    '</form>'+
+    '<form data-drawing-editor hidden>'+
+      '<label class="ma-drawing-field">TradingView Snapshot URL *</label><input class="ma-drawing-input" name="snapshotUrl" type="url" required placeholder="https://www.tradingview.com/x/XXXXXXXX/">'+
+      '<label class="ma-drawing-field">TradingView Chart URL (वैकल्पिक)</label><input class="ma-drawing-input" name="chartUrl" type="url" placeholder="https://www.tradingview.com/chart/CHART_ID/">'+
+      '<div class="ma-drawing-help">Snapshot URL सभी दर्शकों के Preview के लिए जरूरी है। Chart URL खाली छोड़ने पर स्टॉक का सामान्य TradingView Chart खुलेगा। Login लगभग 1 घंटे तक मान्य रहेगा।</div>'+
+      '<div class="ma-drawing-actions"><button class="ma-drawing-action primary" type="submit">Save Drawing</button><button class="ma-drawing-action danger" type="button" data-drawing-delete>Drawing हटाएँ</button></div>'+
+    '</form>'+
+    '<div class="ma-drawing-bottom"><button type="button" class="ma-drawing-close" data-drawing-close>✕ बंद करें</button></div>'+
+  '</div></div>';
+}
+function openDrawingAdmin(symbol){
+  var modal=root.querySelector("[data-drawing-modal]");
+  if(!modal)return;
+  modal.style.display="flex";
+  var login=modal.querySelector("[data-drawing-login]");
+  var editor=modal.querySelector("[data-drawing-editor]");
+  var error=modal.querySelector("[data-drawing-error]");
+  error.textContent="";
+  if(drawingToken()){
+    login.hidden=true;editor.hidden=false;
+    editor.elements.snapshotUrl.value=(drawings.snapshots||{})[symbol]||"";
+    editor.elements.chartUrl.value=((drawings.records||{})[symbol]||{}).chartUrl||"";
+  }else{
+    login.hidden=false;editor.hidden=true;
+    login.elements.password.value="";
+    login.elements.password.focus();
+  }
+}
+function closeDrawingAdmin(){
+  var modal=root.querySelector("[data-drawing-modal]");
+  if(modal)modal.style.display="none";
+}
+root.addEventListener("click",function(e){
+  var open=e.target.closest("[data-drawing-admin]");
+  if(open){openDrawingAdmin(open.getAttribute("data-drawing-admin"));return;}
+  if(e.target.closest("[data-drawing-close]")){closeDrawingAdmin();return;}
+  var del=e.target.closest("[data-drawing-delete]");
+  if(del){
+    var modal=del.closest("[data-drawing-modal]");
+    var symbol=(modal.querySelector(".ma-drawing-dialog-head span").textContent.split("·").pop()||"").trim();
+    var token=drawingToken();
+    if(!token){modal.querySelector("[data-drawing-error]").textContent="Login की अवधि समाप्त हो गई। दोबारा Login करें।";modal.querySelector("[data-drawing-login]").hidden=false;modal.querySelector("[data-drawing-editor]").hidden=true;return;}
+    if(!confirm(symbol+" का Drawing Preview हटाएँ?"))return;
+    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(drawingApiKey(symbol)),{method:"DELETE",headers:{Authorization:"Bearer "+token}})
+      .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Delete असफल");return d;});})
+      .then(function(){delete drawings.snapshots[symbol];delete drawings.records[symbol];closeDrawingAdmin();render();})
+      .catch(function(err){modal.querySelector("[data-drawing-error]").textContent=err.message||"Delete असफल";});
+  }
+});
+root.addEventListener("submit",function(e){
+  var login=e.target.closest("[data-drawing-login]");
+  if(login){
+    e.preventDefault();
+    var modal=login.closest("[data-drawing-modal]");
+    var error=modal.querySelector("[data-drawing-error]");
+    var password=login.elements.password.value;
+    error.textContent="Login जाँचा जा रहा है…";
+    fetch(DRAWING_API+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:password})})
+      .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Login असफल");return d;});})
+      .then(function(d){
+        sessionStorage.setItem("trinetraDrawingToken",d.token);
+        sessionStorage.setItem("trinetraDrawingTokenExp",String(Date.now()+Number(d.expiresIn||3600)*1000));
+        login.hidden=true;
+        var editor=modal.querySelector("[data-drawing-editor]");
+        editor.hidden=false;
+        var symbol=(modal.querySelector(".ma-drawing-dialog-head span").textContent.split("·").pop()||"").trim();
+        editor.elements.snapshotUrl.value=(drawings.snapshots||{})[symbol]||"";
+        editor.elements.chartUrl.value=((drawings.records||{})[symbol]||{}).chartUrl||"";
+        error.textContent="Login सफल।";
+        login.elements.password.value="";
+      })
+      .catch(function(err){error.textContent=err.message||"Login असफल";});
+    return;
+  }
+  var editor=e.target.closest("[data-drawing-editor]");
+  if(editor){
+    e.preventDefault();
+    var modal=editor.closest("[data-drawing-modal]");
+    var error=modal.querySelector("[data-drawing-error]");
+    var symbol=(modal.querySelector(".ma-drawing-dialog-head span").textContent.split("·").pop()||"").trim();
+    var token=drawingToken();
+    if(!token){error.textContent="Login की अवधि समाप्त हो गई। दोबारा Login करें।";editor.hidden=true;modal.querySelector("[data-drawing-login]").hidden=false;return;}
+    var snapshotUrl=editor.elements.snapshotUrl.value.trim();
+    var chartUrl=editor.elements.chartUrl.value.trim();
+    error.textContent="Drawing सेव हो रही है…";
+    fetch(DRAWING_API+"/api/drawings/"+encodeURIComponent(drawingApiKey(symbol)),{method:"PUT",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({snapshotUrl:snapshotUrl,chartUrl:chartUrl})})
+      .then(function(r){return r.json().then(function(d){if(!r.ok)throw Error(d.error||"Save असफल");return d;});})
+      .then(function(d){
+        drawings.records=drawings.records||{};
+        drawings.snapshots=drawings.snapshots||{};
+        drawings.records[symbol]=d.drawing;
+        drawings.snapshots[symbol]=d.drawing.snapshotUrl;
+        closeDrawingAdmin();
+        render();
+      })
+      .catch(function(err){error.textContent=err.message||"Save असफल";});
+  }
+});
+
 function renderStock(symbol,sector){
 var info=master.stocks[symbol],q=quote(symbol),fm=fpiMap(),flow=fm[sector]==null?null:fm[sector],period=fpiPeriod(),c=q&&n(q.change_pct),headlines=q&&Array.isArray(q.headlines)?q.headlines.filter(function(h){return h&&h.title;}).slice(0,5):[];
 
@@ -103,7 +226,7 @@ var rawSnapshot=drawings&&drawings.snapshots?drawings.snapshots[symbol]:"";
 var snapshotMatch=typeof rawSnapshot==="string"?rawSnapshot.match(/^https:\/\/www\.tradingview\.com\/x\/([A-Za-z0-9]+)\/?$/):null;
 var snapshotId=snapshotMatch?snapshotMatch[1]:null;
 var snapshotImage=snapshotId?"https://s3.tradingview.com/snapshots/"+snapshotId.charAt(0).toLowerCase()+"/"+snapshotId+".png":"";
-var fullChartUrl="https://www.tradingview.com/chart/?symbol=NSE%3A"+encodeURIComponent(symbol);
+var savedChartUrl=drawings&&drawings.records&&drawings.records[symbol]?drawings.records[symbol].chartUrl:"";var fullChartUrl=savedChartUrl||"https://www.tradingview.com/chart/?symbol=NSE%3A"+encodeURIComponent(symbol);
 var chartPreviewHtml=snapshotId?'<div class="ma-chart-preview"><div class="ma-stock-head"><b>आपकी DRAWING PREVIEW</b><span class="ma-tag">TradingView Snapshot</span></div><a href="'+esc(snapshotMatch[0])+'" target="_blank" rel="noopener"><img src="'+esc(snapshotImage)+'" alt="'+esc(symbol)+' TradingView Drawing Preview" loading="lazy"></a><div class="ma-chart-actions"><a class="ma-chart-link" href="'+esc(snapshotMatch[0])+'" target="_blank" rel="noopener">Drawing अलग से खोलें ↗</a><a class="ma-chart-link" href="'+esc(fullChartUrl)+'" target="_blank" rel="noopener">अपना TradingView Chart खोलें ↗</a></div></div>':'<div class="ma-chart-preview"><b>DRAWING PREVIEW</b><div class="ma-chart-missing">इस स्टॉक का अलग Snapshot लिंक अभी जोड़ा नहीं गया है।</div><div class="ma-chart-actions"><a class="ma-chart-link" href="'+esc(fullChartUrl)+'" target="_blank" rel="noopener">अपना TradingView Chart खोलें ↗</a></div></div>';
 
 var bd=q&&q.component_breakdown?q.component_breakdown:{},final=bd.final||{},components=Array.isArray(final.included_components)?final.included_components:[],pdmpScore=final.status==="available"?n(final.score):null;
@@ -120,7 +243,8 @@ var pdmpText=pdmpScore===null?"संकेत बनाने के लिए 
 var retail=marketData&&marketData.retail_mood?marketData.retail_mood:null;
 var crowdText=retail?"बाजार-स्तरीय retail mood: "+esc(retail.bias||"मिश्रित")+" · CE "+esc(retail.ce_pct)+"% / PE "+esc(retail.pe_pct)+"% · तारीख़ "+esc(retail.date||"उपलब्ध नहीं"):"बाजार-स्तरीय retail mood उपलब्ध नहीं";
 var headlineHtml=headlines.length?headlines.map(function(h){return '<div class="ma-stock-meta">• '+(h.link?'<a target="_blank" rel="noopener" href="'+esc(h.link)+'">':'')+esc(h.title)+(h.link?'</a>':'')+' · '+esc(h.source||"स्रोत")+(h.published_at?" · "+esc(h.published_at):"")+'</div>';}).join(""):'<div class="ma-stock-meta">इस स्टॉक की खबरें उपलब्ध नहीं।</div>';
-root.innerHTML=nav(symbol)+chartPreviewHtml+'<div class="ma-kicker">STOCK WIND · '+esc(sector)+'</div><div class="ma-panel"><div class="ma-stock-head"><span class="ma-symbol">'+esc(symbol)+'</span><span class="ma-tag">'+esc(info.industry||"इंडस्ट्री उपलब्ध नहीं")+'</span></div><div class="ma-stock-meta">Tag: '+esc(symbol)+' · सेक्टर: '+esc(sector)+'</div></div>'+
+var drawingAdminHtml='<div class="ma-panel"><h4>DRAWING LINK MANAGEMENT</h4><button type="button" class="ma-admin-open" data-drawing-admin="'+esc(symbol)+'">Drawing लिंक जोड़ें / बदलें</button><div class="ma-drawing-help">Admin Login आवश्यक · Preview सभी दर्शकों को दिखेगा</div></div>'+drawingModalHtml(symbol);
+root.innerHTML=nav(symbol)+chartPreviewHtml+drawingAdminHtml+'<div class="ma-kicker">STOCK WIND · '+esc(sector)+'</div><div class="ma-panel"><div class="ma-stock-head"><span class="ma-symbol">'+esc(symbol)+'</span><span class="ma-tag">'+esc(info.industry||"इंडस्ट्री उपलब्ध नहीं")+'</span></div><div class="ma-stock-meta">Tag: '+esc(symbol)+' · सेक्टर: '+esc(sector)+'</div></div>'+
 '<div class="ma-panel"><h4>1. कीमत और वॉल्यूम</h4><div class="ma-reason">'+(q&&q.price!=null?"कीमत: ₹"+Number(q.price).toLocaleString("en-IN",{maximumFractionDigits:2}):"कीमत: डेटा उपलब्ध नहीं")+'<br>भाव तारीख़: '+esc(q&&q.price_as_of||"उपलब्ध नहीं")+'<br>'+esc(priceText)+'<br>वॉल्यूम: '+(q&&q.volume!=null?Number(q.volume).toLocaleString("en-IN"):"डेटा उपलब्ध नहीं")+'<br><b>वॉल्यूम पुष्टि:</b> औसत वॉल्यूम उपलब्ध नहीं, इसलिए सामान्य से ज्यादा/कम नहीं कहा जा सकता।</div></div>'+
 '<div class="ma-panel"><h4>2. खबरों का रुख</h4><div class="ma-reason">'+esc(stockNews)+'</div>'+headlineHtml+'</div>'+
 '<div class="ma-panel"><h4>3. भीड़ का रुख</h4><div class="ma-reason">इस स्टॉक का अलग crowd mood उपलब्ध नहीं।<br>'+crowdText+'<br>यह केवल पूरे बाजार का संदर्भ है, '+esc(symbol)+' की व्यक्तिगत भीड़ का संकेत नहीं।</div></div>'+
@@ -128,6 +252,6 @@ root.innerHTML=nav(symbol)+chartPreviewHtml+'<div class="ma-kicker">STOCK WIND �
 '<div class="ma-panel"><h4>5. FPI FLOW + NEWS CONFIRMATION</h4><div class="ma-reason">सेक्टर FPI प्रवाह: '+money(flow)+'<br>अवधि: '+esc(period)+'<br>इसी सेक्टर की उपलब्ध स्टॉक खबरें: '+esc(sectorNewsDirection)+'<br>भीड़ का रुख: '+esc(crowdSummary())+'<br>दिशा तुलना: '+esc(sectorMatch)+'<br><br><b>क्यों?</b> तुलना इस सेक्टर के उपलब्ध quote वाले स्टॉक की कुल positive/negative news counts से की गई है; यह '+esc(symbol)+' की खबरों और FPI का सीधा मिलान नहीं है।<br><br><b>महत्वपूर्ण:</b> व्यक्तिगत स्टॉक FPI उपलब्ध नहीं; यह FPI पूरे '+esc(sector)+' सेक्टर का है।</div></div>';
 }
 function render(){if(!master||!master.stocks){root.innerHTML='<div class="ma-empty">NSE F&amp;O मास्टर लोड नहीं हुआ।</div>';return;}var v=stack[stack.length-1];if(v.type==="home")renderHome();else if(v.type==="radar")renderRadarList(v.kind);else if(v.type==="sector")renderSector(v.name);else renderStock(v.symbol,v.sector);}
-function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
+function load(){if(loading)return;loading=true;Promise.all([fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};}),fetch(DRAWING_API+"/api/drawings?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawing api");return r.json();}).catch(function(){return {};})]).then(function(v){master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};drawings.snapshots=drawings.snapshots||{};drawings.records=v[4]||{};Object.keys(drawings.records).forEach(function(k){var symbol=drawingSymbolFromApiKey(k),rec=drawings.records[k];if(symbol!==k){drawings.records[symbol]=rec;delete drawings.records[k];}if(rec&&rec.snapshotUrl)drawings.snapshots[symbol]=rec.snapshotUrl;});render();}).catch(function(){if(!master)root.innerHTML='<div class="ma-empty">Market Activity डेटा लोड नहीं हो पाया। पेज रीफ़्रेश करें।</div>';}).finally(function(){loading=false;});}
 load();window.setInterval(load,5*60*1000);
 })();
