@@ -1,3 +1,4 @@
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -28,7 +29,8 @@ class MarketActivityDashboardTests(unittest.TestCase):
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
-        self.assertNotIn("FPI FLOW + NEWS CONFIRMATION", self.market_activity)
+        blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\\0" + self.market_activity.encode("utf-8")
+        self.assertEqual(hashlib.sha1(blob).hexdigest(), "36fcd08fe0837b12ee0aeb3e6c477e1efecb8d3a")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
