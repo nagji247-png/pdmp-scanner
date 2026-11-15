@@ -140,7 +140,7 @@ def parse_integrated_financial_xbrl(source):
     # Conservative compatibility fallback for known legacy IDs only.
     for cid in context_records:
         if cid not in classified and cid in LEGACY_CONTEXTS:
-            classified[cid] = LEGACY_classified[cid]
+            classified[cid] = LEGACY_CONTEXTS[cid]
 
     contexts = {cid: context_records[cid] for cid in classified}
     if not contexts:
