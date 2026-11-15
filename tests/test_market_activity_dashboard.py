@@ -71,6 +71,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn('function scrollToActivityTop()', self.script)
         self.assertNotIn('requestAnimationFrame(scrollToActivityTop)', self.script)
         self.assertIn('window.addEventListener("popstate"', self.script)
+        self.assertIn('sector:stk.getAttribute("data-sector-name")||"",scroll:0', self.script)
         self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
 
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
