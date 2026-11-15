@@ -385,6 +385,8 @@ def next_batch_cursor(start, batch_size, successful, total):
     A partial/empty batch is retried from the same cursor on the next scheduled
     day. Successful records remain cached, but no symbol is silently skipped.
     """
+    if total <= 0:
+        return 0
     if successful >= batch_size:
         return (start + batch_size) % total
     return start
