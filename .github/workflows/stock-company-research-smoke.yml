@@ -1,0 +1,61 @@
+name: NSE Company Research Live Smoke Test
+on:
+  pull_request:
+    paths:
+      - "stock_company_research.py"
+      - "nse_xbrl.py"
+      - "nse_integrated_xbrl.py"
+      - "nse-fo-stock-sector-master.json"
+      - "stock-company-data.json"
+      - "tests/test_stock_company_research.py"
+      - ".github/workflows/stock-company-research-smoke.yml"
+permissions:
+  contents: read
+concurrency:
+  group: nse-company-research-smoke-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install public-data client
+        run: pip install requests
+      - name: Prepare isolated one-stock smoke run
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("stock-company-data.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["last_batch_date"] = None
+          data["next_index"] = 0
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          PY
+      - name: Fetch one real NSE company record
+        env:
+          STOCK_RESEARCH_BATCH_SIZE: "1"
+        run: python stock_company_research.py
+      - name: Require at least one successful NSE company record
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("stock-company-data.json").read_text(encoding="utf-8"))
+          batch = data.get("last_batch") or {}
+          print(json.dumps(batch, ensure_ascii=False, indent=2))
+          if batch.get("attempted") != 1 or batch.get("success", 0) < 1:
+              raise SystemExit("Live NSE smoke test did not produce a successful company record")
+          PY
+      - name: Upload isolated NSE smoke-test cache
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-company-research-smoke
+          path: stock-company-data.json
+          if-no-files-found: warn
+          retention-days: 7
