@@ -34,6 +34,43 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(result["market_cap_cr"], 1234.56)
         self.assertIsNone(result["quote_timestamp"])
 
+    def test_market_cap_derives_only_from_dated_price_and_reconciled_filed_shares(self):
+        result = research.apply_share_count_market_cap(
+            {"price": 125.0, "market_data_as_of": "2026-11-13", "market_cap_cr": None},
+            {"total_shares": 80000000, "as_of": "30-SEP-2026",
+             "promoter_pct": 60.0, "public_pct": 40.0},
+        )
+        self.assertEqual(result["market_cap_cr"], 10.0)
+        self.assertEqual(result["market_cap_method"], "derived_price_x_nse_shareholding_total_shares")
+        self.assertEqual(result["market_cap_price_as_of"], "2026-11-13")
+        self.assertEqual(result["market_cap_shares_as_of"], "30-SEP-2026")
+        self.assertIn("Derived:", result["market_cap_source"])
+
+    def test_market_cap_does_not_overwrite_direct_exchange_value(self):
+        result = research.apply_share_count_market_cap(
+            {"price": 125.0, "market_cap_cr": 123.45},
+            {"total_shares": 80000000, "as_of": "30-SEP-2026",
+             "promoter_pct": 60.0, "public_pct": 40.0},
+        )
+        self.assertEqual(result["market_cap_cr"], 123.45)
+        self.assertNotIn("market_cap_method", result)
+
+    def test_market_cap_refuses_incomplete_or_undated_share_count(self):
+        invalid_rows = [
+            {"total_shares": 80000000, "as_of": "30-SEP-2026",
+             "promoter_pct": 60.0, "public_pct": 35.0},
+            {"total_shares": 80000000, "as_of": None,
+             "promoter_pct": 60.0, "public_pct": 40.0},
+            {"total_shares": None, "as_of": "30-SEP-2026",
+             "promoter_pct": 60.0, "public_pct": 40.0},
+        ]
+        for ownership in invalid_rows:
+            result = research.apply_share_count_market_cap(
+                {"price": 125.0, "market_data_as_of": "2026-11-13"},
+                ownership,
+            )
+            self.assertNotIn("market_cap_cr", result)
+
     def test_shareholding_uses_latest_quarter_and_real_previous_quarter(self):
         rows = [
             {"date": "31-MAR-2026", "pr_and_prgrp": "50", "public_val": "50", "employeeTrusts": "0"},
