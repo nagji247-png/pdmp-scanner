@@ -40,7 +40,8 @@ function fpiPeriod(){var x=latestFpi();return x?(x.label||((x.from_date||"")+" �
 function sectorNews(d){return d.newsN?(d.newsUp>d.newsDown?"खबरों में तेजी":d.newsDown>d.newsUp?"खबरों में मंदी":"खबरें मिश्रित"):"खबर पुष्टि उपलब्ध नहीं";}
 function sectorState(d){return !d.covered?"भाव डेटा अपर्याप्त":d.up>d.down?"उपलब्ध भावों में तेजी":d.down>d.up?"उपलब्ध भावों में मंदी":"मिश्रित हलचल";}
 function nav(title){return '<div class="ma-nav"><button class="ma-back" type="button" data-back>← वापस</button><div class="ma-nav-title">'+esc(title)+'</div></div>';}
-function push(view){stack[stack.length-1].scroll=window.scrollY||0;stack.push(view);history.pushState({ma:true,depth:stack.length},"","#market-activity");render();window.scrollTo(0,0);}
+function scrollToActivityTop(){var top=root.getBoundingClientRect().top+(window.pageYOffset||0);window.scrollTo(0,Math.max(0,top-8));}
+function push(view){stack[stack.length-1].scroll=window.scrollY||0;stack.push(view);history.pushState({ma:true,depth:stack.length},"","#market-activity");render();requestAnimationFrame(scrollToActivityTop);}
 function goBack(){if(stack.length>1)history.back();}
 window.addEventListener("popstate",function(){if(stack.length>1){stack.pop();render();requestAnimationFrame(function(){window.scrollTo(0,stack[stack.length-1].scroll||0);});}});
 root.addEventListener("click",function(e){var back=e.target.closest("[data-back]");if(back){goBack();return;}var sec=e.target.closest("[data-sector]");if(sec){push({type:"sector",name:sec.getAttribute("data-sector"),scroll:0});return;}var stk=e.target.closest("[data-stock]");if(stk){push({type:"stock",symbol:stk.getAttribute("data-stock"),sector:stk.getAttribute("data-sector-name")||""});return;}});
