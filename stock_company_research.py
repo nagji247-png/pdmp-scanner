@@ -247,6 +247,22 @@ def fetch_archive_xml(session, url, referer):
     last_response.raise_for_status()
 
 
+def fetch_quote_payloads(session, symbol, page):
+    """Fetch quote data independently; a quote 403 must not block public filings."""
+    quote, trade = {}, {}
+    error = None
+    try:
+        quote = fetch_json(session, BASE + "/quote-equity", {"symbol": symbol}, page)
+        time.sleep(PAUSE_SECONDS)
+        trade = fetch_json(
+            session, BASE + "/quote-equity",
+            {"symbol": symbol, "section": "trade_info"}, page,
+        )
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {str(exc)[:180]}"
+    return quote, trade, error
+
+
 def latest_integrated_filing(payload):
     """Return the newest filing row with a trusted NSE archive XBRL URL."""
     rows = payload.get("data") if isinstance(payload, dict) else None
@@ -316,9 +332,9 @@ def main():
     for symbol in batch:
         page = "https://www.nseindia.com/get-quotes/equity?symbol=" + symbol
         try:
-            quote = fetch_json(session, BASE + "/quote-equity", {"symbol": symbol}, page)
-            time.sleep(PAUSE_SECONDS)
-            trade = fetch_json(session, BASE + "/quote-equity", {"symbol": symbol, "section": "trade_info"}, page)
+            quote, trade, quote_error = fetch_quote_payloads(session, symbol, page)
+            if quote_error:
+                print(f"{symbol}: quote endpoint unavailable; continuing with independent NSE filings ({quote_error})")
             time.sleep(PAUSE_SECONDS)
             financial_payload = fetch_json(
                 session, BASE + "/results-comparision", {"index": "equities", "symbol": symbol},
