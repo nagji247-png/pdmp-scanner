@@ -99,19 +99,19 @@ jobs:
                                   parsed = parse_integrated_financial_xbrl(xml)
                                   print(f"integrated_filing: XBRL download OK; bytes={len(xml)}; parsed_periods={list((parsed or {}).get('periods', {}).keys())}; parsed_fields={list((parsed or {}).keys())}")
                           elif name == "shareholding" and isinstance(payload, list):
-                          print(f"shareholding: filing_rows={len(payload)}")
-                          if payload:
-                              row = payload[0]
-                              print(f"shareholding: sample_keys={list(row)[:20] if isinstance(row, dict) else type(row).__name__}")
-                              if isinstance(row, dict):
-                                  xbrl_url = filing_xml_url(row)
-                                  if xbrl_url:
-                                      xml = fetch_archive_xml(session, xbrl_url, referer)
-                                      parsed = parse_shareholding_xbrl(xml)
-                                      print(f"shareholding: XBRL download OK; bytes={len(xml)}; parsed={parsed}")
+                              print(f"shareholding: filing_rows={len(payload)}")
+                              if payload:
+                                  row = payload[0]
+                                  print(f"shareholding: sample_keys={list(row)[:20] if isinstance(row, dict) else type(row).__name__}")
+                                  if isinstance(row, dict):
+                                      xbrl_url = filing_xml_url(row)
+                                      if xbrl_url:
+                                          xml = fetch_archive_xml(session, xbrl_url, referer)
+                                          parsed = parse_shareholding_xbrl(xml)
+                                          print(f"shareholding: XBRL download OK; bytes={len(xml)}; parsed={parsed}")
                           elif name == "financial_results" and isinstance(payload, dict):
-                          rows = payload.get("resCmpData") or []
-                          print(f"financial_results: result_rows={len(rows)}; sample_keys={list(rows[0])[:20] if rows and isinstance(rows[0], dict) else []}")
+                              rows = payload.get("resCmpData") or []
+                              print(f"financial_results: result_rows={len(rows)}; sample_keys={list(rows[0])[:20] if rows and isinstance(rows[0], dict) else []}")
                       except ValueError:
                           print(f"{name}: response was not JSON")
               except Exception as exc:
