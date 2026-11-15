@@ -91,7 +91,7 @@ body=list.length?list.map(function(x){return '<div class="ma-panel"><button clas
 }else{
 title="FPI प्रवाह बदलाव";
 var h=fpi&&Array.isArray(fpi.history)?fpi.history:[],previous=h[1]||null,latest=h[0]||null;
-var rows=sectors.filter(function(s){return delta[s.name]!==undefined;}).map(function(s){return {name:s.name,delta:delta[s.name],flow:s.flow};}).sort(function(a,b){return b.delta-a.delta;});
+var rows=sectors.filter(function(s){return delta[s.name]!==undefined;}).map(function(s){return {name:s.name,delta:delta[s.name],flow:s.flow};}).sort(function(a,b){return b.flow-a.flow;});
 body=latest&&previous?'<div class="ma-intro">तुलना: '+esc(latest.label||fpiPeriod())+' बनाम '+esc(previous.label||"पिछली अवधि")+'। रकम ₹ करोड़ में। किसी सेक्टर का FPI आँकड़ा उस सेक्टर के सभी स्टॉक्स का नेट निवेश है; इसे किसी एक स्टॉक की खरीदारी न समझें।</div>'+rows.map(function(x){return '<button type="button" class="ma-flow ma-flow-button" data-sector="'+esc(x.name)+'"><b>'+esc(x.name)+' · '+money(x.flow)+'　›</b><small>पिछली अवधि से बदलाव: '+money(x.delta)+' · '+(x.delta>0?"प्रवाह में सुधार":x.delta<0?"प्रवाह में गिरावट":"कोई बदलाव नहीं")+'<br>'+stockRows(x.name).length+' सेक्टर स्टॉक देखें · वर्तमान अवधि का नेट Equity प्रवाह; intraday FPI नहीं।</small></button>';}).join(""):'<div class="ma-empty">तुलना के लिए दो सत्यापित FPI अवधियाँ उपलब्ध नहीं हैं।</div>';
 }
 viewRoot.innerHTML=nav(title)+'<div class="ma-kicker">'+esc(title)+'</div>'+body;
