@@ -176,6 +176,38 @@ def apply_eod_fallback(parsed, eod):
     return result
 
 
+def apply_share_count_market_cap(parsed, ownership):
+    """Derive a clearly-labelled market cap only from a dated price and complete filed share count.
+
+    This is not an NSE-reported market-cap field. The share count is accepted only
+    when promoter + public ownership percentages reconcile to approximately 100%.
+    """
+    result = dict(parsed or {})
+    if result.get("market_cap_cr") is not None:
+        return result
+    if not isinstance(ownership, dict):
+        return result
+    price = number(result.get("price"))
+    shares = number(ownership.get("total_shares"))
+    promoter_pct = number(ownership.get("promoter_pct"))
+    public_pct = number(ownership.get("public_pct"))
+    price_as_of = (result.get("price_as_of") or result.get("market_data_as_of")
+                   or result.get("quote_timestamp"))
+    shares_as_of = ownership.get("as_of")
+    if price is None or price <= 0 or shares is None or shares <= 0:
+        return result
+    if promoter_pct is None or public_pct is None or not 99.5 <= promoter_pct + public_pct <= 100.5:
+        return result
+    if not price_as_of or not shares_as_of:
+        return result
+    result["market_cap_cr"] = round(price * shares / 10000000, 2)
+    result["market_cap_method"] = "derived_price_x_nse_shareholding_total_shares"
+    result["market_cap_source"] = "Derived: NSE price × NSE filed Shareholding Pattern XBRL total shares"
+    result["market_cap_price_as_of"] = price_as_of
+    result["market_cap_shares_as_of"] = shares_as_of
+    return result
+
+
 def parse_shareholding(payload):
     if not isinstance(payload, list) or not payload:
         return None
@@ -516,6 +548,7 @@ def main():
 
         master_record = (master.get("stocks") or {}).get(symbol)
         parsed = apply_eod_fallback(parse_company_quote(quote, trade), bhavcopy_rows.get(symbol))
+        parsed = apply_share_count_market_cap(parsed, ownership)
         parsed = apply_verified_master_classification(parsed, master_record)
         company_name = extract_company_name(
             quote, integrated_payload, shareholding, master_record
