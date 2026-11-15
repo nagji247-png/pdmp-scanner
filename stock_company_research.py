@@ -60,6 +60,7 @@ def parse_company_quote(payload, trade_payload=None):
         "change_pct": number(price.get("pChange")),
         "market_cap_cr": market_cap,
         "face_value": number(security.get("faceValue")),
+        "quote_timestamp": payload.get("timestamp") or info.get("lastUpdateTime") or price.get("lastUpdateTime") or payload.get("lastUpdateTime"),
         "quote_source": "NSE India public quote-equity API",
         "market_cap_source": "NSE India public quote-equity trade_info API" if market_cap is not None else None,
     }
