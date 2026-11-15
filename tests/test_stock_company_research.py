@@ -158,10 +158,10 @@ class StockCompanyResearchTests(unittest.TestCase):
         class Response:
             status_code = 200
             content = (
-                b"SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER\\n"
-                b"ABC,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
-                b"ABC,BE,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
-                b"XYZ,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\\n"
+                b"SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER\n"
+                b"ABC,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\n"
+                b"ABC,BE,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\n"
+                b"XYZ,EQ,13-Nov-2026,100,101,110,99,109,108,105,1000,10,20,400,40\n"
             )
         class Session:
             def get(self, _url, **_kwargs):
