@@ -21,6 +21,7 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
           <RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>
           <ProfitLossForPeriod unitRef="INR" contextRef="OneD">18750000000</ProfitLossForPeriod>
           <BasicEarningsLossPerShareFromContinuingOperations unitRef="INR" contextRef="OneD">12.5</BasicEarningsLossPerShareFromContinuingOperations>
+          <Assets unitRef="INR" contextRef="OneI">900000000000</Assets>
           <EquityAndLiabilities unitRef="INR" contextRef="OneI">900000000000</EquityAndLiabilities>
           <Equity unitRef="INR" contextRef="OneI">300000000000</Equity>
           <CurrentFinancialLiabilities unitRef="INR" contextRef="OneI">100000000000</CurrentFinancialLiabilities>
@@ -38,8 +39,17 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
         self.assertEqual(data["quarter"]["basic_eps"], 12.5)
         self.assertEqual(data["ytd"]["revenue_cr"], 56671.05)
         self.assertEqual(data["balance_sheet"]["total_assets_cr"], 90000.0)
+        self.assertEqual(data["balance_sheet"]["total_equity_cr"], 30000.0)
         self.assertNotIn("debt_equity_ratio", data["balance_sheet"])
+        self.assertNotIn("EquityAndLiabilities", data["raw_facts"])
         self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 99999.9999999)
+
+    def test_equity_and_liabilities_alone_does_not_masquerade_as_assets(self):
+        xml = self.xml().replace(
+            '<Assets unitRef="INR" contextRef="OneI">900000000000</Assets>', ''
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertNotIn("total_assets_cr", data["balance_sheet"])
 
     def test_unknown_or_invalid_xml_is_unavailable(self):
         self.assertIsNone(parse_integrated_financial_xbrl("<xbrl/>"))
