@@ -44,7 +44,7 @@ def pick(obj, *keys):
 
 
 def filing_sort_key(row):
-    raw = str(row.get("date") or row.get("filingDate") or "")
+    raw = str(row.get("broadcastDate") or row.get("broadcastTime") or row.get("date") or row.get("filingDate") or "")
     for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
         try:
             return dt.datetime.strptime(raw, fmt).date()
