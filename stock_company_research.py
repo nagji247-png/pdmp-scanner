@@ -379,6 +379,17 @@ def extract_company_name(quote, integrated_payload=None, shareholding=None, mast
     return None
 
 
+def next_batch_cursor(start, batch_size, successful, total):
+    """Advance only after every symbol in the batch has usable source data.
+
+    A partial/empty batch is retried from the same cursor on the next scheduled
+    day. Successful records remain cached, but no symbol is silently skipped.
+    """
+    if successful >= batch_size:
+        return (start + batch_size) % total
+    return start
+
+
 def main():
     master = load_json(MASTER, {})
     symbols = sorted((master.get("stocks") or {}).keys())
@@ -515,6 +526,10 @@ def main():
                 if key not in ("quote_source", "market_cap_source"))
             or ownership or financials or integrated_financials
         )
+        has_source_data = bool(
+            parsed.get("price") is not None
+            or ownership or financials or integrated_financials
+        )
         if not has_new_data:
             print(f"{symbol}: no new usable fields; previous cache retained")
         else:
@@ -531,7 +546,10 @@ def main():
                 merged["integrated_financials"] = integrated_financials
             merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
             stocks[symbol] = merged
-            success += 1
+            if has_source_data:
+                success += 1
+            else:
+                print(f"{symbol}: metadata cached, but no usable market/filing source; batch will retry")
             sources = []
             if parsed.get("price") is not None:
                 sources.append(parsed.get("market_data_type") or "quote")
@@ -547,8 +565,14 @@ def main():
     data["schema_version"] = 1
     data["universe_count"] = len(symbols)
     data["last_batch_date"] = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    data["next_index"] = (start + len(batch)) % len(symbols)
-    data["last_batch"] = {"symbols": batch, "success": success, "attempted": len(batch)}
+    data["next_index"] = next_batch_cursor(start, len(batch), success, len(symbols))
+    data["last_batch"] = {
+        "symbols": batch,
+        "success": success,
+        "attempted": len(batch),
+        "complete": success == len(batch),
+        "retry_pending": success < len(batch),
+    }
     data["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     data["source_note"] = (
         "NSE official full bhavcopy EOD archive for dated price/volume/delivery fields when available; NSE quote-equity, quarterly results comparison, Integrated Filing XBRL and Shareholding Pattern XBRL where accessible. "
