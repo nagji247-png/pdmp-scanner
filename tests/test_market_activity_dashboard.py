@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=8"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=9"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
@@ -89,6 +89,8 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("comparisonPeriodFresh", self.script)
         self.assertIn("पुराना रिकॉर्ड", self.script)
         self.assertIn("Integrated XBRL · ", self.script)
+        self.assertIn("भाव तारीख़:", self.script)
+        self.assertIn("company.price_as_of||company.market_data_as_of", self.script)
         self.assertIn("Valuation Scorecard", self.script)
         stock_detail = self.script.split("function renderStock(symbol,sector){", 1)[1].split("\nfunction render(){", 1)[0]
         self.assertNotIn("crowd", stock_detail.lower())
