@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 import stock_company_research as research
 
@@ -282,6 +284,25 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(trade, {})
         self.assertIn("HTTP 403", error)
         self.assertEqual(len(calls), 1)
+
+
+    def test_nse_stock_master_has_complete_verified_218_symbol_industry_sector_coverage(self):
+        master_path = Path(__file__).resolve().parents[1] / "nse-fo-stock-sector-master.json"
+        master = json.loads(master_path.read_text(encoding="utf-8"))
+        stocks = master.get("stocks") or {}
+
+        self.assertEqual(master.get("universe", {}).get("count"), 218)
+        self.assertEqual(len(stocks), 218)
+        self.assertTrue(all(row.get("industry") and row.get("sector") for row in stocks.values()))
+        self.assertTrue(all(str(row.get("status", "")).startswith("verified_") for row in stocks.values()))
+
+        # Seven legacy mappings have verified industry/sector but no separately
+        # sourced macro-sector mapping; keep that field unavailable rather than infer it.
+        missing_macro = {symbol for symbol, row in stocks.items() if not row.get("macro_sector")}
+        self.assertEqual(
+            missing_macro,
+            {"ADANIPORTS", "COALINDIA", "EICHERMOT", "HDFCBANK", "HINDALCO", "RELIANCE", "SBIN"},
+        )
 
 if __name__ == "__main__":
     unittest.main()
