@@ -44,6 +44,24 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
         self.assertNotIn("equity_and_liabilities_cr", data["balance_sheet"])
         self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 999999999999.0)
 
+    def test_reported_financial_ratios_require_pure_unit(self):
+        xml = self.xml().replace(
+            '<unit id="USD"><measure>iso4217:USD</measure></unit>',
+            '<unit id="USD"><measure>iso4217:USD</measure></unit>'
+            '<unit id="PURE"><measure>xbrli:pure</measure></unit>'
+        ).replace(
+            '</xbrl>',
+            '<DebtEquityRatio unitRef="PURE" contextRef="OneD">0.25</DebtEquityRatio>'
+            '<DebtServiceCoverageRatio unitRef="PURE" contextRef="OneD">1.75</DebtServiceCoverageRatio>'
+            '<InterestServiceCoverageRatio unitRef="PURE" contextRef="OneD">3.5</InterestServiceCoverageRatio>'
+            '<DebtEquityRatio unitRef="INR" contextRef="OneD">999</DebtEquityRatio>'
+            '</xbrl>'
+        )
+        data = parse_integrated_financial_xbrl(xml)
+        self.assertEqual(data["quarter"]["debt_equity_ratio"], 0.25)
+        self.assertEqual(data["quarter"]["debt_service_coverage_ratio"], 1.75)
+        self.assertEqual(data["quarter"]["interest_service_coverage_ratio"], 3.5)
+
     def test_context_ids_are_classified_from_dates_not_fixed_names(self):
         xml = self.xml()
         for old_id, new_id in (("OneD", "ctx_9a"), ("FourD", "ctx_2b"),
