@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=6"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=7"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
@@ -54,7 +54,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_uses_existing_static_data_and_does_not_invent_missing_fields(self):
         for text in ("nse-fo-stock-sector-master.json", "fpi-sector-data.json",
                      'fetch("data.json?', "वॉल्यूम:",
-                     "crowd mood उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं",
+                     "crowd mood उपलब्ध नहीं", "स्टॉक-स्तरीय वास्तविक buy/sell या FPI order-flow डेटा उपलब्ध नहीं है",
                      "market_activity_quotes", "price_source"):
             self.assertIn(text, self.script)
 
@@ -74,6 +74,16 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn('window.addEventListener("popstate"', self.script)
         self.assertIn('sector:stk.getAttribute("data-sector-name")||"",scroll:0', self.script)
         self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
+
+    def test_fpi_sector_rows_open_stock_list_and_stock_detail_is_company_only(self):
+        self.assertIn('class="ma-flow ma-flow-button" data-sector="', self.script)
+        self.assertIn("कंपनी का कारोबार", self.script)
+        self.assertIn("Shareholding Pattern", self.script)
+        self.assertIn("Fundamental Ratios", self.script)
+        self.assertIn("Valuation Scorecard", self.script)
+        stock_detail = self.script.split("function renderStock(symbol,sector){", 1)[1].split("\nfunction render(){", 1)[0]
+        self.assertNotIn("crowd", stock_detail.lower())
+        self.assertNotIn("pdmp", stock_detail.lower())
 
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
         self.assertIn("function updateTradeGuard(data)", self.dashboard)
