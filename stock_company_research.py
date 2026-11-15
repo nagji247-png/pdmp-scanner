@@ -12,7 +12,7 @@ from pathlib import Path
 
 import requests
 
-from nse_xbrl import filing_xml_url, parse_shareholding_xbrl
+from nse_xbrl import filing_xml_url, parse_financial_results_comparison, parse_shareholding_xbrl
 
 ROOT = Path(__file__).resolve().parent
 MASTER = ROOT / "nse-fo-stock-sector-master.json"
@@ -161,6 +161,12 @@ def main():
             time.sleep(PAUSE_SECONDS)
             trade = fetch_json(session, BASE + "/quote-equity", {"symbol": symbol, "section": "trade_info"}, page)
             time.sleep(PAUSE_SECONDS)
+            financial_payload = fetch_json(
+                session, BASE + "/results-comparision", {"index": "equities", "symbol": symbol},
+                "https://www.nseindia.com/companies-listing/corporate-filings-financial-results?symbol=" + symbol,
+            )
+            financials = parse_financial_results_comparison(financial_payload)
+            time.sleep(PAUSE_SECONDS)
             shareholding = fetch_json(
                 session, BASE + "/corporate-share-holdings-master",
                 {"index": "equities", "symbol": symbol},
@@ -203,6 +209,8 @@ def main():
                     merged[key] = value
             if ownership:
                 merged["shareholding"] = ownership
+            if financials:
+                merged["financials"] = financials
             merged["checked_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
             stocks[symbol] = merged
             success += 1
