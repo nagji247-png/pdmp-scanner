@@ -60,7 +60,7 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
             '</context>\n          <context id="FourD">',
             '</context>\n          <context id="SegmentQ"><entity><identifier>INE000A</identifier></entity>'
             '<period><startDate>2026-07-01</startDate><endDate>2026-09-30</endDate></period>'
-            '<scenario><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></scenario></context>'
+            '<entity><segment><explicitMember dimension="SegmentAxis">RetailMember</explicitMember></segment></entity></context>'
             '\n          <context id="FourD">'
         ).replace(
             '<RevenueFromOperations unitRef="INR" contextRef="OneD">211276500000</RevenueFromOperations>',
