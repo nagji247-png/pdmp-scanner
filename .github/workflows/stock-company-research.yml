@@ -12,13 +12,15 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: stock-company-research-cache
+  group: stock-company-research-cache-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -28,7 +30,9 @@ jobs:
         env:
           STOCK_RESEARCH_BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
         run: python stock_company_research.py
-      - name: Commit only company research cache
+      - name: Commit only company research cache to the triggering branch
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
         run: |
           if [ -z "$(git status --porcelain -- stock-company-data.json)" ]; then
             echo "No company research cache changes"
@@ -38,5 +42,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stock-company-data.json
           git commit -m "Refresh incremental NSE stock company research cache"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin "$TARGET_BRANCH"
+          git push origin "HEAD:$TARGET_BRANCH"
