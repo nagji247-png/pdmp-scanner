@@ -3476,7 +3476,7 @@ function renderFpiSectorTilt(payload) {
   const top = latest.sectors.filter(x => Number.isFinite(Number(x.net_equity_cr)));
   const buys = top.filter(x => Number(x.net_equity_cr) > 0).sort((a,b) => Number(b.net_equity_cr)-Number(a.net_equity_cr)).slice(0,3);
   const sells = top.filter(x => Number(x.net_equity_cr) < 0).sort((a,b) => Number(a.net_equity_cr)-Number(b.net_equity_cr)).slice(0,3);
-  const row = (item, i) => '<div class="ev"><div>' + (i+1) + '. ' + esc(item.name) + '</div><b class="' + (Number(item.net_equity_cr)>0 ? "pos" : "neg") + '">' + fmt(item.net_equity_cr) + '</b></div>';
+  const row = (item, i) => '<div class="ev"><div>' + (i+1) + '. ' + esc(item.name) + '</div><button type="button" class="fpi-eye" data-fpi-sector-eye="' + esc(item.name) + '" aria-label="' + esc(item.name) + ' के स्टॉक देखें" title="इस सेक्टर के स्टॉक देखें">👁️</button><b class="' + (Number(item.net_equity_cr)>0 ? "pos" : "neg") + '">' + fmt(item.net_equity_cr) + '</b></div>';
   const previous = history[1];
   const prevMap = new Map((previous && Array.isArray(previous.sectors) ? previous.sectors : []).map(x => [x.name, Number(x.net_equity_cr)]));
   const reversals = previous ? top.map(x => {
@@ -3604,6 +3604,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", load);
 window.addEventListener("pageshow", load);
 </script>
-<script src="market-activity.js?v=11" defer></script>
+<script src="market-activity.js?v=12" defer></script>
+<script src="fpi-sector-tilt.js?v=1" defer></script>
 </body>
 </html>
