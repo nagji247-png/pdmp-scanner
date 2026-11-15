@@ -34,7 +34,7 @@ class IntegratedFinancialXbrlTests(unittest.TestCase):
         self.assertEqual(data["quarter"]["basic_eps"], 12.5)
         self.assertEqual(data["ytd"]["revenue_cr"], 56671.05)
         self.assertEqual(data["balance_sheet"]["total_assets_cr"], 90000.0)
-        self.assertEqual(data["balance_sheet"]["debt_equity_ratio"], 0.5)
+        self.assertNotIn("debt_equity_ratio", data["balance_sheet"])
         self.assertEqual(data["raw_facts"]["RevenueFromOperations"]["prior_balance_sheet"], 99999.9999999)
 
     def test_unknown_or_invalid_xml_is_unavailable(self):
