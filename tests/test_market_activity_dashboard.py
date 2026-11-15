@@ -16,8 +16,8 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_verified_fno_master_is_218_stocks_across_18_sectors(self):
         self.assertEqual(len(self.master["stocks"]), 218)
         self.assertEqual(len({row["sector"] for row in self.master["stocks"].values()}), 18)
-        self.assertEqual(self.drawings["chart_layout_id"], "HIjMBtAv")
         self.assertEqual(self.drawings["snapshots"], {})
+        self.assertNotIn("chart_layout_id", self.drawings)
 
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
@@ -33,7 +33,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
                      "SECTOR ACTIVITY", "FPI FLOW + NEWS CONFIRMATION",
                      "218 STOCK MASTER LIST", "data-stock",
                      "ma-sector-grid", "data-sector", "data-back",
-                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं", "आपकी DRAWING PREVIEW", "stock-chart-drawings.json", "s3.tradingview.com/snapshots", "पूरा TradingView Chart"):
+                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं", "आपकी DRAWING PREVIEW", "stock-chart-drawings.json", "s3.tradingview.com/snapshots", "अपना TradingView Chart खोलें", "https://www.tradingview.com/chart/?symbol=NSE%3A"):
 
             self.assertIn(text, self.script)
 
