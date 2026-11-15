@@ -57,13 +57,19 @@ class MarketActivityDashboardTests(unittest.TestCase):
                      "crowd mood उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं"):
             self.assertIn(text, self.script)
 
-    def test_navigation_is_progressive_and_back_control_stays_visible(self):
-        self.assertIn('position:sticky', self.script)
+    def test_navigation_drilldowns_stay_inside_fixed_scrollable_popup(self):
+        self.assertIn('.ma-view-overlay{position:fixed', self.script)
+        self.assertIn('.ma-view-dialog{width:min(100%,760px)', self.script)
+        self.assertIn('overscroll-behavior:contain', self.script)
+        self.assertIn('data-view-content', self.script)
+        self.assertIn('data-close-view', self.script)
         self.assertIn('data-back', self.script)
+        self.assertIn('function ensurePopup()', self.script)
+        self.assertIn('document.body.style.overflow="hidden"', self.script)
+        self.assertIn('viewRoot=popupBody', self.script)
         self.assertIn('history.pushState', self.script)
-        self.assertIn('function scrollToActivityTop()', self.script)
-        self.assertIn('requestAnimationFrame(scrollToActivityTop)', self.script)
-        self.assertNotIn('render();window.scrollTo(0,0)', self.script)
+        self.assertNotIn('function scrollToActivityTop()', self.script)
+        self.assertNotIn('requestAnimationFrame(scrollToActivityTop)', self.script)
         self.assertIn('window.addEventListener("popstate"', self.script)
         self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
 
