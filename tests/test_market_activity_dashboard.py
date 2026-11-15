@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_activity_panel_remains_between_fpi_and_stock_list(self):
         self.assertIn('href="#market-activity"', self.dashboard)
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=3"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=4"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
@@ -44,8 +44,10 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("function sectorOrder", self.script)
         self.assertIn("function stockOrder", self.script)
         self.assertIn("function fpiDeltaMap", self.script)
+        self.assertIn("function activityAlerts()", self.script)
+        self.assertIn("ma-chart-preview{border:1px solid #9272d6", self.script)
         self.assertIn("पिछली अवधि से तुलना", self.script)
-        self.assertNotIn("LATEST ACTIVITY ALERTS", self.script)
+        self.assertIn("LATEST ACTIVITY ALERTS", self.script)
         self.assertNotIn("218 STOCK MASTER LIST", self.script)
         self.assertNotIn("FPI FLOW + NEWS CONFIRMATION</div><div class=\"ma-intro\"", self.script)
 
