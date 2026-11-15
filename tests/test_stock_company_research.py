@@ -205,6 +205,7 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(fallback["previous_close"], 120.0)
         self.assertEqual(fallback["market_data_as_of"], "2026-11-13")
         self.assertEqual(fallback["market_data_type"], "end_of_day")
+        self.assertEqual(fallback["price_as_of"], "2026-11-13")
         self.assertEqual(fallback["quote_source"], "NSE official full bhavcopy EOD archive")
 
         preferred = research.apply_eod_fallback({"price": 130.0, "quote_source": "NSE live quote"}, eod)
