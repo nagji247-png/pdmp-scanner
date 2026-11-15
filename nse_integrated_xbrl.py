@@ -1,7 +1,8 @@
 """Conservative parser for NSE Integrated Filing - Financials XBRL instances.
 
-Only the four standard non-dimensional contexts are mapped. Unknown tags and
-missing facts remain absent; no values are inferred from narrative text.
+Reporting periods are classified from context dates, and dimensional segment
+contexts are excluded from company-wide totals. Unknown tags and missing facts
+remain absent; no values are inferred from narrative text.
 Monetary INR facts are converted from absolute rupees to ₹ crore.
 """
 from __future__ import annotations
@@ -80,9 +81,9 @@ def parse_integrated_financial_xbrl(source):
         if not cid:
             continue
         # Company-wide totals must not accidentally use segment/dimensional facts.
-        if any(_local(child.tag) in ("segment", "scenario") and
-               any(_local(desc.tag) in ("explicitMember", "typedMember") for desc in child.iter())
-               for child in node):
+        if any(_local(part.tag) in ("segment", "scenario") and
+               any(_local(desc.tag) in ("explicitMember", "typedMember") for desc in part.iter())
+               for part in node.iter()):
             continue
         period = next((child for child in node if _local(child.tag) == "period"), None)
         if period is None:
