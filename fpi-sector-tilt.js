@@ -44,6 +44,7 @@ function ensureOverlay(){
  overlay.addEventListener("click",function(e){if(e.target===overlay)close();});
  overlay.querySelector("[data-fpi-close]").addEventListener("click",close);
  overlay.querySelector("[data-fpi-back]").addEventListener("click",function(){renderSector(activeSector);});
+ overlay.addEventListener("click",function(e){var stock=e.target.closest("[data-fpi-stock]");if(stock)renderStock(stock.getAttribute("data-fpi-stock"));});
  document.addEventListener("keydown",onKey);
 }
 function close(){if(overlay){overlay.remove();overlay=null;body=null;document.removeEventListener("keydown",onKey);}}
