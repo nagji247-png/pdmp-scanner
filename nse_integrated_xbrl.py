@@ -57,6 +57,16 @@ def parse_integrated_financial_xbrl(source):
     except (ET.ParseError, TypeError, ValueError, AttributeError):
         return None
 
+    units = {}
+    for node in root.iter():
+        if _local(node.tag) != "unit":
+            continue
+        unit_id = node.attrib.get("id")
+        measures = [(child.text or "").strip().split(":")[-1].upper()
+                    for child in node.iter() if _local(child.tag) == "measure"]
+        if unit_id:
+            units[unit_id] = measures
+
     contexts = {}
     for node in root.iter():
         if _local(node.tag) != "context":
@@ -81,6 +91,14 @@ def parse_integrated_financial_xbrl(source):
         tag = _local(node.tag)
         value = _number(node.text)
         if value is None:
+            continue
+        unit_ref = node.attrib.get("unitRef")
+        measures = units.get(unit_ref, []) if unit_ref else []
+        # These fields are displayed in INR. Never relabel USD or unknown
+        # currencies as rupees; retain only facts with a verified INR unit.
+        if tag in MONEY_TAGS and "INR" not in measures:
+            continue
+        if tag in PER_SHARE_TAGS and "INR" not in measures:
             continue
         facts.setdefault(tag, {})[context_id] = value
 
@@ -107,5 +125,6 @@ def parse_integrated_financial_xbrl(source):
         tag: {CONTEXTS[cid]: value for cid, value in values.items()}
         for tag, values in facts.items()
     }
-    result["taxonomy"] = next((value for key, value in root.attrib.items() if "schemaRef" in key), None)
+    result["taxonomy"] = next(((node.attrib.get("href") or node.attrib.get("{http://www.w3.org/1999/xlink}href"))
+                               for node in root.iter() if _local(node.tag) == "schemaRef"), None)
     return result
