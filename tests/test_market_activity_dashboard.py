@@ -28,15 +28,26 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_radar_has_requested_interactive_sections(self):
         for text in ("MARKET ACTIVITY RADAR", "LATEST ACTIVITY ALERTS",
                      "SECTOR ACTIVITY", "FPI FLOW + NEWS CONFIRMATION",
-                     "218 STOCK MASTER LIST", "ma-stock-", "data-stock",
-                     "ma-sector-grid", "स्टॉक-स्तरीय खबर उपलब्ध नहीं"):
+                     "218 STOCK MASTER LIST", "data-stock",
+                     "ma-sector-grid", "data-sector", "data-back",
+                     "स्टॉक-स्तरीय खबर उपलब्ध नहीं"):
             self.assertIn(text, self.script)
 
     def test_uses_existing_static_data_and_does_not_invent_missing_fields(self):
         for text in ("nse-fo-stock-sector-master.json", "fpi-sector-data.json",
-                     'fetch("data.json?', "वॉल्यूम: डेटा उपलब्ध नहीं",
-                     "भीड़ का रुख: डेटा उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं"):
+                     'fetch("data.json?', "वॉल्यूम:",
+                     "crowd mood उपलब्ध नहीं", "व्यक्तिगत स्टॉक FPI उपलब्ध नहीं"):
             self.assertIn(text, self.script)
+
+
+    def test_navigation_is_progressive_and_back_control_stays_visible(self):
+        self.assertIn('position:sticky', self.script)
+        self.assertIn('data-back', self.script)
+        self.assertIn('history.pushState', self.script)
+        self.assertIn('window.addEventListener("popstate"', self.script)
+        self.assertIn('पूरी स्टॉक सूची खोलें', self.script)
+        self.assertIn('<div class="ma-master"><details>', self.script)
+        self.assertIn('संकेत बनाने के लिए डेटा अपर्याप्त', self.script)
 
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
         self.assertIn("function updateTradeGuard(data)", self.dashboard)
