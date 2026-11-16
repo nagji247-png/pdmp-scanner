@@ -406,6 +406,30 @@ def load_archive(path):
     return {"schema_version": 1, "records": []}
 
 
+EXCHANGE_CALENDAR_PATH = Path("exchange_calendar.json")
+
+def load_exchange_calendar(path=EXCHANGE_CALENDAR_PATH):
+    with Path(path).open("r", encoding="utf-8") as handle:
+        calendar = json.load(handle)
+    if not isinstance(calendar, dict) or calendar.get("exchange") != "NSE":
+        raise ValueError("NSE exchange calendar missing or invalid")
+    year = calendar.get("calendar_year")
+    holidays = calendar.get("holidays")
+    special = calendar.get("special_sessions")
+    if not isinstance(year, int) or not isinstance(holidays, list) or not isinstance(special, dict):
+        raise ValueError("NSE exchange calendar schema is invalid")
+    holiday_dates = {parse_date(item.get("date")) for item in holidays if isinstance(item, dict) and item.get("date")}
+    special_dates = {parse_date(key) for key in special}
+    return {"year": year, "holidays": holiday_dates, "special_sessions": special_dates}
+
+def is_nse_trading_session(day, calendar):
+    day = parse_date(day)
+    if day.year != calendar["year"]:
+        raise ValueError(f"NSE calendar does not cover {day.year}")
+    if day in calendar["special_sessions"]:
+        return True
+    return day.weekday() < 5 and day not in calendar["holidays"]
+
 def capture_one(archive, trade_date):
     """Capture one exchange date; existing dates are skipped before any HTTP request."""
     date_key = trade_date.isoformat()
@@ -482,13 +506,16 @@ def main():
             parser.error("--max-sessions must be between 1 and the hard cap of 5")
         if args.delay_seconds < 2 or not math.isfinite(args.delay_seconds):
             parser.error("--delay-seconds must be at least 2")
+        calendar = load_exchange_calendar()
         dates = []
         day = start
         while day <= end:
-            if day.weekday() < 5:
+            if is_nse_trading_session(day, calendar):
                 dates.append(day)
             day += dt.timedelta(days=1)
-        dates = dates[:args.max_sessions]
+        dates = dates[-args.max_sessions:]
+        if not dates:
+            parser.error("date window contains no NSE trading sessions")
         results = []
         for index, day in enumerate(dates):
             try:
@@ -500,16 +527,20 @@ def main():
                 time.sleep(args.delay_seconds)
         if any(item.get("status") == "captured" for item in results):
             write_archive_atomic(path, archive)
+        required = results[-1]
+        latest_ok = required.get("status") in ("captured", "skipped_existing")
         print(json.dumps({"mode": "bounded_historical_backfill",
                           "attempted_dates": len(dates),
                           "max_date_attempts": args.max_sessions,
+                          "required_latest_session": required.get("date"),
+                          "latest_session_available": latest_ok,
                           "delay_seconds": args.delay_seconds,
                           "results": results,
                           "archive_sessions": len(archive.get("records", [])),
                           "research_only": True,
                           "included_in_asset_final": False},
                          ensure_ascii=False, sort_keys=True))
-        return 0
+        return 0 if latest_ok else 1
 
     trade_date = parse_date(args.date) if args.date else dt.datetime.now(IST).date()
     result = capture_one(archive, trade_date)
