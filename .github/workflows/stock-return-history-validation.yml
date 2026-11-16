@@ -1,0 +1,29 @@
+name: Stock Return History Validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - "stock_return_history.py"
+      - "tests/test_stock_return_history.py"
+      - ".github/workflows/stock-return-history-validation.yml"
+  pull_request:
+    paths:
+      - "stock_return_history.py"
+      - "tests/test_stock_return_history.py"
+      - ".github/workflows/stock-return-history-validation.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install offline test dependency
+        run: python -m pip install requests
+      - name: Compile and run offline return tests
+        run: |
+          python -m py_compile stock_return_history.py
+          python -m unittest discover -s tests -p "test_stock_return_history.py" -v
