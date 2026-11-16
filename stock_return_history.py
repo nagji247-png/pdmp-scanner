@@ -24,11 +24,15 @@ MASTER_PATH = Path("nse-fo-stock-sector-master.json")
 BASE = "https://www.nseindia.com"
 STOCK_HISTORY_PATH = "/api/historicalOR/generateSecurityWiseHistoricalData"
 INDEX_HISTORY_URL = "https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString"
-INDEX_MAPPING_URL = "https://iislliveblob.niftyindices.com/assets/json/IndexMapping.json"
 PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
 HISTORY_LOOKBACK_DAYS = 365
+BENCHMARK_SOURCE_VERSION = "Nifty Indices official Historical Index Data · canonical name map v2"
+INDEX_LONG_NAME = {
+    "NIFTY HEALTHCARE": "NIFTY HEALTHCARE INDEX",
+    "NIFTY OIL AND GAS INDEX": "NIFTY OIL & GAS",
+}
 
 # Only exact, defensible sector-to-index mappings. Broad or adjacent sectors
 # intentionally remain unmapped rather than receiving a misleading proxy.
@@ -263,44 +267,8 @@ def fetch_stock_history(session, symbol, start_date, end_date):
     return rows, response.url
 
 
-def index_key(value):
-    return re.sub(r"[^A-Z0-9]", "", str(value or "").upper())
-
-
-def fetch_index_mapping(session):
-    response = session.get(
-        INDEX_MAPPING_URL,
-        headers={
-            "Accept": "application/json, text/plain, */*",
-            "Referer": "https://www.niftyindices.com/reports/historical-data",
-            "Origin": "https://www.niftyindices.com",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
-        },
-        timeout=(10, 20),
-    )
-    if response.status_code != 200 or not response.content:
-        raise RuntimeError(f"Nifty Indices name mapping HTTP {response.status_code}")
-    rows = response.json()
-    if not isinstance(rows, list):
-        raise ValueError("Nifty Indices name mapping has an unsupported shape")
-    mapping = {}
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        trading_name = row.get("Trading_Index_Name")
-        long_name = row.get("Index_long_name")
-        if trading_name and long_name:
-            mapping[index_key(trading_name)] = str(long_name).upper().strip()
-            mapping[index_key(long_name)] = str(long_name).upper().strip()
-    if not mapping:
-        raise ValueError("Nifty Indices name mapping contains no usable names")
-    return mapping, response.url
-
-
-def fetch_index_history(session, index_name, start_date, end_date, name_mapping):
-    long_name = name_mapping.get(index_key(index_name))
-    if not long_name:
-        raise ValueError(f"Nifty Indices official name mapping missing: {index_name}")
+def fetch_index_history(session, index_name, start_date, end_date):
+    long_name = INDEX_LONG_NAME.get(index_name, index_name)
     start_text = start_date.strftime("%d %b %Y")
     end_text = end_date.strftime("%d %b %Y")
     payload = {
@@ -327,7 +295,6 @@ def fetch_index_history(session, index_name, start_date, end_date, name_mapping)
         response.json(), expected_index=index_name, expected_aliases=[long_name]
     ), response.url
 
-
 def load_json(path, fallback):
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -353,7 +320,7 @@ def main():
     performance_state = data.get("performance_history") or {}
     if (
         performance_state.get("last_batch_date") == today.isoformat()
-        and performance_state.get("benchmark_source") == "Nifty Indices official Historical Index Data"
+        and performance_state.get("benchmark_source") == BENCHMARK_SOURCE_VERSION
     ):
         print("Historical returns already refreshed today; no repeat NSE requests")
         return 0
@@ -435,17 +402,9 @@ def main():
 
     index_rows = {}
     index_urls = {}
-    try:
-        name_mapping, mapping_url = fetch_index_mapping(session)
-        print(f"Nifty Indices official name mapping loaded: {len(name_mapping)} aliases")
-    except Exception as exc:
-        name_mapping = {}
-        print(f"Nifty Indices name mapping unavailable: {type(exc).__name__}: {str(exc)[:160]}")
     for index_name in sorted(needed_indices):
         try:
-            rows, url = fetch_index_history(
-                session, index_name, start_date, today, name_mapping
-            )
+            rows, url = fetch_index_history(session, index_name, start_date, today)
             index_rows[index_name] = rows
             index_urls[index_name] = url
             print(f"{index_name}: captured {len(rows)} official Nifty Indices closes")
@@ -507,7 +466,7 @@ def main():
 
     data["performance_history"] = {
         "source": "NSE official stock history + Nifty Indices official historical index data",
-        "benchmark_source": "Nifty Indices official Historical Index Data",
+        "benchmark_source": BENCHMARK_SOURCE_VERSION,
         "updated_at": fetched_at,
         "last_batch_date": today.isoformat(),
         "last_batch_symbols": symbols,
