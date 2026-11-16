@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "dashboard.html"
+      - "fpi-sector-tilt.js"
       - "fpi_sector_tilt.py"
       - "fpi-sector-data.json"
       - "fpi-stock-sector-map.json"
@@ -27,6 +28,8 @@ jobs:
           python-version: "3.11"
       - name: Compile FPI fetcher
         run: python -m py_compile fpi_sector_tilt.py scripts/import_marketlens_sector_csv.py
+      - name: Check FPI stock popup JavaScript syntax
+        run: node --check fpi-sector-tilt.js
       - name: Test FPI report parsing and period selection
         run: python -m unittest discover -s tests -p "test_fpi_sector_tilt.py" -v
       - name: Test stock-level FPI tag direction and safety gates
