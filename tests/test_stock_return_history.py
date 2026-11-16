@@ -1,6 +1,6 @@
 import datetime as dt
-import json
 import unittest
+from unittest.mock import Mock, patch
 
 import stock_return_history as history
 
@@ -29,83 +29,6 @@ class StockReturnHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate EQ date"):
             history.parse_stock_history_csv(payload, "RELIANCE")
 
-    def test_index_parser_reads_niftyindices_double_json_response(self):
-        payload = {"d": json.dumps([
-            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"},
-            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "27500"},
-        ])}
-        rows = history.parse_index_history(payload, expected_index="NIFTY 50")
-        self.assertEqual(rows[dt.date(2025, 11, 17)], 25000.0)
-        self.assertEqual(rows[dt.date(2026, 11, 14)], 27500.0)
-
-    def test_index_parser_accepts_official_financial_services_response_alias(self):
-        payload = {"d": json.dumps([
-            {"INDEX_NAME": "NIFTY FIN SERVICE", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"},
-            {"INDEX_NAME": "NIFTY FIN SERVICE", "HistoricalDate": "14 Nov 2026", "CLOSE": "27500"},
-        ])}
-        self.assertEqual(
-            len(history.parse_index_history(payload, expected_index="NIFTY FINANCIAL SERVICES")), 2
-        )
-
-    def test_index_parser_rejects_wrong_index_name(self):
-        payload = {"d": json.dumps([
-            {"INDEX_NAME": "NIFTY BANK", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"}
-        ])}
-        with self.assertRaisesRegex(ValueError, "name mismatch"):
-            history.parse_index_history(payload, expected_index="NIFTY 50")
-
-    def test_index_history_fetch_uses_one_official_post_request(self):
-        from unittest.mock import Mock
-        session = Mock()
-        response = Mock(
-            status_code=200,
-            content=(
-                b"\xef\xbb\xbf" + json.dumps({"d": json.dumps([
-                    {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "26000"}
-                ])}).encode("utf-8")
-            ),
-            headers={"Content-Type": "application/json"},
-            url="https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString",
-        )
-        session.post.return_value = response
-        rows, url = history.fetch_index_history(
-            session, "NIFTY 50", dt.date(2025, 11, 16), dt.date(2026, 11, 16)
-        )
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(session.post.call_count, 1)
-        payload = session.post.call_args.kwargs["json"]
-        self.assertIn("'name':'NIFTY 50'", payload["cinfo"])
-        self.assertIn("'startDate':'16 Nov 2025'", payload["cinfo"])
-        self.assertEqual(url, response.url)
-
-    def test_niftyindices_session_bootstrap_is_one_short_request_and_tolerates_403(self):
-        from unittest.mock import Mock
-        session = Mock()
-        session.get.return_value = Mock(status_code=403)
-        self.assertTrue(history.seed_niftyindices_session(session))
-        self.assertEqual(session.get.call_count, 1)
-        self.assertEqual(session.get.call_args.kwargs["timeout"], (3, 5))
-        self.assertIn("/reports/historical-data", session.get.call_args.args[0])
-
-    def test_healthcare_index_uses_verified_official_long_name(self):
-        from unittest.mock import Mock
-        session = Mock()
-        response = Mock(
-            status_code=200,
-            content=json.dumps({"d": json.dumps([
-                {"INDEX_NAME": "NIFTY HEALTHCARE", "HistoricalDate": "14 Nov 2026", "CLOSE": "15000"}
-            ])}).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            url="https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString",
-        )
-        session.post.return_value = response
-        history.fetch_index_history(
-            session, "NIFTY HEALTHCARE", dt.date(2025, 11, 16), dt.date(2026, 11, 16)
-        )
-        cinfo = session.post.call_args.kwargs["json"]["cinfo"]
-        self.assertIn("'name':'NIFTY HEALTHCARE INDEX'", cinfo)
-        self.assertIn("'indexName':'NIFTY HEALTHCARE'", cinfo)
-
     def test_one_year_return_uses_latest_date_and_first_session_after_target(self):
         rows = {
             dt.date(2025, 11, 17): 100.0,
@@ -130,7 +53,7 @@ class StockReturnHistoryTests(unittest.TestCase):
         }
         self.assertIsNone(history.calculate_price_return(short, today=dt.date(2026, 11, 16)))
 
-    def test_sector_and_market_must_match_exact_stock_dates(self):
+    def test_same_date_benchmark_return_requires_both_exact_archive_sessions(self):
         rows = {
             dt.date(2025, 11, 17): 200.0,
             dt.date(2026, 11, 14): 220.0,
@@ -144,7 +67,58 @@ class StockReturnHistoryTests(unittest.TestCase):
             "2025-11-17", "2026-11-14"
         ))
 
-    def test_sector_crosswalk_uses_current_official_sector_index_names(self):
+    def test_index_archive_series_maps_verified_display_name_and_source(self):
+        archive = {"records": [
+            {
+                "date": "2025-11-17",
+                "source_url": "https://nsearchives.nseindia.com/old.csv",
+                "indices": {"Nifty 50": 25000, "Nifty Auto": 20000},
+            },
+            {
+                "date": "2026-11-14",
+                "source_url": "https://nsearchives.nseindia.com/new.csv",
+                "indices": {"Nifty 50": 27500, "Nifty Auto": 22000},
+            },
+        ]}
+        series, sources = history.build_index_series(archive, "NIFTY AUTO")
+        self.assertEqual(series[dt.date(2025, 11, 17)], 20000.0)
+        self.assertEqual(series[dt.date(2026, 11, 14)], 22000.0)
+        self.assertEqual(sources[dt.date(2026, 11, 14)], "https://nsearchives.nseindia.com/new.csv")
+
+    def test_archived_benchmark_return_contains_source_urls(self):
+        archive = {"records": [
+            {"date": "2025-11-17", "source_url": "old.csv", "indices": {"Nifty 50": 25000}},
+            {"date": "2026-11-14", "source_url": "new.csv", "indices": {"Nifty 50": 27500}},
+        ]}
+        result = history.calculate_archived_benchmark_return(
+            archive, "NIFTY 50", "2025-11-17", "2026-11-14"
+        )
+        self.assertEqual(result["return_pct"], 10.0)
+        self.assertEqual(result["start_source_url"], "old.csv")
+        self.assertEqual(result["end_source_url"], "new.csv")
+
+    def test_missing_or_mismatched_index_history_is_withheld(self):
+        archive = {"records": [
+            {"date": "2025-11-18", "indices": {"Nifty Bank": 50000}},
+            {"date": "2026-11-14", "indices": {"Nifty Bank": 55000}},
+        ]}
+        self.assertIsNone(history.calculate_archived_benchmark_return(
+            archive, "NIFTY 50", "2025-11-17", "2026-11-14"
+        ))
+
+    def test_cached_stock_period_preserves_same_dates_and_price_basis(self):
+        result = history.cached_stock_period({
+            "start_date": "2025-11-17",
+            "end_date": "2026-11-14",
+            "start_close": 100,
+            "end_close": 125,
+            "return_pct": 25,
+        })
+        self.assertEqual(result["return_pct"], 25.0)
+        self.assertFalse(result["dividends_included"])
+        self.assertIsNone(history.cached_stock_period({"start_date": "bad"}))
+
+    def test_sector_crosswalk_uses_exact_official_sector_indices_only(self):
         self.assertEqual(history.SECTOR_INDEX["Information Technology"], "NIFTY IT")
         self.assertEqual(history.SECTOR_INDEX["Healthcare"], "NIFTY HEALTHCARE")
         self.assertEqual(history.SECTOR_INDEX["Capital Goods"], "NIFTY CAPITAL GOODS")
@@ -156,17 +130,7 @@ class StockReturnHistoryTests(unittest.TestCase):
         self.assertNotIn("Construction Materials", history.SECTOR_INDEX)
         self.assertNotIn("Textiles", history.SECTOR_INDEX)
 
-    def test_session_bootstrap_continues_after_http_403(self):
-        from unittest.mock import Mock, patch
-        session = Mock()
-        session.get.side_effect = [Mock(status_code=403), Mock(status_code=200)]
-        with patch.object(history.time, "sleep"):
-            history.seed_session(session)
-        self.assertEqual(session.get.call_count, 2)
-        self.assertIn("/report-detail/eq_security", session.get.call_args_list[1].args[0])
-
     def test_stock_history_fetch_uses_one_request_without_retry(self):
-        from unittest.mock import Mock
         session = Mock()
         session.get.return_value = Mock(
             status_code=200,
