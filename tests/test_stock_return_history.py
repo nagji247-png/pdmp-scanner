@@ -60,7 +60,7 @@ class StockReturnHistoryTests(unittest.TestCase):
         response = Mock(
             status_code=200,
             content=(
-                b"\\xef\\xbb\\xbf" + json.dumps({"d": json.dumps([
+                b"\xef\xbb\xbf" + json.dumps({"d": json.dumps([
                     {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "26000"}
                 ])}).encode("utf-8")
             ),
