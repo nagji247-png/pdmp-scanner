@@ -1015,7 +1015,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       '</div>';
   }).join("");
   const optionBuildup = b.option_buildup_diagnostic || {};
-  const optionBuildupDisplay = optionBuildupDisplay.available === true
+  const optionBuildupDisplay = optionBuildup.available === true
     ? optionBuildup
     : (optionBuildup.display_snapshot || optionBuildup);
   const hasStaleOptionBuildup = optionBuildup.available !== true &&
