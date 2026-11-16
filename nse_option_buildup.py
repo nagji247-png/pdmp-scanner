@@ -71,9 +71,10 @@ def validate_option_buildup_diagnostic(diagnostic, min_matched_contracts=20):
     def fail(reason):
         checked["reported_matched_contracts"] = checked.get("matched_contracts")
         checked["reported_classified_contracts"] = checked.get("classified_contracts")
+        _original_categories = checked.get("categories")
         checked["reported_category_contracts"] = {
             key: value.get("contracts") if isinstance(value, dict) else None
-            for key, value in (checked.get("categories") or {}).items()
+            for key, value in (_original_categories.items() if isinstance(_original_categories, dict) else [])
         }
         checked["available"] = False
         checked["status"] = "UNAVAILABLE"
