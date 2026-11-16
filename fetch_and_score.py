@@ -601,6 +601,13 @@ def build_asset_component_breakdowns(
     except (TypeError, ValueError):
         news_source_date = str(updated or "")[:10]
 
+    try:
+        expected_option_eod_date = expected_latest_completed_session(
+            updated, load_exchange_calendar()
+        )
+    except (TypeError, ValueError):
+        expected_option_eod_date = None
+
     stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date, scan_timestamp=updated)
     client_futures_promotion = load_client_futures_promotion(news_source_date)
     try:
@@ -958,6 +965,7 @@ def build_asset_component_breakdowns(
                 build_option_buildup_diagnostic(
                     index_oi_archive, name, as_of_date=news_source_date,
                     max_age_days=3, min_matched_contracts=20,
+                    expected_source_date=expected_option_eod_date,
                 )
                 if name in ("NIFTY", "BANKNIFTY") else None
             ),
