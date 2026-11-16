@@ -28,14 +28,30 @@ class StockReturnHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate EQ date"):
             history.parse_stock_history_csv(payload, "RELIANCE")
 
-    def test_index_parser_reads_official_nse_close_records(self):
-        payload = {"data": {"indexCloseOnlineRecords": [
-            {"EOD_TIMESTAMP": "17-Nov-2025", "EOD_CLOSE_INDEX_VAL": "25000"},
-            {"EOD_TIMESTAMP": "14-Nov-2026", "EOD_CLOSE_INDEX_VAL": "27500"},
-        ]}}
-        rows = history.parse_index_history(payload)
+    def test_index_parser_reads_official_nse_data_array_and_checks_index_name(self):
+        payload = {"data": [
+            {"EOD_INDEX_NAME": "NIFTY 50", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"},
+            {"EOD_INDEX_NAME": "NIFTY 50", "EOD_TIMESTAMP": "14-NOV-2026", "EOD_CLOSE_INDEX_VAL": "27500"},
+        ]}
+        rows = history.parse_index_history(payload, expected_index="NIFTY 50")
         self.assertEqual(rows[dt.date(2025, 11, 17)], 25000.0)
         self.assertEqual(rows[dt.date(2026, 11, 14)], 27500.0)
+
+    def test_index_parser_accepts_official_financial_services_response_alias(self):
+        payload = {"data": [
+            {"EOD_INDEX_NAME": "NIFTY FIN SERVICE", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"},
+            {"EOD_INDEX_NAME": "NIFTY FIN SERVICE", "EOD_TIMESTAMP": "14-NOV-2026", "EOD_CLOSE_INDEX_VAL": "27500"},
+        ]}
+        self.assertEqual(
+            len(history.parse_index_history(payload, expected_index="NIFTY FINANCIAL SERVICES")), 2
+        )
+
+    def test_index_parser_rejects_wrong_index_name(self):
+        payload = {"data": [
+            {"EOD_INDEX_NAME": "NIFTY BANK", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"}
+        ]}
+        with self.assertRaisesRegex(ValueError, "name mismatch"):
+            history.parse_index_history(payload, expected_index="NIFTY 50")
 
     def test_one_year_return_uses_latest_date_and_first_session_after_target(self):
         rows = {
