@@ -37,7 +37,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
         self.assertIn('title="इस सेक्टर के स्टॉक देखें">👁️</button><b class="', self.dashboard)
-        self.assertIn('<script src="fpi-sector-tilt.js?v=4" defer></script>', self.dashboard)
+        self.assertIn('<script src="fpi-sector-tilt.js?v=5" defer></script>', self.dashboard)
 
     def test_fpi_sector_popup_uses_verified_sector_master(self):
         for text in ("nse-fo-stock-sector-master.json", "data-fpi-sector-eye",
