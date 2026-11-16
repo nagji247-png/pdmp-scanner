@@ -44,22 +44,28 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
           python -m py_compile fetch_and_score.py nse_option_buildup.py
       - name: Backfill the latest five NSE trading dates (idempotent)
+        id: capture
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
           import datetime as dt
           from zoneinfo import ZoneInfo
           today = dt.datetime.now(ZoneInfo("Asia/Kolkata")).date()
-          start = today - dt.timedelta(days=6)
+          start = today - dt.timedelta(days=14)
           print(f"START_DATE={start.isoformat()}")
           print(f"END_DATE={today.isoformat()}")
           PY
           source "$RUNNER_TEMP/nse_oi_window.env"
-          echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 weekday attempts)"
-          python nse_index_option_oi_archive.py \
+          echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 calendar-confirmed NSE sessions)"
+          if python nse_index_option_oi_archive.py \
             --from-date "$START_DATE" \
             --to-date "$END_DATE" \
             --max-sessions 5 \
-            --delay-seconds 3
+            --delay-seconds 3; then
+            echo "latest_session_ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Latest expected NSE EOD session is not yet available; archive retry will continue."
+          fi
       - name: Commit archive only
         run: |
           git config user.name "pdmp-bot"
@@ -72,3 +78,9 @@ jobs:
             git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
+
+      - name: Fail run if latest expected NSE session is still missing
+        if: always() && steps.capture.outputs.latest_session_ok != 'true'
+        run: |
+          echo "::error::Latest expected NSE EOD archive was not validated. The next scheduled retry will try again."
+          exit 1
