@@ -47,7 +47,7 @@ on:
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # Run after official EOD files have had time to publish (20:00 IST); one request per exchange, no retry loop.
+    # Run after official EOD files publish (20:00 IST); index backfill is capped at 14 calendar days/run, no retry loop.
     - cron: "30 14 * * 1-5"
   workflow_dispatch:
 
