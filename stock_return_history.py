@@ -326,11 +326,7 @@ def main():
     stock_periods = {}
     needed_indices = {"NIFTY 50"}
     session = requests.Session()
-    try:
-        seed_session(session)
-    except Exception as exc:
-        print(f"NSE stock history session unavailable: {type(exc).__name__}: {str(exc)[:160]}")
-        return 0
+    stock_session_ready = None
 
     for symbol in symbols:
         current = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
@@ -367,15 +363,23 @@ def main():
         sector = (master["stocks"].get(symbol) or {}).get("sector") or current.get("sector")
         index_name = SECTOR_INDEX.get(str(sector or ""))
         if period is None:
-            try:
-                rows, url = fetch_stock_history(session, symbol, start_date, today)
-                successful_rows[symbol] = rows
-                period = calculate_price_return(rows, today=today)
-                stock_urls[symbol] = url
-                print(f"{symbol}: captured {len(rows)} NSE EQ historical closes")
-            except Exception as exc:
-                print(f"{symbol}: historical return unavailable: {type(exc).__name__}: {str(exc)[:160]}")
-            time.sleep(PAUSE_SECONDS)
+            if stock_session_ready is None:
+                try:
+                    seed_session(session)
+                    stock_session_ready = True
+                except Exception as exc:
+                    stock_session_ready = False
+                    print(f"NSE stock history session unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+            if stock_session_ready:
+                try:
+                    rows, url = fetch_stock_history(session, symbol, start_date, today)
+                    successful_rows[symbol] = rows
+                    period = calculate_price_return(rows, today=today)
+                    stock_urls[symbol] = url
+                    print(f"{symbol}: captured {len(rows)} NSE EQ historical closes")
+                except Exception as exc:
+                    print(f"{symbol}: historical return unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+                time.sleep(PAUSE_SECONDS)
         if not period:
             print(f"{symbol}: one-year price return withheld (insufficient or stale history)")
             continue
@@ -411,7 +415,7 @@ def main():
             if sector_return:
                 sector_return.update({
                     "index": index_name,
-                    "source": "NSE official historical index data",
+                    "source": "Nifty Indices official historical index data",
                     "source_url": index_urls[index_name],
                 })
         market_return = None
@@ -448,7 +452,8 @@ def main():
             print(f"{symbol}: saved 1Y stock/sector/market performance (sector={'available' if sector_return else 'unavailable'}, market={'available' if market_return else 'unavailable'})")
 
     data["performance_history"] = {
-        "source": "NSE official historical security-wise and index history endpoints",
+        "source": "NSE official stock history + Nifty Indices official historical index data",
+        "benchmark_source": "Nifty Indices official Historical Index Data",
         "updated_at": fetched_at,
         "last_batch_date": today.isoformat(),
         "last_batch_symbols": symbols,
@@ -463,7 +468,8 @@ def main():
     print(json.dumps({
         "status": "ok",
         "attempted_symbols": len(symbols),
-        "stock_history_success": len(successful_rows),
+        "stock_history_fetched": len(successful_rows),
+        "stock_periods_ready": len(stock_periods),
         "performance_updated": updated,
         "index_benchmarks_attempted": len(needed_indices),
         "research_only": True,
