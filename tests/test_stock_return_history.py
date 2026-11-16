@@ -59,12 +59,14 @@ class StockReturnHistoryTests(unittest.TestCase):
         session = Mock()
         response = Mock(
             status_code=200,
-            content=b'{"d":"[]"}',
+            content=(
+                b"\\xef\\xbb\\xbf" + json.dumps({"d": json.dumps([
+                    {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "26000"}
+                ])}).encode("utf-8")
+            ),
+            headers={"Content-Type": "application/json"},
             url="https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString",
         )
-        response.json.return_value = {"d": json.dumps([
-            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "26000"}
-        ])}
         session.post.return_value = response
         rows, url = history.fetch_index_history(
             session, "NIFTY 50", dt.date(2025, 11, 16), dt.date(2026, 11, 16)
@@ -81,12 +83,12 @@ class StockReturnHistoryTests(unittest.TestCase):
         session = Mock()
         response = Mock(
             status_code=200,
-            content=b'{"d":"[]"}',
+            content=json.dumps({"d": json.dumps([
+                {"INDEX_NAME": "NIFTY HEALTHCARE", "HistoricalDate": "14 Nov 2026", "CLOSE": "15000"}
+            ])}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
             url="https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString",
         )
-        response.json.return_value = {"d": json.dumps([
-            {"INDEX_NAME": "NIFTY HEALTHCARE", "HistoricalDate": "14 Nov 2026", "CLOSE": "15000"}
-        ])}
         session.post.return_value = response
         history.fetch_index_history(
             session, "NIFTY HEALTHCARE", dt.date(2025, 11, 16), dt.date(2026, 11, 16)
