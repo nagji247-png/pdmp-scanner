@@ -24,6 +24,7 @@ MASTER_PATH = Path("nse-fo-stock-sector-master.json")
 BASE = "https://www.nseindia.com"
 STOCK_HISTORY_PATH = "/api/historicalOR/generateSecurityWiseHistoricalData"
 INDEX_HISTORY_URL = "https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString"
+INDEX_MAPPING_URL = "https://iislliveblob.niftyindices.com/assets/json/IndexMapping.json"
 PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
@@ -116,7 +117,7 @@ def parse_stock_history_csv(payload, symbol):
     return result
 
 
-def parse_index_history(payload, expected_index=None):
+def parse_index_history(payload, expected_index=None, expected_aliases=None):
     if isinstance(payload, dict) and "d" in payload:
         inner = payload.get("d")
         if inner in (None, "", "false", "[]"):
@@ -136,6 +137,11 @@ def parse_index_history(payload, expected_index=None):
         "NIFTY CONSUMER DURABLES": {"NIFTY CONSUMER DURABLES", "NIFTY CONSR DURBL"},
         "NIFTY OIL AND GAS INDEX": {"NIFTY OIL AND GAS INDEX", "NIFTY OIL & GAS"},
     }.get(expected_name, {expected_name} if expected_name else set())
+    accepted_names.update(
+        " ".join(str(value).upper().split())
+        for value in (expected_aliases or [])
+        if value
+    )
     result = {}
     observed_names = set()
     for row in rows:
@@ -257,12 +263,49 @@ def fetch_stock_history(session, symbol, start_date, end_date):
     return rows, response.url
 
 
-def fetch_index_history(session, index_name, start_date, end_date):
+def index_key(value):
+    return re.sub(r"[^A-Z0-9]", "", str(value or "").upper())
+
+
+def fetch_index_mapping(session):
+    response = session.get(
+        INDEX_MAPPING_URL,
+        headers={
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.niftyindices.com/reports/historical-data",
+            "Origin": "https://www.niftyindices.com",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
+        },
+        timeout=(10, 20),
+    )
+    if response.status_code != 200 or not response.content:
+        raise RuntimeError(f"Nifty Indices name mapping HTTP {response.status_code}")
+    rows = response.json()
+    if not isinstance(rows, list):
+        raise ValueError("Nifty Indices name mapping has an unsupported shape")
+    mapping = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        trading_name = row.get("Trading_Index_Name")
+        long_name = row.get("Index_long_name")
+        if trading_name and long_name:
+            mapping[index_key(trading_name)] = str(long_name).upper().strip()
+            mapping[index_key(long_name)] = str(long_name).upper().strip()
+    if not mapping:
+        raise ValueError("Nifty Indices name mapping contains no usable names")
+    return mapping, response.url
+
+
+def fetch_index_history(session, index_name, start_date, end_date, name_mapping):
+    long_name = name_mapping.get(index_key(index_name))
+    if not long_name:
+        raise ValueError(f"Nifty Indices official name mapping missing: {index_name}")
     start_text = start_date.strftime("%d %b %Y")
     end_text = end_date.strftime("%d %b %Y")
     payload = {
         "cinfo": (
-            "{'name':'" + index_name + "','startDate':'" + start_text
+            "{'name':'" + long_name + "','startDate':'" + start_text
             + "','endDate':'" + end_text + "','indexName':'" + index_name + "'}"
         )
     }
@@ -274,12 +317,15 @@ def fetch_index_history(session, index_name, start_date, end_date):
             "X-Requested-With": "XMLHttpRequest",
             "Origin": "https://www.niftyindices.com",
             "Referer": "https://www.niftyindices.com/reports/historical-data",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
         },
         timeout=(10, 30),
     )
     if response.status_code != 200 or not response.content:
         raise RuntimeError(f"Nifty Indices history HTTP {response.status_code}: {index_name}")
-    return parse_index_history(response.json(), expected_index=index_name), response.url
+    return parse_index_history(
+        response.json(), expected_index=index_name, expected_aliases=[long_name]
+    ), response.url
 
 
 def load_json(path, fallback):
@@ -389,12 +435,20 @@ def main():
 
     index_rows = {}
     index_urls = {}
+    try:
+        name_mapping, mapping_url = fetch_index_mapping(session)
+        print(f"Nifty Indices official name mapping loaded: {len(name_mapping)} aliases")
+    except Exception as exc:
+        name_mapping = {}
+        print(f"Nifty Indices name mapping unavailable: {type(exc).__name__}: {str(exc)[:160]}")
     for index_name in sorted(needed_indices):
         try:
-            rows, url = fetch_index_history(session, index_name, start_date, today)
+            rows, url = fetch_index_history(
+                session, index_name, start_date, today, name_mapping
+            )
             index_rows[index_name] = rows
             index_urls[index_name] = url
-            print(f"{index_name}: captured {len(rows)} official index closes")
+            print(f"{index_name}: captured {len(rows)} official Nifty Indices closes")
         except Exception as exc:
             print(f"{index_name}: benchmark return unavailable: {type(exc).__name__}: {str(exc)[:160]}")
         time.sleep(PAUSE_SECONDS)
@@ -442,7 +496,7 @@ def main():
             "method": "unadjusted_price_return",
             "corporate_actions_adjusted": False,
             "dividends_included": False,
-            "source_note": "NSE historical closes; same trading-date window for stock, sector index and NIFTY 50. Price return only; dividends and corporate actions are not adjusted.",
+            "source_note": "NSE stock historical closes + Nifty Indices official price-index closes; same trading-date window for stock, sector and NIFTY 50. Price return only; dividends and corporate actions are not adjusted.",
             "checked_at": fetched_at,
         }
         current = stocks.get(symbol)
