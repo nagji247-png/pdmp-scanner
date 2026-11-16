@@ -101,7 +101,7 @@ jobs:
         if: github.event_name != 'pull_request'
         continue-on-error: true
         run: python nse_index_close_archive.py --backfill-days 14
-      - name: Upload NSE index archive for downstream research
+      - name: Upload NSE daily index archive artifact for downstream stock research
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
