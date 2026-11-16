@@ -116,23 +116,37 @@ def parse_stock_history_csv(payload, symbol):
     return result
 
 
-def parse_index_history(payload):
+def parse_index_history(payload, expected_index=None):
     if not isinstance(payload, dict):
         raise ValueError("NSE index history response is not an object")
     data = payload.get("data")
-    rows = data.get("indexCloseOnlineRecords") if isinstance(data, dict) else None
+    rows = data if isinstance(data, list) else (
+        data.get("indexCloseOnlineRecords") if isinstance(data, dict) else None
+    )
     if not isinstance(rows, list):
         rows = payload.get("indexCloseOnlineRecords")
     if not isinstance(rows, list) or not rows:
-        raise ValueError("NSE index history has no indexCloseOnlineRecords")
+        raise ValueError("NSE index history has no dated data rows")
+    expected_name = str(expected_index or "").upper().strip()
+    accepted_names = {
+        "NIFTY FINANCIAL SERVICES": {"NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"},
+        "NIFTY HEALTHCARE": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
+    }.get(expected_name, {expected_name} if expected_name else set())
     result = {}
+    observed_names = set()
     for row in rows:
         if not isinstance(row, dict):
-            continue
+            raise ValueError("NSE index history contains a malformed row")
+        index_name = first_value(row, ("EOD_INDEX_NAME", "Index Name", "indexName"))
+        if index_name:
+            normalized_name = " ".join(str(index_name).upper().split())
+            observed_names.add(normalized_name)
+            if accepted_names and normalized_name not in accepted_names:
+                raise ValueError(f"NSE index response name mismatch: {normalized_name} != {expected_name}")
         day_raw = first_value(row, ("EOD_TIMESTAMP", "TIMESTAMP", "HistoricalDate", "Date"))
         close_raw = first_value(row, ("EOD_CLOSE_INDEX_VAL", "CLOSE_INDEX_VAL", "CLOSE", "Close"))
         if not day_raw or close_raw in (None, ""):
-            continue
+            raise ValueError("NSE index history row missing date or close")
         day = parse_date(day_raw)
         close = number(close_raw)
         if close is None:
@@ -140,6 +154,8 @@ def parse_index_history(payload):
         if day in result:
             raise ValueError(f"NSE index history duplicate date: {day}")
         result[day] = close
+    if len(observed_names) > 1:
+        raise ValueError("NSE index history contains mixed index names")
     if not result:
         raise ValueError("NSE index history contains no valid dated closes")
     return result
@@ -247,7 +263,7 @@ def fetch_index_history(session, index_name, start_date, end_date):
     )
     if response.status_code != 200 or not response.content:
         raise RuntimeError(f"NSE index history HTTP {response.status_code}: {index_name}")
-    return parse_index_history(response.json()), response.url
+    return parse_index_history(response.json(), expected_index=index_name), response.url
 
 
 def load_json(path, fallback):
