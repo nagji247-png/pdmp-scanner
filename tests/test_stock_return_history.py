@@ -54,6 +54,25 @@ class StockReturnHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "name mismatch"):
             history.parse_index_history(payload, expected_index="NIFTY 50")
 
+    def test_index_mapping_resolves_display_name_to_official_long_name(self):
+        from unittest.mock import Mock
+        session = Mock()
+        response = Mock(
+            status_code=200,
+            content=b"[]",
+            url=history.INDEX_MAPPING_URL,
+        )
+        response.json.return_value = [
+            {"Trading_Index_Name": "Nifty 50", "Index_long_name": "Nifty 50"},
+            {"Trading_Index_Name": "NIFTY HEALTHCARE", "Index_long_name": "Nifty Healthcare Index"},
+        ]
+        session.get.return_value = response
+        mapping, url = history.fetch_index_mapping(session)
+        self.assertEqual(mapping["NIFTY50"], "NIFTY 50")
+        self.assertEqual(mapping["NIFTYHEALTHCARE"], "NIFTY HEALTHCARE INDEX")
+        self.assertEqual(session.get.call_count, 1)
+        self.assertEqual(url, response.url)
+
     def test_index_history_fetch_uses_one_official_post_request(self):
         from unittest.mock import Mock
         session = Mock()
@@ -67,7 +86,8 @@ class StockReturnHistoryTests(unittest.TestCase):
         ])}
         session.post.return_value = response
         rows, url = history.fetch_index_history(
-            session, "NIFTY 50", dt.date(2025, 11, 16), dt.date(2026, 11, 16)
+            session, "NIFTY 50", dt.date(2025, 11, 16), dt.date(2026, 11, 16),
+            {"NIFTY50": "NIFTY 50"},
         )
         self.assertEqual(len(rows), 1)
         self.assertEqual(session.post.call_count, 1)
