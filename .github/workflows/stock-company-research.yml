@@ -63,5 +63,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stock-company-data.json
           git commit -m "Refresh incremental NSE stock company research cache"
+          # The index archive was downloaded as a workflow artifact and is not a tracked repo file.
+          rm -f nse_index_close_archive.json
           git pull --rebase origin "$TARGET_BRANCH"
           git push origin "HEAD:$TARGET_BRANCH"
