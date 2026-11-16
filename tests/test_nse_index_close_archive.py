@@ -113,6 +113,11 @@ class NSEIndexCloseArchiveTests(unittest.TestCase):
             self.assertEqual(result["status"], "already_captured")
             fetch.assert_not_called()
 
+    def test_current_day_404_still_allows_historical_backfill_but_transient_failure_stops(self):
+        self.assertTrue(archive.should_continue_backfill_after_current("skipped_missing_file"))
+        self.assertTrue(archive.should_continue_backfill_after_current("skipped_non_session"))
+        self.assertFalse(archive.should_continue_backfill_after_current("unavailable"))
+
     def test_backfill_cursor_moves_back_bounded_calendar_days(self):
         dates = archive.build_backfill_dates(
             dt.date(2026, 11, 15), dt.date(2026, 11, 16), 14

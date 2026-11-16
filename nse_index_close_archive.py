@@ -180,6 +180,12 @@ def capture_one(archive, day, calendar=None, session=None):
         return {"date": day.isoformat(), "status": "unavailable", "changed": False, "detail": f"{type(exc).__name__}: {str(exc)[:160]}"}
 
 
+def should_continue_backfill_after_current(status):
+    # A current-day 404 is expected before EOD publication; historical dates
+    # are still attempted. A transient/blocking failure stops the request batch.
+    return status != "unavailable"
+
+
 def build_backfill_dates(cursor, today, days=DEFAULT_BACKFILL_DAYS):
     if not isinstance(days, int) or days < 0 or days > MAX_BACKFILL_DAYS:
         raise ValueError(f"backfill-days must be between 0 and {MAX_BACKFILL_DAYS}")
@@ -247,7 +253,7 @@ def main():
         current = capture_one(archive, today, calendar=calendar, session=session)
         results.append(current)
         changed = changed or bool(current.get("changed"))
-        stop_backfill = current["status"] in {"unavailable", "skipped_missing_file"}
+        stop_backfill = not should_continue_backfill_after_current(current["status"])
 
         if not archive.get("backfill_complete") and not stop_backfill:
             raw_cursor = archive.get("backfill_cursor")
@@ -284,6 +290,10 @@ def main():
         "backfill_cursor": archive.get("backfill_cursor"),
         "backfill_complete": bool(archive.get("backfill_complete")),
         "retention_sessions": KEEP_SESSIONS,
+        "date_results": [
+            {"date": row["date"], "status": row["status"], "detail": row.get("detail")}
+            for row in results
+        ],
     }
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 0 if summary["status"] == "ok" else 1
