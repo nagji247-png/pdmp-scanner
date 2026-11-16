@@ -5422,6 +5422,55 @@
       "score_eligible": false,
       "research_only": true,
       "note": "Diagnostic only; no production Final Score mutation."
+    },
+    {
+      "date": "2026-11-16",
+      "status": "withheld_incomplete",
+      "indices": {
+        "NIFTY": {
+          "index": "NIFTY",
+          "date": "2026-11-16",
+          "status": "withheld_unverified",
+          "expected": 50,
+          "matched": 0,
+          "coverage_pct": 0.0,
+          "missing_symbols": [],
+          "score": null,
+          "score_eligible": false,
+          "research_only": true,
+          "reason": "cash archive session missing: 2026-11-16"
+        },
+        "BANKNIFTY": {
+          "index": "BANKNIFTY",
+          "date": "2026-11-16",
+          "status": "withheld_unverified",
+          "expected": 14,
+          "matched": 0,
+          "coverage_pct": 0.0,
+          "missing_symbols": [],
+          "score": null,
+          "score_eligible": false,
+          "research_only": true,
+          "reason": "cash archive session missing: 2026-11-16"
+        },
+        "SENSEX": {
+          "index": "SENSEX",
+          "date": "2026-11-16",
+          "status": "withheld_unverified",
+          "expected": 30,
+          "matched": 0,
+          "coverage_pct": 0.0,
+          "missing_symbols": [],
+          "score": null,
+          "score_eligible": false,
+          "research_only": true,
+          "reason": "cash archive session missing: 2026-11-16"
+        }
+      },
+      "all_three_complete": false,
+      "score_eligible": false,
+      "research_only": true,
+      "note": "Diagnostic only; no production Final Score mutation."
     }
   ],
   "research_only": true,
