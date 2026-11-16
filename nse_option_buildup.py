@@ -91,9 +91,19 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
         unavailable["source_date"] = current_date.isoformat()
         unavailable["expected_source_date"] = expected.isoformat()
         unavailable["reason"] = (
-            f"अपेक्षित NSE EOD सत्र {expected.isoformat()} की Bhavcopy उपलब्ध नहीं; "
-            f"पुराना सत्र {current_date.isoformat()} मिला"
+            f"नया NSE EOD सत्र {expected.isoformat()} अभी नहीं मिला; "
+            f"नीचे {current_date.isoformat()} तक का पिछला सत्यापित डेटा केवल जानकारी के लिए दिखाया गया है"
         )
+        # Keep the last validated comparison visible, but keep the top-level
+        # diagnostic unavailable so stale EOD data cannot be treated as current.
+        snapshot = build_option_buildup_diagnostic(
+            archive, symbol, as_of_date=current_date.isoformat(),
+            max_age_days=10000, min_matched_contracts=min_matched_contracts,
+            expected_source_date=None,
+        )
+        if snapshot.get("available"):
+            unavailable["display_snapshot"] = snapshot
+            unavailable["display_status"] = "STALE"
         return unavailable
     as_of = _date(as_of_date) if as_of_date else dt.date.today()
     if as_of and (as_of - current_date).days > max_age_days:
