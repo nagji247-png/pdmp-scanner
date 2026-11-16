@@ -27,25 +27,21 @@ INDEX_HISTORY_PATH = "/api/historicalOR/indicesHistory"
 PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
-HISTORY_LOOKBACK_DAYS = 380
+HISTORY_LOOKBACK_DAYS = 365
 
 # Only exact, defensible sector-to-index mappings. Broad or adjacent sectors
 # intentionally remain unmapped rather than receiving a misleading proxy.
 SECTOR_INDEX = {
     "Automobile and Auto Components": "NIFTY AUTO",
-    "Capital Goods": "NIFTY CAPITAL GOODS",
     "Chemicals": "NIFTY CHEMICALS",
     "Consumer Durables": "NIFTY CONSUMER DURABLES",
-    "Consumer Services": "NIFTY CONSUMER SERVICES",
     "Fast Moving Consumer Goods": "NIFTY FMCG",
     "Financial Services": "NIFTY FINANCIAL SERVICES",
-    "Healthcare": "NIFTY HEALTHCARE",
+    "Healthcare": "NIFTY HEALTHCARE INDEX",
     "Information Technology": "NIFTY IT",
     "Metals & Mining": "NIFTY METAL",
     "Oil, Gas & Consumable Fuels": "NIFTY OIL & GAS",
-    "Power": "NIFTY POWER",
     "Realty": "NIFTY REALTY",
-    "Telecommunication": "NIFTY TELECOMMUNICATIONS",
 }
 
 
@@ -130,7 +126,7 @@ def parse_index_history(payload, expected_index=None):
     expected_name = str(expected_index or "").upper().strip()
     accepted_names = {
         "NIFTY FINANCIAL SERVICES": {"NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"},
-        "NIFTY HEALTHCARE": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
+        "NIFTY HEALTHCARE INDEX": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
     }.get(expected_name, {expected_name} if expected_name else set())
     result = {}
     observed_names = set()
@@ -138,6 +134,8 @@ def parse_index_history(payload, expected_index=None):
         if not isinstance(row, dict):
             raise ValueError("NSE index history contains a malformed row")
         index_name = first_value(row, ("EOD_INDEX_NAME", "Index Name", "indexName"))
+        if expected_name and not index_name:
+            raise ValueError("NSE index history row missing official index name")
         if index_name:
             normalized_name = " ".join(str(index_name).upper().split())
             observed_names.add(normalized_name)
@@ -222,11 +220,12 @@ def seed_session(session):
         "X-Requested-With": "XMLHttpRequest",
         "Cache-Control": "no-cache",
     })
-    response = session.get(BASE + "/", timeout=20)
-    response.raise_for_status()
+    # NSE may return HTTP 403 for the HTML bootstrap while still issuing
+    # session cookies; always make the one official report-page request too.
+    # The historical data request itself remains a single no-retry attempt.
+    session.get(BASE + "/", timeout=20)
     time.sleep(PAUSE_SECONDS)
-    response = session.get(BASE + "/report-detail/eq_security", timeout=20)
-    response.raise_for_status()
+    session.get(BASE + "/report-detail/eq_security", timeout=20)
     time.sleep(PAUSE_SECONDS)
 
 
