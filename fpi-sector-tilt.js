@@ -91,6 +91,8 @@ function renderStock(symbol){
  var changeRupeesText=changeRupees===null?"₹ बदलाव उपलब्ध नहीं":(changeRupees>0?"+":"")+"₹"+Math.abs(changeRupees).toLocaleString("en-IN",{maximumFractionDigits:2});
  var quoteTimeText=changeTime?" · समय: "+changeTime:"";
  var sector=info.sector||activeSector;
+ var performance=company.performance_1y||{};
+ function performanceText(item){if(!item||num(item.return_pct)===null)return "डेटा उपलब्ध नहीं";var value=num(item.return_pct);return (value>0?"+":"")+value.toFixed(2)+"% · "+missing(item.start_date)+" से "+missing(item.end_date);}
  var industry=company.industry||info.industry||"इंडस्ट्री उपलब्ध नहीं";
  var marketCap=company.market_cap_cr===null||company.market_cap_cr===undefined?"डेटा उपलब्ध नहीं":money(company.market_cap_cr);
  var marketCapDerived=company.market_cap_method==="derived_price_x_nse_shareholding_total_shares";
