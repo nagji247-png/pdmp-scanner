@@ -85,7 +85,10 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
     expected = _date(expected_source_date) if expected_source_date is not None else None
     if expected_source_date is not None and expected is None:
         unavailable["source_date"] = current_date.isoformat()
-        unavailable["reason"] = "अपेक्षित NSE EOD सत्र की तारीख अमान्य है"
+        unavailable["reason"] = (
+            "इस वर्ष का आधिकारिक NSE ट्रेडिंग कैलेंडर उपलब्ध/मान्य नहीं है; "
+            "EOD तारीख़ की पुष्टि नहीं हो सकी, इसलिए पुराना डेटा ताज़ा नहीं माना जाएगा"
+        )
         return unavailable
     if expected is not None and current_date != expected:
         unavailable["source_date"] = current_date.isoformat()
