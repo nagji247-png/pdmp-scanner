@@ -225,7 +225,7 @@ def seed_session(session):
     response = session.get(BASE + "/", timeout=20)
     response.raise_for_status()
     time.sleep(PAUSE_SECONDS)
-    response = session.get(BASE + "/market-data/live-equity-market", timeout=20)
+    response = session.get(BASE + "/report-detail/eq_security", timeout=20)
     response.raise_for_status()
     time.sleep(PAUSE_SECONDS)
 
