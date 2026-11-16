@@ -27,7 +27,7 @@ INDEX_HISTORY_PATH = "/api/historicalOR/indicesHistory"
 PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
-HISTORY_LOOKBACK_DAYS = 380
+HISTORY_LOOKBACK_DAYS = 365
 
 # Only exact, defensible sector-to-index mappings. Broad or adjacent sectors
 # intentionally remain unmapped rather than receiving a misleading proxy.
