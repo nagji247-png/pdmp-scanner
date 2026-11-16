@@ -55,6 +55,29 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(result["market_cap_cr"], 123.45)
         self.assertNotIn("market_cap_method", result)
 
+    def test_cached_market_cap_backfill_uses_existing_rows_without_touching_direct_values(self):
+        data = {"updated_at": "2026-11-15T18:13:24+00:00", "stocks": {
+            "ABC": {
+                "price": 125.0, "market_data_as_of": "2026-11-13",
+                "shareholding": {"total_shares": 80000000, "as_of": "30-SEP-2026",
+                                 "promoter_pct": 60.0, "public_pct": 40.0},
+            },
+            "XYZ": {
+                "price": 125.0, "market_cap_cr": 123.45,
+                "shareholding": {"total_shares": 80000000, "as_of": "30-SEP-2026",
+                                 "promoter_pct": 60.0, "public_pct": 40.0},
+            },
+        }}
+        self.assertEqual(research.backfill_cached_market_caps(data), 1)
+        self.assertEqual(data["stocks"]["ABC"]["market_cap_cr"], 1000.0)
+        self.assertEqual(data["stocks"]["ABC"]["market_cap_method"],
+                         "derived_price_x_nse_shareholding_total_shares")
+        self.assertEqual(data["stocks"]["ABC"]["market_cap_price_as_of"], "2026-11-13")
+        self.assertEqual(data["stocks"]["XYZ"]["market_cap_cr"], 123.45)
+        self.assertNotIn("market_cap_method", data["stocks"]["XYZ"])
+        self.assertEqual(data["updated_at"], "2026-11-15T18:13:24+00:00")
+        self.assertEqual(research.backfill_cached_market_caps(data), 0)
+
     def test_market_cap_refuses_incomplete_or_undated_share_count(self):
         invalid_rows = [
             {"total_shares": 80000000, "as_of": "30-SEP-2026",

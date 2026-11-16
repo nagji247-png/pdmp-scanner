@@ -208,6 +208,31 @@ def apply_share_count_market_cap(parsed, ownership):
     return result
 
 
+
+def backfill_cached_market_caps(data):
+    """Apply the dated NSE share-count market-cap calculation to cached rows only.
+
+    This deliberately performs no network requests and can run even when the
+    daily NSE research batch has already completed.
+    """
+    stocks = data.get("stocks") if isinstance(data, dict) else None
+    if not isinstance(stocks, dict):
+        return 0
+    updated = 0
+    for record in stocks.values():
+        if not isinstance(record, dict) or record.get("market_cap_cr") is not None:
+            continue
+        derived = apply_share_count_market_cap(record, record.get("shareholding"))
+        if derived.get("market_cap_method") == "derived_price_x_nse_shareholding_total_shares":
+            for key in (
+                "market_cap_cr", "market_cap_method", "market_cap_source",
+                "market_cap_price_as_of", "market_cap_shares_as_of",
+            ):
+                record[key] = derived[key]
+            updated += 1
+    return updated
+
+
 def parse_shareholding(payload):
     if not isinstance(payload, list) or not payload:
         return None
@@ -430,6 +455,11 @@ def main():
     if not symbols:
         raise SystemExit("Verified NSE F&O stock master is empty; refusing to publish")
     data = load_json(OUT, {"schema_version": 1, "updated_at": None, "next_index": 0, "stocks": {}})
+    backfilled = backfill_cached_market_caps(data)
+    if backfilled:
+        data["market_cap_backfill_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+        OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+        print(f"Backfilled derived market cap for {backfilled} cached stocks without NSE requests")
     if data.get("last_batch_date") == dt.datetime.now(dt.timezone.utc).date().isoformat():
         print("Research batch already ran today; no repeat NSE requests")
         return
