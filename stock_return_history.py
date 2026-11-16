@@ -28,7 +28,7 @@ PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
 HISTORY_LOOKBACK_DAYS = 365
-BENCHMARK_SOURCE_VERSION = "Nifty Indices official Historical Index Data · response diagnostics v3"
+BENCHMARK_SOURCE_VERSION = "Nifty Indices official Historical Index Data · session bootstrap v4"
 INDEX_LONG_NAME = {
     "NIFTY HEALTHCARE": "NIFTY HEALTHCARE INDEX",
     "NIFTY OIL AND GAS INDEX": "NIFTY OIL & GAS",
@@ -267,6 +267,24 @@ def fetch_stock_history(session, symbol, start_date, end_date):
     return rows, response.url
 
 
+def seed_niftyindices_session(session):
+    """One short page bootstrap to acquire any Akamai session cookies; never retries."""
+    try:
+        session.get(
+            "https://www.niftyindices.com/reports/historical-data",
+            headers={
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
+            },
+            timeout=(3, 5),
+        )
+    except requests.RequestException:
+        # The JSON endpoint is still attempted once; bootstrap failure is not a retry trigger.
+        return False
+    return True
+
+
 def fetch_index_history(session, index_name, start_date, end_date):
     long_name = INDEX_LONG_NAME.get(index_name, index_name)
     start_text = start_date.strftime("%d %b %Y")
@@ -281,6 +299,8 @@ def fetch_index_history(session, index_name, start_date, end_date):
         INDEX_HISTORY_URL,
         json=payload,
         headers={
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "en-US,en;q=0.9",
             "Content-Type": "application/json; charset=utf-8",
             "X-Requested-With": "XMLHttpRequest",
             "Origin": "https://www.niftyindices.com",
@@ -411,6 +431,7 @@ def main():
 
     index_rows = {}
     index_urls = {}
+    seed_niftyindices_session(session)
     for index_name in sorted(needed_indices):
         try:
             rows, url = fetch_index_history(session, index_name, start_date, today)
