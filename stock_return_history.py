@@ -222,11 +222,12 @@ def seed_session(session):
         "X-Requested-With": "XMLHttpRequest",
         "Cache-Control": "no-cache",
     })
-    response = session.get(BASE + "/", timeout=20)
-    response.raise_for_status()
+    # NSE may return HTTP 403 for the HTML bootstrap while still issuing
+    # session cookies; always make the one official report-page request too.
+    # The historical data request itself remains a single no-retry attempt.
+    session.get(BASE + "/", timeout=20)
     time.sleep(PAUSE_SECONDS)
-    response = session.get(BASE + "/report-detail/eq_security", timeout=20)
-    response.raise_for_status()
+    session.get(BASE + "/report-detail/eq_security", timeout=20)
     time.sleep(PAUSE_SECONDS)
 
 
