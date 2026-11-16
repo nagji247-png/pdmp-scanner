@@ -31,6 +31,7 @@ class NSEOptionBuildupTests(unittest.TestCase):
             archive, "NIFTY", as_of_date="2026-11-13", min_matched_contracts=4
         )
         self.assertTrue(result["available"])
+        self.assertEqual(result["source_date"], "2026-11-13")
         self.assertEqual(result["categories"]["long_build_up"]["oi_quantity"], 200)
         self.assertEqual(result["categories"]["short_build_up"]["oi_quantity"], 300)
         self.assertEqual(result["categories"]["short_covering"]["oi_quantity"], 200)
@@ -62,6 +63,28 @@ class NSEOptionBuildupTests(unittest.TestCase):
         )
         self.assertFalse(result["available"])
         self.assertEqual(result["matched_contracts"], 0)
+
+    def test_old_archive_is_unavailable_when_new_eod_session_is_expected(self):
+        old = [
+            self._contract("2026-11-17", "CE", 25000, 100, 1000),
+            self._contract("2026-11-17", "PE", 25000, 100, 1000),
+        ]
+        new = [
+            self._contract("2026-11-17", "CE", 25000, 110, 1200),
+            self._contract("2026-11-17", "PE", 25000, 90, 1300),
+        ]
+        archive = {"records": [
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        result = build_option_buildup_diagnostic(
+            archive, "NIFTY", as_of_date="2026-11-16",
+            expected_source_date="2026-11-16", min_matched_contracts=1
+        )
+        self.assertFalse(result["available"])
+        self.assertEqual(result["source_date"], "2026-11-13")
+        self.assertEqual(result["expected_source_date"], "2026-11-16")
+        self.assertIn("अपेक्षित NSE EOD सत्र", result["reason"])
 
     def test_unavailable_when_archive_stale_or_insufficient(self):
         archive = {"records": [
