@@ -271,6 +271,7 @@ def main():
     if not isinstance(master, dict) or not isinstance(master.get("stocks"), dict):
         raise SystemExit("Verified NSE stock master missing or invalid; refusing write")
 
+    today = dt.date.fromisoformat(args.today) if args.today else dt.datetime.now(IST).date()
     performance_state = data.get("performance_history") or {}
     if performance_state.get("last_batch_date") == today.isoformat():
         print("Historical returns already refreshed today; no repeat NSE requests")
@@ -283,7 +284,6 @@ def main():
         print("No latest stock batch; historical return refresh skipped")
         return 0
 
-    today = dt.date.fromisoformat(args.today) if args.today else dt.datetime.now(IST).date()
     start_date = today - dt.timedelta(days=HISTORY_LOOKBACK_DAYS)
     stocks = data["stocks"]
     successful_rows = {}
