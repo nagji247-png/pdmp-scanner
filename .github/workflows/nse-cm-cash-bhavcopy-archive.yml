@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "nse_index_close_archive.py"
+      - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
@@ -26,6 +28,8 @@ on:
   pull_request:
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "nse_index_close_archive.py"
+      - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
@@ -43,7 +47,7 @@ on:
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # Run after official EOD files have had time to publish (20:00 IST); one request per exchange, no retry loop.
+    # Run after official EOD files publish (20:00 IST); index backfill is capped at 14 calendar days/run, no retry loop.
     - cron: "30 14 * * 1-5"
   workflow_dispatch:
 
@@ -69,6 +73,8 @@ jobs:
         run: |
           python -m py_compile nse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
+          python -m py_compile nse_index_close_archive.py
+          python -m unittest discover -s tests -p 'test_nse_index_close_archive.py' -v
           python -m py_compile bse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_bse_cm_bhavcopy_archive.py' -v
           python -m py_compile index_constituent_rosters.py
@@ -91,6 +97,10 @@ jobs:
         if: github.event_name != 'pull_request'
         continue-on-error: true
         run: python bse_cm_bhavcopy_archive.py --backfill-days 7
+      - name: Capture NSE daily index close archive with bounded backfill
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: python nse_index_close_archive.py --backfill-days 14
       - name: Run offline full-universe cash basket checks
         if: github.event_name != 'pull_request'
         run: python run_three_index_cash_basket.py --backfill-days 7
@@ -118,6 +128,11 @@ jobs:
             git add -f -- bse_cm_bhavcopy_archive.json
           else
             echo "BSE archive unavailable; Sensex cash basket remains withheld"
+          fi
+          if [ -f nse_index_close_archive.json ]; then
+            git add -f -- nse_index_close_archive.json
+          else
+            echo "NSE index close archive unavailable; sector and market returns remain withheld"
           fi
           if [ ! -s index_cash_basket_diagnostics.json ]; then
             echo "CASH_BASKET_DIAGNOSTIC_REPORT_MISSING"
