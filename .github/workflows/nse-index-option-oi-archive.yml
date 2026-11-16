@@ -14,10 +14,10 @@ on:
       - "tests/test_nse_option_buildup.py"
   schedule:
     # Retry the official EOD file after publication delays; all times are UTC.
-    # 19:30, 19:45, 20:00, 20:15, 20:30, 20:45, 21:00, 21:30 and 22:00 IST.
+    # 19:30, then every 15 minutes through 21:00, plus 21:30 and 22:00 IST.
     - cron: "0,15,30,45 14 * * 1-5"
     - cron: "0,15,30 15 * * 1-5"
-    - cron: "0 16 * * 1-5"
+    - cron: "0,30 16 * * 1-5"
 
 permissions:
   contents: write
