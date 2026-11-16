@@ -5,6 +5,7 @@ on:
     paths:
       - 'stock_company_research.py'
       - 'stock_return_history.py'
+      - 'nse_index_close_archive.json'
       - 'tests/test_stock_return_history.py'
       - 'nse-fo-stock-sector-master.json'
       - '.github/workflows/stock-company-research.yml'
