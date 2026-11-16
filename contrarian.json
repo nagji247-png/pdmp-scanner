@@ -1159,10 +1159,20 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 262.3,
+      "time": "2026-11-16T06:00:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.64,
+      "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 262.75,
+      "time": "2026-11-16T06:30:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.47,
+      "outcome": "continued"
     },
     "baseline_source": "Yahoo Finance"
   }
