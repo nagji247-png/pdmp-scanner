@@ -45,7 +45,8 @@ def _contract_map(record, symbol):
 
 
 def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
-                                    max_age_days=3, min_matched_contracts=20):
+                                    max_age_days=3, min_matched_contracts=20,
+                                    expected_source_date=None):
     """Compare same expiry/strike/side contracts across the latest two EOD sessions."""
     unavailable = {
         "available": False,
@@ -80,6 +81,19 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
     previous_date, current_date = _date(previous.get("date")), _date(current.get("date"))
     if not previous_date or not current_date or current_date <= previous_date:
         unavailable["reason"] = "EOD session dates invalid or not increasing"
+        return unavailable
+    expected = _date(expected_source_date) if expected_source_date is not None else None
+    if expected_source_date is not None and expected is None:
+        unavailable["source_date"] = current_date.isoformat()
+        unavailable["reason"] = "अपेक्षित NSE EOD सत्र की तारीख अमान्य है"
+        return unavailable
+    if expected is not None and current_date != expected:
+        unavailable["source_date"] = current_date.isoformat()
+        unavailable["expected_source_date"] = expected.isoformat()
+        unavailable["reason"] = (
+            f"अपेक्षित NSE EOD सत्र {expected.isoformat()} की Bhavcopy उपलब्ध नहीं; "
+            f"पुराना सत्र {current_date.isoformat()} मिला"
+        )
         return unavailable
     as_of = _date(as_of_date) if as_of_date else dt.date.today()
     if as_of and (as_of - current_date).days > max_age_days:
