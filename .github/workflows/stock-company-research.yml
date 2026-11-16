@@ -39,7 +39,7 @@ jobs:
         env:
           STOCK_RESEARCH_BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
         run: python stock_company_research.py
-      - name: Refresh one-year NSE stock, sector and market returns
+      - name: Refresh one-year stock, sector and market returns from NSE archives
         run: python stock_return_history.py
       - name: Commit only company research cache to the triggering branch
         env:
