@@ -33,19 +33,15 @@ HISTORY_LOOKBACK_DAYS = 380
 # intentionally remain unmapped rather than receiving a misleading proxy.
 SECTOR_INDEX = {
     "Automobile and Auto Components": "NIFTY AUTO",
-    "Capital Goods": "NIFTY CAPITAL GOODS",
     "Chemicals": "NIFTY CHEMICALS",
     "Consumer Durables": "NIFTY CONSUMER DURABLES",
-    "Consumer Services": "NIFTY CONSUMER SERVICES",
     "Fast Moving Consumer Goods": "NIFTY FMCG",
     "Financial Services": "NIFTY FINANCIAL SERVICES",
-    "Healthcare": "NIFTY HEALTHCARE",
+    "Healthcare": "NIFTY HEALTHCARE INDEX",
     "Information Technology": "NIFTY IT",
     "Metals & Mining": "NIFTY METAL",
     "Oil, Gas & Consumable Fuels": "NIFTY OIL & GAS",
-    "Power": "NIFTY POWER",
     "Realty": "NIFTY REALTY",
-    "Telecommunication": "NIFTY TELECOMMUNICATIONS",
 }
 
 
@@ -130,7 +126,7 @@ def parse_index_history(payload, expected_index=None):
     expected_name = str(expected_index or "").upper().strip()
     accepted_names = {
         "NIFTY FINANCIAL SERVICES": {"NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"},
-        "NIFTY HEALTHCARE": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
+        "NIFTY HEALTHCARE INDEX": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
     }.get(expected_name, {expected_name} if expected_name else set())
     result = {}
     observed_names = set()
