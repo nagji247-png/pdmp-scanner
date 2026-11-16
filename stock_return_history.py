@@ -391,11 +391,10 @@ def main():
         "research_only": True,
         "score_eligible": False,
     }
-    if updated:
-        Path(args.data).write_text(
-            json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
-            encoding="utf-8",
-        )
+    Path(args.data).write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
     print(json.dumps({
         "status": "ok",
         "attempted_symbols": len(symbols),
