@@ -247,7 +247,9 @@ def main():
         current = capture_one(archive, today, calendar=calendar, session=session)
         results.append(current)
         changed = changed or bool(current.get("changed"))
-        stop_backfill = current["status"] in {"unavailable", "skipped_missing_file"}
+        # A 404 for today's file is normal before EOD publication; still backfill
+        # older completed sessions. Only transient/blocked responses stop the batch.
+        stop_backfill = current["status"] == "unavailable"
 
         if not archive.get("backfill_complete") and not stop_backfill:
             raw_cursor = archive.get("backfill_cursor")
@@ -284,6 +286,10 @@ def main():
         "backfill_cursor": archive.get("backfill_cursor"),
         "backfill_complete": bool(archive.get("backfill_complete")),
         "retention_sessions": KEEP_SESSIONS,
+        "date_results": [
+            {"date": row["date"], "status": row["status"], "detail": row.get("detail")}
+            for row in results
+        ],
     }
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 0 if summary["status"] == "ok" else 1
