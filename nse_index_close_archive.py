@@ -194,10 +194,13 @@ def build_backfill_dates(cursor, today, days=DEFAULT_BACKFILL_DAYS):
 
 
 def load_json(path, fallback):
-    try:
-        return json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    target = Path(path)
+    if not target.exists():
         return fallback
+    try:
+        return json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise SystemExit(f"invalid JSON at {target}; refusing overwrite: {exc}")
 
 
 def write_archive(path, archive):
@@ -244,7 +247,7 @@ def main():
         current = capture_one(archive, today, calendar=calendar, session=session)
         results.append(current)
         changed = changed or bool(current.get("changed"))
-        stop_backfill = current["status"] == "unavailable"
+        stop_backfill = current["status"] in {"unavailable", "skipped_missing_file"}
 
         if not archive.get("backfill_complete") and not stop_backfill:
             raw_cursor = archive.get("backfill_cursor")
