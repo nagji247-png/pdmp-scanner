@@ -5,6 +5,7 @@ These are descriptive EOD patterns, not intraday signals and not an asset score.
 from __future__ import annotations
 
 import datetime as dt
+import copy
 
 CATEGORIES = {
     "long_build_up": "LONG BUILD-UP",
@@ -42,6 +43,117 @@ def _contract_map(record, symbol):
             continue
         result[key] = {"close": close, "open_interest": oi}
     return result
+
+
+
+def validate_option_buildup_diagnostic(diagnostic, min_matched_contracts=20):
+    """Fail closed if summary counters and per-category contract details disagree."""
+    if not isinstance(diagnostic, dict):
+        return {
+            "available": False,
+            "status": "UNAVAILABLE",
+            "integrity_validation": "FAILED",
+            "integrity_error": "diagnostic is missing or not an object",
+            "reason": "EOD build-up diagnostic का डेटा संरचनात्मक जाँच में विफल रहा।",
+            "matched_contracts": 0,
+            "classified_contracts": 0,
+            "categories": {
+                key: {"label": label, "oi_quantity": 0, "contracts": 0,
+                      "ce_oi_quantity": 0, "pe_oi_quantity": 0}
+                for key, label in CATEGORIES.items()
+            },
+            "coverage_validated": False,
+            "included_in_asset_final": False,
+        }
+
+    checked = copy.deepcopy(diagnostic)
+
+    def fail(reason):
+        checked["reported_matched_contracts"] = checked.get("matched_contracts")
+        checked["reported_classified_contracts"] = checked.get("classified_contracts")
+        checked["reported_category_contracts"] = {
+            key: value.get("contracts") if isinstance(value, dict) else None
+            for key, value in (checked.get("categories") or {}).items()
+        }
+        checked["available"] = False
+        checked["status"] = "UNAVAILABLE"
+        checked["integrity_validation"] = "FAILED"
+        checked["integrity_error"] = reason
+        checked["reason"] = (
+            "EOD Build-up के कुल आँकड़े और contract details आपस में मेल नहीं खाते; "
+            "सुरक्षा के लिए यह डेटा हटाकर UNAVAILABLE रखा गया है।"
+        )
+        checked["matched_contracts"] = 0
+        checked["classified_contracts"] = 0
+        checked["categories"] = {
+            key: {"label": label, "oi_quantity": 0, "contracts": 0,
+                  "ce_oi_quantity": 0, "pe_oi_quantity": 0}
+            for key, label in CATEGORIES.items()
+        }
+        checked.pop("display_snapshot", None)
+        checked.pop("display_status", None)
+        checked["coverage_validated"] = False
+        checked["included_in_asset_final"] = False
+        return checked
+
+    categories = checked.get("categories")
+    if not isinstance(categories, dict):
+        return fail("categories is missing or invalid")
+
+    matched = checked.get("matched_contracts")
+    classified = checked.get("classified_contracts")
+    if (isinstance(matched, bool) or not isinstance(matched, int) or matched < 0
+            or isinstance(classified, bool) or not isinstance(classified, int) or classified < 0):
+        return fail("matched/classified counters must be non-negative integers")
+
+    category_contracts = 0
+    detail_contracts = 0
+    for key in CATEGORIES:
+        item = categories.get(key)
+        if not isinstance(item, dict):
+            return fail(f"category {key} is missing or invalid")
+        count = item.get("contracts")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            return fail(f"category {key} contract count is invalid")
+        details = item.get("contract_details")
+        if details is None:
+            if count:
+                return fail(f"category {key} has contracts but no contract_details")
+            details = []
+        if not isinstance(details, list) or len(details) != count:
+            return fail(f"category {key} details count does not match its contracts")
+        category_contracts += count
+        detail_contracts += len(details)
+
+    if classified != category_contracts or classified != detail_contracts:
+        return fail(
+            f"classified={classified}, category_contracts={category_contracts}, "
+            f"detail_contracts={detail_contracts}"
+        )
+    if matched < classified:
+        return fail(f"matched={matched} is lower than classified={classified}")
+    if checked.get("available") is True and (
+        matched < min_matched_contracts or classified <= 0
+    ):
+        return fail("available flag conflicts with matched/classified thresholds")
+
+    checked["integrity_validation"] = "PASSED"
+    checked["integrity_error"] = None
+    snapshot = checked.get("display_snapshot")
+    if isinstance(snapshot, dict):
+        checked_snapshot = validate_option_buildup_diagnostic(
+            snapshot, min_matched_contracts=min_matched_contracts
+        )
+        if checked_snapshot.get("integrity_validation") != "PASSED":
+            checked.pop("display_snapshot", None)
+            checked["display_status"] = "UNAVAILABLE"
+            checked["reason"] = (
+                (checked.get("reason") or "पिछला सत्यापित डेटा उपलब्ध नहीं।")
+                + " पिछला snapshot भी integrity जाँच में विफल रहा।"
+            )
+        else:
+            checked["display_snapshot"] = checked_snapshot
+    return checked
 
 
 def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
