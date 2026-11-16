@@ -1175,5 +1175,47 @@
       "outcome": "continued"
     },
     "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-16|NASDAQ",
+    "date": "2026-11-16",
+    "instrument": "NASDAQ",
+    "score": -6.1,
+    "event_time_utc": "2026-11-16T17:18:35Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-16|ADANIPORTS",
+    "date": "2026-11-16",
+    "instrument": "ADANIPORTS",
+    "score": 6.0,
+    "event_time_utc": "2026-11-16T17:18:45Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]
