@@ -1015,6 +1015,11 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       '</div>';
   }).join("");
   const optionBuildup = b.option_buildup_diagnostic || {};
+  const optionBuildupDisplay = optionBuildup.available === true
+    ? optionBuildup
+    : (optionBuildup.display_snapshot || optionBuildup);
+  const hasStaleOptionBuildup = optionBuildup.available !== true &&
+    optionBuildupDisplay.available === true;
   const optionBuildupLabels = {
     long_build_up: "LONG BUILD-UP",
     short_build_up: "SHORT BUILD-UP",
@@ -1030,7 +1035,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
   const optionBuildupDetail = (assetName === "NIFTY" || assetName === "BANKNIFTY")
     ? (() => {
         const prefix = assetName.toLowerCase() + "-option-buildup";
-        const categories = optionBuildup.categories || {};
+        const categories = optionBuildupDisplay.categories || {};
         const categoryEntries = Object.entries(optionBuildupLabels).map(([key, label]) => {
           const item = categories[key] || {};
           return {key, label, item, quantity: Number(item.oi_quantity || 0), contracts: Number(item.contracts || 0)};
@@ -1088,9 +1093,14 @@ function renderComponentBreakdown(b, observedAt, assetName) {
         }).join("");
         return '<div class="hl option-buildup-panel" style="margin-top:8px">' +
           '<div class="hl-title"><b>BUILD-UP / UNWINDING · NSE EOD</b> · <b class="' +
-          (optionBuildup.available === true ? "pos" : "zero") + '">' +
-          (optionBuildup.available === true ? "डेटा उपलब्ध" : "UNAVAILABLE / डेटा प्रतीक्षित") + '</b></div>' +
-          (optionBuildup.available === true
+          (optionBuildupDisplay.available === true ? "pos" : "zero") + '">' +
+          (optionBuildupDisplay.available === true
+            ? (hasStaleOptionBuildup ? "पिछला डेटा उपलब्ध · नया EOD प्रतीक्षित" : "डेटा उपलब्ध")
+            : "UNAVAILABLE / डेटा प्रतीक्षित") + '</b></div>' +
+          (hasStaleOptionBuildup
+            ? '<div class="hl-meta">यह पिछला सत्यापित EOD डेटा है · केवल जानकारी के लिए · नया EOD आने पर अपने-आप बदलेगा · Final Score में शामिल नहीं।</div>'
+            : '') +
+          (optionBuildupDisplay.available === true
             ? '<div class="option-buildup-dominant"><b>बाजार में किसकी बाजी भारी?</b><div class="option-buildup-dominant-name">' +
               (dominant ? ({long_build_up: "तेजी का दबाव", short_build_up: "मंदी का दबाव", short_covering: "मंदी वाले पीछे हटे", long_unwinding: "तेजी वाले पीछे हटे"}[dominant.key] + '<br>' + dominant.label) : "—") + '</div><div class="option-buildup-dominant-value">' +
               (dominant ? formatCrore(dominant.quantity) : "—") + '</div><div class="hl-meta">सबसे अधिक कुल OI बदलाव की मात्रा · ' +
@@ -1101,14 +1111,14 @@ function renderComponentBreakdown(b, observedAt, assetName) {
                 ' · PE ' + Number(entry.item.pe_oi_quantity || 0).toLocaleString("en-IN") + ')</div>').join("") +
               filters + categoryHtml
             : '<div class="hl-meta">' + esc(optionBuildup.reason || "दो तुलनीय NSE EOD सत्रों का डेटा उपलब्ध नहीं") + '</div>') +
-          (optionBuildup.source_date
-            ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildup.source_date)) +
-              (optionBuildup.previous_source_date ? ' · पिछला सत्र: ' + esc(dateText(optionBuildup.previous_source_date)) : '') + '</div>'
+          (optionBuildupDisplay.source_date
+            ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildupDisplay.source_date)) +
+              (optionBuildupDisplay.previous_source_date ? ' · पिछला सत्र: ' + esc(dateText(optionBuildupDisplay.previous_source_date)) : '') + '</div>'
             : '') +
           '<div class="hl-meta">स्रोत: NSE F&O UDiFF Common Bhavcopy Final · उसी Expiry, Strike और CE/PE का पिछला व आज का Closing Premium तथा OI मिलान। यह EOD diagnostic है, LIVE नहीं और Final Score में शामिल नहीं।</div>' +
           '<div class="hl-meta">मिलान किए गए कॉन्ट्रैक्ट: ' +
-          Number(optionBuildup.matched_contracts || 0).toLocaleString("en-IN") +
-          ' · वर्गीकृत: ' + Number(optionBuildup.classified_contracts || 0).toLocaleString("en-IN") +
+          Number(optionBuildupDisplay.matched_contracts || 0).toLocaleString("en-IN") +
+          ' · वर्गीकृत: ' + Number(optionBuildupDisplay.classified_contracts || 0).toLocaleString("en-IN") +
           ' · बिना वर्गीकरण वाले कॉन्ट्रैक्ट अलग हैं। ऐतिहासिक accuracy validation बाकी।</div></div>';
       })()
     : "";

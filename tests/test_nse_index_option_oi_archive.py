@@ -260,7 +260,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             path = Path(directory) / "nse_index_option_oi.json"
             with patch("sys.argv", [
                 "nse_index_option_oi_archive.py",
-                "--from-date", "2026-11-02", "--to-date", "2026-11-08",
+                "--from-date", "2026-11-02", "--to-date", "2026-11-06",
                 "--max-sessions", "3", "--delay-seconds", "2", "--archive", str(path),
             ]):
                 with patch.object(nse_archive, "capture_one") as capture:
@@ -272,8 +272,31 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
                     with patch.object(nse_archive.time, "sleep") as sleep:
                         self.assertEqual(nse_archive.main(), 0)
                     self.assertEqual([call.args[1].isoformat() for call in capture.call_args_list],
-                                     ["2026-11-02", "2026-11-03", "2026-11-04"])
+                                     ["2026-11-04", "2026-11-05", "2026-11-06"])
                     self.assertEqual(sleep.call_count, 2)
+
+    def test_exchange_calendar_skips_weekday_holiday_and_includes_special_weekend_session(self):
+        calendar = nse_archive.load_exchange_calendar()
+        self.assertFalse(nse_archive.is_nse_trading_session("2026-11-10", calendar))
+        self.assertTrue(nse_archive.is_nse_trading_session("2026-11-08", calendar))
+        self.assertFalse(nse_archive.is_nse_trading_session("2026-11-07", calendar))
+
+    def test_backfill_returns_failure_when_latest_required_session_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nse_index_option_oi.json"
+            with patch("sys.argv", [
+                "nse_index_option_oi_archive.py",
+                "--from-date", "2026-11-02", "--to-date", "2026-11-04",
+                "--max-sessions", "5", "--delay-seconds", "2", "--archive", str(path),
+            ]):
+                with patch.object(nse_archive, "capture_one") as capture:
+                    capture.side_effect = [
+                        {"date": "2026-11-02", "status": "captured"},
+                        {"date": "2026-11-03", "status": "captured"},
+                        RuntimeError("HTTP 404"),
+                    ]
+                    with patch.object(nse_archive.time, "sleep"):
+                        self.assertEqual(nse_archive.main(), 1)
 
     def test_backfill_rejects_unbounded_or_fast_request_settings(self):
         with patch("sys.argv", ["nse_index_option_oi_archive.py",

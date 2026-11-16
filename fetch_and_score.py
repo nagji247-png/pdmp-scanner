@@ -601,6 +601,21 @@ def build_asset_component_breakdowns(
     except (TypeError, ValueError):
         news_source_date = str(updated or "")[:10]
 
+    # Never fall back to weekday-only assumptions when the official NSE
+    # calendar does not explicitly cover the scan year. A missing future-year
+    # calendar must make the EOD diagnostic unavailable, not silently fresh.
+    try:
+        exchange_calendar = load_exchange_calendar()
+        scan_year = int(news_source_date[:4])
+        if exchange_calendar.get("calendar_year") != scan_year:
+            expected_option_eod_date = "NSE_CALENDAR_UNAVAILABLE"
+        else:
+            expected_option_eod_date = expected_latest_completed_session(
+                updated, exchange_calendar
+            )
+    except (TypeError, ValueError, AttributeError):
+        expected_option_eod_date = "NSE_CALENDAR_UNAVAILABLE"
+
     stock_basket_diagnostics = load_latest_stock_basket_diagnostics(news_source_date, scan_timestamp=updated)
     client_futures_promotion = load_client_futures_promotion(news_source_date)
     try:
@@ -958,6 +973,7 @@ def build_asset_component_breakdowns(
                 build_option_buildup_diagnostic(
                     index_oi_archive, name, as_of_date=news_source_date,
                     max_age_days=3, min_matched_contracts=20,
+                    expected_source_date=expected_option_eod_date,
                 )
                 if name in ("NIFTY", "BANKNIFTY") else None
             ),

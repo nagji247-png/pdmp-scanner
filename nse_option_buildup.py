@@ -45,7 +45,8 @@ def _contract_map(record, symbol):
 
 
 def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
-                                    max_age_days=3, min_matched_contracts=20):
+                                    max_age_days=3, min_matched_contracts=20,
+                                    expected_source_date=None):
     """Compare same expiry/strike/side contracts across the latest two EOD sessions."""
     unavailable = {
         "available": False,
@@ -80,6 +81,32 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
     previous_date, current_date = _date(previous.get("date")), _date(current.get("date"))
     if not previous_date or not current_date or current_date <= previous_date:
         unavailable["reason"] = "EOD session dates invalid or not increasing"
+        return unavailable
+    expected = _date(expected_source_date) if expected_source_date is not None else None
+    if expected_source_date is not None and expected is None:
+        unavailable["source_date"] = current_date.isoformat()
+        unavailable["reason"] = (
+            "इस वर्ष का आधिकारिक NSE ट्रेडिंग कैलेंडर उपलब्ध/मान्य नहीं है; "
+            "EOD तारीख़ की पुष्टि नहीं हो सकी, इसलिए पुराना डेटा ताज़ा नहीं माना जाएगा"
+        )
+        return unavailable
+    if expected is not None and current_date != expected:
+        unavailable["source_date"] = current_date.isoformat()
+        unavailable["expected_source_date"] = expected.isoformat()
+        unavailable["reason"] = (
+            f"नया NSE EOD सत्र {expected.isoformat()} अभी नहीं मिला; "
+            f"नीचे {current_date.isoformat()} तक का पिछला सत्यापित डेटा केवल जानकारी के लिए दिखाया गया है"
+        )
+        # Keep the last validated comparison visible, but keep the top-level
+        # diagnostic unavailable so stale EOD data cannot be treated as current.
+        snapshot = build_option_buildup_diagnostic(
+            archive, symbol, as_of_date=current_date.isoformat(),
+            max_age_days=10000, min_matched_contracts=min_matched_contracts,
+            expected_source_date=None,
+        )
+        if snapshot.get("available"):
+            unavailable["display_snapshot"] = snapshot
+            unavailable["display_status"] = "STALE"
         return unavailable
     as_of = _date(as_of_date) if as_of_date else dt.date.today()
     if as_of and (as_of - current_date).days > max_age_days:
