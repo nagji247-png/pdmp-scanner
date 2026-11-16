@@ -16,7 +16,9 @@ from provisional_component_scoring import (
 )
 from validate_market_signal_history import market_snapshot_completeness
 from crowd_mood_intraday import update_archive as update_crowd_mood_archive
-from nse_option_buildup import build_option_buildup_diagnostic
+from nse_option_buildup import (
+    build_option_buildup_diagnostic, validate_option_buildup_diagnostic,
+)
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
@@ -6405,6 +6407,24 @@ def main():
     )
     with open("crowd_mood_history.json", "w", encoding="utf-8") as f:
         json.dump(crowd_mood_archive, f, ensure_ascii=False, indent=2, allow_nan=False)
+
+    # Final serialization guard: never publish inconsistent EOD build-up counters/details.
+    for _asset_name, _asset in (result.get("instruments") or {}).items():
+        if not isinstance(_asset, dict):
+            continue
+        _breakdown = _asset.get("component_breakdown")
+        if not isinstance(_breakdown, dict):
+            continue
+        _diagnostic = _breakdown.get("option_buildup_diagnostic")
+        if _diagnostic is None:
+            continue
+        _validated = validate_option_buildup_diagnostic(_diagnostic, min_matched_contracts=20)
+        _breakdown["option_buildup_diagnostic"] = _validated
+        if _validated.get("integrity_validation") == "FAILED":
+            print(
+                "OPTION_BUILDUP_INTEGRITY_FAIL "
+                f"asset={_asset_name} error={_validated.get('integrity_error')}"
+            )
 
     result = clean(result)
     update_market_signal_history(result)
