@@ -1,40 +1,5 @@
 [
   {
-    "time": "2026-11-09T04:31Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 6.7,
-    "new_score": 5.7,
-    "changed": [
-      "भावना",
-      "कीमत",
-      "VWAP",
-      "वॉल्यूम"
-    ],
-    "vol_data": true,
-    "held_minutes": 654,
-    "price_at_change": 792.5,
-    "price_after": 792.55,
-    "move_pct": 0.01,
-    "after_minutes": 89,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-09T06:00Z",
-    "instrument": "NIFTY",
-    "prev_score": 0.2,
-    "new_score": 2.0,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 89,
-    "price_at_change": 24939.599609375,
-    "price_after": 24939.5996,
-    "move_pct": 0.0,
-    "after_minutes": 15,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-11-09T06:00Z",
     "instrument": "HDFCBANK",
     "prev_score": 5.7,
@@ -3198,10 +3163,10 @@
     "vol_data": false,
     "held_minutes": 339,
     "price_at_change": 25291.0996,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 25291.0996,
+    "move_pct": 0.0,
+    "after_minutes": 48,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-16T22:57Z",
@@ -3213,6 +3178,38 @@
     ],
     "vol_data": false,
     "held_minutes": 339,
+    "price_at_change": 61575.8984,
+    "price_after": 61575.8984,
+    "move_pct": 0.0,
+    "after_minutes": 48,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-16T23:45Z",
+    "instrument": "NIFTY",
+    "prev_score": 2.7,
+    "new_score": -2.1,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 48,
+    "price_at_change": 25291.0996,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-16T23:45Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": -2.1,
+    "new_score": 2.9,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 48,
     "price_at_change": 61575.8984,
     "price_after": null,
     "move_pct": null,
