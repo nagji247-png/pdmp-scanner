@@ -86,17 +86,26 @@ def parse_index_snapshot_csv(payload, expected_date, min_rows=MIN_INDEX_ROWS):
     if not reader.fieldnames:
         raise ValueError("NSE daily index snapshot CSV header missing")
     headers = {norm_header(item) for item in reader.fieldnames}
-    required = {"indexname", "indexdate", "closing"}
-    if not required.issubset(headers):
-        raise ValueError("NSE daily index snapshot missing Index Name, Index Date or Closing")
+    has_name = "indexname" in headers
+    has_date = bool(headers.intersection({"indexdate", "date"}))
+    has_close = bool(headers.intersection({"closing", "close", "closingindexvalue", "closeindexvalue"}))
+    missing = []
+    if not has_name:
+        missing.append("Index Name")
+    if not has_date:
+        missing.append("Index Date/Date")
+    if not has_close:
+        missing.append("Closing/Close")
+    if missing:
+        raise ValueError("NSE daily index snapshot missing columns: " + ", ".join(missing))
 
     expected = parse_date(expected_date)
     result = {}
     seen = set()
     for row in reader:
         name = str(first_value(row, ("Index Name",)) or "").strip()
-        date_raw = first_value(row, ("Index Date",))
-        close = number(first_value(row, ("Closing", "Close", "Closing Index Value")))
+        date_raw = first_value(row, ("Index Date", "Date"))
+        close = number(first_value(row, ("Closing", "Close", "Closing Index Value", "Close Index Value")))
         if not name or not date_raw:
             raise ValueError("NSE daily index snapshot row missing identity/date")
         day = parse_date(date_raw)
@@ -273,7 +282,7 @@ def main():
             if next_cursor < today - dt.timedelta(days=HISTORY_DAYS):
                 archive["backfill_complete"] = True
 
-    if changed or (not args.date and archive.get("backfill_cursor")):
+    if not args.date or changed:
         archive["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         archive["retention_sessions"] = KEEP_SESSIONS
         archive["backfill_target_start"] = (today - dt.timedelta(days=HISTORY_DAYS)).isoformat()
@@ -294,6 +303,8 @@ def main():
             {"date": row["date"], "status": row["status"], "detail": row.get("detail")}
             for row in results
         ],
+        "archive_file_written": Path(args.archive).exists(),
+        "archive_path": str(Path(args.archive).resolve()),
     }
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 0 if summary["status"] == "ok" else 1
