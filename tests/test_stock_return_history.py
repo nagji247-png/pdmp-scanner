@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 import unittest
 
 import stock_return_history as history
@@ -28,30 +29,72 @@ class StockReturnHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate EQ date"):
             history.parse_stock_history_csv(payload, "RELIANCE")
 
-    def test_index_parser_reads_official_nse_data_array_and_checks_index_name(self):
-        payload = {"data": [
-            {"EOD_INDEX_NAME": "NIFTY 50", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"},
-            {"EOD_INDEX_NAME": "NIFTY 50", "EOD_TIMESTAMP": "14-NOV-2026", "EOD_CLOSE_INDEX_VAL": "27500"},
-        ]}
+    def test_index_parser_reads_niftyindices_double_json_response(self):
+        payload = {"d": json.dumps([
+            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"},
+            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "27500"},
+        ])}
         rows = history.parse_index_history(payload, expected_index="NIFTY 50")
         self.assertEqual(rows[dt.date(2025, 11, 17)], 25000.0)
         self.assertEqual(rows[dt.date(2026, 11, 14)], 27500.0)
 
     def test_index_parser_accepts_official_financial_services_response_alias(self):
-        payload = {"data": [
-            {"EOD_INDEX_NAME": "NIFTY FIN SERVICE", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"},
-            {"EOD_INDEX_NAME": "NIFTY FIN SERVICE", "EOD_TIMESTAMP": "14-NOV-2026", "EOD_CLOSE_INDEX_VAL": "27500"},
-        ]}
+        payload = {"d": json.dumps([
+            {"INDEX_NAME": "NIFTY FIN SERVICE", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"},
+            {"INDEX_NAME": "NIFTY FIN SERVICE", "HistoricalDate": "14 Nov 2026", "CLOSE": "27500"},
+        ])}
         self.assertEqual(
             len(history.parse_index_history(payload, expected_index="NIFTY FINANCIAL SERVICES")), 2
         )
 
     def test_index_parser_rejects_wrong_index_name(self):
-        payload = {"data": [
-            {"EOD_INDEX_NAME": "NIFTY BANK", "EOD_TIMESTAMP": "17-NOV-2025", "EOD_CLOSE_INDEX_VAL": "25000"}
-        ]}
+        payload = {"d": json.dumps([
+            {"INDEX_NAME": "NIFTY BANK", "HistoricalDate": "17 Nov 2025", "CLOSE": "25000"}
+        ])}
         with self.assertRaisesRegex(ValueError, "name mismatch"):
             history.parse_index_history(payload, expected_index="NIFTY 50")
+
+    def test_index_mapping_resolves_display_name_to_official_long_name(self):
+        from unittest.mock import Mock
+        session = Mock()
+        response = Mock(
+            status_code=200,
+            content=b"[]",
+            url=history.INDEX_MAPPING_URL,
+        )
+        response.json.return_value = [
+            {"Trading_Index_Name": "Nifty 50", "Index_long_name": "Nifty 50"},
+            {"Trading_Index_Name": "NIFTY HEALTHCARE", "Index_long_name": "Nifty Healthcare Index"},
+        ]
+        session.get.return_value = response
+        mapping, url = history.fetch_index_mapping(session)
+        self.assertEqual(mapping["NIFTY50"], "NIFTY 50")
+        self.assertEqual(mapping["NIFTYHEALTHCARE"], "NIFTY HEALTHCARE INDEX")
+        self.assertEqual(session.get.call_count, 1)
+        self.assertEqual(url, response.url)
+
+    def test_index_history_fetch_uses_one_official_post_request(self):
+        from unittest.mock import Mock
+        session = Mock()
+        response = Mock(
+            status_code=200,
+            content=b'{"d":"[]"}',
+            url="https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString",
+        )
+        response.json.return_value = {"d": json.dumps([
+            {"INDEX_NAME": "NIFTY 50", "HistoricalDate": "14 Nov 2026", "CLOSE": "26000"}
+        ])}
+        session.post.return_value = response
+        rows, url = history.fetch_index_history(
+            session, "NIFTY 50", dt.date(2025, 11, 16), dt.date(2026, 11, 16),
+            {"NIFTY50": "NIFTY 50"},
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(session.post.call_count, 1)
+        payload = session.post.call_args.kwargs["json"]
+        self.assertIn("'name':'NIFTY 50'", payload["cinfo"])
+        self.assertIn("'startDate':'16 Nov 2025'", payload["cinfo"])
+        self.assertEqual(url, response.url)
 
     def test_one_year_return_uses_latest_date_and_first_session_after_target(self):
         rows = {
@@ -91,13 +134,14 @@ class StockReturnHistoryTests(unittest.TestCase):
             "2025-11-17", "2026-11-14"
         ))
 
-    def test_sector_crosswalk_is_exact_and_does_not_guess_broad_categories(self):
+    def test_sector_crosswalk_uses_current_official_sector_index_names(self):
         self.assertEqual(history.SECTOR_INDEX["Information Technology"], "NIFTY IT")
-        self.assertEqual(history.SECTOR_INDEX["Healthcare"], "NIFTY HEALTHCARE INDEX")
-        self.assertNotIn("Capital Goods", history.SECTOR_INDEX)
-        self.assertNotIn("Consumer Services", history.SECTOR_INDEX)
-        self.assertNotIn("Telecommunication", history.SECTOR_INDEX)
-        self.assertNotIn("Power", history.SECTOR_INDEX)
+        self.assertEqual(history.SECTOR_INDEX["Healthcare"], "NIFTY HEALTHCARE")
+        self.assertEqual(history.SECTOR_INDEX["Capital Goods"], "NIFTY CAPITAL GOODS")
+        self.assertEqual(history.SECTOR_INDEX["Consumer Services"], "NIFTY CONSUMER SERVICES")
+        self.assertEqual(history.SECTOR_INDEX["Telecommunication"], "NIFTY TELECOMMUNICATIONS")
+        self.assertEqual(history.SECTOR_INDEX["Power"], "NIFTY POWER")
+        self.assertEqual(history.SECTOR_INDEX["Oil, Gas & Consumable Fuels"], "NIFTY OIL AND GAS INDEX")
         self.assertNotIn("Services", history.SECTOR_INDEX)
         self.assertNotIn("Construction Materials", history.SECTOR_INDEX)
         self.assertNotIn("Textiles", history.SECTOR_INDEX)
