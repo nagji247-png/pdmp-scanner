@@ -57,15 +57,15 @@ function openSector(sector){
 }
 function renderSector(sector){
  if(!overlay)return;
- activeSector=sector;setTitle(sector+" · "+getStocks(sector).length+" स्टॉक",false);
+ activeSector=sector;setTitle(sector+" · "+getStocks(sector).length+" F&O स्टॉक",false);
  var rows=getStocks(sector);
- body.innerHTML=rows.length?rows.map(function(r){
+ body.innerHTML='<div class="fpi-stock-empty">यह सूची सत्यापित NSE F&O universe के 218 mapped स्टॉक्स तक सीमित है; सेक्टर के सभी listed stocks की पूरी सूची नहीं है।</div>'+(rows.length?rows.map(function(r){
   var q=marketData.instruments&&marketData.instruments[r.symbol]||{};
   var change=num(q.change_pct);
   var price=q.price===null||q.price===undefined?"भाव उपलब्ध नहीं":"₹"+Number(q.price).toLocaleString("en-IN",{maximumFractionDigits:2});
   var movement=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
   return '<button class="fpi-stock-row" type="button" data-fpi-stock="'+esc(r.symbol)+'"><b>'+esc(r.symbol)+'　›</b><small>'+esc(r.company.company_name||r.info.company_name||"कंपनी नाम उपलब्ध नहीं")+' · '+esc(r.info.industry||r.company.industry||"इंडस्ट्री उपलब्ध नहीं")+'<br>'+price+' · '+movement+'</small></button>';
- }).join(""):'<div class="fpi-stock-empty">इस NSDL सेक्टर के लिए सत्यापित NSE F&O stock mapping उपलब्ध नहीं। कोई अनुमानित स्टॉक नहीं जोड़ा गया।</div>';
+ }).join(""):'<div class="fpi-stock-empty">इस NSDL सेक्टर के लिए सत्यापित NSE F&O stock mapping उपलब्ध नहीं। कोई अनुमानित स्टॉक नहीं जोड़ा गया।</div>');
 }
 function renderStock(symbol){
  if(!overlay)return;
