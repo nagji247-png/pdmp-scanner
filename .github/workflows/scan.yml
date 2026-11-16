@@ -112,16 +112,39 @@ jobs:
           python summarize_participant_oi_backtest.py
       - name: Commit results
         if: github.event_name != 'pull_request'
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
-          for f in data.json history.csv participant_oi_history.json participant_oi_backtest.json participant_oi_backtest_summary.json market_signal_history.json crowd_mood_history.json contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json mcx_silver.json mcx_gold.json mcx_crudeoil.json; do
-            if [ -f "$f" ]; then git add "$f"; fi
-          done
-          if git diff --cached --quiet; then
-            echo "कोई बदलाव नहीं, commit छोड़ा गया"
-          else
+          output_files=(
+            data.json history.csv participant_oi_history.json participant_oi_backtest.json
+            participant_oi_backtest_summary.json market_signal_history.json crowd_mood_history.json
+            contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json
+            mcx_silver.json mcx_gold.json mcx_crudeoil.json
+          )
+
+          # The scan's generated JSON is one complete snapshot. Never rebase/merge
+          # it line-by-line with another scan's data.json: that can mix counters
+          # from an older run with contract details from a newer run.
+          for attempt in 1 2 3; do
+            git fetch origin "$GITHUB_REF_NAME"
+            git reset --mixed "origin/$GITHUB_REF_NAME"
+            for f in "${output_files[@]}"; do
+              if [ -f "$f" ]; then git add "$f"; fi
+            done
+
+            if git diff --cached --quiet; then
+              echo "कोई बदलाव नहीं, commit छोड़ा गया"
+              exit 0
+            fi
+
             git commit -m "scan $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase -X theirs origin "$GITHUB_REF_NAME"
-            git push origin "HEAD:$GITHUB_REF_NAME"
-          fi
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then
+              exit 0
+            fi
+            echo "Push attempt $attempt failed; latest main पर clean snapshot commit दोबारा बनाया जाएगा।"
+          done
+
+          echo "तीन प्रयासों के बाद scan snapshot push नहीं हो सका।"
+          exit 1

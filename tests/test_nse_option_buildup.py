@@ -1,6 +1,8 @@
 import unittest
 
-from nse_option_buildup import build_option_buildup_diagnostic
+from nse_option_buildup import (
+    build_option_buildup_diagnostic, validate_option_buildup_diagnostic,
+)
 
 
 class NSEOptionBuildupTests(unittest.TestCase):
@@ -149,6 +151,76 @@ class NSEOptionBuildupTests(unittest.TestCase):
         )
         self.assertFalse(result["available"])
         self.assertEqual(result["classified_contracts"], 0)
+
+
+    def test_integrity_guard_accepts_consistent_summary_and_details(self):
+        diagnostic = {
+            "available": True,
+            "status": "AVAILABLE",
+            "matched_contracts": 2,
+            "classified_contracts": 1,
+            "categories": {
+                "long_build_up": {"label": "LONG BUILD-UP", "contracts": 1,
+                                  "contract_details": [{"strike": 25000}]},
+                "short_build_up": {"label": "SHORT BUILD-UP", "contracts": 0,
+                                   "contract_details": []},
+                "short_covering": {"label": "SHORT COVERING", "contracts": 0,
+                                   "contract_details": []},
+                "long_unwinding": {"label": "LONG UNWINDING", "contracts": 0,
+                                   "contract_details": []},
+            },
+        }
+        checked = validate_option_buildup_diagnostic(diagnostic, min_matched_contracts=1)
+        self.assertTrue(checked["available"])
+        self.assertEqual(checked["integrity_validation"], "PASSED")
+        self.assertEqual(checked["categories"]["long_build_up"]["contracts"], 1)
+
+    def test_integrity_guard_blocks_nifty_zero_counter_with_469_details(self):
+        diagnostic = {
+            "available": False,
+            "status": "UNAVAILABLE",
+            "source_date": "2026-11-16",
+            "matched_contracts": 0,
+            "classified_contracts": 0,
+            "categories": {
+                "long_build_up": {"label": "LONG BUILD-UP", "contracts": 37,
+                                  "contract_details": [{} for _ in range(37)]},
+                "short_build_up": {"label": "SHORT BUILD-UP", "contracts": 175,
+                                   "contract_details": [{} for _ in range(175)]},
+                "short_covering": {"label": "SHORT COVERING", "contracts": 96,
+                                   "contract_details": [{} for _ in range(96)]},
+                "long_unwinding": {"label": "LONG UNWINDING", "contracts": 161,
+                                   "contract_details": [{} for _ in range(161)]},
+            },
+        }
+        checked = validate_option_buildup_diagnostic(diagnostic)
+        self.assertFalse(checked["available"])
+        self.assertEqual(checked["integrity_validation"], "FAILED")
+        self.assertEqual(checked["reported_classified_contracts"], 0)
+        self.assertEqual(checked["matched_contracts"], 0)
+        self.assertEqual(checked["classified_contracts"], 0)
+        self.assertTrue(all(
+            item["contracts"] == 0 and "contract_details" not in item
+            for item in checked["categories"].values()
+        ))
+
+    def test_integrity_guard_rejects_category_detail_count_mismatch(self):
+        diagnostic = {
+            "available": False,
+            "status": "UNAVAILABLE",
+            "matched_contracts": 1,
+            "classified_contracts": 1,
+            "categories": {
+                "long_build_up": {"contracts": 1, "contract_details": []},
+                "short_build_up": {"contracts": 0, "contract_details": []},
+                "short_covering": {"contracts": 0, "contract_details": []},
+                "long_unwinding": {"contracts": 0, "contract_details": []},
+            },
+        }
+        checked = validate_option_buildup_diagnostic(diagnostic)
+        self.assertEqual(checked["integrity_validation"], "FAILED")
+        self.assertEqual(checked["classified_contracts"], 0)
+
 
 
 if __name__ == "__main__":
