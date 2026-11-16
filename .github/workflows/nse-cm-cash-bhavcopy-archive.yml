@@ -6,8 +6,6 @@ on:
     paths:
       - "nse_cm_bhavcopy_archive.py"
       - "nse_index_close_archive.py"
-      - "tests/test_nse_index_close_archive.py"
-      - "nse_index_close_archive.py"
       - "nse_index_close_archive.json"
       - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
@@ -31,6 +29,8 @@ on:
   pull_request:
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "nse_index_close_archive.py"
+      - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
