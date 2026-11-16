@@ -271,7 +271,12 @@ def main():
     if not isinstance(master, dict) or not isinstance(master.get("stocks"), dict):
         raise SystemExit("Verified NSE stock master missing or invalid; refusing write")
 
-    performance_state = data.get("performance_history") or {}\n    if performance_state.get("last_batch_date") == today.isoformat():\n        print("Historical returns already refreshed today; no repeat NSE requests")\n        return 0\n\n    batch = data.get("last_batch") or {}
+    performance_state = data.get("performance_history") or {}
+    if performance_state.get("last_batch_date") == today.isoformat():
+        print("Historical returns already refreshed today; no repeat NSE requests")
+        return 0
+
+    batch = data.get("last_batch") or {}
     symbols = [str(x).strip().upper() for x in batch.get("symbols", []) if str(x).strip()]
     symbols = list(dict.fromkeys(symbols))[:10]
     if not symbols:
@@ -380,7 +385,8 @@ def main():
     data["performance_history"] = {
         "source": "NSE official historical security-wise and index history endpoints",
         "updated_at": fetched_at,
-        "last_batch_date": today.isoformat(),\n        "last_batch_symbols": symbols,
+        "last_batch_date": today.isoformat(),
+        "last_batch_symbols": symbols,
         "last_batch_updated": updated,
         "research_only": True,
         "score_eligible": False,
