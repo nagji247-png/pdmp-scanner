@@ -91,6 +91,27 @@ class NSEOptionBuildupTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertFalse(result["display_snapshot"]["included_in_asset_final"])
 
+    def test_missing_calendar_guard_never_treats_old_archive_as_current(self):
+        old = [
+            self._contract("2026-11-17", "CE", 25000, 100, 1000),
+            self._contract("2026-11-17", "PE", 25000, 100, 1000),
+        ]
+        new = [
+            self._contract("2026-11-17", "CE", 25000, 110, 1200),
+            self._contract("2026-11-17", "PE", 25000, 90, 1300),
+        ]
+        archive = {"records": [
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        result = build_option_buildup_diagnostic(
+            archive, "NIFTY", as_of_date="2027-01-04",
+            expected_source_date="NSE_CALENDAR_UNAVAILABLE", min_matched_contracts=1
+        )
+        self.assertFalse(result["available"])
+        self.assertIn("आधिकारिक NSE ट्रेडिंग कैलेंडर", result["reason"])
+        self.assertNotIn("display_snapshot", result)
+
     def test_unavailable_when_archive_stale_or_insufficient(self):
         archive = {"records": [
             {"date": "2026-11-06", "option_contracts": {"BANKNIFTY": {"contracts": [
