@@ -28,7 +28,7 @@ PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
 HISTORY_LOOKBACK_DAYS = 365
-BENCHMARK_SOURCE_VERSION = "Nifty Indices official Historical Index Data · canonical name map v2"
+BENCHMARK_SOURCE_VERSION = "Nifty Indices official Historical Index Data · response diagnostics v3"
 INDEX_LONG_NAME = {
     "NIFTY HEALTHCARE": "NIFTY HEALTHCARE INDEX",
     "NIFTY OIL AND GAS INDEX": "NIFTY OIL & GAS",
@@ -291,8 +291,17 @@ def fetch_index_history(session, index_name, start_date, end_date):
     )
     if response.status_code != 200 or not response.content:
         raise RuntimeError(f"Nifty Indices history HTTP {response.status_code}: {index_name}")
+    raw = response.content.decode("utf-8-sig", errors="replace").strip()
+    try:
+        outer = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        sample = " ".join(raw[:180].split())
+        content_type = response.headers.get("Content-Type", "unknown")
+        raise RuntimeError(
+            f"Nifty Indices non-JSON response ({content_type}): {sample}"
+        ) from exc
     return parse_index_history(
-        response.json(), expected_index=index_name, expected_aliases=[long_name]
+        outer, expected_index=index_name, expected_aliases=[long_name]
     ), response.url
 
 def load_json(path, fallback):
