@@ -23,7 +23,7 @@ DATA_PATH = Path("stock-company-data.json")
 MASTER_PATH = Path("nse-fo-stock-sector-master.json")
 BASE = "https://www.nseindia.com"
 STOCK_HISTORY_PATH = "/api/historicalOR/generateSecurityWiseHistoricalData"
-INDEX_HISTORY_PATH = "/api/historicalOR/indicesHistory"
+INDEX_HISTORY_URL = "https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString"
 PAUSE_SECONDS = 1.2
 MAX_STALE_DAYS = 7
 MAX_BASE_DATE_GAP_DAYS = 10
@@ -33,15 +33,19 @@ HISTORY_LOOKBACK_DAYS = 365
 # intentionally remain unmapped rather than receiving a misleading proxy.
 SECTOR_INDEX = {
     "Automobile and Auto Components": "NIFTY AUTO",
+    "Capital Goods": "NIFTY CAPITAL GOODS",
     "Chemicals": "NIFTY CHEMICALS",
     "Consumer Durables": "NIFTY CONSUMER DURABLES",
+    "Consumer Services": "NIFTY CONSUMER SERVICES",
     "Fast Moving Consumer Goods": "NIFTY FMCG",
     "Financial Services": "NIFTY FINANCIAL SERVICES",
-    "Healthcare": "NIFTY HEALTHCARE INDEX",
+    "Healthcare": "NIFTY HEALTHCARE",
     "Information Technology": "NIFTY IT",
     "Metals & Mining": "NIFTY METAL",
-    "Oil, Gas & Consumable Fuels": "NIFTY OIL & GAS",
+    "Oil, Gas & Consumable Fuels": "NIFTY OIL AND GAS INDEX",
+    "Power": "NIFTY POWER",
     "Realty": "NIFTY REALTY",
+    "Telecommunication": "NIFTY TELECOMMUNICATIONS",
 }
 
 
@@ -113,49 +117,53 @@ def parse_stock_history_csv(payload, symbol):
 
 
 def parse_index_history(payload, expected_index=None):
-    if not isinstance(payload, dict):
-        raise ValueError("NSE index history response is not an object")
-    data = payload.get("data")
-    rows = data if isinstance(data, list) else (
-        data.get("indexCloseOnlineRecords") if isinstance(data, dict) else None
-    )
-    if not isinstance(rows, list):
-        rows = payload.get("indexCloseOnlineRecords")
+    if isinstance(payload, dict) and "d" in payload:
+        inner = payload.get("d")
+        if inner in (None, "", "false", "[]"):
+            raise ValueError("Nifty Indices returned no historical rows")
+        rows = json.loads(inner) if isinstance(inner, str) else inner
+    elif isinstance(payload, list):
+        rows = payload
+    else:
+        raise ValueError("Nifty Indices history response has an unsupported shape")
     if not isinstance(rows, list) or not rows:
-        raise ValueError("NSE index history has no dated data rows")
-    expected_name = str(expected_index or "").upper().strip()
+        raise ValueError("Nifty Indices history has no dated rows")
+
+    expected_name = " ".join(str(expected_index or "").upper().split())
     accepted_names = {
         "NIFTY FINANCIAL SERVICES": {"NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"},
-        "NIFTY HEALTHCARE INDEX": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
+        "NIFTY HEALTHCARE": {"NIFTY HEALTHCARE", "NIFTY HEALTHCARE INDEX"},
+        "NIFTY CONSUMER DURABLES": {"NIFTY CONSUMER DURABLES", "NIFTY CONSR DURBL"},
+        "NIFTY OIL AND GAS INDEX": {"NIFTY OIL AND GAS INDEX", "NIFTY OIL & GAS"},
     }.get(expected_name, {expected_name} if expected_name else set())
     result = {}
     observed_names = set()
     for row in rows:
         if not isinstance(row, dict):
-            raise ValueError("NSE index history contains a malformed row")
-        index_name = first_value(row, ("EOD_INDEX_NAME", "Index Name", "indexName"))
+            raise ValueError("Nifty Indices history contains a malformed row")
+        index_name = first_value(row, ("INDEX_NAME", "Index Name", "indexName"))
         if expected_name and not index_name:
-            raise ValueError("NSE index history row missing official index name")
+            raise ValueError("Nifty Indices history row missing official index name")
         if index_name:
             normalized_name = " ".join(str(index_name).upper().split())
             observed_names.add(normalized_name)
             if accepted_names and normalized_name not in accepted_names:
-                raise ValueError(f"NSE index response name mismatch: {normalized_name} != {expected_name}")
-        day_raw = first_value(row, ("EOD_TIMESTAMP", "TIMESTAMP", "HistoricalDate", "Date"))
-        close_raw = first_value(row, ("EOD_CLOSE_INDEX_VAL", "CLOSE_INDEX_VAL", "CLOSE", "Close"))
+                raise ValueError(f"Nifty Indices response name mismatch: {normalized_name} != {expected_name}")
+        day_raw = first_value(row, ("HistoricalDate", "Date"))
+        close_raw = first_value(row, ("CLOSE", "Close"))
         if not day_raw or close_raw in (None, ""):
-            raise ValueError("NSE index history row missing date or close")
+            raise ValueError("Nifty Indices history row missing date or close")
         day = parse_date(day_raw)
         close = number(close_raw)
         if close is None:
-            raise ValueError(f"NSE index history has invalid close on {day}")
+            raise ValueError(f"Nifty Indices history has invalid close on {day}")
         if day in result:
-            raise ValueError(f"NSE index history duplicate date: {day}")
+            raise ValueError(f"Nifty Indices history duplicate date: {day}")
         result[day] = close
     if len(observed_names) > 1:
-        raise ValueError("NSE index history contains mixed index names")
+        raise ValueError("Nifty Indices history contains mixed index names")
     if not result:
-        raise ValueError("NSE index history contains no valid dated closes")
+        raise ValueError("Nifty Indices history contains no valid dated closes")
     return result
 
 
@@ -250,18 +258,27 @@ def fetch_stock_history(session, symbol, start_date, end_date):
 
 
 def fetch_index_history(session, index_name, start_date, end_date):
-    params = {
-        "indexType": index_name,
-        "from": start_date.strftime("%d-%m-%Y"),
-        "to": end_date.strftime("%d-%m-%Y"),
+    start_text = start_date.strftime("%d %b %Y")
+    end_text = end_date.strftime("%d %b %Y")
+    payload = {
+        "cinfo": (
+            "{'name':'" + index_name + "','startDate':'" + start_text
+            + "','endDate':'" + end_text + "','indexName':'" + index_name + "'}"
+        )
     }
-    response = session.get(
-        BASE + INDEX_HISTORY_PATH, params=params,
-        headers={"Referer": BASE + "/reports-indices-historical-index-data"},
-        timeout=(10, 45),
+    response = session.post(
+        INDEX_HISTORY_URL,
+        json=payload,
+        headers={
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Origin": "https://www.niftyindices.com",
+            "Referer": "https://www.niftyindices.com/reports/historical-data",
+        },
+        timeout=(10, 30),
     )
     if response.status_code != 200 or not response.content:
-        raise RuntimeError(f"NSE index history HTTP {response.status_code}: {index_name}")
+        raise RuntimeError(f"Nifty Indices history HTTP {response.status_code}: {index_name}")
     return parse_index_history(response.json(), expected_index=index_name), response.url
 
 
@@ -288,7 +305,10 @@ def main():
 
     today = dt.date.fromisoformat(args.today) if args.today else dt.datetime.now(IST).date()
     performance_state = data.get("performance_history") or {}
-    if performance_state.get("last_batch_date") == today.isoformat():
+    if (
+        performance_state.get("last_batch_date") == today.isoformat()
+        and performance_state.get("benchmark_source") == "Nifty Indices official Historical Index Data"
+    ):
         print("Historical returns already refreshed today; no repeat NSE requests")
         return 0
 
@@ -303,32 +323,62 @@ def main():
     stocks = data["stocks"]
     successful_rows = {}
     stock_urls = {}
+    stock_periods = {}
+    needed_indices = {"NIFTY 50"}
     session = requests.Session()
     try:
         seed_session(session)
     except Exception as exc:
-        print(f"NSE history session unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+        print(f"NSE stock history session unavailable: {type(exc).__name__}: {str(exc)[:160]}")
         return 0
 
     for symbol in symbols:
+        current = stocks.get(symbol) if isinstance(stocks.get(symbol), dict) else {}
+        existing = current.get("performance_1y") or {}
+        existing_stock = existing.get("stock_return") or {}
+        period = None
         try:
-            rows, url = fetch_stock_history(session, symbol, start_date, today)
-            successful_rows[symbol] = rows
-            stock_urls[symbol] = url
-            print(f"{symbol}: captured {len(rows)} NSE EQ historical closes")
-        except Exception as exc:
-            print(f"{symbol}: historical return unavailable: {type(exc).__name__}: {str(exc)[:160]}")
-        time.sleep(PAUSE_SECONDS)
+            end_day = parse_date(existing_stock.get("end_date"))
+            start_day = parse_date(existing_stock.get("start_date"))
+            start_close = number(existing_stock.get("start_close"))
+            end_close = number(existing_stock.get("end_close"))
+            existing_pct = float(existing_stock.get("return_pct"))
+            if (
+                (today - end_day).days <= MAX_STALE_DAYS
+                and (end_day - start_day).days >= 350
+                and start_close is not None and end_close is not None
+            ):
+                period = {
+                    "start_date": start_day.isoformat(),
+                    "end_date": end_day.isoformat(),
+                    "days": (end_day - start_day).days,
+                    "start_close": round(start_close, 6),
+                    "end_close": round(end_close, 6),
+                    "return_pct": round(existing_pct, 4),
+                    "method": "unadjusted_price_return",
+                    "corporate_actions_adjusted": False,
+                    "dividends_included": False,
+                }
+                stock_urls[symbol] = existing_stock.get("source_url")
+                print(f"{symbol}: reusing fresh NSE one-year stock return; only index benchmarks will refresh")
+        except (TypeError, ValueError):
+            period = None
 
-    stock_periods = {}
-    needed_indices = {"NIFTY 50"}
-    for symbol, rows in successful_rows.items():
-        period = calculate_price_return(rows, today=today)
+        sector = (master["stocks"].get(symbol) or {}).get("sector") or current.get("sector")
+        index_name = SECTOR_INDEX.get(str(sector or ""))
+        if period is None:
+            try:
+                rows, url = fetch_stock_history(session, symbol, start_date, today)
+                successful_rows[symbol] = rows
+                period = calculate_price_return(rows, today=today)
+                stock_urls[symbol] = url
+                print(f"{symbol}: captured {len(rows)} NSE EQ historical closes")
+            except Exception as exc:
+                print(f"{symbol}: historical return unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+            time.sleep(PAUSE_SECONDS)
         if not period:
             print(f"{symbol}: one-year price return withheld (insufficient or stale history)")
             continue
-        sector = (master["stocks"].get(symbol) or {}).get("sector") or (stocks.get(symbol) or {}).get("sector")
-        index_name = SECTOR_INDEX.get(str(sector or ""))
         stock_periods[symbol] = (period, sector, index_name)
         if index_name:
             needed_indices.add(index_name)
