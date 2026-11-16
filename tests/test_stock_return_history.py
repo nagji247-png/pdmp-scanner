@@ -78,6 +78,15 @@ class StockReturnHistoryTests(unittest.TestCase):
         self.assertIn("'startDate':'16 Nov 2025'", payload["cinfo"])
         self.assertEqual(url, response.url)
 
+    def test_niftyindices_session_bootstrap_is_one_short_request_and_tolerates_403(self):
+        from unittest.mock import Mock
+        session = Mock()
+        session.get.return_value = Mock(status_code=403)
+        self.assertTrue(history.seed_niftyindices_session(session))
+        self.assertEqual(session.get.call_count, 1)
+        self.assertEqual(session.get.call_args.kwargs["timeout"], (3, 5))
+        self.assertIn("/reports/historical-data", session.get.call_args.args[0])
+
     def test_healthcare_index_uses_verified_official_long_name(self):
         from unittest.mock import Mock
         session = Mock()
