@@ -134,6 +134,8 @@ def parse_index_history(payload, expected_index=None):
         if not isinstance(row, dict):
             raise ValueError("NSE index history contains a malformed row")
         index_name = first_value(row, ("EOD_INDEX_NAME", "Index Name", "indexName"))
+        if expected_name and not index_name:
+            raise ValueError("NSE index history row missing official index name")
         if index_name:
             normalized_name = " ".join(str(index_name).upper().split())
             observed_names.add(normalized_name)
