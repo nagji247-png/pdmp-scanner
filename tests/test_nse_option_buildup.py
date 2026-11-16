@@ -84,7 +84,12 @@ class NSEOptionBuildupTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["source_date"], "2026-11-13")
         self.assertEqual(result["expected_source_date"], "2026-11-16")
-        self.assertIn("अपेक्षित NSE EOD सत्र", result["reason"])
+        self.assertIn("नया NSE EOD सत्र", result["reason"])
+        self.assertEqual(result["display_status"], "STALE")
+        self.assertTrue(result["display_snapshot"]["available"])
+        self.assertEqual(result["display_snapshot"]["source_date"], "2026-11-13")
+        self.assertFalse(result["available"])
+        self.assertFalse(result["display_snapshot"]["included_in_asset_final"])
 
     def test_unavailable_when_archive_stale_or_insufficient(self):
         archive = {"records": [
