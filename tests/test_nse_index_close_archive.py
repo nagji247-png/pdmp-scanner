@@ -64,7 +64,7 @@ class NSEIndexCloseArchiveTests(unittest.TestCase):
     def test_parser_rejects_html_wrong_headers_and_small_files(self):
         with self.assertRaisesRegex(ValueError, "HTML/JSON"):
             archive.parse_index_snapshot_csv("<html>blocked</html>", "2026-11-16")
-        with self.assertRaisesRegex(ValueError, "missing Index Name"):
+        with self.assertRaisesRegex(ValueError, "missing columns"):
             archive.parse_index_snapshot_csv("Symbol,Close\nABC,100\n", "2026-11-16")
         with self.assertRaisesRegex(ValueError, "implausibly small"):
             archive.parse_index_snapshot_csv(
