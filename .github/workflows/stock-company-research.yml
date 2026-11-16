@@ -5,31 +5,41 @@ on:
     paths:
       - 'stock_company_research.py'
       - 'stock_return_history.py'
-      - 'nse_index_close_archive.json'
       - 'tests/test_stock_return_history.py'
       - 'nse-fo-stock-sector-master.json'
       - '.github/workflows/stock-company-research.yml'
+  workflow_run:
+    workflows: ["NSE CM Cash Bhavcopy EOD Archive"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       batch_size:
         description: "Maximum stocks to refresh (1-25)"
         required: false
         default: "10"
-  schedule:
-    # Daily at 20:15 IST, after the cash market closes.
-    - cron: "45 14 * * 1-5"
 permissions:
+  actions: read
   contents: write
 concurrency:
   group: stock-company-research-cache-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   refresh:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+      - name: Download NSE index archive from completed EOD workflow
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: nse-index-close-archive
+          path: .
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
