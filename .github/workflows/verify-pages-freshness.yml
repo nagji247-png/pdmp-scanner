@@ -1,7 +1,11 @@
 name: Verify Published Pages Data Freshness
 
 on:
-  # Run only after a successful PDMP Scan; this workflow never starts or changes a scan.
+  # Validate the verifier itself on PRs; this workflow never starts or changes a scan.
+  pull_request:
+    paths:
+      - ".github/workflows/verify-pages-freshness.yml"
+  # Run publication verification only after a successful PDMP Scan.
   workflow_run:
     workflows: ["PDMP Scan"]
     types: [completed]
@@ -16,7 +20,7 @@ concurrency:
 
 jobs:
   verify-published-data:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
