@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'stock_company_research.py'
+      - 'stock_company_research.py'\n      - 'stock_return_history.py'\n      - 'tests/test_stock_return_history.py'
       - 'nse-fo-stock-sector-master.json'
       - '.github/workflows/stock-company-research.yml'
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
       - name: Refresh a small NSE batch
         env:
           STOCK_RESEARCH_BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
-        run: python stock_company_research.py
+        run: python stock_company_research.py\n      - name: Refresh one-year NSE stock, sector and market returns\n        run: python stock_return_history.py
       - name: Commit only company research cache to the triggering branch
         env:
           TARGET_BRANCH: ${{ github.ref_name }}
