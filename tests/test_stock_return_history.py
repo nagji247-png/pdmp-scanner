@@ -98,6 +98,15 @@ class StockReturnHistoryTests(unittest.TestCase):
         self.assertNotIn("Construction Materials", history.SECTOR_INDEX)
         self.assertNotIn("Textiles", history.SECTOR_INDEX)
 
+    def test_session_bootstrap_continues_after_http_403(self):
+        from unittest.mock import Mock, patch
+        session = Mock()
+        session.get.side_effect = [Mock(status_code=403), Mock(status_code=200)]
+        with patch.object(history.time, "sleep"):
+            history.seed_session(session)
+        self.assertEqual(session.get.call_count, 2)
+        self.assertIn("/report-detail/eq_security", session.get.call_args_list[1].args[0])
+
     def test_stock_history_fetch_uses_one_request_without_retry(self):
         from unittest.mock import Mock
         session = Mock()
