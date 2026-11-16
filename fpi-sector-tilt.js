@@ -2,7 +2,7 @@
 "use strict";
 var box=document.getElementById("fpi-sector-tilt");
 if(!box)return;
-var master=null,companyData={stocks:{}},marketData={instruments:{}},overlay=null,body=null,activeSector="",lastView=null;
+var master=null,companyData={stocks:{}},marketData={instruments:{}},fpiData={history:[]},overlay=null,body=null,activeSector="",lastView=null;
 var css=document.createElement("style");
 css.textContent=[
 ".fpi-eye{border:0!important;background:transparent!important;color:#7bdcff!important;padding:0 3px!important;margin:0!important;font-size:13px!important;line-height:1!important;cursor:pointer!important;flex:0 0 auto!important;min-width:0!important}",
@@ -96,6 +96,9 @@ function renderStock(symbol){
  var debtEquity=num(iq.debt_equity_ratio);
  var sector=info.sector||activeSector;
  var industry=company.industry||info.industry||"इंडस्ट्री उपलब्ध नहीं";
+ var latestFpi=Array.isArray(fpiData.history)?fpiData.history[0]:null;
+ var fpiSector=latestFpi&&Array.isArray(latestFpi.sectors)?latestFpi.sectors.find(function(item){return item.name===sector;}):null;
+ var fpiFlow=fpiSector?num(fpiSector.net_equity_cr):null;
  var marketCap=company.market_cap_cr===null||company.market_cap_cr===undefined?"डेटा उपलब्ध नहीं":money(company.market_cap_cr);
  var marketCapDerived=company.market_cap_method==="derived_price_x_nse_shareholding_total_shares";
  var marketCapLabel=marketCapDerived?"Market Cap · गणना":"Market Cap";
@@ -113,6 +116,7 @@ function renderStock(symbol){
  panels+='<div class="fpi-detail-panel"><h4>Quality Scorecard</h4><p>Quality Score: डेटा उपलब्ध नहीं<br>Financial Strength: डेटा उपलब्ध नहीं<br>Profitability: डेटा उपलब्ध नहीं<br>Management Risk: डेटा उपलब्ध नहीं<br>Company Growth: डेटा उपलब्ध नहीं</p><p class="fpi-detail-foot">सत्यापित वित्तीय डेटा और तय scoring formula के बिना रेटिंग नहीं दी गई।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Valuation Scorecard</h4><p>Valuation Score: डेटा उपलब्ध नहीं<br>Attractive: &lt; 78 · Expensive: 78–104 · Over-Priced: &gt; 104</p><p class="fpi-detail-foot">सत्यापित valuation score उपलब्ध नहीं; कोई अनुमानित रेटिंग नहीं।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Insights & Sector Position</h4><p>मुख्य सकारात्मक बातें: डेटा उपलब्ध नहीं<br>मुख्य जोखिम / कमजोरियाँ: डेटा उपलब्ध नहीं<br>सेक्टर में रैंक: डेटा उपलब्ध नहीं</p><p class="fpi-detail-foot">तुलनीय पूरे सेक्टर के verified dataset के बिना rank नहीं निकाली गई।</p></div>';
+ panels+='<div class="fpi-detail-panel"><h4>FPI Sector Context · अलग संदर्भ</h4><p>सेक्टर: '+esc(sector)+'<br>NSDL Equity Net Investment: '+(fpiFlow===null?"डेटा उपलब्ध नहीं":(fpiFlow>0?"+":fpiFlow<0?"−":"")+"₹"+Math.abs(fpiFlow).toLocaleString("en-IN",{maximumFractionDigits:2})+" Cr")+'<br>रिपोर्ट अवधि: '+missing(latestFpi&&latestFpi.label||latestFpi&&latestFpi.end_date)+'</p><p class="fpi-detail-foot">स्रोत: '+(latestFpi&&latestFpi.source_url?'<a class="fpi-detail-link" href="'+esc(latestFpi.source_url)+'" target="_blank" rel="noopener">NSDL आधिकारिक रिपोर्ट ↗</a>':"डेटा स्रोत उपलब्ध नहीं")+'<br>यह पूरे सेक्टर का प्रवाह है, इस स्टॉक की अलग FPI खरीदारी/बिकवाली नहीं और PDMP Final Score का हिस्सा नहीं।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Price & Trading Activity</h4><p>उपलब्ध कीमत: '+priceText+'<br>दैनिक बदलाव: '+changeText+'<br>वॉल्यूम: '+(q.volume==null?"डेटा उपलब्ध नहीं":Number(q.volume).toLocaleString("en-IN"))+'<br>वॉल्यूम तारीख़: '+missing(q.volume_as_of)+'<br>भाव तारीख़: '+missing(quoteDate)+'<br>स्रोत: '+missing(quoteSource)+'</p><p class="fpi-detail-foot">स्टॉक-स्तरीय वास्तविक buy/sell या FPI order-flow डेटा उपलब्ध नहीं है; कीमत/वॉल्यूम को institutional buying या selling नहीं कहा गया।</p><p><a class="fpi-detail-link" href="https://www.tradingview.com/chart/?symbol=NSE%3A'+encodeURIComponent(symbol)+'" target="_blank" rel="noopener">TradingView Chart खोलें ↗</a></p></div>';
  setTitle(symbol+" · Stock Detail",true);
  body.innerHTML='<div class="fpi-detail-panel"><h4>'+esc(companyName)+' · NSE: '+esc(symbol)+'</h4><div class="fpi-detail-grid"><div class="fpi-detail-stat"><b>'+priceText+'</b><span>अंतिम उपलब्ध भाव</span></div><div class="fpi-detail-stat"><b>'+changeAbsText+'</b><span>आज का बदलाव ₹ में</span></div><div class="fpi-detail-stat"><b>'+changeText+'</b><span>आज का बदलाव % में</span></div></div><p class="fpi-detail-foot">भाव तारीख़: '+missing(quoteDate)+' · समय: '+missing(priceTime)+' · स्रोत: '+missing(quoteSource)+'</p></div>'+panels;
@@ -120,8 +124,8 @@ function renderStock(symbol){
 }
 function loadMaster(){return fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("NSE master HTTP "+r.status);return r.json();}).then(function(v){master=v;return v;});}
 function loadData(){
- var tasks=[loadMaster(),fetch("stock-company-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("company cache");return r.json();}).catch(function(){return {stocks:{}};}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("market data");return r.json();}).catch(function(){return {instruments:{}};})];
- Promise.all(tasks).then(function(v){companyData=v[1]||{stocks:{}};marketData=v[2]||{instruments:{}};}).catch(function(){});
+ var tasks=[loadMaster(),fetch("stock-company-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("company cache");return r.json();}).catch(function(){return {stocks:{}};}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("market data");return r.json();}).catch(function(){return {instruments:{}};}),fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("FPI data");return r.json();}).catch(function(){return {history:[]};})];
+ Promise.all(tasks).then(function(v){companyData=v[1]||{stocks:{}};marketData=v[2]||{instruments:{}};fpiData=v[3]||{history:[]};}).catch(function(){});
 }
 box.addEventListener("click",function(e){var eye=e.target.closest("[data-fpi-sector-eye]");if(eye){e.preventDefault();e.stopPropagation();openSector(eye.getAttribute("data-fpi-sector-eye"));return;}var stock=e.target.closest("[data-fpi-stock]");if(stock){renderStock(stock.getAttribute("data-fpi-stock"));}});
 loadData();window.setInterval(loadData,5*60*1000);
