@@ -102,19 +102,36 @@ jobs:
           def validate_basket_freshness(data, label):
               instruments = data.get("instruments", {}) if isinstance(data, dict) else {}
               problems = []
+              checked = []
+              unavailable = []
               for index_name in ("NIFTY", "SENSEX", "BANKNIFTY"):
                   item = instruments.get(index_name, {})
                   breakdown = item.get("component_breakdown", {}) if isinstance(item, dict) else {}
-                  basket = breakdown.get("stock_basket_diagnostic", {}) if isinstance(breakdown, dict) else {}
-                  source_date = basket.get("source_date") if isinstance(basket, dict) else None
+                  basket = breakdown.get("stock_basket_diagnostic") if isinstance(breakdown, dict) else None
+                  excluded = breakdown.get("excluded_components", {}) if isinstance(breakdown, dict) else {}
+                  excluded_basket = excluded.get("stock_basket", {}) if isinstance(excluded, dict) else {}
+                  if not isinstance(basket, dict) or basket.get("available") is not True:
+                      # Missing/unavailable basket data is valid only when it is
+                      # explicitly excluded from the score; never fabricate a date.
+                      if excluded_basket.get("included") is False:
+                          unavailable.append(index_name)
+                          continue
+                      problems.append(f"{index_name}=missing_without_explicit_exclusion")
+                      continue
+                  source_date = basket.get("source_date")
                   if source_date != expected_basket_date:
                       problems.append(f"{index_name}={source_date or 'missing'}")
+                  else:
+                      checked.append(index_name)
               if problems:
                   raise SystemExit(
                       f"FAIL: {label} STOCK BASKET date mismatch; expected "
                       f"{expected_basket_date}; " + ", ".join(problems)
                   )
-              print(f"PASS: {label} NIFTY/SENSEX/BANKNIFTY STOCK BASKET dates={expected_basket_date}")
+              print(
+                  f"PASS: {label} STOCK BASKET fresh={','.join(checked) or 'none'}; "
+                  f"explicitly unavailable/excluded={','.join(unavailable) or 'none'}"
+              )
 
           validate_basket_freshness(source_data, "Repository")
 
