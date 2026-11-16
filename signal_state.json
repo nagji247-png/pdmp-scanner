@@ -1,32 +1,32 @@
 {
   "NIFTY": {
-    "score": 4.0,
+    "score": 5.8,
     "sent": 1,
-    "price_dir": 1,
+    "price_dir": -1,
     "vwap_side": null,
     "vol_hi": null,
     "vol_ok": false,
-    "price_now": 25144.3008,
+    "price_now": 25227.0,
     "price_source": "Yahoo Finance",
     "last_30m": {
-      "start": "2026-11-13T09:30:00Z",
-      "end": "2026-11-13T10:00:00Z",
-      "open": 25109.4492,
-      "high": 25144.3008,
-      "low": 25097.0996,
-      "close": 25144.3008,
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-16T05:30:00Z",
+      "open": 25263.5508,
+      "high": 25263.6504,
+      "low": 25192.1504,
+      "close": 25227.0,
       "volume": 0.0,
-      "change_pct": 0.1388,
-      "direction": 1
+      "change_pct": -0.1447,
+      "direction": -1
     },
     "session_open_close": {
-      "market_date": "2026-11-13",
-      "open": 25201.9004,
-      "latest_close": 25144.3008,
-      "change_pct": -0.2286,
-      "direction": -1,
-      "status": "complete",
-      "last_bar_end": "2026-11-13T10:00:00Z",
+      "market_date": "2026-11-16",
+      "open": 25206.1504,
+      "latest_close": 25227.0,
+      "change_pct": 0.0827,
+      "direction": 1,
+      "status": "in_progress",
+      "last_bar_end": "2026-11-16T05:30:00Z",
       "source": "Yahoo Finance / verified broker OHLC"
     },
     "completed_30m_bars": [
@@ -601,39 +601,83 @@
         "volume": 0.0,
         "change_pct": 0.1388,
         "direction": 1
+      },
+      {
+        "start": "2026-11-16T03:30:00Z",
+        "end": "2026-11-16T04:00:00Z",
+        "open": 25206.1504,
+        "high": 25310.5508,
+        "low": 25197.5,
+        "close": 25231.8496,
+        "volume": 0.0,
+        "change_pct": 0.102,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:00:00Z",
+        "end": "2026-11-16T04:30:00Z",
+        "open": 25232.4492,
+        "high": 25337.5996,
+        "low": 25231.25,
+        "close": 25320.9004,
+        "volume": 0.0,
+        "change_pct": 0.3505,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:30:00Z",
+        "end": "2026-11-16T05:00:00Z",
+        "open": 25320.75,
+        "high": 25328.1504,
+        "low": 25257.3496,
+        "close": 25262.25,
+        "volume": 0.0,
+        "change_pct": -0.231,
+        "direction": -1
+      },
+      {
+        "start": "2026-11-16T05:00:00Z",
+        "end": "2026-11-16T05:30:00Z",
+        "open": 25263.5508,
+        "high": 25263.6504,
+        "low": 25192.1504,
+        "close": 25227.0,
+        "volume": 0.0,
+        "change_pct": -0.1447,
+        "direction": -1
       }
     ],
-    "time": "2026-11-16T03:46Z",
-    "since": "2026-11-16T03:05Z"
+    "time": "2026-11-16T05:30Z",
+    "since": "2026-11-16T05:30Z"
   },
   "BANKNIFTY": {
     "score": 10.0,
     "sent": 1,
-    "price_dir": 1,
+    "price_dir": -1,
     "vwap_side": null,
     "vol_hi": null,
     "vol_ok": false,
-    "price_now": 61034.1016,
+    "price_now": 61390.9492,
     "price_source": "Yahoo Finance",
     "last_30m": {
-      "start": "2026-11-13T09:30:00Z",
-      "end": "2026-11-13T10:00:00Z",
-      "open": 60969.1992,
-      "high": 61042.5508,
-      "low": 60921.0,
-      "close": 61034.1016,
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-16T05:30:00Z",
+      "open": 61550.9492,
+      "high": 61550.9492,
+      "low": 61291.8984,
+      "close": 61390.9492,
       "volume": 0.0,
-      "change_pct": 0.1065,
-      "direction": 1
+      "change_pct": -0.2599,
+      "direction": -1
     },
     "session_open_close": {
-      "market_date": "2026-11-13",
-      "open": 61300.5508,
-      "latest_close": 61034.1016,
-      "change_pct": -0.4347,
-      "direction": -1,
-      "status": "complete",
-      "last_bar_end": "2026-11-13T10:00:00Z",
+      "market_date": "2026-11-16",
+      "open": 61229.8984,
+      "latest_close": 61390.9492,
+      "change_pct": 0.263,
+      "direction": 1,
+      "status": "in_progress",
+      "last_bar_end": "2026-11-16T05:30:00Z",
       "source": "Yahoo Finance / verified broker OHLC"
     },
     "completed_30m_bars": [
@@ -1208,39 +1252,83 @@
         "volume": 0.0,
         "change_pct": 0.1065,
         "direction": 1
+      },
+      {
+        "start": "2026-11-16T03:30:00Z",
+        "end": "2026-11-16T04:00:00Z",
+        "open": 61229.8984,
+        "high": 61506.5,
+        "low": 61222.0508,
+        "close": 61347.8984,
+        "volume": 0.0,
+        "change_pct": 0.1927,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:00:00Z",
+        "end": "2026-11-16T04:30:00Z",
+        "open": 61346.75,
+        "high": 61712.1992,
+        "low": 61322.6484,
+        "close": 61675.25,
+        "volume": 0.0,
+        "change_pct": 0.5355,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:30:00Z",
+        "end": "2026-11-16T05:00:00Z",
+        "open": 61674.8008,
+        "high": 61700.3516,
+        "low": 61513.25,
+        "close": 61549.1992,
+        "volume": 0.0,
+        "change_pct": -0.2037,
+        "direction": -1
+      },
+      {
+        "start": "2026-11-16T05:00:00Z",
+        "end": "2026-11-16T05:30:00Z",
+        "open": 61550.9492,
+        "high": 61550.9492,
+        "low": 61291.8984,
+        "close": 61390.9492,
+        "volume": 0.0,
+        "change_pct": -0.2599,
+        "direction": -1
       }
     ],
-    "time": "2026-11-16T03:46Z",
-    "since": "2026-11-16T03:05Z"
+    "time": "2026-11-16T05:30Z",
+    "since": "2026-11-16T05:30Z"
   },
   "RELIANCE": {
-    "score": 0.4,
+    "score": 0.3,
     "sent": 0,
-    "price_dir": 1,
-    "vwap_side": 1,
+    "price_dir": -1,
+    "vwap_side": -1,
     "vol_hi": false,
     "vol_ok": true,
-    "price_now": 1339.7,
+    "price_now": 1337.3,
     "price_source": "Yahoo Finance",
     "last_30m": {
-      "start": "2026-11-13T09:30:00Z",
-      "end": "2026-11-13T10:00:00Z",
-      "open": 1338.2,
-      "high": 1341.4,
-      "low": 1338.0,
-      "close": 1339.7,
-      "volume": 1995548.0,
-      "change_pct": 0.1121,
-      "direction": 1
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-16T05:30:00Z",
+      "open": 1340.7,
+      "high": 1340.8,
+      "low": 1333.9,
+      "close": 1337.3,
+      "volume": 673036.0,
+      "change_pct": -0.2536,
+      "direction": -1
     },
     "session_open_close": {
-      "market_date": "2026-11-13",
-      "open": 1328.5,
-      "latest_close": 1339.7,
-      "change_pct": 0.8431,
-      "direction": 1,
-      "status": "complete",
-      "last_bar_end": "2026-11-13T10:00:00Z",
+      "market_date": "2026-11-16",
+      "open": 1340.3,
+      "latest_close": 1337.3,
+      "change_pct": -0.2238,
+      "direction": -1,
+      "status": "in_progress",
+      "last_bar_end": "2026-11-16T05:30:00Z",
       "source": "Yahoo Finance / verified broker OHLC"
     },
     "completed_30m_bars": [
@@ -1815,39 +1903,83 @@
         "volume": 1995548.0,
         "change_pct": 0.1121,
         "direction": 1
+      },
+      {
+        "start": "2026-11-16T03:30:00Z",
+        "end": "2026-11-16T04:00:00Z",
+        "open": 1340.3,
+        "high": 1347.1,
+        "low": 1340.3,
+        "close": 1343.6,
+        "volume": 771253.0,
+        "change_pct": 0.2462,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:00:00Z",
+        "end": "2026-11-16T04:30:00Z",
+        "open": 1344.0,
+        "high": 1345.0,
+        "low": 1342.1,
+        "close": 1343.0,
+        "volume": 649262.0,
+        "change_pct": -0.0744,
+        "direction": -1
+      },
+      {
+        "start": "2026-11-16T04:30:00Z",
+        "end": "2026-11-16T05:00:00Z",
+        "open": 1343.3,
+        "high": 1343.4,
+        "low": 1340.7,
+        "close": 1341.0,
+        "volume": 555598.0,
+        "change_pct": -0.1712,
+        "direction": -1
+      },
+      {
+        "start": "2026-11-16T05:00:00Z",
+        "end": "2026-11-16T05:30:00Z",
+        "open": 1340.7,
+        "high": 1340.8,
+        "low": 1333.9,
+        "close": 1337.3,
+        "volume": 673036.0,
+        "change_pct": -0.2536,
+        "direction": -1
       }
     ],
-    "time": "2026-11-16T03:46Z",
-    "since": "2026-11-16T02:49Z"
+    "time": "2026-11-16T05:30Z",
+    "since": "2026-11-16T05:30Z"
   },
   "HDFCBANK": {
     "score": 1.0,
     "sent": 1,
-    "price_dir": 1,
-    "vwap_side": -1,
+    "price_dir": -1,
+    "vwap_side": 1,
     "vol_hi": false,
     "vol_ok": true,
-    "price_now": 804.0,
+    "price_now": 808.3,
     "price_source": "Yahoo Finance",
     "last_30m": {
-      "start": "2026-11-13T09:30:00Z",
-      "end": "2026-11-13T10:00:00Z",
-      "open": 802.85,
-      "high": 804.0,
-      "low": 801.5,
-      "close": 804.0,
-      "volume": 2738096.0,
-      "change_pct": 0.1432,
-      "direction": 1
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-16T05:30:00Z",
+      "open": 808.7,
+      "high": 808.7,
+      "low": 805.6,
+      "close": 808.3,
+      "volume": 1656520.0,
+      "change_pct": -0.0495,
+      "direction": -1
     },
     "session_open_close": {
-      "market_date": "2026-11-13",
-      "open": 808.0,
-      "latest_close": 804.0,
-      "change_pct": -0.495,
-      "direction": -1,
-      "status": "complete",
-      "last_bar_end": "2026-11-13T10:00:00Z",
+      "market_date": "2026-11-16",
+      "open": 804.0,
+      "latest_close": 808.3,
+      "change_pct": 0.5348,
+      "direction": 1,
+      "status": "in_progress",
+      "last_bar_end": "2026-11-16T05:30:00Z",
       "source": "Yahoo Finance / verified broker OHLC"
     },
     "completed_30m_bars": [
@@ -2422,9 +2554,53 @@
         "volume": 2738096.0,
         "change_pct": 0.1432,
         "direction": 1
+      },
+      {
+        "start": "2026-11-16T03:30:00Z",
+        "end": "2026-11-16T04:00:00Z",
+        "open": 804.0,
+        "high": 808.6,
+        "low": 802.45,
+        "close": 804.5,
+        "volume": 1625606.0,
+        "change_pct": 0.0622,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:00:00Z",
+        "end": "2026-11-16T04:30:00Z",
+        "open": 805.2,
+        "high": 811.0,
+        "low": 804.2,
+        "close": 809.8,
+        "volume": 2182380.0,
+        "change_pct": 0.5713,
+        "direction": 1
+      },
+      {
+        "start": "2026-11-16T04:30:00Z",
+        "end": "2026-11-16T05:00:00Z",
+        "open": 809.9,
+        "high": 811.2,
+        "low": 808.1,
+        "close": 808.6,
+        "volume": 1928995.0,
+        "change_pct": -0.1605,
+        "direction": -1
+      },
+      {
+        "start": "2026-11-16T05:00:00Z",
+        "end": "2026-11-16T05:30:00Z",
+        "open": 808.7,
+        "high": 808.7,
+        "low": 805.6,
+        "close": 808.3,
+        "volume": 1656520.0,
+        "change_pct": -0.0495,
+        "direction": -1
       }
     ],
-    "time": "2026-11-16T03:46Z",
-    "since": "2026-11-16T03:46Z"
+    "time": "2026-11-16T05:30Z",
+    "since": "2026-11-16T05:30Z"
   }
 }
