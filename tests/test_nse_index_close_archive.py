@@ -51,6 +51,16 @@ class NSEIndexCloseArchiveTests(unittest.TestCase):
                 "2026-11-16", min_rows=1
             )
 
+    def test_parser_accepts_daily_snapshot_close_and_date_header_aliases(self):
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Index Name", "Date", "Open", "High", "Low", "Close"])
+        writer.writerow(["Nifty 50", "16-11-2026", "25000", "25200", "24900", "25100"])
+        writer.writerow(["Nifty Auto", "16-11-2026", "20000", "20200", "19900", "20100"])
+        writer.writerow(["Nifty IT", "16-11-2026", "40000", "40200", "39900", "40100"])
+        rows = archive.parse_index_snapshot_csv(output.getvalue(), "2026-11-16", min_rows=3)
+        self.assertEqual(rows["Nifty 50"], 25100.0)
+
     def test_parser_rejects_html_wrong_headers_and_small_files(self):
         with self.assertRaisesRegex(ValueError, "HTML/JSON"):
             archive.parse_index_snapshot_csv("<html>blocked</html>", "2026-11-16")
