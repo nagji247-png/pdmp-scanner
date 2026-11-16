@@ -75,6 +75,9 @@ function renderStock(symbol){
  var sh=company.shareholding||{},financials=company.financials||{},latest=financials.latest||{},quarters=Array.isArray(financials.quarters)?financials.quarters:[],integrated=company.integrated_financials||{},parsed=integrated.parsed||{},iq=parsed.quarter||{},bs=parsed.balance_sheet||{},filing=integrated.filing||{};
  var price=num(q.price);if(price===null)price=num(company.price);
  var change=num(q.change_pct);if(change===null)change=num(company.change_pct);
+ var previousClose=num(q.previous_close);if(previousClose===null)previousClose=num(company.previous_close);
+ var changeRupees=price!==null&&previousClose!==null?price-previousClose:null;
+ var changeTime=q.price_time||company.price_time||"";
  var period=latest.period_end||"";
  function periodFresh(){if(!period)return false;var d=new Date(period);if(!Number.isFinite(d.getTime())){var m=period.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);if(m){var months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};d=new Date(Date.UTC(+m[3],months[m[2]]||0,+m[1]));}}var age=(Date.now()-d.getTime())/86400000;return Number.isFinite(age)&&age>=0&&age<=548;}
  var fresh=periodFresh();
@@ -82,9 +85,11 @@ function renderStock(symbol){
  function growth(field){if(!fresh)return period?"पुराना रिकॉर्ड · "+esc(period):"डेटा उपलब्ध नहीं";var now=num(quarters[0]&&quarters[0][field]),prev=num(quarters[4]&&quarters[4][field]);if(now===null||prev===null||prev===0)return "डेटा उपलब्ध नहीं";return ((now-prev)/Math.abs(prev)*100).toFixed(2)+"% YoY";}
  function ratio(label,value){return '<div class="fpi-stock-row"><span>'+esc(label)+'</span><b style="float:right">'+missing(value)+'</b></div>';}
  var quoteDate=q.price_as_of||company.price_as_of||company.market_data_as_of||company.checked_at||"उपलब्ध नहीं";
- var quoteSource=q.price_source||company.quote_source||"स्रोत उपलब्ध नहीं";
+ var quoteSource=q.price_source||company.price_source||company.quote_source||"स्रोत उपलब्ध नहीं";
  var priceText=price===null?"कीमत उपलब्ध नहीं":"₹"+price.toLocaleString("en-IN",{maximumFractionDigits:2});
  var changeText=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
+ var changeRupeesText=changeRupees===null?"₹ बदलाव उपलब्ध नहीं":(changeRupees>0?"+":"")+"₹"+Math.abs(changeRupees).toLocaleString("en-IN",{maximumFractionDigits:2});
+ var quoteTimeText=changeTime?" · समय: "+changeTime:"";
  var sector=info.sector||activeSector;
  var industry=company.industry||info.industry||"इंडस्ट्री उपलब्ध नहीं";
  var marketCap=company.market_cap_cr===null||company.market_cap_cr===undefined?"डेटा उपलब्ध नहीं":money(company.market_cap_cr);
@@ -104,8 +109,8 @@ function renderStock(symbol){
  panels+='<div class="fpi-detail-panel"><h4>Valuation Scorecard</h4><p>Valuation Score: डेटा उपलब्ध नहीं<br>Attractive: &lt; 78 · Expensive: 78–104 · Over-Priced: &gt; 104</p><p class="fpi-detail-foot">सत्यापित valuation score उपलब्ध नहीं; कोई अनुमानित रेटिंग नहीं।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Insights & Sector Position</h4><p>मुख्य सकारात्मक बातें: डेटा उपलब्ध नहीं<br>मुख्य जोखिम / कमजोरियाँ: डेटा उपलब्ध नहीं<br>सेक्टर में रैंक: डेटा उपलब्ध नहीं</p><p class="fpi-detail-foot">तुलनीय पूरे सेक्टर के verified dataset के बिना rank नहीं निकाली गई।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Price & Trading Activity</h4><p>उपलब्ध कीमत: '+priceText+'<br>दैनिक बदलाव: '+changeText+'<br>वॉल्यूम: '+(q.volume==null?"डेटा उपलब्ध नहीं":Number(q.volume).toLocaleString("en-IN"))+'<br>वॉल्यूम तारीख़: '+missing(q.volume_as_of)+'<br>भाव तारीख़: '+missing(quoteDate)+'<br>स्रोत: '+missing(quoteSource)+'</p><p class="fpi-detail-foot">स्टॉक-स्तरीय वास्तविक buy/sell या FPI order-flow डेटा उपलब्ध नहीं है; कीमत/वॉल्यूम को institutional buying या selling नहीं कहा गया।</p><p><a class="fpi-detail-link" href="https://www.tradingview.com/chart/?symbol=NSE%3A'+encodeURIComponent(symbol)+'" target="_blank" rel="noopener">TradingView Chart खोलें ↗</a></p></div>';
- setTitle(symbol+" · Stock Detail",true);
- body.innerHTML='<div class="fpi-detail-panel"><div class="fpi-detail-grid"><div class="fpi-detail-stat"><b>'+priceText+'</b><span>अंतिम उपलब्ध भाव</span></div><div class="fpi-detail-stat"><b>'+changeText+'</b><span>दैनिक बदलाव</span></div></div><p class="fpi-detail-foot">भाव तारीख़: '+missing(quoteDate)+' · स्रोत: '+missing(quoteSource)+'</p></div>'+panels;
+ setTitle(companyName+" · "+symbol+" · Stock Detail",true);
+ body.innerHTML='<div class="fpi-detail-panel"><h4>'+esc(companyName)+' · NSE: '+esc(symbol)+'</h4><div class="fpi-detail-grid"><div class="fpi-detail-stat"><b>'+priceText+'</b><span>अंतिम उपलब्ध भाव</span></div><div class="fpi-detail-stat"><b>'+changeRupeesText+'</b><span>आज का बदलाव ₹ में</span></div><div class="fpi-detail-stat"><b>'+changeText+'</b><span>आज का बदलाव % में</span></div><div class="fpi-detail-stat"><b>'+missing(previousClose)+'</b><span>पिछला बंद भाव</span></div></div><p class="fpi-detail-foot">भाव तारीख़: '+missing(quoteDate)+quoteTimeText+' · स्रोत: '+missing(quoteSource)+'</p></div>'+panels;
  overlay.querySelector("[data-fpi-back]").hidden=false;
 }
 function loadMaster(){return fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("NSE master HTTP "+r.status);return r.json();}).then(function(v){master=v;return v;});}
