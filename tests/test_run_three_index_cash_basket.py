@@ -1,11 +1,18 @@
+import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
 
-from run_three_index_cash_basket import append_diagnostic, load_json
+from run_three_index_cash_basket import IST, append_diagnostic, latest_completed_session_date, load_json
 
 
 class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
+    def test_current_day_is_not_selected_before_eod_publication(self):
+        before_eod = dt.datetime(2026, 11, 17, 19, 59, tzinfo=IST)
+        at_eod = dt.datetime(2026, 11, 17, 20, 0, tzinfo=IST)
+        self.assertEqual(latest_completed_session_date(before_eod), dt.date(2026, 11, 16))
+        self.assertEqual(latest_completed_session_date(at_eod), dt.date(2026, 11, 17))
+
     def test_appends_dated_diagnostic_without_score_eligibility(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "diagnostics.json"
