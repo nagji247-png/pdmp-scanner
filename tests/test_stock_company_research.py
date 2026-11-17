@@ -211,6 +211,48 @@ class StockCompanyResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "HTML challenge"):
             research.fetch_archive_xml(Session(), "https://nsearchives.nseindia.com/corporate/xbrl/test.xml", "https://www.nseindia.com/")
 
+    def test_nse_equity_master_parses_company_names_for_requested_symbols(self):
+        csv_text = (
+            "SYMBOL,NAME OF COMPANY, SERIES, ISIN NUMBER\\n"
+            "BHARTIARTL,BHARTI AIRTEL LIMITED,EQ,INE397D01024\\n"
+            "RELIANCE,RELIANCE INDUSTRIES LIMITED,EQ,INE002A01018\\n"
+            "OTHER,OTHER LIMITED,EQ,INE000A01000\\n"
+        )
+        result = research.parse_nse_equity_master_csv(csv_text, {"BHARTIARTL", "RELIANCE"})
+        self.assertEqual(result, {
+            "BHARTIARTL": "BHARTI AIRTEL LIMITED",
+            "RELIANCE": "RELIANCE INDUSTRIES LIMITED",
+        })
+
+    def test_full_universe_eod_snapshot_populates_all_matched_stocks_without_overwriting_fundamentals(self):
+        stocks = {
+            "BHARTIARTL": {"financials": {"revenue": 100}, "price": 900.0},
+            "RELIANCE": {"shareholding": {"promoter_pct": 50}},
+        }
+        rows = {
+            "BHARTIARTL": {"price": 910.0, "previous_close": 900.0,
+                           "change_pct": 1.1111, "market_data_as_of": "2026-11-17",
+                           "quote_source": "NSE official full bhavcopy EOD archive"},
+            "RELIANCE": {"price": 1500.0, "previous_close": 1490.0,
+                         "change_pct": 0.6711, "market_data_as_of": "2026-11-17"},
+        }
+        names = {"BHARTIARTL": "BHARTI AIRTEL LIMITED"}
+        master = {
+            "BHARTIARTL": {"industry": "Telecom - Services", "sector": "Telecommunication"},
+            "RELIANCE": {"industry": "Petroleum Products", "sector": "Oil, Gas & Consumable Fuels"},
+        }
+        count = research.merge_full_universe_eod_snapshot(stocks, rows, names, master)
+        self.assertEqual(count, 2)
+        self.assertEqual(stocks["BHARTIARTL"]["company_name"], "BHARTI AIRTEL LIMITED")
+        self.assertEqual(stocks["BHARTIARTL"]["price"], 910.0)
+        self.assertEqual(stocks["BHARTIARTL"]["previous_close"], 900.0)
+        self.assertEqual(stocks["BHARTIARTL"]["financials"], {"revenue": 100})
+        self.assertEqual(stocks["BHARTIARTL"]["sector"], "Telecommunication")
+        self.assertEqual(stocks["RELIANCE"]["price"], 1500.0)
+        self.assertEqual(stocks["RELIANCE"]["shareholding"], {"promoter_pct": 50})
+        self.assertEqual(stocks["RELIANCE"]["market_data_scope"],
+                         "full_verified_fno_universe_eod_snapshot")
+
     def test_official_bhavcopy_row_parses_eod_market_fields(self):
         result = research.parse_nse_bhavcopy_row({
             "CLOSE_PRICE": "125.00",
