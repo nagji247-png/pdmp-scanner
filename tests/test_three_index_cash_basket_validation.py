@@ -78,9 +78,12 @@ class ThreeIndexCashBasketTests(unittest.TestCase):
         archives["NIFTY"]["records"][0]["equity_rows"].pop()
         result = calculate_three_index_baskets(archives, bundle, TRADE_DATE)
         nifty = result["indices"]["NIFTY"]
-        self.assertEqual(nifty["status"], "withheld_incomplete")
-        self.assertIsNone(nifty["score"])
+        self.assertEqual(nifty["status"], "partial_diagnostic")
+        self.assertEqual(nifty["score"], 10.0)
         self.assertEqual(nifty["matched"], 49)
+        self.assertEqual(nifty["coverage_pct"], 98.0)
+        self.assertTrue(nifty["research_only"])
+        self.assertFalse(nifty["score_eligible"])
         self.assertFalse(result["all_three_complete"])
 
     def test_isin_mismatch_withholds_index_score(self):
@@ -88,9 +91,12 @@ class ThreeIndexCashBasketTests(unittest.TestCase):
         archives["SENSEX"]["records"][0]["equity_rows"][0]["isin"] = "WRONGISIN"
         result = calculate_three_index_baskets(archives, bundle, TRADE_DATE)
         sensex = result["indices"]["SENSEX"]
-        self.assertEqual(sensex["status"], "withheld_incomplete")
-        self.assertIsNone(sensex["score"])
+        self.assertEqual(sensex["status"], "partial_diagnostic")
+        self.assertEqual(sensex["score"], 0.0)
         self.assertEqual(sensex["matched"], 29)
+        self.assertEqual(sensex["coverage_pct"], round(29 / 30 * 100, 2))
+        self.assertTrue(sensex["research_only"])
+        self.assertFalse(sensex["score_eligible"])
 
 
 if __name__ == "__main__":
