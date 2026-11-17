@@ -106,7 +106,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: python fetch_and_score.py
       - name: Run participant OI backtest diagnostics
-        if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'schedule' && github.event.schedule == '15 15 * * *'))
+        if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'workflow_run' || (github.event_name == 'schedule' && github.event.schedule == '15 15 * * *'))
         run: |
           python backtest_participant_oi.py
           python summarize_participant_oi_backtest.py
