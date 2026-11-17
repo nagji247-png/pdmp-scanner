@@ -21,6 +21,12 @@ class NSECashBhavcopyArchiveTests(unittest.TestCase):
         value.update(overrides)
         return value
 
+    def test_current_day_is_not_requested_before_eod_publication(self):
+        morning = cm.dt.datetime(2026, 11, 17, 7, 30, tzinfo=cm.IST)
+        evening = cm.dt.datetime(2026, 11, 17, 20, 0, tzinfo=cm.IST)
+        self.assertEqual(cm.latest_completed_session_date(morning), cm.dt.date(2026, 11, 16))
+        self.assertEqual(cm.latest_completed_session_date(evening), cm.dt.date(2026, 11, 17))
+
     def test_normalizes_eq_rows_and_excludes_non_eq_rows(self):
         rows = [
             self.row(),

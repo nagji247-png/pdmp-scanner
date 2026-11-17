@@ -43,6 +43,15 @@ def parse_date(value):
     raise ValueError(f"invalid exchange date: {value!r}")
 
 
+
+def latest_completed_session_date(now=None):
+    """Do not request today's final Bhavcopy before the 20:00 IST EOD window."""
+    current = now or dt.datetime.now(IST)
+    if current.timetz().replace(tzinfo=None) < dt.time(20, 0):
+        return current.date() - dt.timedelta(days=1)
+    return current.date()
+
+
 def finite_positive(value, field, allow_zero=False):
     raw = str(value if value is not None else "").strip().replace(",", "")
     try:
@@ -249,7 +258,7 @@ def main():
     if args.date:
         dates = [parse_date(args.date)]
     else:
-        today = dt.datetime.now(IST).date()
+        today = latest_completed_session_date()
         dates = [today - dt.timedelta(days=offset)
                  for offset in range(args.backfill_days - 1, -1, -1)]
     results = []
