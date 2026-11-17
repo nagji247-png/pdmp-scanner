@@ -30,9 +30,16 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
         blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "3e4f205c6ca27cb44db0b211d772745bd2202e12")
+        self.assertEqual(hashlib.sha1(blob).hexdigest(), "cfed1449d46ecaca53b9e9af2462d3453324da4f")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
+
+    def test_market_activity_counts_all_sector_quotes_and_warns_on_small_samples(self):
+        self.assertIn("symbols.filter(function(k){var q=quote(k);", self.market_activity)
+        self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
+        self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
+        self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
+        self.assertIn("src=\"market-activity.js?v=13\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
