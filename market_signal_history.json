@@ -36993,10 +36993,10 @@
     },
     {
       "date": "2026-11-17",
-      "captured_at_utc": "2026-11-17T15:49Z",
-      "captured_at_ist": "2026-11-17T21:19+05:30",
+      "captured_at_utc": "2026-11-17T16:13Z",
+      "captured_at_ist": "2026-11-17T21:43+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-17T15:49Z",
+      "news_capture_time_utc": "2026-11-17T16:13Z",
       "trends": {
         "valid": true,
         "as_of": "2026-11-17T14:40:00+00:00",
@@ -37035,91 +37035,91 @@
       },
       "market_news_context": {
         "ok": true,
-        "as_of": "2026-11-17T15:49Z",
+        "as_of": "2026-11-17T16:13Z",
         "items": [
           {
             "topic": "कच्चा तेल",
             "title": "Oil Prices Rebound as Middle East Shipping Risks Persist",
             "source": "WSJ",
             "score": 1,
-            "age_hours": 2.5
+            "age_hours": 2.9
           },
           {
             "topic": "कच्चा तेल",
             "title": "Current price of oil as of November 17, 2026",
             "source": "Fortune",
             "score": 0,
-            "age_hours": 2.8
+            "age_hours": 3.2
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex, Nifty rally for second day on foreign fund inflows, moderate crude oil prices",
             "source": "Rediff",
             "score": 2,
-            "age_hours": 2.9
+            "age_hours": 3.3
           },
           {
             "topic": "कच्चा तेल",
             "title": "Global crude oil prices up",
             "source": "News On AIR",
             "score": 0,
-            "age_hours": 3.4
+            "age_hours": 3.8
           },
           {
             "topic": "RBI नीति",
             "title": "RBI may hike repo rate by 25 bps each during next 2 MPC reviews as inflation rises: Report",
             "source": "Cityairnews",
             "score": 1,
-            "age_hours": 4.3
+            "age_hours": 4.7
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Highlights, Nov 17: Sensex, Nifty close at highest since February on record foreign inflows",
             "source": "BusinessLine",
             "score": 0,
-            "age_hours": 4.8
+            "age_hours": 5.2
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Today Ends 427 Points Higher | Nifty Above 25,350 | Nifty Bank Hits Record High",
             "source": "Equitymaster",
             "score": 3,
-            "age_hours": 4.9
+            "age_hours": 5.3
           },
           {
             "topic": "भारतीय बाज़ार",
-            "title": "Closing Bell: Nifty at 25,400, Sensex jumps 427 pts led by realty, financial stocks",
-            "source": "Moneycontrol.com",
+            "title": "Stock Market Close: Sensex ends 427 pts up as rally extends to 2nd day, Nifty at 25,387; banks shine",
+            "source": "Business Standard",
+            "score": 2,
+            "age_hours": 5.9
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock Market Highlights: Nifty closes above 25,380, Sensex rises over 400 pts; Adani Ent, Eicher Motors lead g",
+            "source": "CNBC TV18",
             "score": 1,
-            "age_hours": 5.1
+            "age_hours": 5.9
           },
           {
             "topic": "सोना, डॉलर और रुपया",
             "title": "Gold Rates Today, Nov 17: Check City-wise Yellow Metal, 22K, 24K, 999 Silver Prices; Gold at Rs 1.34 Lakh/10g",
             "source": "APAC Media",
             "score": 0,
-            "age_hours": 5.5
+            "age_hours": 5.9
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Today Highlights: BSE Sensex closes over 400 points high, NSE Nifty50 settles above 25,450",
             "source": "The Times of India",
             "score": 0,
-            "age_hours": 5.6
-          },
-          {
-            "topic": "भारतीय बाज़ार",
-            "title": "India Inc logs best quarterly profit growth in 4 years, lifts market hopes",
-            "source": "Business Standard",
-            "score": 1,
-            "age_hours": 7.1
+            "age_hours": 6.0
           },
           {
             "topic": "सोना, डॉलर और रुपया",
             "title": "Indian Rupee Rises 31 Paise to 93.63 Against US Dollar in Early Trade",
             "source": "APAC Media",
             "score": 1,
-            "age_hours": 7.3
+            "age_hours": 7.7
           }
         ]
       },
@@ -37157,7 +37157,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T10:40:04Z",
                 "oldest_headline_published_at": "2026-11-17T08:15:50Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -37170,7 +37170,7 @@
                   "Reuters"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 5.16,
+                "newest_headline_age_h": 5.55,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -37182,7 +37182,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T10:40:04Z",
                 "oldest_headline_published_at": "2026-11-17T08:15:50Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -37195,7 +37195,7 @@
                   "Reuters"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 5.16,
+                "newest_headline_age_h": 5.55,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -37238,7 +37238,475 @@
               },
               "weight_total": 30.0
             },
-            "stock_basket_diagnostic": null,
+            "stock_basket_diagnostic": {
+              "score": 2.4,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-16",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "missing_symbols": [],
+              "expected": 50,
+              "matched": 50,
+              "coverage_pct": 100.0,
+              "advances": 31,
+              "declines": 19,
+              "unchanged": 0,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "ADANIENT",
+                  "instrument_id": "",
+                  "isin": "INE423A01024",
+                  "close": 2659.0,
+                  "previous_close": 2688.0,
+                  "change_pct": -1.0789,
+                  "volume": 810174
+                },
+                {
+                  "symbol": "ADANIPORTS",
+                  "instrument_id": "",
+                  "isin": "INE742F01042",
+                  "close": 1893.0,
+                  "previous_close": 1903.3,
+                  "change_pct": -0.5412,
+                  "volume": 1351308
+                },
+                {
+                  "symbol": "APOLLOHOSP",
+                  "instrument_id": "",
+                  "isin": "INE437A01024",
+                  "close": 8771.0,
+                  "previous_close": 8526.0,
+                  "change_pct": 2.8736,
+                  "volume": 605900
+                },
+                {
+                  "symbol": "ASIANPAINT",
+                  "instrument_id": "",
+                  "isin": "INE021A01026",
+                  "close": 2572.9,
+                  "previous_close": 2550.0,
+                  "change_pct": 0.898,
+                  "volume": 1146250
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "instrument_id": "",
+                  "isin": "INE238A01034",
+                  "close": 1342.4,
+                  "previous_close": 1331.0,
+                  "change_pct": 0.8565,
+                  "volume": 5347137
+                },
+                {
+                  "symbol": "BAJAJ-AUTO",
+                  "instrument_id": "",
+                  "isin": "INE917I01010",
+                  "close": 10734.0,
+                  "previous_close": 10850.0,
+                  "change_pct": -1.0691,
+                  "volume": 165513
+                },
+                {
+                  "symbol": "BAJAJFINSV",
+                  "instrument_id": "",
+                  "isin": "INE918I01026",
+                  "close": 1848.2,
+                  "previous_close": 1865.0,
+                  "change_pct": -0.9008,
+                  "volume": 677262
+                },
+                {
+                  "symbol": "BAJFINANCE",
+                  "instrument_id": "",
+                  "isin": "INE296A01032",
+                  "close": 1110.0,
+                  "previous_close": 1117.0,
+                  "change_pct": -0.6267,
+                  "volume": 8224959
+                },
+                {
+                  "symbol": "BEL",
+                  "instrument_id": "",
+                  "isin": "INE263A01024",
+                  "close": 401.4,
+                  "previous_close": 400.85,
+                  "change_pct": 0.1372,
+                  "volume": 6883905
+                },
+                {
+                  "symbol": "BHARTIARTL",
+                  "instrument_id": "",
+                  "isin": "INE397D01024",
+                  "close": 2153.5,
+                  "previous_close": 2106.0,
+                  "change_pct": 2.2555,
+                  "volume": 9553920
+                },
+                {
+                  "symbol": "BSE",
+                  "instrument_id": "",
+                  "isin": "INE118H01025",
+                  "close": 3887.4,
+                  "previous_close": 3937.7,
+                  "change_pct": -1.2774,
+                  "volume": 2273785
+                },
+                {
+                  "symbol": "CIPLA",
+                  "instrument_id": "",
+                  "isin": "INE059A01026",
+                  "close": 1394.5,
+                  "previous_close": 1391.8,
+                  "change_pct": 0.194,
+                  "volume": 1248691
+                },
+                {
+                  "symbol": "COALINDIA",
+                  "instrument_id": "",
+                  "isin": "INE522F01014",
+                  "close": 397.5,
+                  "previous_close": 403.5,
+                  "change_pct": -1.487,
+                  "volume": 18172076
+                },
+                {
+                  "symbol": "DRREDDY",
+                  "instrument_id": "",
+                  "isin": "INE089A01031",
+                  "close": 1377.9,
+                  "previous_close": 1380.0,
+                  "change_pct": -0.1522,
+                  "volume": 974997
+                },
+                {
+                  "symbol": "EICHERMOT",
+                  "instrument_id": "",
+                  "isin": "INE066A01021",
+                  "close": 7599.0,
+                  "previous_close": 7650.0,
+                  "change_pct": -0.6667,
+                  "volume": 1719822
+                },
+                {
+                  "symbol": "ETERNAL",
+                  "instrument_id": "",
+                  "isin": "INE758T01015",
+                  "close": 371.1,
+                  "previous_close": 363.65,
+                  "change_pct": 2.0487,
+                  "volume": 23653290
+                },
+                {
+                  "symbol": "GRASIM",
+                  "instrument_id": "",
+                  "isin": "INE047A01021",
+                  "close": 3084.4,
+                  "previous_close": 3034.0,
+                  "change_pct": 1.6612,
+                  "volume": 835842
+                },
+                {
+                  "symbol": "HCLTECH",
+                  "instrument_id": "",
+                  "isin": "INE860A01027",
+                  "close": 1384.6,
+                  "previous_close": 1378.0,
+                  "change_pct": 0.479,
+                  "volume": 2124094
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "instrument_id": "",
+                  "isin": "INE040A01034",
+                  "close": 816.5,
+                  "previous_close": 804.0,
+                  "change_pct": 1.5547,
+                  "volume": 27152881
+                },
+                {
+                  "symbol": "HDFCLIFE",
+                  "instrument_id": "",
+                  "isin": "INE795G01014",
+                  "close": 604.5,
+                  "previous_close": 592.25,
+                  "change_pct": 2.0684,
+                  "volume": 3944833
+                },
+                {
+                  "symbol": "HINDALCO",
+                  "instrument_id": "",
+                  "isin": "INE038A01020",
+                  "close": 923.3,
+                  "previous_close": 943.6,
+                  "change_pct": -2.1513,
+                  "volume": 8856443
+                },
+                {
+                  "symbol": "HINDUNILVR",
+                  "instrument_id": "",
+                  "isin": "INE030A01027",
+                  "close": 2000.3,
+                  "previous_close": 1992.9,
+                  "change_pct": 0.3713,
+                  "volume": 1093817
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "instrument_id": "",
+                  "isin": "INE090A01021",
+                  "close": 1585.0,
+                  "previous_close": 1583.6,
+                  "change_pct": 0.0884,
+                  "volume": 10069159
+                },
+                {
+                  "symbol": "INDIGO",
+                  "instrument_id": "",
+                  "isin": "INE646L01027",
+                  "close": 5544.0,
+                  "previous_close": 5587.3,
+                  "change_pct": -0.775,
+                  "volume": 626753
+                },
+                {
+                  "symbol": "INFY",
+                  "instrument_id": "",
+                  "isin": "INE009A01021",
+                  "close": 1145.1,
+                  "previous_close": 1141.5,
+                  "change_pct": 0.3154,
+                  "volume": 4852092
+                },
+                {
+                  "symbol": "ITC",
+                  "instrument_id": "",
+                  "isin": "INE154A01025",
+                  "close": 295.1,
+                  "previous_close": 285.0,
+                  "change_pct": 3.5439,
+                  "volume": 49035309
+                },
+                {
+                  "symbol": "JIOFIN",
+                  "instrument_id": "",
+                  "isin": "INE758E01017",
+                  "close": 226.0,
+                  "previous_close": 227.5,
+                  "change_pct": -0.6593,
+                  "volume": 7722398
+                },
+                {
+                  "symbol": "JSWSTEEL",
+                  "instrument_id": "",
+                  "isin": "INE019A01038",
+                  "close": 1334.6,
+                  "previous_close": 1348.0,
+                  "change_pct": -0.9941,
+                  "volume": 1864995
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "instrument_id": "",
+                  "isin": "INE237A01036",
+                  "close": 494.2,
+                  "previous_close": 488.55,
+                  "change_pct": 1.1565,
+                  "volume": 13326699
+                },
+                {
+                  "symbol": "LT",
+                  "instrument_id": "",
+                  "isin": "INE018A01030",
+                  "close": 4140.0,
+                  "previous_close": 4143.8,
+                  "change_pct": -0.0917,
+                  "volume": 1137331
+                },
+                {
+                  "symbol": "M&M",
+                  "instrument_id": "",
+                  "isin": "INE101A01026",
+                  "close": 3339.0,
+                  "previous_close": 3333.0,
+                  "change_pct": 0.18,
+                  "volume": 1246788
+                },
+                {
+                  "symbol": "MARUTI",
+                  "instrument_id": "",
+                  "isin": "INE585B01010",
+                  "close": 12571.0,
+                  "previous_close": 12854.0,
+                  "change_pct": -2.2016,
+                  "volume": 662372
+                },
+                {
+                  "symbol": "MAXHEALTH",
+                  "instrument_id": "",
+                  "isin": "INE027H01010",
+                  "close": 1009.9,
+                  "previous_close": 947.1,
+                  "change_pct": 6.6308,
+                  "volume": 8264196
+                },
+                {
+                  "symbol": "NESTLEIND",
+                  "instrument_id": "",
+                  "isin": "INE239A01024",
+                  "close": 1297.0,
+                  "previous_close": 1263.2,
+                  "change_pct": 2.6757,
+                  "volume": 1341237
+                },
+                {
+                  "symbol": "NTPC",
+                  "instrument_id": "",
+                  "isin": "INE733E01010",
+                  "close": 321.25,
+                  "previous_close": 319.1,
+                  "change_pct": 0.6738,
+                  "volume": 5540177
+                },
+                {
+                  "symbol": "ONGC",
+                  "instrument_id": "",
+                  "isin": "INE213A01029",
+                  "close": 226.99,
+                  "previous_close": 225.0,
+                  "change_pct": 0.8844,
+                  "volume": 10250195
+                },
+                {
+                  "symbol": "POWERGRID",
+                  "instrument_id": "",
+                  "isin": "INE752E01010",
+                  "close": 262.2,
+                  "previous_close": 257.45,
+                  "change_pct": 1.845,
+                  "volume": 6830012
+                },
+                {
+                  "symbol": "RELIANCE",
+                  "instrument_id": "",
+                  "isin": "INE002A01018",
+                  "close": 1344.8,
+                  "previous_close": 1339.7,
+                  "change_pct": 0.3807,
+                  "volume": 7653528
+                },
+                {
+                  "symbol": "SBILIFE",
+                  "instrument_id": "",
+                  "isin": "INE123W01016",
+                  "close": 1827.7,
+                  "previous_close": 1789.9,
+                  "change_pct": 2.1118,
+                  "volume": 777200
+                },
+                {
+                  "symbol": "SBIN",
+                  "instrument_id": "",
+                  "isin": "INE062A01020",
+                  "close": 1090.5,
+                  "previous_close": 1080.0,
+                  "change_pct": 0.9722,
+                  "volume": 16216839
+                },
+                {
+                  "symbol": "SHRIRAMFIN",
+                  "instrument_id": "",
+                  "isin": "INE721A01047",
+                  "close": 978.4,
+                  "previous_close": 970.0,
+                  "change_pct": 0.866,
+                  "volume": 5177610
+                },
+                {
+                  "symbol": "SUNPHARMA",
+                  "instrument_id": "",
+                  "isin": "INE044A01036",
+                  "close": 1867.5,
+                  "previous_close": 1880.0,
+                  "change_pct": -0.6649,
+                  "volume": 1301410
+                },
+                {
+                  "symbol": "TATACONSUM",
+                  "instrument_id": "",
+                  "isin": "INE192A01025",
+                  "close": 1117.5,
+                  "previous_close": 1079.0,
+                  "change_pct": 3.5681,
+                  "volume": 1430588
+                },
+                {
+                  "symbol": "TATASTEEL",
+                  "instrument_id": "",
+                  "isin": "INE081A01020",
+                  "close": 182.26,
+                  "previous_close": 186.68,
+                  "change_pct": -2.3677,
+                  "volume": 19082593
+                },
+                {
+                  "symbol": "TCS",
+                  "instrument_id": "",
+                  "isin": "INE467B01029",
+                  "close": 2405.0,
+                  "previous_close": 2407.5,
+                  "change_pct": -0.1038,
+                  "volume": 1802456
+                },
+                {
+                  "symbol": "TECHM",
+                  "instrument_id": "",
+                  "isin": "INE669C01036",
+                  "close": 1776.4,
+                  "previous_close": 1764.0,
+                  "change_pct": 0.7029,
+                  "volume": 1535420
+                },
+                {
+                  "symbol": "TITAN",
+                  "instrument_id": "",
+                  "isin": "INE280A01028",
+                  "close": 4910.0,
+                  "previous_close": 4844.9,
+                  "change_pct": 1.3437,
+                  "volume": 912474
+                },
+                {
+                  "symbol": "TMPV",
+                  "instrument_id": "",
+                  "isin": "INE155A01022",
+                  "close": 262.4,
+                  "previous_close": 287.4,
+                  "change_pct": -8.6987,
+                  "volume": 46771481
+                },
+                {
+                  "symbol": "TRENT",
+                  "instrument_id": "",
+                  "isin": "INE849A01020",
+                  "close": 3203.7,
+                  "previous_close": 3165.2,
+                  "change_pct": 1.2164,
+                  "volume": 441579
+                },
+                {
+                  "symbol": "ULTRACEMCO",
+                  "instrument_id": "",
+                  "isin": "INE481G01011",
+                  "close": 12270.0,
+                  "previous_close": 12100.0,
+                  "change_pct": 1.405,
+                  "volume": 169374
+                }
+              ]
+            },
             "option_buildup_diagnostic": {
               "available": true,
               "status": "AVAILABLE",
@@ -42857,8 +43325,9 @@
               "stock_basket": {
                 "applicable": true,
                 "included": false,
-                "source": "NSE Indices / BSE official constituent-and-weight files",
-                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-16",
+                "reason": "उपलब्ध daily basket diagnostic (पूर्ण या आंशिक) research-only/equal-weight है या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
               },
               "client_ce_pe": {
                 "applicable": true,
@@ -43146,49 +43615,49 @@
               "title": "Sensex, Nifty extend gains for second session as FIIs, banking stocks support rally",
               "source": "The Indian Awaaz",
               "score": 3,
-              "age_hours": 1.4
+              "age_hours": 1.8
             },
             {
               "title": "Nifty tops 25,500 to hit 9-month high, banking stocks lead the rally",
               "source": "The New Indian Express",
               "score": 2,
-              "age_hours": 2.2
+              "age_hours": 2.6
             },
             {
               "title": "Closing Bell: Nifty Gains to 25,387 as Bank Nifty Hits Record High; Crude Eases Near $92",
               "source": "India Infoline",
               "score": 3,
-              "age_hours": 3.2
+              "age_hours": 3.6
             },
             {
               "title": "India stocks higher at close of trade; Nifty 50 up 0.38%",
               "source": "Investing.com",
               "score": 1,
-              "age_hours": 5.2
+              "age_hours": 5.6
             },
             {
               "title": "Dalal Street extends winning streak; Sensex up 427 points, Nifty above 25,350",
               "source": "India Today",
               "score": 0,
-              "age_hours": 5.3
+              "age_hours": 5.7
             },
             {
               "title": "India shares higher at close of trade; Nifty 50 up 0.38% By Investing.com",
               "source": "Investing.com India",
               "score": 1,
-              "age_hours": 5.3
+              "age_hours": 5.7
             },
             {
               "title": "Eicher Motors jumps 3%, stock top gainer in Nifty Auto; brokerages upbeat",
               "source": "Business Standard",
               "score": 2,
-              "age_hours": 6.3
+              "age_hours": 6.7
             },
             {
               "title": "India Inc logs best quarterly profit growth in four years, fuelling market revival hopes",
               "source": "Reuters",
               "score": 1,
-              "age_hours": 7.6
+              "age_hours": 8.0
             }
           ],
           "client_retail_adjustment": 0.34,
@@ -43230,7 +43699,295 @@
               "normalized_weights_pct": {},
               "weight_total": 0.0
             },
-            "stock_basket_diagnostic": null,
+            "stock_basket_diagnostic": {
+              "score": 3.0,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-16",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "missing_symbols": [],
+              "expected": 30,
+              "matched": 30,
+              "coverage_pct": 100.0,
+              "advances": 19,
+              "declines": 10,
+              "unchanged": 1,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "ADANIPORTS",
+                  "instrument_id": "532921",
+                  "isin": "INE742F01042",
+                  "close": 1892.0,
+                  "previous_close": 1904.15,
+                  "change_pct": -0.6381,
+                  "volume": 61556
+                },
+                {
+                  "symbol": "ASIANPAINT",
+                  "instrument_id": "500820",
+                  "isin": "INE021A01026",
+                  "close": 2581.0,
+                  "previous_close": 2548.0,
+                  "change_pct": 1.2951,
+                  "volume": 35573
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "instrument_id": "532215",
+                  "isin": "INE238A01034",
+                  "close": 1340.0,
+                  "previous_close": 1332.4,
+                  "change_pct": 0.5704,
+                  "volume": 127060
+                },
+                {
+                  "symbol": "BAJAJFINSV",
+                  "instrument_id": "532978",
+                  "isin": "INE918I01026",
+                  "close": 1847.8,
+                  "previous_close": 1860.0,
+                  "change_pct": -0.6559,
+                  "volume": 13630
+                },
+                {
+                  "symbol": "BAJFINANCE",
+                  "instrument_id": "500034",
+                  "isin": "INE296A01032",
+                  "close": 1110.0,
+                  "previous_close": 1115.2,
+                  "change_pct": -0.4663,
+                  "volume": 101324
+                },
+                {
+                  "symbol": "BEL",
+                  "instrument_id": "500049",
+                  "isin": "INE263A01024",
+                  "close": 401.0,
+                  "previous_close": 401.0,
+                  "change_pct": 0.0,
+                  "volume": 880753
+                },
+                {
+                  "symbol": "BHARTIARTL",
+                  "instrument_id": "532454",
+                  "isin": "INE397D01024",
+                  "close": 2152.0,
+                  "previous_close": 2106.4,
+                  "change_pct": 2.1648,
+                  "volume": 277585
+                },
+                {
+                  "symbol": "ETERNAL",
+                  "instrument_id": "543320",
+                  "isin": "INE758T01015",
+                  "close": 370.85,
+                  "previous_close": 364.5,
+                  "change_pct": 1.7421,
+                  "volume": 1172127
+                },
+                {
+                  "symbol": "HCLTECH",
+                  "instrument_id": "532281",
+                  "isin": "INE860A01027",
+                  "close": 1382.4,
+                  "previous_close": 1376.6,
+                  "change_pct": 0.4213,
+                  "volume": 91915
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "instrument_id": "500180",
+                  "isin": "INE040A01034",
+                  "close": 816.0,
+                  "previous_close": 803.05,
+                  "change_pct": 1.6126,
+                  "volume": 1518664
+                },
+                {
+                  "symbol": "HINDUNILVR",
+                  "instrument_id": "500696",
+                  "isin": "INE030A01027",
+                  "close": 1997.0,
+                  "previous_close": 1985.0,
+                  "change_pct": 0.6045,
+                  "volume": 80317
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "instrument_id": "532174",
+                  "isin": "INE090A01021",
+                  "close": 1583.4,
+                  "previous_close": 1584.0,
+                  "change_pct": -0.0379,
+                  "volume": 612571
+                },
+                {
+                  "symbol": "INDIGO",
+                  "instrument_id": "539448",
+                  "isin": "INE646L01027",
+                  "close": 5536.0,
+                  "previous_close": 5599.65,
+                  "change_pct": -1.1367,
+                  "volume": 21945
+                },
+                {
+                  "symbol": "INFY",
+                  "instrument_id": "500209",
+                  "isin": "INE009A01021",
+                  "close": 1143.7,
+                  "previous_close": 1140.0,
+                  "change_pct": 0.3246,
+                  "volume": 248096
+                },
+                {
+                  "symbol": "ITC",
+                  "instrument_id": "500875",
+                  "isin": "INE154A01025",
+                  "close": 294.8,
+                  "previous_close": 284.05,
+                  "change_pct": 3.7845,
+                  "volume": 2099777
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "instrument_id": "500247",
+                  "isin": "INE237A01036",
+                  "close": 493.2,
+                  "previous_close": 487.6,
+                  "change_pct": 1.1485,
+                  "volume": 1574725
+                },
+                {
+                  "symbol": "LT",
+                  "instrument_id": "500510",
+                  "isin": "INE018A01030",
+                  "close": 4137.8,
+                  "previous_close": 4139.0,
+                  "change_pct": -0.029,
+                  "volume": 24338
+                },
+                {
+                  "symbol": "M&M",
+                  "instrument_id": "500520",
+                  "isin": "INE101A01026",
+                  "close": 3350.0,
+                  "previous_close": 3336.1,
+                  "change_pct": 0.4167,
+                  "volume": 351429
+                },
+                {
+                  "symbol": "MARUTI",
+                  "instrument_id": "532500",
+                  "isin": "INE585B01010",
+                  "close": 12573.75,
+                  "previous_close": 12878.0,
+                  "change_pct": -2.3626,
+                  "volume": 20954
+                },
+                {
+                  "symbol": "NTPC",
+                  "instrument_id": "532555",
+                  "isin": "INE733E01010",
+                  "close": 321.0,
+                  "previous_close": 318.8,
+                  "change_pct": 0.6901,
+                  "volume": 214686
+                },
+                {
+                  "symbol": "POWERGRID",
+                  "instrument_id": "532898",
+                  "isin": "INE752E01010",
+                  "close": 262.0,
+                  "previous_close": 257.65,
+                  "change_pct": 1.6883,
+                  "volume": 501179
+                },
+                {
+                  "symbol": "RELIANCE",
+                  "instrument_id": "500325",
+                  "isin": "INE002A01018",
+                  "close": 1342.0,
+                  "previous_close": 1339.6,
+                  "change_pct": 0.1792,
+                  "volume": 388080
+                },
+                {
+                  "symbol": "SBIN",
+                  "instrument_id": "500112",
+                  "isin": "INE062A01020",
+                  "close": 1090.0,
+                  "previous_close": 1080.5,
+                  "change_pct": 0.8792,
+                  "volume": 1272061
+                },
+                {
+                  "symbol": "SUNPHARMA",
+                  "instrument_id": "524715",
+                  "isin": "INE044A01036",
+                  "close": 1866.95,
+                  "previous_close": 1880.9,
+                  "change_pct": -0.7417,
+                  "volume": 36036
+                },
+                {
+                  "symbol": "TATASTEEL",
+                  "instrument_id": "500470",
+                  "isin": "INE081A01020",
+                  "close": 181.75,
+                  "previous_close": 187.0,
+                  "change_pct": -2.8075,
+                  "volume": 1103216
+                },
+                {
+                  "symbol": "TCS",
+                  "instrument_id": "532540",
+                  "isin": "INE467B01029",
+                  "close": 2401.0,
+                  "previous_close": 2410.0,
+                  "change_pct": -0.3734,
+                  "volume": 128911
+                },
+                {
+                  "symbol": "TECHM",
+                  "instrument_id": "532755",
+                  "isin": "INE669C01036",
+                  "close": 1783.5,
+                  "previous_close": 1765.4,
+                  "change_pct": 1.0253,
+                  "volume": 78192
+                },
+                {
+                  "symbol": "TITAN",
+                  "instrument_id": "500114",
+                  "isin": "INE280A01028",
+                  "close": 4913.0,
+                  "previous_close": 4850.4,
+                  "change_pct": 1.2906,
+                  "volume": 24017
+                },
+                {
+                  "symbol": "TRENT",
+                  "instrument_id": "500251",
+                  "isin": "INE849A01020",
+                  "close": 3199.0,
+                  "previous_close": 3160.0,
+                  "change_pct": 1.2342,
+                  "volume": 25925
+                },
+                {
+                  "symbol": "ULTRACEMCO",
+                  "instrument_id": "532538",
+                  "isin": "INE481G01011",
+                  "close": 12258.25,
+                  "previous_close": 12098.0,
+                  "change_pct": 1.3246,
+                  "volume": 5201
+                }
+              ]
+            },
             "option_buildup_diagnostic": null,
             "excluded_components": {
               "news": {
@@ -43258,8 +44015,9 @@
               "stock_basket": {
                 "applicable": true,
                 "included": false,
-                "source": "NSE Indices / BSE official constituent-and-weight files",
-                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-16",
+                "reason": "उपलब्ध daily basket diagnostic (पूर्ण या आंशिक) research-only/equal-weight है या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
               },
               "client_ce_pe": {
                 "applicable": true,
@@ -43545,49 +44303,49 @@
               "title": "Sensex Today Ends 318 Points Higher | Nifty Above 25,200 | BSE Insurance Index Up 1.15%",
               "source": "Equitymaster",
               "score": 1,
-              "age_hours": 29.4
+              "age_hours": 29.8
             },
             {
               "title": "Morgan Stanley sees Sensex at 95K, an upside of 16%, by December 2027",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 29.6
+              "age_hours": 30.0
             },
             {
               "title": "Sensex may hit 95,000 by end of 2027 as analysts back India's re-rating",
               "source": "bfsi.economictimes.indiatimes.com",
               "score": 0,
-              "age_hours": 31.1
+              "age_hours": 31.5
             },
             {
               "title": "Sensex jumps 719 points, Nifty climbs above 25,300 in early trade; ITC, Airtel, Asian Paints, Eternal, lead",
               "source": "Fortune India",
               "score": 2,
-              "age_hours": 34.3
+              "age_hours": 34.7
             },
             {
               "title": "India deserves re-rating; Sensex may hit 95,000 by Dec 2027: Morgan Stanley",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 35.1
+              "age_hours": 35.5
             },
             {
               "title": "‘Flash Crash’ Hits Sensex Index During Unpopular Closing Auction",
               "source": "Bloomberg.com",
               "score": -2,
-              "age_hours": 1976.8
+              "age_hours": 1977.2
             },
             {
               "title": "India's Nifty and Sensex diverge following launch of new auction mechanism",
               "source": "Reuters",
               "score": 0,
-              "age_hours": 2552.8
+              "age_hours": 2553.2
             },
             {
               "title": "Indian Benchmark Indices Drop Over 2.5%: Sensex Falls 2,222 Points, Nifty Down 662 Points",
               "source": "News On AIR",
               "score": -2,
-              "age_hours": 3746.3
+              "age_hours": 3746.7
             }
           ],
           "client_retail_adjustment": 0.34,
@@ -43627,7 +44385,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:22:00Z",
                 "oldest_headline_published_at": "2026-11-17T10:10:49Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -43639,7 +44397,7 @@
                   "TradingView"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 1.46,
+                "newest_headline_age_h": 1.85,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -43651,7 +44409,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:22:00Z",
                 "oldest_headline_published_at": "2026-11-17T10:10:49Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -43663,7 +44421,7 @@
                   "TradingView"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 1.46,
+                "newest_headline_age_h": 1.85,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -43706,7 +44464,151 @@
               },
               "weight_total": 30.0
             },
-            "stock_basket_diagnostic": null,
+            "stock_basket_diagnostic": {
+              "score": 8.57,
+              "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+              "source_date": "2026-11-16",
+              "research_only": true,
+              "score_eligible": false,
+              "included": false,
+              "status": "complete_diagnostic",
+              "missing_symbols": [],
+              "expected": 14,
+              "matched": 14,
+              "coverage_pct": 100.0,
+              "advances": 13,
+              "declines": 1,
+              "unchanged": 0,
+              "method": "10 * (advances - declines) / official constituent count; equal member count",
+              "constituents": [
+                {
+                  "symbol": "AUBANK",
+                  "instrument_id": "",
+                  "isin": "INE949L01017",
+                  "close": 971.35,
+                  "previous_close": 967.0,
+                  "change_pct": 0.4498,
+                  "volume": 1457559
+                },
+                {
+                  "symbol": "AXISBANK",
+                  "instrument_id": "",
+                  "isin": "INE238A01034",
+                  "close": 1342.4,
+                  "previous_close": 1331.0,
+                  "change_pct": 0.8565,
+                  "volume": 5347137
+                },
+                {
+                  "symbol": "BANKBARODA",
+                  "instrument_id": "",
+                  "isin": "INE028A01039",
+                  "close": 270.2,
+                  "previous_close": 273.84,
+                  "change_pct": -1.3292,
+                  "volume": 10592191
+                },
+                {
+                  "symbol": "CANBK",
+                  "instrument_id": "",
+                  "isin": "INE476A01022",
+                  "close": 132.4,
+                  "previous_close": 130.91,
+                  "change_pct": 1.1382,
+                  "volume": 19338710
+                },
+                {
+                  "symbol": "FEDERALBNK",
+                  "instrument_id": "",
+                  "isin": "INE171A01029",
+                  "close": 362.0,
+                  "previous_close": 360.95,
+                  "change_pct": 0.2909,
+                  "volume": 5930570
+                },
+                {
+                  "symbol": "HDFCBANK",
+                  "instrument_id": "",
+                  "isin": "INE040A01034",
+                  "close": 816.5,
+                  "previous_close": 804.0,
+                  "change_pct": 1.5547,
+                  "volume": 27152881
+                },
+                {
+                  "symbol": "ICICIBANK",
+                  "instrument_id": "",
+                  "isin": "INE090A01021",
+                  "close": 1585.0,
+                  "previous_close": 1583.6,
+                  "change_pct": 0.0884,
+                  "volume": 10069159
+                },
+                {
+                  "symbol": "IDFCFIRSTB",
+                  "instrument_id": "",
+                  "isin": "INE092T01019",
+                  "close": 81.3,
+                  "previous_close": 79.54,
+                  "change_pct": 2.2127,
+                  "volume": 14549023
+                },
+                {
+                  "symbol": "INDUSINDBK",
+                  "instrument_id": "",
+                  "isin": "INE095A01012",
+                  "close": 914.55,
+                  "previous_close": 914.4,
+                  "change_pct": 0.0164,
+                  "volume": 1448143
+                },
+                {
+                  "symbol": "KOTAKBANK",
+                  "instrument_id": "",
+                  "isin": "INE237A01036",
+                  "close": 494.2,
+                  "previous_close": 488.55,
+                  "change_pct": 1.1565,
+                  "volume": 13326699
+                },
+                {
+                  "symbol": "PNB",
+                  "instrument_id": "",
+                  "isin": "INE160A01022",
+                  "close": 144.59,
+                  "previous_close": 142.81,
+                  "change_pct": 1.2464,
+                  "volume": 48128826
+                },
+                {
+                  "symbol": "SBIN",
+                  "instrument_id": "",
+                  "isin": "INE062A01020",
+                  "close": 1090.5,
+                  "previous_close": 1080.0,
+                  "change_pct": 0.9722,
+                  "volume": 16216839
+                },
+                {
+                  "symbol": "UNIONBANK",
+                  "instrument_id": "",
+                  "isin": "INE692A01016",
+                  "close": 205.6,
+                  "previous_close": 203.0,
+                  "change_pct": 1.2808,
+                  "volume": 12751379
+                },
+                {
+                  "symbol": "YESBANK",
+                  "instrument_id": "",
+                  "isin": "INE528G01035",
+                  "close": 18.02,
+                  "previous_close": 17.42,
+                  "change_pct": 3.4443,
+                  "volume": 188122355
+                }
+              ]
+            },
             "option_buildup_diagnostic": {
               "available": true,
               "status": "AVAILABLE",
@@ -49589,8 +50491,9 @@
               "stock_basket": {
                 "applicable": true,
                 "included": false,
-                "source": "NSE Indices / BSE official constituent-and-weight files",
-                "reason": "NIFTY 50 और NIFTY Bank के official monthly weights तथा dated cash prices research में verify हुए हैं, लेकिन इस live scan में full-basket daily snapshot wired नहीं और 60-session directional validation अभी pending है। SENSEX के पूरे 30 stocks के official weights उपलब्ध नहीं; इसलिए कोई 9-stock proxy या अनुमान Final में शामिल नहीं।"
+                "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
+                "source_date": "2026-11-16",
+                "reason": "उपलब्ध daily basket diagnostic (पूर्ण या आंशिक) research-only/equal-weight है या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
               },
               "client_ce_pe": {
                 "applicable": true,
@@ -49895,49 +50798,49 @@
               "title": "Sensex, Nifty extend gains for second session as FIIs, banking stocks support rally",
               "source": "The Indian Awaaz",
               "score": 3,
-              "age_hours": 1.4
+              "age_hours": 1.8
             },
             {
               "title": "Bank Nifty hits record high\nWhat’s driving the rally, and can it last?",
               "source": "Business Standard",
               "score": 4,
-              "age_hours": 1.5
+              "age_hours": 1.9
             },
             {
               "title": "Bank Nifty breaks into uncharted territory as FII billions back India’s bull run",
               "source": "TradingView",
               "score": 0,
-              "age_hours": 1.5
+              "age_hours": 1.9
             },
             {
               "title": "FII inflows spark re-rating, lift Nifty Bank to record high",
               "source": "BusinessLine",
               "score": 2,
-              "age_hours": 1.7
+              "age_hours": 2.1
             },
             {
               "title": "Nifty tops 25,500 to hit 9-month high, banking stocks lead the rally",
               "source": "The New Indian Express",
               "score": 2,
-              "age_hours": 2.2
+              "age_hours": 2.6
             },
             {
               "title": "Closing Bell: Nifty Gains to 25,387 as Bank Nifty Hits Record High; Crude Eases Near $92",
               "source": "India Infoline",
               "score": 3,
-              "age_hours": 3.2
+              "age_hours": 3.6
             },
             {
               "title": "Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high",
               "source": "ANI News",
               "score": 2,
-              "age_hours": 5.3
+              "age_hours": 5.7
             },
             {
               "title": "News by CNBC TV18 on TradingView, 2026-11-17 — cnbctv:a90e968a0094b:0",
               "source": "TradingView",
               "score": 0,
-              "age_hours": 5.6
+              "age_hours": 6.0
             }
           ],
           "client_retail_adjustment": 0.34,
@@ -49947,11 +50850,11 @@
       },
       "other_assets": {
         "GOLD": {
-          "close": 138988.2,
+          "close": 138463.93,
           "close_as_of": "2026-11-17",
           "close_valid": true,
           "price_source": "MCX live quote × 3% GST",
-          "day_change_pct": 0.3,
+          "day_change_pct": -0.08,
           "headline_score": 2.4,
           "published_score": 2.4,
           "component_breakdown": {
@@ -49980,7 +50883,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:43:00Z",
                 "oldest_headline_published_at": "2026-11-17T06:08:00Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -49994,7 +50897,7 @@
                   "World Gold Council"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.11,
+                "newest_headline_age_h": 1.5,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -50006,7 +50909,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:43:00Z",
                 "oldest_headline_published_at": "2026-11-17T06:08:00Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -50020,7 +50923,7 @@
                   "World Gold Council"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.11,
+                "newest_headline_age_h": 1.5,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -50318,58 +51221,58 @@
               "title": "Gold price in Keralam drops below Rs 1 lakh after record highs",
               "source": "The Times of India",
               "score": 1,
-              "age_hours": 1.1
+              "age_hours": 1.5
             },
             {
               "title": "Gold Price Forecast: $3,850 Support at Risk as Real Yields Bite",
               "source": "FXEmpire",
               "score": 0,
-              "age_hours": 1.8
+              "age_hours": 2.2
             },
             {
               "title": "Gold price prediction: Gold rate jumps but experts warn of major volatile phase for bullion, check silver",
               "source": "The Economic Times",
               "score": 1,
-              "age_hours": 1.9
+              "age_hours": 2.3
             },
             {
               "title": "Gold price drops to $3,848/oz after October retail sales rise 0.2%, core rises 0.6%",
               "source": "Kitco",
               "score": 1,
-              "age_hours": 2.3
+              "age_hours": 2.7
             },
             {
               "title": "Gold, Silver Rate Today Highlights: Gold steadies near one-year low as strong dollar, silver also stables",
               "source": "The Times of India",
               "score": 0,
-              "age_hours": 3.3
+              "age_hours": 3.7
             },
             {
               "title": "India gold market update: Gold demand gets festive boost | Post by Kavita Chacko | Insights",
               "source": "World Gold Council",
               "score": 0,
-              "age_hours": 6.9
+              "age_hours": 7.3
             },
             {
               "title": "Gold price today, Nov 17: MCX Gold rises to ₹1,35,341/10 grams, silver jumps ₹3,162/kg; why are prices rising today?",
               "source": "Upstox",
               "score": 2,
-              "age_hours": 9.7
+              "age_hours": 10.0
             },
             {
               "title": "Gold price prediction today: Gold oversold but may fall more; check November 17, 2026 outlook",
               "source": "The Times of India",
               "score": -1,
-              "age_hours": 9.7
+              "age_hours": 10.1
             }
           ]
         },
         "SILVER": {
-          "close": 175951.81,
+          "close": 175348.23,
           "close_as_of": "2026-11-17",
           "close_valid": true,
           "price_source": "MCX live quote + 3% GST Estimate",
-          "day_change_pct": 1.77,
+          "day_change_pct": 1.42,
           "headline_score": 0.8,
           "published_score": 0.8,
           "component_breakdown": {
@@ -50398,7 +51301,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:29:49Z",
                 "oldest_headline_published_at": "2026-11-17T08:29:01Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -50414,7 +51317,7 @@
                   "TradingView"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.33,
+                "newest_headline_age_h": 1.72,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -50426,7 +51329,7 @@
                 "source_date": "2026-11-17",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-17T15:49Z",
+                "observed_at": "2026-11-17T16:13Z",
                 "newest_headline_published_at": "2026-11-17T14:29:49Z",
                 "oldest_headline_published_at": "2026-11-17T08:29:01Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -50442,7 +51345,7 @@
                   "TradingView"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.33,
+                "newest_headline_age_h": 1.72,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -50726,49 +51629,49 @@
               "title": "Gold and Silver Slide to One-Year Lows as Rate-Hike Bets Harden: The Market Picture",
               "source": "India Infoline",
               "score": -1,
-              "age_hours": 1.3
+              "age_hours": 1.7
             },
             {
               "title": "Silver Price Forecast: Slide Continues as Dollar Strengthens",
               "source": "FXEmpire",
               "score": -1,
-              "age_hours": 3.1
+              "age_hours": 3.5
             },
             {
               "title": "Gold, Silver Rate Today Highlights: Gold steadies near one-year low as strong dollar, silver also stables",
               "source": "The Times of India",
               "score": 0,
-              "age_hours": 3.3
+              "age_hours": 3.7
             },
             {
               "title": "Bengaluru Bullion Rates: Gold & Silver Prices Nov 17",
               "source": "Rediff MoneyWiz",
               "score": 0,
-              "age_hours": 3.3
+              "age_hours": 3.7
             },
             {
               "title": "Anmol Jewellers MD sees more downside in silver, advises staggered buying for long-term investors",
               "source": "CNBC TV18",
               "score": 1,
-              "age_hours": 5.3
+              "age_hours": 5.7
             },
             {
               "title": "Will silver price break above $48.9 resistance amid tentative bullish signals?",
               "source": "Traders Union",
               "score": 2,
-              "age_hours": 6.6
+              "age_hours": 7.0
             },
             {
               "title": "Why Silver rates crashed from record high of Rs.4 lakh per kg price to below Rs.1.75 lakh? Experts explain 3 key reasons",
               "source": "TradingView",
               "score": 0,
-              "age_hours": 6.8
+              "age_hours": 7.2
             },
             {
               "title": "Silver Price Forecast: XAG/USD picks up to $47.50 but remains near yearly lows",
               "source": "FXStreet",
               "score": 0,
-              "age_hours": 7.3
+              "age_hours": 7.7
             }
           ]
         }
@@ -50913,5 +51816,5 @@
       }
     }
   ],
-  "updated_at": "2026-11-17T15:49Z"
+  "updated_at": "2026-11-17T16:13Z"
 }
