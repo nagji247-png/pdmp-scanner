@@ -1725,7 +1725,7 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
               "coverage": {"expected": len(expected), "matched": 0}, "instruments": {}}
     if not isinstance(text, str) or not text.strip():
         return result
-    reader = csv.DictReader(text.lstrip("\\ufeff").splitlines())
+    reader = csv.DictReader(text.lstrip(chr(65279)).splitlines())
     if not reader.fieldnames:
         return result
     rows = list(reader)
