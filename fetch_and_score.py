@@ -1711,9 +1711,104 @@ def market_activity_snapshot_is_fresh(snapshot, now=None):
     if stamp is None:
         return False
     age_seconds = (current - stamp).total_seconds()
+    if "EOD previous close" in str(snapshot.get("source") or ""):
+        return -120 <= age_seconds <= 72 * 60 * 60
     max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
     return -120 <= age_seconds <= max_age
 
+
+def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
+    """Parse one official NSE full security bhavdata CSV; these are EOD, never live quotes."""
+    expected = {str(symbol).strip().upper() for symbol in expected_symbols}
+    result = {"source": "NSE official sec_bhavdata_full · EOD previous close",
+              "source_timestamp": None,
+              "coverage": {"expected": len(expected), "matched": 0}, "instruments": {}}
+    if not isinstance(text, str) or not text.strip():
+        return result
+    reader = csv.DictReader(text.lstrip("\\ufeff").splitlines())
+    if not reader.fieldnames:
+        return result
+    rows = list(reader)
+    if not rows:
+        return result
+    first_date = str(rows[0].get("DATE1") or "").strip()
+    try:
+        trade_date = dt.datetime.strptime(first_date.title(), "%d-%b-%Y").date()
+    except ValueError:
+        raise ValueError("NSE EOD bhavdata has no valid DATE1")
+    if expected_date and trade_date != expected_date:
+        raise ValueError(f"NSE EOD bhavdata date mismatch: expected {expected_date}, got {trade_date}")
+    stamp = dt.datetime.combine(trade_date, dt.time(15, 30),
+                                tzinfo=dt.timezone(dt.timedelta(hours=5, minutes=30)))
+    date_text = trade_date.strftime("%d/%m/%Y")
+    instruments = {}
+    for row in rows:
+        symbol = str(row.get("SYMBOL") or "").strip().upper()
+        series = str(row.get("SERIES") or "").strip().upper()
+        if symbol not in expected or series != "EQ":
+            continue
+        close = _num(row.get("CLOSE_PRICE"))
+        previous = _num(row.get("PREV_CLOSE"))
+        volume = _num(row.get("TTL_TRD_QNTY"))
+        if close is None or close <= 0 or previous is None or previous <= 0:
+            continue
+        change_pct = round((close / previous - 1) * 100, 2)
+        instruments[symbol] = {
+            "type": "stock", "price": round(close, 2),
+            "change_pct": change_pct,
+            "volume": int(volume) if volume is not None and volume >= 0 else None,
+            "previous_close": round(previous, 2),
+            "vwap": _num(row.get("AVG_PRICE")),
+            "price_as_of": date_text, "price_time": "03:30 PM IST · EOD",
+            "price_source": "NSE official sec_bhavdata_full · EOD close",
+            "volume_as_of": date_text,
+            "volume_source": "NSE official sec_bhavdata_full · TTL_TRD_QNTY",
+        }
+    result.update({
+        "source_timestamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
+        "coverage": {"expected": len(expected), "matched": len(instruments)},
+        "instruments": instruments,
+    })
+    return result
+
+
+def fetch_nse_eod_bhavdata_quotes(expected_symbols):
+    """Fetch one official all-equity EOD file; no 218-symbol request fan-out."""
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    base_day = now.date() if (now.hour, now.minute) >= (18, 0) else now.date() - dt.timedelta(days=1)
+    candidates = []
+    day = base_day
+    while len(candidates) < 4:
+        if day.weekday() < 5:
+            candidates.append(day)
+        day -= dt.timedelta(days=1)
+    headers = {
+        "Accept": "text/csv,text/plain,*/*",
+        "Referer": "https://www.nseindia.com/all-reports",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+        "Cache-Control": "no-cache",
+    }
+    for trade_date in candidates:
+        url = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_" + trade_date.strftime("%d%m%Y") + ".csv"
+        try:
+            response = NSE_MCP_HTTP.get(url, headers=headers, timeout=25)
+            if response.status_code == 404:
+                continue
+            response.raise_for_status()
+            snapshot = parse_nse_eod_bhavdata_csv(response.text, expected_symbols, expected_date=trade_date)
+            if snapshot["instruments"]:
+                print("NSE EOD BHAVDATA matched=" + str(snapshot["coverage"]["matched"]) + "/" + str(snapshot["coverage"]["expected"]) + " trade_date=" + trade_date.isoformat())
+                return snapshot
+            raise ValueError("official EOD file returned no matching EQ symbols")
+        except Exception as exc:
+            print("NSE EOD bhavdata " + trade_date.isoformat() + " unavailable: " + str(exc)[:180])
+    return {
+        "source": "NSE official sec_bhavdata_full · EOD previous close",
+        "source_timestamp": None,
+        "coverage": {"expected": len(expected_symbols), "matched": 0},
+        "instruments": {},
+    }
 
 def parse_nse_market_activity_bulk_payload(payload, expected_symbols, now=None):
     """Parse one NSE NIFTY TOTAL MARKET snapshot for exact verified F&O symbols only."""
@@ -5868,6 +5963,8 @@ def main():
         activity_master = load_json("nse-fo-stock-sector-master.json", {})
         activity_symbols = sorted((activity_master.get("stocks") or {}).keys())
         activity_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        if not activity_quotes.get("instruments"):
+            activity_quotes = fetch_nse_eod_bhavdata_quotes(activity_symbols)
         if not activity_quotes.get("instruments"):
             cached_activity = previous.get("market_activity_quotes") or {}
             if market_activity_snapshot_is_fresh(cached_activity):
