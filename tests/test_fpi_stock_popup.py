@@ -22,8 +22,8 @@ class FpiStockPopupTests(unittest.TestCase):
 
     def test_dashboard_uses_new_popup_cache_version(self):
         source = Path("dashboard.html").read_text(encoding="utf-8")
-        self.assertIn("fpi-sector-tilt.js?v=6", source)
-        self.assertNotIn("fpi-sector-tilt.js?v=4", source)
+        self.assertIn("fpi-sector-tilt.js?v=7", source)
+        self.assertNotIn("fpi-sector-tilt.js?v=6", source)
 
 
 if __name__ == "__main__":
