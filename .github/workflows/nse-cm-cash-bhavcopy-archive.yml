@@ -51,10 +51,8 @@ on:
       - "exchange_calendar.json"
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   schedule:
-    # First attempt after official EOD files publish (20:00 IST).
+    # One scheduled run after official EOD files publish (20:00 IST).
     - cron: "30 14 * * 1-5"
-    # One bounded automatic retry 15 minutes later (20:15 IST) for delayed NSE/BSE publication or transient failures.
-    - cron: "45 14 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -67,7 +65,7 @@ concurrency:
 jobs:
   archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -100,19 +98,67 @@ jobs:
       - name: Attempt one dated official NSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python nse_cm_bhavcopy_archive.py --backfill-days 7
+        run: |
+          for attempt in 1 2; do
+            echo "Attempt ${attempt}/2: nse_cm_bhavcopy_archive.py --backfill-days 7"
+            if python nse_cm_bhavcopy_archive.py --backfill-days 7; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "First attempt failed; retrying once after 2 minutes."
+              sleep 120
+            fi
+          done
+          echo "Both attempts failed for nse_cm_bhavcopy_archive.py --backfill-days 7"
+          exit 1
       - name: Fetch one dated official BSE CM UDiFF archive
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python bse_cm_bhavcopy_archive.py --backfill-days 7
+        run: |
+          for attempt in 1 2; do
+            echo "Attempt ${attempt}/2: bse_cm_bhavcopy_archive.py --backfill-days 7"
+            if python bse_cm_bhavcopy_archive.py --backfill-days 7; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "First attempt failed; retrying once after 2 minutes."
+              sleep 120
+            fi
+          done
+          echo "Both attempts failed for bse_cm_bhavcopy_archive.py --backfill-days 7"
+          exit 1
       - name: Capture NSE daily index close archive with bounded backfill
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python nse_index_close_archive.py --backfill-days 14
+        run: |
+          for attempt in 1 2; do
+            echo "Attempt ${attempt}/2: nse_index_close_archive.py --backfill-days 14"
+            if python nse_index_close_archive.py --backfill-days 14; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "First attempt failed; retrying once after 2 minutes."
+              sleep 120
+            fi
+          done
+          echo "Both attempts failed for nse_index_close_archive.py --backfill-days 14"
+          exit 1
       - name: Capture official BSE SENSEX close history for CLIENT Futures validation
         if: github.event_name != 'pull_request'
         continue-on-error: true
-        run: python bse_sensex_close_archive.py --from-date 2026-11-12
+        run: |
+          for attempt in 1 2; do
+            echo "Attempt ${attempt}/2: bse_sensex_close_archive.py --from-date 2026-11-12"
+            if python bse_sensex_close_archive.py --from-date 2026-11-12; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "First attempt failed; retrying once after 2 minutes."
+              sleep 120
+            fi
+          done
+          echo "Both attempts failed for bse_sensex_close_archive.py --from-date 2026-11-12"
+          exit 1
       - name: Upload NSE daily index archive artifact for downstream stock research
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
