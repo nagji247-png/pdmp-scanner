@@ -53,13 +53,20 @@ class StockBasketDisplaySnapshotTests(unittest.TestCase):
         result = load_latest_stock_basket_diagnostics("2026-11-09", archive)
         self.assertEqual(result["NIFTY"]["constituents"], members)
 
-    def test_incomplete_or_unvalidated_diagnostic_is_not_displayed_as_score(self):
+    def test_partial_verified_diagnostic_is_displayed_but_not_score_eligible(self):
         archive = {"records": [
-            row("2026-11-06", "NIFTY", 8.0, matched=49),
+            row("2026-11-06", "NIFTY", 8.0, status="partial_diagnostic",
+                matched=32, expected=50, coverage=64.0),
             row("2026-11-05", "BANKNIFTY", 7.0, score_eligible=True),
         ]}
         result = load_latest_stock_basket_diagnostics("2026-11-09", archive)
-        self.assertEqual(result, {})
+        self.assertEqual(result["NIFTY"]["score"], 8.0)
+        self.assertEqual(result["NIFTY"]["matched"], 32)
+        self.assertEqual(result["NIFTY"]["expected"], 50)
+        self.assertEqual(result["NIFTY"]["coverage_pct"], 64.0)
+        self.assertTrue(result["NIFTY"]["research_only"])
+        self.assertFalse(result["NIFTY"]["score_eligible"])
+        self.assertNotIn("BANKNIFTY", result)
 
     def test_future_diagnostic_is_not_used_for_earlier_scan(self):
         archive = {"records": [row("2026-11-10", "NIFTY", 8.0)]}

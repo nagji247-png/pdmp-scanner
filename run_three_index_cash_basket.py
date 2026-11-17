@@ -33,19 +33,19 @@ def append_diagnostic(output_path, result):
         if existing == result:
             return False
         # A one-shot EOD fetch can fail while the exchange archive is publishing.
-        # Permit a same-session retry to upgrade a withheld record only when the
-        # new result has strictly more fully verified index baskets. Never allow
+        # Permit a same-session retry to upgrade a record only when the
+        # new result contains strictly more verified constituent rows. Never allow
         # a retry to downgrade or silently replace an equally complete record.
-        def complete_count(record):
+        def verified_row_count(record):
             indices = record.get("indices") if isinstance(record, dict) else None
             if not isinstance(indices, dict):
-                return int(bool(record.get("all_three_complete")))
+                return 0
             return sum(
-                1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
-                if isinstance(indices.get(key), dict)
-                and indices[key].get("status") == "complete_diagnostic"
+                max(0, int(item.get("matched") or 0))
+                for key in ("NIFTY", "SENSEX", "BANKNIFTY")
+                if isinstance((item := indices.get(key)), dict)
             )
-        if complete_count(result) > complete_count(existing):
+        if verified_row_count(result) > verified_row_count(existing):
             archive["records"] = [
                 result if row is existing else row for row in archive["records"]
             ]
@@ -62,7 +62,7 @@ def append_diagnostic(output_path, result):
             )
             temporary.replace(target)
             return True
-        # Keep an equally complete or more complete record. Incomplete
+        # Keep an equally populated or more populated record. Incomplete
         # sessions are retried on later archive runs and may be upgraded once
         # official exchange files arrive; a retry must never downgrade data.
         return False

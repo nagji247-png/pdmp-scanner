@@ -57,9 +57,9 @@ class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
                 "status": "withheld_incomplete",
                 "all_three_complete": False,
                 "indices": {
-                    "NIFTY": {"status": "withheld_unverified"},
-                    "SENSEX": {"status": "withheld_unverified"},
-                    "BANKNIFTY": {"status": "withheld_unverified"},
+                    "NIFTY": {"status": "withheld_unverified", "matched": 0},
+                    "SENSEX": {"status": "withheld_unverified", "matched": 0},
+                    "BANKNIFTY": {"status": "withheld_unverified", "matched": 0},
                 },
             }
             complete = {
@@ -67,9 +67,9 @@ class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
                 "status": "complete_diagnostic",
                 "all_three_complete": True,
                 "indices": {
-                    "NIFTY": {"status": "complete_diagnostic", "score": 2.0},
-                    "SENSEX": {"status": "complete_diagnostic", "score": 1.0},
-                    "BANKNIFTY": {"status": "complete_diagnostic", "score": -1.0},
+                    "NIFTY": {"status": "complete_diagnostic", "score": 2.0, "matched": 50},
+                    "SENSEX": {"status": "complete_diagnostic", "score": 1.0, "matched": 30},
+                    "BANKNIFTY": {"status": "complete_diagnostic", "score": -1.0, "matched": 14},
                 },
             }
             self.assertTrue(append_diagnostic(path, withheld))

@@ -26,7 +26,7 @@ class StockBasketLoaderFreshnessTests(unittest.TestCase):
         )
         self.assertEqual(result["NIFTY"]["source_date"], "2026-11-12")
 
-    def test_after_eod_cutoff_never_falls_back_to_yesterdays_basket(self):
+    def test_after_eod_cutoff_falls_back_to_previous_dated_basket(self):
         archive = {"records": [
             record("2026-11-12"),
             record("2026-11-13", "withheld_incomplete"),
@@ -34,14 +34,16 @@ class StockBasketLoaderFreshnessTests(unittest.TestCase):
         result = load_latest_stock_basket_diagnostics(
             "2026-11-13", archive=archive, scan_timestamp="2026-11-13T15:00:00Z"
         )
-        self.assertEqual(result, {})
+        self.assertEqual(result["NIFTY"]["source_date"], "2026-11-12")
+        self.assertTrue(result["NIFTY"]["research_only"])
 
-    def test_missing_expected_session_never_falls_back_to_older_record(self):
+    def test_missing_expected_session_falls_back_to_older_record(self):
         archive = {"records": [record("2026-11-12")]}
         result = load_latest_stock_basket_diagnostics(
             "2026-11-13", archive=archive, scan_timestamp="2026-11-13T15:00:00Z"
         )
-        self.assertEqual(result, {})
+        self.assertEqual(result["NIFTY"]["source_date"], "2026-11-12")
+        self.assertFalse(result["NIFTY"]["score_eligible"])
 
 
 if __name__ == "__main__":

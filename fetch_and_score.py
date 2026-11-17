@@ -490,11 +490,14 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
             expected_date = expected_latest_completed_session(scan_timestamp, load_exchange_calendar())
         except ValueError:
             return {}
-        matching = [
-            row for row in records
-            if isinstance(row, dict) and row.get("date") == expected_date
-        ]
-        selected_records = matching[:1]
+        # Use the latest available session on or before the expected EOD
+        # date. A missing/incomplete current session must not blank a valid
+        # prior diagnostic; source_date remains explicit for the UI.
+        selected_records = sorted(
+            (row for row in records if isinstance(row, dict)
+             and isinstance(row.get("date"), str) and row.get("date") <= expected_date),
+            key=lambda row: row["date"], reverse=True,
+        )
     else:
         # Compatibility for offline callers that supply only a date. The
         # production scan always supplies its full timestamp and uses the
@@ -520,10 +523,11 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
             except (TypeError, ValueError, OverflowError):
                 continue
             if (
-                metric.get("status") != "complete_diagnostic"
+                metric.get("status") not in ("complete_diagnostic", "partial_diagnostic")
                 or metric.get("research_only") is not True
                 or metric.get("score_eligible") is not False
-                or expected <= 0 or matched != expected or coverage != 100.0
+                or expected <= 0 or matched <= 0 or matched > expected
+                or abs(coverage - round(matched / expected * 100, 2)) > 0.02
                 or not math.isfinite(score) or not -10 <= score <= 10
             ):
                 continue
@@ -534,7 +538,8 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
                 "research_only": True,
                 "score_eligible": False,
                 "included": False,
-                "status": "complete_diagnostic",
+                "status": metric.get("status"),
+                "missing_symbols": metric.get("missing_symbols", []),
                 "expected": expected,
                 "matched": matched,
                 "coverage_pct": coverage,
@@ -544,7 +549,7 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
                 "method": metric.get("method") or "10 × (advances − declines) / official constituent count",
             }
             detail_rows = metric.get("constituents")
-            if isinstance(detail_rows, list) and len(detail_rows) == expected:
+            if isinstance(detail_rows, list) and len(detail_rows) == matched:
                 valid_details = True
                 seen_ids = set()
                 for detail in detail_rows:
@@ -572,7 +577,7 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
                 if valid_details:
                     detail_up = sum(float(item["change_pct"]) > 0 for item in detail_rows)
                     detail_down = sum(float(item["change_pct"]) < 0 for item in detail_rows)
-                    detail_flat = expected - detail_up - detail_down
+                    detail_flat = matched - detail_up - detail_down
                     if (
                         detail_up == int(metric.get("advances", 0))
                         and detail_down == int(metric.get("declines", 0))
@@ -866,7 +871,7 @@ def build_asset_component_breakdowns(
                     "source": basket.get("source") or "Official NSE/BSE CM UDiFF · equal-weight breadth",
                     "source_date": basket_date,
                     "reason": (
-                        "पूरा daily basket diagnostic उपलब्ध है, लेकिन यह research-only/equal-weight है "
+                        "उपलब्ध daily basket diagnostic (पूर्ण या आंशिक) research-only/equal-weight है "
                         "या official weighted score eligibility, 100% constituent coverage और 60-session directional validation सत्यापित नहीं; "
                         "इसलिए Stock Basket केवल diagnostic रहेगा, provisional Final से बाहर।"
                         if basket.get("research_only") is True or basket.get("score_eligible") is False
