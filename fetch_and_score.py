@@ -4861,10 +4861,10 @@ def _asset_search_direction(term, asset):
         "recovery", "recover", "bounce", "uptrend", "rise", "rises",
         "rising", "jump", "jumps", "up", "upside", "higher", "positive",
         "outperform", "bullrun", "bull", "buying", "teji", "tez", "badhega",
-        "badhegi", "badhne", "upar", "chadhega", "chadhav", "chadhne", "बढ़ने", "बढने",
-        "बुलिश", "तेज़ी", "तेजी", "उछाल", "बढ़ेगा", "बढ़ेगी",
-        "ऊपर", "बढ़त", "चढ़ा", "चढ़ेगा", "महंगा", "महंगी",
-        "रिकवरी", "ब्रेकआउट", "रैली",
+        "badhegi", "badhne", "upar", "chadhega", "chadhav", "chadhne", "बढ़ने", "बढने", "चढ़ेगी", "चढ़ेगा", "चढ़ेगी", "चढ़ रहा", "चढ़ रही",
+        "बुलिश", "तेज़ी", "तेजी", "उछाल", "उछलेगा", "उछलेगी", "भागेगा", "भाग रही",
+        "बढ़ेगा", "बढ़ेगी", "ऊपर", "बढ़त", "चढ़ा", "चढ़ाव", "मजबूत", "मजबूती",
+        "महंगा", "महंगी", "रिकवरी", "ब्रेकआउट", "रैली", "तेज उछाल",
     }
     bearish_terms = {
         "bear", "bearish", "crash", "drop", "fall", "falls",
@@ -4874,7 +4874,9 @@ def _asset_search_direction(term, asset):
         "selling", "bearrun", "girawat", "girega", "giregi", "neeche", "mandi",
         "tutega", "गिरावट", "गिरेगा", "गिरेगी", "नीचे",
         "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन",
-        "गिरा", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "सस्ता", "सस्ती",
+        "गिरा", "गिर रहा", "गिर रही", "फिसल", "लुढ़क", "धड़ाम", "धड़ाम", "टूट",
+        "औंधे", "कमजोर", "कमज़ोर", "कमजोरी", "कमज़ोरी", "कमजूत", "दबाव", "बिकेगा",
+        "सस्ता", "सस्ती",
     }
     negation_terms = {"not", "no", "without", "never", "नहीं", "मत", "बिना"}
     if tokens & negation_terms:
@@ -4902,7 +4904,7 @@ def _asset_search_direction(term, asset):
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
-        "स्थिर", "सपाट", "सीमित", "दायरे", "साइडवेज",
+        "स्थिर", "स्थिरता", "सपाट", "सीमित", "दायरे", "दायरेबंद", "रेंज", "साइडवेज",
     }
     if tokens & explicit_neutral:
         return "neutral"
