@@ -24,23 +24,12 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
         self.assertNotIn("NOT_IN_MASTER", result["instruments"])
         self.assertEqual(result["instruments"]["AAA"]["price_as_of"], "13/11/2026")
 
-    def test_fetch_uses_current_nse_fno_bulk_route(self):
-        class Response:
-            def raise_for_status(self):
-                return None
-            def json(self):
-                return self.payload
-
-        response = Response()
-        response.payload = self.payload
-        parsed = {"coverage": {"expected": 2, "matched": 2}, "instruments": {"AAA": {}}}
-        with patch.object(fetch_and_score, "NSE_DIRECT_WARMED", True), \
-             patch.object(fetch_and_score.NSE_MCP_HTTP, "get", return_value=response) as get, \
-             patch.object(fetch_and_score, "parse_nse_market_activity_bulk_payload", return_value=parsed):
+    def test_retired_intraday_bulk_route_is_not_called(self):
+        with patch.object(fetch_and_score.NSE_MCP_HTTP, "get") as get:
             result = fetch_and_score.fetch_nse_market_activity_bulk_quotes({"AAA", "BBB"})
-        self.assertEqual(result, parsed)
-        self.assertIn("/api/equity-stockIndices?index=SECURITIES%20IN%20F%26O", get.call_args.args[0])
-
+        get.assert_not_called()
+        self.assertEqual(result["coverage"], {"expected": 2, "matched": 0})
+        self.assertIn("retired", result["source"])
     def test_parses_official_eod_bhavdata_for_exact_eq_symbols(self):
         csv_text = """SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER
 AAA,EQ,13-Nov-2026,100,101,105,99,104,103,102,123456,1260,5000,60000,48.5
