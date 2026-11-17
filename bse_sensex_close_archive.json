@@ -2,9 +2,9 @@
   "schema_version": 1,
   "source": "BSE official SENSEX historical index archive",
   "requested_from": "2026-11-12",
-  "requested_to": "2026-11-16",
-  "sha256": "141578e452cb7606a402a09264c13eeb0fa45f39d657f829886556a06d3934d2",
-  "captured_at_utc": "2026-11-17T02:58:23+00:00",
+  "requested_to": "2026-11-17",
+  "sha256": "f630cc1d0ebf8ba76ed7f42d5ac482f5fdad7ae35642ea6666746b1b7a407d45",
+  "captured_at_utc": "2026-11-17T13:44:37+00:00",
   "records": [
     {
       "date": "2026-11-12",
@@ -25,6 +25,14 @@
     {
       "date": "2026-11-16",
       "close": 82104.79,
+      "source": "BSE official SENSEX historical index archive",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w?strIndex=SENSEX&dtFromDate=12%2F11%2F2026&dtToDate=17%2F11%2F2026&period=D",
+      "research_only": true,
+      "score_eligible": false
+    },
+    {
+      "date": "2026-11-17",
+      "close": 82532.19,
       "source": "BSE official SENSEX historical index archive",
       "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w?strIndex=SENSEX&dtFromDate=12%2F11%2F2026&dtToDate=17%2F11%2F2026&period=D",
       "research_only": true,
