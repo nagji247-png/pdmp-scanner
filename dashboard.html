@@ -1282,7 +1282,9 @@ function openStockBasketDetails(key) {
     ["स्रोत", c.source || "डेटा नहीं"],
     ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
     ["आधिकारिक कुल शेयर", val(c.expected)],
+    ["मिले हुए शेयर", val(c.matched)],
     ["कवरेज", val(c.coverage_pct, "%")],
+    ["छूटे हुए शेयर", Array.isArray(c.missing_symbols) ? c.missing_symbols.join(", ") || "कोई नहीं" : "डेटा नहीं"],
     ["गणना", c.formula || "10 × (बढ़े − गिरे) ÷ आधिकारिक constituent संख्या; सीमा −10 से +10"],
     ["Validation", c.validation && c.validation.passed === true ? "पास" : "अभी पूर्ण सत्यापन नहीं"]
   ];
@@ -1375,7 +1377,7 @@ function closeStockBasketDetails() {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeStockBasketDetails();
 });
-// Stock Basket refreshes from the latest complete official EOD diagnostic after archive recovery.
+// Stock Basket refreshes from the latest available dated official EOD diagnostic after archive recovery.
 // Keep this panel research-only and score-ineligible.
 function renderStandaloneStockBasket(b, assetName) {
   const component = b && b.stock_basket_diagnostic;
@@ -1384,13 +1386,15 @@ function renderStandaloneStockBasket(b, assetName) {
   stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
   // The compact STOCK BASKET row must show the same diagnostic score as its detail modal.
   // Never use provisional_final.score here: that is a separate multi-component score.
-  const validScore = component && component.status === "complete_diagnostic"
+  const validScore = component && ["complete_diagnostic", "partial_diagnostic"].includes(component.status)
+    && Number(component.matched) > 0
     && Number.isFinite(Number(component.score))
     && Number(component.score) >= -10 && Number(component.score) <= 10;
   const score = validScore ? Number(component.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
   const label = validScore
-    ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10")
+    ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10" +
+       (component.status === "partial_diagnostic" ? " · " + Number(component.matched) + "/" + Number(component.expected) : ""))
     : "डेटा जमा / जाँच जारी";
   const eodRaw = component && component.source_date ? String(component.source_date) : "";
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
