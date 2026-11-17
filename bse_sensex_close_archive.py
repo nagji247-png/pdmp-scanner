@@ -31,7 +31,7 @@ HEADERS = {
 
 def parse_date(value):
     raw = str(value or "").strip()
-    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%b-%Y", "%d %b %Y", "%Y%m%d"):
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y", "%d %b %Y", "%Y%m%d"):
         try:
             return dt.datetime.strptime(raw, fmt).date()
         except ValueError:
@@ -63,7 +63,7 @@ def parse_sensex_history_csv(payload, start_date, end_date):
         raise ValueError("BSE SENSEX CSV header missing")
     aliases = {normalized_header(name): name for name in reader.fieldnames}
     date_col = next((aliases[k] for k in ("date", "tradingdate", "dt") if k in aliases), None)
-    close_col = next((aliases[k] for k in ("close", "closing", "closeindex", "closingindex") if k in aliases), None)
+    close_col = next((aliases[k] for k in ("close", "closing", "closeindex", "closingindex", "closingindexvalue", "closeindexvalue") if k in aliases), None)
     if not date_col or not close_col:
         raise ValueError("BSE SENSEX CSV missing Date/Close columns")
     start, end = parse_date(start_date), parse_date(end_date)
