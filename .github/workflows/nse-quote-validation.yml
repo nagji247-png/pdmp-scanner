@@ -24,6 +24,8 @@ jobs:
         run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py backtest_participant_oi.py
+      - name: Test NSE market activity bulk and EOD quote parsing
+        run: python -m unittest discover -s tests -p "test_market_activity_bulk_quotes.py" -v
       - name: Verify Google Trends fallbacks and NSE MCP handshake
         run: |
           python - <<'PY'
