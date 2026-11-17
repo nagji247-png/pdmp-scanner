@@ -195,6 +195,13 @@ def should_continue_backfill_after_current(status):
     return status != "unavailable"
 
 
+def build_recent_catchup_dates(today, days=7):
+    """Prioritize the latest completed calendar days even when the historical cursor is old."""
+    if not isinstance(days, int) or days < 0 or days > 14:
+        raise ValueError("recent catch-up days must be between 0 and 14")
+    return build_backfill_dates(today - dt.timedelta(days=1), today, days)
+
+
 def build_backfill_dates(cursor, today, days=DEFAULT_BACKFILL_DAYS):
     if not isinstance(days, int) or days < 0 or days > MAX_BACKFILL_DAYS:
         raise ValueError(f"backfill-days must be between 0 and {MAX_BACKFILL_DAYS}")
@@ -264,23 +271,40 @@ def main():
         changed = changed or bool(current.get("changed"))
         stop_backfill = not should_continue_backfill_after_current(current["status"])
 
-        if not archive.get("backfill_complete") and not stop_backfill:
-            raw_cursor = archive.get("backfill_cursor")
-            cursor = parse_date(raw_cursor) if raw_cursor else today - dt.timedelta(days=1)
-            dates = build_backfill_dates(cursor, today, args.backfill_days)
-            next_cursor = cursor
-            for day in dates:
+        if not stop_backfill:
+            # Always catch up the latest week first. A stale historical cursor must
+            # never cause recent completed sessions (e.g. yesterday) to be skipped.
+            recent_days = min(7, args.backfill_days)
+            recent_dates = build_recent_catchup_dates(today, recent_days)
+            for day in recent_dates:
                 result = capture_one(archive, day, calendar=calendar, session=session)
                 results.append(result)
                 changed = changed or bool(result.get("changed"))
                 if result["status"] == "unavailable":
-                    next_cursor = day
                     stop_backfill = True
                     break
-                next_cursor = day - dt.timedelta(days=1)
-            archive["backfill_cursor"] = next_cursor.isoformat()
-            if next_cursor < today - dt.timedelta(days=HISTORY_DAYS):
-                archive["backfill_complete"] = True
+
+            # Spend the remaining bounded date budget on the older historical cursor.
+            remaining_days = max(0, args.backfill_days - len(recent_dates))
+            if not stop_backfill and remaining_days and not archive.get("backfill_complete"):
+                raw_cursor = archive.get("backfill_cursor")
+                recent_floor = today - dt.timedelta(days=recent_days + 1)
+                cursor = parse_date(raw_cursor) if raw_cursor else recent_floor
+                cursor = min(cursor, recent_floor)
+                dates = build_backfill_dates(cursor, today, remaining_days)
+                next_cursor = cursor
+                for day in dates:
+                    result = capture_one(archive, day, calendar=calendar, session=session)
+                    results.append(result)
+                    changed = changed or bool(result.get("changed"))
+                    if result["status"] == "unavailable":
+                        next_cursor = day
+                        stop_backfill = True
+                        break
+                    next_cursor = day - dt.timedelta(days=1)
+                archive["backfill_cursor"] = next_cursor.isoformat()
+                if next_cursor < today - dt.timedelta(days=HISTORY_DAYS):
+                    archive["backfill_complete"] = True
 
     if not args.date or changed:
         archive["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
