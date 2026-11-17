@@ -27,6 +27,16 @@ class BseSensexCloseArchiveTests(unittest.TestCase):
             "2026-11-13": 84400.0,
         })
 
+    def test_parses_full_month_name_dates_from_official_csv(self):
+        parsed = parse_sensex_history_csv(csv_payload([
+            {"Date": "12-November-2026", "Open": "84000", "High": "84500", "Low": "83800", "Close": "84200.5"},
+            {"Date": "13-November-2026", "Open": "84200", "High": "84600", "Low": "84100", "Close": "84400"},
+        ]), "2026-11-12", "2026-11-13")
+        self.assertEqual(parsed, {
+            "2026-11-12": 84200.5,
+            "2026-11-13": 84400.0,
+        })
+
     def test_rejects_missing_date_or_close_columns(self):
         with self.assertRaisesRegex(ValueError, "missing Date/Close"):
             parse_sensex_history_csv(b"Date,Open\n12/11/2026,100\n", "2026-11-12", "2026-11-13")

@@ -39,7 +39,7 @@ HEADERS = {
 
 def parse_date(value):
     raw = str(value or "").strip()
-    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y", "%d %b %Y", "%Y%m%d"):
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y", "%d %b %Y", "%d-%B-%Y", "%d %B %Y", "%Y%m%d"):
         try:
             return dt.datetime.strptime(raw, fmt).date()
         except ValueError:
