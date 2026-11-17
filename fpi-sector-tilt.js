@@ -3,6 +3,7 @@
 var box=document.getElementById("fpi-sector-tilt");
 if(!box)return;
 var master=null,companyData={stocks:{}},marketData={instruments:{}},overlay=null,body=null,activeSector="",lastView=null;
+function stockQuote(symbol){var instruments=marketData&&marketData.instruments||{},bulk=marketData&&marketData.market_activity_quotes&&marketData.market_activity_quotes.instruments||{};var q=instruments[symbol];if(q&&q.type==="stock")return q;q=bulk[symbol];return q&&q.type==="stock"?q:{};}
 var css=document.createElement("style");
 css.textContent=[
 ".fpi-eye{border:0!important;background:transparent!important;color:#7bdcff!important;padding:0 3px!important;margin:0!important;font-size:13px!important;line-height:1!important;cursor:pointer!important;flex:0 0 auto!important;min-width:0!important}",
@@ -60,7 +61,7 @@ function renderSector(sector){
  activeSector=sector;setTitle(sector+" · "+getStocks(sector).length+" स्टॉक",false);
  var rows=getStocks(sector);
  body.innerHTML=rows.length?rows.map(function(r){
-  var q=marketData.instruments&&marketData.instruments[r.symbol]||{};
+  var q=stockQuote(r.symbol);
   var change=num(q.change_pct);
   var price=q.price===null||q.price===undefined?"भाव उपलब्ध नहीं":"₹"+Number(q.price).toLocaleString("en-IN",{maximumFractionDigits:2});
   var movement=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
@@ -71,7 +72,7 @@ function renderStock(symbol){
  if(!overlay)return;
  var info=master&&master.stocks?master.stocks[symbol]||{}:{};
  var company=companyData.stocks?companyData.stocks[symbol]||{}:{};
- var q=marketData.instruments?marketData.instruments[symbol]||{}:{};
+ var q=stockQuote(symbol);
  var sh=company.shareholding||{},financials=company.financials||{},latest=financials.latest||{},quarters=Array.isArray(financials.quarters)?financials.quarters:[],integrated=company.integrated_financials||{},parsed=integrated.parsed||{},iq=parsed.quarter||{},bs=parsed.balance_sheet||{},filing=integrated.filing||{};
  var price=num(q.price);if(price===null)price=num(company.price);
  var change=num(q.change_pct);if(change===null)change=num(company.change_pct);
@@ -84,7 +85,7 @@ function renderStock(symbol){
  function old(v){return v===null||v===undefined?"डेटा उपलब्ध नहीं":fresh?esc(v):"पुराना रिकॉर्ड · "+esc(period);}
  function growth(field){if(!fresh)return period?"पुराना रिकॉर्ड · "+esc(period):"डेटा उपलब्ध नहीं";var now=num(quarters[0]&&quarters[0][field]),prev=num(quarters[4]&&quarters[4][field]);if(now===null||prev===null||prev===0)return "डेटा उपलब्ध नहीं";return ((now-prev)/Math.abs(prev)*100).toFixed(2)+"% YoY";}
  function ratio(label,value){return '<div class="fpi-stock-row"><span>'+esc(label)+'</span><b style="float:right">'+missing(value)+'</b></div>';}
- var quoteDate=q.price_as_of||company.price_as_of||company.market_data_as_of||company.checked_at||"उपलब्ध नहीं";
+ var quoteDate=q.price_as_of||company.price_as_of||company.market_data_as_of||company.quote_timestamp||company.checked_at||"उपलब्ध नहीं";
  var quoteSource=q.price_source||company.price_source||company.quote_source||"स्रोत उपलब्ध नहीं";
  var priceText=price===null?"कीमत उपलब्ध नहीं":"₹"+price.toLocaleString("en-IN",{maximumFractionDigits:2});
  var changeText=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
@@ -110,7 +111,7 @@ function renderStock(symbol){
  panels+='<div class="fpi-detail-panel"><h4>Quality Scorecard</h4><p>Quality Score: डेटा उपलब्ध नहीं<br>Financial Strength: डेटा उपलब्ध नहीं<br>Profitability: डेटा उपलब्ध नहीं<br>Management Risk: डेटा उपलब्ध नहीं<br>Company Growth: डेटा उपलब्ध नहीं</p><p class="fpi-detail-foot">सत्यापित वित्तीय डेटा और तय scoring formula के बिना रेटिंग नहीं दी गई।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Valuation Scorecard</h4><p>Valuation Score: डेटा उपलब्ध नहीं<br>Attractive: &lt; 78 · Expensive: 78–104 · Over-Priced: &gt; 104</p><p class="fpi-detail-foot">सत्यापित valuation score उपलब्ध नहीं; कोई अनुमानित रेटिंग नहीं।</p></div>';
  panels+='<div class="fpi-detail-panel"><h4>Insights & Sector Position</h4><p>मुख्य सकारात्मक बातें: डेटा उपलब्ध नहीं<br>मुख्य जोखिम / कमजोरियाँ: डेटा उपलब्ध नहीं<br>सेक्टर में रैंक: डेटा उपलब्ध नहीं</p><p class="fpi-detail-foot">तुलनीय पूरे सेक्टर के verified dataset के बिना rank नहीं निकाली गई।</p></div>';
- panels+='<div class="fpi-detail-panel"><h4>Price & Trading Activity</h4><p>उपलब्ध कीमत: '+priceText+'<br>दैनिक बदलाव: '+changeText+'<br>वॉल्यूम: '+(q.volume==null?"डेटा उपलब्ध नहीं":Number(q.volume).toLocaleString("en-IN"))+'<br>वॉल्यूम तारीख़: '+missing(q.volume_as_of)+'<br>भाव तारीख़: '+missing(quoteDate)+'<br>स्रोत: '+missing(quoteSource)+'</p><p class="fpi-detail-foot">स्टॉक-स्तरीय वास्तविक buy/sell या FPI order-flow डेटा उपलब्ध नहीं है; कीमत/वॉल्यूम को institutional buying या selling नहीं कहा गया।</p><p><a class="fpi-detail-link" href="https://www.tradingview.com/chart/?symbol=NSE%3A'+encodeURIComponent(symbol)+'" target="_blank" rel="noopener">TradingView Chart खोलें ↗</a></p></div>';
+ panels+='<div class="fpi-detail-panel"><h4>Price & Trading Activity</h4><p>उपलब्ध कीमत: '+priceText+'<br>दैनिक बदलाव: '+changeText+'<br>वॉल्यूम: '+((q.volume==null&&company.traded_quantity==null)?"डेटा उपलब्ध नहीं":Number(q.volume==null?company.traded_quantity:q.volume).toLocaleString("en-IN"))+'<br>वॉल्यूम तारीख़: '+missing(q.volume_as_of)+'<br>भाव तारीख़: '+missing(quoteDate)+'<br>स्रोत: '+missing(quoteSource)+'</p><p class="fpi-detail-foot">स्टॉक-स्तरीय वास्तविक buy/sell या FPI order-flow डेटा उपलब्ध नहीं है; कीमत/वॉल्यूम को institutional buying या selling नहीं कहा गया।</p><p><a class="fpi-detail-link" href="https://www.tradingview.com/chart/?symbol=NSE%3A'+encodeURIComponent(symbol)+'" target="_blank" rel="noopener">TradingView Chart खोलें ↗</a></p></div>';
  setTitle(companyName+" · "+symbol+" · Stock Detail",true);
  body.innerHTML='<div class="fpi-detail-panel"><h4>'+esc(companyName)+' · NSE: '+esc(symbol)+'</h4><div class="fpi-detail-grid"><div class="fpi-detail-stat"><b>'+priceText+'</b><span>अंतिम उपलब्ध भाव</span></div><div class="fpi-detail-stat"><b>'+changeRupeesText+'</b><span>आज का बदलाव ₹ में</span></div><div class="fpi-detail-stat"><b>'+changeText+'</b><span>आज का बदलाव % में</span></div><div class="fpi-detail-stat"><b>'+missing(previousClose)+'</b><span>पिछला बंद भाव</span></div></div><p class="fpi-detail-foot">भाव तारीख़: '+missing(quoteDate)+quoteTimeText+' · स्रोत: '+missing(quoteSource)+'</p></div>'+panels;
  overlay.querySelector("[data-fpi-back]").hidden=false;

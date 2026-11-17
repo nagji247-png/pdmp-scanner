@@ -75,7 +75,9 @@ def parse_company_quote(payload, trade_payload=None):
         "nse_sector": industry.get("sector"),
         "macro_sector": industry.get("macro"),
         "price": number(price.get("lastPrice")),
+        "previous_close": number(price.get("previousClose") or price.get("prevClose")),
         "change_pct": number(price.get("pChange")),
+        "price_as_of": payload.get("timestamp") or price.get("lastUpdateTime") or info.get("lastUpdateTime"),
         "market_cap_cr": market_cap,
         "face_value": number(security.get("faceValue")),
         "quote_timestamp": payload.get("timestamp") or info.get("lastUpdateTime") or price.get("lastUpdateTime") or payload.get("lastUpdateTime"),
@@ -107,6 +109,60 @@ def parse_nse_bhavcopy_row(row):
         "delivery_pct": number(row.get("DELIV_PER")),
     }
     return {key: value for key, value in fields.items() if value is not None}
+
+
+
+def parse_nse_equity_master_csv(content, symbols):
+    """Return official NSE company names for requested symbols from EQUITY_L.csv."""
+    if isinstance(content, bytes):
+        content = content.decode("utf-8-sig", errors="replace")
+    reader = csv.DictReader(StringIO(str(content)))
+    names = {}
+    for raw in reader:
+        row = {str(key).strip().upper(): (value.strip() if isinstance(value, str) else value)
+               for key, value in raw.items() if key is not None}
+        symbol = str(row.get("SYMBOL") or "").strip().upper()
+        name = row.get("NAME OF COMPANY") or row.get("COMPANY NAME") or row.get("NAME")
+        if symbol in symbols and isinstance(name, str) and name.strip():
+            names[symbol] = name.strip()
+    return names
+
+
+def fetch_nse_equity_company_names(session, symbols):
+    """Fetch one official NSE listed-equity master for all requested company names."""
+    url = "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    try:
+        response = session.get(url, timeout=30)
+        response.raise_for_status()
+        names = parse_nse_equity_master_csv(response.content, set(symbols))
+        print(f"NSE listed-equity master: matched company names for {len(names)}/{len(symbols)} symbols")
+        return names
+    except (requests.RequestException, UnicodeError, csv.Error) as exc:
+        print(f"NSE listed-equity company-name master unavailable: {type(exc).__name__}: {str(exc)[:160]}")
+        return {}
+
+
+def merge_full_universe_eod_snapshot(stocks, rows, company_names, master_stocks):
+    """Publish verified EOD quote fields for every matched F&O stock, not just the filing batch."""
+    merged_count = 0
+    for symbol, eod in (rows or {}).items():
+        if not isinstance(eod, dict) or eod.get("price") is None:
+            continue
+        record = dict(stocks.get(symbol) or {})
+        for key, value in eod.items():
+            if value is not None:
+                record[key] = value
+        if company_names.get(symbol):
+            record["company_name"] = company_names[symbol]
+            record["company_name_source"] = "NSE official listed-equity master"
+        master = (master_stocks or {}).get(symbol) or {}
+        for source_key, target_key in (("industry", "industry"), ("sector", "sector"), ("macro_sector", "macro_sector")):
+            if master.get(source_key) and not record.get(target_key):
+                record[target_key] = master[source_key]
+        record["market_data_scope"] = "full_verified_fno_universe_eod_snapshot"
+        stocks[symbol] = record
+        merged_count += 1
+    return merged_count
 
 
 def fetch_latest_nse_bhavcopy(session, symbols, today=None):
@@ -475,8 +531,23 @@ def main():
     })
     seed_nse_session(session)
     stocks = data.setdefault("stocks", {})
-    # One official EOD archive request per daily batch; never one request per symbol.
-    bhavcopy_rows = fetch_latest_nse_bhavcopy(session, set(batch))
+    # One official EOD archive request covers the full verified 218-symbol F&O universe.
+    # This makes quote/volume/delivery data available for every matched stock daily,
+    # while the heavier company filing research remains in a small rotating batch.
+    bhavcopy_rows = fetch_latest_nse_bhavcopy(session, set(symbols))
+    company_names = fetch_nse_equity_company_names(session, set(symbols))
+    universe_quotes = merge_full_universe_eod_snapshot(
+        stocks, bhavcopy_rows, company_names, master.get("stocks") or {}
+    )
+    if bhavcopy_rows:
+        data["full_universe_market_snapshot"] = {
+            "as_of": max((row.get("market_data_as_of") for row in bhavcopy_rows.values()
+                          if row.get("market_data_as_of")), default=None),
+            "matched": universe_quotes,
+            "expected": len(symbols),
+            "source": "NSE official full bhavcopy EOD archive",
+        }
+        print(f"Published full-universe EOD quote snapshot: {universe_quotes}/{len(symbols)} matched")
     success = 0
     for symbol in batch:
         page = "https://www.nseindia.com/get-quotes/equity?symbol=" + symbol
