@@ -35,18 +35,23 @@ class CashBasketBreadthTests(unittest.TestCase):
         )
         self.assertEqual(result["constituents"][0]["close"], 110.0)
 
-    def test_missing_member_withholds_score_instead_of_treating_as_zero(self):
+    def test_missing_member_keeps_verified_partial_breadth_visible(self):
         self.archive["records"][0]["equity_rows"].pop()
         result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
-        self.assertEqual(result["status"], "withheld_incomplete")
-        self.assertIsNone(result["score"])
+        self.assertEqual(result["status"], "partial_diagnostic")
+        self.assertEqual(result["matched"], 1)
+        self.assertEqual(result["expected"], 2)
+        self.assertEqual(result["coverage_pct"], 50.0)
+        self.assertEqual(result["score"], 10.0)
         self.assertEqual(result["missing_symbols"], ["BBB"])
+        self.assertEqual([row["symbol"] for row in result["constituents"]], ["AAA"])
 
     def test_isin_mismatch_is_missing_not_a_match(self):
         self.archive["records"][0]["equity_rows"][0]["isin"] = "WRONG"
         result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
         self.assertEqual(result["matched"], 1)
-        self.assertEqual(result["score"], None)
+        self.assertEqual(result["score"], 10.0)
+        self.assertEqual(result["status"], "partial_diagnostic")
 
 
     def test_constituent_count_is_roster_driven_not_hardcoded(self):
