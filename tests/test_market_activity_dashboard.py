@@ -30,7 +30,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
         blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "cfed1449d46ecaca53b9e9af2462d3453324da4f")
+        self.assertEqual(hashlib.sha1(blob).hexdigest(), "413c8c0dfbad8fd3153834a59411e6ffd4c3fcaf")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
@@ -64,6 +64,14 @@ class MarketActivityDashboardTests(unittest.TestCase):
                      "डेटा उपलब्ध नहीं", "TradingView Chart खोलें"):
             self.assertIn(text, self.fpi_script)
         self.assertIn("window.setInterval(loadData,5*60*1000)", self.fpi_script)
+
+
+    def test_latest_activity_alerts_reserve_visible_slots_for_high_watch_and_flow(self):
+        self.assertIn("function selectActivityAlerts(out)", self.market_activity)
+        self.assertIn('["high","watch","flow"].forEach', self.market_activity)
+        self.assertIn('limits={high:3,watch:3,flow:3}', self.market_activity)
+        self.assertIn("return selectActivityAlerts(out);", self.market_activity)
+        self.assertIn("selected.slice(0,8)", self.market_activity)
 
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
         self.assertIn("function updateTradeGuard(data)", self.dashboard)
