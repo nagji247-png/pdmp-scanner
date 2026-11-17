@@ -95,6 +95,8 @@ def fetch_sensex_history(start_date, end_date, session=None):
         "dtToDate": end.strftime("%d/%m/%Y"),
         "period": "D",
     }
+    # One BSE website warm-up obtains the exchange session cookie; one data request follows.
+    client.get("https://www.bseindia.com/indices/IndexArchiveData.html", headers=HEADERS, timeout=(10, 20))
     response = client.get(URL, params=params, headers=HEADERS, timeout=(10, 30))
     if response.status_code != 200 or not response.content:
         raise RuntimeError(f"BSE SENSEX historical index HTTP {response.status_code}")
