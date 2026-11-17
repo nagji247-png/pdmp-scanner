@@ -92,8 +92,10 @@ class CashBasketBreadthTests(unittest.TestCase):
     def test_missing_previous_close_is_withheld(self):
         del self.archive["records"][0]["equity_rows"][0]["previous_close"]
         result = calculate_breadth(self.archive, self.rosters, "NIFTY", "2026-11-06")
-        self.assertEqual(result["status"], "withheld_incomplete")
-        self.assertIsNone(result["score"])
+        self.assertEqual(result["status"], "partial_diagnostic")
+        self.assertEqual(result["matched"], 1)
+        self.assertEqual(result["score"], -10.0)
+        self.assertEqual(result["missing_symbols"], ["AAA"])
 
     def test_stale_roster_is_withheld(self):
         self.rosters["NIFTY"]["as_of"] = "2026-01-01"
