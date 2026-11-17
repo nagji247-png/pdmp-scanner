@@ -40,7 +40,7 @@ class AssetTrendsInformationIntentTests(unittest.TestCase):
         ]
         neutral = [
             "निफ्टी स्थिरता", "निफ्टी सीमित दायरे में",
-            "निफ्टी दायरेबंद", "निफ्टी रेंज में",
+            "निफ्टी दायरेबंद", "निफ्टी साइडवेज",
         ]
         for term in bullish:
             with self.subTest(term=term):
