@@ -892,17 +892,34 @@ def build_asset_component_breakdowns(
             marketwide_components = client_marketwide_components(
                 client_context, scan_date=news_source_date, max_age_days=3
             )
-            # CLIENT CE/PE is a shared market-wide crowd-positioning component.
-            # It is included in each index's provisional Final with explicit
-            # scope metadata; it is never represented as index-specific data.
+            # CLIENT CE/PE is retained as a shared market-wide positioning
+            # diagnostic, but it is not a validated per-index predictor.
+            # Keep all four legs and the diagnostic score visible in context;
+            # do not let the same unvalidated aggregate manufacture a per-index
+            # provisional Final (especially a SENSEX score with no other input).
             client_ce_pe_component = marketwide_components.get("client_ce_pe")
             if client_ce_pe_component:
-                provisional_components["client_ce_pe"] = client_ce_pe_component
                 if isinstance(client_context, dict):
-                    client_context["included_in_provisional_final"] = True
+                    client_context["client_ce_pe_diagnostic"] = client_ce_pe_component
+                    client_context["included_in_provisional_final"] = False
                     client_context["provisional_component_scope"] = (
-                        "shared market-wide CLIENT CE/PE component; same input on NIFTY, SENSEX and BANKNIFTY"
+                        "shared market-wide diagnostic only; excluded from NIFTY, SENSEX and BANKNIFTY provisional Finals until predictive validation passes"
                     )
+                excluded["client_ce_pe"] = {
+                    "applicable": True,
+                    "included": False,
+                    "source": client_ce_pe_component.get("source") or "NSE participant-wise OI · CLIENT",
+                    "source_date": client_ce_pe_component.get("source_date"),
+                    "scope": "shared market-wide CLIENT aggregate; not index-specific",
+                    "diagnostic_score": client_ce_pe_component.get("score"),
+                    "directional_reading": client_ce_pe_component.get("directional_reading"),
+                    "validation_status": client_ce_pe_component.get("validation_status"),
+                    "reason": (
+                        "चारों CLIENT CE/PE बदलाव उपलब्ध हैं और diagnostic score दिखाया गया है, "
+                        "लेकिन यह market-wide aggregate है और predictive holdout validation pending है; "
+                        "इसलिए NIFTY/SENSEX/BANKNIFTY के per-index provisional Final से बाहर।"
+                    ),
+                }
             else:
                 excluded["client_ce_pe"] = {
                     "applicable": True,
