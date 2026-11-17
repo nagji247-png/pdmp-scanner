@@ -53,6 +53,12 @@ class MarketActivityDashboardTests(unittest.TestCase):
                      "इस NSDL सेक्टर के लिए सत्यापित NSE F&O stock mapping उपलब्ध नहीं"):
             self.assertIn(text, self.fpi_script)
 
+    def test_fpi_detail_reads_full_universe_eod_quote_fallback(self):
+        self.assertIn("function stockQuote(symbol)", self.fpi_script)
+        self.assertIn("marketData.market_activity_quotes", self.fpi_script)
+        self.assertIn("stockQuote(r.symbol)", self.fpi_script)
+        self.assertIn("stockQuote(symbol)", self.fpi_script)
+
     def test_stock_detail_includes_company_and_verified_financial_sections(self):
         for text in ("stock-company-data.json", "कंपनी का कारोबार",
                      "KNOW YOUR STOCK", "Market Snapshot",
