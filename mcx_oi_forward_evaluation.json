@@ -1,36 +1,47 @@
 {
   "schema_version": 1,
   "source": "MCX India official FUTCOM Bhavcopy archive",
-  "archive_sessions": 8,
+  "archive_sessions": 9,
   "first_archive_date": "2026-11-02",
-  "last_archive_date": "2026-11-16",
+  "last_archive_date": "2026-11-17",
   "minimum_signal_sessions_per_symbol": 60,
   "evaluation": {
     "status": "insufficient_sample",
-    "observations": 37,
+    "observations": 43,
     "signal_sessions_by_symbol": {
-      "GOLD": 6,
-      "SILVER": 6
+      "GOLD": 7,
+      "SILVER": 7
     },
     "minimum_signal_sessions_per_symbol": 60,
     "sample_unit": "contract-expiry observations; GOLD and SILVER are reported separately; multiple expiries on one date are not independent sessions",
     "by_symbol": {
       "GOLD": {
         "status": "insufficient_sample",
-        "observations": 19,
-        "signal_sessions": 6,
+        "observations": 22,
+        "signal_sessions": 7,
         "minimum_signal_sessions": 60,
         "regimes": {
+          "price_down_oi_down": {
+            "observations": 1,
+            "continuation_hits": 1,
+            "contrarian_hits": 0,
+            "next_up": 0,
+            "next_down": 1,
+            "next_flat": 0,
+            "directional_observations": 1,
+            "continuation_accuracy_pct_excluding_flat": 100.0,
+            "contrarian_accuracy_pct_excluding_flat": 0.0
+          },
           "price_down_oi_up": {
-            "observations": 9,
-            "continuation_hits": 3,
+            "observations": 11,
+            "continuation_hits": 4,
             "contrarian_hits": 6,
             "next_up": 6,
-            "next_down": 3,
-            "next_flat": 0,
-            "directional_observations": 9,
-            "continuation_accuracy_pct_excluding_flat": 33.33,
-            "contrarian_accuracy_pct_excluding_flat": 66.67
+            "next_down": 4,
+            "next_flat": 1,
+            "directional_observations": 10,
+            "continuation_accuracy_pct_excluding_flat": 40.0,
+            "contrarian_accuracy_pct_excluding_flat": 60.0
           },
           "price_up_oi_down": {
             "observations": 4,
@@ -55,35 +66,35 @@
             "contrarian_accuracy_pct_excluding_flat": 50.0
           }
         },
-        "reason": "signal sessions 6 below minimum 60"
+        "reason": "signal sessions 7 below minimum 60"
       },
       "SILVER": {
         "status": "insufficient_sample",
-        "observations": 18,
-        "signal_sessions": 6,
+        "observations": 21,
+        "signal_sessions": 7,
         "minimum_signal_sessions": 60,
         "regimes": {
           "price_down_oi_down": {
-            "observations": 6,
+            "observations": 7,
             "continuation_hits": 4,
-            "contrarian_hits": 2,
-            "next_up": 2,
+            "contrarian_hits": 3,
+            "next_up": 3,
             "next_down": 4,
             "next_flat": 0,
-            "directional_observations": 6,
-            "continuation_accuracy_pct_excluding_flat": 66.67,
-            "contrarian_accuracy_pct_excluding_flat": 33.33
+            "directional_observations": 7,
+            "continuation_accuracy_pct_excluding_flat": 57.14,
+            "contrarian_accuracy_pct_excluding_flat": 42.86
           },
           "price_down_oi_up": {
-            "observations": 8,
+            "observations": 10,
             "continuation_hits": 7,
-            "contrarian_hits": 1,
-            "next_up": 1,
+            "contrarian_hits": 3,
+            "next_up": 3,
             "next_down": 7,
             "next_flat": 0,
-            "directional_observations": 8,
-            "continuation_accuracy_pct_excluding_flat": 87.5,
-            "contrarian_accuracy_pct_excluding_flat": 12.5
+            "directional_observations": 10,
+            "continuation_accuracy_pct_excluding_flat": 70.0,
+            "contrarian_accuracy_pct_excluding_flat": 30.0
           },
           "price_up_oi_down": {
             "observations": 1,
@@ -108,11 +119,11 @@
             "contrarian_accuracy_pct_excluding_flat": 66.67
           }
         },
-        "reason": "signal sessions 6 below minimum 60"
+        "reason": "signal sessions 7 below minimum 60"
       }
     },
     "excluded": {
-      "unchanged_signal_input": 29
+      "unchanged_signal_input": 34
     },
     "sample": [
       {
@@ -410,6 +421,54 @@
         "outcome_date": "2026-11-16",
         "price_oi_regime": "price_down_oi_up",
         "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_down",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "04JUN2027",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "flat"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "05FEB2027",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_down",
+        "next_session_direction": "up"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAR2027",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "up"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAY2027",
+        "signal_date": "2026-11-16",
+        "outcome_date": "2026-11-17",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "up"
       }
     ],
     "method": "same symbol+expiry; prior/current price-OI regime predicts next archived-session close direction; no look-ahead",
