@@ -4786,70 +4786,41 @@ def _trends_related_queries(timeframe="now 1-d"):
 
 
 def _asset_search_is_out_of_scope(term, asset):
-    """Return True only when a related query clearly belongs to another tracked asset."""
+    """Reject explicit references to a different tracked asset; the seed itself scopes omitted names."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
-    tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
+    tokens = set(re.findall(r"[\\w\\u0900-\\u097F-]+", text))
     has_bank = bool(tokens & {"bank", "बैंक", "banknifty", "बैंकनिफ्टी"})
     has_nifty = bool(tokens & {"nifty", "निफ्टी", "banknifty", "बैंकनिफ्टी"})
     has_sensex = bool(tokens & {"sensex", "सेंसेक्स"})
     has_gold = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
     has_silver = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
+    has_crude = bool(tokens & {"crude", "crudeoil", "oil", "petroleum", "कच्चा", "तेल"})
     if asset == "NIFTY":
-        return has_bank or has_sensex or has_gold or has_silver
+        return has_bank or has_sensex or has_gold or has_silver or has_crude
     if asset == "SENSEX":
-        return has_nifty or has_bank or has_gold or has_silver
+        return has_nifty or has_bank or has_gold or has_silver or has_crude
     if asset == "BANKNIFTY":
-        return not (has_bank and has_nifty) or has_sensex or has_gold or has_silver
+        return has_sensex or has_gold or has_silver or has_crude or (has_nifty and not has_bank)
     if asset == "GOLD":
-        return has_silver
+        return has_silver or has_nifty or has_sensex or has_bank or has_crude
     if asset == "SILVER":
-        return has_gold
+        return has_gold or has_nifty or has_sensex or has_bank or has_crude
     if asset == "CRUDEOIL":
-        non_crude_oil = {
-            "gold", "silver", "nifty", "sensex", "bank", "bitcoin",
-            "sunflower", "soybean", "palm", "edible", "cooking",
-            "vegetable", "mustard", "groundnut",
-            "सोना", "सोने", "चांदी", "रजत", "निफ्टी", "सेंसेक्स", "बैंक",
-            "सूरजमुखी", "सोयाबीन", "पाम", "खाद्य", "सरसों", "मूंगफली",
-        }
-        return bool(tokens & non_crude_oil)
+        return has_gold or has_silver or has_nifty or has_sensex or has_bank
     return False
-
 
 def _asset_search_direction(term, asset):
     """Classify asset-specific directional/explicit-flat queries; information intent is unclassified."""
     text = str(term or "").lower().replace("़", "").replace("ँ", "ं")
     tokens = set(re.findall(r"[\w\u0900-\u097F-]+", text))
 
-    # Match common Hindi names as well as English asset names. Normalize
-    # nukta/chandrabindu variants first; keep neighboring assets isolated.
-    bank_compound = "banknifty" in tokens or "बैंकनिफ्टी" in tokens
-    nifty_name = "nifty" in tokens or "निफ्टी" in tokens or bank_compound
-    bank_name = "bank" in tokens or "बैंक" in tokens or bank_compound
-    sensex_name = "sensex" in tokens or "सेंसेक्स" in tokens
-    gold_name = bool(tokens & {"gold", "गोल्ड", "सोना", "सोने", "स्वर्ण"})
-    silver_name = bool(tokens & {"silver", "सिल्वर", "चांदी", "रजत"})
-
-    if asset == "NIFTY":
-        if not nifty_name or bank_name:
-            return None
-    elif asset == "SENSEX":
-        if not sensex_name or nifty_name:
-            return None
-    elif asset == "BANKNIFTY":
-        if not (bank_name and nifty_name):
-            return None
-    elif asset == "GOLD":
-        if not gold_name or silver_name:
-            return None
-    elif asset == "SILVER":
-        if not silver_name or gold_name:
-            return None
-    elif asset == "CRUDEOIL":
-        if _asset_search_is_out_of_scope(term, asset):
-            return None
-        # The "crude oil" seed scopes related searches; Google often omits seed words.
-    else:
+    # Google Trends related_queries are already scoped to the requested seed.
+    # Do not require every related phrase to repeat "Nifty"/"Sensex"/"Gold":
+    # phrases such as "market rally" are still about the seed asset.
+    # Only reject an explicit reference to a different tracked asset.
+    if asset not in {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"}:
+        return None
+    if _asset_search_is_out_of_scope(term, asset):
         return None
 
     # Shadow-only directional vocabulary is intentionally stricter than the
