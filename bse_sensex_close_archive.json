@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "source": "BSE official SENSEX historical index archive",
+  "requested_from": "2026-11-12",
+  "requested_to": "2026-11-16",
+  "sha256": "141578e452cb7606a402a09264c13eeb0fa45f39d657f829886556a06d3934d2",
+  "captured_at_utc": "2026-11-17T02:01:03+00:00",
+  "records": [
+    {
+      "date": "2026-11-12",
+      "close": 81911.01,
+      "source": "BSE official SENSEX historical index archive",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w?strIndex=SENSEX&dtFromDate=12%2F11%2F2026&dtToDate=17%2F11%2F2026&period=D",
+      "research_only": true,
+      "score_eligible": false
+    },
+    {
+      "date": "2026-11-13",
+      "close": 81592.45,
+      "source": "BSE official SENSEX historical index archive",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w?strIndex=SENSEX&dtFromDate=12%2F11%2F2026&dtToDate=17%2F11%2F2026&period=D",
+      "research_only": true,
+      "score_eligible": false
+    },
+    {
+      "date": "2026-11-16",
+      "close": 82104.79,
+      "source": "BSE official SENSEX historical index archive",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w?strIndex=SENSEX&dtFromDate=12%2F11%2F2026&dtToDate=17%2F11%2F2026&period=D",
+      "research_only": true,
+      "score_eligible": false
+    }
+  ],
+  "research_only": true,
+  "score_eligible": false
+}
