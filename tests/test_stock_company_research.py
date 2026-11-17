@@ -6,6 +6,21 @@ import stock_company_research as research
 
 
 class StockCompanyResearchTests(unittest.TestCase):
+    def test_daily_work_guards_are_independent(self):
+        today = "2026-11-17"
+        both_pending = {"last_batch_date": "2026-11-16"}
+        batch_done = {"last_batch_date": today}
+        snapshot_done = {"last_full_universe_snapshot_date": today}
+        both_done = {"last_batch_date": today, "last_full_universe_snapshot_date": today}
+        self.assertTrue(research.company_batch_due(both_pending, today))
+        self.assertTrue(research.full_universe_snapshot_due(both_pending, today))
+        self.assertFalse(research.company_batch_due(batch_done, today))
+        self.assertTrue(research.full_universe_snapshot_due(batch_done, today))
+        self.assertTrue(research.company_batch_due(snapshot_done, today))
+        self.assertFalse(research.full_universe_snapshot_due(snapshot_done, today))
+        self.assertFalse(research.company_batch_due(both_done, today))
+        self.assertFalse(research.full_universe_snapshot_due(both_done, today))
+
     def test_complete_company_batch_advances_cursor(self):
         self.assertEqual(research.next_batch_cursor(0, 10, 10, 218), 10)
         self.assertEqual(research.next_batch_cursor(210, 10, 10, 218), 2)
@@ -236,7 +251,10 @@ class StockCompanyResearchTests(unittest.TestCase):
             "RELIANCE": {"price": 1500.0, "previous_close": 1490.0,
                          "change_pct": 0.6711, "market_data_as_of": "2026-11-17"},
         }
-        names = {"BHARTIARTL": "BHARTI AIRTEL LIMITED"}
+        names = {
+            "BHARTIARTL": "BHARTI AIRTEL LIMITED",
+            "OTHER": "OTHER INDUSTRIES LIMITED",
+        }
         master = {
             "BHARTIARTL": {"industry": "Telecom - Services", "sector": "Telecommunication"},
             "RELIANCE": {"industry": "Petroleum Products", "sector": "Oil, Gas & Consumable Fuels"},
@@ -252,6 +270,8 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(stocks["RELIANCE"]["shareholding"], {"promoter_pct": 50})
         self.assertEqual(stocks["RELIANCE"]["market_data_scope"],
                          "full_verified_fno_universe_eod_snapshot")
+        self.assertEqual(stocks["OTHER"]["company_name"], "OTHER INDUSTRIES LIMITED")
+        self.assertNotIn("market_data_scope", stocks["OTHER"])
 
     def test_official_bhavcopy_row_parses_eod_market_fields(self):
         result = research.parse_nse_bhavcopy_row({

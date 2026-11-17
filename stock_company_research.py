@@ -143,26 +143,31 @@ def fetch_nse_equity_company_names(session, symbols):
 
 
 def merge_full_universe_eod_snapshot(stocks, rows, company_names, master_stocks):
-    """Publish verified EOD quote fields for every matched F&O stock, not just the filing batch."""
-    merged_count = 0
-    for symbol, eod in (rows or {}).items():
-        if not isinstance(eod, dict) or eod.get("price") is None:
+    """Merge official names for the full universe and EOD fields for matched rows."""
+    merged_eod_count = 0
+    symbols = set((rows or {}).keys()) | set((company_names or {}).keys())
+    for symbol in symbols:
+        eod = (rows or {}).get(symbol)
+        has_eod = isinstance(eod, dict) and eod.get("price") is not None
+        company_name = (company_names or {}).get(symbol)
+        if not has_eod and not company_name:
             continue
         record = dict(stocks.get(symbol) or {})
-        for key, value in eod.items():
-            if value is not None:
-                record[key] = value
-        if company_names.get(symbol):
-            record["company_name"] = company_names[symbol]
+        if has_eod:
+            for key, value in eod.items():
+                if value is not None:
+                    record[key] = value
+            record["market_data_scope"] = "full_verified_fno_universe_eod_snapshot"
+            merged_eod_count += 1
+        if company_name:
+            record["company_name"] = company_name
             record["company_name_source"] = "NSE official listed-equity master"
         master = (master_stocks or {}).get(symbol) or {}
         for source_key, target_key in (("industry", "industry"), ("sector", "sector"), ("macro_sector", "macro_sector")):
             if master.get(source_key) and not record.get(target_key):
                 record[target_key] = master[source_key]
-        record["market_data_scope"] = "full_verified_fno_universe_eod_snapshot"
         stocks[symbol] = record
-        merged_count += 1
-    return merged_count
+    return merged_eod_count
 
 
 def fetch_latest_nse_bhavcopy(session, symbols, today=None):
@@ -505,6 +510,16 @@ def next_batch_cursor(start, batch_size, successful, total):
     return start
 
 
+def company_batch_due(data, today=None):
+    today = today or dt.datetime.now(dt.timezone.utc).date().isoformat()
+    return (data or {}).get("last_batch_date") != today
+
+
+def full_universe_snapshot_due(data, today=None):
+    today = today or dt.datetime.now(dt.timezone.utc).date().isoformat()
+    return (data or {}).get("last_full_universe_snapshot_date") != today
+
+
 def main():
     master = load_json(MASTER, {})
     symbols = sorted((master.get("stocks") or {}).keys())
@@ -516,12 +531,16 @@ def main():
         data["market_cap_backfill_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
         print(f"Backfilled derived market cap for {backfilled} cached stocks without NSE requests")
-    if data.get("last_batch_date") == dt.datetime.now(dt.timezone.utc).date().isoformat():
-        print("Research batch already ran today; no repeat NSE requests")
+    today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    run_company_batch = company_batch_due(data, today)
+    run_full_universe_snapshot = full_universe_snapshot_due(data, today)
+    if not run_company_batch and not run_full_universe_snapshot:
+        print("Company research batch and full-universe EOD snapshot already completed today; no repeat NSE requests")
         return
 
     start = int(data.get("next_index") or 0) % len(symbols)
-    batch = [symbols[(start + offset) % len(symbols)] for offset in range(min(BATCH_SIZE, len(symbols)))]
+    batch = ([symbols[(start + offset) % len(symbols)] for offset in range(min(BATCH_SIZE, len(symbols)))]
+             if run_company_batch else [])
     session = requests.Session()
     session.headers.update({
         "Accept": "application/json, text/plain, */*",
@@ -531,23 +550,34 @@ def main():
     })
     seed_nse_session(session)
     stocks = data.setdefault("stocks", {})
-    # One official EOD archive request covers the full verified 218-symbol F&O universe.
-    # This makes quote/volume/delivery data available for every matched stock daily,
-    # while the heavier company filing research remains in a small rotating batch.
-    bhavcopy_rows = fetch_latest_nse_bhavcopy(session, set(symbols))
-    company_names = fetch_nse_equity_company_names(session, set(symbols))
-    universe_quotes = merge_full_universe_eod_snapshot(
-        stocks, bhavcopy_rows, company_names, master.get("stocks") or {}
-    )
-    if bhavcopy_rows:
-        data["full_universe_market_snapshot"] = {
-            "as_of": max((row.get("market_data_as_of") for row in bhavcopy_rows.values()
-                          if row.get("market_data_as_of")), default=None),
-            "matched": universe_quotes,
-            "expected": len(symbols),
-            "source": "NSE official full bhavcopy EOD archive",
+    # The full-universe EOD snapshot has its own daily guard. It must still run
+    # when today's smaller company-filing batch has already completed.
+    if run_full_universe_snapshot:
+        bhavcopy_rows = fetch_latest_nse_bhavcopy(session, set(symbols))
+        company_names = fetch_nse_equity_company_names(session, set(symbols))
+        universe_quotes = merge_full_universe_eod_snapshot(
+            stocks, bhavcopy_rows, company_names, master.get("stocks") or {}
+        )
+        if bhavcopy_rows:
+            data["full_universe_market_snapshot"] = {
+                "as_of": max((row.get("market_data_as_of") for row in bhavcopy_rows.values()
+                              if row.get("market_data_as_of")), default=None),
+                "matched": universe_quotes,
+                "company_names_matched": len(company_names),
+                "expected": len(symbols),
+                "source": "NSE official full bhavcopy EOD archive",
+            }
+            data["last_full_universe_snapshot_date"] = today
+            print(f"Published full-universe EOD quote snapshot: {universe_quotes}/{len(symbols)} matched")
+        else:
+            print("Full-universe EOD snapshot unavailable; it will retry on the next scheduled run")
+    else:
+        # Reuse today's cached EOD rows for the rotating company batch; no extra
+        # archive request is needed if the universe snapshot is already complete.
+        bhavcopy_rows = {
+            symbol: stocks[symbol] for symbol in batch
+            if isinstance(stocks.get(symbol), dict) and stocks[symbol].get("price") is not None
         }
-        print(f"Published full-universe EOD quote snapshot: {universe_quotes}/{len(symbols)} matched")
     success = 0
     for symbol in batch:
         page = "https://www.nseindia.com/get-quotes/equity?symbol=" + symbol
@@ -700,15 +730,16 @@ def main():
 
     data["schema_version"] = 1
     data["universe_count"] = len(symbols)
-    data["last_batch_date"] = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    data["next_index"] = next_batch_cursor(start, len(batch), success, len(symbols))
-    data["last_batch"] = {
-        "symbols": batch,
-        "success": success,
-        "attempted": len(batch),
-        "complete": success == len(batch),
-        "retry_pending": success < len(batch),
-    }
+    if run_company_batch:
+        data["last_batch_date"] = today
+        data["next_index"] = next_batch_cursor(start, len(batch), success, len(symbols))
+        data["last_batch"] = {
+            "symbols": batch,
+            "success": success,
+            "attempted": len(batch),
+            "complete": success == len(batch),
+            "retry_pending": success < len(batch),
+        }
     data["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     data["source_note"] = (
         "NSE official full bhavcopy EOD archive for dated price/volume/delivery fields when available; NSE quote-equity, quarterly results comparison, Integrated Filing XBRL and Shareholding Pattern XBRL where accessible. "
