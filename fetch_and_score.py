@@ -1763,15 +1763,17 @@ def parse_nse_market_activity_bulk_payload(payload, expected_symbols, now=None):
 
 
 def fetch_nse_market_activity_bulk_quotes(expected_symbols):
-    """Fetch F&O market quotes in one NSE bulk request; never fan out 218 symbol calls."""
+    """Fetch live F&O stock quotes in one NSE bulk request; never fan out 218 calls."""
     global NSE_DIRECT_WARMED
     try:
         if not NSE_DIRECT_WARMED:
             warm = NSE_MCP_HTTP.get("https://www.nseindia.com", timeout=20)
             warm.raise_for_status()
             NSE_DIRECT_WARMED = True
+        # NSE retired the old equity-stockIndices bulk route for F&O securities.
+        # The current live bulk route is the singular equity-stockIndex endpoint.
         response = NSE_MCP_HTTP.get(
-            "https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%20TOTAL%20MARKET",
+            "https://www.nseindia.com/api/equity-stockIndex?index=SECURITIES%20IN%20F%26O",
             headers={
                 "Accept": "application/json, text/plain, */*",
                 "Referer": "https://www.nseindia.com/market-data/live-equity-market",
