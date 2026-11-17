@@ -928,7 +928,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertIn("row_count_not_one", result["reason"])
 
 
-    def test_marketwide_client_ce_pe_is_shared_in_provisional_finals_but_futures_is_excluded(self):
+    def test_unvalidated_marketwide_client_ce_pe_stays_visible_but_is_excluded_from_index_finals(self):
         now = datetime(2026, 11, 12, 14, 0, tzinfo=timezone.utc)
         instruments = {
             name: {"headlines": [], "score": 0}
@@ -939,40 +939,41 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 "score": 1.25, "source": "NSE participant CLIENT",
                 "source_date": "2026-11-11", "weight": 15.0, "included": True,
                 "scope": "shared market-wide CLIENT aggregate; not index-specific",
+                "validation_status": "PROVISIONAL_DIAGNOSTIC · predictive holdout validation pending",
+                "directional_reading": "bullish_client_positioning",
             },
         }
-        with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \
-             mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={}), \
-             mock.patch.object(fetch_and_score, "client_oi_context", return_value={
-                 "available": True, "source": "NSE participant CLIENT",
-                 "source_date": "2026-11-11", "evidence_components": {},
-             }), \
-             mock.patch.object(fetch_and_score, "client_marketwide_components", return_value=marketwide), \
-             mock.patch("builtins.open", side_effect=FileNotFoundError):
+        with (
+            mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}),
+            mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={}),
+            mock.patch.object(fetch_and_score, "client_oi_context", return_value={
+                "available": True, "source": "NSE participant CLIENT",
+                "source_date": "2026-11-11", "evidence_components": {},
+            }),
+            mock.patch.object(fetch_and_score, "client_marketwide_components", return_value=marketwide),
+            mock.patch("builtins.open", side_effect=FileNotFoundError),
+        ):
             fetch_and_score.build_asset_component_breakdowns(
                 instruments, now.isoformat(), now,
                 participant_today={}, participant_changes_data={},
             )
-        shared_scores = []
         for name, item in instruments.items():
             with self.subTest(asset=name):
                 breakdown = item["component_breakdown"]
-                self.assertIn("client_ce_pe", breakdown["provisional_components"])
-                self.assertNotIn("client_ce_pe", breakdown["excluded_components"])
-                self.assertNotIn("client_futures", breakdown["provisional_components"])
+                self.assertNotIn("client_ce_pe", breakdown["provisional_components"])
+                self.assertIn("client_ce_pe", breakdown["excluded_components"])
+                excluded = breakdown["excluded_components"]["client_ce_pe"]
+                self.assertFalse(excluded["included"])
+                self.assertEqual(excluded["diagnostic_score"], 1.25)
+                self.assertIn("predictive holdout validation pending", excluded["validation_status"])
+                self.assertIn("client_ce_pe_diagnostic", breakdown["client_market_context"])
+                self.assertFalse(breakdown["client_market_context"]["included_in_provisional_final"])
+                self.assertNotIn("client_ce_pe", breakdown["provisional_final"]["included_components"])
+                self.assertNotIn("client_futures", breakdown["provisional_final"]["included_components"])
                 self.assertFalse(
                     breakdown["excluded_components"]["client_futures"]["included"]
                 )
-                self.assertIn("client_ce_pe", breakdown["provisional_final"]["included_components"])
-                self.assertEqual(
-                    breakdown["provisional_final"]["normalized_weights_pct"]["client_ce_pe"],
-                    100.0,
-                )
-                shared_scores.append(
-                    breakdown["provisional_components"]["client_ce_pe"]["score"]
-                )
-        self.assertEqual(shared_scores, [1.25, 1.25, 1.25])
-
+                self.assertEqual(breakdown["provisional_final"]["status"], "unavailable")
 
 if __name__ == "__main__":
     unittest.main()
