@@ -1773,7 +1773,7 @@ def fetch_nse_market_activity_bulk_quotes(expected_symbols):
         # NSE retired the old equity-stockIndices bulk route for F&O securities.
         # The current live bulk route is the singular equity-stockIndex endpoint.
         response = NSE_MCP_HTTP.get(
-            "https://www.nseindia.com/api/equity-stockIndex?index=SECURITIES%20IN%20F%26O",
+            "https://www.nseindia.com/api/equity-stockIndices?index=SECURITIES%20IN%20F%26O",
             headers={
                 "Accept": "application/json, text/plain, */*",
                 "Referer": "https://www.nseindia.com/market-data/live-equity-market",
