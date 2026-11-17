@@ -505,6 +505,16 @@ def next_batch_cursor(start, batch_size, successful, total):
     return start
 
 
+def company_batch_due(data, today=None):
+    today = today or dt.datetime.now(dt.timezone.utc).date().isoformat()
+    return (data or {}).get("last_batch_date") != today
+
+
+def full_universe_snapshot_due(data, today=None):
+    today = today or dt.datetime.now(dt.timezone.utc).date().isoformat()
+    return (data or {}).get("last_full_universe_snapshot_date") != today
+
+
 def main():
     master = load_json(MASTER, {})
     symbols = sorted((master.get("stocks") or {}).keys())
@@ -517,8 +527,8 @@ def main():
         OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
         print(f"Backfilled derived market cap for {backfilled} cached stocks without NSE requests")
     today = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    run_company_batch = data.get("last_batch_date") != today
-    run_full_universe_snapshot = data.get("last_full_universe_snapshot_date") != today
+    run_company_batch = company_batch_due(data, today)
+    run_full_universe_snapshot = full_universe_snapshot_due(data, today)
     if not run_company_batch and not run_full_universe_snapshot:
         print("Company research batch and full-universe EOD snapshot already completed today; no repeat NSE requests")
         return
