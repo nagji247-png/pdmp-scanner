@@ -943,14 +943,16 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 "directional_reading": "bullish_client_positioning",
             },
         }
-        with mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}), \\
-             mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={}), \\
-             mock.patch.object(fetch_and_score, "client_oi_context", return_value={
-                 "available": True, "source": "NSE participant CLIENT",
-                 "source_date": "2026-11-11", "evidence_components": {},
-             }), \\
-             mock.patch.object(fetch_and_score, "client_marketwide_components", return_value=marketwide), \\
-             mock.patch("builtins.open", side_effect=FileNotFoundError):
+        with (
+            mock.patch.object(fetch_and_score, "experimental_news_scores", return_value={}),
+            mock.patch.object(fetch_and_score, "load_latest_stock_basket_diagnostics", return_value={}),
+            mock.patch.object(fetch_and_score, "client_oi_context", return_value={
+                "available": True, "source": "NSE participant CLIENT",
+                "source_date": "2026-11-11", "evidence_components": {},
+            }),
+            mock.patch.object(fetch_and_score, "client_marketwide_components", return_value=marketwide),
+            mock.patch("builtins.open", side_effect=FileNotFoundError),
+        ):
             fetch_and_score.build_asset_component_breakdowns(
                 instruments, now.isoformat(), now,
                 participant_today={}, participant_changes_data={},
@@ -971,7 +973,6 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
                 self.assertFalse(
                     breakdown["excluded_components"]["client_futures"]["included"]
                 )
-                # With no other valid inputs, SENSEX must not get a fabricated score.
                 self.assertEqual(breakdown["provisional_final"]["status"], "unavailable")
 
 if __name__ == "__main__":
