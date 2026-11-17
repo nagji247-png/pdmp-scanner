@@ -23,7 +23,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=12"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=13"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
@@ -33,6 +33,13 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertEqual(hashlib.sha1(blob).hexdigest(), "8f732a0c396b28399f6ff624b6a107a7587cf8e8")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
+
+    def test_sector_direction_requires_broad_quote_coverage(self):
+        self.assertIn("d.minRequired=Math.max(5,Math.ceil(rows.length*0.6))", self.market_activity)
+        self.assertIn("if(!d.qualified)return 1", self.market_activity)
+        self.assertIn("if(!d.qualified)", self.market_activity)
+        self.assertIn("कम-से-कम 5 स्टॉक", self.market_activity)
+        self.assertIn("दिशा के लिए कम-से-कम", self.market_activity)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
