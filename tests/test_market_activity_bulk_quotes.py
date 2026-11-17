@@ -39,7 +39,7 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
              patch.object(fetch_and_score, "parse_nse_market_activity_bulk_payload", return_value=parsed):
             result = fetch_and_score.fetch_nse_market_activity_bulk_quotes({"AAA", "BBB"})
         self.assertEqual(result, parsed)
-        self.assertIn("/api/equity-stockIndex?index=SECURITIES%20IN%20F%26O", get.call_args.args[0])
+        self.assertIn("/api/equity-stockIndices?index=SECURITIES%20IN%20F%26O", get.call_args.args[0])
 
     def test_rejects_missing_exchange_timestamp(self):
         payload = dict(self.payload); payload.pop("timestamp")
