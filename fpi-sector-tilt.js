@@ -84,7 +84,7 @@ function renderStock(symbol){
  function old(v){return v===null||v===undefined?"डेटा उपलब्ध नहीं":fresh?esc(v):"पुराना रिकॉर्ड · "+esc(period);}
  function growth(field){if(!fresh)return period?"पुराना रिकॉर्ड · "+esc(period):"डेटा उपलब्ध नहीं";var now=num(quarters[0]&&quarters[0][field]),prev=num(quarters[4]&&quarters[4][field]);if(now===null||prev===null||prev===0)return "डेटा उपलब्ध नहीं";return ((now-prev)/Math.abs(prev)*100).toFixed(2)+"% YoY";}
  function ratio(label,value){return '<div class="fpi-stock-row"><span>'+esc(label)+'</span><b style="float:right">'+missing(value)+'</b></div>';}
- var quoteDate=q.price_as_of||company.price_as_of||company.market_data_as_of||company.checked_at||"उपलब्ध नहीं";
+ var quoteDate=q.price_as_of||company.price_as_of||company.market_data_as_of||company.quote_timestamp||company.checked_at||"उपलब्ध नहीं";
  var quoteSource=q.price_source||company.price_source||company.quote_source||"स्रोत उपलब्ध नहीं";
  var priceText=price===null?"कीमत उपलब्ध नहीं":"₹"+price.toLocaleString("en-IN",{maximumFractionDigits:2});
  var changeText=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
