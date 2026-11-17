@@ -1798,7 +1798,7 @@ def fetch_nse_eod_bhavdata_quotes(expected_symbols):
             response.raise_for_status()
             body = response.text or ""
             if not body.lstrip(chr(65279)).startswith("SYMBOL,"):
-                preview = re.sub(r"\\s+", " ", body[:120]).strip()
+                preview = body[:120].replace("\n", " ").strip()
                 raise ValueError("NSE archive did not return CSV: status=" + str(response.status_code) + " content_type=" + str(response.headers.get("content-type")) + " preview=" + preview)
             snapshot = parse_nse_eod_bhavdata_csv(body, expected_symbols, expected_date=trade_date)
             if snapshot["instruments"]:
