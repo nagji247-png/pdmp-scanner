@@ -33,13 +33,21 @@ jobs:
           ref: ${{ github.ref }}
       - name: Download NSE index archive from completed EOD workflow
         if: github.event_name == 'workflow_run'
-        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: nse-index-close-archive
           path: .research-artifacts
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare tracked NSE index archive for push and manual runs
+        if: github.event_name != 'workflow_run'
+        run: |
+          mkdir -p .research-artifacts
+          if [ ! -s nse_index_close_archive.json ]; then
+            echo "NSE_INDEX_ARCHIVE_MISSING; stock benchmark refresh withheld"
+            exit 1
+          fi
+          cp nse_index_close_archive.json .research-artifacts/nse_index_close_archive.json
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
