@@ -8,6 +8,8 @@ on:
       - "nse_index_close_archive.py"
       - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
+      - "bse_sensex_close_archive.py"
+      - "tests/test_bse_sensex_close_archive.py"
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
       - "stock_basket_freshness.py"
@@ -77,6 +79,8 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_index_close_archive.py' -v
           python -m py_compile bse_cm_bhavcopy_archive.py
           python -m unittest discover -s tests -p 'test_bse_cm_bhavcopy_archive.py' -v
+          python -m py_compile bse_sensex_close_archive.py
+          python -m unittest discover -s tests -p 'test_bse_sensex_close_archive.py' -v
           python -m py_compile index_constituent_rosters.py
           python -m unittest discover -s tests -p 'test_index_constituent_rosters.py' -v
           python -m py_compile nse_cash_basket_breadth.py
@@ -101,6 +105,10 @@ jobs:
         if: github.event_name != 'pull_request'
         continue-on-error: true
         run: python nse_index_close_archive.py --backfill-days 14
+      - name: Capture official BSE SENSEX close history for CLIENT Futures validation
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: python bse_sensex_close_archive.py --from-date 2026-11-12
       - name: Upload NSE daily index archive artifact for downstream stock research
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
@@ -136,6 +144,11 @@ jobs:
             git add -f -- bse_cm_bhavcopy_archive.json
           else
             echo "BSE archive unavailable; Sensex cash basket remains withheld"
+          fi
+          if [ -f bse_sensex_close_archive.json ]; then
+            git add -f -- bse_sensex_close_archive.json
+          else
+            echo "Official BSE SENSEX close archive unavailable; CLIENT Futures validation remains fail-closed"
           fi
           # The basket replay reads this generated official NSE index-close archive.
           # Stage it too, otherwise it remains a dirty tracked file and git pull
