@@ -113,27 +113,34 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
         })
 
     coverage = len(moves) / len(members)
-    if missing:
+    if not moves:
         return {
             "index": index_key, "date": trade_date, "status": "withheld_incomplete",
             "roster_as_of": meta["as_of"], "expected": len(members),
-            "matched": len(moves), "coverage_pct": round(coverage * 100, 2),
+            "matched": 0, "coverage_pct": 0.0,
             "missing_symbols": missing, "score": None,
             "score_eligible": False, "research_only": True,
+            "reason": "No constituent rows passed symbol, ISIN and price validation",
         }
 
+    # Always expose the breadth of every verified constituent available.
+    # The score is normalized over matched rows only and is explicitly
+    # diagnostic; missing constituents remain visible in coverage metadata.
     advances = sum(item["change_pct"] > 0 for item in moves)
     declines = sum(item["change_pct"] < 0 for item in moves)
     unchanged = len(moves) - advances - declines
     score = 10.0 * (advances - declines) / len(moves)
+    partial = bool(missing)
     constituents = sorted(
         moves,
         key=lambda item: (item["symbol"] or item["instrument_id"]),
     )
     return {
-        "index": index_key, "date": trade_date, "status": "complete_diagnostic",
+        "index": index_key, "date": trade_date,
+        "status": "partial_diagnostic" if partial else "complete_diagnostic",
         "roster_as_of": meta["as_of"], "expected": len(members),
-        "matched": len(moves), "coverage_pct": 100.0,
+        "matched": len(moves), "coverage_pct": round(coverage * 100, 2),
+        "missing_symbols": missing,
         "advances": advances, "declines": declines, "unchanged": unchanged,
         "advance_pct": round(100 * advances / len(moves), 2),
         "decline_pct": round(100 * declines / len(moves), 2),
@@ -143,7 +150,7 @@ def calculate_breadth(archive, roster, index_key, trade_date, max_roster_age_day
         "constituents": constituents,
         "score": round(max(-10.0, min(10.0, score)), 2),
         "score_eligible": False, "research_only": True,
-        "method": "10 * (advances - declines) / official constituent count; equal member count",
+        "method": "10 * (advances - declines) / verified matched constituent count; equal member count",
     }
 
 
