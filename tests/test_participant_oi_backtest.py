@@ -33,6 +33,57 @@ def participant_row(date):
 
 class ParticipantOIBacktestTests(unittest.TestCase):
 
+    def test_official_nse_close_archive_maps_nifty_and_banknifty(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "nse_index_close_archive.json").write_text(json.dumps({
+                "records": [
+                    {"date": "2026-11-12", "indices": {"Nifty 50": 24000, "Nifty Bank": 55000}},
+                    {"date": "2026-11-13", "indices": {"Nifty 50": 24100, "Nifty Bank": 55200}},
+                ]
+            }), encoding="utf-8")
+            with patch.object(backtest, "ROOT", root):
+                nifty, nifty_meta = backtest.load_official_client_futures_close_prices("NIFTY")
+                bank, bank_meta = backtest.load_official_client_futures_close_prices("BANKNIFTY")
+            self.assertEqual(nifty["2026-11-13"]["close"], 24100)
+            self.assertEqual(bank["2026-11-13"]["close"], 55200)
+            self.assertEqual(nifty_meta["source"], "NSE official Daily Snapshot (ind_close_all)")
+            self.assertTrue(bank_meta["research_only"])
+            self.assertFalse(bank_meta["score_eligible"])
+
+    def test_official_bse_close_archive_maps_sensex(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bse_sensex_close_archive.json").write_text(json.dumps({
+                "records": [
+                    {"date": "2026-11-12", "close": 84000},
+                    {"date": "2026-11-13", "close": 84200},
+                ]
+            }), encoding="utf-8")
+            with patch.object(backtest, "ROOT", root):
+                prices, meta = backtest.load_official_client_futures_close_prices("SENSEX")
+            self.assertEqual(prices["2026-11-13"]["close"], 84200)
+            self.assertEqual(meta["source"], "BSE official SENSEX historical index archive")
+
+    def test_missing_official_close_archive_fails_closed(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(backtest, "ROOT", Path(directory)):
+                prices, meta = backtest.load_official_client_futures_close_prices("SENSEX")
+            self.assertEqual(prices, {})
+            self.assertEqual(meta["status"], "unavailable")
+            self.assertIn("archive missing", meta["reason"])
+
     def test_client_futures_recent_seven_session_direction_check(self):
         start = dt.date(2026, 1, 1)
         records = []

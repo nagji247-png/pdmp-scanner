@@ -116,6 +116,75 @@ def load_oi_records():
     return validate_oi_records(payload.get("records", []))
 
 
+def load_official_client_futures_close_prices(index_name):
+    """Load official exchange closes for the 14-session CLIENT Futures check only.
+
+    Yahoo OHLC remains in use for the separate long-history exploratory study.
+    This promotion-gated check never falls back to Yahoo.
+    """
+    if index_name == "SENSEX":
+        path = ROOT / "bse_sensex_close_archive.json"
+        source = "BSE official SENSEX historical index archive"
+        if not path.exists():
+            return {}, {"status": "unavailable", "source": source, "reason": "official BSE SENSEX close archive missing"}
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        rows = payload.get("records") if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise ValueError("BSE SENSEX close archive records invalid")
+        prices = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError("BSE SENSEX close archive row invalid")
+            date = row.get("date")
+            dt.date.fromisoformat(date)
+            close = finite_number(row.get("close"))
+            if close is None or close <= 0 or date in prices:
+                raise ValueError(f"invalid/duplicate official BSE SENSEX close: {date}")
+            prices[date] = {"close": close}
+    else:
+        path = ROOT / "nse_index_close_archive.json"
+        source = "NSE official Daily Snapshot (ind_close_all)"
+        if not path.exists():
+            return {}, {"status": "unavailable", "source": source, "reason": "official NSE index close archive missing"}
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        rows = payload.get("records") if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise ValueError("NSE index close archive records invalid")
+        target_name = {"NIFTY": "NIFTY50", "BANKNIFTY": "NIFTYBANK"}.get(index_name)
+        if not target_name:
+            raise ValueError(f"unsupported official close index: {index_name}")
+        prices = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError("NSE index close archive row invalid")
+            date = row.get("date")
+            dt.date.fromisoformat(date)
+            indices = row.get("indices")
+            if not isinstance(indices, dict):
+                raise ValueError(f"NSE index close row has no index map: {date}")
+            matches = [
+                value for name, value in indices.items()
+                if "".join(ch for ch in str(name).upper() if ch.isalnum()) == target_name
+            ]
+            if len(matches) > 1:
+                raise ValueError(f"duplicate official NSE index close for {index_name} on {date}")
+            if matches:
+                close = finite_number(matches[0])
+                if close is None or close <= 0 or date in prices:
+                    raise ValueError(f"invalid/duplicate official NSE close for {index_name}: {date}")
+                prices[date] = {"close": close}
+    return prices, {
+        "status": "available" if prices else "unavailable",
+        "source": source,
+        "sessions": len(prices),
+        "first_date": min(prices) if prices else None,
+        "last_date": max(prices) if prices else None,
+        "research_only": True,
+        "score_eligible": False,
+        "reason": None if prices else f"no official close rows found for {index_name}",
+    }
+
+
 def incomplete_current_session_date(now_utc=None):
     """Return today's IST date until 16:00; an intraday daily candle is not a close."""
     now = now_utc or dt.datetime.now(dt.timezone.utc)
@@ -548,6 +617,9 @@ def client_futures_recent_direction_check(records, prices, sessions=7, anchor_da
 
 def analyze_index(index_name, symbol, records):
     prices, price_validation = load_index_prices(symbol)
+    official_client_futures_prices, official_client_futures_price_validation = (
+        load_official_client_futures_close_prices(index_name)
+    )
     price_dates = sorted(prices)
     price_index = {date: i for i, date in enumerate(price_dates)}
     oi_dates = [row["date"] for row in records]
@@ -699,8 +771,13 @@ def analyze_index(index_name, symbol, records):
             "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
-        "client_futures_recent_7_session_check": client_futures_recent_direction_check(records, prices, sessions=7, anchor_date="2026-11-12"),
-        "client_futures_new_14_session_check": client_futures_recent_direction_check(records, prices, sessions=14, anchor_date="2026-11-12"),
+        "client_futures_recent_7_session_check": client_futures_recent_direction_check(
+            records, official_client_futures_prices, sessions=7, anchor_date="2026-11-12"
+        ),
+        "client_futures_new_14_session_check": client_futures_recent_direction_check(
+            records, official_client_futures_prices, sessions=14, anchor_date="2026-11-12"
+        ),
+        "client_futures_official_close_validation": official_client_futures_price_validation,
         "client_option_quantity_magnitude_threshold_diagnostics": magnitude_threshold_diagnostics(rows_by_feature),
     }
 

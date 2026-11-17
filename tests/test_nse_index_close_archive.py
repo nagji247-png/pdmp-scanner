@@ -128,6 +128,12 @@ class NSEIndexCloseArchiveTests(unittest.TestCase):
         self.assertTrue(archive.should_continue_backfill_after_current("skipped_non_session"))
         self.assertFalse(archive.should_continue_backfill_after_current("unavailable"))
 
+    def test_recent_catchup_always_starts_with_yesterday_not_old_cursor(self):
+        dates = archive.build_recent_catchup_dates(dt.date(2026, 11, 17), 7)
+        self.assertEqual(dates[0], dt.date(2026, 11, 16))
+        self.assertEqual(dates[-1], dt.date(2026, 11, 10))
+        self.assertIn(dt.date(2026, 11, 16), dates)
+
     def test_backfill_cursor_moves_back_bounded_calendar_days(self):
         dates = archive.build_backfill_dates(
             dt.date(2026, 11, 15), dt.date(2026, 11, 16), 14
