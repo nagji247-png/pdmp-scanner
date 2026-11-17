@@ -56,6 +56,38 @@ class AssetTrendsInformationIntentTests(unittest.TestCase):
         self.assertIsNone(fetch_and_score._asset_search_direction("निफ्टी में मजबूती", "SENSEX"))
         self.assertIsNone(fetch_and_score._asset_search_direction("सोना धड़ाम", "SILVER"))
 
+    def test_seed_scoped_related_queries_do_not_need_to_repeat_asset_name(self):
+        cases = [
+            ("market rally", "NIFTY", "bull"),
+            ("market crash", "NIFTY", "bear"),
+            ("market flat", "NIFTY", "neutral"),
+            ("stocks recovery", "SENSEX", "bull"),
+            ("market correction", "SENSEX", "bear"),
+            ("market consolidation", "SENSEX", "neutral"),
+            ("banking stocks surge", "BANKNIFTY", "bull"),
+            ("banking shares decline", "BANKNIFTY", "bear"),
+            ("banking market sideways", "BANKNIFTY", "neutral"),
+            ("gold price surge", "GOLD", "bull"),
+            ("gold price slump", "GOLD", "bear"),
+            ("gold price stable", "GOLD", "neutral"),
+            ("silver prices rally", "SILVER", "bull"),
+            ("silver prices fall", "SILVER", "bear"),
+            ("silver prices flat", "SILVER", "neutral"),
+        ]
+        for term, asset, expected in cases:
+            with self.subTest(term=term, asset=asset):
+                self.assertEqual(
+                    fetch_and_score._asset_search_direction(term, asset),
+                    expected,
+                )
+
+    def test_seed_scope_still_rejects_explicit_other_assets(self):
+        self.assertIsNone(fetch_and_score._asset_search_direction("sensex market rally", "NIFTY"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("nifty market crash", "SENSEX"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("gold price rally", "SILVER"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("silver price crash", "GOLD"))
+        self.assertIsNone(fetch_and_score._asset_search_direction("nifty breakout", "BANKNIFTY"))
+
     def test_other_assets_and_bare_asset_names_do_not_become_neutral(self):
         self.assertIsNone(fetch_and_score._asset_search_direction("sensex live", "NIFTY"))
         self.assertIsNone(fetch_and_score._asset_search_direction("gold silver price today", "GOLD"))
