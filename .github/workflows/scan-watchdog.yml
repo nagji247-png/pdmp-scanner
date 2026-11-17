@@ -1,7 +1,7 @@
 name: PDMP Scan Watchdog
 
 on:
-  # IST market-hours recovery checks: every 5 minutes from 09:00 to 15:40,
+  # IST market-hours recovery checks: every 5 minutes from 08:30 to 16:55,
   # Monday-Friday. UTC is 5 hours 30 minutes behind IST.
   # Outside market hours, check every 30 minutes; night-time delay is acceptable.
   schedule:
@@ -10,7 +10,7 @@ on:
     - cron: "*/5 3-10 * * 1-5"
     - cron: "0,5,10,15,20,25 11 * * 1-5"
     # Outside the market session, check every 30 minutes.
-    - cron: "33 11-23,0-2 * * 1-5"
+    - cron: "3,33 11-23,0-2 * * 1-5"
   workflow_dispatch:
 
 permissions:
