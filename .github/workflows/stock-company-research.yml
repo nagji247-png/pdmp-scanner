@@ -50,7 +50,7 @@ jobs:
           STOCK_RESEARCH_BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
         run: python stock_company_research.py
       - name: Refresh one-year stock, sector and market returns from NSE archives
-        run: python stock_return_history.py --index-archive .research-artifacts/nse-index-close-archive/nse_index_close_archive.json
+        run: python stock_return_history.py --index-archive .research-artifacts/nse_index_close_archive.json
       - name: Commit only company research cache to the triggering branch
         env:
           TARGET_BRANCH: ${{ github.ref_name }}
