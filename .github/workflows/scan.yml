@@ -42,6 +42,7 @@ on:
       - "index_cash_basket_diagnostics.json"
       - "client_futures_promotion.py"
       - ".github/workflows/scan.yml"
+      - ".github/workflows/scan-watchdog.yml"
   schedule:
     # सामान्य PDMP स्कैन हर 30 मिनट; Trends केवल तय चार स्लॉट पर।
     - cron: "7,37 * * * *"
