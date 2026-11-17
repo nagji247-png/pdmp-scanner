@@ -5425,11 +5425,930 @@
     },
     {
       "date": "2026-11-16",
-      "status": "withheld_incomplete",
+      "status": "complete_diagnostic",
       "indices": {
         "NIFTY": {
           "index": "NIFTY",
           "date": "2026-11-16",
+          "status": "complete_diagnostic",
+          "roster_as_of": "2026-11-06",
+          "expected": 50,
+          "matched": 50,
+          "coverage_pct": 100.0,
+          "advances": 31,
+          "declines": 19,
+          "unchanged": 0,
+          "advance_pct": 62.0,
+          "decline_pct": 38.0,
+          "equal_weight_mean_change_pct": 0.389,
+          "constituents": [
+            {
+              "symbol": "ADANIENT",
+              "instrument_id": "",
+              "isin": "INE423A01024",
+              "close": 2659.0,
+              "previous_close": 2688.0,
+              "change_pct": -1.0789,
+              "volume": 810174
+            },
+            {
+              "symbol": "ADANIPORTS",
+              "instrument_id": "",
+              "isin": "INE742F01042",
+              "close": 1893.0,
+              "previous_close": 1903.3,
+              "change_pct": -0.5412,
+              "volume": 1351308
+            },
+            {
+              "symbol": "APOLLOHOSP",
+              "instrument_id": "",
+              "isin": "INE437A01024",
+              "close": 8771.0,
+              "previous_close": 8526.0,
+              "change_pct": 2.8736,
+              "volume": 605900
+            },
+            {
+              "symbol": "ASIANPAINT",
+              "instrument_id": "",
+              "isin": "INE021A01026",
+              "close": 2572.9,
+              "previous_close": 2550.0,
+              "change_pct": 0.898,
+              "volume": 1146250
+            },
+            {
+              "symbol": "AXISBANK",
+              "instrument_id": "",
+              "isin": "INE238A01034",
+              "close": 1342.4,
+              "previous_close": 1331.0,
+              "change_pct": 0.8565,
+              "volume": 5347137
+            },
+            {
+              "symbol": "BAJAJ-AUTO",
+              "instrument_id": "",
+              "isin": "INE917I01010",
+              "close": 10734.0,
+              "previous_close": 10850.0,
+              "change_pct": -1.0691,
+              "volume": 165513
+            },
+            {
+              "symbol": "BAJAJFINSV",
+              "instrument_id": "",
+              "isin": "INE918I01026",
+              "close": 1848.2,
+              "previous_close": 1865.0,
+              "change_pct": -0.9008,
+              "volume": 677262
+            },
+            {
+              "symbol": "BAJFINANCE",
+              "instrument_id": "",
+              "isin": "INE296A01032",
+              "close": 1110.0,
+              "previous_close": 1117.0,
+              "change_pct": -0.6267,
+              "volume": 8224959
+            },
+            {
+              "symbol": "BEL",
+              "instrument_id": "",
+              "isin": "INE263A01024",
+              "close": 401.4,
+              "previous_close": 400.85,
+              "change_pct": 0.1372,
+              "volume": 6883905
+            },
+            {
+              "symbol": "BHARTIARTL",
+              "instrument_id": "",
+              "isin": "INE397D01024",
+              "close": 2153.5,
+              "previous_close": 2106.0,
+              "change_pct": 2.2555,
+              "volume": 9553920
+            },
+            {
+              "symbol": "BSE",
+              "instrument_id": "",
+              "isin": "INE118H01025",
+              "close": 3887.4,
+              "previous_close": 3937.7,
+              "change_pct": -1.2774,
+              "volume": 2273785
+            },
+            {
+              "symbol": "CIPLA",
+              "instrument_id": "",
+              "isin": "INE059A01026",
+              "close": 1394.5,
+              "previous_close": 1391.8,
+              "change_pct": 0.194,
+              "volume": 1248691
+            },
+            {
+              "symbol": "COALINDIA",
+              "instrument_id": "",
+              "isin": "INE522F01014",
+              "close": 397.5,
+              "previous_close": 403.5,
+              "change_pct": -1.487,
+              "volume": 18172076
+            },
+            {
+              "symbol": "DRREDDY",
+              "instrument_id": "",
+              "isin": "INE089A01031",
+              "close": 1377.9,
+              "previous_close": 1380.0,
+              "change_pct": -0.1522,
+              "volume": 974997
+            },
+            {
+              "symbol": "EICHERMOT",
+              "instrument_id": "",
+              "isin": "INE066A01021",
+              "close": 7599.0,
+              "previous_close": 7650.0,
+              "change_pct": -0.6667,
+              "volume": 1719822
+            },
+            {
+              "symbol": "ETERNAL",
+              "instrument_id": "",
+              "isin": "INE758T01015",
+              "close": 371.1,
+              "previous_close": 363.65,
+              "change_pct": 2.0487,
+              "volume": 23653290
+            },
+            {
+              "symbol": "GRASIM",
+              "instrument_id": "",
+              "isin": "INE047A01021",
+              "close": 3084.4,
+              "previous_close": 3034.0,
+              "change_pct": 1.6612,
+              "volume": 835842
+            },
+            {
+              "symbol": "HCLTECH",
+              "instrument_id": "",
+              "isin": "INE860A01027",
+              "close": 1384.6,
+              "previous_close": 1378.0,
+              "change_pct": 0.479,
+              "volume": 2124094
+            },
+            {
+              "symbol": "HDFCBANK",
+              "instrument_id": "",
+              "isin": "INE040A01034",
+              "close": 816.5,
+              "previous_close": 804.0,
+              "change_pct": 1.5547,
+              "volume": 27152881
+            },
+            {
+              "symbol": "HDFCLIFE",
+              "instrument_id": "",
+              "isin": "INE795G01014",
+              "close": 604.5,
+              "previous_close": 592.25,
+              "change_pct": 2.0684,
+              "volume": 3944833
+            },
+            {
+              "symbol": "HINDALCO",
+              "instrument_id": "",
+              "isin": "INE038A01020",
+              "close": 923.3,
+              "previous_close": 943.6,
+              "change_pct": -2.1513,
+              "volume": 8856443
+            },
+            {
+              "symbol": "HINDUNILVR",
+              "instrument_id": "",
+              "isin": "INE030A01027",
+              "close": 2000.3,
+              "previous_close": 1992.9,
+              "change_pct": 0.3713,
+              "volume": 1093817
+            },
+            {
+              "symbol": "ICICIBANK",
+              "instrument_id": "",
+              "isin": "INE090A01021",
+              "close": 1585.0,
+              "previous_close": 1583.6,
+              "change_pct": 0.0884,
+              "volume": 10069159
+            },
+            {
+              "symbol": "INDIGO",
+              "instrument_id": "",
+              "isin": "INE646L01027",
+              "close": 5544.0,
+              "previous_close": 5587.3,
+              "change_pct": -0.775,
+              "volume": 626753
+            },
+            {
+              "symbol": "INFY",
+              "instrument_id": "",
+              "isin": "INE009A01021",
+              "close": 1145.1,
+              "previous_close": 1141.5,
+              "change_pct": 0.3154,
+              "volume": 4852092
+            },
+            {
+              "symbol": "ITC",
+              "instrument_id": "",
+              "isin": "INE154A01025",
+              "close": 295.1,
+              "previous_close": 285.0,
+              "change_pct": 3.5439,
+              "volume": 49035309
+            },
+            {
+              "symbol": "JIOFIN",
+              "instrument_id": "",
+              "isin": "INE758E01017",
+              "close": 226.0,
+              "previous_close": 227.5,
+              "change_pct": -0.6593,
+              "volume": 7722398
+            },
+            {
+              "symbol": "JSWSTEEL",
+              "instrument_id": "",
+              "isin": "INE019A01038",
+              "close": 1334.6,
+              "previous_close": 1348.0,
+              "change_pct": -0.9941,
+              "volume": 1864995
+            },
+            {
+              "symbol": "KOTAKBANK",
+              "instrument_id": "",
+              "isin": "INE237A01036",
+              "close": 494.2,
+              "previous_close": 488.55,
+              "change_pct": 1.1565,
+              "volume": 13326699
+            },
+            {
+              "symbol": "LT",
+              "instrument_id": "",
+              "isin": "INE018A01030",
+              "close": 4140.0,
+              "previous_close": 4143.8,
+              "change_pct": -0.0917,
+              "volume": 1137331
+            },
+            {
+              "symbol": "M&M",
+              "instrument_id": "",
+              "isin": "INE101A01026",
+              "close": 3339.0,
+              "previous_close": 3333.0,
+              "change_pct": 0.18,
+              "volume": 1246788
+            },
+            {
+              "symbol": "MARUTI",
+              "instrument_id": "",
+              "isin": "INE585B01010",
+              "close": 12571.0,
+              "previous_close": 12854.0,
+              "change_pct": -2.2016,
+              "volume": 662372
+            },
+            {
+              "symbol": "MAXHEALTH",
+              "instrument_id": "",
+              "isin": "INE027H01010",
+              "close": 1009.9,
+              "previous_close": 947.1,
+              "change_pct": 6.6308,
+              "volume": 8264196
+            },
+            {
+              "symbol": "NESTLEIND",
+              "instrument_id": "",
+              "isin": "INE239A01024",
+              "close": 1297.0,
+              "previous_close": 1263.2,
+              "change_pct": 2.6757,
+              "volume": 1341237
+            },
+            {
+              "symbol": "NTPC",
+              "instrument_id": "",
+              "isin": "INE733E01010",
+              "close": 321.25,
+              "previous_close": 319.1,
+              "change_pct": 0.6738,
+              "volume": 5540177
+            },
+            {
+              "symbol": "ONGC",
+              "instrument_id": "",
+              "isin": "INE213A01029",
+              "close": 226.99,
+              "previous_close": 225.0,
+              "change_pct": 0.8844,
+              "volume": 10250195
+            },
+            {
+              "symbol": "POWERGRID",
+              "instrument_id": "",
+              "isin": "INE752E01010",
+              "close": 262.2,
+              "previous_close": 257.45,
+              "change_pct": 1.845,
+              "volume": 6830012
+            },
+            {
+              "symbol": "RELIANCE",
+              "instrument_id": "",
+              "isin": "INE002A01018",
+              "close": 1344.8,
+              "previous_close": 1339.7,
+              "change_pct": 0.3807,
+              "volume": 7653528
+            },
+            {
+              "symbol": "SBILIFE",
+              "instrument_id": "",
+              "isin": "INE123W01016",
+              "close": 1827.7,
+              "previous_close": 1789.9,
+              "change_pct": 2.1118,
+              "volume": 777200
+            },
+            {
+              "symbol": "SBIN",
+              "instrument_id": "",
+              "isin": "INE062A01020",
+              "close": 1090.5,
+              "previous_close": 1080.0,
+              "change_pct": 0.9722,
+              "volume": 16216839
+            },
+            {
+              "symbol": "SHRIRAMFIN",
+              "instrument_id": "",
+              "isin": "INE721A01047",
+              "close": 978.4,
+              "previous_close": 970.0,
+              "change_pct": 0.866,
+              "volume": 5177610
+            },
+            {
+              "symbol": "SUNPHARMA",
+              "instrument_id": "",
+              "isin": "INE044A01036",
+              "close": 1867.5,
+              "previous_close": 1880.0,
+              "change_pct": -0.6649,
+              "volume": 1301410
+            },
+            {
+              "symbol": "TATACONSUM",
+              "instrument_id": "",
+              "isin": "INE192A01025",
+              "close": 1117.5,
+              "previous_close": 1079.0,
+              "change_pct": 3.5681,
+              "volume": 1430588
+            },
+            {
+              "symbol": "TATASTEEL",
+              "instrument_id": "",
+              "isin": "INE081A01020",
+              "close": 182.26,
+              "previous_close": 186.68,
+              "change_pct": -2.3677,
+              "volume": 19082593
+            },
+            {
+              "symbol": "TCS",
+              "instrument_id": "",
+              "isin": "INE467B01029",
+              "close": 2405.0,
+              "previous_close": 2407.5,
+              "change_pct": -0.1038,
+              "volume": 1802456
+            },
+            {
+              "symbol": "TECHM",
+              "instrument_id": "",
+              "isin": "INE669C01036",
+              "close": 1776.4,
+              "previous_close": 1764.0,
+              "change_pct": 0.7029,
+              "volume": 1535420
+            },
+            {
+              "symbol": "TITAN",
+              "instrument_id": "",
+              "isin": "INE280A01028",
+              "close": 4910.0,
+              "previous_close": 4844.9,
+              "change_pct": 1.3437,
+              "volume": 912474
+            },
+            {
+              "symbol": "TMPV",
+              "instrument_id": "",
+              "isin": "INE155A01022",
+              "close": 262.4,
+              "previous_close": 287.4,
+              "change_pct": -8.6987,
+              "volume": 46771481
+            },
+            {
+              "symbol": "TRENT",
+              "instrument_id": "",
+              "isin": "INE849A01020",
+              "close": 3203.7,
+              "previous_close": 3165.2,
+              "change_pct": 1.2164,
+              "volume": 441579
+            },
+            {
+              "symbol": "ULTRACEMCO",
+              "instrument_id": "",
+              "isin": "INE481G01011",
+              "close": 12270.0,
+              "previous_close": 12100.0,
+              "change_pct": 1.405,
+              "volume": 169374
+            }
+          ],
+          "score": 2.4,
+          "score_eligible": false,
+          "research_only": true,
+          "method": "10 * (advances - declines) / official constituent count; equal member count"
+        },
+        "BANKNIFTY": {
+          "index": "BANKNIFTY",
+          "date": "2026-11-16",
+          "status": "complete_diagnostic",
+          "roster_as_of": "2026-11-06",
+          "expected": 14,
+          "matched": 14,
+          "coverage_pct": 100.0,
+          "advances": 13,
+          "declines": 1,
+          "unchanged": 0,
+          "advance_pct": 92.86,
+          "decline_pct": 7.14,
+          "equal_weight_mean_change_pct": 0.9556,
+          "constituents": [
+            {
+              "symbol": "AUBANK",
+              "instrument_id": "",
+              "isin": "INE949L01017",
+              "close": 971.35,
+              "previous_close": 967.0,
+              "change_pct": 0.4498,
+              "volume": 1457559
+            },
+            {
+              "symbol": "AXISBANK",
+              "instrument_id": "",
+              "isin": "INE238A01034",
+              "close": 1342.4,
+              "previous_close": 1331.0,
+              "change_pct": 0.8565,
+              "volume": 5347137
+            },
+            {
+              "symbol": "BANKBARODA",
+              "instrument_id": "",
+              "isin": "INE028A01039",
+              "close": 270.2,
+              "previous_close": 273.84,
+              "change_pct": -1.3292,
+              "volume": 10592191
+            },
+            {
+              "symbol": "CANBK",
+              "instrument_id": "",
+              "isin": "INE476A01022",
+              "close": 132.4,
+              "previous_close": 130.91,
+              "change_pct": 1.1382,
+              "volume": 19338710
+            },
+            {
+              "symbol": "FEDERALBNK",
+              "instrument_id": "",
+              "isin": "INE171A01029",
+              "close": 362.0,
+              "previous_close": 360.95,
+              "change_pct": 0.2909,
+              "volume": 5930570
+            },
+            {
+              "symbol": "HDFCBANK",
+              "instrument_id": "",
+              "isin": "INE040A01034",
+              "close": 816.5,
+              "previous_close": 804.0,
+              "change_pct": 1.5547,
+              "volume": 27152881
+            },
+            {
+              "symbol": "ICICIBANK",
+              "instrument_id": "",
+              "isin": "INE090A01021",
+              "close": 1585.0,
+              "previous_close": 1583.6,
+              "change_pct": 0.0884,
+              "volume": 10069159
+            },
+            {
+              "symbol": "IDFCFIRSTB",
+              "instrument_id": "",
+              "isin": "INE092T01019",
+              "close": 81.3,
+              "previous_close": 79.54,
+              "change_pct": 2.2127,
+              "volume": 14549023
+            },
+            {
+              "symbol": "INDUSINDBK",
+              "instrument_id": "",
+              "isin": "INE095A01012",
+              "close": 914.55,
+              "previous_close": 914.4,
+              "change_pct": 0.0164,
+              "volume": 1448143
+            },
+            {
+              "symbol": "KOTAKBANK",
+              "instrument_id": "",
+              "isin": "INE237A01036",
+              "close": 494.2,
+              "previous_close": 488.55,
+              "change_pct": 1.1565,
+              "volume": 13326699
+            },
+            {
+              "symbol": "PNB",
+              "instrument_id": "",
+              "isin": "INE160A01022",
+              "close": 144.59,
+              "previous_close": 142.81,
+              "change_pct": 1.2464,
+              "volume": 48128826
+            },
+            {
+              "symbol": "SBIN",
+              "instrument_id": "",
+              "isin": "INE062A01020",
+              "close": 1090.5,
+              "previous_close": 1080.0,
+              "change_pct": 0.9722,
+              "volume": 16216839
+            },
+            {
+              "symbol": "UNIONBANK",
+              "instrument_id": "",
+              "isin": "INE692A01016",
+              "close": 205.6,
+              "previous_close": 203.0,
+              "change_pct": 1.2808,
+              "volume": 12751379
+            },
+            {
+              "symbol": "YESBANK",
+              "instrument_id": "",
+              "isin": "INE528G01035",
+              "close": 18.02,
+              "previous_close": 17.42,
+              "change_pct": 3.4443,
+              "volume": 188122355
+            }
+          ],
+          "score": 8.57,
+          "score_eligible": false,
+          "research_only": true,
+          "method": "10 * (advances - declines) / official constituent count; equal member count"
+        },
+        "SENSEX": {
+          "index": "SENSEX",
+          "date": "2026-11-16",
+          "status": "complete_diagnostic",
+          "roster_as_of": "2026-11-06",
+          "expected": 30,
+          "matched": 30,
+          "coverage_pct": 100.0,
+          "advances": 19,
+          "declines": 10,
+          "unchanged": 1,
+          "advance_pct": 63.33,
+          "decline_pct": 33.33,
+          "equal_weight_mean_change_pct": 0.4382,
+          "constituents": [
+            {
+              "symbol": "ADANIPORTS",
+              "instrument_id": "532921",
+              "isin": "INE742F01042",
+              "close": 1892.0,
+              "previous_close": 1904.15,
+              "change_pct": -0.6381,
+              "volume": 61556
+            },
+            {
+              "symbol": "ASIANPAINT",
+              "instrument_id": "500820",
+              "isin": "INE021A01026",
+              "close": 2581.0,
+              "previous_close": 2548.0,
+              "change_pct": 1.2951,
+              "volume": 35573
+            },
+            {
+              "symbol": "AXISBANK",
+              "instrument_id": "532215",
+              "isin": "INE238A01034",
+              "close": 1340.0,
+              "previous_close": 1332.4,
+              "change_pct": 0.5704,
+              "volume": 127060
+            },
+            {
+              "symbol": "BAJAJFINSV",
+              "instrument_id": "532978",
+              "isin": "INE918I01026",
+              "close": 1847.8,
+              "previous_close": 1860.0,
+              "change_pct": -0.6559,
+              "volume": 13630
+            },
+            {
+              "symbol": "BAJFINANCE",
+              "instrument_id": "500034",
+              "isin": "INE296A01032",
+              "close": 1110.0,
+              "previous_close": 1115.2,
+              "change_pct": -0.4663,
+              "volume": 101324
+            },
+            {
+              "symbol": "BEL",
+              "instrument_id": "500049",
+              "isin": "INE263A01024",
+              "close": 401.0,
+              "previous_close": 401.0,
+              "change_pct": 0.0,
+              "volume": 880753
+            },
+            {
+              "symbol": "BHARTIARTL",
+              "instrument_id": "532454",
+              "isin": "INE397D01024",
+              "close": 2152.0,
+              "previous_close": 2106.4,
+              "change_pct": 2.1648,
+              "volume": 277585
+            },
+            {
+              "symbol": "ETERNAL",
+              "instrument_id": "543320",
+              "isin": "INE758T01015",
+              "close": 370.85,
+              "previous_close": 364.5,
+              "change_pct": 1.7421,
+              "volume": 1172127
+            },
+            {
+              "symbol": "HCLTECH",
+              "instrument_id": "532281",
+              "isin": "INE860A01027",
+              "close": 1382.4,
+              "previous_close": 1376.6,
+              "change_pct": 0.4213,
+              "volume": 91915
+            },
+            {
+              "symbol": "HDFCBANK",
+              "instrument_id": "500180",
+              "isin": "INE040A01034",
+              "close": 816.0,
+              "previous_close": 803.05,
+              "change_pct": 1.6126,
+              "volume": 1518664
+            },
+            {
+              "symbol": "HINDUNILVR",
+              "instrument_id": "500696",
+              "isin": "INE030A01027",
+              "close": 1997.0,
+              "previous_close": 1985.0,
+              "change_pct": 0.6045,
+              "volume": 80317
+            },
+            {
+              "symbol": "ICICIBANK",
+              "instrument_id": "532174",
+              "isin": "INE090A01021",
+              "close": 1583.4,
+              "previous_close": 1584.0,
+              "change_pct": -0.0379,
+              "volume": 612571
+            },
+            {
+              "symbol": "INDIGO",
+              "instrument_id": "539448",
+              "isin": "INE646L01027",
+              "close": 5536.0,
+              "previous_close": 5599.65,
+              "change_pct": -1.1367,
+              "volume": 21945
+            },
+            {
+              "symbol": "INFY",
+              "instrument_id": "500209",
+              "isin": "INE009A01021",
+              "close": 1143.7,
+              "previous_close": 1140.0,
+              "change_pct": 0.3246,
+              "volume": 248096
+            },
+            {
+              "symbol": "ITC",
+              "instrument_id": "500875",
+              "isin": "INE154A01025",
+              "close": 294.8,
+              "previous_close": 284.05,
+              "change_pct": 3.7845,
+              "volume": 2099777
+            },
+            {
+              "symbol": "KOTAKBANK",
+              "instrument_id": "500247",
+              "isin": "INE237A01036",
+              "close": 493.2,
+              "previous_close": 487.6,
+              "change_pct": 1.1485,
+              "volume": 1574725
+            },
+            {
+              "symbol": "LT",
+              "instrument_id": "500510",
+              "isin": "INE018A01030",
+              "close": 4137.8,
+              "previous_close": 4139.0,
+              "change_pct": -0.029,
+              "volume": 24338
+            },
+            {
+              "symbol": "M&M",
+              "instrument_id": "500520",
+              "isin": "INE101A01026",
+              "close": 3350.0,
+              "previous_close": 3336.1,
+              "change_pct": 0.4167,
+              "volume": 351429
+            },
+            {
+              "symbol": "MARUTI",
+              "instrument_id": "532500",
+              "isin": "INE585B01010",
+              "close": 12573.75,
+              "previous_close": 12878.0,
+              "change_pct": -2.3626,
+              "volume": 20954
+            },
+            {
+              "symbol": "NTPC",
+              "instrument_id": "532555",
+              "isin": "INE733E01010",
+              "close": 321.0,
+              "previous_close": 318.8,
+              "change_pct": 0.6901,
+              "volume": 214686
+            },
+            {
+              "symbol": "POWERGRID",
+              "instrument_id": "532898",
+              "isin": "INE752E01010",
+              "close": 262.0,
+              "previous_close": 257.65,
+              "change_pct": 1.6883,
+              "volume": 501179
+            },
+            {
+              "symbol": "RELIANCE",
+              "instrument_id": "500325",
+              "isin": "INE002A01018",
+              "close": 1342.0,
+              "previous_close": 1339.6,
+              "change_pct": 0.1792,
+              "volume": 388080
+            },
+            {
+              "symbol": "SBIN",
+              "instrument_id": "500112",
+              "isin": "INE062A01020",
+              "close": 1090.0,
+              "previous_close": 1080.5,
+              "change_pct": 0.8792,
+              "volume": 1272061
+            },
+            {
+              "symbol": "SUNPHARMA",
+              "instrument_id": "524715",
+              "isin": "INE044A01036",
+              "close": 1866.95,
+              "previous_close": 1880.9,
+              "change_pct": -0.7417,
+              "volume": 36036
+            },
+            {
+              "symbol": "TATASTEEL",
+              "instrument_id": "500470",
+              "isin": "INE081A01020",
+              "close": 181.75,
+              "previous_close": 187.0,
+              "change_pct": -2.8075,
+              "volume": 1103216
+            },
+            {
+              "symbol": "TCS",
+              "instrument_id": "532540",
+              "isin": "INE467B01029",
+              "close": 2401.0,
+              "previous_close": 2410.0,
+              "change_pct": -0.3734,
+              "volume": 128911
+            },
+            {
+              "symbol": "TECHM",
+              "instrument_id": "532755",
+              "isin": "INE669C01036",
+              "close": 1783.5,
+              "previous_close": 1765.4,
+              "change_pct": 1.0253,
+              "volume": 78192
+            },
+            {
+              "symbol": "TITAN",
+              "instrument_id": "500114",
+              "isin": "INE280A01028",
+              "close": 4913.0,
+              "previous_close": 4850.4,
+              "change_pct": 1.2906,
+              "volume": 24017
+            },
+            {
+              "symbol": "TRENT",
+              "instrument_id": "500251",
+              "isin": "INE849A01020",
+              "close": 3199.0,
+              "previous_close": 3160.0,
+              "change_pct": 1.2342,
+              "volume": 25925
+            },
+            {
+              "symbol": "ULTRACEMCO",
+              "instrument_id": "532538",
+              "isin": "INE481G01011",
+              "close": 12258.25,
+              "previous_close": 12098.0,
+              "change_pct": 1.3246,
+              "volume": 5201
+            }
+          ],
+          "score": 3.0,
+          "score_eligible": false,
+          "research_only": true,
+          "method": "10 * (advances - declines) / official constituent count; equal member count"
+        }
+      },
+      "all_three_complete": true,
+      "score_eligible": false,
+      "research_only": true,
+      "note": "Diagnostic only; no production Final Score mutation."
+    },
+    {
+      "date": "2026-11-17",
+      "status": "withheld_incomplete",
+      "indices": {
+        "NIFTY": {
+          "index": "NIFTY",
+          "date": "2026-11-17",
           "status": "withheld_unverified",
           "expected": 50,
           "matched": 0,
@@ -5438,11 +6357,11 @@
           "score": null,
           "score_eligible": false,
           "research_only": true,
-          "reason": "cash archive session missing: 2026-11-16"
+          "reason": "cash archive session missing: 2026-11-17"
         },
         "BANKNIFTY": {
           "index": "BANKNIFTY",
-          "date": "2026-11-16",
+          "date": "2026-11-17",
           "status": "withheld_unverified",
           "expected": 14,
           "matched": 0,
@@ -5451,11 +6370,11 @@
           "score": null,
           "score_eligible": false,
           "research_only": true,
-          "reason": "cash archive session missing: 2026-11-16"
+          "reason": "cash archive session missing: 2026-11-17"
         },
         "SENSEX": {
           "index": "SENSEX",
-          "date": "2026-11-16",
+          "date": "2026-11-17",
           "status": "withheld_unverified",
           "expected": 30,
           "matched": 0,
@@ -5464,7 +6383,7 @@
           "score": null,
           "score_eligible": false,
           "research_only": true,
-          "reason": "cash archive session missing: 2026-11-16"
+          "reason": "cash archive session missing: 2026-11-17"
         }
       },
       "all_three_complete": false,
