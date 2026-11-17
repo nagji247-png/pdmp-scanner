@@ -251,7 +251,10 @@ class StockCompanyResearchTests(unittest.TestCase):
             "RELIANCE": {"price": 1500.0, "previous_close": 1490.0,
                          "change_pct": 0.6711, "market_data_as_of": "2026-11-17"},
         }
-        names = {"BHARTIARTL": "BHARTI AIRTEL LIMITED"}
+        names = {
+            "BHARTIARTL": "BHARTI AIRTEL LIMITED",
+            "OTHER": "OTHER INDUSTRIES LIMITED",
+        }
         master = {
             "BHARTIARTL": {"industry": "Telecom - Services", "sector": "Telecommunication"},
             "RELIANCE": {"industry": "Petroleum Products", "sector": "Oil, Gas & Consumable Fuels"},
@@ -267,6 +270,8 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(stocks["RELIANCE"]["shareholding"], {"promoter_pct": 50})
         self.assertEqual(stocks["RELIANCE"]["market_data_scope"],
                          "full_verified_fno_universe_eod_snapshot")
+        self.assertEqual(stocks["OTHER"]["company_name"], "OTHER INDUSTRIES LIMITED")
+        self.assertNotIn("market_data_scope", stocks["OTHER"])
 
     def test_official_bhavcopy_row_parses_eod_market_fields(self):
         result = research.parse_nse_bhavcopy_row({
