@@ -25,6 +25,7 @@ from curl_cffi import requests as curl_requests
 from upstox_market_data import fetch_upstox_candles
 from crowd_trap_detector import build_crowd_trap_snapshot
 from stock_basket_freshness import expected_latest_completed_session, load_exchange_calendar
+from market_activity_eod import build_nse_eod_market_activity_quotes
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -5865,7 +5866,29 @@ def main():
     try:
         activity_master = load_json("nse-fo-stock-sector-master.json", {})
         activity_symbols = sorted((activity_master.get("stocks") or {}).keys())
-        activity_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        live_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        live_instruments = dict(live_quotes.get("instruments") or {})
+        for quote in live_instruments.values():
+            quote["quote_kind"] = "live"
+        eod_quotes = build_nse_eod_market_activity_quotes(
+            load_json("nse_cm_bhavcopy_archive.json", {}), activity_symbols
+        )
+        eod_instruments = eod_quotes.get("instruments") or {}
+        # Prefer a verified live quote per symbol; fill only missing symbols from
+        # the official NSE CM EOD archive, with quote_kind=eod preserved.
+        combined_instruments = dict(eod_instruments)
+        combined_instruments.update(live_instruments)
+        activity_quotes = {
+            "source": "NSE live bulk quotes + NSE official CM-UDiFF EOD fallback",
+            "source_timestamp": live_quotes.get("source_timestamp") or eod_quotes.get("source_timestamp"),
+            "coverage": {
+                "expected": len(activity_symbols),
+                "matched": len(combined_instruments),
+                "live_matched": len(live_instruments),
+                "eod_matched": sum(1 for symbol in eod_instruments if symbol not in live_instruments),
+            },
+            "instruments": combined_instruments,
+        }
         if not activity_quotes.get("instruments"):
             cached_activity = previous.get("market_activity_quotes") or {}
             if market_activity_snapshot_is_fresh(cached_activity):
