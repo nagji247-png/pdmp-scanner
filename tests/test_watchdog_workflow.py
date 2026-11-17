@@ -16,6 +16,12 @@ class WatchdogWorkflowConfigTests(unittest.TestCase):
         self.assertIn("repository_dispatch:", scan)
         self.assertIn("types: [scan-watchdog]", scan)
 
+    def test_workflow_run_scan_checks_out_latest_main_not_archive_run_sha(self):
+        scan = Path(".github/workflows/scan.yml").read_text(encoding="utf-8")
+        self.assertIn("github.event_name == 'workflow_run' && 'main'", scan)
+        self.assertIn("github.event_name == 'pull_request' && github.event.pull_request.head.sha", scan)
+        self.assertIn("|| github.ref", scan)
+
     def test_watchdog_keeps_ten_minute_stale_data_check(self):
         watchdog = Path(".github/workflows/scan-watchdog.yml").read_text(encoding="utf-8")
         self.assertIn('cron: "*/5 3-10 * * 1-5"', watchdog)
