@@ -1,69 +1,5 @@
 [
   {
-    "time": "2026-11-10T14:34Z",
-    "instrument": "NIFTY",
-    "prev_score": 5.3,
-    "new_score": 7.3,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 167,
-    "price_at_change": 25044.650390625,
-    "price_after": 25044.6504,
-    "move_pct": 0.0,
-    "after_minutes": 9,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-10T14:43Z",
-    "instrument": "NIFTY",
-    "prev_score": 7.3,
-    "new_score": 3.7,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 9,
-    "price_at_change": 25044.650390625,
-    "price_after": 25044.6504,
-    "move_pct": 0.0,
-    "after_minutes": 60,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-10T14:43Z",
-    "instrument": "BANKNIFTY",
-    "prev_score": 6.3,
-    "new_score": 2.6,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 176,
-    "price_at_change": 59741.25,
-    "price_after": 59741.25,
-    "move_pct": 0.0,
-    "after_minutes": 60,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-10T15:43Z",
-    "instrument": "NIFTY",
-    "prev_score": 3.7,
-    "new_score": 7.3,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 60,
-    "price_at_change": 25044.650390625,
-    "price_after": 25044.6504,
-    "move_pct": 0.0,
-    "after_minutes": 39,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-11-10T15:43Z",
     "instrument": "BANKNIFTY",
     "prev_score": 2.6,
@@ -3162,10 +3098,10 @@
     "vol_data": false,
     "held_minutes": 26,
     "price_at_change": 25455.0508,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 25412.5508,
+    "move_pct": -0.17,
+    "after_minutes": 48,
+    "direction": "नीचे"
   },
   {
     "time": "2026-11-17T08:53Z",
@@ -3178,10 +3114,10 @@
     "vol_data": false,
     "held_minutes": 26,
     "price_at_change": 62364.9492,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 62266.8516,
+    "move_pct": -0.16,
+    "after_minutes": 48,
+    "direction": "नीचे"
   },
   {
     "time": "2026-11-17T08:53Z",
@@ -3194,10 +3130,10 @@
     "vol_data": true,
     "held_minutes": 205,
     "price_at_change": 1363.6,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 1371.0,
+    "move_pct": 0.54,
+    "after_minutes": 48,
+    "direction": "ऊपर"
   },
   {
     "time": "2026-11-17T08:53Z",
@@ -3211,6 +3147,73 @@
     "vol_data": true,
     "held_minutes": 26,
     "price_at_change": 817.4,
+    "price_after": 812.75,
+    "move_pct": -0.57,
+    "after_minutes": 48,
+    "direction": "नीचे"
+  },
+  {
+    "time": "2026-11-17T09:41Z",
+    "instrument": "NIFTY",
+    "prev_score": 10.0,
+    "new_score": 0.0,
+    "changed": [
+      "भावना",
+      "कीमत"
+    ],
+    "vol_data": false,
+    "held_minutes": 48,
+    "price_at_change": 25412.5508,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-17T09:41Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": 10.0,
+    "new_score": 10.0,
+    "changed": [
+      "कीमत"
+    ],
+    "vol_data": false,
+    "held_minutes": 48,
+    "price_at_change": 62266.8516,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-17T09:41Z",
+    "instrument": "RELIANCE",
+    "prev_score": 2.2,
+    "new_score": 2.2,
+    "changed": [
+      "कीमत",
+      "वॉल्यूम"
+    ],
+    "vol_data": true,
+    "held_minutes": 48,
+    "price_at_change": 1371.0,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-17T09:41Z",
+    "instrument": "HDFCBANK",
+    "prev_score": 5.1,
+    "new_score": 5.1,
+    "changed": [
+      "कीमत",
+      "VWAP"
+    ],
+    "vol_data": true,
+    "held_minutes": 48,
+    "price_at_change": 812.75,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
