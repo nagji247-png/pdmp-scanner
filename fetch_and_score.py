@@ -1728,14 +1728,15 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
     reader = csv.DictReader(text.lstrip(chr(65279)).splitlines())
     if not reader.fieldnames:
         return result
-    rows = list(reader)
+    reader.fieldnames = [str(name or "").strip().lstrip(chr(65279)) for name in reader.fieldnames]
+    rows = [{str(key or "").strip(): value for key, value in row.items() if key is not None} for row in reader]
     if not rows:
         return result
     first_date = str(rows[0].get("DATE1") or "").strip()
     try:
         trade_date = dt.datetime.strptime(first_date.title(), "%d-%b-%Y").date()
     except ValueError:
-        raise ValueError("NSE EOD bhavdata has no valid DATE1")
+        raise ValueError("NSE EOD bhavdata has no valid DATE1; headers=" + str(list(rows[0].keys())[:8]) + "; first_row=" + str(list(rows[0].values())[:5]))
     if expected_date and trade_date != expected_date:
         raise ValueError(f"NSE EOD bhavdata date mismatch: expected {expected_date}, got {trade_date}")
     stamp = dt.datetime.combine(trade_date, dt.time(15, 30),
