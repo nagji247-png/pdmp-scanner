@@ -72,6 +72,8 @@ jobs:
           for asset, item in (report.get("indices") or {}).items():
               futures7 = item.get("client_futures_recent_7_session_check") or {}
               print(f"\n### {asset} — CLIENT Futures recent 7 sessions")
+              close_source = item.get("client_futures_official_close_validation") or {}
+              print(f"- Official close source: **{close_source.get('source', 'unavailable')} · {close_source.get('status', 'unavailable')} · through {close_source.get('last_date')}**")
               print(f"- Status: **{futures7.get('status')}**")
               print(f"- Sample: **{futures7.get('sample_sessions', 0)}/7 sessions**")
               print(f"- Crowd-follow: **{futures7.get('correct_signals', 0)}/{futures7.get('directional_observation_count', 0)} · {futures7.get('directional_hit_rate_pct')}%**")
