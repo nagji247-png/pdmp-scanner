@@ -19,6 +19,7 @@ on:
       - "tests/test_client_ce_pe_provisional_score.py"
       - "tests/test_provisional_component_scoring.py"
       - "tests/test_component_breakdown_integration.py"
+      - ".github/workflows/scan-watchdog.yml"
       - "backtest_participant_oi.py"
       - "client_futures_promotion.py"
       - "tests/test_client_futures_promotion.py"
