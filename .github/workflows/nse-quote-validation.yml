@@ -24,6 +24,8 @@ jobs:
         run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Check Python syntax
         run: python -m py_compile fetch_and_score.py trinetra_data.py backtest_participant_oi.py
+      - name: Test NSE market activity bulk and EOD quote parsing
+        run: python -m unittest discover -s tests -p "test_market_activity_bulk_quotes.py" -v
       - name: Verify Google Trends fallbacks and NSE MCP handshake
         run: |
           python - <<'PY'
@@ -286,6 +288,26 @@ jobs:
           during_session = dt.datetime(2026, 11, 5, 12, 0, tzinfo=ist)
           assert app.parse_mcx_market_watch_rows(rows, now=during_session) == {}
           print("MCX FUTCOM symbol, expiry, OI selection and 45-minute freshness checks passed.")
+          PY
+      - name: Diagnostic official NSE EOD bulk coverage probe
+        if: always()
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          import fetch_and_score as app
+          with open("nse-fo-stock-sector-master.json", encoding="utf-8") as handle:
+              master = json.load(handle)
+          symbols = sorted((master.get("stocks") or {}).keys())
+          snapshot = app.fetch_nse_eod_bhavdata_quotes(symbols)
+          coverage = snapshot.get("coverage") or {}
+          print("NSE_EOD_BULK_PROBE " + json.dumps({
+              "source": snapshot.get("source"),
+              "trade_timestamp": snapshot.get("source_timestamp"),
+              "matched": coverage.get("matched", 0),
+              "expected": coverage.get("expected", len(symbols)),
+              "sample_symbols": sorted((snapshot.get("instruments") or {}).keys())[:12],
+          }, ensure_ascii=False))
           PY
       # External NSE endpoints can rate-limit or return 404 from GitHub runners.
       # Keep this diagnostic visible without blocking unrelated code validation.
