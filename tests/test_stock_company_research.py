@@ -35,7 +35,7 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(result["price_as_of"], "17-Nov-2026 15:30:00")
         self.assertEqual(result["change_pct"], 1.25)
         self.assertEqual(result["market_cap_cr"], 1234.56)
-        self.assertIsNone(result["quote_timestamp"])
+        self.assertEqual(result["quote_timestamp"], "17-Nov-2026 15:30:00")
 
     def test_market_cap_derives_only_from_dated_price_and_reconciled_filed_shares(self):
         result = research.apply_share_count_market_cap(
