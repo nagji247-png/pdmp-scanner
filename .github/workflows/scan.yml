@@ -83,6 +83,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # workflow_run events carry the archive run SHA, which may predate the latest scan data commit.
+          # Use latest main for production scans; PR checks must use the PR head under test.
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || (github.event_name == 'pull_request' && github.event.pull_request.head.sha) || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
