@@ -1238,5 +1238,68 @@
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-17|NASDAQ",
+    "date": "2026-11-17",
+    "instrument": "NASDAQ",
+    "score": -7.2,
+    "event_time_utc": "2026-11-17T01:15:10Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-17|DJI",
+    "date": "2026-11-17",
+    "instrument": "DJI",
+    "score": -6.8,
+    "event_time_utc": "2026-11-17T01:15:11Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-17|TATAMOTORS",
+    "date": "2026-11-17",
+    "instrument": "TATAMOTORS",
+    "score": -7.4,
+    "event_time_utc": "2026-11-17T01:15:17Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]
