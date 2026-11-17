@@ -21,7 +21,8 @@ class StockCompanyResearchTests(unittest.TestCase):
         payload = {
             "info": {"companyName": "Example Industries Limited", "isin": "INE123A01010"},
             "industryInfo": {"macro": "Industrials", "sector": "Capital Goods", "industry": "Engineering"},
-            "priceInfo": {"lastPrice": "125.50", "pChange": "1.25"},
+            "priceInfo": {"lastPrice": "125.50", "previousClose": "124.00", "pChange": "1.25", "lastUpdateTime": "17-Nov-2026 15:30:00"},
+            "timestamp": "17-Nov-2026 15:30:00",
             "securityInfo": {"faceValue": "2"},
         }
         trade = {"marketDeptOrderBook": {"tradeInfo": {"totalMarketCap": "1234.56"}}}
@@ -30,6 +31,8 @@ class StockCompanyResearchTests(unittest.TestCase):
         self.assertEqual(result["nse_sector"], "Capital Goods")
         self.assertEqual(result["industry"], "Engineering")
         self.assertEqual(result["price"], 125.5)
+        self.assertEqual(result["previous_close"], 124.0)
+        self.assertEqual(result["price_as_of"], "17-Nov-2026 15:30:00")
         self.assertEqual(result["change_pct"], 1.25)
         self.assertEqual(result["market_cap_cr"], 1234.56)
         self.assertIsNone(result["quote_timestamp"])
