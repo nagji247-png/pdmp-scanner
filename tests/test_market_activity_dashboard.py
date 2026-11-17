@@ -23,16 +23,23 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=12"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=13"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
         blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "36fcd08fe0837b12ee0aeb3e6c477e1efecb8d3a")
+        self.assertEqual(hashlib.sha1(blob).hexdigest(), "cfed1449d46ecaca53b9e9af2462d3453324da4f")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
+
+    def test_market_activity_counts_all_sector_quotes_and_warns_on_small_samples(self):
+        self.assertIn("symbols.filter(function(k){var q=quote(k);", self.market_activity)
+        self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
+        self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
+        self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
+        self.assertIn("src=\"market-activity.js?v=13\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
