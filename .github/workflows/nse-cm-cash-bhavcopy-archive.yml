@@ -33,6 +33,8 @@ on:
       - "nse_index_close_archive.py"
       - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
+      - "tests/test_bse_sensex_close_archive.py"
+      - "bse_sensex_close_archive.py"
       - "index_constituent_rosters.py"
       - "run_three_index_cash_basket.py"
       - "stock_basket_freshness.py"
