@@ -3,6 +3,7 @@
 var box=document.getElementById("fpi-sector-tilt");
 if(!box)return;
 var master=null,companyData={stocks:{}},marketData={instruments:{}},overlay=null,body=null,activeSector="",lastView=null;
+function stockQuote(symbol){var instruments=marketData&&marketData.instruments||{},bulk=marketData&&marketData.market_activity_quotes&&marketData.market_activity_quotes.instruments||{};var q=instruments[symbol];if(q&&q.type==="stock")return q;q=bulk[symbol];return q&&q.type==="stock"?q:{};}
 var css=document.createElement("style");
 css.textContent=[
 ".fpi-eye{border:0!important;background:transparent!important;color:#7bdcff!important;padding:0 3px!important;margin:0!important;font-size:13px!important;line-height:1!important;cursor:pointer!important;flex:0 0 auto!important;min-width:0!important}",
@@ -60,7 +61,7 @@ function renderSector(sector){
  activeSector=sector;setTitle(sector+" · "+getStocks(sector).length+" स्टॉक",false);
  var rows=getStocks(sector);
  body.innerHTML=rows.length?rows.map(function(r){
-  var q=marketData.instruments&&marketData.instruments[r.symbol]||{};
+  var q=stockQuote(r.symbol);
   var change=num(q.change_pct);
   var price=q.price===null||q.price===undefined?"भाव उपलब्ध नहीं":"₹"+Number(q.price).toLocaleString("en-IN",{maximumFractionDigits:2});
   var movement=change===null?"बदलाव उपलब्ध नहीं":(change>0?"+":"")+change.toFixed(2)+"%";
@@ -71,7 +72,7 @@ function renderStock(symbol){
  if(!overlay)return;
  var info=master&&master.stocks?master.stocks[symbol]||{}:{};
  var company=companyData.stocks?companyData.stocks[symbol]||{}:{};
- var q=marketData.instruments?marketData.instruments[symbol]||{}:{};
+ var q=stockQuote(symbol);
  var sh=company.shareholding||{},financials=company.financials||{},latest=financials.latest||{},quarters=Array.isArray(financials.quarters)?financials.quarters:[],integrated=company.integrated_financials||{},parsed=integrated.parsed||{},iq=parsed.quarter||{},bs=parsed.balance_sheet||{},filing=integrated.filing||{};
  var price=num(q.price);if(price===null)price=num(company.price);
  var change=num(q.change_pct);if(change===null)change=num(company.change_pct);
@@ -118,7 +119,7 @@ function renderStock(symbol){
 function loadMaster(){return fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("NSE master HTTP "+r.status);return r.json();}).then(function(v){master=v;return v;});}
 function loadData(){
  var tasks=[loadMaster(),fetch("stock-company-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("company cache");return r.json();}).catch(function(){return {stocks:{}};}),fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("market data");return r.json();}).catch(function(){return {instruments:{}};})];
- Promise.all(tasks).then(function(v){companyData=v[1]||{stocks:{}};marketData=v[2]||{instruments:{}};}).catch(function(){});
+ Promise.all(tasks).then(function(v){companyData=v[1]||{stocks:{}};marketData=v[2]||{instruments:{}};if(!marketData.instruments)marketData.instruments={};}).catch(function(){});
 }
 box.addEventListener("click",function(e){var eye=e.target.closest("[data-fpi-sector-eye]");if(eye){e.preventDefault();e.stopPropagation();openSector(eye.getAttribute("data-fpi-sector-eye"));return;}var stock=e.target.closest("[data-fpi-stock]");if(stock){renderStock(stock.getAttribute("data-fpi-stock"));}});
 loadData();window.setInterval(loadData,5*60*1000);
