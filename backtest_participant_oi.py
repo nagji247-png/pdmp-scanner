@@ -771,7 +771,6 @@ def analyze_index(index_name, symbol, records):
             "independent samples. Descriptive only: no phase selection or phase-level p-values."
         ),
         "metrics": results,
-        "client_futures_official_close_validation": official_client_futures_price_validation,
         "client_futures_recent_7_session_check": client_futures_recent_direction_check(
             records, official_client_futures_prices, sessions=7, anchor_date="2026-11-12"
         ),
