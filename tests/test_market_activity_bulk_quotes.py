@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 import fetch_and_score
 
@@ -22,6 +23,23 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
         self.assertEqual(result["instruments"]["BBB"]["change_pct"], -0.5)
         self.assertNotIn("NOT_IN_MASTER", result["instruments"])
         self.assertEqual(result["instruments"]["AAA"]["price_as_of"], "13/11/2026")
+
+    def test_fetch_uses_current_nse_fno_bulk_route(self):
+        class Response:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.payload
+
+        response = Response()
+        response.payload = self.payload
+        parsed = {"coverage": {"expected": 2, "matched": 2}, "instruments": {"AAA": {}}}
+        with patch.object(fetch_and_score, "NSE_DIRECT_WARMED", True), \
+             patch.object(fetch_and_score.NSE_MCP_HTTP, "get", return_value=response) as get, \
+             patch.object(fetch_and_score, "parse_nse_market_activity_bulk_payload", return_value=parsed):
+            result = fetch_and_score.fetch_nse_market_activity_bulk_quotes({"AAA", "BBB"})
+        self.assertEqual(result, parsed)
+        self.assertIn("/api/equity-stockIndex?index=SECURITIES%20IN%20F%26O", get.call_args.args[0])
 
     def test_rejects_missing_exchange_timestamp(self):
         payload = dict(self.payload); payload.pop("timestamp")
