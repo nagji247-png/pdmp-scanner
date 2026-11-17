@@ -32,6 +32,13 @@ def row(code="500001", symbol="ABC", isin="INE000A01001", close="105"):
 
 
 class BseCashArchiveTests(unittest.TestCase):
+    def test_current_day_is_not_requested_before_eod_publication(self):
+        import bse_cm_bhavcopy_archive as cm
+        morning = cm.dt.datetime(2026, 11, 17, 7, 30, tzinfo=cm.IST)
+        evening = cm.dt.datetime(2026, 11, 17, 20, 0, tzinfo=cm.IST)
+        self.assertEqual(cm.latest_completed_session_date(morning), cm.dt.date(2026, 11, 16))
+        self.assertEqual(cm.latest_completed_session_date(evening), cm.dt.date(2026, 11, 17))
+
     def test_parses_bse_scrip_code_isin_and_cash_prices(self):
         rows = [row(str(500000 + i), f"SYM{i}", f"IN{i:09d}0") for i in range(500)]
         parsed = parse_bse_cm_csv(payload(rows), "2026-11-06")
