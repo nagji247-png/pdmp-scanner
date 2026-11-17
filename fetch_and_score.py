@@ -490,11 +490,14 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
             expected_date = expected_latest_completed_session(scan_timestamp, load_exchange_calendar())
         except ValueError:
             return {}
-        matching = [
-            row for row in records
-            if isinstance(row, dict) and row.get("date") == expected_date
-        ]
-        selected_records = matching[:1]
+        # Use the latest available session on or before the expected EOD
+        # date. A missing/incomplete current session must not blank a valid
+        # prior diagnostic; source_date remains explicit for the UI.
+        selected_records = sorted(
+            (row for row in records if isinstance(row, dict)
+             and isinstance(row.get("date"), str) and row.get("date") <= expected_date),
+            key=lambda row: row["date"], reverse=True,
+        )
     else:
         # Compatibility for offline callers that supply only a date. The
         # production scan always supplies its full timestamp and uses the
