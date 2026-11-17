@@ -62,14 +62,16 @@ class BseSensexCloseArchiveTests(unittest.TestCase):
             "dtToDate": "17/11/2026",
             "period": "D",
         })
-        self.assertEqual(session.get.call_count, 1)
+        self.assertEqual(session.get.call_count, 2)
+        self.assertEqual(session.get.call_args_list[0].args[0], "https://www.bseindia.com/indices/IndexArchiveData.html")
+        self.assertEqual(session.get.call_args_list[1].args[0], URL)
 
     def test_http_error_does_not_retry(self):
         session = Mock()
         session.get.return_value = Mock(status_code=403, content=b"")
         with self.assertRaisesRegex(RuntimeError, "HTTP 403"):
             fetch_sensex_history("2026-11-12", "2026-11-17", session=session)
-        self.assertEqual(session.get.call_count, 1)
+        self.assertEqual(session.get.call_count, 2)
 
 
 if __name__ == "__main__":
