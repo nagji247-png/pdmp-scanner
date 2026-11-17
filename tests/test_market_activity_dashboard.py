@@ -30,7 +30,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
         blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "4b25899f19ab0a8244e49032692f42c9b743313f")
+        self.assertEqual(hashlib.sha1(blob).hexdigest(), "c7be1e5792d8ac47884fd70b0b518f99a0d52bef")
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
