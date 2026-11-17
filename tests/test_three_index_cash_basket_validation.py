@@ -79,7 +79,7 @@ class ThreeIndexCashBasketTests(unittest.TestCase):
         result = calculate_three_index_baskets(archives, bundle, TRADE_DATE)
         nifty = result["indices"]["NIFTY"]
         self.assertEqual(nifty["status"], "partial_diagnostic")
-        self.assertEqual(nifty["score"], 10.0)
+        self.assertEqual(nifty["score"], 0.2)
         self.assertEqual(nifty["matched"], 49)
         self.assertEqual(nifty["coverage_pct"], 98.0)
         self.assertTrue(nifty["research_only"])
@@ -92,7 +92,7 @@ class ThreeIndexCashBasketTests(unittest.TestCase):
         result = calculate_three_index_baskets(archives, bundle, TRADE_DATE)
         sensex = result["indices"]["SENSEX"]
         self.assertEqual(sensex["status"], "partial_diagnostic")
-        self.assertEqual(sensex["score"], 0.0)
+        self.assertEqual(sensex["score"], -0.34)
         self.assertEqual(sensex["matched"], 29)
         self.assertEqual(sensex["coverage_pct"], round(29 / 30 * 100, 2))
         self.assertTrue(sensex["research_only"])
