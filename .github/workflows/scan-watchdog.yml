@@ -5,10 +5,11 @@ on:
   # Monday-Friday. UTC is 5 hours 30 minutes behind IST.
   # Outside market hours, check every 30 minutes; night-time delay is acceptable.
   schedule:
-    - cron: "30,35,40,45,50,55 3 * * 1-5"
-    - cron: "*/5 4-9 * * 1-5"
-    - cron: "0,5,10 10 * * 1-5"
-    - cron: "3,33 10-23,0-2 * * 1-5"
+    # Continuous 5-minute watchdog coverage across the full Indian market session
+    # (08:30–16:55 IST); no gap between pre-open, market hours, and post-close.
+    - cron: "*/5 3-10 * * 1-5"
+    # Outside the market session, check every 30 minutes.
+    - cron: "3,33 11-23,0-2 * * 1-5"
   workflow_dispatch:
 
 permissions:
