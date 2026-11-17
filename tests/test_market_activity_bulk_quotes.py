@@ -1,4 +1,6 @@
 import unittest
+import json
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import fetch_and_score
 from market_activity_eod import build_nse_eod_market_activity_quotes
@@ -82,6 +84,20 @@ class NSEMarketActivityEODFallbackTests(unittest.TestCase):
             )
             self.assertEqual(result["coverage"]["matched"], 0)
             self.assertIsNone(result["source_timestamp"])
+
+    def test_repository_eod_archive_covers_verified_fno_universe(self):
+        root = Path(__file__).resolve().parents[1]
+        archive = json.loads((root / "nse_cm_bhavcopy_archive.json").read_text(encoding="utf-8"))
+        master = json.loads((root / "nse-fo-stock-sector-master.json").read_text(encoding="utf-8"))
+        symbols = set(master["stocks"])
+        result = build_nse_eod_market_activity_quotes(
+            archive, symbols, now=datetime(2026, 11, 17, 23, 59, tzinfo=IST)
+        )
+        coverage = result["coverage"]
+        print(f"OFFICIAL_NSE_EOD_MARKET_ACTIVITY_COVERAGE {coverage['matched']}/{coverage['expected']} "
+              f"as_of={result['source_timestamp']}")
+        self.assertEqual(coverage["matched"], coverage["expected"],
+                         "Official NSE EOD archive must cover every verified F&O stock")
 
     def test_rejects_invalid_close_and_previous_close(self):
         now = datetime(2026, 11, 17, 11, 44, tzinfo=IST)
