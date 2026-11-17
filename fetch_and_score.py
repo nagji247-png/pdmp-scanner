@@ -120,6 +120,7 @@ TERM_CHUNK = 4
 MIN_SIDE_PCT = 0.01
 TRENDS_RETRIES = 1  # तय समय पर केवल एक प्रयास; 429 पर उसी स्लॉट में दोबारा अनुरोध नहीं
 TRENDS_MAX_AGE_MINUTES = 180  # 3 घंटे से पुरानी Google Trends reading stale मानी जाएगी; पुराना डेटा reuse नहीं होगा
+NEWS_FETCH_COOLDOWN_MINUTES = 45  # हर scan पर Google News RSS दोबारा न पूछें; 429 पर पुराने headlines को मूल timestamps सहित रखें।
 
 # बाज़ार पर असर वाली ट्रेंडिंग खबरें: हर विषय की एक खोज
 MARKET_NEWS_TOPICS = [
@@ -1049,6 +1050,83 @@ def fetch_news(query):
     items.sort(key=lambda x: (x["age_h"] is None, x["age_h"] or 0))
     return items
 
+
+
+def news_refresh_due(previous_item, now_utc, cooldown_minutes=NEWS_FETCH_COOLDOWN_MINUTES):
+    """Skip repeated Google News RSS requests while the last attempt is inside cooldown."""
+    if not isinstance(previous_item, dict):
+        return True
+    stamp = parse_utc_timestamp(previous_item.get("news_fetch_attempted_at"))
+    if stamp is None:
+        return True
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    age_minutes = (now.astimezone(dt.timezone.utc) - stamp).total_seconds() / 60.0
+    return age_minutes < 0 or age_minutes >= max(1, int(cooldown_minutes))
+
+
+def refresh_news_headline_ages(headlines, now_utc):
+    """Recompute age_h from the original publisher timestamp; never make cached news look new."""
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    refreshed = []
+    for headline in headlines or []:
+        if not isinstance(headline, dict):
+            continue
+        item = dict(headline)
+        published = parse_utc_timestamp(item.get("published_at"))
+        if published is None:
+            item["age_h"] = None
+        else:
+            age = (now.astimezone(dt.timezone.utc) - published).total_seconds() / 3600.0
+            item["age_h"] = round(max(0.0, age), 1) if age >= -5.0 / 60.0 else None
+        refreshed.append(item)
+    return refreshed
+
+
+def fetch_news_snapshot(query, previous_item=None, now_utc=None):
+    """Fetch headlines at most once per cooldown; preserve prior headlines on RSS errors."""
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    previous_item = previous_item if isinstance(previous_item, dict) else {}
+    attempted_at = now.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+    if not news_refresh_due(previous_item, now):
+        cached = dedupe_heads(refresh_news_headline_ages(previous_item.get("headlines"), now))
+        return {
+            "headlines": cached,
+            "attempted_at": previous_item.get("news_fetch_attempted_at"),
+            "status": "cached",
+            "error": previous_item.get("news_fetch_error"),
+        }
+
+    try:
+        fresh = fetch_news(query)
+        fresh = dedupe_heads(fresh)
+        if not fresh:
+            raise RuntimeError("Google News RSS returned no headlines")
+        return {
+            "headlines": fresh,
+            "attempted_at": attempted_at,
+            "status": "fresh",
+            "error": None,
+        }
+    except Exception as exc:
+        cached = dedupe_heads(refresh_news_headline_ages(previous_item.get("headlines"), now))
+        status = "refresh_failed_using_cached_headlines" if cached else "unavailable"
+        print(
+            f"NEWS_REFRESH_FAILED status={status} error={str(exc)[:180]} "
+            f"cached_headlines={len(cached)}; original publisher timestamps retained"
+        )
+        return {
+            "headlines": cached,
+            "attempted_at": attempted_at,
+            "status": status,
+            "error": str(exc)[:220],
+        }
 
 def load_json(path, default):
     if os.path.exists(path):
@@ -3428,7 +3506,7 @@ def derive_card_indicator(name, sym, score, change):
         return {"indicator_signals": signals} if signals else {}
     return {}
 
-def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns):
+def process(name, sym, query, kind, events, today_str, instruments, div_events, all_returns, previous_item=None, now_utc=None):
     returns = {}
     change = None if name == "SENSEX" else 0.0
     try:
@@ -3580,13 +3658,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         compact_ist_time(PRICE_CACHE.get("BTC-USD_DATE")) if sym == "BTC-USD" else None
     )
 
-    try:
-        heads = fetch_news(query)
-    except Exception as e:
-        print(f"news error {name}: {e}")
-        heads = []
-
-    heads = dedupe_heads(heads)
+    news_snapshot = fetch_news_snapshot(query, previous_item=previous_item, now_utc=now_utc)
+    heads = news_snapshot["headlines"]
     score = weighted_score(heads)
 
     instruments[name] = {
@@ -3598,6 +3671,9 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "price_unit": ("₹/kg (Estimate)" if sym == "SI=F" else "₹/10g" if sym == "GC=F" else "₹/BBL" if sym == "BZ=F" else ""),
         "price_source": live_quote["source"] if live_quote else PRICE_CACHE.get("BZ=F_SOURCE") if sym == "BZ=F" else PRICE_CACHE.get("SI=F_SOURCE") if sym == "SI=F" else PRICE_CACHE.get("GC=F_SOURCE") if sym == "GC=F" else PRICE_CACHE.get("BTC-USD_SOURCE") if sym == "BTC-USD" else ("Yahoo Finance · LAST CLOSING PRICE" if PRICE_CACHE.get(sym) is not None and sym != "INR=X" else None),
         "news_query": query,
+        "news_fetch_attempted_at": news_snapshot["attempted_at"],
+        "news_fetch_status": news_snapshot["status"],
+        "news_fetch_error": news_snapshot["error"],
         "score": score,
         "headline_score": score,
         "headlines": heads[:8],
@@ -5931,13 +6007,14 @@ def main():
     result = {"updated": updated, "instruments": {}, "market_closed": SKIP_EVENTS}
     all_returns = {}
 
+    previous_instruments = previous.get("instruments") or {}
     for name, (sym, query) in INDEXES.items():
         process(name, sym, query, "index", events, today_str, result["instruments"],
-                div_events, all_returns)
+                div_events, all_returns, previous_item=previous_instruments.get(name), now_utc=now_utc)
 
     for name, (sym, query) in STOCKS.items():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
-                div_events, all_returns)
+                div_events, all_returns, previous_item=previous_instruments.get(name), now_utc=now_utc)
 
     # Market Activity uses one NSE bulk snapshot for the verified F&O master.
     # This remains separate from the nine-stock PDMP watchlist and its scoring.
