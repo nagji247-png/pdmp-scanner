@@ -1863,36 +1863,13 @@ def parse_nse_market_activity_bulk_payload(payload, expected_symbols, now=None):
 
 
 def fetch_nse_market_activity_bulk_quotes(expected_symbols):
-    """Fetch live F&O stock quotes in one NSE bulk request; never fan out 218 calls."""
-    global NSE_DIRECT_WARMED
-    try:
-        if not NSE_DIRECT_WARMED:
-            warm = NSE_MCP_HTTP.get("https://www.nseindia.com", timeout=20)
-            warm.raise_for_status()
-            NSE_DIRECT_WARMED = True
-        # NSE retired the old equity-stockIndices bulk route for F&O securities.
-        # The current live bulk route is the singular equity-stockIndex endpoint.
-        response = NSE_MCP_HTTP.get(
-            "https://www.nseindia.com/api/equity-stockIndices?index=SECURITIES%20IN%20F%26O",
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "Referer": "https://www.nseindia.com/market-data/live-equity-market",
-                "X-Requested-With": "XMLHttpRequest",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
-                "Cache-Control": "no-cache",
-            }, timeout=25,
-        )
-        response.raise_for_status()
-        return parse_nse_market_activity_bulk_payload(response.json(), expected_symbols)
-    except Exception as exc:
-        print(f"NSE Market Activity bulk quote unavailable: {str(exc)[:220]}")
-        return {
-            "source": "NSE India equity-stockIndices · NIFTY TOTAL MARKET",
-            "source_timestamp": None,
-            "coverage": {"expected": len(expected_symbols), "matched": 0},
-            "instruments": {},
-        }
-
+    """Retired NSE intraday bulk route; do not hammer a known 404 endpoint."""
+    return {
+        "source": "NSE intraday bulk endpoint retired · EOD fallback used",
+        "source_timestamp": None,
+        "coverage": {"expected": len(expected_symbols), "matched": 0},
+        "instruments": {},
+    }
 
 def nse_stamp_fields(stamp):
     """NSE timestamps are exchange-local; output DD/MM/YYYY and 12-hour IST."""
