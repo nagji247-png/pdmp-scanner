@@ -41,6 +41,29 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
         self.assertEqual(result, parsed)
         self.assertIn("/api/equity-stockIndices?index=SECURITIES%20IN%20F%26O", get.call_args.args[0])
 
+    def test_parses_official_eod_bhavdata_for_exact_eq_symbols(self):
+        csv_text = """SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER
+AAA,EQ,13-Nov-2026,100,101,105,99,104,103,102,123456,1260,5000,60000,48.5
+BBB,BE,13-Nov-2026,80,81,82,79,80,80,80,900,1,20,0,0
+NOT_IN_MASTER,EQ,13-Nov-2026,10,10,11,9,11,11,10,100,1,5,50,50
+"""
+        trade_date = datetime(2026, 11, 13).date()
+        result = fetch_and_score.parse_nse_eod_bhavdata_csv(csv_text, {"AAA", "BBB"}, expected_date=trade_date)
+        self.assertEqual(result["coverage"], {"expected": 2, "matched": 1})
+        self.assertEqual(result["instruments"]["AAA"]["price"], 103.0)
+        self.assertEqual(result["instruments"]["AAA"]["previous_close"], 100.0)
+        self.assertEqual(result["instruments"]["AAA"]["change_pct"], 3.0)
+        self.assertEqual(result["instruments"]["AAA"]["volume"], 123456)
+        self.assertEqual(result["instruments"]["AAA"]["vwap"], 102.0)
+        self.assertIn("EOD", result["source"])
+
+    def test_eod_reference_remains_available_during_next_cash_session(self):
+        snapshot = {"source": "NSE official sec_bhavdata_full · EOD previous close",
+                    "source_timestamp": "13-Nov-2026 15:30:00"}
+        during_session = datetime(2026, 11, 16, 10, 0, tzinfo=IST)
+        self.assertTrue(fetch_and_score.market_activity_snapshot_is_fresh(snapshot, now=during_session))
+        too_old = datetime(2026, 11, 19, 10, 0, tzinfo=IST)
+        self.assertFalse(fetch_and_score.market_activity_snapshot_is_fresh(snapshot, now=too_old))
     def test_rejects_missing_exchange_timestamp(self):
         payload = dict(self.payload); payload.pop("timestamp")
         with self.assertRaisesRegex(ValueError, "exchange timestamp"):
