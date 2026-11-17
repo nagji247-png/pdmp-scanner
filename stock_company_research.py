@@ -143,26 +143,31 @@ def fetch_nse_equity_company_names(session, symbols):
 
 
 def merge_full_universe_eod_snapshot(stocks, rows, company_names, master_stocks):
-    """Publish verified EOD quote fields for every matched F&O stock, not just the filing batch."""
-    merged_count = 0
-    for symbol, eod in (rows or {}).items():
-        if not isinstance(eod, dict) or eod.get("price") is None:
+    """Merge official names for the full universe and EOD fields for matched rows."""
+    merged_eod_count = 0
+    symbols = set((rows or {}).keys()) | set((company_names or {}).keys())
+    for symbol in symbols:
+        eod = (rows or {}).get(symbol)
+        has_eod = isinstance(eod, dict) and eod.get("price") is not None
+        company_name = (company_names or {}).get(symbol)
+        if not has_eod and not company_name:
             continue
         record = dict(stocks.get(symbol) or {})
-        for key, value in eod.items():
-            if value is not None:
-                record[key] = value
-        if company_names.get(symbol):
-            record["company_name"] = company_names[symbol]
+        if has_eod:
+            for key, value in eod.items():
+                if value is not None:
+                    record[key] = value
+            record["market_data_scope"] = "full_verified_fno_universe_eod_snapshot"
+            merged_eod_count += 1
+        if company_name:
+            record["company_name"] = company_name
             record["company_name_source"] = "NSE official listed-equity master"
         master = (master_stocks or {}).get(symbol) or {}
         for source_key, target_key in (("industry", "industry"), ("sector", "sector"), ("macro_sector", "macro_sector")):
             if master.get(source_key) and not record.get(target_key):
                 record[target_key] = master[source_key]
-        record["market_data_scope"] = "full_verified_fno_universe_eod_snapshot"
         stocks[symbol] = record
-        merged_count += 1
-    return merged_count
+    return merged_eod_count
 
 
 def fetch_latest_nse_bhavcopy(session, symbols, today=None):
@@ -558,6 +563,7 @@ def main():
                 "as_of": max((row.get("market_data_as_of") for row in bhavcopy_rows.values()
                               if row.get("market_data_as_of")), default=None),
                 "matched": universe_quotes,
+                "company_names_matched": len(company_names),
                 "expected": len(symbols),
                 "source": "NSE official full bhavcopy EOD archive",
             }
