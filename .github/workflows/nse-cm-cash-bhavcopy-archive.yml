@@ -137,6 +137,14 @@ jobs:
           else
             echo "BSE archive unavailable; Sensex cash basket remains withheld"
           fi
+          # The basket replay reads this generated official NSE index-close archive.
+          # Stage it too, otherwise it remains a dirty tracked file and git pull
+          # --rebase aborts before the diagnostic can be pushed to main.
+          if [ -f nse_index_close_archive.json ]; then
+            git add -f -- nse_index_close_archive.json
+          else
+            echo "NSE index-close archive unavailable; cash basket remains fail-closed"
+          fi
           if [ ! -s index_cash_basket_diagnostics.json ]; then
             echo "CASH_BASKET_DIAGNOSTIC_REPORT_MISSING"
             exit 1
