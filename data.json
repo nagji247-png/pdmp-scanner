@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-17T14:22Z",
+  "updated": "2026-11-17T14:23Z",
   "instruments": {
     "NIFTY": {
       "type": "index",
@@ -11,10 +11,10 @@
       "price_source": "NSE India allIndices API · पिछला बंद भाव",
       "news_query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
       "score": 5.0,
-      "headline_score": 6.9,
+      "headline_score": 8.2,
       "headlines": [
         {
           "title": "Nifty tops 25,500 to hit 9-month high, banking stocks lead the rally",
@@ -29,7 +29,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOaFBZcFhabjZvbkc4QkJadkRpRGFySkh1UDF6QVIwX1FCV2dMUjd4ZWVtNjF6VTF2YlpNazdxdERwRjRVLUlCUGNrTy1hOGZjNzZzNnFvanBjLXhvMXVuX3ZuV1BubFR0VDZ5VE1idktDUGRHdlNOUjFBSEwzUG5aWW45VTBlR2dzbWJnTlpkRlRTUlY5UE0wM0k4Yi15Q1h4bGFGUlAzeEhRaUx6T05rOF9wUkw1a0ltUlRWTVlvOVFlTHMyNUE?oc=5",
           "score": 3,
-          "age_h": 1.7,
+          "age_h": 1.8,
           "published_at": "2026-11-17T12:37:54Z"
         },
         {
@@ -77,11 +77,11 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPYW1kbzJ1VnR6aHpOYUJpNVBlckFBRVlQMVp5ZUxuT2FkcEZpdGFYV3pRcWxPTTE3WlZ6NkNYT1VPR0YtWTBuSVZyRVBHUXNxVkRmekd4WGhsWTNremFWczJGdHIteXV5ZmZHaW1CMHYxYUZweDVLN2JOa2hYTjNFREZPWFZWeFJ5aUhHNzE4VlFMOEVhVXJMVWVnempiT2RNV1ZTclh4SWZVdzA4ZTg0VTdUQUpYNE9zNENwanFsSjVJaXZ0NnA40gHMAUFVX3lxTFAxOWpzQmw2MDRGaXNYVDg5cEc4cUxxOTFjUEU3Yy1PMm1wT2VKTHdnLWtqNWt6ZnJsdGU3dVdkMGs0ZHNEQ3AyTXZTQ040bDY0WHlfZnVWUTR5eW9zWWhMaktLX2dqZHlXcDlrMUUyQzEwWV9tbm5iMjhKWERnM1JsblZDV2tuenQzQzF5dnpiWmEzZ1g3QUNYSmo4WlJiR2VSRGRES0RvMF9rV0luWGpKcGZHMVVFVUktQTNlMW1OWTVGQ2JtVjExblVpcA?oc=5",
           "score": 3,
-          "age_h": 7.4,
+          "age_h": 7.5,
           "published_at": "2026-11-17T06:56:20Z"
         }
       ],
-      "pos_n": 11,
+      "pos_n": 7,
       "neg_n": 0,
       "retail_adj": 0.34,
       "index_search_shadow": {
@@ -216,7 +216,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T10:40:04Z",
             "oldest_headline_published_at": "2026-11-17T06:56:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -229,7 +229,7 @@
               "Reuters"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 3.71,
+            "newest_headline_age_h": 3.72,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -241,7 +241,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T10:40:04Z",
             "oldest_headline_published_at": "2026-11-17T06:56:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -254,7 +254,7 @@
               "Reuters"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 3.71,
+            "newest_headline_age_h": 3.72,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -6736,10 +6736,10 @@
       "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
       "news_query": "\"BSE Sensex\" OR Sensex index India",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -0.1,
-      "headline_score": -0.1,
+      "score": 0.3,
+      "headline_score": 0.3,
       "headlines": [
         {
           "title": "Sensex Today Ends 318 Points Higher | Nifty Above 25,200 | BSE Insurance Index Up 1.15%",
@@ -6754,7 +6754,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPcnR2LVN1a0RhRVNMd2pNVFpIbTFnWEN0a2wyMVZHTHRwTk5DREVrZFBhbzBOeEh1QlVsWUU5OUhRNTUtMW5QTUVWR0NJcV90M2JSQnpnTy1VN1V0YzcxMGdmNWw2b2ZJbjMtT2FJY2JWNm1QZmplSDRQSHE5YkZIaDdmQUxoLVE0Y1hsdVo4SWVRRlJRdVNEd2c0b0xEM3k1cEhzcjZXZUd0RDlRb1hVUWFVQmhkOXVBVnoyY2M5UUFZbUFlTDUyLXAyQdIB0AFBVV95cUxPNXM4dWZ1ZllRU1lmbXVnak9JR1hERzhLUHAtT3lnM29mb0RjX1dfbXIxN0EtbU5QclZ1bmFLOGxFLVlCekRHNjYyZjRyZHRLSUpVeFNwQ29ERDhOdjFBMDMySFcyc3N2cWVvY05JRTNXRVhSTGNsSXItWFNuWmRpX2NMaWFqcnNjMVlPLTBqcVVwYnVMLWdTME9TeXdJTlR1T1FRTEFhaXFGMFBnNVZ4dWl4VG9fdi1MaktRSFM3QVZTc0d1NnFHaHctNEFxZlY5?oc=5",
           "score": 0,
-          "age_h": 28.1,
+          "age_h": 28.2,
           "published_at": "2026-11-16T10:13:42Z"
         },
         {
@@ -6807,7 +6807,7 @@
         }
       ],
       "pos_n": 2,
-      "neg_n": 3,
+      "neg_n": 2,
       "retail_adj": 0.34,
       "index_search_shadow": {
         "valid": false,
@@ -7608,10 +7608,10 @@
       "price_source": "NSE India allIndices API · पिछला बंद भाव",
       "news_query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
       "score": 5.0,
-      "headline_score": 10.1,
+      "headline_score": 8.8,
       "headlines": [
         {
           "title": "FII inflows spark re-rating, lift Nifty Bank to record high",
@@ -7634,7 +7634,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOaFBZcFhabjZvbkc4QkJadkRpRGFySkh1UDF6QVIwX1FCV2dMUjd4ZWVtNjF6VTF2YlpNazdxdERwRjRVLUlCUGNrTy1hOGZjNzZzNnFvanBjLXhvMXVuX3ZuV1BubFR0VDZ5VE1idktDUGRHdlNOUjFBSEwzUG5aWW45VTBlR2dzbWJnTlpkRlRTUlY5UE0wM0k4Yi15Q1h4bGFGUlAzeEhRaUx6T05rOF9wUkw1a0ltUlRWTVlvOVFlTHMyNUE?oc=5",
           "score": 3,
-          "age_h": 1.7,
+          "age_h": 1.8,
           "published_at": "2026-11-17T12:37:54Z"
         },
         {
@@ -7678,7 +7678,7 @@
           "published_at": "2026-11-17T08:07:20Z"
         }
       ],
-      "pos_n": 11,
+      "pos_n": 7,
       "neg_n": 0,
       "retail_adj": 0.34,
       "index_search_shadow": {
@@ -7781,7 +7781,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:04:40Z",
             "oldest_headline_published_at": "2026-11-17T08:07:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -7795,7 +7795,7 @@
               "Upstox"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 0.3,
+            "newest_headline_age_h": 0.31,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -7807,7 +7807,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:04:40Z",
             "oldest_headline_published_at": "2026-11-17T08:07:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -7821,7 +7821,7 @@
               "Upstox"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 0.3,
+            "newest_headline_age_h": 0.31,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -14211,10 +14211,10 @@
       "price_source": "Yahoo Finance 5-minute quote",
       "news_query": "USD INR exchange rate India",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": 2.2,
-      "headline_score": 2.2,
+      "score": 3.1,
+      "headline_score": 3.1,
       "headlines": [
         {
           "title": "India Inc.’s Sudden Craving for Dollars Is a Dangerous Gamble",
@@ -14313,7 +14313,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-16T20:00:13Z",
             "oldest_headline_published_at": "2026-11-16T20:00:13Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14322,7 +14322,7 @@
               "Bloomberg.com"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 18.37,
+            "newest_headline_age_h": 18.39,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14334,7 +14334,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-16T20:00:13Z",
             "oldest_headline_published_at": "2026-11-16T20:00:13Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14343,7 +14343,7 @@
               "Bloomberg.com"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 18.37,
+            "newest_headline_age_h": 18.39,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14396,10 +14396,10 @@
       "price_source": "MCX live quote × 3% GST",
       "news_query": "gold price",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -2.2,
-      "headline_score": -2.2,
+      "score": -2.5,
+      "headline_score": -2.5,
       "headlines": [
         {
           "title": "Gold Price Forecast: $3,850 Support at Risk as Real Yields Bite",
@@ -14462,12 +14462,12 @@
           "source": "The Times of India",
           "link": "https://news.google.com/rss/articles/CBMirgJBVV95cUxNQ2JWdHptdXhJNDNhQVR0R2Fxd2lFYU44NEhWTnBwbUYxbjloU3djV1hyNVVFRXRTWWwwcklLT2V2cjFTTHhsWjJLaTk3ZFVhb3BqSDJkZGpscVhNRFA0NHlvSFVyTVROOHRLclM1OFNRX3ZZUjBUOEw5YW9IU2NxeU50eXJEODNtUVFTa09sanZPbnFjRzdScWlsOHVUNVZuUlg0U0hib0haTEdvZ29QNzhXdkgxdk1CRUZXSHRwTXpHMnJ5aXNvaWhhRHA5N1h5MXRPcmhuWldyenZDR1pxUXlFZFhMejREUEdFV3E5dkJLbXlqc3lFdnBXTlVyOFk5OXdmb2Qwb2QyODFRUWZjWTl4UzZUd1MzQ2pJR2NreWd1ZnRUYVJ0ZVBCVENwUdIBswJBVV95cUxNYnE0aC0yQkRWZzQwb25aVUplTzB0ZG1uZURnbV9pUEtKT3ZoV1dOeGJjZmJRbUdmV3ZJbzBNVjdzX3o0X3VmVlJlYzkwTlVibzhLcGdZX043MHY2TVQ0cTYzYXdNZWxjRWVCdU9sSGpwQmZJYW93V1ZTRHZBbEQtb3N5NjZoOWY4RUg4R3h0ZUtlUnB0QUJWQ1gxWjdaX0FZZmdXcnRnd1NMZWMxZ0M1amtVMWhCYmpNS0hDdlMyQk9aVXRrU0Vwb1o1N0JJU041eTNmbHRrbGVpUVJJcVRpMmFHNXBYLTNvWXplZ3Y0RmRtdkJJREUxZXhVdWJqdmlDTDNJUUpNY3hhZDlWeXFEV0NtT2wtaGN5a3dwMTJ5eWNJbXpIVE1KSVZVYUp1Q1k5bEMw?oc=5",
           "score": -1,
-          "age_h": 8.2,
+          "age_h": 8.3,
           "published_at": "2026-11-17T06:08:00Z"
         }
       ],
-      "pos_n": 2,
-      "neg_n": 7,
+      "pos_n": 1,
+      "neg_n": 4,
       "asset_search_shadow": {
         "valid": false,
         "scope": "asset_specific_google_related_queries_shadow",
@@ -14608,7 +14608,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:01:18Z",
             "oldest_headline_published_at": "2026-11-17T06:08:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14623,7 +14623,7 @@
               "World Gold Council"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 0.35,
+            "newest_headline_age_h": 0.37,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14635,7 +14635,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:01:18Z",
             "oldest_headline_published_at": "2026-11-17T06:08:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14650,7 +14650,7 @@
               "World Gold Council"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 0.35,
+            "newest_headline_age_h": 0.37,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14831,10 +14831,10 @@
       "price_source": "MCX live quote + 3% GST Estimate",
       "news_query": "silver price",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -2.0,
-      "headline_score": -2.0,
+      "score": 0.2,
+      "headline_score": 0.2,
       "headlines": [
         {
           "title": "Gold, Silver Rate Today Live Updates: Gold steadies near one-year low as strong dollar, silver also stables",
@@ -14865,7 +14865,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQV1RVWk9ib3VvckxsOUxSQ3lFOVlXQUREdF8zeUQwTDdSdDNBWDlqSF90MldSazcxb3BmR3hwVzJ3ZUJIV0V2S1huQTk3QUdfQTNMUTRBc2U1RmhucnowQjFSVkoxM2hIR28zdnJJbFlxOFNmOFlycFpfMW4wNVhvLWQ0VVhROURsVnlLY3Vsa3ZiVlZFSENFRldnYjJ5cFpIdVROQ2lkd3dTc0NFc2JId21JRk8wYkVJYVHSAb8BQVVfeXFMTm5jWWRDdHZKWlhac05MaXZFazhqaDlnVFJmYkxINHIycThJWVJNMHZOMG5Va296d0pzYkZodnE3OGtFbU4waWVsYlYtcE41VkRoQ180U2lwUURuUzlkZElHTGJEX09zTVJzVnZPcm0wcUJFcWtLUUFLM011TGZTYUxPbTVqYnFSdVUtaXlyQzhaWHNRcWtRMzNhTEdWdUhBbkdsRjVrSU5ZeW1mUUtNVTgxS2R6akpyYmN0OEtvWk0?oc=5",
           "score": 1,
-          "age_h": 3.8,
+          "age_h": 3.9,
           "published_at": "2026-11-17T10:32:17Z"
         },
         {
@@ -14897,12 +14897,12 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxNVlh4VjZmTkxteVYzQjktNUtBYktoNVZpcGMwOF9vSVlrZkQtVmdULTR6ek1hN2F1MDJkSTY1SmU4SXVBYUJEY2VNdkJKamlRYTB0aEUwTGVjLVdkTEdud2YydEdUN2djWjhCSnBQX2pJclFFQVNuZ3pYY05sWnJGbjE3QzBYN3pPSkg5OEVkSXQ3SlMxbWk5WDRqUWUxeHVET052N0dVR2NXLS1ZTnJZamVMSHBtdmIwNGZSU0I3R3lzRURhYmJaMFhvWF9od0Rja0c4bE9XQXJYOXdPTVQwaWloVzN2eDhLbnRvMjlBTDBRNFRNbVd5cHNUdTNxZkVnWmNLbjVjWjnSAY4CQVVfeXFMUEJpdUg3VExsSGdlTDJMeTNJT2JrRVBSNU1mUlB5bVhUcDhjM1dXTWpaQ0w5aURSU2RzaDJKZ0FPSlR2eVpCbzl6cE51N3ZNOWVINHJLdDZjQ1Vkc19HVXJTcFJDaWVvc04wam1DeVYwLU00S3dZRTRVRVNDU3JhQ280bFAwa2FVelc3aUhyVVlvUEttRGVORWpxT09GcUtWTUc0WUhNVW5tZE9iVEIyb0pIbDQ2aVNUTkhCcGNwcmp3MXcwbzVKcEFSZURRb1ZzNWJMdjU0RnJfb1NEeTVlRzRTUllKSXA5OElscDZtTzQ0YVhvYlk4YVlfX2dfTEE5VmJZWTU0WFNfSW5FQ2hn?oc=5",
           "score": 0,
-          "age_h": 10.1,
+          "age_h": 10.2,
           "published_at": "2026-11-17T04:13:38Z"
         }
       ],
       "pos_n": 1,
-      "neg_n": 5,
+      "neg_n": 1,
       "indicator_label": "BUILDUP DATA UNAVAILABLE",
       "indicator_reason": "एक ही कॉन्ट्रैक्ट का भरोसेमंद Open Interest डेटा उपलब्ध नहीं",
       "asset_search_shadow": {
@@ -15034,7 +15034,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T12:33:46Z",
             "oldest_headline_published_at": "2026-11-17T04:13:38Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -15050,7 +15050,7 @@
               "TradingView"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 1.81,
+            "newest_headline_age_h": 1.83,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -15062,7 +15062,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T12:33:46Z",
             "oldest_headline_published_at": "2026-11-17T04:13:38Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -15078,7 +15078,7 @@
               "TradingView"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 1.81,
+            "newest_headline_age_h": 1.83,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -15248,10 +15248,10 @@
       "price_source": "MCX India official Market Watch · FUTCOM",
       "news_query": "MCX crude oil futures India",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -1.1,
-      "headline_score": -1.1,
+      "score": -0.6,
+      "headline_score": -0.6,
       "headlines": [
         {
           "title": "November 2026 F&O Monthly Expiry",
@@ -15319,7 +15319,7 @@
         }
       ],
       "pos_n": 2,
-      "neg_n": 5,
+      "neg_n": 3,
       "asset_search_shadow": {
         "valid": false,
         "scope": "asset_specific_google_related_queries_shadow",
@@ -15669,24 +15669,24 @@
     "BITCOIN": {
       "type": "index",
       "change_pct": 0.18,
-      "price": 64934.86,
-      "price_time": "7.52 PM IST",
+      "price": 64931.15,
+      "price_time": "7.53 PM IST",
       "price_as_of": "2026-11-17",
       "price_unit": "",
       "price_source": "Coinbase BTC-USD latest executed trade",
       "news_query": "bitcoin price",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -2.0,
-      "headline_score": -2.0,
+      "score": -1.9,
+      "headline_score": -1.9,
       "headlines": [
         {
           "title": "BTC price range on Nov 17, 2026 at 10am EST Prediction Market",
           "source": "Robinhood",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQN0x4eThDREhwVjF1Ymg3Y25yb3RDam1qS2hkRFBSTE9lcUViSE11SkxjUGF2ZjV3QW9qQmFNemg2NkJLTG5ZTzk1NW01R2ZPQ0Q2UzExVlJUbklNbFhKZmpYZ0hWRHVSMk1hT2tNOXM4M1BKU1JubW85a3UzZlJCSXFyOTRzRlFLSENJUURiMnllX05qSDBUMFdZTVJUSEtoNXpOMmdnaV9Tekdja2RSeDZuVUZ1ckE?oc=5",
           "score": 0,
-          "age_h": 0.2,
+          "age_h": 0.3,
           "published_at": "2026-11-17T14:07:58Z"
         },
         {
@@ -15734,7 +15734,7 @@
           "source": "Bitcoin News",
           "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQWlNBd2YzdTBSbkRfNmw5Mk03RHNCb0diMWZPQkVldGt4bkZWR3RjcFN0VFNRd2dESVNqM3ROeUJtWXhQLWtMTEs5eDk5bm5kaEU3cFZBdGdTaDhnWlo5Z3E2a2tuRXlSeDBMZE80ekJqclRuamhGZmY4NEFiY1U2OTY0TXZKd19zejRqeHpyQ3Ewc3d3WjdoVnU5SUhndzQ2cmxOMkhGa3ZCcmVk?oc=5",
           "score": 0,
-          "age_h": 10.0,
+          "age_h": 10.1,
           "published_at": "2026-11-17T04:20:02Z"
         },
         {
@@ -15747,7 +15747,7 @@
         }
       ],
       "pos_n": 0,
-      "neg_n": 5,
+      "neg_n": 2,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -15774,7 +15774,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:07:58Z",
             "oldest_headline_published_at": "2026-11-17T02:39:34Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -15790,7 +15790,7 @@
               "TradingView"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 0.24,
+            "newest_headline_age_h": 0.26,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -15802,7 +15802,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:07:58Z",
             "oldest_headline_published_at": "2026-11-17T02:39:34Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -15818,7 +15818,7 @@
               "TradingView"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 0.24,
+            "newest_headline_age_h": 0.26,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -15871,10 +15871,10 @@
       "price_source": "Google Finance direct NASDAQ quote · पिछला बंद भाव",
       "news_query": "Nasdaq stock market",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -1.9,
-      "headline_score": -1.9,
+      "score": 1.0,
+      "headline_score": 1.0,
       "headlines": [
         {
           "title": "TOMI Environmental Solutions regains Nasdaq compliance By Investing.com",
@@ -15942,7 +15942,7 @@
         }
       ],
       "pos_n": 2,
-      "neg_n": 4,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -15969,7 +15969,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:39:55Z",
             "oldest_headline_published_at": "2026-11-17T01:10:38Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -15983,7 +15983,7 @@
               "qz.com"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 0.71,
+            "newest_headline_age_h": 0.73,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -15995,7 +15995,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:39:55Z",
             "oldest_headline_published_at": "2026-11-17T01:10:38Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16009,7 +16009,7 @@
               "qz.com"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 0.71,
+            "newest_headline_age_h": 0.73,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16062,10 +16062,10 @@
       "price_source": "Google Finance direct DOW JONES quote · पिछला बंद भाव",
       "news_query": "Dow Jones stock market",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -2.8,
-      "headline_score": -2.8,
+      "score": -1.9,
+      "headline_score": -1.9,
       "headlines": [
         {
           "title": "Stock market today: Dow and S&P 500 futures slip, Nasdaq futures rise in countdown to Nvidia earnings",
@@ -16080,7 +16080,7 @@
           "source": "WSJ",
           "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNYV9Da2RKLVI0UXpseEJwRGk5Q2MyNEwyRFpncTFFdHRDaGhvRFpfT2M2SWtINk96dzlRZnV1dnNTaU9DNjZGLVRZcGFiQnJpYW4zQUQza0dYNDQ3Q0x3VjZnWGZpV2hyOW0zY2xreTlqdHFlRDRJcnloZDIzR0VLT0xB?oc=5",
           "score": 0,
-          "age_h": 0.9,
+          "age_h": 1.0,
           "published_at": "2026-11-17T13:26:00Z"
         },
         {
@@ -16096,7 +16096,7 @@
           "source": "Sharecast.com",
           "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOQkJDQVVMN2hpcW9udHkxMGRTMEFPbE9wWHppVDBqTURQcWhmSUVEN1BtTFNHTlVIS0E5VkR0NnJZLUVTc0ZUdWtRbWVwdzJvQVFKUDFLcVVILXIyay1zN3ZsdzlfZHYyNXFQekFIcG1ycmoyVkFBM1JtSm9RZDl4dzJMV1NpUld2Q3JGY0dkbkY5QVZBcVpHMlFhakRtNjhYWVRLcDB2MjBrTXQ5ZzhidnhnMTdsVTJxVHpsR2pB?oc=5",
           "score": -1,
-          "age_h": 1.6,
+          "age_h": 1.7,
           "published_at": "2026-11-17T12:44:01Z"
         },
         {
@@ -16120,7 +16120,7 @@
           "source": "Yahoo Finance",
           "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPbi13dnBkZHc2MEpyT1BrMEVhUHhhYTg5cEJ3b3U3ZGdLYzdqYXZUcmhhUndIbVVfc3BRSVZZYWRMZGQ1Z3BHU3VES2NBZFVQbHFIcno1VC05LWZVUXRCMlY0VXFQeS1HRkVMWEJveGNrYjd3U3pxdlVteEU5blNwNDhSRmFmSHZLS2lrNmt1TG5GQQ?oc=5",
           "score": 0,
-          "age_h": 8.1,
+          "age_h": 8.2,
           "published_at": "2026-11-17T06:14:00Z"
         },
         {
@@ -16132,8 +16132,8 @@
           "published_at": "2026-11-17T03:37:00Z"
         }
       ],
-      "pos_n": 1,
-      "neg_n": 9,
+      "pos_n": 0,
+      "neg_n": 3,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -16160,7 +16160,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:51:18Z",
             "oldest_headline_published_at": "2026-11-17T03:37:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16174,7 +16174,7 @@
               "Yahoo Finance"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 0.52,
+            "newest_headline_age_h": 0.54,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16186,7 +16186,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:51:18Z",
             "oldest_headline_published_at": "2026-11-17T03:37:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16200,7 +16200,7 @@
               "Yahoo Finance"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 0.52,
+            "newest_headline_age_h": 0.54,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16253,10 +16253,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Reliance Industries share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": 2.3,
-      "headline_score": 2.3,
+      "score": 0.8,
+      "headline_score": 0.8,
       "headlines": [
         {
           "title": "5,056 Call Contracts at Rs 1,350 Strike on Reliance Industries Ltd Signal Near-Term Directional Interest",
@@ -16271,7 +16271,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMi8wJBVV95cUxPQWZ1aEphQ0xtMzFJWjUzd1BWOVdoLUJPd0x2LWYwTzhLaGd6S0ZSRHlPNFpqZm5LQ054Ym5BVms4MVUwcDNmNnhJTGk4bWVoSHBkazdOTU40bU0yekFHM0RtSVdDY0E0bVc1V3NydDdvZVpwSFU1VWlMTkZDNkFBWURzR1Z4MWdiX2VyeDhtTUVpUDM0b3F1a1M2UF9ndk1mVTAzQTNPNW1TZG0zaHV1OWZlWV96UjJpVW9NcVdVOGk0dUt4RHZfQTF5OU1tSDQzM1ZxdHdmd0V1Vzd1cUVwVHhSV3JlQk9EZjIwSElJNS1YZXBjRjNydllibFRWUDJYOGd1Nm5NRk9aZmhtdk05S2YwbklTOXlETk9FVVpfbnB5eHR0NGpDU255UDBKVUlRa0pRcWlrVkh6M1ZsUnludDdpQ2p1aEU3Q2dsOC1ZSU9NVWw2anF0Mnltd0V2Mm5HTkVmay1hMkhRc3d6YlBqVE5BMA?oc=5",
           "score": 0,
-          "age_h": 2.5,
+          "age_h": 2.6,
           "published_at": "2026-11-17T11:50:22Z"
         },
         {
@@ -16279,7 +16279,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE00anNGRF9JdzljQVhoc3o1RDloUllFYW5oVUw2d1hTbkNjZjRLYTUwdkZaTkJXWUhWamRQb285S2JyZkhfQzIzUm5yWS1TQ09wZEl5b29JUE5scTdGMEE?oc=5",
           "score": 0,
-          "age_h": 142.4,
+          "age_h": 142.5,
           "published_at": "2026-11-11T15:55:58Z"
         },
         {
@@ -16323,8 +16323,8 @@
           "published_at": "2026-10-09T07:00:00Z"
         }
       ],
-      "pos_n": 5,
-      "neg_n": 2,
+      "pos_n": 2,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -16351,7 +16351,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:03:04Z",
             "oldest_headline_published_at": "2026-11-17T11:50:22Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16361,7 +16361,7 @@
               "Simply Wall St"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 0.32,
+            "newest_headline_age_h": 0.34,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16373,7 +16373,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T14:03:04Z",
             "oldest_headline_published_at": "2026-11-17T11:50:22Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16383,7 +16383,7 @@
               "Simply Wall St"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 0.32,
+            "newest_headline_age_h": 0.34,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16436,10 +16436,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "HDFC Bank share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": 4.8,
-      "headline_score": 4.8,
+      "score": 6.5,
+      "headline_score": 6.5,
       "headlines": [
         {
           "title": "HDFC Bank vs Axis Bank: Both shares recover after Q2 sell-off; which banking stock offers higher upside? Check targets",
@@ -16454,7 +16454,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQdmZvS3JHQWtEU19WLVlQWjJ3dUU2ZU5Kd21uNFg5dnFIazZWdi1icmRBcldYNlY4azA0RGttOGdXeDRzUDZMSjZLdWFMbmFkWEh0Y2Z1akF4eXBvWVUtV0R3ckhJZkc1QVhaRk4wQmxnd1R1YmxTWnRLZ2NmQ0VLQno0LWlmRVViMmZNeThGb3RvbEpJRzVyVU43cElCb1JKd0NuZ2ZocmE3SnVvVzhqbnpn?oc=5",
           "score": 0,
-          "age_h": 7.2,
+          "age_h": 7.3,
           "published_at": "2026-11-17T07:08:00Z"
         },
         {
@@ -16506,8 +16506,8 @@
           "published_at": "2026-10-29T07:00:00Z"
         }
       ],
-      "pos_n": 6,
-      "neg_n": 3,
+      "pos_n": 5,
+      "neg_n": 1,
       "indicator_signals": [
         {
           "label": "⚡ Bearish divergence",
@@ -16540,7 +16540,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:20:59Z",
             "oldest_headline_published_at": "2026-11-17T02:16:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16550,7 +16550,7 @@
               "TradingView"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 1.03,
+            "newest_headline_age_h": 1.04,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16562,7 +16562,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T13:20:59Z",
             "oldest_headline_published_at": "2026-11-17T02:16:20Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16572,7 +16572,7 @@
               "TradingView"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 1.03,
+            "newest_headline_age_h": 1.04,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16625,10 +16625,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Tata Motors Passenger Vehicles share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -9.2,
-      "headline_score": -9.2,
+      "score": -10.0,
+      "headline_score": -10.0,
       "headlines": [
         {
           "title": "Tata Motors Passenger Vehicles: 3 Key Takeaways for Long-Term Investors",
@@ -16651,7 +16651,7 @@
           "source": "The New Indian Express",
           "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPSXRyU292QnR5OU9GX1NoMVJwZzlON0swNHRDVTNpWGxrT0NKRnU2Y1Y2V3p2ZUd1YmVQbjljVkdDa0xQXzlwSG9DREd0cGM2TE5mQ2w5bkoteHdfeldNWUxHVEo0aFRuR0U5djJhd3B6VFg3YnBQYV9jMDRUeFQzQV9zM2FGd3lfMVVSblVwRm5KbVVTc1R6d3p3QUhjQWtjVVFLMjR1U3BaeHJmZDh1NTA1cjR6NS02LTBVNHB5b9IBzAFBVV95cUxNM19fS0h3YXczRzV2MF8wZjBDYjhWLXp5b1ZVaUc1VVktMm9tRlB3aTlxeDFvYV9UZUhWcXV2Nzc4S3kyZC1GRFJadWpydXI1TE1UTEh0NGZNOFJ4aW1SMmJUMHZXLVlBeFBVOUpaSFZwSGdCZEpWWjNEczZmUXctamRuY21VMTdIdXJrQndERmVaUmRKb1VqY1dRTjFlLVBUS3M3Y0g3dDhjaGxZZDRVNXRsLWFZWUZmenNlLU9waTN0R2hZR2F4SmJfV0M?oc=5",
           "score": -2,
-          "age_h": 21.4,
+          "age_h": 21.5,
           "published_at": "2026-11-16T16:55:59Z"
         },
         {
@@ -16659,7 +16659,7 @@
           "source": "Telegraph India",
           "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxQcS1vY0lvNElDbGFHNFNyb01Mei1KUHl6bWNsdDFoalY3eG1aX2hWUlowNWpaM3czQkpmTllZZk0wQTlMOUxWYkp2c1kxbDR1Wk5DN2JNUmtIbG1ScF9PNFF0cE5sZURUVTdTVGdnSlpKTjdQRDZDUDJ3T1lLVEo1aWctTU5BOEdVaWpIYnVxUU1IOUVvdTVhcE95SDVsMUZMcFNCZElETG1PSHdLaDdWNmw5WVc3RW9MY3pMSjdoMVFTSDR0dUdXcFhRSnN6X29oTVgwY242RXNqNzBMeV91VEI2NFRyUFNtVldSQ01sdllyVkxKd05qY2h0WllaRm1aY1FUYnVR0gGLAkFVX3lxTE51QzVlYXJhV2ZsWGdFNDRKdW1IeGhGQWV5Z0VZWEtoMVR5M2xxc3A0TzVORkdrUmYxd19Xdm1sb0lUNnU0dzN2Um1MQWZhVkoxUExHYnViUEptQXdHUlE4U1QxejY5UUZfdEk0Tm5PTTBIWnpkYmwyWFhxNXhfZEFSRVd6cGs0REJpNWhFQ0dZWV9wTUtPa1VMdUxFMF93ZVBiMkRoNWZJc2tMWWpJc2tRQ2NDekFKTGhXNjA3aHlmb2xEZlhUWGZuVjRzMk02N3J0TmtUZ1dva2FZT1UtYTJjdEF1OG15clpWbFp3bW14QllCVWZoaWhHbHY3Q0l5ejhzamswMHg2bkRNUQ?oc=5",
           "score": -3,
-          "age_h": 30.1,
+          "age_h": 30.2,
           "published_at": "2026-11-16T08:14:13Z"
         },
         {
@@ -16696,7 +16696,7 @@
         }
       ],
       "pos_n": 0,
-      "neg_n": 11,
+      "neg_n": 7,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -16723,7 +16723,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T00:30:00Z",
             "oldest_headline_published_at": "2026-11-16T16:55:59Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16734,7 +16734,7 @@
               "The New Indian Express"
             ],
             "query": "Tata Motors Passenger Vehicles share",
-            "newest_headline_age_h": 13.87,
+            "newest_headline_age_h": 13.89,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16746,7 +16746,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T00:30:00Z",
             "oldest_headline_published_at": "2026-11-16T16:55:59Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -16757,7 +16757,7 @@
               "The New Indian Express"
             ],
             "query": "Tata Motors Passenger Vehicles share",
-            "newest_headline_age_h": 13.87,
+            "newest_headline_age_h": 13.89,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -16810,10 +16810,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Hindalco share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -0.5,
-      "headline_score": -0.5,
+      "score": -1.7,
+      "headline_score": -1.7,
       "headlines": [
         {
           "title": "Hindalco shares fall 1% after Novelis announces $265-million sale of China units",
@@ -16880,8 +16880,8 @@
           "published_at": "2026-08-09T07:00:00Z"
         }
       ],
-      "pos_n": 2,
-      "neg_n": 4,
+      "pos_n": 0,
+      "neg_n": 2,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -16949,10 +16949,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Adani Ports share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": 4.3,
-      "headline_score": 4.3,
+      "score": 6.7,
+      "headline_score": 6.7,
       "headlines": [
         {
           "title": "Adani Group stocks: Jefferies sees $51 billion capex over FY27–FY29; check how shares are faring on Nov 16",
@@ -17019,8 +17019,8 @@
           "published_at": "2026-10-07T07:00:00Z"
         }
       ],
-      "pos_n": 6,
-      "neg_n": 2,
+      "pos_n": 4,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -17088,17 +17088,17 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Coal India share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -0.4,
-      "headline_score": -0.4,
+      "score": -1.2,
+      "headline_score": -1.2,
       "headlines": [
         {
           "title": "Mahanadi Coalfields IPO: Dates, Price Band, Lot Size, GMP, and Financials",
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPRzlxbXNodk9JaEx2c2NSMEV3YzlodDNfOWVhQkpLZFMtdVVNaHByVW1CX3NYRFVmUF95ZlplcHF6MlhIYWRSZWlYcnppYTFuQkNTMmRSM210bmRwTmpQaGg1SV9Sd3lrWDQtS3FrQ0dfNGhyUWdCWU84NWFJSnNqZzFQN0hNZ1ZqVzdURGF4Z2VRR0Qtb1dJLVRYWHo3N2IxWl9FNkhod19CZVk?oc=5",
           "score": 0,
-          "age_h": 7.9,
+          "age_h": 8.0,
           "published_at": "2026-11-17T06:25:51Z"
         },
         {
@@ -17158,8 +17158,8 @@
           "published_at": "2026-11-16T07:48:46Z"
         }
       ],
-      "pos_n": 1,
-      "neg_n": 3,
+      "pos_n": 0,
+      "neg_n": 2,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -17186,7 +17186,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T06:25:51Z",
             "oldest_headline_published_at": "2026-11-16T15:42:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -17198,7 +17198,7 @@
               "The Hindu"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 7.94,
+            "newest_headline_age_h": 7.96,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -17210,7 +17210,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T06:25:51Z",
             "oldest_headline_published_at": "2026-11-16T15:42:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -17222,7 +17222,7 @@
               "The Hindu"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 7.94,
+            "newest_headline_age_h": 7.96,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -17275,10 +17275,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Eicher Motors share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": 1.6,
-      "headline_score": 1.6,
+      "score": 0.8,
+      "headline_score": 0.8,
       "headlines": [
         {
           "title": "Eicher Motors jumps 3%, stock top gainer in Nifty Auto; brokerages upbeat",
@@ -17345,7 +17345,7 @@
           "published_at": "2026-11-16T05:58:34Z"
         }
       ],
-      "pos_n": 6,
+      "pos_n": 3,
       "neg_n": 3,
       "component_breakdown": {
         "version": 1,
@@ -17373,7 +17373,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T09:33:54Z",
             "oldest_headline_published_at": "2026-11-17T00:03:08Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -17385,7 +17385,7 @@
               "Simply Wall St"
             ],
             "query": "Eicher Motors share",
-            "newest_headline_age_h": 4.81,
+            "newest_headline_age_h": 4.83,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -17397,7 +17397,7 @@
             "source_date": "2026-11-17",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-17T14:22Z",
+            "observed_at": "2026-11-17T14:23Z",
             "newest_headline_published_at": "2026-11-17T09:33:54Z",
             "oldest_headline_published_at": "2026-11-17T00:03:08Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -17409,7 +17409,7 @@
               "Simply Wall St"
             ],
             "query": "Eicher Motors share",
-            "newest_headline_age_h": 4.81,
+            "newest_headline_age_h": 4.83,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -17462,7 +17462,7 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Apollo Hospitals share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_status": "cached",
       "news_fetch_error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?q=Apollo+Hospitals+share&hl=en-IN&gl=IN&ceid=IN:en",
       "score": 0.4,
       "headline_score": 0.4,
@@ -17607,10 +17607,10 @@
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "SBI share",
       "news_fetch_attempted_at": "2026-11-17T14:22:29.291348Z",
-      "news_fetch_status": "fresh",
+      "news_fetch_status": "cached",
       "news_fetch_error": null,
-      "score": -2.1,
-      "headline_score": -2.1,
+      "score": 0.5,
+      "headline_score": 0.5,
       "headlines": [
         {
           "title": "State Bank of India completes acquisition of 9.90% stake in CareEdge Global IFSC",
@@ -17677,8 +17677,8 @@
           "published_at": "2026-08-10T07:00:00Z"
         }
       ],
-      "pos_n": 3,
-      "neg_n": 7,
+      "pos_n": 2,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -21242,48 +21242,6 @@
     "price": 108,
     "events": [
       {
-        "key": "2026-11-16|EICHERMOT|div",
-        "date": "2026-11-16",
-        "instrument": "EICHERMOT",
-        "score": 3.2,
-        "price_change": -0.32,
-        "sentiment_up": true,
-        "headlines": [
-          {
-            "title": "Eicher Motors shares vroom like its Bullet, stock price jumps over 3%; what brokerages say post Q2; Buy or avoid? Target",
-            "source": "Livemint",
-            "link": "https://news.google.com/rss/articles/CBMikwJBVV95cUxPVWJhSDh2c3pqWDhBOVZxSXBqUGt4ODlrWERyaHU5dE1NUG43NFVPUHc1SmNJTTkyRUw3QXpGcHV0cWZFMThVN3FsRldMNVNDSEdQOEM5OWtwdDhqcXdtNVJJMUg2YkVEQU5rZ2I1bjhTY3ZWckVqOE4yNU8xMXhTS2FWVDFqZldUeHN5NXdYckdrOURxVjk4eEpodWYwVWxEeTM2SjBtOXMwWktUZzVrdlB1ZlJQNWw5cGNIS0c4M081dmFzTDltZXpsQmRDcUtmajRmZUp1QkwtRGtqT3Y1c2ZCSjBVZEhjUnhmVm0xY3BFWE1lc3lWUWFOelV2R0ZXVUZyYnlobWVMcUJSblVNMVRna9IBmAJBVV95cUxOZ3REQ3lhSXpldXVMNDNub2g0ZWdNV1dRUjQtRHljcXZKai1UYXZrSTdmRnNiMzQtdkpRbkFfWm0ybXd0M0JZcFcxMmhNYlJNSlotTlRnU05TTHFqOXBibXo1RXZycXZoZ2xRYURrLTE3VjhaZ005TmtsaVRYYjAxU013TFpoWXFFcVRaZ0JOTEZNcGtGcTg4N28wc1VvcU5qSW1GWWs4UHg5QXF0ZmpLY3RucnlnSUd0RGQxZFRZLWE5QlhEWnNLNzRJbVJWTmRTSWhveWVla242eGZxRnQ2ZE5BbHZNWEpmQkVReDFjaUdOeGFqT0taTk9FSV8yUHFyT0x2NlpFNWROY2FHcmxGeDVzN0pFSHVF?oc=5",
-            "score": 2
-          },
-          {
-            "title": "Eicher Motors shares gain 3.5% on record Q2 show; margin recovery key",
-            "source": "Business Standard",
-            "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOTkxQZENyLUE1YnhxNnJOaVVoc0xEQkhBLU9EcFkzT2wxRERpR2JQY2oteUIxUlBSU2JxUWFEcExkVlhqUmdIWmlobEhkU3ZTekNrRk5GcTFSWFRTaXVjdkx5b2JDWVl0X3EtSkVwT3dPazJBYmNkM0lkMjFUV01hbE9pTzFaVk0xbmFRdWVQWXc0SXBacTRudXlxU0FDS2lZNkk3dHNrcVVGc1l2M1RxNThzUjFOb0dLTXhFUmxnQWRvQWJkZ3gxbFZQYllxQU3SAdQBQVVfeXFMUDJXemZEVEpwbXNCUURsOFQ1cW1VQWZILUxGYjVDdjgwcG94cjJ2ZXhZZUMyd1duQ2xETEtnRUljczAyWXpLQjNJYnBQdFhOUXg3OG5jX25OajJtOC1lTExjSlhPZWVUTEs4TXR1UFYtbmF2eC1CMHlPVC10cFRER2NMRnU3RmZDcVpJc3k0NERXUmtIYnB1bnk1eU81MzA0QmJtd1RTNWNpX2JHNE5iaXhUZk1HenhNWXgxeE5EYXM4Q1ZheXNwYkU3WVRhdUxfT2lPcnQ?oc=5",
-            "score": 1
-          },
-          {
-            "title": "Eicher Motors shares in focus as Q2 profit rises 15% YoY. Why CLSA hiked target but cut earnings estimates",
-            "source": "The Economic Times",
-            "link": "https://news.google.com/rss/articles/CBMiigJBVV95cUxNSDM0T3FMYXZmUXlVM3lZVVd5dVAzaGRteXJOVFhGVnBSRThCMUVieXdTYzNtY2tWSEd2Y2pSNmdPNDdBTGhLeWVBWUgtbmJBTmZlM3h4VWF3Y0hVaGl1S3Qza01NUjl2d3pNUnVnaG9ueHdZQTBVZXlNTlFwV29KOVR2VTVVVElSRk9MblNzY3JkTVpJN19pWDNiNmZPQkVaTUhZSUlrelRCUjRkYXFpSm9GallWcE5nb0RTZGk3VVhtSW5LLWxhWkx4YXBsXzFaMWkwNWZKaVdORVhOTUNTYXk5bFZRdjU2N3dMa0tEQlIzZFJ1aVV3eEI5ZkdjRlpRYVJKZ0F1OUlFQdIBjwJBVV95cUxOTWU4VlpLckNDSWxsYWtYNUpuVTNHbWVXck4zbE4yQ2l1RnZvblhqaENuVHFtQ3NhT1Q0djJOVWpWM3ZfSTBTR2s4ZEh2VlFuejJNbzVoa0w0S2dRYjktNXhHT2p2X1Z4dkhGUFIzWnNDWXNiamd2Q2dPaUF2N2ZVcTFEVV9VaS03NHJXQU1yczRoRmVnTFpzVEl2ajZjUmZVeWU4Q3ZWV25MdG5mUmd3UlZEbWJSZTR0T1ZfbG9yaEhzWmxxUllyVW5CRFZ1S0pkOElJaGp5YjVUZXkzdkhOZlZPakpvdndQM0JaS2xjZGZERHIwQ3Y0N3V5R1pFQWEyakdsZVdTYWViN1g5VFdR?oc=5",
-            "score": 2
-          },
-          {
-            "title": "5 Stocks in Focus Today: Tata Motors, Hindalco, Eicher",
-            "source": "HDFC Sky",
-            "link": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxNVWF0S04xMXNGQ0VIMXJtcklBbnZhSTlaWDIzUjc3WW9IMEd2aWRIVVBJN3dfM2JGcHlCejRYV0NYeVdfNW9WVkRKWjVOWldyZWNBN1BQd3NwRS1OQ1ZfNlRJNzBzMlhpd1NFdzM0c0tvSEFBYmdrNGxFN1FQS0QwY3lyRjZjOWRqX2RoZmdBUHcxUmpGUlpGM2pYUDRrcmdqTEVQMUtkRllmekpsdXBMbklsakxxSzgtMjdacmN6LWtEeFZMVERHaElSWENaR3B6elk1VHN1cnpXS3pzUlZiUEhINWFraEk5WXV3dE0tRWFfWUNUX3A0Rw?oc=5",
-            "score": 0
-          },
-          {
-            "title": "News by CNBC TV18 on TradingView, 2026-11-16 — cnbctv:12682286e094b:0",
-            "source": "TradingView",
-            "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFB3RzAtdlVuQlpqamIwVGlwU01fRURTUTZFVWdZSzNhZWUwX09uV0xDVG50YVlMRWdUcGlCLVItUmFuX2ZpTjBVV1dJRGhsQk5iOWFheFlKTERfbFdnY2FDWVE4MjZ0d28?oc=5",
-            "score": 0
-          }
-        ],
-        "outcome": "price",
-        "next_change": -0.67
-      },
-      {
         "key": "2026-11-16|RELIANCE|div",
         "date": "2026-11-16",
         "instrument": "RELIANCE",
@@ -21744,6 +21702,48 @@
         ],
         "outcome": "price",
         "next_change": 0.48
+      },
+      {
+        "key": "2026-11-17|NASDAQ|div",
+        "date": "2026-11-17",
+        "instrument": "NASDAQ",
+        "score": 1.0,
+        "price_change": -2.49,
+        "sentiment_up": true,
+        "headlines": [
+          {
+            "title": "TOMI Environmental Solutions regains Nasdaq compliance By Investing.com",
+            "source": "Investing.com India",
+            "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSll0TlZpWkhzQURQMnZBUlNSd295Qnk0N1JhalM2TGpuYXluTDRqUXVjUGR3Vm9veW1BZ0JsMWcyeHVwN3o0c0JmVnl3UzlVQVotZC0zVENGRk9aYWR4OFpKc2l6Vkw1NTFqbTN2dGpUNnF3NmFrRlVaQ2xYeTQtQ1g3aERwZG9BNjlFZTRkQndMQUR0QWhza3I5WDMwcFdlU2drN3RxZUctdmtSdW1CbkxVSlJXZw?oc=5",
+            "score": 0
+          },
+          {
+            "title": "Nasdaq Futures Rise as Investors Look to Nvidia Earnings",
+            "source": "WSJ",
+            "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOLWFVMlBnemRzMmd1Y3hHMzBtWFVDU3RmdTFpLVpUZUJ1aXdhZGVYNm5TclkwTlpQd1didkwyWXhDdHFQYUlwTDBDZ2hUeUx0dExHNjRvUlplUjlQNDItcXVmYmZ6eGJ5Tk9fTE12LWFuY3J1b1ZId2hEUVFSVDNuWlBRSENtZ29zTkRLZUhHWUFUS2VqcmE0MEc5Wk85TGlXblE?oc=5",
+            "score": 1
+          },
+          {
+            "title": "Dow Jones, S&P 500, Nasdaq futures hint mixed open on Nov 17; Nvidia earnings, Home Depot, among stocks to watch",
+            "source": "Upstox",
+            "link": "https://news.google.com/rss/articles/CBMikwJBVV95cUxOcFBjcTNnQ1Naazg0VS0tRHIxdTV3WUtjYlRaTlA2UHFLd2hlbkV5R1BFX25DbmFwSU9MLU9ONzRTczJCTU9VLVdWZnNuU1o2cDYwWGhmbnRzcXhEOThZZkNVLXRRSDdQVC0weGJtZ3Y2eTI0R3llWU4tU3BVVFhqS2FkR05MRkhmTmx3QTZuQ19MRGtVUDlEVUY5eFN4V2g5R1NWb05LR3RiRS1zRmJUazRDYldTZHhVcWEySWNOOU5uQURlMlktU0VnRmxiZDF0cXFRZ3d5b3JVVGVFTkN6UUxxZGVWYWNSa3o0RVNoSmhMc2JTZDFPcGZYZ1RQbWlsWlgzc1hPaXpfZXNKd2dKZUpCNA?oc=5",
+            "score": 0
+          },
+          {
+            "title": "Nasdaq futures rise as tech stocks firm up ahead of Nvidia results, Anthropic IPO",
+            "source": "Reuters",
+            "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOemNySVhGbms1VkxVYXFsTFdtdVh1MjNQQk16Y1ZfNGFHMFhDRWUtZldZRzJzSWxpNlBLWVpTenJnU2FHZndaVUlEclFtQVNvTzJBWTNpM1p0N3dmWjlyMEFKbkowZkpSanhVcEVLUjZfOWxNcW5OZVFuLTNFNF93ZDd4b0wxX1VzNlJPODdqc0xob1ZrR0xuQkJ6bExvNDdQMk5saFVSdkVBZw?oc=5",
+            "score": 1
+          },
+          {
+            "title": "5 Nasdaq-linked stock indexes and how each differs from the S&P 500",
+            "source": "qz.com",
+            "link": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE9LVVhNMjdKWUlzdUl3Q3RLZUtxSVZiNFRubEFTZjNuX1oxdUpUeGt1bTZNdEpCR3owUHN6TTRxSlZVeWM3a0Z3X2c0bFh0M0xr?oc=5",
+            "score": 0
+          }
+        ],
+        "outcome": null,
+        "next_change": null
       }
     ]
   },
@@ -22817,7 +22817,7 @@
     "fii": 4195.38,
     "dii": 196.93,
     "stale": false,
-    "as_of_run": "2026-11-17T14:22Z"
+    "as_of_run": "2026-11-17T14:23Z"
   },
   "participant_oi": {
     "ok": true,
@@ -23127,7 +23127,16 @@
         "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1Lc2RtRnpVZVpSaGpHVThpUG9oMDVESFBoeUtHbWZfY3R1eVpDQU5abnZLS0hVRW1ONXQ5NVBWZXVUTDU3ZkZoRU1Wa0pLcy0yMnJNd0c1SnBjNVhvM1hDV1hR?oc=5",
         "score": 0,
         "impact": "तटस्थ",
-        "age_h": 1.9
+        "age_h": 2.0
+      },
+      {
+        "topic": "RBI नीति",
+        "title": "RBI may hike repo rate by 25 bps each during next 2 MPC reviews as inflation rises: Report",
+        "source": "Cityairnews",
+        "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPQVg5WWNaSEN2VU1pMVRISVR1ZUNkc19XenBGdjZtcUJDMS1mYlMtWGVqdm5QV2FQSWVSUDdDaEh1Vngxb3ZDWkxEX0VqekhsREdYZkZDSmR0cDRXXzBiN1VWeDBxUUx0R0RtQzd6Nl9iczNLNTM0UkhtZUEzdHdYQ3BCcDNtcXNxLTFBalo4V00xa2NJUzQtVC1oRlYxR0pHRExmT18tMGtiVkpMVVIzZDRIekVOZXZUWjgxejEtZDZadjA?oc=5",
+        "score": 1,
+        "impact": "तटस्थ",
+        "age_h": 2.9
       },
       {
         "topic": "भारतीय बाज़ार",
@@ -23148,15 +23157,6 @@
         "age_h": 3.4
       },
       {
-        "topic": "भारतीय बाज़ार",
-        "title": "Stock Market Highlights: Nifty closes above 25,380, Sensex rises over 400 pts; Adani Ent, Eicher Motors lead g",
-        "source": "CNBC TV18",
-        "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxNeVVseWk2QWNzQ3VMMWFKOEQ1VEZXWEhFaFpXRHlwMW1HNFJ5YjBhZjdJeVJhb1JwVHNISDlXUWQxTVBUd2Z3MDRobFNwQUJJNmRyQXVselkzS2w5Y0xzV05wMThtUFNEdm1hdk1BeTFvaEMtTUZRZkVSNG1wd1JiaXJRSmhWYXVtckpoT3I0NEUtalRSLU9CRTJpMXJCam9OM2J1SGh0UG5pVS1KMUdWd00wd2dJS0lLd0xZUHEyeUZtZ3Nzb01jWlZySWVmUlp5NUk3YmdNT0hIdWZuMUd2UzhlTEJEVGhPN0xNYlJpclUzclpiTHdPY2JuaDM5UdIBgwJBVV95cUxQdXQzM0NFbmZiN08tNEI3RFlUTW5OcHl0bnVwQm14cXRma3c3RlhycnJZdndPZjF3NXZxaUN0MWdIZzJkX1BfVVk1dDRNZlhYN3YtLUlkTl9MRUpsc1RtWHRJTmgzOEtvQ1FGWUdlWmVvVy1xUkJKR1A4NVZrbktmQndIOXcyQUFLUVpLOHpYelVJNUJtRHVVQVY4TWxwbmlPOTBtMUlNVUNZYUtUc3NjazVya0FKWHBCeE1UMEJzXzFrVVJZM195TGVuUUF6TTFkMTZjVDlfbWRkUjdQQ0pVc1A1SHJ6bVJxalgwWFVnTXJMX1ptMjlKZTZLbFQzVExsSWlN?oc=5",
-        "score": 1,
-        "impact": "तटस्थ",
-        "age_h": 4.0
-      },
-      {
         "topic": "सोना, डॉलर और रुपया",
         "title": "Gold Rates Today, Nov 17: Check City-wise Yellow Metal, 22K, 24K, 999 Silver Prices; Gold at Rs 1.34 Lakh/10g",
         "source": "APAC Media",
@@ -23164,15 +23164,6 @@
         "score": 0,
         "impact": "तटस्थ",
         "age_h": 4.0
-      },
-      {
-        "topic": "भारतीय बाज़ार",
-        "title": "Stock Market Close: Sensex ends 427 pts up as rally extends to 2nd day, Nifty at 25,387; banks shine",
-        "source": "Business Standard",
-        "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxQM0NPdUN2UkJhZHVjQ0l6OU1mMWNSbTNQT1d1YkZfQ2J5bDJpb3dKX0RBSXVTN2xmQm9tMUFPeVBUYmQwdGgtN2pTZlQxWDRST3pMMmdnTldRTFg3SHpzVDY0SHNMZUtwSWd6TF9pTVFhQThBSm9OVlNmY0RuWENyWUlxTjRnUFZ0RHRrdjJwc0U2NmVWbTBfTS1oZEtsaE8zcVFZSXhlQ0dEU3ZRaXoybG8yRVBUaENBMnYtVXRDbEpiYXNBNHFOQlRQRjVwOElLcU5obndFd3FhX1FnLWxCeU5XYmZ4YXNaTzFxX3dZOHZVVWdUTlF1QkFXdW9hZ9IBgwJBVV95cUxPWHktYVptWG0tQy1BVVZ0YXFJTkxYblVQWXZ5VWw4cWZVb1V5dGRiYnEtWnhLZTB0V2JINThiRXpPT2RpZnZWRG1GSmVoa19hVnlpWE1XSEFsTGdGQ3BDNWlHVW1YUWNtNmNWMHhxOENoMnhGUWh2ZnV6c0RKSnRpb3NhdmpFUW5kUGJwQld3SlZnZzhFb1dmd1hJQkMzc2M5aTlHUnIwSTd4ZGFXV2tIRkJiT3dHWEotN2p6R0IzZWp2WTNaTEg0NXJKeXZUWlM0QVNncC1mTEpwakw2cFRTMml6X0FTZzdVTHVDbFJmVVRmRWtWeXhsQ0JNZEN5Rkw0OFBR?oc=5",
-        "score": 2,
-        "impact": "सकारात्मक असर",
-        "age_h": 4.1
       },
       {
         "topic": "भारतीय बाज़ार",
@@ -23199,7 +23190,7 @@
         "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOMXZZZDBNbzBqYUlRdzFyU3V0THc4OW9EcGhZUFpLQ1VwaWxhRTRad3FyYklMWjg5OHJPSjdvU2hpTXNPVzlRWHVYaW55ei0wbGN2cGUyVGZWcVloSFprS1JQQW16TzlIeG5kdXhXMC1KZWNJQ1gwZUVHeTRsbGdQNW9CRGYyRzNwbW5NNl9iNE0wQXpoV3c?oc=5",
         "score": 1,
         "impact": "तटस्थ",
-        "age_h": 6.4
+        "age_h": 6.5
       },
       {
         "topic": "भारतीय बाज़ार",
@@ -23218,10 +23209,19 @@
         "score": 1,
         "impact": "तटस्थ",
         "age_h": 7.9
+      },
+      {
+        "topic": "भारतीय बाज़ार",
+        "title": "India's stock market premium faces test from slower growth, tight rates: UBS",
+        "source": "Business Standard",
+        "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNWEVSQ2ZWWjlmVFZvazBCN21SYjNyMzJrUS02MlJTd0pONDBtMWJ6RlJRQkVFS08yS0c4RHE2YVYzZXV5RDMyOEtQOFlvdHhZVnVaUEpCN05FRno1UkxLeGVpWTlHZ05XT1RadlptNGVOX1ktYVZGVmMyZUthLWo3NEdNREsyZC1mcDVLUGkwaFg4RUdJSi1uTmxTY0xLNXp1Y2YwTmM2Nk5VZmdUOC0wNHR1WDgyQjc5TFZZXzZZeHJIcTFibzhrUTNaY1c2c1RSQnpkQkpQNVjSAd4BQVVfeXFMTUc4LW45dkRaZ0R0NHU1dXJpaWpCZVN6SHdkeHdqcmZZQTlsMWhHS0ZTOGJsR0JvY1NrM3lYakQ0bGRjdFRSNzgybHA2OHJnUXJHNGpUUmFrNEhXbjBoVlM1QmRNWTQ1STJLRGpSMW9xWFRKZi1FMnN4dzdWMmltUWxOcVlneGhNVXM4c1JYVHVnTzZGT0FEakE3RGVxbEJUUm9RcFFBMzgxTERPY2dPNjh6dGxMM2hWRXlaRl9PU09xYXB2OEFkUjNTQnNNajZzSzh1aUhxM2M1S3NpR2Z3?oc=5",
+        "score": 0,
+        "impact": "तटस्थ",
+        "age_h": 8.3
       }
     ],
     "stale": false,
-    "as_of": "2026-11-17T14:22Z"
+    "as_of": "2026-11-17T14:23Z"
   },
   "trends": {
     "ok": true,
@@ -23730,9 +23730,9 @@
         },
         "session_open_close": {
           "market_date": "2026-11-17",
-          "open": 25323.6504,
+          "open": 25277.3008,
           "latest_close": 25387.4004,
-          "change_pct": 0.2517,
+          "change_pct": 0.4356,
           "direction": 1,
           "status": "complete",
           "last_bar_end": "2026-11-17T10:00:00Z",
@@ -23753,12 +23753,12 @@
           {
             "start": "2026-11-11T04:00:00Z",
             "end": "2026-11-11T04:30:00Z",
-            "open": 25340.3496,
+            "open": 25323.8008,
             "high": 25424.3496,
             "low": 25319.9004,
             "close": 25351.5508,
             "volume": 0.0,
-            "change_pct": 0.0442,
+            "change_pct": 0.1096,
             "direction": 1
           },
           {
@@ -23797,12 +23797,12 @@
           {
             "start": "2026-11-11T06:00:00Z",
             "end": "2026-11-11T06:30:00Z",
-            "open": 25366.4004,
+            "open": 25367.5508,
             "high": 25396.9492,
             "low": 25359.0508,
             "close": 25390.9004,
             "volume": 0.0,
-            "change_pct": 0.0966,
+            "change_pct": 0.092,
             "direction": 1
           },
           {
@@ -23852,12 +23852,12 @@
           {
             "start": "2026-11-11T08:30:00Z",
             "end": "2026-11-11T09:00:00Z",
-            "open": 25207.75,
+            "open": 25209.5,
             "high": 25261.5,
             "low": 25193.8496,
             "close": 25215.4004,
             "volume": 0.0,
-            "change_pct": 0.0303,
+            "change_pct": 0.0234,
             "direction": 1
           },
           {
@@ -23941,7 +23941,7 @@
             "start": "2026-11-12T06:00:00Z",
             "end": "2026-11-12T06:30:00Z",
             "open": 25281.5996,
-            "high": 25303.1992,
+            "high": 25303.6992,
             "low": 25262.9004,
             "close": 25268.0508,
             "volume": 0.0,
@@ -24031,20 +24031,20 @@
             "open": 25201.9004,
             "high": 25201.9004,
             "low": 25077.5996,
-            "close": 25134.3008,
+            "close": 25133.75,
             "volume": 0.0,
-            "change_pct": -0.2682,
+            "change_pct": -0.2704,
             "direction": -1
           },
           {
             "start": "2026-11-13T04:00:00Z",
             "end": "2026-11-13T04:30:00Z",
-            "open": 25133.4004,
+            "open": 25130.1504,
             "high": 25229.4004,
             "low": 25117.3496,
             "close": 25200.3496,
             "volume": 0.0,
-            "change_pct": 0.2664,
+            "change_pct": 0.2793,
             "direction": 1
           },
           {
@@ -24086,9 +24086,9 @@
             "open": 25172.6992,
             "high": 25176.1992,
             "low": 25134.5996,
-            "close": 25146.5508,
+            "close": 25146.5996,
             "volume": 0.0,
-            "change_pct": -0.1039,
+            "change_pct": -0.1037,
             "direction": -1
           },
           {
@@ -24138,23 +24138,23 @@
           {
             "start": "2026-11-13T08:30:00Z",
             "end": "2026-11-13T09:00:00Z",
-            "open": 25097.0508,
+            "open": 25097.3496,
             "high": 25098.9004,
             "low": 25054.4492,
             "close": 25087.3008,
             "volume": 0.0,
-            "change_pct": -0.0388,
+            "change_pct": -0.04,
             "direction": -1
           },
           {
             "start": "2026-11-13T09:00:00Z",
             "end": "2026-11-13T09:30:00Z",
-            "open": 25086.9004,
+            "open": 25086.6504,
             "high": 25130.5508,
             "low": 25086.1504,
             "close": 25109.0996,
             "volume": 0.0,
-            "change_pct": 0.0885,
+            "change_pct": 0.0895,
             "direction": 1
           },
           {
@@ -24196,20 +24196,20 @@
             "open": 25320.75,
             "high": 25328.1504,
             "low": 25257.3496,
-            "close": 25262.25,
+            "close": 25262.1504,
             "volume": 0.0,
-            "change_pct": -0.231,
+            "change_pct": -0.2314,
             "direction": -1
           },
           {
             "start": "2026-11-16T05:00:00Z",
             "end": "2026-11-16T05:30:00Z",
-            "open": 25263.5508,
+            "open": 25262.6504,
             "high": 25263.6504,
             "low": 25192.1504,
             "close": 25227.0,
             "volume": 0.0,
-            "change_pct": -0.1447,
+            "change_pct": -0.1411,
             "direction": -1
           },
           {
@@ -24240,9 +24240,9 @@
             "open": 25255.6992,
             "high": 25301.4492,
             "low": 25242.25,
-            "close": 25251.6504,
+            "close": 25250.9004,
             "volume": 0.0,
-            "change_pct": -0.016,
+            "change_pct": -0.019,
             "direction": -1
           },
           {
@@ -24314,56 +24314,56 @@
           {
             "start": "2026-11-17T03:30:00Z",
             "end": "2026-11-17T04:00:00Z",
-            "open": 25323.6504,
+            "open": 25277.3008,
             "high": 25357.8496,
             "low": 25269.1992,
             "close": 25321.9004,
             "volume": 0.0,
-            "change_pct": -0.0069,
-            "direction": -1
+            "change_pct": 0.1764,
+            "direction": 1
           },
           {
             "start": "2026-11-17T04:00:00Z",
             "end": "2026-11-17T04:30:00Z",
-            "open": 25323.6992,
+            "open": 25321.8496,
             "high": 25382.0,
             "low": 25292.8496,
             "close": 25372.5996,
             "volume": 0.0,
-            "change_pct": 0.1931,
+            "change_pct": 0.2004,
             "direction": 1
           },
           {
             "start": "2026-11-17T04:30:00Z",
             "end": "2026-11-17T05:00:00Z",
-            "open": 25373.75,
+            "open": 25372.4492,
             "high": 25416.8008,
             "low": 25359.25,
             "close": 25400.5996,
             "volume": 0.0,
-            "change_pct": 0.1058,
+            "change_pct": 0.1109,
             "direction": 1
           },
           {
             "start": "2026-11-17T05:00:00Z",
             "end": "2026-11-17T05:30:00Z",
-            "open": 25401.5996,
+            "open": 25400.1504,
             "high": 25416.0508,
             "low": 25371.5996,
             "close": 25404.6504,
             "volume": 0.0,
-            "change_pct": 0.012,
+            "change_pct": 0.0177,
             "direction": 1
           },
           {
             "start": "2026-11-17T05:30:00Z",
             "end": "2026-11-17T06:00:00Z",
-            "open": 25405.0,
+            "open": 25404.8008,
             "high": 25452.75,
             "low": 25402.6504,
             "close": 25438.4492,
             "volume": 0.0,
-            "change_pct": 0.1317,
+            "change_pct": 0.1324,
             "direction": 1
           },
           {
@@ -24383,9 +24383,9 @@
             "open": 25483.5508,
             "high": 25501.3496,
             "low": 25472.25,
-            "close": 25486.6504,
+            "close": 25486.9004,
             "volume": 0.0,
-            "change_pct": 0.0122,
+            "change_pct": 0.0131,
             "direction": 1
           },
           {
@@ -24402,12 +24402,12 @@
           {
             "start": "2026-11-17T07:30:00Z",
             "end": "2026-11-17T08:00:00Z",
-            "open": 25445.5508,
+            "open": 25452.9492,
             "high": 25453.6504,
             "low": 25347.1504,
             "close": 25386.5508,
             "volume": 0.0,
-            "change_pct": -0.2319,
+            "change_pct": -0.2609,
             "direction": -1
           },
           {
@@ -24635,9 +24635,9 @@
             "open": 60807.8984,
             "high": 61192.5508,
             "low": 60730.8984,
-            "close": 61170.1016,
+            "close": 61172.3008,
             "volume": 0.0,
-            "change_pct": 0.5957,
+            "change_pct": 0.5993,
             "direction": 1
           },
           {
@@ -24778,9 +24778,9 @@
             "open": 61300.5508,
             "high": 61300.5508,
             "low": 60862.3516,
-            "close": 60958.5,
+            "close": 60957.0,
             "volume": 0.0,
-            "change_pct": -0.558,
+            "change_pct": -0.5604,
             "direction": -1
           },
           {
@@ -24877,9 +24877,9 @@
             "open": 60956.0,
             "high": 60991.1484,
             "low": 60882.5,
-            "close": 60925.3008,
+            "close": 60926.8516,
             "volume": 0.0,
-            "change_pct": -0.0504,
+            "change_pct": -0.0478,
             "direction": -1
           },
           {
@@ -25017,12 +25017,12 @@
           {
             "start": "2026-11-16T08:00:00Z",
             "end": "2026-11-16T08:30:00Z",
-            "open": 61494.0,
+            "open": 61493.1992,
             "high": 61510.1992,
             "low": 61338.0508,
             "close": 61365.3984,
             "volume": 0.0,
-            "change_pct": -0.2091,
+            "change_pct": -0.2078,
             "direction": -1
           },
           {
@@ -25204,13 +25204,13 @@
         ]
       },
       "RELIANCE": {
-        "score": 2.3,
-        "sent": 1,
+        "score": 0.8,
+        "sent": 0,
         "price_dir": -1,
         "vwap_side": 1,
         "vol_hi": false,
         "vol_ok": true,
-        "since": "2026-11-17T09:41Z",
+        "since": "2026-11-17T14:23Z",
         "last_30m": {
           "start": "2026-11-17T09:30:00Z",
           "end": "2026-11-17T10:00:00Z",
@@ -25951,13 +25951,13 @@
         ]
       },
       "HDFCBANK": {
-        "score": 4.8,
+        "score": 6.5,
         "sent": 1,
         "price_dir": 1,
         "vwap_side": -1,
         "vol_hi": false,
         "vol_ok": true,
-        "since": "2026-11-17T14:22Z",
+        "since": "2026-11-17T14:23Z",
         "last_30m": {
           "start": "2026-11-17T09:30:00Z",
           "end": "2026-11-17T10:00:00Z",
@@ -26700,40 +26700,6 @@
     },
     "events": [
       {
-        "time": "2026-11-17T08:53Z",
-        "instrument": "HDFCBANK",
-        "prev_score": 5.1,
-        "new_score": 5.1,
-        "changed": [
-          "कीमत",
-          "VWAP"
-        ],
-        "vol_data": true,
-        "held_minutes": 26,
-        "price_at_change": 817.4,
-        "price_after": 812.75,
-        "move_pct": -0.57,
-        "after_minutes": 48,
-        "direction": "नीचे"
-      },
-      {
-        "time": "2026-11-17T09:41Z",
-        "instrument": "NIFTY",
-        "prev_score": 10.0,
-        "new_score": 0.0,
-        "changed": [
-          "भावना",
-          "कीमत"
-        ],
-        "vol_data": false,
-        "held_minutes": 48,
-        "price_at_change": 25412.5508,
-        "price_after": 25387.4004,
-        "move_pct": -0.1,
-        "after_minutes": 119,
-        "direction": "लगभग स्थिर"
-      },
-      {
         "time": "2026-11-17T09:41Z",
         "instrument": "BANKNIFTY",
         "prev_score": 10.0,
@@ -26938,6 +26904,38 @@
         ],
         "vol_data": true,
         "held_minutes": 63,
+        "price_at_change": 814.95,
+        "price_after": 814.95,
+        "move_pct": 0.0,
+        "after_minutes": 1,
+        "direction": "लगभग स्थिर"
+      },
+      {
+        "time": "2026-11-17T14:23Z",
+        "instrument": "RELIANCE",
+        "prev_score": 2.3,
+        "new_score": 0.8,
+        "changed": [
+          "भावना"
+        ],
+        "vol_data": true,
+        "held_minutes": 282,
+        "price_at_change": 1367.0,
+        "price_after": null,
+        "move_pct": null,
+        "after_minutes": null,
+        "direction": null
+      },
+      {
+        "time": "2026-11-17T14:23Z",
+        "instrument": "HDFCBANK",
+        "prev_score": 4.8,
+        "new_score": 6.5,
+        "changed": [
+          "भावना"
+        ],
+        "vol_data": true,
+        "held_minutes": 1,
         "price_at_change": 814.95,
         "price_after": null,
         "move_pct": null,
