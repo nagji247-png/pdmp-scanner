@@ -80,6 +80,14 @@ def append_diagnostic(output_path, result):
     return True
 
 
+def latest_completed_session_date(now=None):
+    """Use today's cash session only after the official 20:00 IST EOD window."""
+    current = now or dt.datetime.now(IST)
+    if current.timetz().replace(tzinfo=None) < dt.time(20, 0):
+        return current.date() - dt.timedelta(days=1)
+    return current.date()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", help="One cash session date YYYY-MM-DD")
@@ -107,11 +115,16 @@ def main():
         )
         if complete == 3:
             completed_days.add(str(row.get("date")))
+    latest_completed = latest_completed_session_date()
     if args.date:
         requested_day = dt.date.fromisoformat(args.date).isoformat()
-        days = [] if requested_day in completed_days or not is_exchange_session(requested_day, calendar) else [requested_day]
+        days = [] if (
+            requested_day > latest_completed
+            or requested_day in completed_days
+            or not is_exchange_session(requested_day, calendar)
+        ) else [requested_day]
     else:
-        today = dt.datetime.now(IST).date()
+        today = latest_completed
         # Include every exchange session in the window, not only dates found
         # in one of the archives. Missing NSE/BSE files therefore create an
         # explicit withheld record instead of silently reusing an older day.
