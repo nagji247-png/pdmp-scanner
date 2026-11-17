@@ -36,14 +36,14 @@ def append_diagnostic(output_path, result):
         # Permit a same-session retry to upgrade a record only when the
         # new result contains strictly more verified constituent rows. Never allow
         # a retry to downgrade or silently replace an equally complete record.
-        def complete_count(record):
+        def verified_row_count(record):
             indices = record.get("indices") if isinstance(record, dict) else None
             if not isinstance(indices, dict):
-                return int(bool(record.get("all_three_complete")))
+                return 0
             return sum(
-                1 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
-                if isinstance(indices.get(key), dict)
-                and indices[key].get("status") == "complete_diagnostic"
+                max(0, int(item.get("matched") or 0))
+                for key in ("NIFTY", "SENSEX", "BANKNIFTY")
+                if isinstance((item := indices.get(key)), dict)
             )
         if verified_row_count(result) > verified_row_count(existing):
             archive["records"] = [
