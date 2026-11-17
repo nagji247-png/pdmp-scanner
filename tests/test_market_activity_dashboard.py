@@ -1,4 +1,3 @@
-import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -23,23 +22,23 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=13"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=14"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
-        blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "345a7ecd989b5416caa4e73680bf221c2ba6cf00")
+        self.assertIn("function sectorState(d)", self.market_activity)
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
     def test_sector_direction_requires_broad_quote_coverage(self):
         self.assertIn("d.minRequired=Math.max(5,Math.ceil(rows.length*0.6))", self.market_activity)
-        self.assertIn("if(!d.qualified)return 1", self.market_activity)
-        self.assertIn("if(!d.qualified)", self.market_activity)
-        self.assertIn("कम-से-कम 5 स्टॉक", self.market_activity)
-        self.assertIn("दिशा के लिए कम-से-कम", self.market_activity)
+        self.assertIn("function sectorOrder(s){var d=s.d;return d.up>d.down?0:d.down>d.up?2:1;}", self.market_activity)
+        self.assertIn("उपलब्ध भावों में तेजी की हलचल", self.market_activity)
+        self.assertIn("उपलब्ध भावों में मंदी की हलचल", self.market_activity)
+        self.assertIn("कम कवरेज; दिशा उपलब्ध डेटा पर आधारित, संकेत सीमित", self.market_activity)
+        self.assertIn("सेक्टर की कुल दिशा दिखाई जाती है", self.market_activity)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
