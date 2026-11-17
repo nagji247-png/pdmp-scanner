@@ -1301,5 +1301,25 @@
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-17|BANKNIFTY",
+    "date": "2026-11-17",
+    "instrument": "BANKNIFTY",
+    "score": 9.6,
+    "event_time_utc": "2026-11-17T05:28:45Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 62254.4492,
+    "baseline_time": "2026-11-17T05:25:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    },
+    "baseline_source": "Yahoo Finance"
   }
 ]
