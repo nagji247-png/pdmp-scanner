@@ -22,10 +22,18 @@ ANCHOR_DATE = dt.date(2026, 11, 12)
 ARCHIVE_PATH = Path("bse_sensex_close_archive.json")
 URL = "https://api.bseindia.com/BseIndiaAPI/api/ProduceCSVForDate/w"
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
+    # BSE currently rejects older browser fingerprints and archive-page referers.
+    # Match the current first-party browser request without adding a paid dependency.
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
     "Accept": "text/csv,text/plain,application/octet-stream,*/*",
     "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.bseindia.com/indices/IndexArchiveData.html",
+    "Referer": "https://www.bseindia.com/",
+    "Origin": "https://www.bseindia.com",
+    "Sec-CH-UA": '"Google Chrome";v="155", "Chromium";v="155", "Not?A_Brand";v="99"',
+    "Sec-CH-UA-Mobile": "?0",
+    "Sec-CH-UA-Platform": '"Windows"',
+    "DNT": "1",
+    "Cache-Control": "no-cache",
 }
 
 
@@ -95,8 +103,8 @@ def fetch_sensex_history(start_date, end_date, session=None):
         "dtToDate": end.strftime("%d/%m/%Y"),
         "period": "D",
     }
-    # One BSE website warm-up obtains the exchange session cookie; one data request follows.
-    client.get("https://www.bseindia.com/indices/IndexArchiveData.html", headers=HEADERS, timeout=(10, 20))
+    # Current BSE API clients send the first-party root Referer/Origin directly.
+    # Visiting the archive page first can itself be blocked and is not required.
     response = client.get(URL, params=params, headers=HEADERS, timeout=(10, 30))
     if response.status_code != 200 or not response.content:
         raise RuntimeError(f"BSE SENSEX historical index HTTP {response.status_code}")
