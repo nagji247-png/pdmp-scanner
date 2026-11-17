@@ -213,10 +213,10 @@ class StockCompanyResearchTests(unittest.TestCase):
 
     def test_nse_equity_master_parses_company_names_for_requested_symbols(self):
         csv_text = (
-            "SYMBOL,NAME OF COMPANY, SERIES, ISIN NUMBER\\n"
-            "BHARTIARTL,BHARTI AIRTEL LIMITED,EQ,INE397D01024\\n"
-            "RELIANCE,RELIANCE INDUSTRIES LIMITED,EQ,INE002A01018\\n"
-            "OTHER,OTHER LIMITED,EQ,INE000A01000\\n"
+            "SYMBOL,NAME OF COMPANY, SERIES, ISIN NUMBER\n"
+            "BHARTIARTL,BHARTI AIRTEL LIMITED,EQ,INE397D01024\n"
+            "RELIANCE,RELIANCE INDUSTRIES LIMITED,EQ,INE002A01018\n"
+            "OTHER,OTHER LIMITED,EQ,INE000A01000\n"
         )
         result = research.parse_nse_equity_master_csv(csv_text, {"BHARTIARTL", "RELIANCE"})
         self.assertEqual(result, {
