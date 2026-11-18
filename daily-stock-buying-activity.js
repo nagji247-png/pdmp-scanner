@@ -138,7 +138,7 @@ function render(data){
  <button class="dsba-overview-card dsba-card-buy" data-category="buy"><strong>'+rows.filter(function(r){return rowKind(r)==="buy";}).length+'</strong><span>BUYING ACTIVITY</span><small>खरीदारी के संकेत</small></button>
  <button class="dsba-overview-card dsba-card-sell" data-category="sell"><strong>'+rows.filter(function(r){return rowKind(r)==="sell";}).length+'</strong><span>SELLING ACTIVITY</span><small>बिकवाली का दबाव</small></button>
  <button class="dsba-overview-card dsba-card-unusual" data-category="unusual"><strong>'+rows.filter(function(r){return rowKind(r)==="unusual";}).length+'</strong><span>UNUSUAL ACTIVITY</span><small>असामान्य गतिविधि</small></button>
- <button class="dsba-overview-card dsba-card-deals" data-category="deals"><strong>'+rows.filter(function(r){return rowKind(r)==="deals";}).length+'</strong><span>DISCLOSED DEALS</span><small>Bulk / Block सौदे</small></button>
+ <button class="dsba-overview-card dsba-card-deals" data-category="deals"><strong>'+rows.filter(function(r){return Array.isArray(r.deal_evidence)&&r.deal_evidence.length>0;}).length+'</strong><span>DISCLOSED DEALS</span><small>Bulk / Block सौदे</small></button>
  </div>'+
  shortlistHtml+
  sellingHtml+
@@ -178,11 +178,11 @@ function render(data){
  root.innerHTML=html;
  root.onclick=function(event){
   var close=event.target.closest("[data-close-modal]");
-  if(close){var backdrop=close.closest(".dsba-modal-backdrop");if(backdrop)backdrop.remove();return;}
+  if(close&&(close.classList.contains("dsba-close")||event.target===close)){var backdrop=close.closest(".dsba-modal-backdrop");if(backdrop)backdrop.remove();return;}
   var chart=event.target.closest("[data-chart-toggle]");
   if(chart){var panel=chart.parentNode.nextElementSibling;if(panel){panel.hidden=!panel.hidden;chart.textContent=panel.hidden?"TradingView Chart खोलें":"TradingView Chart बंद करें";}return;}
   var card=event.target.closest("[data-category]");
-  if(card){var key=card.getAttribute("data-category");openCategory(card.querySelector("span").textContent,rows.filter(function(r){return rowKind(r)===key;}));return;}
+  if(card){var key=card.getAttribute("data-category");openCategory(card.querySelector("span").textContent,rows.filter(function(r){return key==="deals"?(Array.isArray(r.deal_evidence)&&r.deal_evidence.length>0):rowKind(r)===key;}));return;}
   var stock=event.target.closest("[data-symbol]");
   if(stock){var item=rows.find(function(r){return r.symbol===stock.getAttribute("data-symbol");});if(item){var old=root.querySelector(".dsba-modal-backdrop");if(old)old.remove();openStock(item);}return;}
   var row=event.target.closest("tr[data-stock]");
