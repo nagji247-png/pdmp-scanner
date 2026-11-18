@@ -396,7 +396,9 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
             and bool(existing_contracts[symbol].get("contracts"))
             for symbol in SYMBOLS
         )
-        if already_enriched or not incoming_enriched:
+        already_stock_futures = isinstance(existing.get("stock_futures"), dict)
+        incoming_stock_futures = isinstance(stock_futures, dict)
+        if (already_enriched and already_stock_futures) or not incoming_enriched or not incoming_stock_futures:
             return False
         # Enrich a legacy OI-only record from the exact same official file hash.
         # This is a data-schema upgrade, not a replacement with a different source.
@@ -495,7 +497,7 @@ def capture_one(archive, trade_date):
         isinstance(existing_contracts.get(symbol), dict)
         and bool(existing_contracts[symbol].get("contracts"))
         for symbol in SYMBOLS
-    )
+    ) and isinstance(existing.get("stock_futures"), dict)
     if already_enriched:
         return {"date": date_key, "status": "skipped_existing", "date_attempts": 0}
     payload, source_url = fetch_official_bhavcopy(trade_date)
