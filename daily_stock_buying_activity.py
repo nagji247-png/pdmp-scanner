@@ -240,10 +240,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             evidence = ["भाव सकारात्मक", volume_baseline_note]
         elif change_pct <= -0.2:
             signal, strength = "SELLING WATCH", "EARLY"
-            evidence = ["भाव नकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+            evidence = ["भाव नकारात्मक", volume_baseline_note]
         else:
             signal, strength = "UNUSUAL ACTIVITY WATCH", "EARLY"
-            evidence = ["भाव में स्पष्ट दिशा अभी नहीं", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+            evidence = ["भाव में स्पष्ट दिशा अभी नहीं", volume_baseline_note]
 
         current_delivery_pct = finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct"))
         prior_delivery_values = delivery_history_by_symbol.get(symbol, [])[-20:]
