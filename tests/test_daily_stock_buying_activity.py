@@ -63,6 +63,29 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["futures_expiry"], "2026-11-26")
         self.assertIsNone(row["delivery_pct"])
 
+    def test_futures_oi_is_unavailable_when_previous_cash_session_archive_is_missing(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 102, "previous_close": 100, "volume": 120000}]},
+            {"date": "2026-11-18", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 102, "volume": 200000}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            # 17-Nov is intentionally missing; 16-Nov must not be used as a stale substitute.
+            {"date": "2026-11-18", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1300, "close": 105.0}}}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        row = next(row for row in report["rows"] if row["symbol"] == "ABC")
+        self.assertIsNone(row["oi_change_pct"])
+        self.assertIsNone(row["futures_change_pct"])
+        self.assertIsNone(row["futures_expiry"])
+        self.assertIn("Futures OI", row["missing_fields"])
+
     def test_scans_outside_fno_and_marks_only_verified_early_alert(self):
         master = {"stocks": {"FNO1": {}}}
         archive = {"records": [
