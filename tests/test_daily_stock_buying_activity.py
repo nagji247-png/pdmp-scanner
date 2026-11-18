@@ -61,6 +61,7 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["oi_change_pct"], 10.0)
         self.assertEqual(row["futures_change_pct"], 5.0)
         self.assertEqual(row["futures_expiry"], "2026-11-26")
+        self.assertEqual(row["average_volume_sessions"], 1)
         self.assertIsNone(row["delivery_pct"])
 
     def test_futures_oi_is_unavailable_when_previous_cash_session_archive_is_missing(self):
@@ -104,6 +105,7 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(by_symbol["ABC"]["category"], "अन्य NSE")
         self.assertTrue(by_symbol["ABC"]["new_discovery"])
         self.assertEqual(by_symbol["ABC"]["activity_days"], 1)
+        self.assertEqual(by_symbol["ABC"]["average_volume_sessions"], 1)
         self.assertEqual(by_symbol["FNO1"]["category"], "F&O")
         self.assertEqual(by_symbol["ABC"]["signal"], "EARLY BUYING WATCH")
         self.assertIsNone(by_symbol["ABC"]["oi_change_pct"])
