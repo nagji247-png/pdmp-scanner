@@ -33,6 +33,70 @@ def finite_number(value):
     return result if math.isfinite(result) else None
 
 
+def build_price_volume_outcomes(sessions, session_maps):
+    """Reconstruct EOD price/volume alerts and score only completed 1/3/5-session outcomes."""
+    history = []
+    summary = {
+        horizon: {"right": 0, "wrong": 0, "stable": 0, "pending": 0}
+        for horizon in (1, 3, 5)
+    }
+    for index in range(1, len(sessions)):
+        current_map = session_maps[index]
+        for symbol, row in current_map.items():
+            close = finite_number(row.get("close"))
+            previous = finite_number(row.get("previous_close"))
+            volume = finite_number(row.get("volume"))
+            if close is None or previous is None or previous <= 0 or volume is None or volume <= 0:
+                continue
+            prior_volumes = [
+                finite_number(session_maps[j][symbol].get("volume"))
+                for j in range(max(0, index - 20), index)
+                if symbol in session_maps[j]
+            ]
+            prior_volumes = [value for value in prior_volumes if value is not None and value >= 0]
+            if not prior_volumes:
+                continue
+            average = sum(prior_volumes) / len(prior_volumes)
+            if average <= 0 or volume / average < 1.5:
+                continue
+            change_pct = (close / previous - 1.0) * 100.0
+            direction = "BUY" if change_pct >= 0.2 else "SELL" if change_pct <= -0.2 else "NEUTRAL"
+            outcomes = {}
+            for horizon in (1, 3, 5):
+                future_index = index + horizon
+                if future_index >= len(sessions):
+                    status = "PENDING"
+                else:
+                    future_row = session_maps[future_index].get(symbol)
+                    future_close = finite_number(future_row.get("close")) if future_row else None
+                    if future_close is None or close <= 0:
+                        status = "PENDING"
+                    elif direction == "NEUTRAL":
+                        status = "NOT SCORED"
+                    else:
+                        forward_return = (future_close / close - 1.0) * 100.0
+                        if abs(forward_return) < 0.000001:
+                            status = "STABLE"
+                        elif (direction == "BUY" and forward_return > 0) or (direction == "SELL" and forward_return < 0):
+                            status = "RIGHT"
+                        else:
+                            status = "WRONG"
+                outcomes[str(horizon) + "D"] = status
+                if status in ("RIGHT", "WRONG", "STABLE", "PENDING"):
+                    summary[horizon][status.lower()] += 1
+            history.append({
+                "date": sessions[index]["date"], "symbol": symbol,
+                "direction": direction,
+                "signal": "EARLY BUYING WATCH" if direction == "BUY" else "SELLING WATCH" if direction == "SELL" else "UNUSUAL ACTIVITY WATCH",
+                "change_pct": round(change_pct, 2),
+                "volume_ratio": round(volume / average, 2),
+                "outcomes": outcomes,
+                "basis": "NSE cash EOD price-volume; not institutional attribution",
+            })
+    history.sort(key=lambda item: (item["date"], item["symbol"]), reverse=True)
+    return history[-200:], summary
+
+
 def build_report(archive, master, generated_at=None, fo_archive=None, delivery_archive=None, deals_archive=None):
     records = archive.get("records") if isinstance(archive, dict) else None
     if not isinstance(records, list) or not records:
@@ -72,6 +136,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
          if isinstance(row, dict) and row.get("symbol")}
         for session in sessions
     ]
+    signal_history, outcome_summary = build_price_volume_outcomes(sessions, session_maps)
 
     def consecutive_activity_days(symbol):
         streak = 0
@@ -195,6 +260,8 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "other_nse_rows": sum(row["category"] == "अन्य NSE" for row in rows),
         },
         "rows": rows,
+        "signal_history": signal_history,
+        "outcome_summary": outcome_summary,
         "bulk_block_deals": deal_rows,
         "coverage": {
             "cash_price_volume": "verified",
