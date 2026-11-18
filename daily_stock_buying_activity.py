@@ -342,6 +342,8 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "source": "NSE CM-UDiFF Common Bhavcopy Final",
             "as_of": latest_date.isoformat(),
             "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
+                              + ([] if volume is not None else ["Cash Volume"])
+                              + ([] if avg_volume is not None else ["Cash Volume baseline"])
                               + ([] if (delivery_rows.get(symbol) or {}).get("delivery_pct") is not None else ["Security-wise Delivery %"]),
         })
     strength_order = {"STRONG": 0, "WATCH": 1, "EARLY": 2}
