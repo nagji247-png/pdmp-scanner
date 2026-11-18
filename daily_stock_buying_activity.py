@@ -301,6 +301,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "other_nse_rows": sum(row["category"] == "अन्य NSE" for row in rows),
         },
         "rows": rows,
+        "strength_summary": {
+            level: sum(1 for row in rows if row.get("strength") == level)
+            for level in ("STRONG", "WATCH", "EARLY")
+        },
         "signal_history": signal_history,
         "outcome_summary": outcome_summary,
         "bulk_block_deals": deal_rows,
