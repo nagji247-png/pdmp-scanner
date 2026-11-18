@@ -25,9 +25,9 @@ function render(data){
  if(!data||!Array.isArray(data.rows)){root.innerHTML='<div class="dsba-note">Daily buying activity डेटा उपलब्ध नहीं।</div>';return;}
  var rows=data.rows;
  var buyingCandidates=rows.filter(function(r){
-  return ["LONG BUILD-UP","DISCLOSED BUY DEAL WATCH","EARLY BUYING WATCH"].indexOf(r.signal)>=0;
+  return ["LONG BUILD-UP","DISCLOSED BUY DEAL WATCH","DELIVERY WATCH","EARLY BUYING WATCH"].indexOf(r.signal)>=0;
  });
- var priorityOrder={"LONG BUILD-UP":0,"DISCLOSED BUY DEAL WATCH":1,"EARLY BUYING WATCH":2};
+ var priorityOrder={"LONG BUILD-UP":0,"DISCLOSED BUY DEAL WATCH":1,"DELIVERY WATCH":2,"EARLY BUYING WATCH":3};
  buyingCandidates.sort(function(a,b){
   var tier=(priorityOrder[a.signal]||0)-(priorityOrder[b.signal]||0);
   if(tier)return tier;
@@ -38,7 +38,7 @@ function render(data){
  });
  var shortlist=buyingCandidates.slice(0,10);
  var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>पहले देखने योग्य खरीद संकेत</b> <span class="dsba-meta">('+shortlist.length+' / '+buyingCandidates.length+')</span>'+
-  '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। EARLY BUYING में केवल सकारात्मक भाव + असामान्य वॉल्यूम है; OI/डिलीवरी/सौदे की पुष्टि अलग से देखें।</div>'+
+  '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। DELIVERY WATCH में डिलीवरी संकेत, जबकि EARLY BUYING में केवल सकारात्मक भाव + असामान्य वॉल्यूम है; OI/डिलीवरी/सौदे की पुष्टि अलग से देखें।</div>'+
   (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
    shortlist.map(function(r){
     var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
