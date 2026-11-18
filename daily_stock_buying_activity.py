@@ -167,7 +167,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         "bulk_block_deals": [],
         "coverage": {
             "cash_price_volume": "verified",
-            "futures_oi": "not_yet_connected",
+            "futures_oi": "verified_for_matched_stock_futures" if any(row["oi_change_pct"] is not None for row in rows) else "not_yet_connected",
             "delivery_pct": "verified" if delivery_record else "not_yet_connected",
             "bulk_block_deals": "not_yet_connected",
             "intraday": "not_available_in_this_eod_scan",
