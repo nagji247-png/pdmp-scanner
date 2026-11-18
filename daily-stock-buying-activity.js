@@ -39,7 +39,9 @@ function render(data){
   data.bulk_block_deals.map(function(d){return '<tr><td><b>'+esc(d.symbol)+'</b></td><td>'+esc(d.client)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.kind)+' Deal</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join('')+
   '</tbody></table></div>':
   (data.coverage&&data.coverage.bulk_block_deals==="verified"?
-   '<div class="dsba-note">इस तारीख की सत्यापित NSE रिपोर्ट में कोई Bulk / Block Deal रिकॉर्ड नहीं मिला।</div>':
+   '<div class="dsba-note">इस तारीख की दोनों सत्यापित NSE रिपोर्टों में कोई Bulk / Block Deal रिकॉर्ड नहीं मिला।</div>':
+   data.coverage&&data.coverage.bulk_block_deals==="partial"?
+   '<div class="dsba-note">NSE की एक रिपोर्ट उपलब्ध है, दूसरी अनुपलब्ध है; सूची आंशिक है।</div>':
    '<div class="dsba-note">NSE की आधिकारिक Bulk / Block Deal रिपोर्ट अभी उपलब्ध नहीं हुई; नाम/मात्रा नहीं गढ़ी जाएगी।</div>'))+
  '</details>';
  root.innerHTML=html;
