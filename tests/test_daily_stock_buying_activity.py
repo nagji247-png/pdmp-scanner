@@ -429,6 +429,8 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["oi_change_pct"], 10.0)
         self.assertIsNone(row["volume"])
         self.assertIsNone(row["volume_ratio"])
+        self.assertIn("Cash Volume", row["missing_fields"])
+        self.assertIn("Cash Volume baseline", row["missing_fields"])
         self.assertTrue(any("कैश वॉल्यूम उपलब्ध नहीं" in item for item in row["evidence"]))
 
 
