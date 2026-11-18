@@ -316,6 +316,7 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(report["coverage"]["futures_oi"], "verified_for_matched_stock_futures")
         self.assertEqual(report["coverage_counts"]["fno_symbols_with_same_expiry_oi"], 1)
         self.assertEqual(report["coverage_counts"]["delivery_symbols_matched"], 1)
+        self.assertEqual(report["coverage"]["delivery_pct"], "verified_for_matched_symbols")
         self.assertEqual(report["coverage_counts"]["bulk_block_reports_verified"], 2)
         self.assertEqual(report["coverage_counts"]["bulk_block_deal_rows"], 0)
 
