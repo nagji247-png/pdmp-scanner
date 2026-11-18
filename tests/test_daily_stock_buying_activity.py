@@ -284,5 +284,40 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
 
 
 
+    def test_source_coverage_is_independent_of_alert_rows(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000},
+            ]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 100000},
+            ]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1050, "close": 100.0}}}}},
+        ]}
+        delivery_archive = {"records": [
+            {"date": "2026-11-17", "rows": {"ABC": {
+                "delivery_qty": 50000, "delivery_pct": 50.0, "traded_qty": 100000}}},
+        ]}
+        deals_archive = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": []},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}},
+                              fo_archive=fo_archive,
+                              delivery_archive=delivery_archive,
+                              deals_archive=deals_archive)
+        self.assertEqual(report["rows"], [])
+        self.assertEqual(report["coverage"]["futures_oi"], "verified_for_matched_stock_futures")
+        self.assertEqual(report["coverage_counts"]["fno_symbols_with_same_expiry_oi"], 1)
+        self.assertEqual(report["coverage_counts"]["delivery_symbols_matched"], 1)
+        self.assertEqual(report["coverage_counts"]["bulk_block_reports_verified"], 2)
+        self.assertEqual(report["coverage_counts"]["bulk_block_deal_rows"], 0)
+
+
+
 if __name__ == "__main__":
     unittest.main()
