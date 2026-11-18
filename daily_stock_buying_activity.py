@@ -122,8 +122,11 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                 history.setdefault(symbol, []).append(volume)
 
     fo_records = (fo_archive or {}).get("records", []) if isinstance(fo_archive, dict) else []
-    previous_fo = next((record for record in reversed(fo_records) if isinstance(record, dict) and record.get("date") < latest_date.isoformat()), None)
-    current_fo = next((record for record in reversed(fo_records) if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
+    previous_cash_date = sessions[-2]["date"] if len(sessions) >= 2 else None
+    previous_fo = next((record for record in reversed(fo_records)
+                        if isinstance(record, dict) and record.get("date") == previous_cash_date), None)
+    current_fo = next((record for record in reversed(fo_records)
+                       if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     current_futures = (current_fo or {}).get("stock_futures") or {}
     previous_futures = (previous_fo or {}).get("stock_futures") or {}
 
