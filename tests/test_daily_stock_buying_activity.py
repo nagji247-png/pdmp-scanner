@@ -337,7 +337,7 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
         self.assertEqual(report["coverage"]["futures_oi"], "not_yet_connected")
         self.assertEqual(report["coverage_counts"]["fno_symbols_with_same_expiry_oi"], 0)
-        self.assertIsNone(report["rows"][0]["oi_change_pct"])
+        self.assertEqual(report["rows"], [])
 
     def test_futures_oi_and_disclosed_deals_survive_without_high_cash_volume(self):
         archive = {"records": [
