@@ -39,7 +39,7 @@ function render(data){
  var shortlist=buyingCandidates.slice(0,10);
  var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>पहले देखने योग्य खरीद संकेत</b> <span class="dsba-meta">('+shortlist.length+' / '+buyingCandidates.length+')</span>'+
   '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। EARLY BUYING में केवल सकारात्मक भाव + असामान्य वॉल्यूम है; OI/डिलीवरी/सौदे की पुष्टि अलग से देखें।</div>'+
-  (shortlist.length?'<div class="dsba-shortlist">'+shortlistHtml+'</div><div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
+  (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
    shortlist.map(function(r){
     var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
     return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
@@ -57,6 +57,7 @@ function render(data){
  (data.coverage_counts?'<div class="dsba-meta">डेटा कवरेज: Cash '+fmt(data.coverage_counts.cash_quote_valid_symbols,0)+'/'+fmt(data.coverage_counts.nse_eq_symbols_scanned,0)+' · Futures OI '+fmt(data.coverage_counts.fno_symbols_with_same_expiry_oi,0)+'/'+fmt(data.coverage_counts.fno_symbols_in_master,0)+' F&O · Delivery '+fmt(data.coverage_counts.delivery_symbols_matched,0)+'/'+fmt(data.coverage_counts.delivery_eq_symbols_scanned,0)+' · Bulk/Block रिपोर्ट '+fmt(data.coverage_counts.bulk_block_reports_verified,0)+'/2 · Deals '+fmt(data.coverage_counts.bulk_block_deal_rows,0)+'</div>':'')+
  (function(){var stamp=Date.parse(String(data.as_of||"")+"T15:30:00+05:30");var age=Date.now()-stamp;return !Number.isFinite(stamp)?'<div class="dsba-note">चेतावनी: रिपोर्ट की तारीख सत्यापित नहीं हो सकी। इसे वर्तमान डेटा न मानें।</div>':age>96*60*60*1000?'<div class="dsba-note">चेतावनी: यह NSE EOD रिपोर्ट 4 दिन से अधिक पुरानी है। पिछला डेटा सुरक्षित रखा गया है, लेकिन नया EOD अपडेट उपलब्ध नहीं हुआ—इसे वर्तमान संकेत न मानें।</div>':"";})()+
  '<div class="dsba-summary"><span>F&O संकेत: <b>'+fno.length+'</b></span><span>अन्य NSE संकेत: <b>'+other.length+'</b></span><span>STRONG: <b>'+fmt(data.strength_summary&&data.strength_summary.STRONG,0)+'</b></span><span>WATCH: <b>'+fmt(data.strength_summary&&data.strength_summary.WATCH,0)+'</b></span><span>EARLY: <b>'+fmt(data.strength_summary&&data.strength_summary.EARLY,0)+'</b></span><span>स्कैन: <b>'+fmt(data.universe&&data.universe.nse_eq_symbols_scanned,0)+'</b> EQ शेयर</span></div>'+
+ shortlistHtml+
  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Category</th><th>Price</th><th>OI</th><th>Delivery %</th><th>Active Sessions</th><th>Signal</th><th>Buying Evidence</th></tr></thead><tbody>';
  if(!rows.length)html+='<tr><td colspan="8">इस EOD स्कैन में कोई सत्यापित Buying / Activity संकेत नहीं मिला।</td></tr>';
  rows.forEach(function(r){
