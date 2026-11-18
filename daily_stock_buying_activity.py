@@ -197,7 +197,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         change_pct = (close / previous - 1.0) * 100.0
         prior_volumes = history.get(symbol, [])
         avg_volume = (sum(prior_volumes) / len(prior_volumes)) if prior_volumes else None
-        volume_ratio = (volume / avg_volume) if avg_volume and avg_volume > 0 else None
+        volume_ratio = (volume / avg_volume) if volume is not None and avg_volume and avg_volume > 0 else None
         volume_alert_eligible = volume_ratio is not None and volume_ratio >= 1.5
         current_stock = current_futures.get(symbol) or {}
         prior_stock = previous_futures.get(symbol) or {}
