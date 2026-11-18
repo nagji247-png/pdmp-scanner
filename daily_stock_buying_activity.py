@@ -233,7 +233,8 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                 signal, strength = "LONG UNWINDING", "WATCH"
             else:
                 signal, strength = ("EARLY BUYING WATCH" if change_pct > 0 else "SELLING WATCH"), "EARLY"
-            evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", volume_baseline_note]
+            evidence = ["Futures भाव बदला", "उसी expiry का OI बदला",
+                        volume_baseline_note if volume_alert_eligible else "कैश वॉल्यूम 1.5x सीमा पर नहीं; संकेत Futures भाव और OI पर आधारित"]
         elif volume_alert_eligible and change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
             evidence = ["भाव सकारात्मक", volume_baseline_note]
