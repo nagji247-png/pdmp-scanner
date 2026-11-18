@@ -42,6 +42,7 @@ function render(data){
   '<div class="dsba-note">अभी पर्याप्त ऐतिहासिक सत्र उपलब्ध नहीं हैं।</div>')+
  '<div class="dsba-note">नतीजे केवल NSE cash EOD price-volume दिशा पर आधारित हैं। Pending नतीजे सही/गलत में नहीं गिने जाते; यह संस्थागत खरीदारी की पुष्टि नहीं है।</div></details>'+
  '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary>'+
+ (data.coverage&&data.coverage.bulk_block_deals==="partial"?'<div class="dsba-note">चेतावनी: NSE की केवल एक रिपोर्ट सत्यापित हुई है। नीचे की सूची आंशिक है; दूसरी रिपोर्ट उपलब्ध नहीं है।</div>':'')+
  (Array.isArray(data.bulk_block_deals)&&data.bulk_block_deals.length?
   '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Buyer / Seller</th><th>Side</th><th>Activity</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+
   data.bulk_block_deals.map(function(d){return '<tr><td><b>'+esc(d.symbol)+'</b></td><td>'+esc(d.client)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.kind)+' Deal</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join('')+
