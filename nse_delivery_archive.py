@@ -82,9 +82,16 @@ def build_archive_record(trade_date, payload, source_url):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--date")
+    parser.add_argument("--cm-archive", default="nse_cm_bhavcopy_archive.json")
     parser.add_argument("--archive", default="nse_delivery_archive.json")
     args = parser.parse_args()
-    day = parse_day(args.date) if args.date else dt.datetime.now(IST).date() - dt.timedelta(days=1)
+    if args.date:
+        day = parse_day(args.date)
+    else:
+        cm = json.loads(Path(args.cm_archive).read_text(encoding="utf-8"))
+        cm_dates = [parse_day(x["date"]) for x in cm.get("records", []) if isinstance(x, dict) and x.get("date")]
+        if not cm_dates: raise RuntimeError("no verified NSE CM date available for delivery alignment")
+        day = max(cm_dates)
     path = Path(args.archive)
     archive = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schema_version": 1, "records": []}
     payload, url = fetch_delivery(day)
