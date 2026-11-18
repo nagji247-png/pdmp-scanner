@@ -24,7 +24,8 @@ function render(data){
  var fno=rows.filter(function(r){return r.category==="F&O";});
  var other=rows.filter(function(r){return r.category!=="F&O";});
  var html='<div class="dsba-head"><b>DAILY STOCK BUYING ACTIVITY</b><span>218 F&O + अन्य NSE शेयर</span></div>'+
- '<div class="dsba-meta">डेटा तारीख: '+esc(data.as_of||"उपलब्ध नहीं")+' · स्रोत: NSE official CM EOD</div>'+
+ '<div class="dsba-meta">डेटा तारीख: '+esc(data.as_of||"उपलब्ध नहीं")+' · रिपोर्ट अपडेट: '+esc(data.generated_at||"समय उपलब्ध नहीं")+' · स्रोत: NSE official CM EOD</div>'+
+ (function(){var stamp=Date.parse(String(data.as_of||"")+"T15:30:00+05:30");var age=Date.now()-stamp;return !Number.isFinite(stamp)?'<div class="dsba-note">चेतावनी: रिपोर्ट की तारीख सत्यापित नहीं हो सकी। इसे वर्तमान डेटा न मानें।</div>':age>96*60*60*1000?'<div class="dsba-note">चेतावनी: यह NSE EOD रिपोर्ट 4 दिन से अधिक पुरानी है। पिछला डेटा सुरक्षित रखा गया है, लेकिन नया EOD अपडेट उपलब्ध नहीं हुआ—इसे वर्तमान संकेत न मानें।</div>':"";})()+
  '<div class="dsba-summary"><span>F&O संकेत: <b>'+fno.length+'</b></span><span>अन्य NSE संकेत: <b>'+other.length+'</b></span><span>STRONG: <b>'+fmt(data.strength_summary&&data.strength_summary.STRONG,0)+'</b></span><span>WATCH: <b>'+fmt(data.strength_summary&&data.strength_summary.WATCH,0)+'</b></span><span>EARLY: <b>'+fmt(data.strength_summary&&data.strength_summary.EARLY,0)+'</b></span><span>स्कैन: <b>'+fmt(data.universe&&data.universe.nse_eq_symbols_scanned,0)+'</b> EQ शेयर</span></div>'+
  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Category</th><th>Price</th><th>OI</th><th>Delivery %</th><th>Activity Days</th><th>Signal</th><th>Buying Evidence</th></tr></thead><tbody>';
  if(!rows.length)html+='<tr><td colspan="8">इस EOD स्कैन में निर्धारित unusual-volume सीमा पार करने वाला कोई शेयर नहीं मिला।</td></tr>';
