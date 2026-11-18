@@ -321,6 +321,24 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
 
 
 
+    def test_zero_previous_oi_is_not_counted_as_usable_coverage(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 100000}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 0, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 100, "close": 100.0}}}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        self.assertEqual(report["coverage"]["futures_oi"], "not_yet_connected")
+        self.assertEqual(report["coverage_counts"]["fno_symbols_with_same_expiry_oi"], 0)
+        self.assertIsNone(report["rows"][0]["oi_change_pct"])
+
     def test_futures_oi_and_disclosed_deals_survive_without_high_cash_volume(self):
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
