@@ -334,7 +334,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "volume": int(volume),
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
             "average_volume_sessions": len(prior_volumes),
-            "volume_ratio": round(volume_ratio, 2),
+            "volume_ratio": round(volume_ratio, 2) if volume_ratio is not None else None,
             "signal": signal,
             "strength": strength,
             "evidence": evidence,
