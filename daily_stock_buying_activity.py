@@ -369,10 +369,16 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             continue
         expiry = sorted(common_expiries)[0]
         now_contract, old_contract = current_contracts[expiry], prior_contracts[expiry]
-        if (finite_number(now_contract.get("open_interest")) is not None
-                and finite_number(old_contract.get("open_interest")) is not None
-                and finite_number(now_contract.get("close")) is not None
-                and finite_number(old_contract.get("close")) is not None):
+        current_oi = finite_number(now_contract.get("open_interest"))
+        previous_oi = finite_number(old_contract.get("open_interest"))
+        current_close = finite_number(now_contract.get("close"))
+        previous_close = finite_number(old_contract.get("close"))
+        # A zero previous OI cannot be used as the denominator for a valid
+        # percentage change; do not count it as usable same-expiry coverage.
+        if (current_oi is not None and current_oi >= 0
+                and previous_oi is not None and previous_oi > 0
+                and current_close is not None and current_close > 0
+                and previous_close is not None and previous_close > 0):
             fno_futures_oi_matched += 1
 
     latest_eq_symbols = {
