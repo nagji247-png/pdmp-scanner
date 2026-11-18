@@ -4,7 +4,7 @@ from daily_stock_buying_activity import build_report
 
 class DailyStockBuyingActivityTests(unittest.TestCase):
     def test_scans_outside_fno_and_marks_only_verified_early_alert(self):
-        master = {"stocks": {"ABC": {}, "FNO1": {}}}
+        master = {"stocks": {"FNO1": {}}}
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
                 {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000},
