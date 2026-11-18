@@ -180,6 +180,23 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["delivery_qty"], 120000)
         self.assertEqual(report["coverage"]["delivery_pct"], "verified_for_matched_symbols")
 
+    def test_delivery_record_without_valid_matching_pct_is_not_verified(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        delivery = {"records": [
+            {"date": "2026-11-17", "rows": {
+                "ABC": {"delivery_qty": 50000, "delivery_pct": None}
+            }}
+        ]}
+        report = build_report(archive, {"stocks": {}}, delivery_archive=delivery)
+        self.assertEqual(report["coverage"]["delivery_pct"], "record_without_valid_symbol_matches")
+        self.assertEqual(report["coverage_counts"]["delivery_symbols_matched"], 0)
+        self.assertEqual(report["coverage_counts"]["delivery_eq_symbols_scanned"], 1)
+
     def test_official_bulk_block_deals_join_only_exact_session(self):
         archive = {"records": [
             {"date": "2026-11-17", "equity_rows": [
