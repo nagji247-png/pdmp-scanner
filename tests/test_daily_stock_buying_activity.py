@@ -321,5 +321,39 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
 
 
 
+    def test_futures_oi_and_disclosed_deals_survive_without_high_cash_volume(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000},
+                {"symbol": "BDEAL", "close": 50, "previous_close": 50, "volume": 50000},
+            ]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 101, "previous_close": 100, "volume": 110000},
+                {"symbol": "BDEAL", "close": 50, "previous_close": 50, "volume": 50000},
+            ]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1100, "close": 101.0}}}}},
+        ]}
+        deals_archive = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": [
+                {"symbol": "BDEAL", "kind": "Bulk", "client": "DISCLOSED BUYER",
+                 "side": "BUY", "quantity": 25000, "price": 50.0}
+            ]}
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}, "BDEAL": {}}},
+                              fo_archive=fo_archive, deals_archive=deals_archive)
+        by_symbol = {row["symbol"]: row for row in report["rows"]}
+        self.assertEqual(by_symbol["ABC"]["signal"], "LONG BUILD-UP")
+        self.assertEqual(by_symbol["ABC"]["volume_ratio"], 1.1)
+        self.assertEqual(by_symbol["BDEAL"]["signal"], "DISCLOSED BUY DEAL WATCH")
+        self.assertEqual(by_symbol["BDEAL"]["strength"], "WATCH")
+        self.assertEqual(by_symbol["BDEAL"]["volume_ratio"], 1.0)
+
+
+
 if __name__ == "__main__":
     unittest.main()
