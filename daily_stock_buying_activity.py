@@ -198,8 +198,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         prior_volumes = history.get(symbol, [])
         avg_volume = (sum(prior_volumes) / len(prior_volumes)) if prior_volumes else None
         volume_ratio = (volume / avg_volume) if avg_volume and avg_volume > 0 else None
-        if volume_ratio is None or volume_ratio < 1.5:
-            continue
+        volume_alert_eligible = volume_ratio is not None and volume_ratio >= 1.5
         current_stock = current_futures.get(symbol) or {}
         prior_stock = previous_futures.get(symbol) or {}
         futures_change_pct = None
@@ -235,15 +234,18 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             else:
                 signal, strength = ("EARLY BUYING WATCH" if change_pct > 0 else "SELLING WATCH"), "EARLY"
             evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", volume_baseline_note]
-        elif change_pct >= 0.2:
+        elif volume_alert_eligible and change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
             evidence = ["भाव सकारात्मक", volume_baseline_note]
-        elif change_pct <= -0.2:
+        elif volume_alert_eligible and change_pct <= -0.2:
             signal, strength = "SELLING WATCH", "EARLY"
             evidence = ["भाव नकारात्मक", volume_baseline_note]
-        else:
+        elif volume_alert_eligible:
             signal, strength = "UNUSUAL ACTIVITY WATCH", "EARLY"
             evidence = ["भाव में स्पष्ट दिशा अभी नहीं", volume_baseline_note]
+        else:
+            signal, strength = "NO SIGNAL", "EARLY"
+            evidence = []
 
         current_delivery_pct = finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct"))
         prior_delivery_values = delivery_history_by_symbol.get(symbol, [])[-20:]
@@ -253,7 +255,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             and current_delivery_pct >= 40.0
             and current_delivery_pct >= avg_delivery_pct + 10.0
         )
-        if delivery_watch and signal in ("EARLY BUYING WATCH", "UNUSUAL ACTIVITY WATCH"):
+        if delivery_watch and signal in ("EARLY BUYING WATCH", "UNUSUAL ACTIVITY WATCH", "NO SIGNAL"):
             signal, strength = "DELIVERY WATCH", "WATCH"
             evidence.append(
                 "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से "
@@ -266,6 +268,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             deal for deal in symbol_deals
             if (signal in ("LONG BUILD-UP", "SHORT COVERING", "EARLY BUYING WATCH", "DELIVERY WATCH") and deal.get("side") == "BUY")
             or (signal in ("SHORT BUILD-UP", "LONG UNWINDING", "SELLING WATCH") and deal.get("side") == "SELL")
+            or (signal == "NO SIGNAL" and deal.get("side") in ("BUY", "SELL"))
         ]
         deal_evidence = [
             {
@@ -278,6 +281,13 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             for deal in matching_deals
         ]
         if matching_deals:
+            if signal == "NO SIGNAL":
+                sides = {deal.get("side") for deal in matching_deals}
+                signal = "DISCLOSED DEAL ACTIVITY WATCH" if len(sides) > 1 else (
+                    "DISCLOSED BUY DEAL WATCH" if "BUY" in sides else "DISCLOSED SELL DEAL WATCH"
+                )
+                strength = "WATCH"
+                evidence.append("NSE की उसी तारीख की disclosed deal report में सौदा दर्ज")
             disclosed_types = sorted({str(deal.get("kind") or "NSE").upper() for deal in matching_deals})
             if signal == "LONG BUILD-UP":
                 strength = "STRONG"
@@ -300,6 +310,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             elif signal == "LONG UNWINDING":
                 strength = "WATCH"
                 evidence.append("NSE disclosed SELL deal भी दर्ज; Long Unwinding नया Short Build-up नहीं है")
+
+        if signal == "NO SIGNAL":
+            continue
 
         rows.append({
             "symbol": symbol,
