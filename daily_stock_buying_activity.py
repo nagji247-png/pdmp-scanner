@@ -32,7 +32,7 @@ def finite_number(value):
     return result if math.isfinite(result) else None
 
 
-def build_report(archive, master, generated_at=None):
+def build_report(archive, master, generated_at=None, fo_archive=None):
     records = archive.get("records") if isinstance(archive, dict) else None
     if not isinstance(records, list) or not records:
         raise ValueError("NSE CM archive has no usable sessions")
@@ -56,6 +56,12 @@ def build_report(archive, master, generated_at=None):
             if symbol and volume is not None and volume >= 0:
                 history.setdefault(symbol, []).append(volume)
 
+    fo_records = (fo_archive or {}).get("records", []) if isinstance(fo_archive, dict) else []
+    previous_fo = next((record for record in reversed(fo_records) if isinstance(record, dict) and record.get("date") < latest_date.isoformat()), None)
+    current_fo = next((record for record in reversed(fo_records) if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
+    current_futures = (current_fo or {}).get("stock_futures") or {}
+    previous_futures = (previous_fo or {}).get("stock_futures") or {}
+
     rows = []
     for item in latest["equity_rows"]:
         symbol = str(item.get("symbol") or "").upper()
@@ -74,13 +80,43 @@ def build_report(archive, master, generated_at=None):
             continue
         if volume < 100000:
             continue
-        if change_pct >= 0.5:
-            signal = "EARLY BUYING WATCH"
-            strength = "EARLY"
+        current_stock = current_futures.get(symbol) or {}
+        prior_stock = previous_futures.get(symbol) or {}
+        futures_change_pct = None
+        oi_change_pct = None
+        futures_expiry = None
+        if current_stock.get("available") and prior_stock.get("available"):
+            current_contracts = current_stock.get("by_expiry") or {}
+            prior_contracts = prior_stock.get("by_expiry") or {}
+            common_expiries = sorted(expiry for expiry in set(current_contracts) & set(prior_contracts) if expiry >= latest_date.isoformat())
+            if common_expiries:
+                futures_expiry = common_expiries[0]
+                now_contract = current_contracts[futures_expiry]
+                old_contract = prior_contracts[futures_expiry]
+                old_oi = finite_number(old_contract.get("open_interest"))
+                now_oi = finite_number(now_contract.get("open_interest"))
+                old_close = finite_number(old_contract.get("close"))
+                now_close = finite_number(now_contract.get("close"))
+                if old_oi and now_oi is not None and old_close and now_close is not None:
+                    oi_change_pct = round((now_oi / old_oi - 1.0) * 100.0, 2)
+                    futures_change_pct = round((now_close / old_close - 1.0) * 100.0, 2)
+        if futures_change_pct is not None and oi_change_pct is not None:
+            if futures_change_pct > 0 and oi_change_pct > 0:
+                signal, strength = "LONG BUILD-UP", "WATCH"
+            elif futures_change_pct < 0 and oi_change_pct > 0:
+                signal, strength = "SHORT BUILD-UP", "WATCH"
+            elif futures_change_pct > 0 and oi_change_pct < 0:
+                signal, strength = "SHORT COVERING", "WATCH"
+            elif futures_change_pct < 0 and oi_change_pct < 0:
+                signal, strength = "LONG UNWINDING", "WATCH"
+            else:
+                signal, strength = ("EARLY BUYING WATCH" if change_pct > 0 else "SELLING WATCH"), "EARLY"
+            evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", "20-सत्र औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"]
+        elif change_pct >= 0.5:
+            signal, strength = "EARLY BUYING WATCH", "EARLY"
             evidence = ["भाव सकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
         elif change_pct <= -0.5:
-            signal = "SELLING WATCH"
-            strength = "EARLY"
+            signal, strength = "SELLING WATCH", "EARLY"
             evidence = ["भाव नकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
         else:
             continue
@@ -89,7 +125,9 @@ def build_report(archive, master, generated_at=None):
             "category": "F&O" if symbol in fno_symbols else "अन्य NSE",
             "price": close,
             "change_pct": round(change_pct, 2),
-            "oi_change_pct": None,
+            "oi_change_pct": oi_change_pct,
+            "futures_change_pct": futures_change_pct,
+            "futures_expiry": futures_expiry,
             "delivery_pct": None,
             "volume": int(volume),
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
@@ -99,8 +137,8 @@ def build_report(archive, master, generated_at=None):
             "evidence": evidence,
             "source": "NSE CM-UDiFF Common Bhavcopy Final",
             "as_of": latest_date.isoformat(),
-            "missing_fields": ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं",
-                              "Security-wise Delivery %"],
+            "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
+                              + ["Security-wise Delivery %"],
         })
     rows.sort(key=lambda row: (
         row["strength"] != "EARLY",
@@ -137,8 +175,11 @@ def main():
     parser.add_argument("--archive", default=str(ARCHIVE))
     parser.add_argument("--master", default=str(MASTER))
     parser.add_argument("--output", default=str(OUTPUT))
+    parser.add_argument("--fo-archive", default="nse_index_option_oi.json")
     args = parser.parse_args()
-    report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)))
+    fo_path = Path(args.fo_archive)
+    fo_archive = read_json(fo_path) if fo_path.exists() else None
+    report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)), fo_archive=fo_archive)
     target = Path(args.output)
     temporary = target.with_suffix(target.suffix + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
