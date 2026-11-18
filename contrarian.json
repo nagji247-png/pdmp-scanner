@@ -1520,5 +1520,47 @@
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-18|USDINR",
+    "date": "2026-11-18",
+    "instrument": "USDINR",
+    "score": 6.9,
+    "event_time_utc": "2026-11-18T12:42:14Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-18|HINDALCO",
+    "date": "2026-11-18",
+    "instrument": "HINDALCO",
+    "score": -6.0,
+    "event_time_utc": "2026-11-18T12:42:22Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]
