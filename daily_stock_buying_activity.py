@@ -260,7 +260,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         symbol_deals = deals_by_symbol.get(symbol, [])
         matching_deals = [
             deal for deal in symbol_deals
-            if (signal in ("LONG BUILD-UP", "EARLY BUYING WATCH") and deal.get("side") == "BUY")
+            if (signal in ("LONG BUILD-UP", "EARLY BUYING WATCH", "DELIVERY WATCH") and deal.get("side") == "BUY")
             or (signal in ("SHORT BUILD-UP", "SELLING WATCH") and deal.get("side") == "SELL")
         ]
         deal_evidence = [
@@ -287,6 +287,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             elif signal == "SELLING WATCH":
                 strength = "WATCH"
                 evidence.append("NSE disclosed SELL deal भी दर्ज")
+            elif signal == "DELIVERY WATCH":
+                strength = "WATCH"
+                evidence.append("NSE disclosed BUY deal भी दर्ज; Delivery और disclosed deal अलग-अलग प्रमाण हैं")
 
         rows.append({
             "symbol": symbol,
