@@ -31,7 +31,7 @@ function render(data){
   html+='<tr><td><b>'+esc(r.symbol)+'</b></td><td>'+esc(r.category)+'</td><td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">₹'+fmt(r.price)+'<small class="dsba-strength">'+(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+'%</small></td><td>'+(r.oi_change_pct==null?"—":(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%')+'</td><td>'+(r.delivery_pct==null?"—":fmt(r.delivery_pct)+'%')+'</td><td>'+badge(r.signal)+'<small class="dsba-strength">'+esc(r.strength||"")+'</small></td><td>'+esc((r.evidence||[]).join(" · "))+'<small class="dsba-strength">वॉल्यूम औसत से '+fmt(r.volume_ratio)+' गुना</small></td></tr>';
  });
  html+='</tbody></table></div>'+
- '<div class="dsba-note">OI जहाँ NSE के उसी expiry वाले दो लगातार सत्रों से सत्यापित है, वहाँ बदलाव दिखेगा। Delivery % आधिकारिक डेटा जुड़ने तक खाली रहेगा। EARLY BUYING WATCH केवल भाव + असामान्य वॉल्यूम का शुरुआती संकेत है, पक्की खरीदारी नहीं। यह EOD स्कैन है—इंट्राडे एंट्री अलर्ट नहीं।</div>'+
+ '<div class="dsba-note">OI केवल उसी expiry के दो लगातार सत्रों से सत्यापित होने पर दिखेगा। Delivery % केवल उसी तारीख की NSE Full Bhavcopy से मिलेगा। EARLY BUYING WATCH केवल भाव + असामान्य वॉल्यूम का शुरुआती संकेत है, पक्की खरीदारी नहीं। यह EOD स्कैन है—इंट्राडे एंट्री अलर्ट नहीं।</div>'+
  '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary><div class="dsba-note">NSE की आधिकारिक Bulk / Block Deal रिपोर्ट का डेटा अभी इस सेक्शन से जुड़ा नहीं है। रिपोर्ट जुड़ने तक खरीदार/विक्रेता का नाम नहीं दिखाया जाएगा।</div></details>';
  root.innerHTML=html;
 }
