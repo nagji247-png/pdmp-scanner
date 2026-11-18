@@ -21,6 +21,31 @@ function badge(signal){
  var m=map[signal]||["⚪","ma-neutral"];
  return '<span class="dsba-signal '+m[1]+'">'+m[0]+' '+esc(signal||"DATA UNAVAILABLE")+'</span>';
 }
+function mainEvidence(r,side){
+ var deals=Array.isArray(r.deal_evidence)?r.deal_evidence:[];
+ var deal=deals.find(function(d){return String(d.side||"").toUpperCase()===side;});
+ if(deal){
+  var who=deal.client&&String(deal.client).trim();
+  return "NSE disclosed "+side+(who?" · "+who:"");
+ }
+ var signal=String(r.signal||"");
+ if(signal==="LONG BUILD-UP")return "Price ↑ + Futures OI ↑";
+ if(signal==="SHORT BUILD-UP")return "Price ↓ + Futures OI ↑";
+ if(signal==="LONG UNWINDING")return "Price ↓ + Futures OI ↓";
+ if(signal==="DELIVERY WATCH")return "Delivery "+(r.delivery_pct==null?"उपलब्ध नहीं":fmt(r.delivery_pct)+"%");
+ if(signal==="SELLING WATCH")return "Price ↓ + Volume "+fmt(r.volume_ratio)+"x";
+ if(signal==="EARLY BUYING WATCH")return "Price ↑ + Volume "+fmt(r.volume_ratio)+"x";
+ if(signal==="DISCLOSED BUY DEAL WATCH")return "NSE disclosed BUY";
+ if(signal==="DISCLOSED SELL DEAL WATCH")return "NSE disclosed SELL";
+ return Array.isArray(r.evidence)&&r.evidence.length?r.evidence.map(function(x){return String(x);}).join(" · "):"प्रमाण उपलब्ध नहीं";
+}
+function shortlistRow(r,side){
+ var price=(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+"%";
+ return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
+  '<td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">'+price+'</td>'+
+  '<td>'+esc(mainEvidence(r,side))+'</td>'+
+  '<td>'+badge(r.signal)+'</td></tr>';
+}
 function render(data){
  if(!data||!Array.isArray(data.rows)){root.innerHTML='<div class="dsba-note">Daily buying activity डेटा उपलब्ध नहीं।</div>';return;}
  var rows=data.rows;
@@ -49,31 +74,17 @@ function render(data){
    ||String(a.symbol).localeCompare(String(b.symbol));
  });
  var sellingShortlist=sellingCandidates.slice(0,10);
- var sellingHtml='<div class="dsba-details" style="margin:8px 0"><b>भारी बिकवाली / Selling Pressure</b> <span class="dsba-meta">('+sellingShortlist.length+' / '+sellingCandidates.length+')</span>'+
-  '<div class="dsba-note">यह EOD selling-pressure watch है, short recommendation नहीं। SHORT BUILD-UP के लिए भाव गिरना और Futures OI बढ़ना चाहिए; केवल भाव/वॉल्यूम से seller की पहचान नहीं होती।</div>'+
-  (sellingShortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
-   sellingShortlist.map(function(r){
-    var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
-    return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
-     '<td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">'+(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+'%</td>'+
-     '<td>'+fmt(r.volume_ratio)+'x औसत</td><td>'+esc(oi)+'</td>'+
-     '<td>'+(r.delivery_pct==null?'उपलब्ध नहीं':fmt(r.delivery_pct)+'%')+'</td>'+
-     '<td>'+badge(r.signal)+'<small class="dsba-strength">'+esc(r.strength||'')+'</small></td></tr>';
-   }).join('')+'</tbody></table></div>':
+ var sellingHtml='<div class="dsba-details" style="margin:8px 0"><b>TOP SELLING ACTIVITY</b><div class="dsba-meta">भारी बिकवाली का दबाव · ('+sellingShortlist.length+' / '+sellingCandidates.length+')</div>'+
+  '<div class="dsba-note">यह EOD selling-pressure watch है, short recommendation नहीं। SHORT BUILD-UP के लिए भाव गिरना और उसी expiry का Futures OI बढ़ना चाहिए। केवल भाव/वॉल्यूम या Delivery % से seller की पहचान नहीं होती।</div>'+
+  (sellingShortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price</th><th>मुख्य प्रमाण</th><th>स्थिति</th></tr></thead><tbody>'+
+   sellingShortlist.map(function(r){return shortlistRow(r,"SELL");}).join('')+'</tbody></table></div>':
    '<div class="dsba-note">इस रिपोर्ट में सत्यापित selling-direction संकेत उपलब्ध नहीं हैं।</div>')+
   (sellingCandidates.length>10?'<div class="dsba-note">बाकी '+(sellingCandidates.length-10)+' selling-direction संकेत नीचे पूरी सूची में सुरक्षित हैं।</div>':'')+'</div>';
  var shortlist=buyingCandidates.slice(0,10);
- var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>पहले देखने योग्य खरीद संकेत</b> <span class="dsba-meta">('+shortlist.length+' / '+buyingCandidates.length+')</span>'+
-  '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। DELIVERY WATCH में डिलीवरी संकेत, जबकि EARLY BUYING में केवल सकारात्मक भाव + असामान्य वॉल्यूम है; OI/डिलीवरी/सौदे की पुष्टि अलग से देखें।</div>'+
-  (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
-   shortlist.map(function(r){
-    var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
-    return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
-     '<td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">'+(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+'%</td>'+
-     '<td>'+fmt(r.volume_ratio)+'x औसत</td><td>'+esc(oi)+'</td>'+
-     '<td>'+(r.delivery_pct==null?'उपलब्ध नहीं':fmt(r.delivery_pct)+'%')+'</td>'+
-     '<td>'+badge(r.signal)+'<small class="dsba-strength">'+esc(r.strength||'')+'</small></td></tr>';
-   }).join('')+'</tbody></table></div>':
+ var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>TOP BUYING ACTIVITY</b><div class="dsba-meta">भारी खरीदारी के संकेत · ('+shortlist.length+' / '+buyingCandidates.length+')</div>'+
+  '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। Delivery % अकेले संस्थागत खरीदारी साबित नहीं करता; disclosed BUY तभी दिखेगा जब NSE deal record उपलब्ध हो।</div>'+
+  (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price</th><th>मुख्य प्रमाण</th><th>स्थिति</th></tr></thead><tbody>'+
+   shortlist.map(function(r){return shortlistRow(r,"BUY");}).join('')+'</tbody></table></div>':
    '<div class="dsba-note">इस रिपोर्ट में सत्यापित खरीद-दिशा वाले संकेत उपलब्ध नहीं हैं।</div>')+
   (buyingCandidates.length>10?'<div class="dsba-note">बाकी '+(buyingCandidates.length-10)+' खरीद-दिशा संकेत नीचे पूरी सूची में सुरक्षित हैं।</div>':'')+'</div>';
  var fno=rows.filter(function(r){return r.category==="F&O";});
