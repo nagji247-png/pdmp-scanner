@@ -90,6 +90,7 @@ jobs:
       - name: Validate archive code and offline tests
         run: |
           python -m py_compile nse_cm_bhavcopy_archive.py daily_stock_buying_activity.py nse_delivery_archive.py nse_bulk_block_deals.py
+          node --check daily-stock-buying-activity.js
           python -m unittest discover -s tests -p "test_daily_stock_buying_activity.py" -v
           python -m unittest discover -s tests -p "test_nse_delivery_archive.py" -v
           python -m unittest discover -s tests -p "test_nse_bulk_block_deals.py" -v
