@@ -408,7 +408,6 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         row = report["rows"][0]
         self.assertEqual(row["signal"], "LONG BUILD-UP")
         self.assertIsNone(row["volume_ratio"])
-        self.assertIn("वॉल्यूम औसत से — गुना", "वॉल्यूम औसत से — गुना")
 
 
 if __name__ == "__main__":
