@@ -1,38 +1,5 @@
 [
   {
-    "time": "2026-11-12T04:01Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 2.5,
-    "new_score": 2.5,
-    "changed": [
-      "कीमत",
-      "VWAP"
-    ],
-    "vol_data": true,
-    "held_minutes": 16,
-    "price_at_change": 810.7999877929688,
-    "price_after": 809.5,
-    "move_pct": -0.16,
-    "after_minutes": 112,
-    "direction": "नीचे"
-  },
-  {
-    "time": "2026-11-12T05:53Z",
-    "instrument": "NIFTY",
-    "prev_score": 7.7,
-    "new_score": 8.2,
-    "changed": [
-      "कीमत"
-    ],
-    "vol_data": false,
-    "held_minutes": 112,
-    "price_at_change": 25326.69921875,
-    "price_after": 25268.0508,
-    "move_pct": -0.23,
-    "after_minutes": 66,
-    "direction": "नीचे"
-  },
-  {
     "time": "2026-11-12T05:53Z",
     "instrument": "RELIANCE",
     "prev_score": 0.7,
@@ -3204,10 +3171,10 @@
     "vol_data": true,
     "held_minutes": 107,
     "price_at_change": 1363.0,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 1363.0,
+    "move_pct": 0.0,
+    "after_minutes": 43,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-18T10:29Z",
@@ -3219,6 +3186,38 @@
     ],
     "vol_data": true,
     "held_minutes": 107,
+    "price_at_change": 808.15,
+    "price_after": 808.15,
+    "move_pct": 0.0,
+    "after_minutes": 43,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-18T11:12Z",
+    "instrument": "NIFTY",
+    "prev_score": 1.1,
+    "new_score": 0.2,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 150,
+    "price_at_change": 25227.9492,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-18T11:12Z",
+    "instrument": "HDFCBANK",
+    "prev_score": 5.2,
+    "new_score": 7.0,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": true,
+    "held_minutes": 43,
     "price_at_change": 808.15,
     "price_after": null,
     "move_pct": null,
