@@ -1,47 +1,47 @@
 {
   "schema_version": 1,
   "source": "MCX India official FUTCOM Bhavcopy archive",
-  "archive_sessions": 9,
+  "archive_sessions": 10,
   "first_archive_date": "2026-11-02",
-  "last_archive_date": "2026-11-17",
+  "last_archive_date": "2026-11-18",
   "minimum_signal_sessions_per_symbol": 60,
   "evaluation": {
     "status": "insufficient_sample",
-    "observations": 43,
+    "observations": 50,
     "signal_sessions_by_symbol": {
-      "GOLD": 7,
-      "SILVER": 7
+      "GOLD": 8,
+      "SILVER": 8
     },
     "minimum_signal_sessions_per_symbol": 60,
     "sample_unit": "contract-expiry observations; GOLD and SILVER are reported separately; multiple expiries on one date are not independent sessions",
     "by_symbol": {
       "GOLD": {
         "status": "insufficient_sample",
-        "observations": 22,
-        "signal_sessions": 7,
+        "observations": 25,
+        "signal_sessions": 8,
         "minimum_signal_sessions": 60,
         "regimes": {
           "price_down_oi_down": {
-            "observations": 1,
-            "continuation_hits": 1,
+            "observations": 2,
+            "continuation_hits": 2,
             "contrarian_hits": 0,
             "next_up": 0,
-            "next_down": 1,
+            "next_down": 2,
             "next_flat": 0,
-            "directional_observations": 1,
+            "directional_observations": 2,
             "continuation_accuracy_pct_excluding_flat": 100.0,
             "contrarian_accuracy_pct_excluding_flat": 0.0
           },
           "price_down_oi_up": {
-            "observations": 11,
-            "continuation_hits": 4,
+            "observations": 13,
+            "continuation_hits": 6,
             "contrarian_hits": 6,
             "next_up": 6,
-            "next_down": 4,
+            "next_down": 6,
             "next_flat": 1,
-            "directional_observations": 10,
-            "continuation_accuracy_pct_excluding_flat": 40.0,
-            "contrarian_accuracy_pct_excluding_flat": 60.0
+            "directional_observations": 12,
+            "continuation_accuracy_pct_excluding_flat": 50.0,
+            "contrarian_accuracy_pct_excluding_flat": 50.0
           },
           "price_up_oi_down": {
             "observations": 4,
@@ -66,12 +66,12 @@
             "contrarian_accuracy_pct_excluding_flat": 50.0
           }
         },
-        "reason": "signal sessions 7 below minimum 60"
+        "reason": "signal sessions 8 below minimum 60"
       },
       "SILVER": {
         "status": "insufficient_sample",
-        "observations": 21,
-        "signal_sessions": 7,
+        "observations": 25,
+        "signal_sessions": 8,
         "minimum_signal_sessions": 60,
         "regimes": {
           "price_down_oi_down": {
@@ -86,12 +86,12 @@
             "contrarian_accuracy_pct_excluding_flat": 42.86
           },
           "price_down_oi_up": {
-            "observations": 10,
+            "observations": 11,
             "continuation_hits": 7,
             "contrarian_hits": 3,
             "next_up": 3,
             "next_down": 7,
-            "next_flat": 0,
+            "next_flat": 1,
             "directional_observations": 10,
             "continuation_accuracy_pct_excluding_flat": 70.0,
             "contrarian_accuracy_pct_excluding_flat": 30.0
@@ -108,22 +108,22 @@
             "contrarian_accuracy_pct_excluding_flat": 100.0
           },
           "price_up_oi_up": {
-            "observations": 3,
+            "observations": 6,
             "continuation_hits": 1,
-            "contrarian_hits": 2,
+            "contrarian_hits": 5,
             "next_up": 1,
-            "next_down": 2,
+            "next_down": 5,
             "next_flat": 0,
-            "directional_observations": 3,
-            "continuation_accuracy_pct_excluding_flat": 33.33,
-            "contrarian_accuracy_pct_excluding_flat": 66.67
+            "directional_observations": 6,
+            "continuation_accuracy_pct_excluding_flat": 16.67,
+            "contrarian_accuracy_pct_excluding_flat": 83.33
           }
         },
-        "reason": "signal sessions 7 below minimum 60"
+        "reason": "signal sessions 8 below minimum 60"
       }
     },
     "excluded": {
-      "unchanged_signal_input": 34
+      "unchanged_signal_input": 38
     },
     "sample": [
       {
@@ -469,6 +469,62 @@
         "outcome_date": "2026-11-17",
         "price_oi_regime": "price_down_oi_up",
         "next_session_direction": "up"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_down_oi_down",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "05APR2027",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "05FEB2027",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_up_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05JUL2027",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "flat"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAR2027",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_up_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAY2027",
+        "signal_date": "2026-11-17",
+        "outcome_date": "2026-11-18",
+        "price_oi_regime": "price_up_oi_up",
+        "next_session_direction": "down"
       }
     ],
     "method": "same symbol+expiry; prior/current price-OI regime predicts next archived-session close direction; no look-ahead",
