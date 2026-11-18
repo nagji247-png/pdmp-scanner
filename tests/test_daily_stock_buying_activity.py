@@ -178,7 +178,7 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         row = report["rows"][0]
         self.assertEqual(row["delivery_pct"], 60.0)
         self.assertEqual(row["delivery_qty"], 120000)
-        self.assertEqual(report["coverage"]["delivery_pct"], "verified")
+        self.assertEqual(report["coverage"]["delivery_pct"], "verified_for_matched_symbols")
 
     def test_official_bulk_block_deals_join_only_exact_session(self):
         archive = {"records": [
