@@ -192,7 +192,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         close = finite_number(item.get("close"))
         previous = finite_number(item.get("previous_close"))
         volume = finite_number(item.get("volume"))
-        if close is None or previous is None or previous <= 0 or volume is None:
+        if close is None or previous is None or previous <= 0:
             continue
         change_pct = (close / previous - 1.0) * 100.0
         prior_volumes = history.get(symbol, [])
@@ -237,7 +237,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                     else ("NO SIGNAL", "EARLY")
                 )
             evidence = ["Futures भाव और उसी expiry का OI उपलब्ध",
-                        volume_baseline_note if volume_alert_eligible else "कैश वॉल्यूम 1.5x सीमा पर नहीं; Futures भाव/OI में स्पष्ट दिशात्मक संयोजन नहीं"]
+                        volume_baseline_note if volume_alert_eligible else ("कैश वॉल्यूम उपलब्ध नहीं; Futures संकेत स्वतंत्र रूप से उपलब्ध" if volume is None else "कैश वॉल्यूम 1.5x सीमा पर नहीं; Futures संकेत स्वतंत्र रूप से उपलब्ध" if futures_change_pct != 0 and oi_change_pct != 0 else "कैश वॉल्यूम 1.5x सीमा पर नहीं; Futures भाव/OI में स्पष्ट दिशात्मक संयोजन नहीं")]
         elif volume_alert_eligible and change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
             evidence = ["भाव सकारात्मक", volume_baseline_note]
@@ -331,7 +331,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "delivery_pct": (delivery_rows.get(symbol) or {}).get("delivery_pct"),
             "delivery_qty": (delivery_rows.get(symbol) or {}).get("delivery_qty"),
             "delivery_avg_pct_20": round(avg_delivery_pct, 2) if avg_delivery_pct is not None else None,
-            "volume": int(volume),
+            "volume": int(volume) if volume is not None else None,
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
             "average_volume_sessions": len(prior_volumes),
             "volume_ratio": round(volume_ratio, 2) if volume_ratio is not None else None,
