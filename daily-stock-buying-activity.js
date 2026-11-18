@@ -36,6 +36,32 @@ function render(data){
    ||(Number(b.activity_days)||0)-(Number(a.activity_days)||0)
    ||String(a.symbol).localeCompare(String(b.symbol));
  });
+ var sellingCandidates=rows.filter(function(r){
+  return ["SHORT BUILD-UP","DISCLOSED SELL DEAL WATCH","SELLING WATCH","LONG UNWINDING"].indexOf(r.signal)>=0;
+ });
+ var sellingPriority={"SHORT BUILD-UP":0,"DISCLOSED SELL DEAL WATCH":1,"SELLING WATCH":2,"LONG UNWINDING":3};
+ sellingCandidates.sort(function(a,b){
+  var tier=(sellingPriority[a.signal]||0)-(sellingPriority[b.signal]||0);
+  if(tier)return tier;
+  return (Number(a.change_pct)||0)-(Number(b.change_pct)||0)
+   ||(Number(b.volume_ratio)||0)-(Number(a.volume_ratio)||0)
+   ||(Number(b.activity_days)||0)-(Number(a.activity_days)||0)
+   ||String(a.symbol).localeCompare(String(b.symbol));
+ });
+ var sellingShortlist=sellingCandidates.slice(0,10);
+ var sellingHtml='<div class="dsba-details" style="margin:8px 0"><b>भारी बिकवाली / Selling Pressure</b> <span class="dsba-meta">('+sellingShortlist.length+' / '+sellingCandidates.length+')</span>'+
+  '<div class="dsba-note">यह EOD selling-pressure watch है, short recommendation नहीं। SHORT BUILD-UP के लिए भाव गिरना और Futures OI बढ़ना चाहिए; केवल भाव/वॉल्यूम से seller की पहचान नहीं होती।</div>'+
+  (sellingShortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price %</th><th>Volume</th><th>OI</th><th>Delivery %</th><th>Signal</th></tr></thead><tbody>'+
+   sellingShortlist.map(function(r){
+    var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
+    return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
+     '<td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">'+(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+'%</td>'+
+     '<td>'+fmt(r.volume_ratio)+'x औसत</td><td>'+esc(oi)+'</td>'+
+     '<td>'+(r.delivery_pct==null?'उपलब्ध नहीं':fmt(r.delivery_pct)+'%')+'</td>'+
+     '<td>'+badge(r.signal)+'<small class="dsba-strength">'+esc(r.strength||'')+'</small></td></tr>';
+   }).join('')+'</tbody></table></div>':
+   '<div class="dsba-note">इस रिपोर्ट में सत्यापित selling-direction संकेत उपलब्ध नहीं हैं।</div>')+
+  (sellingCandidates.length>10?'<div class="dsba-note">बाकी '+(sellingCandidates.length-10)+' selling-direction संकेत नीचे पूरी सूची में सुरक्षित हैं।</div>':'')+'</div>';
  var shortlist=buyingCandidates.slice(0,10);
  var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>पहले देखने योग्य खरीद संकेत</b> <span class="dsba-meta">('+shortlist.length+' / '+buyingCandidates.length+')</span>'+
   '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। DELIVERY WATCH में डिलीवरी संकेत, जबकि EARLY BUYING में केवल सकारात्मक भाव + असामान्य वॉल्यूम है; OI/डिलीवरी/सौदे की पुष्टि अलग से देखें।</div>'+
@@ -58,6 +84,7 @@ function render(data){
  (function(){var stamp=Date.parse(String(data.as_of||"")+"T15:30:00+05:30");var age=Date.now()-stamp;return !Number.isFinite(stamp)?'<div class="dsba-note">चेतावनी: रिपोर्ट की तारीख सत्यापित नहीं हो सकी। इसे वर्तमान डेटा न मानें।</div>':age>96*60*60*1000?'<div class="dsba-note">चेतावनी: यह NSE EOD रिपोर्ट 4 दिन से अधिक पुरानी है। पिछला डेटा सुरक्षित रखा गया है, लेकिन नया EOD अपडेट उपलब्ध नहीं हुआ—इसे वर्तमान संकेत न मानें।</div>':"";})()+
  '<div class="dsba-summary"><span>F&O संकेत: <b>'+fno.length+'</b></span><span>अन्य NSE संकेत: <b>'+other.length+'</b></span><span>STRONG: <b>'+fmt(data.strength_summary&&data.strength_summary.STRONG,0)+'</b></span><span>WATCH: <b>'+fmt(data.strength_summary&&data.strength_summary.WATCH,0)+'</b></span><span>EARLY: <b>'+fmt(data.strength_summary&&data.strength_summary.EARLY,0)+'</b></span><span>स्कैन: <b>'+fmt(data.universe&&data.universe.nse_eq_symbols_scanned,0)+'</b> EQ शेयर</span></div>'+
  shortlistHtml+
+ sellingHtml+
  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Category</th><th>Price</th><th>OI</th><th>Delivery %</th><th>Active Sessions</th><th>Signal</th><th>Buying Evidence</th></tr></thead><tbody>';
  if(!rows.length)html+='<tr><td colspan="8">इस EOD स्कैन में कोई सत्यापित Buying / Activity संकेत नहीं मिला।</td></tr>';
  rows.forEach(function(r){
