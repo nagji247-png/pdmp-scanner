@@ -80,6 +80,17 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         report = build_report(archive, {"stocks": {}})
         self.assertEqual(report["rows"][0]["signal"], "SELLING WATCH")
 
+    def test_flat_price_with_unusual_volume_is_visible_as_early_activity(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "SMALL", "close": 20, "previous_close": 20, "volume": 5000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "SMALL", "close": 20, "previous_close": 20, "volume": 8000}]},
+        ]}
+        report = build_report(archive, {"stocks": {}})
+        self.assertEqual(report["rows"][0]["signal"], "UNUSUAL ACTIVITY WATCH")
+        self.assertEqual(report["rows"][0]["strength"], "EARLY")
+
     def test_missing_history_does_not_create_fake_signal(self):
         archive = {"records": [{"date": "2026-11-17", "equity_rows": [
             {"symbol": "XYZ", "close": 105, "previous_close": 100, "volume": 200000}]}]}
