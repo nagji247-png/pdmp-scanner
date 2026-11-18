@@ -1,8 +1,29 @@
 import unittest
-from daily_stock_buying_activity import build_report
+from daily_stock_buying_activity import build_report, build_price_volume_outcomes
 
 
 class DailyStockBuyingActivityTests(unittest.TestCase):
+    def test_signal_outcomes_score_only_matured_forward_sessions(self):
+        sessions = [
+            {"date": "2026-11-12"},
+            {"date": "2026-11-13"},
+            {"date": "2026-11-16"},
+            {"date": "2026-11-17"},
+        ]
+        maps = [
+            {"ABC": {"close": 100, "previous_close": 100, "volume": 10000}},
+            {"ABC": {"close": 102, "previous_close": 100, "volume": 20000}},
+            {"ABC": {"close": 103, "previous_close": 102, "volume": 10000}},
+            {"ABC": {"close": 104, "previous_close": 103, "volume": 10000}},
+        ]
+        history, summary = build_price_volume_outcomes(sessions, maps)
+        signal = next(item for item in history if item["date"] == "2026-11-13")
+        self.assertEqual(signal["outcomes"]["1D"], "RIGHT")
+        self.assertEqual(signal["outcomes"]["3D"], "PENDING")
+        self.assertEqual(signal["outcomes"]["5D"], "PENDING")
+        self.assertGreaterEqual(summary[1]["right"], 1)
+        self.assertGreaterEqual(summary[3]["pending"], 1)
+
     def test_same_expiry_futures_price_and_oi_create_long_buildup(self):
         master = {"stocks": {"ABC": {}}}
         archive = {"records": [
