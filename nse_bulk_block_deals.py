@@ -61,6 +61,12 @@ def parse_deal_csv(payload, kind, target_date):
                     "price": parse_number(row.get(price_col), "trade price")})
     return out
 
+def report_status_for_date(parsed_rows):
+    # These NSE archive CSV URLs are not date-scoped. A valid header with zero
+    # target-date rows cannot prove that the target date had no disclosed deals;
+    # the file may simply still contain an older report. Fail closed.
+    return "verified" if parsed_rows else "date_not_confirmed_no_rows"
+
 def fetch_file(session, kind):
     filename = "bulk.csv" if kind == "Bulk" else "block.csv"
     response = session.get(BASE + filename, headers=HEADERS, timeout=(10, 45))
@@ -83,11 +89,13 @@ def main():
         try:
             payload, url = fetch_file(session, kind)
             parsed = parse_deal_csv(payload, kind, target)
-            rows.extend(parsed); sources[kind] = url; status[kind] = "verified"
+            rows.extend(parsed); sources[kind] = url
+            status[kind] = report_status_for_date(parsed)
         except Exception as exc:
             status[kind] = "unavailable: " + str(exc)
     if not any(value == "verified" for value in status.values()):
-        raise RuntimeError("both NSE deal reports unavailable")
+        print(json.dumps({"date": target.isoformat(), "rows": 0, "status": status,
+                          "warning": "No exact-date disclosed deal rows were confirmed; this is not proof of zero deals."}, ensure_ascii=False))
     path = Path(args.archive)
     archive = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schema_version": 1, "records": []}
     record = {"date": target.isoformat(), "rows": rows, "status": status, "sources": sources,
