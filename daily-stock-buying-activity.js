@@ -59,7 +59,9 @@ function rowKind(r){
  return "other";
 }
 function chartUrl(r){
- var symbol=encodeURIComponent("NSE:"+String(r.symbol||"").replace(/[^A-Z0-9&_-]/gi,""));
+ var stockSymbol=String(r.symbol||"").replace(/[^A-Z0-9&_-]/gi,"");
+ var exchange=stockSymbol==="FAZE3Q"?"BSE":"NSE";
+ var symbol=encodeURIComponent(exchange+":"+stockSymbol);
  return "https://www.tradingview.com/widgetembed/?symbol="+symbol+"&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=%230f172a&theme=dark&style=1&timezone=Asia%2FKolkata&withdateranges=1&hideideas=1";
 }
 function openStock(r){
