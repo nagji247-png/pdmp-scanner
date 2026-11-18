@@ -420,7 +420,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         "coverage": {
             "cash_price_volume": "verified",
             "futures_oi": "verified_for_matched_stock_futures" if fno_futures_oi_matched else "not_yet_connected",
-            "delivery_pct": "verified" if delivery_record else "not_yet_connected",
+            "delivery_pct": ("verified_for_matched_symbols" if delivery_eq_matched else "record_without_valid_symbol_matches" if delivery_record else "not_yet_connected"),
             "bulk_block_deals": ("verified" if deals_record and (deals_record.get("verified_report_count") or 0) == 2
                                  else "partial" if deals_record and (deals_record.get("verified_report_count") or 0) == 1
                                  else "not_yet_connected"),
