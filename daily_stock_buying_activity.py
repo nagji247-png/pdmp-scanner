@@ -173,7 +173,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "cash_price_volume": "verified",
             "futures_oi": "verified_for_matched_stock_futures" if any(row["oi_change_pct"] is not None for row in rows) else "not_yet_connected",
             "delivery_pct": "verified" if delivery_record else "not_yet_connected",
-            "bulk_block_deals": "verified" if deals_record and (deals_record.get("verified_report_count") or 0) > 0 else "not_yet_connected",
+            "bulk_block_deals": ("verified" if deals_record and (deals_record.get("verified_report_count") or 0) == 2
+                                 else "partial" if deals_record and (deals_record.get("verified_report_count") or 0) == 1
+                                 else "not_yet_connected"),
             "intraday": "not_available_in_this_eod_scan",
         },
         "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are shown only when verified.",
