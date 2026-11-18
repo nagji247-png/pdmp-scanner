@@ -46,6 +46,8 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         report = build_report(archive, master, generated_at="2026-11-18T08:00:00+05:30")
         by_symbol = {row["symbol"]: row for row in report["rows"]}
         self.assertEqual(by_symbol["ABC"]["category"], "अन्य NSE")
+        self.assertTrue(by_symbol["ABC"]["new_discovery"])
+        self.assertEqual(by_symbol["ABC"]["activity_days"], 1)
         self.assertEqual(by_symbol["FNO1"]["category"], "F&O")
         self.assertEqual(by_symbol["ABC"]["signal"], "EARLY BUYING WATCH")
         self.assertIsNone(by_symbol["ABC"]["oi_change_pct"])
@@ -97,6 +99,16 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         ]}
         report = build_report(archive, {"stocks": {}})
         self.assertEqual(report["rows"][0]["signal"], "SELLING WATCH")
+
+    def test_consecutive_activity_days_counts_back_to_first_inactive_session(self):
+        archive = {"records": [
+            {"date": "2026-11-13", "equity_rows": [{"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 10000}]},
+            {"date": "2026-11-16", "equity_rows": [{"symbol": "ABC", "close": 101, "previous_close": 100, "volume": 20000}]},
+            {"date": "2026-11-17", "equity_rows": [{"symbol": "ABC", "close": 102, "previous_close": 101, "volume": 30000}]},
+            {"date": "2026-11-18", "equity_rows": [{"symbol": "ABC", "close": 103, "previous_close": 102, "volume": 40000}]},
+        ]}
+        report = build_report(archive, {"stocks": {}})
+        self.assertEqual(report["rows"][0]["activity_days"], 3)
 
     def test_flat_price_with_unusual_volume_is_visible_as_early_activity(self):
         archive = {"records": [
