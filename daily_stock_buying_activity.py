@@ -329,6 +329,47 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         -abs(row["change_pct"]),
         row["symbol"],
     ))
+    # Source coverage is measured across the scanned universe, not only alert rows.
+    # Otherwise a quiet market day would incorrectly look like disconnected data.
+    fno_futures_oi_matched = 0
+    for symbol in fno_symbols:
+        current_stock = current_futures.get(symbol) or {}
+        prior_stock = previous_futures.get(symbol) or {}
+        if not (current_stock.get("available") and prior_stock.get("available")):
+            continue
+        current_contracts = current_stock.get("by_expiry") or {}
+        prior_contracts = prior_stock.get("by_expiry") or {}
+        common_expiries = [
+            expiry for expiry in set(current_contracts) & set(prior_contracts)
+            if expiry >= latest_date.isoformat()
+        ]
+        if not common_expiries:
+            continue
+        expiry = sorted(common_expiries)[0]
+        now_contract, old_contract = current_contracts[expiry], prior_contracts[expiry]
+        if (finite_number(now_contract.get("open_interest")) is not None
+                and finite_number(old_contract.get("open_interest")) is not None
+                and finite_number(now_contract.get("close")) is not None
+                and finite_number(old_contract.get("close")) is not None):
+            fno_futures_oi_matched += 1
+
+    latest_eq_symbols = {
+        str(item.get("symbol") or "").upper()
+        for item in latest.get("equity_rows", [])
+        if isinstance(item, dict) and item.get("symbol")
+    }
+    delivery_eq_matched = sum(
+        1 for symbol in latest_eq_symbols
+        if finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct")) is not None
+    )
+    cash_quote_valid = sum(
+        1 for item in latest.get("equity_rows", [])
+        if finite_number(item.get("close")) is not None
+        and finite_number(item.get("previous_close")) is not None
+        and finite_number(item.get("previous_close")) > 0
+        and finite_number(item.get("volume")) is not None
+    )
+
     return {
         "schema_version": 1,
         "generated_at": generated_at or dt.datetime.now(IST).isoformat(timespec="seconds"),
@@ -350,12 +391,22 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         "bulk_block_deals": deal_rows,
         "coverage": {
             "cash_price_volume": "verified",
-            "futures_oi": "verified_for_matched_stock_futures" if any(row["oi_change_pct"] is not None for row in rows) else "not_yet_connected",
+            "futures_oi": "verified_for_matched_stock_futures" if fno_futures_oi_matched else "not_yet_connected",
             "delivery_pct": "verified" if delivery_record else "not_yet_connected",
             "bulk_block_deals": ("verified" if deals_record and (deals_record.get("verified_report_count") or 0) == 2
                                  else "partial" if deals_record and (deals_record.get("verified_report_count") or 0) == 1
                                  else "not_yet_connected"),
             "intraday": "not_available_in_this_eod_scan",
+        },
+        "coverage_counts": {
+            "nse_eq_symbols_scanned": len(latest_eq_symbols),
+            "cash_quote_valid_symbols": cash_quote_valid,
+            "fno_symbols_in_master": len(fno_symbols),
+            "fno_symbols_with_same_expiry_oi": fno_futures_oi_matched,
+            "delivery_symbols_matched": delivery_eq_matched,
+            "delivery_eq_symbols_scanned": len(latest_eq_symbols) if delivery_record else 0,
+            "bulk_block_reports_verified": int((deals_record or {}).get("verified_report_count") or 0),
+            "bulk_block_deal_rows": len(deal_rows),
         },
         "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are shown only when verified.",
     }
