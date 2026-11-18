@@ -43,7 +43,7 @@ function render(data){
    shortlist.map(function(r){
     var oi=r.oi_change_pct==null?(r.category==="F&O"?"उपलब्ध नहीं":"लागू नहीं"):(Number(r.oi_change_pct)>0?"+":"")+fmt(r.oi_change_pct)+'%';
     return '<tr><td><b>'+esc(r.symbol)+'</b>'+(r.new_discovery?'<small class="dsba-discovery">NEW DISCOVERY</small>':'')+'</td>'+
-     '<td class="dsba-positive">+'+fmt(r.change_pct)+'%</td>'+
+     '<td class="'+(Number(r.change_pct)>=0?"dsba-positive":"dsba-negative")+'">'+(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+'%</td>'+
      '<td>'+fmt(r.volume_ratio)+'x औसत</td><td>'+esc(oi)+'</td>'+
      '<td>'+(r.delivery_pct==null?'उपलब्ध नहीं':fmt(r.delivery_pct)+'%')+'</td>'+
      '<td>'+badge(r.signal)+'<small class="dsba-strength">'+esc(r.strength||'')+'</small></td></tr>';
