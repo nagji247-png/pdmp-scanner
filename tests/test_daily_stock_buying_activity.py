@@ -53,6 +53,23 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertNotIn("LOWVOL", by_symbol)
         self.assertEqual(report["coverage"]["intraday"], "not_available_in_this_eod_scan")
 
+    def test_official_delivery_archive_is_joined_by_exact_session_and_symbol(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        delivery = {"records": [
+            {"date": "2026-11-16", "rows": {"ABC": {"delivery_qty": 50000, "delivery_pct": 50.0}}},
+            {"date": "2026-11-17", "rows": {"ABC": {"delivery_qty": 120000, "delivery_pct": 60.0}}},
+        ]}
+        report = build_report(archive, {"stocks": {}}, delivery_archive=delivery)
+        row = report["rows"][0]
+        self.assertEqual(row["delivery_pct"], 60.0)
+        self.assertEqual(row["delivery_qty"], 120000)
+        self.assertEqual(report["coverage"]["delivery_pct"], "verified")
+
     def test_negative_price_with_unusual_volume_is_selling_watch(self):
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
