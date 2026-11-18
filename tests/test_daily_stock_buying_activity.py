@@ -234,5 +234,55 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(report["rows"], [])
 
 
+    def test_covering_and_unwinding_deals_are_watch_only_and_side_matched(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "COVER", "close": 100, "previous_close": 99, "volume": 100000},
+                {"symbol": "UNWIND", "close": 100, "previous_close": 101, "volume": 100000},
+            ]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "COVER", "close": 105, "previous_close": 100, "volume": 200000},
+                {"symbol": "UNWIND", "close": 95, "previous_close": 100, "volume": 200000},
+            ]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {
+                "COVER": {"available": True, "by_expiry": {
+                    "2026-11-26": {"open_interest": 1000, "close": 100.0}}},
+                "UNWIND": {"available": True, "by_expiry": {
+                    "2026-11-26": {"open_interest": 1000, "close": 100.0}}},
+            }},
+            {"date": "2026-11-17", "stock_futures": {
+                "COVER": {"available": True, "by_expiry": {
+                    "2026-11-26": {"open_interest": 900, "close": 105.0}}},
+                "UNWIND": {"available": True, "by_expiry": {
+                    "2026-11-26": {"open_interest": 900, "close": 95.0}}},
+            }},
+        ]}
+        deals = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": [
+                {"symbol": "COVER", "kind": "Block", "client": "BUY CLIENT",
+                 "side": "BUY", "quantity": 50000, "price": 104.0},
+                {"symbol": "UNWIND", "kind": "Bulk", "client": "SELL CLIENT",
+                 "side": "SELL", "quantity": 60000, "price": 96.0},
+                # Opposite-side deal must not be attached to either signal.
+                {"symbol": "COVER", "kind": "Bulk", "client": "WRONG SIDE",
+                 "side": "SELL", "quantity": 70000, "price": 104.0},
+            ]}
+        ]}
+        report = build_report(archive, {"stocks": {"COVER": {}, "UNWIND": {}}},
+                              fo_archive=fo_archive, deals_archive=deals)
+        rows = {row["symbol"]: row for row in report["rows"]}
+        self.assertEqual(rows["COVER"]["signal"], "SHORT COVERING")
+        self.assertEqual(rows["COVER"]["strength"], "WATCH")
+        self.assertEqual([d["client"] for d in rows["COVER"]["deal_evidence"]], ["BUY CLIENT"])
+        self.assertEqual(rows["UNWIND"]["signal"], "LONG UNWINDING")
+        self.assertEqual(rows["UNWIND"]["strength"], "WATCH")
+        self.assertEqual([d["client"] for d in rows["UNWIND"]["deal_evidence"]], ["SELL CLIENT"])
+        self.assertEqual(report["strength_summary"]["STRONG"], 0)
+        self.assertEqual(report["strength_summary"]["WATCH"], 2)
+
+
+
 if __name__ == "__main__":
     unittest.main()
