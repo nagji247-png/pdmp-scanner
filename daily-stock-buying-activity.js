@@ -58,8 +58,14 @@ function rowKind(r){
  if(r.signal==="DISCLOSED DEAL ACTIVITY WATCH"||Array.isArray(r.deal_evidence)&&r.deal_evidence.length)return "deals";
  return "other";
 }
+function chartSymbol(r){
+ return "NSE:"+String(r.symbol||"").replace(/[^A-Z0-9&_-]/gi,"");
+}
+function chartPageUrl(r){
+ return "https://www.tradingview.com/chart/?symbol="+encodeURIComponent(chartSymbol(r));
+}
 function chartUrl(r){
- var symbol=encodeURIComponent("NSE:"+String(r.symbol||"").replace(/[^A-Z0-9&_-]/gi,""));
+ var symbol=encodeURIComponent(chartSymbol(r));
  return "https://www.tradingview.com/widgetembed/?symbol="+symbol+"&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=%230f172a&theme=dark&style=1&timezone=Asia%2FKolkata&withdateranges=1&hideideas=1";
 }
 function openStock(r){
@@ -76,7 +82,7 @@ function openStock(r){
  ];
  var html='<div class="dsba-modal-backdrop" data-close-modal="1"><section class="dsba-modal" role="dialog" aria-modal="true"><button class="dsba-back" data-back-stock="1">← Back to List</button><button class="dsba-close" data-close-modal="1">✕</button>'+
  '<h3>'+esc(r.symbol)+' · '+label+'</h3><div class="dsba-modal-sub">'+esc(r.signal)+' · '+esc(r.as_of||"EOD तारीख उपलब्ध नहीं")+'</div>'+
- '<div class="dsba-chart-actions"><button class="dsba-action" data-chart-toggle="1">TradingView Chart खोलें</button><a class="dsba-action dsba-link" href="'+chartUrl(r)+'" target="_blank" rel="noopener">Chart अलग टैब में</a></div>'+
+ '<div class="dsba-chart-actions"><button class="dsba-action" data-chart-toggle="1">TradingView Chart खोलें</button><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">Chart अलग टैब में</a></div>'+
  '<div class="dsba-chart" hidden><iframe title="'+esc(r.symbol)+' TradingView chart" src="'+chartUrl(r)+'" loading="lazy" referrerpolicy="no-referrer" allowfullscreen></iframe></div>'+
  '<div class="dsba-proof"><b>मुख्य प्रमाण</b><p>'+esc(mainEvidence(r,kind==="sell"?"SELL":"BUY"))+'</p><b>उपलब्ध प्रमाण</b><p>'+esc(evidenceText(r))+'</p></div>'+
  '<div class="dsba-table-wrap"><table class="dsba-table dsba-detail-table"><tbody>'+fields.filter(Boolean).map(function(x){return '<tr><th>'+esc(x[0])+'</th><td>'+esc(x[1])+'</td></tr>';}).join("")+'</tbody></table></div>'+
