@@ -13,7 +13,10 @@ function badge(signal){
   "LONG UNWINDING":["⚪","ma-neutral"],
   "SELLING WATCH":["🔴","ma-sell"],
   "EARLY BUYING WATCH":["🟡","ma-watch"],
-  "UNUSUAL ACTIVITY WATCH":["🟡","ma-watch"]
+  "UNUSUAL ACTIVITY WATCH":["🟡","ma-watch"],
+  "DISCLOSED BUY DEAL WATCH":["🟡","ma-watch"],
+  "DISCLOSED SELL DEAL WATCH":["🟡","ma-watch"],
+  "DISCLOSED DEAL ACTIVITY WATCH":["🟡","ma-watch"]
  };
  var m=map[signal]||["⚪","ma-neutral"];
  return '<span class="dsba-signal '+m[1]+'">'+m[0]+' '+esc(signal||"DATA UNAVAILABLE")+'</span>';
