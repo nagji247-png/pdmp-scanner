@@ -64,10 +64,6 @@ function chartSymbol(r){
 function chartPageUrl(r){
  return "https://www.tradingview.com/chart/?symbol="+encodeURIComponent(chartSymbol(r));
 }
-function chartUrl(r){
- var symbol=encodeURIComponent(chartSymbol(r));
- return "https://www.tradingview.com/widgetembed/?symbol="+symbol+"&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=%230f172a&theme=dark&style=1&timezone=Asia%2FKolkata&withdateranges=1&hideideas=1";
-}
 function openStock(r){
  var kind=rowKind(r), label=kind==="buy"?"BUYING":kind==="sell"?"SELLING":kind==="deals"?"DISCLOSED DEAL":kind==="unusual"?"UNUSUAL ACTIVITY":"ACTIVITY";
  var dealRows=(r.deal_evidence||[]).map(function(d){return '<tr><td>'+esc(d.kind)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.client)+'</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join("");
