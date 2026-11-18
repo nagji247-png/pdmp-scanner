@@ -410,5 +410,27 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertIsNone(row["volume_ratio"])
 
 
+    def test_oi_signal_survives_when_current_cash_volume_is_unavailable(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 101, "previous_close": 100, "volume": None}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1100, "close": 101.0}}}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        row = report["rows"][0]
+        self.assertEqual(row["signal"], "LONG BUILD-UP")
+        self.assertEqual(row["oi_change_pct"], 10.0)
+        self.assertIsNone(row["volume"])
+        self.assertIsNone(row["volume_ratio"])
+        self.assertTrue(any("कैश वॉल्यूम उपलब्ध नहीं" in item for item in row["evidence"]))
+
+
 if __name__ == "__main__":
     unittest.main()
