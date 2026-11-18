@@ -33,6 +33,14 @@ function render(data){
  });
  html+='</tbody></table></div>'+
  '<div class="dsba-note">OI केवल उसी expiry के दो लगातार सत्रों से सत्यापित होने पर दिखेगा। Delivery % केवल उसी तारीख की NSE Full Bhavcopy से मिलेगा। EARLY BUYING WATCH केवल भाव + असामान्य वॉल्यूम का शुरुआती संकेत है, पक्की खरीदारी नहीं। यह EOD स्कैन है—इंट्राडे एंट्री अलर्ट नहीं।</div>'+
+ '<details class="dsba-details"><summary>पिछले संकेतों का नतीजा (1 / 3 / 5 सत्र)</summary>'+
+ '<div class="dsba-summary"><span>1 सत्र: सही '+fmt((data.outcome_summary&&data.outcome_summary[1]||{}).right,0)+' · गलत '+fmt((data.outcome_summary&&data.outcome_summary[1]||{}).wrong,0)+' · Pending '+fmt((data.outcome_summary&&data.outcome_summary[1]||{}).pending,0)+'</span><span>3 सत्र: सही '+fmt((data.outcome_summary&&data.outcome_summary[3]||{}).right,0)+' · गलत '+fmt((data.outcome_summary&&data.outcome_summary[3]||{}).wrong,0)+' · Pending '+fmt((data.outcome_summary&&data.outcome_summary[3]||{}).pending,0)+'</span><span>5 सत्र: सही '+fmt((data.outcome_summary&&data.outcome_summary[5]||{}).right,0)+' · गलत '+fmt((data.outcome_summary&&data.outcome_summary[5]||{}).wrong,0)+' · Pending '+fmt((data.outcome_summary&&data.outcome_summary[5]||{}).pending,0)+'</span></div>'+
+ (Array.isArray(data.signal_history)&&data.signal_history.length?
+  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>तारीख</th><th>Stock</th><th>संकेत</th><th>1 सत्र</th><th>3 सत्र</th><th>5 सत्र</th></tr></thead><tbody>'+
+  data.signal_history.slice(0,30).map(function(h){return '<tr><td>'+esc(h.date)+'</td><td><b>'+esc(h.symbol)+'</b></td><td>'+esc(h.signal)+'</td><td>'+esc(h.outcomes&&h.outcomes["1D"])+'</td><td>'+esc(h.outcomes&&h.outcomes["3D"])+'</td><td>'+esc(h.outcomes&&h.outcomes["5D"])+'</td></tr>';}).join('')+
+  '</tbody></table></div>':
+  '<div class="dsba-note">अभी पर्याप्त ऐतिहासिक सत्र उपलब्ध नहीं हैं।</div>')+
+ '<div class="dsba-note">नतीजे केवल NSE cash EOD price-volume दिशा पर आधारित हैं। Pending नतीजे सही/गलत में नहीं गिने जाते; यह संस्थागत खरीदारी की पुष्टि नहीं है।</div></details>'+
  '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary>'+
  (Array.isArray(data.bulk_block_deals)&&data.bulk_block_deals.length?
   '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Buyer / Seller</th><th>Side</th><th>Activity</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+
