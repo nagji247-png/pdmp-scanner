@@ -1,5 +1,5 @@
 import unittest
-from nse_bulk_block_deals import parse_deal_csv, parse_day
+from nse_bulk_block_deals import parse_deal_csv, parse_day, report_status_for_date
 
 class BulkBlockDealsTests(unittest.TestCase):
     def test_parses_disclosed_buyer_and_seller_rows(self):
@@ -16,6 +16,10 @@ class BulkBlockDealsTests(unittest.TestCase):
         raw = ("Date,Symbol,Client Name,Buy/Sell,Quantity Traded,Trade Price\n"
                "17-Nov-2026,ABC,CLIENT,BUY,1000,10\n").encode()
         self.assertEqual(parse_deal_csv(raw, "Block", parse_day("2026-11-18")), [])
+
+    def test_empty_target_date_rows_are_not_claimed_as_verified_no_deals(self):
+        self.assertEqual(report_status_for_date([]), "date_not_confirmed_no_rows")
+        self.assertEqual(report_status_for_date([{"symbol": "ABC"}]), "verified")
 
     def test_missing_columns_or_invalid_trade_values_fail_closed(self):
         with self.assertRaises(ValueError):
