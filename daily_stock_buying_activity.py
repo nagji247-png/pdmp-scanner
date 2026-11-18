@@ -90,6 +90,7 @@ def build_price_volume_outcomes(sessions, session_maps):
                 "signal": "EARLY BUYING WATCH" if direction == "BUY" else "SELLING WATCH" if direction == "SELL" else "UNUSUAL ACTIVITY WATCH",
                 "change_pct": round(change_pct, 2),
                 "volume_ratio": round(volume / average, 2),
+                "average_volume_sessions": len(prior_volumes),
                 "outcomes": outcomes,
                 "basis": "NSE cash EOD price-volume; not institutional attribution",
             })
@@ -219,6 +220,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                 if old_oi and now_oi is not None and old_close and now_close is not None:
                     oi_change_pct = round((now_oi / old_oi - 1.0) * 100.0, 2)
                     futures_change_pct = round((now_close / old_close - 1.0) * 100.0, 2)
+        volume_baseline_note = (
+            str(len(prior_volumes)) + " उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+        )
         if futures_change_pct is not None and oi_change_pct is not None:
             if futures_change_pct > 0 and oi_change_pct > 0:
                 signal, strength = "LONG BUILD-UP", "WATCH"
@@ -230,10 +234,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                 signal, strength = "LONG UNWINDING", "WATCH"
             else:
                 signal, strength = ("EARLY BUYING WATCH" if change_pct > 0 else "SELLING WATCH"), "EARLY"
-            evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", "20-सत्र औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"]
+            evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", volume_baseline_note]
         elif change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
-            evidence = ["भाव सकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+            evidence = ["भाव सकारात्मक", volume_baseline_note]
         elif change_pct <= -0.2:
             signal, strength = "SELLING WATCH", "EARLY"
             evidence = ["भाव नकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
@@ -312,6 +316,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "delivery_avg_pct_20": round(avg_delivery_pct, 2) if avg_delivery_pct is not None else None,
             "volume": int(volume),
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
+            "average_volume_sessions": len(prior_volumes),
             "volume_ratio": round(volume_ratio, 2),
             "signal": signal,
             "strength": strength,
