@@ -67,6 +67,31 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     delivery_record = next((record for record in reversed(delivery_records)
                             if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     delivery_rows = (delivery_record or {}).get("rows") or {}
+    session_maps = [
+        {str(row.get("symbol") or "").upper(): row for row in session.get("equity_rows", [])
+         if isinstance(row, dict) and row.get("symbol")}
+        for session in sessions
+    ]
+
+    def consecutive_activity_days(symbol):
+        streak = 0
+        for index in range(len(sessions) - 1, -1, -1):
+            current_row = session_maps[index].get(symbol)
+            if not current_row:
+                break
+            current_volume = finite_number(current_row.get("volume"))
+            prior_values = [
+                finite_number(session_maps[j][symbol].get("volume"))
+                for j in range(max(0, index - 20), index)
+                if symbol in session_maps[j]
+            ]
+            prior_values = [value for value in prior_values if value is not None and value >= 0]
+            average = sum(prior_values) / len(prior_values) if prior_values else None
+            if current_volume is None or average is None or average <= 0 or current_volume / average < 1.5:
+                break
+            streak += 1
+        return streak
+
     deals_records = (deals_archive or {}).get("records", []) if isinstance(deals_archive, dict) else []
     deals_record = next((record for record in reversed(deals_records)
                          if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
@@ -132,6 +157,8 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         rows.append({
             "symbol": symbol,
             "category": "F&O" if symbol in fno_symbols else "अन्य NSE",
+            "new_discovery": symbol not in fno_symbols,
+            "activity_days": consecutive_activity_days(symbol),
             "price": close,
             "change_pct": round(change_pct, 2),
             "oi_change_pct": oi_change_pct,
