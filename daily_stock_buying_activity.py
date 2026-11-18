@@ -1,0 +1,153 @@
+"""Build the TRINETRA Daily Stock Buying Activity view from official NSE CM EOD archive.
+
+This first stage deliberately uses only verified cash-market EOD OHLCV. It does
+not infer delivery, F&O OI, institutional identity, or intraday entry timing.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import math
+from pathlib import Path
+
+ARCHIVE = Path("nse_cm_bhavcopy_archive.json")
+MASTER = Path("nse-fo-stock-sector-master.json")
+OUTPUT = Path("daily_stock_buying_activity.json")
+IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+
+
+def read_json(path: Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"cannot read {path}: {exc}") from exc
+
+
+def finite_number(value):
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def build_report(archive, master, generated_at=None):
+    records = archive.get("records") if isinstance(archive, dict) else None
+    if not isinstance(records, list) or not records:
+        raise ValueError("NSE CM archive has no usable sessions")
+    sessions = sorted(
+        (item for item in records if isinstance(item, dict)
+         and isinstance(item.get("equity_rows"), list)
+         and item.get("date")),
+        key=lambda item: item["date"],
+    )
+    if not sessions:
+        raise ValueError("NSE CM archive has no dated EQ rows")
+    latest = sessions[-1]
+    latest_date = dt.date.fromisoformat(str(latest["date"]))
+    prior_sessions = [item for item in sessions[:-1] if item.get("equity_rows")]
+    fno_symbols = set((master.get("stocks") or {}).keys())
+    history = {}
+    for session in prior_sessions[-20:]:
+        for row in session["equity_rows"]:
+            symbol = str(row.get("symbol") or "").upper()
+            volume = finite_number(row.get("volume"))
+            if symbol and volume is not None and volume >= 0:
+                history.setdefault(symbol, []).append(volume)
+
+    rows = []
+    for item in latest["equity_rows"]:
+        symbol = str(item.get("symbol") or "").upper()
+        if not symbol:
+            continue
+        close = finite_number(item.get("close"))
+        previous = finite_number(item.get("previous_close"))
+        volume = finite_number(item.get("volume"))
+        if close is None or previous is None or previous <= 0 or volume is None:
+            continue
+        change_pct = (close / previous - 1.0) * 100.0
+        prior_volumes = history.get(symbol, [])
+        avg_volume = (sum(prior_volumes) / len(prior_volumes)) if prior_volumes else None
+        volume_ratio = (volume / avg_volume) if avg_volume and avg_volume > 0 else None
+        if volume_ratio is None or volume_ratio < 1.5:
+            continue
+        if volume < 100000:
+            continue
+        if change_pct >= 0.5:
+            signal = "EARLY BUYING WATCH"
+            strength = "EARLY"
+            evidence = ["भाव सकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+        elif change_pct <= -0.5:
+            signal = "SELLING WATCH"
+            strength = "EARLY"
+            evidence = ["भाव नकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+        else:
+            continue
+        rows.append({
+            "symbol": symbol,
+            "category": "F&O" if symbol in fno_symbols else "अन्य NSE",
+            "price": close,
+            "change_pct": round(change_pct, 2),
+            "oi_change_pct": None,
+            "delivery_pct": None,
+            "volume": int(volume),
+            "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
+            "volume_ratio": round(volume_ratio, 2),
+            "signal": signal,
+            "strength": strength,
+            "evidence": evidence,
+            "source": "NSE CM-UDiFF Common Bhavcopy Final",
+            "as_of": latest_date.isoformat(),
+            "missing_fields": ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं",
+                              "Security-wise Delivery %"],
+        })
+    rows.sort(key=lambda row: (
+        row["strength"] != "EARLY",
+        -(row["volume_ratio"] or 0),
+        -abs(row["change_pct"]),
+        row["symbol"],
+    ))
+    return {
+        "schema_version": 1,
+        "generated_at": generated_at or dt.datetime.now(IST).isoformat(timespec="seconds"),
+        "as_of": latest_date.isoformat(),
+        "source": "NSE India official CM-UDiFF Common Bhavcopy Final",
+        "universe": {
+            "fno_symbols_in_master": len(fno_symbols),
+            "nse_eq_symbols_scanned": len(latest["equity_rows"]),
+            "qualifying_activity_rows": len(rows),
+            "other_nse_rows": sum(row["category"] == "अन्य NSE" for row in rows),
+        },
+        "rows": rows,
+        "bulk_block_deals": [],
+        "coverage": {
+            "cash_price_volume": "verified",
+            "futures_oi": "not_yet_connected",
+            "delivery_pct": "not_yet_connected",
+            "bulk_block_deals": "not_yet_connected",
+            "intraday": "not_available_in_this_eod_scan",
+        },
+        "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are not inferred.",
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--archive", default=str(ARCHIVE))
+    parser.add_argument("--master", default=str(MASTER))
+    parser.add_argument("--output", default=str(OUTPUT))
+    args = parser.parse_args()
+    report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)))
+    target = Path(args.output)
+    temporary = target.with_suffix(target.suffix + ".tmp")
+    temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    temporary.replace(target)
+    print(json.dumps({"as_of": report["as_of"], "scanned": report["universe"]["nse_eq_symbols_scanned"],
+                      "alerts": len(report["rows"]), "other_nse_alerts": report["universe"]["other_nse_rows"],
+                      "oi": report["coverage"]["futures_oi"], "delivery": report["coverage"]["delivery_pct"]},
+                     ensure_ascii=False, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
