@@ -84,8 +84,6 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         volume_ratio = (volume / avg_volume) if avg_volume and avg_volume > 0 else None
         if volume_ratio is None or volume_ratio < 1.5:
             continue
-        if volume < 100000:
-            continue
         current_stock = current_futures.get(symbol) or {}
         prior_stock = previous_futures.get(symbol) or {}
         futures_change_pct = None
@@ -118,14 +116,15 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             else:
                 signal, strength = ("EARLY BUYING WATCH" if change_pct > 0 else "SELLING WATCH"), "EARLY"
             evidence = ["Futures भाव बदला", "उसी expiry का OI बदला", "20-सत्र औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"]
-        elif change_pct >= 0.5:
+        elif change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
             evidence = ["भाव सकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
-        elif change_pct <= -0.5:
+        elif change_pct <= -0.2:
             signal, strength = "SELLING WATCH", "EARLY"
             evidence = ["भाव नकारात्मक", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
         else:
-            continue
+            signal, strength = "UNUSUAL ACTIVITY WATCH", "EARLY"
+            evidence = ["भाव में स्पष्ट दिशा अभी नहीं", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
         rows.append({
             "symbol": symbol,
             "category": "F&O" if symbol in fno_symbols else "अन्य NSE",
@@ -173,7 +172,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "bulk_block_deals": "not_yet_connected",
             "intraday": "not_available_in_this_eod_scan",
         },
-        "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are not inferred.",
+        "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are shown only when verified.",
     }
 
 
