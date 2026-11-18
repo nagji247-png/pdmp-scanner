@@ -1,7 +1,8 @@
-"""Build the TRINETRA Daily Stock Buying Activity view from official NSE CM EOD archive.
+"""Build TRINETRA Daily Stock Buying Activity from official NSE EOD archives.
 
-This first stage deliberately uses only verified cash-market EOD OHLCV. It does
-not infer delivery, F&O OI, institutional identity, or intraday entry timing.
+Cash price/volume, same-expiry stock futures OI, and delivery are joined only
+when their exchange dates and symbol keys match. No institutional identity or
+intraday entry timing is inferred.
 """
 from __future__ import annotations
 
