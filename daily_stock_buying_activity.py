@@ -33,7 +33,7 @@ def finite_number(value):
     return result if math.isfinite(result) else None
 
 
-def build_report(archive, master, generated_at=None, fo_archive=None, delivery_archive=None):
+def build_report(archive, master, generated_at=None, fo_archive=None, delivery_archive=None, deals_archive=None):
     records = archive.get("records") if isinstance(archive, dict) else None
     if not isinstance(records, list) or not records:
         raise ValueError("NSE CM archive has no usable sessions")
@@ -67,6 +67,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     delivery_record = next((record for record in reversed(delivery_records)
                             if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     delivery_rows = (delivery_record or {}).get("rows") or {}
+    deals_records = (deals_archive or {}).get("records", []) if isinstance(deals_archive, dict) else []
+    deals_record = next((record for record in reversed(deals_records)
+                         if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
+    deal_rows = (deals_record or {}).get("rows") or []
 
     rows = []
     for item in latest["equity_rows"]:
@@ -164,12 +168,12 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "other_nse_rows": sum(row["category"] == "अन्य NSE" for row in rows),
         },
         "rows": rows,
-        "bulk_block_deals": [],
+        "bulk_block_deals": deal_rows,
         "coverage": {
             "cash_price_volume": "verified",
             "futures_oi": "verified_for_matched_stock_futures" if any(row["oi_change_pct"] is not None for row in rows) else "not_yet_connected",
             "delivery_pct": "verified" if delivery_record else "not_yet_connected",
-            "bulk_block_deals": "not_yet_connected",
+            "bulk_block_deals": "verified" if deals_record and (deals_record.get("verified_report_count") or 0) > 0 else "not_yet_connected",
             "intraday": "not_available_in_this_eod_scan",
         },
         "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are shown only when verified.",
@@ -183,13 +187,17 @@ def main():
     parser.add_argument("--output", default=str(OUTPUT))
     parser.add_argument("--fo-archive", default="nse_index_option_oi.json")
     parser.add_argument("--delivery-archive", default="nse_delivery_archive.json")
+    parser.add_argument("--deals-archive", default="nse_bulk_block_deals.json")
     args = parser.parse_args()
     fo_path = Path(args.fo_archive)
     delivery_path = Path(args.delivery_archive)
+    deals_path = Path(args.deals_archive)
     fo_archive = read_json(fo_path) if fo_path.exists() else None
     delivery_archive = read_json(delivery_path) if delivery_path.exists() else None
+    deals_archive = read_json(deals_path) if deals_path.exists() else None
     report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)),
-                          fo_archive=fo_archive, delivery_archive=delivery_archive)
+                          fo_archive=fo_archive, delivery_archive=delivery_archive,
+                          deals_archive=deals_archive)
     target = Path(args.output)
     temporary = target.with_suffix(target.suffix + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
