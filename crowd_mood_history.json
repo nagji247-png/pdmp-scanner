@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
-  "updated_at": "2026-11-18T05:04:00+00:00",
+  "updated_at": "2026-11-18T08:42:00+00:00",
   "events": [
     {
       "event_key": "2026-10-20|legacy|EXTREME_BEARISH",
@@ -7306,6 +7306,48 @@
       "price_source": "NSE India allIndices API",
       "quote_timestamp_utc": null,
       "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-18T08:42:00+00:00",
+      "scan_market_date": "2026-11-18",
+      "market_date": "2026-11-18",
+      "index": "NIFTY",
+      "price": 25222.3,
+      "price_as_of": "18/11/2026",
+      "price_time": "02:10 PM IST",
+      "quote_market_date": "2026-11-18",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "NSE India allIndices API",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-18T08:42:00+00:00",
+      "scan_market_date": "2026-11-18",
+      "market_date": "2026-11-18",
+      "index": "SENSEX",
+      "price": 82047.45,
+      "price_as_of": "18/11/2026",
+      "price_time": "02:08 PM IST",
+      "quote_market_date": "2026-11-18",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "Google Finance direct SENSEX quote",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-18T08:42:00+00:00",
+      "scan_market_date": "2026-11-18",
+      "market_date": "2026-11-18",
+      "index": "BANKNIFTY",
+      "price": 61983.5,
+      "price_as_of": "18/11/2026",
+      "price_time": "02:11 PM IST",
+      "quote_market_date": "2026-11-18",
+      "quote_kind": "intraday_or_unknown",
+      "price_source": "NSE India allIndices API",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
     }
   ],
   "intraday_30m_bars": [
@@ -8592,6 +8634,90 @@
       "volume": 0.0,
       "change_pct": -0.1366,
       "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T05:00:00Z",
+      "end": "2026-11-18T05:30:00Z",
+      "open": 25256.25,
+      "high": 25264.5508,
+      "low": 25215.4004,
+      "close": 25226.0,
+      "volume": 0.0,
+      "change_pct": -0.1198,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T05:30:00Z",
+      "end": "2026-11-18T06:00:00Z",
+      "open": 25226.0508,
+      "high": 25289.0508,
+      "low": 25216.6504,
+      "close": 25278.8496,
+      "volume": 0.0,
+      "change_pct": 0.2093,
+      "direction": 1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T06:00:00Z",
+      "end": "2026-11-18T06:30:00Z",
+      "open": 25278.8496,
+      "high": 25281.9004,
+      "low": 25225.25,
+      "close": 25248.5,
+      "volume": 0.0,
+      "change_pct": -0.1201,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T06:30:00Z",
+      "end": "2026-11-18T07:00:00Z",
+      "open": 25248.5,
+      "high": 25271.0996,
+      "low": 25215.4004,
+      "close": 25215.4004,
+      "volume": 0.0,
+      "change_pct": -0.1311,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T07:00:00Z",
+      "end": "2026-11-18T07:30:00Z",
+      "open": 25215.5,
+      "high": 25216.9492,
+      "low": 25169.0508,
+      "close": 25188.6992,
+      "volume": 0.0,
+      "change_pct": -0.1063,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T07:30:00Z",
+      "end": "2026-11-18T08:00:00Z",
+      "open": 25188.6992,
+      "high": 25196.6504,
+      "low": 25141.8008,
+      "close": 25170.0508,
+      "volume": 0.0,
+      "change_pct": -0.074,
+      "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-18T08:00:00Z",
+      "end": "2026-11-18T08:30:00Z",
+      "open": 25177.5,
+      "high": 25246.3008,
+      "low": 25143.6992,
+      "close": 25237.0508,
+      "volume": 0.0,
+      "change_pct": 0.2365,
+      "direction": 1
     }
   ]
 }
