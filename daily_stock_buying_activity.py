@@ -32,7 +32,7 @@ def finite_number(value):
     return result if math.isfinite(result) else None
 
 
-def build_report(archive, master, generated_at=None, fo_archive=None):
+def build_report(archive, master, generated_at=None, fo_archive=None, delivery_archive=None):
     records = archive.get("records") if isinstance(archive, dict) else None
     if not isinstance(records, list) or not records:
         raise ValueError("NSE CM archive has no usable sessions")
@@ -61,6 +61,11 @@ def build_report(archive, master, generated_at=None, fo_archive=None):
     current_fo = next((record for record in reversed(fo_records) if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     current_futures = (current_fo or {}).get("stock_futures") or {}
     previous_futures = (previous_fo or {}).get("stock_futures") or {}
+
+    delivery_records = (delivery_archive or {}).get("records", []) if isinstance(delivery_archive, dict) else []
+    delivery_record = next((record for record in reversed(delivery_records)
+                            if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
+    delivery_rows = (delivery_record or {}).get("rows") or {}
 
     rows = []
     for item in latest["equity_rows"]:
@@ -128,7 +133,8 @@ def build_report(archive, master, generated_at=None, fo_archive=None):
             "oi_change_pct": oi_change_pct,
             "futures_change_pct": futures_change_pct,
             "futures_expiry": futures_expiry,
-            "delivery_pct": None,
+            "delivery_pct": (delivery_rows.get(symbol) or {}).get("delivery_pct"),
+            "delivery_qty": (delivery_rows.get(symbol) or {}).get("delivery_qty"),
             "volume": int(volume),
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
             "volume_ratio": round(volume_ratio, 2),
@@ -138,7 +144,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None):
             "source": "NSE CM-UDiFF Common Bhavcopy Final",
             "as_of": latest_date.isoformat(),
             "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
-                              + ["Security-wise Delivery %"],
+                              + ([] if (delivery_rows.get(symbol) or {}).get("delivery_pct") is not None else ["Security-wise Delivery %"]),
         })
     rows.sort(key=lambda row: (
         row["strength"] != "EARLY",
@@ -162,7 +168,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None):
         "coverage": {
             "cash_price_volume": "verified",
             "futures_oi": "not_yet_connected",
-            "delivery_pct": "not_yet_connected",
+            "delivery_pct": "verified" if delivery_record else "not_yet_connected",
             "bulk_block_deals": "not_yet_connected",
             "intraday": "not_available_in_this_eod_scan",
         },
@@ -176,10 +182,14 @@ def main():
     parser.add_argument("--master", default=str(MASTER))
     parser.add_argument("--output", default=str(OUTPUT))
     parser.add_argument("--fo-archive", default="nse_index_option_oi.json")
+    parser.add_argument("--delivery-archive", default="nse_delivery_archive.json")
     args = parser.parse_args()
     fo_path = Path(args.fo_archive)
+    delivery_path = Path(args.delivery_archive)
     fo_archive = read_json(fo_path) if fo_path.exists() else None
-    report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)), fo_archive=fo_archive)
+    delivery_archive = read_json(delivery_path) if delivery_path.exists() else None
+    report = build_report(read_json(Path(args.archive)), read_json(Path(args.master)),
+                          fo_archive=fo_archive, delivery_archive=delivery_archive)
     target = Path(args.output)
     temporary = target.with_suffix(target.suffix + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
