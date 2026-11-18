@@ -132,6 +132,35 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["delivery_avg_pct_20"], 26.5)
         self.assertTrue(any("खरीददार की पहचान नहीं" in item for item in row["evidence"]))
 
+    def test_delivery_watch_keeps_same_day_buy_deal_evidence_without_becoming_strong(self):
+        archive = {"records": [
+            {"date": "2026-11-13", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 100000}]},
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 100, "volume": 200000}]},
+        ]}
+        delivery = {"records": [
+            {"date": "2026-11-13", "rows": {"ABC": {"delivery_pct": 25.0}}},
+            {"date": "2026-11-16", "rows": {"ABC": {"delivery_pct": 28.0}}},
+            {"date": "2026-11-17", "rows": {"ABC": {"delivery_pct": 45.0}}},
+        ]}
+        deals = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": [
+                {"symbol": "ABC", "kind": "Bulk", "client": "DISCLOSED BUYER",
+                 "side": "BUY", "quantity": 75000, "price": 100.25}]}
+        ]}
+        report = build_report(archive, {"stocks": {}}, delivery_archive=delivery, deals_archive=deals)
+        row = report["rows"][0]
+        self.assertEqual(row["signal"], "DELIVERY WATCH")
+        self.assertEqual(row["strength"], "WATCH")
+        self.assertEqual(row["deal_evidence"][0]["client"], "DISCLOSED BUYER")
+        self.assertEqual(row["deal_evidence"][0]["quantity"], 75000)
+        self.assertTrue(any("disclosed BUY deal" in item for item in row["evidence"]))
+        self.assertEqual(report["strength_summary"]["STRONG"], 0)
+        self.assertEqual(report["strength_summary"]["WATCH"], 1)
+
     def test_official_delivery_archive_is_joined_by_exact_session_and_symbol(self):
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
