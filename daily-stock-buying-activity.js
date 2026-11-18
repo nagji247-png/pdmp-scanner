@@ -127,7 +127,7 @@ function render(data){
  var shortlist=buyingCandidates.slice(0,10);
  var shortlistHtml='<div class="dsba-details" style="margin:8px 0"><b>TOP BUYING ACTIVITY</b><div class="dsba-meta">भारी खरीदारी के संकेत · ('+shortlist.length+' / '+buyingCandidates.length+')</div>'+
   '<div class="dsba-note">यह उपलब्ध EOD प्रमाण के आधार पर प्राथमिकता सूची है, Buy recommendation नहीं। Delivery % अकेले संस्थागत खरीदारी साबित नहीं करता; disclosed BUY तभी दिखेगा जब NSE deal record उपलब्ध हो।</div>'+
-  (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price</th><th>मुख्य प्रमाण</th><th>स्थिति</th></tr></thead><tbody>'+
+  (shortlist.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Price</th><th>मुख्य प्रमाण</th><th>OI</th><th>Delivery %</th><th>Active Sessions</th><th>Signal</th></tr></thead><tbody>'+
    shortlist.map(function(r){return shortlistRow(r,"BUY");}).join('')+'</tbody></table></div>':
    '<div class="dsba-note">इस रिपोर्ट में सत्यापित खरीद-दिशा वाले संकेत उपलब्ध नहीं हैं।</div>')+
   (buyingCandidates.length>10?'<div class="dsba-note">बाकी '+(buyingCandidates.length-10)+' खरीद-दिशा संकेत नीचे पूरी सूची में सुरक्षित हैं।</div>':'')+'</div>';
