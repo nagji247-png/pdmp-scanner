@@ -244,6 +244,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
             archive, "2026-11-06", "https://archives.nseindia.com/test.zip",
             payload, {"NIFTY": {}, "BANKNIFTY": {}}, "2026-11-13T14:00:00Z",
             option_contracts=option_contracts,
+            stock_futures={"RELIANCE": {"available": True, "by_expiry": {}}},
         ))
         self.assertEqual(archive["schema_version"], 2)
         self.assertEqual(
@@ -280,6 +281,7 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
                         }]}
                         for symbol in ("NIFTY", "BANKNIFTY")
                     },
+                    "stock_futures": {"RELIANCE": {"available": True, "by_expiry": {}}},
                 }],
             }), encoding="utf-8")
             with patch("sys.argv", [
