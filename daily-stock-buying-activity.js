@@ -33,7 +33,15 @@ function render(data){
  });
  html+='</tbody></table></div>'+
  '<div class="dsba-note">OI केवल उसी expiry के दो लगातार सत्रों से सत्यापित होने पर दिखेगा। Delivery % केवल उसी तारीख की NSE Full Bhavcopy से मिलेगा। EARLY BUYING WATCH केवल भाव + असामान्य वॉल्यूम का शुरुआती संकेत है, पक्की खरीदारी नहीं। यह EOD स्कैन है—इंट्राडे एंट्री अलर्ट नहीं।</div>'+
- '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary><div class="dsba-note">NSE की आधिकारिक Bulk / Block Deal रिपोर्ट का डेटा अभी इस सेक्शन से जुड़ा नहीं है। रिपोर्ट जुड़ने तक खरीदार/विक्रेता का नाम नहीं दिखाया जाएगा।</div></details>';
+ '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary>'+
+ (Array.isArray(data.bulk_block_deals)&&data.bulk_block_deals.length?
+  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Buyer / Seller</th><th>Side</th><th>Activity</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+
+  data.bulk_block_deals.map(function(d){return '<tr><td><b>'+esc(d.symbol)+'</b></td><td>'+esc(d.client)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.kind)+' Deal</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join('')+
+  '</tbody></table></div>':
+  (data.coverage&&data.coverage.bulk_block_deals==="verified"?
+   '<div class="dsba-note">इस तारीख की सत्यापित NSE रिपोर्ट में कोई Bulk / Block Deal रिकॉर्ड नहीं मिला।</div>':
+   '<div class="dsba-note">NSE की आधिकारिक Bulk / Block Deal रिपोर्ट अभी उपलब्ध नहीं हुई; नाम/मात्रा नहीं गढ़ी जाएगी।</div>'))+
+ '</details>';
  root.innerHTML=html;
 }
 var style=document.createElement("style");
