@@ -6,6 +6,7 @@ on:
     paths:
       - "nse_cm_bhavcopy_archive.py"
       - "daily_stock_buying_activity.py"
+      - "daily-stock-buying-activity.js"
       - "tests/test_daily_stock_buying_activity.py"
       - "nse_delivery_archive.py"
       - "tests/test_nse_delivery_archive.py"
@@ -38,6 +39,7 @@ on:
   pull_request:
     paths:
       - "daily_stock_buying_activity.py"
+      - "daily-stock-buying-activity.js"
       - "tests/test_daily_stock_buying_activity.py"
       - "nse_delivery_archive.py"
       - "tests/test_nse_delivery_archive.py"
