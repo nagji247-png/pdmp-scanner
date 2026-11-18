@@ -131,6 +131,16 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     delivery_record = next((record for record in reversed(delivery_records)
                             if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     delivery_rows = (delivery_record or {}).get("rows") or {}
+    delivery_history_by_symbol = {}
+    for record in delivery_records:
+        if not isinstance(record, dict) or record.get("date") >= latest_date.isoformat():
+            continue
+        for symbol, values in (record.get("rows") or {}).items():
+            if not isinstance(values, dict):
+                continue
+            delivery_pct = finite_number(values.get("delivery_pct"))
+            if delivery_pct is not None and 0 <= delivery_pct <= 100:
+                delivery_history_by_symbol.setdefault(str(symbol).upper(), []).append(delivery_pct)
     session_maps = [
         {str(row.get("symbol") or "").upper(): row for row in session.get("equity_rows", [])
          if isinstance(row, dict) and row.get("symbol")}
@@ -228,6 +238,22 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             signal, strength = "UNUSUAL ACTIVITY WATCH", "EARLY"
             evidence = ["भाव में स्पष्ट दिशा अभी नहीं", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
 
+        current_delivery_pct = finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct"))
+        prior_delivery_values = delivery_history_by_symbol.get(symbol, [])[-20:]
+        avg_delivery_pct = (sum(prior_delivery_values) / len(prior_delivery_values)) if prior_delivery_values else None
+        delivery_watch = (
+            current_delivery_pct is not None and avg_delivery_pct is not None
+            and current_delivery_pct >= 40.0
+            and current_delivery_pct >= avg_delivery_pct + 10.0
+        )
+        if delivery_watch and signal in ("EARLY BUYING WATCH", "UNUSUAL ACTIVITY WATCH"):
+            signal, strength = "DELIVERY WATCH", "WATCH"
+            evidence.append(
+                "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से "
+                + str(round(current_delivery_pct - avg_delivery_pct, 1))
+                + " प्रतिशत-अंक अधिक; यह खरीददार की पहचान नहीं बताता"
+            )
+
         symbol_deals = deals_by_symbol.get(symbol, [])
         matching_deals = [
             deal for deal in symbol_deals
@@ -271,6 +297,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "futures_expiry": futures_expiry,
             "delivery_pct": (delivery_rows.get(symbol) or {}).get("delivery_pct"),
             "delivery_qty": (delivery_rows.get(symbol) or {}).get("delivery_qty"),
+            "delivery_avg_pct_20": round(avg_delivery_pct, 2) if avg_delivery_pct is not None else None,
             "volume": int(volume),
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
             "volume_ratio": round(volume_ratio, 2),
@@ -283,8 +310,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
                               + ([] if (delivery_rows.get(symbol) or {}).get("delivery_pct") is not None else ["Security-wise Delivery %"]),
         })
+    strength_order = {"STRONG": 0, "WATCH": 1, "EARLY": 2}
     rows.sort(key=lambda row: (
-        row["strength"] != "EARLY",
+        strength_order.get(row["strength"], 3),
         -(row["volume_ratio"] or 0),
         -abs(row["change_pct"]),
         row["symbol"],
