@@ -12,6 +12,7 @@ from component_scoring import aggregate_nse_udiff_index_option_oi
 from nse_index_option_oi_archive import (
     aggregate_udiff_rows,
     aggregate_index_futures_rows,
+    aggregate_stock_futures_rows,
     aggregate_option_contracts,
     append_archive,
     decode_udiff_zip,
@@ -84,6 +85,41 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         )
         self.assertFalse(result["NIFTY"]["included_in_asset_final"])
         self.assertFalse(result["BANKNIFTY"]["coverage_validated"])
+
+    def test_stock_futures_capture_all_symbols_by_exact_expiry(self):
+        base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTSTK",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "1250.50",
+        }
+        rows = [
+            {**base, "TckrSymb": "RELIANCE"},
+            {**base, "TckrSymb": "SBIN", "OpnIntrst": "90000",
+             "ChngInOpnIntrst": "-2500", "ClsPric": "850.25"},
+            {**base, "TckrSymb": "NIFTY", "FinInstrmTp": "FUTIDX"},
+        ]
+        result = aggregate_stock_futures_rows(rows, "2026-11-06")
+        self.assertTrue(result["RELIANCE"]["available"])
+        self.assertTrue(result["SBIN"]["available"])
+        self.assertEqual(result["RELIANCE"]["by_expiry"]["2026-11-26"]["change_in_oi"], 5000)
+        self.assertEqual(result["SBIN"]["by_expiry"]["2026-11-26"]["close"], 850.25)
+        self.assertNotIn("NIFTY", result)
+        self.assertFalse(result["RELIANCE"]["included_in_asset_final"])
+
+    def test_stock_futures_duplicate_wrong_date_and_expired_rows_fail_closed(self):
+        base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTSTK",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "1250.50", "TckrSymb": "RELIANCE",
+        }
+        self.assertFalse(aggregate_stock_futures_rows([base, base], "2026-11-06")["RELIANCE"]["available"])
+        self.assertFalse(aggregate_stock_futures_rows(
+            [{**base, "BizDt": "2026-11-05"}], "2026-11-06")["RELIANCE"]["available"])
+        self.assertFalse(aggregate_stock_futures_rows(
+            [{**base, "XpryDt": "2026-11-05"}], "2026-11-06")["RELIANCE"]["available"])
+
 
     def test_index_futures_reject_duplicate_or_malformed_exact_rows(self):
         base = {
