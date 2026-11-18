@@ -3,6 +3,33 @@ from daily_stock_buying_activity import build_report
 
 
 class DailyStockBuyingActivityTests(unittest.TestCase):
+    def test_same_expiry_futures_price_and_oi_create_long_buildup(self):
+        master = {"stocks": {"ABC": {}}}
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000},
+            ]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000},
+            ]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}
+            }}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1100, "close": 105.0}
+            }}}},
+        ]}
+        report = build_report(archive, master, generated_at="2026-11-18T08:00:00+05:30", fo_archive=fo_archive)
+        row = next(row for row in report["rows"] if row["symbol"] == "ABC")
+        self.assertEqual(row["signal"], "LONG BUILD-UP")
+        self.assertEqual(row["strength"], "WATCH")
+        self.assertEqual(row["oi_change_pct"], 10.0)
+        self.assertEqual(row["futures_change_pct"], 5.0)
+        self.assertEqual(row["futures_expiry"], "2026-11-26")
+        self.assertIsNone(row["delivery_pct"])
+
     def test_scans_outside_fno_and_marks_only_verified_early_alert(self):
         master = {"stocks": {"FNO1": {}}}
         archive = {"records": [
