@@ -42,10 +42,19 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
                 "2026-11-26": {"open_interest": 1100, "close": 105.0}
             }}}},
         ]}
-        report = build_report(archive, master, generated_at="2026-11-18T08:00:00+05:30", fo_archive=fo_archive)
+        deals_archive = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": [
+                {"symbol": "ABC", "kind": "Bulk", "client": "DISCLOSED BUYER",
+                 "side": "BUY", "quantity": 250000, "price": 104.5}
+            ]}
+        ]}
+        report = build_report(archive, master, generated_at="2026-11-18T08:00:00+05:30",
+                              fo_archive=fo_archive, deals_archive=deals_archive)
         row = next(row for row in report["rows"] if row["symbol"] == "ABC")
         self.assertEqual(row["signal"], "LONG BUILD-UP")
-        self.assertEqual(row["strength"], "WATCH")
+        self.assertEqual(row["strength"], "STRONG")
+        self.assertEqual(row["deal_evidence"][0]["client"], "DISCLOSED BUYER")
+        self.assertTrue(any("NSE disclosed" in item for item in row["evidence"]))
         self.assertEqual(row["oi_change_pct"], 10.0)
         self.assertEqual(row["futures_change_pct"], 5.0)
         self.assertEqual(row["futures_expiry"], "2026-11-26")
