@@ -21976,8 +21976,87 @@
           "future_stock_net": 149667
         }
       }
+    },
+    {
+      "date": "2026-11-18",
+      "source": "NSE official participant-wise OI",
+      "scope": "F&O participant totals; stock F&O is aggregate, not per individual stock",
+      "participants": {
+        "CLIENT": {
+          "future_index_long": 171952,
+          "future_index_short": 112281,
+          "index_call_long": 3194114,
+          "index_call_short": 3026425,
+          "index_put_long": 2748136,
+          "index_put_short": 3220626,
+          "future_stock_long": 3175588,
+          "future_stock_short": 371209,
+          "stock_call_long": 2364056,
+          "stock_call_short": 1292536,
+          "stock_put_long": 1166887,
+          "stock_put_short": 1229370,
+          "future_index_net": 59671,
+          "index_call_net": 167689,
+          "index_put_net": -472490,
+          "future_stock_net": 2804379
+        },
+        "DII": {
+          "future_index_long": 53094,
+          "future_index_short": 30180,
+          "index_call_long": 5984,
+          "index_call_short": 1450,
+          "index_put_long": 115329,
+          "index_put_short": 1200,
+          "future_stock_long": 388791,
+          "future_stock_short": 4290639,
+          "stock_call_long": 16855,
+          "stock_call_short": 484002,
+          "stock_put_long": 43367,
+          "stock_put_short": 35625,
+          "future_index_net": 22914,
+          "index_call_net": 4534,
+          "index_put_net": 114129,
+          "future_stock_net": -3901848
+        },
+        "FII": {
+          "future_index_long": 65342,
+          "future_index_short": 136012,
+          "index_call_long": 713253,
+          "index_call_short": 909749,
+          "index_put_long": 1039485,
+          "index_put_short": 665286,
+          "future_stock_long": 3638688,
+          "future_stock_short": 2680461,
+          "stock_call_long": 341036,
+          "stock_call_short": 485104,
+          "stock_put_long": 453898,
+          "stock_put_short": 360284,
+          "future_index_net": -70670,
+          "index_call_net": -196496,
+          "index_put_net": 374199,
+          "future_stock_net": 958227
+        },
+        "PRO": {
+          "future_index_long": 31811,
+          "future_index_short": 43726,
+          "index_call_long": 1067955,
+          "index_call_short": 1043682,
+          "index_put_long": 951076,
+          "index_put_short": 966914,
+          "future_stock_long": 772252,
+          "future_stock_short": 633010,
+          "stock_call_long": 1453952,
+          "stock_call_short": 1914257,
+          "stock_put_long": 1246227,
+          "stock_put_short": 1285100,
+          "future_index_net": -11915,
+          "index_call_net": 24273,
+          "index_put_net": -15838,
+          "future_stock_net": 139242
+        }
+      }
     }
   ],
-  "updated_at": "2026-11-18T13:14Z",
-  "added_this_run": 0
+  "updated_at": "2026-11-18T14:27Z",
+  "added_this_run": 1
 }
