@@ -5,6 +5,15 @@ on:
     branches: [main]
     paths:
       - "nse_cm_bhavcopy_archive.py"
+      - "daily_stock_buying_activity.py"
+      - "daily-stock-buying-activity.js"
+      - "tests/test_daily_stock_buying_activity.py"
+      - "nse_delivery_archive.py"
+      - "tests/test_nse_delivery_archive.py"
+      - "nse_bulk_block_deals.py"
+      - "tests/test_nse_bulk_block_deals.py"
+      - "nse_index_option_oi_archive.py"
+      - "tests/test_nse_index_option_oi_archive.py"
       - "nse_index_close_archive.py"
       - "tests/test_nse_index_close_archive.py"
       - "bse_cm_bhavcopy_archive.py"
@@ -29,6 +38,15 @@ on:
       - ".github/workflows/nse-cm-cash-bhavcopy-archive.yml"
   pull_request:
     paths:
+      - "daily_stock_buying_activity.py"
+      - "daily-stock-buying-activity.js"
+      - "tests/test_daily_stock_buying_activity.py"
+      - "nse_delivery_archive.py"
+      - "tests/test_nse_delivery_archive.py"
+      - "nse_bulk_block_deals.py"
+      - "tests/test_nse_bulk_block_deals.py"
+      - "nse_index_option_oi_archive.py"
+      - "tests/test_nse_index_option_oi_archive.py"
       - "nse_cm_bhavcopy_archive.py"
       - "nse_index_close_archive.py"
       - "tests/test_nse_index_close_archive.py"
@@ -75,7 +93,13 @@ jobs:
         run: python -m pip install requests
       - name: Validate archive code and offline tests
         run: |
-          python -m py_compile nse_cm_bhavcopy_archive.py
+          python -m py_compile nse_cm_bhavcopy_archive.py daily_stock_buying_activity.py nse_delivery_archive.py nse_bulk_block_deals.py
+          node --check daily-stock-buying-activity.js
+          python -m unittest discover -s tests -p "test_daily_stock_buying_activity.py" -v
+          python -m unittest discover -s tests -p "test_nse_delivery_archive.py" -v
+          python -m unittest discover -s tests -p "test_nse_bulk_block_deals.py" -v
+          python -m py_compile nse_index_option_oi_archive.py
+          python -m unittest discover -s tests -p "test_nse_index_option_oi_archive.py" -v
           python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
           python -m py_compile nse_index_close_archive.py
           python -m unittest discover -s tests -p 'test_nse_index_close_archive.py' -v
@@ -180,11 +204,53 @@ jobs:
           fi
           python evaluate_cash_basket_forward.py --min-samples 60
           test -s cash_basket_forward_evaluation.json
+      - name: Capture official NSE full bhavcopy delivery data
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          if [ -s nse_cm_bhavcopy_archive.json ]; then
+            python nse_delivery_archive.py
+          else
+            echo "CM archive unavailable; delivery capture skipped"
+          fi
+      - name: Capture official NSE bulk and block deal reports
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          if [ -s nse_cm_bhavcopy_archive.json ]; then
+            python nse_bulk_block_deals.py
+          else
+            echo "CM archive unavailable; bulk/block capture skipped"
+          fi
+      - name: Build Daily Stock Buying Activity EOD scan
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          if [ -s nse_cm_bhavcopy_archive.json ]; then
+            python daily_stock_buying_activity.py --delivery-archive nse_delivery_archive.json --deals-archive nse_bulk_block_deals.json
+          else
+            echo "NSE CM archive unavailable; Daily Stock Buying Activity report not regenerated"
+          fi
       - name: Commit exchange cash archives and diagnostic report
         if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -s nse_delivery_archive.json ]; then
+            git add -f -- nse_delivery_archive.json
+          else
+            echo "NSE delivery archive unavailable; Delivery % remains blank"
+          fi
+          if [ -s nse_bulk_block_deals.json ]; then
+            git add -f -- nse_bulk_block_deals.json
+          else
+            echo "NSE bulk/block reports unavailable; buyer/seller section remains unavailable"
+          fi
+          if [ -s daily_stock_buying_activity.json ]; then
+            git add -f -- daily_stock_buying_activity.json
+          else
+            echo "Daily Stock Buying Activity report unavailable; previous verified report is retained"
+          fi
           if [ -f nse_cm_bhavcopy_archive.json ]; then
             git add -f -- nse_cm_bhavcopy_archive.json
           else
