@@ -43,6 +43,8 @@ on:
       - "tests/test_daily_stock_buying_activity.py"
       - "nse_delivery_archive.py"
       - "tests/test_nse_delivery_archive.py"
+      - "nse_bulk_block_deals.py"
+      - "tests/test_nse_bulk_block_deals.py"
       - "nse_index_option_oi_archive.py"
       - "tests/test_nse_index_option_oi_archive.py"
       - "nse_cm_bhavcopy_archive.py"
