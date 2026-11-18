@@ -161,6 +161,14 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     deals_record = next((record for record in reversed(deals_records)
                          if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     deal_rows = (deals_record or {}).get("rows") or []
+    deals_by_symbol = {}
+    for deal in deal_rows:
+        if not isinstance(deal, dict):
+            continue
+        symbol = str(deal.get("symbol") or "").upper()
+        side = str(deal.get("side") or "").upper()
+        if symbol and side in ("BUY", "SELL"):
+            deals_by_symbol.setdefault(symbol, []).append(deal)
 
     rows = []
     for item in latest["equity_rows"]:
@@ -219,6 +227,38 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         else:
             signal, strength = "UNUSUAL ACTIVITY WATCH", "EARLY"
             evidence = ["भाव में स्पष्ट दिशा अभी नहीं", "20-सत्र औसत से कम-से-कम 1.5 गुना वॉल्यूम"]
+
+        symbol_deals = deals_by_symbol.get(symbol, [])
+        matching_deals = [
+            deal for deal in symbol_deals
+            if (signal in ("LONG BUILD-UP", "EARLY BUYING WATCH") and deal.get("side") == "BUY")
+            or (signal in ("SHORT BUILD-UP", "SELLING WATCH") and deal.get("side") == "SELL")
+        ]
+        deal_evidence = [
+            {
+                "kind": deal.get("kind"),
+                "side": deal.get("side"),
+                "client": deal.get("client"),
+                "quantity": deal.get("quantity"),
+                "price": deal.get("price"),
+            }
+            for deal in matching_deals
+        ]
+        if matching_deals:
+            disclosed_types = sorted({str(deal.get("kind") or "NSE").upper() for deal in matching_deals})
+            if signal == "LONG BUILD-UP":
+                strength = "STRONG"
+                evidence.append("उसी दिशा में NSE disclosed " + "/".join(disclosed_types) + " BUY deal")
+            elif signal == "SHORT BUILD-UP":
+                strength = "STRONG"
+                evidence.append("उसी दिशा में NSE disclosed " + "/".join(disclosed_types) + " SELL deal")
+            elif signal == "EARLY BUYING WATCH":
+                strength = "WATCH"
+                evidence.append("NSE disclosed BUY deal भी दर्ज")
+            elif signal == "SELLING WATCH":
+                strength = "WATCH"
+                evidence.append("NSE disclosed SELL deal भी दर्ज")
+
         rows.append({
             "symbol": symbol,
             "category": "F&O" if symbol in fno_symbols else "अन्य NSE",
@@ -237,6 +277,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "signal": signal,
             "strength": strength,
             "evidence": evidence,
+            "deal_evidence": deal_evidence,
             "source": "NSE CM-UDiFF Common Bhavcopy Final",
             "as_of": latest_date.isoformat(),
             "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
