@@ -104,7 +104,7 @@ def main():
     archive["records"].append(record)
     archive["records"] = sorted(archive["records"], key=lambda x:x["date"])[-260:]
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\\n", encoding="utf-8")
+    tmp.write_text(json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     tmp.replace(path)
     print(json.dumps({"date": record["date"], "status": "captured", "symbols": record["symbol_count"]}))
 
