@@ -70,6 +70,24 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["delivery_qty"], 120000)
         self.assertEqual(report["coverage"]["delivery_pct"], "verified")
 
+    def test_official_bulk_block_deals_join_only_exact_session(self):
+        archive = {"records": [
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-18", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        deals = {"records": [
+            {"date": "2026-11-17", "verified_report_count": 2, "rows": [
+                {"symbol": "OLD", "kind": "Bulk", "client": "OLD CLIENT", "side": "BUY", "quantity": 1000, "price": 10}]},
+            {"date": "2026-11-18", "verified_report_count": 2, "rows": [
+                {"symbol": "ABC", "kind": "Block", "client": "DISCLOSED CLIENT", "side": "SELL", "quantity": 50000, "price": 104.5}]},
+        ]}
+        report = build_report(archive, {"stocks": {}}, deals_archive=deals)
+        self.assertEqual(report["bulk_block_deals"][0]["client"], "DISCLOSED CLIENT")
+        self.assertEqual(report["bulk_block_deals"][0]["side"], "SELL")
+        self.assertEqual(report["coverage"]["bulk_block_deals"], "verified")
+
     def test_negative_price_with_unusual_volume_is_selling_watch(self):
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
