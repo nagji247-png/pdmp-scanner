@@ -82,8 +82,7 @@ function openStock(r){
  ];
  var html='<div class="dsba-modal-backdrop" data-close-modal="1"><section class="dsba-modal" role="dialog" aria-modal="true"><button class="dsba-back" data-back-stock="1">← Back to List</button><button class="dsba-close" data-close-modal="1">✕</button>'+
  '<h3>'+esc(r.symbol)+' · '+label+'</h3><div class="dsba-modal-sub">'+esc(r.signal)+' · '+esc(r.as_of||"EOD तारीख उपलब्ध नहीं")+'</div>'+
- '<div class="dsba-chart-actions"><button class="dsba-action" data-chart-toggle="1">TradingView Chart खोलें</button><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">Chart अलग टैब में</a></div>'+
- '<div class="dsba-chart" hidden><iframe title="'+esc(r.symbol)+' TradingView chart" src="'+chartUrl(r)+'" loading="lazy" referrerpolicy="no-referrer" allowfullscreen></iframe></div>'+
+ '<div class="dsba-chart-actions"><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">TradingView Chart खोलें</a><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">Chart अलग टैब में</a></div>'+
  '<div class="dsba-proof"><b>मुख्य प्रमाण</b><p>'+esc(mainEvidence(r,kind==="sell"?"SELL":"BUY"))+'</p><b>उपलब्ध प्रमाण</b><p>'+esc(evidenceText(r))+'</p></div>'+
  '<div class="dsba-table-wrap"><table class="dsba-table dsba-detail-table"><tbody>'+fields.filter(Boolean).map(function(x){return '<tr><th>'+esc(x[0])+'</th><td>'+esc(x[1])+'</td></tr>';}).join("")+'</tbody></table></div>'+
  (dealRows?'<h4>NSE Disclosed Deals</h4><div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Type</th><th>Side</th><th>Client</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+dealRows+'</tbody></table></div>':'')+
@@ -182,8 +181,6 @@ function render(data){
   if(back){var current=back.closest(".dsba-modal-backdrop");if(current)current.remove();return;}
   var close=event.target.closest("[data-close-modal]");
   if(close&&(close.classList.contains("dsba-close")||event.target===close)){var backdrop=close.closest(".dsba-modal-backdrop");if(backdrop)backdrop.remove();return;}
-  var chart=event.target.closest("[data-chart-toggle]");
-  if(chart){var panel=chart.parentNode.nextElementSibling;if(panel){panel.hidden=!panel.hidden;chart.textContent=panel.hidden?"TradingView Chart खोलें":"TradingView Chart बंद करें";}return;}
   var card=event.target.closest("[data-category]");
   if(card){var key=card.getAttribute("data-category");openCategory(card.querySelector("span").textContent,rows.filter(function(r){return key==="deals"?(Array.isArray(r.deal_evidence)&&r.deal_evidence.length>0):rowKind(r)===key;}));return;}
   var stock=event.target.closest("[data-symbol]");
