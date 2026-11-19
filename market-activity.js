@@ -1,5 +1,6 @@
 (function(){
 "use strict";
+window.__TRINETRA_MA_STARTED__=true;
 var root=document.getElementById("market-activity");if(!root)return;
 var master=null,fpi=null,marketData=null,drawings={snapshots:{}},searchTerm="",stack=[{type:"home",scroll:0}],loading=false,viewRoot=root,popupLayer=null,popupBody=null,bodyOverflowBefore="";
 var css=[
