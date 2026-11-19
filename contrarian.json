@@ -1245,8 +1245,8 @@
     "instrument": "NASDAQ",
     "score": -7.2,
     "event_time_utc": "2026-11-17T01:15:10Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 0.42,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1266,8 +1266,8 @@
     "instrument": "DJI",
     "score": -6.8,
     "event_time_utc": "2026-11-17T01:15:11Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": -1.11,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1561,6 +1561,90 @@
     "after_60m": {
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
+    }
+  },
+  {
+    "key": "2026-11-19|BANKNIFTY",
+    "date": "2026-11-19",
+    "instrument": "BANKNIFTY",
+    "score": 8.5,
+    "event_time_utc": "2026-11-19T01:21:22Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-19|USDINR",
+    "date": "2026-11-19",
+    "instrument": "USDINR",
+    "score": 6.3,
+    "event_time_utc": "2026-11-19T01:21:23Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-19|SILVER",
+    "date": "2026-11-19",
+    "instrument": "SILVER",
+    "score": -8.3,
+    "event_time_utc": "2026-11-19T01:21:25Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-19|TATAMOTORS",
+    "date": "2026-11-19",
+    "instrument": "TATAMOTORS",
+    "score": -6.3,
+    "event_time_utc": "2026-11-19T01:21:35Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
     }
   }
 ]
