@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=16"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=17"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
@@ -30,6 +30,13 @@ class MarketActivityDashboardTests(unittest.TestCase):
                         self.dashboard.index('<section class="panel stocks-panel">'))
         self.assertLess(self.market_activity.index("render();"), self.market_activity.index('fetch(DRAWING_API+"/api/drawings?t="+Date.now()'))
         self.assertIn("Optional Drawing API unavailable", self.market_activity)
+        self.assertIn("function fetchJson(url,label,timeoutMs)", self.market_activity)
+        self.assertIn('fetchJson("nse-fo-stock-sector-master.json?t="+Date.now(),"NSE master",15000)', self.market_activity)
+        self.assertIn('fetchJson("data.json?t="+Date.now(),"Market data",15000)', self.market_activity)
+        self.assertIn('fetchJson("fpi-sector-data.json?t="+Date.now(),"FPI data",12000)', self.market_activity)
+        self.assertIn("FPI and drawings are supplementary: neither may delay the sector radar.", self.market_activity)
+        self.assertIn("window.__TRINETRA_MA_STARTED__=true;", self.market_activity)
+        self.assertIn("Market Activity अभी शुरू नहीं हो पाया।", self.dashboard)
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
@@ -38,7 +45,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
         self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
         self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
-        self.assertIn("src=\"market-activity.js?v=16\"", self.dashboard)
+        self.assertIn("src=\"market-activity.js?v=17\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
