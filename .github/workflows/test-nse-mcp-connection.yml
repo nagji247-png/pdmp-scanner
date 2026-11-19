@@ -109,7 +109,7 @@ jobs:
           # Inspect schemas and safely call only read-only status/universe tools.
           by_name = {item.get("name"): item for item in tools if isinstance(item, dict)}
           for name in ("cm_get_data_status", "cm_get_allstocks_status", "cm_get_equity_stocks",
-                       "cm_get_live_market_data", "cm_get_index_quote", "cm_get_stock_quote"):
+                       "cm_get_live_market_data", "cm_get_live_indices", "cm_get_index_quote", "cm_get_stock_quote"):
               item = by_name.get(name)
               if item:
                   schema = item.get("inputSchema") or {}
@@ -148,6 +148,18 @@ jobs:
               rpc_tool("cm_get_index_quote", {"indexName": "NIFTY 50"})
           if "cm_get_stock_quote" in by_name:
               rpc_tool("cm_get_stock_quote", {"symbol": "RELIANCE"})
+
+          # Probe read-only market-wide endpoints. A successful response outside
+          # market hours is connectivity evidence only, not proof of intraday freshness.
+          live_indices = by_name.get("cm_get_live_indices")
+          if live_indices and not (live_indices.get("inputSchema") or {}).get("required"):
+              rpc_tool("cm_get_live_indices", {})
+          live_market = by_name.get("cm_get_live_market_data")
+          if live_market:
+              required = (live_market.get("inputSchema") or {}).get("required") or []
+              if required == ["index"]:
+                  rpc_tool("cm_get_live_market_data", {"index": "gainers"})
+                  rpc_tool("cm_get_live_market_data", {"index": "loosers"})
 
           # Verify prefix filtering without repeatedly polling the exchange.
           if "cm_get_equity_stocks" in by_name:
