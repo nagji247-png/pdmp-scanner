@@ -105,4 +105,43 @@ jobs:
           if not tools:
               print("WARNING: server returned an empty tools list")
               sys.exit(1)
+
+          # Inspect schemas and safely call only read-only status/universe tools.
+          by_name = {item.get("name"): item for item in tools if isinstance(item, dict)}
+          for name in ("cm_get_data_status", "cm_get_allstocks_status", "cm_get_equity_stocks",
+                       "cm_get_live_market_data", "cm_get_index_quote", "cm_get_stock_quote"):
+              item = by_name.get(name)
+              if item:
+                  schema = item.get("inputSchema") or {}
+                  print(f"SCHEMA {name}: {json.dumps(schema, ensure_ascii=False)}")
+
+          def rpc_tool(name, args):
+              response = session.post(url, headers=call_headers, json={
+                  "jsonrpc": "2.0", "id": 100 + len(name), "method": "tools/call",
+                  "params": {"name": name, "arguments": args}
+              }, timeout=30)
+              print(f"CALL {name}: HTTP {response.status_code}")
+              if response.status_code != 200:
+                  print((response.text or "")[:300])
+                  return
+              result = decode(response)
+              if result.get("error"):
+                  print(f"CALL_ERROR {name}: {result['error']}")
+                  return
+              content = (result.get("result") or {}).get("content") or []
+              for part in content:
+                  if isinstance(part, dict) and part.get("text"):
+                      print(f"DATA {name}: {part['text'][:3500]}")
+              structured = (result.get("result") or {}).get("structuredContent")
+              if structured is not None:
+                  print(f"STRUCTURED {name}: {json.dumps(structured, ensure_ascii=False)[:3500]}")
+
+          for name in ("cm_get_data_status", "cm_get_allstocks_status"):
+              item = by_name.get(name)
+              if item:
+                  schema = item.get("inputSchema") or {}
+                  required = schema.get("required") or []
+                  if not required:
+                      rpc_tool(name, {})
+
           PY
