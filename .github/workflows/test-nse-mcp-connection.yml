@@ -1,0 +1,109 @@
+name: NSE MCP Isolated Connection Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-mcp-isolated-test
+  cancel-in-progress: false
+
+jobs:
+  connection-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+
+      - name: Test NSE MCP initialize and tools/list
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from curl_cffi import requests
+
+          url = "https://mcp.nseindia.in/cmmkt/mcp"
+          headers = {
+              "Content-Type": "application/json",
+              "Accept": "application/json, text/event-stream",
+          }
+          session = requests.Session(impersonate="chrome124")
+
+          # Warm only the public NSE homepage; no market-data calls are made.
+          warm = session.get("https://www.nseindia.com", timeout=20)
+          print(f"NSE homepage warm-up: HTTP {warm.status_code}")
+
+          def decode(response):
+              if "text/event-stream" in response.headers.get("content-type", "").lower():
+                  blocks = response.text.replace("\r\n", "\n").split("\n\n")
+                  for block in reversed(blocks):
+                      data = "\n".join(
+                          line[5:].lstrip() for line in block.splitlines()
+                          if line.startswith("data:")
+                      )
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return response.json()
+
+          init = session.post(url, headers=headers, json={
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "initialize",
+              "params": {
+                  "protocolVersion": "2024-11-05",
+                  "capabilities": {},
+                  "clientInfo": {"name": "trinetra-isolated-test", "version": "1.0"},
+              },
+          }, timeout=30)
+          print(f"MCP initialize: HTTP {init.status_code}")
+          if init.status_code != 200:
+              print((init.text or "")[:500])
+              sys.exit(1)
+          init_data = decode(init)
+          if init_data.get("error"):
+              raise RuntimeError(f"Initialize JSON-RPC error: {init_data['error']}")
+
+          session_id = init.headers.get("mcp-session-id") or init.headers.get("Mcp-Session-Id")
+          print(f"Negotiated protocol: {(init_data.get('result') or {}).get('protocolVersion', 'not reported')}")
+          print(f"Session ID received: {'yes' if session_id else 'no'}")
+
+          call_headers = dict(headers)
+          if session_id:
+              call_headers["Mcp-Session-Id"] = session_id
+
+          # Initialized notification is best-effort, matching the existing client behavior.
+          try:
+              session.post(url, headers=call_headers, json={
+                  "jsonrpc": "2.0", "method": "notifications/initialized"
+              }, timeout=15)
+          except Exception as exc:
+              print(f"Initialized notification note: {str(exc)[:160]}")
+
+          listed = session.post(url, headers=call_headers, json={
+              "jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}
+          }, timeout=30)
+          print(f"MCP tools/list: HTTP {listed.status_code}")
+          if listed.status_code != 200:
+              print((listed.text or "")[:500])
+              sys.exit(1)
+          payload = decode(listed)
+          if payload.get("error"):
+              raise RuntimeError(f"tools/list JSON-RPC error: {payload['error']}")
+          tools = (payload.get("result") or {}).get("tools") or []
+          print(f"RESULT: CONNECTION_OK; TOOL_COUNT={len(tools)}")
+          for item in tools:
+              if isinstance(item, dict) and item.get("name"):
+                  print(f"TOOL: {item['name']}")
+          if not tools:
+              print("WARNING: server returned an empty tools list")
+              sys.exit(1)
+          PY
