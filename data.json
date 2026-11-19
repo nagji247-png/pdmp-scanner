@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-19T11:11Z",
+  "updated": "2026-11-19T12:00Z",
   "instruments": {
     "NIFTY": {
       "type": "index",
@@ -10,18 +10,18 @@
       "price_unit": "",
       "price_source": "NSE India allIndices API · पिछला बंद भाव",
       "news_query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 3.2,
-      "headline_score": 1.6,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=%22Nifty+50%22+OR+Nifty+index+OR+Nifty+50+stocks+India&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 10.0,
+      "headline_score": 5.8,
       "headlines": [
         {
           "title": "Sensex Soars 990 Pts; Nifty Reclaims 25,500 on Auto Rally",
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNMUh6djg0OUk1UnFQSUxwcXR1WThvTHVqSElaZVdNalNtVnRYTUdvOVhGWWlkWHRDc0U0Zl9RYXltZDdrUWM4N3hNV213YnpTbzVCYzZVSC1IWDJYSGFJOXdVRHo1WldRc3k4NFBINHVyT292QnczUFlvdWYzY3J0ZkJMXzNyUWROLWZHN0Q4OWJJbmtZOFZUZDk1dzJiX0p5dHltNGk3ODJWbHU0ZXVkT1FndFhTZm5GTVNGT3Jyb2w1VzFQbnk1RHh3?oc=5",
           "score": 2,
-          "age_h": 0.2,
+          "age_h": 1.0,
           "published_at": "2026-11-19T10:58:58Z"
         },
         {
@@ -29,7 +29,7 @@
           "source": "Investing.com India",
           "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQa2Mzb2Vtam5DWnhtOFh5aHlDLVdpNWEteTl0R2JNM1M2MERvQTZXWHZtbzNJcHFqTFQ3UzhCWER5ekYwV09NTmZGUDN2dHpQaHNkdV9CUFVjTkNaVGdEdGwyanhUclU2dmVxaElYTVpvaGdZc3VxXzV0TFIxYXFjazMzalZnNkhuUFdZaER5dldtMDlmU05FYU5STE91SU5FY0cwQnIwWUFJc3laLUE?oc=5",
           "score": 1,
-          "age_h": 0.6,
+          "age_h": 1.4,
           "published_at": "2026-11-19T10:34:04Z"
         },
         {
@@ -37,7 +37,7 @@
           "source": "Fortune India",
           "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQZnlLc01yeVNueVpzZnNiamh2bjlrLWo2WXZOWkRjV1lMeTl6RTNpMHA1U2tQVlp2akxNdlhKOXE3X1IyaWd2QzFRTDlSUm9qTDZGUVRzY0t5OG42ckNZZkE4YXM1bl9uaGtDZ05zczYwSVM5NjZvVm1zd0JkUHRkbm5zNDFPMlZBcGMydE5wUEhUaERzQUo0U2l0eGQyNzB2cHFCcjZGUmh0ZFBJOU9uOFBnaHp2bEVpcUVjRFRlUVlENVpiekdKMnJLYU9EbjJwUlVwSTdaY2N3Ym8t0gHqAUFVX3lxTE1ZOTgtcjczNU83MVhvTF9mVmlpd0dyTlBvQlctaGNxQTFCNWdMYXAzSWRLbm1TdzVDV1R1b1dOUGg5Vy1abC05dGthWVdUMERqTmRqSVlQc3dpTU9fZE5iLW9XUUQzLTlKUUhiWTJLdUxmbHhPN1cyTThIRVVLMXZrX0JVZk1jU0pBVVg1MnU2MVY1NGhDV1pDVmhGd3l6ZTVqNlVNOC1fbnFyU1FpNlBadF85dnJ6TWNmUXlwbUVydjZHUnFBTmtwVFBNa1Z6RTVuUF9BUjJOVlQ3THdjTC1rb3VIREF0Vmowdw?oc=5",
           "score": 0,
-          "age_h": 0.8,
+          "age_h": 1.7,
           "published_at": "2026-11-19T10:21:37Z"
         },
         {
@@ -45,7 +45,7 @@
           "source": "Fortune India",
           "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPMm5pdEVPWW1oblJVZnY3RV9veXNkbDhWb2NMYUJJSzU5Y3Q1Y3cxbG9mMUdtRGp1YXRSY1V1ZUxYVHRWUjgzQi1waHY2dkxFT1h5aFZOWmF3Tl93MXZhdnE3LV9FTzQ0em43eTBJVjhOWEFCUy1BaGllWVotSDRfakc3bGlMbkdTdVBhWC1EdmdKZEs2MDlYMUhXRDh0ODUweGN4U290ejk5NmZhcVQ3YTZQYk5ZX3draEI0R1pUXzdIT2U5TTQ2ZlZINHVYVTZYY0RjTC1XdjFwWDRxc1JRc21LYUxTcGdD0gH2AUFVX3lxTFBYb1dkcEZveWVsdGltWUo4MVI2RndQOW1uZjZWV2FuMlh2V0ZWa3pOV0VhLWtUOFBQWmRTV1lWVVU5OUY1ZlJQWXM5X0wyVi1pRVVxQ3ZjTWhCallhUF8ySkVhTjkxenFTR19BRWU2N1lzdlFOczg4amhMZmprSXpKTVMtRkpUZG0zcWFPeDUwVEM5b19xZ1dXQllCRkxXQ3drWHgwOGRnVFZEZEY4SzZKaGlEYS1oRDhqRFEzaXRzWXVlMVh6WDJpZEhvdUxQeFM2eVcwV3FxYXphcHFLaDk4YnhGVkdZZG8zemt3OVZvVTlQWWtlZw?oc=5",
           "score": 5,
-          "age_h": 1.7,
+          "age_h": 2.5,
           "published_at": "2026-11-19T09:32:20Z"
         },
         {
@@ -53,7 +53,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPYUZTcl9vd3RSaTBsM0N3RHNpMTY3N3ZtQy1uMmdCczk5SzVlMkhRMGpwQVRYSUpLc3BaT0EtU09RdlY5SFJTLTROMzRnVkltMHJscVNjOFZKclk2Qm4wQXd5VWpRSndPUmMxb3hHaEs5Q3hub3VQX0dsSTEyLWY0dHA1LXF1d2JlY21BWTJjUWZWcUpxcHV0TUxST3Z1SnlwcEZGeHVXTEZFamdfdUgwZHpFeEo3alJKVTdjTXBmbVVlS240bFM5Y25taDJXQdIB0wFBVV95cUxPeEtHa20xOGxwOGhJN2NTRzJIWHl0amFYcmhCcUZXQnpUdlFlbEZoODlRczk2dERmQ0Fzc0pWLTZ4NTRacjJNeWszbnNLWENHc2hIZWIxTS01STQtYl9lME5qUERyMG11MVYtQjJxUFFzSlFRdDdKTkppRUFjalIwSDVDMGh1Y2xrX2pnMlp6Q0VVYV9CU0ZJRTdJWk54XzBJcmFYNi1McVBpOTg4UGVRbDNGWU5uOFlBLXkwNjRNSThKNHBFY1NsbzF4UV9PVzVJN04w?oc=5",
           "score": 2,
-          "age_h": 1.8,
+          "age_h": 2.6,
           "published_at": "2026-11-19T09:21:56Z"
         },
         {
@@ -61,7 +61,7 @@
           "source": "Free Press Kashmir",
           "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPYmxvSFJTaDYyWDltWFRjdG52UEptU0psVzQzTG9EdVI3MmVJUWtyRlo0amN3RURoc05UcG9PR1ZuV3ZfbmRWeFlELUtVcnBkOEVmdUdWT21SaXVCV1dyaWRsclJBMXM3ZTlTM0wwcVdFQk5KTVdlX3VkbGpWd0NkcHhrSGlFa1FJZ2QydG9zbjZuVDl0WDV5Z2RZeFo5Y1ZJWGFUYjFLYnpSazjSAbABQVVfeXFMT1VyWWUxeW5WOHhLLXBLYmtyWTJPbUx6Z25NaUlaNzQzQm9mZEtNQkVVZzlxeEV3QWFVOFQtODhDandna1o4THhVa1BzZ1dybkdZcWx4MTFqMmVjTW5ra3NSdl9MNzNqU29BaE11VGk0bUNfendIQlhVZVhNTmhHYy1EQzZYX24zYjBJNGU3YU9MVE1uWl9vbGJvcnFzOXlSaDlzWEdiNkZfcTJSNDkxcTg?oc=5",
           "score": -1,
-          "age_h": 3.6,
+          "age_h": 4.4,
           "published_at": "2026-11-19T07:34:31Z"
         },
         {
@@ -69,7 +69,7 @@
           "source": "Groww",
           "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTFA0OFZSV0R6N0dZVFhhcS1xSHFsUEh3NnU4QkxJWWhvQzBITmRta3c5czd2UEd5Tkx4OFlrUlVLNkpLakc2VGFNbjdfcjB4VjVycDBQVU5EV3ZucGZ6LUlibHoxSnIwdGt2anVSNg?oc=5",
           "score": 0,
-          "age_h": 3.7,
+          "age_h": 4.5,
           "published_at": "2026-11-19T07:31:27Z"
         },
         {
@@ -77,12 +77,12 @@
           "source": "cfo.economictimes.indiatimes.com",
           "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOT0JESXYtR01lWkdTUTFVN25VU2p3eVd4UzZHN0JYNWd5Mm1PRE9tTm5qRXotTFktUlZ4dUIzWGFFNGNCUWZ4RHU0dnRTbGNveG1BVGtnYmMxb0hmNUhlRHB2QnZTT3p6ZWVqdkdBTTBfeHJZRW9XWVI3cUZoNkJwcGNBWEJ2UXZ4cXVkRVM0U2lyLWJxNThpX3FQZGNZUUVaZEIwX1lFSGw4R1lvMDY0cklMRnB6VWxjbnhzbmxWa01CMTB1LTR1UlIzMGzSAdIBQVVfeXFMUFBmdEt3aEJqS1VIMG81LXFvWjRWSTJodUdkejB5eVBHTU9kdlN5dE14MGEwR2RjZGpkMHZDZVJ1UHJPZEdWQmJDeW9xLVVXRnk5R3gwekFkZTdLaHMtVUwxS3h3UF9SVTFETngtNXdnZlBWSFpUMll0VTA1R0N6TGI2Ny1MbFJ3MTN2TEdJOU1iODV1WHRhTUJuaFlrTmt2Z1VtTUdwWXZGQ0JaNUtQY1dTSDNwOWg2SGFxYzJDMXR6M0ozTUhyeVhPZ3JoQ2JZeTJ3?oc=5",
           "score": 0,
-          "age_h": 5.5,
+          "age_h": 6.3,
           "published_at": "2026-11-19T05:43:09Z"
         }
       ],
       "pos_n": 4,
-      "neg_n": 4,
+      "neg_n": 1,
       "retail_adj": 0.53,
       "index_search_shadow": {
         "valid": false,
@@ -193,7 +193,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T10:58:58Z",
             "oldest_headline_published_at": "2026-11-19T05:43:09Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -207,7 +207,7 @@
               "cfo.economictimes.indiatimes.com"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 0.21,
+            "newest_headline_age_h": 1.03,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -219,7 +219,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T10:58:58Z",
             "oldest_headline_published_at": "2026-11-19T05:43:09Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -233,7 +233,7 @@
               "cfo.economictimes.indiatimes.com"
             ],
             "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-            "newest_headline_age_h": 0.21,
+            "newest_headline_age_h": 1.03,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -3762,18 +3762,18 @@
       "price_unit": "",
       "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
       "news_query": "\"BSE Sensex\" OR Sensex index India",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": -4.4,
-      "headline_score": -2.2,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=%22BSE+Sensex%22+OR+Sensex+index+India&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -5.8,
+      "headline_score": -2.9,
       "headlines": [
         {
           "title": "Sensex Today Tanks 502 Points | Nifty Below 25,250 | Nifty IT Index Down 1.2%",
           "source": "Equitymaster",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOQmlpbnp5WXVMNGZ3NU55eE1NeHpkRHU4eDFpdzZrQXVGVEtSSVV4S3dKSFRZeFJNWXVVVUNhZ1M2eE9ZZHB6eTZtU05tcEtHRmJFTzgzZHNRY1ROM3o3TjFNQWdtVDNmcDhTcmZGUHB4YW9sVGNsX1FXdGFHZ2FqcDkxQlB4NWZNVEQxeFZOWC1sMm9FT01WTTdNajVvblRqa1FzclJMZmg1aFFDbXdLUnNYOU1SQWVfQjRxaTk1Q0VESmNfQXZlSUtDVGJzUQ?oc=5",
           "score": 0,
-          "age_h": 24.7,
+          "age_h": 25.6,
           "published_at": "2026-11-18T10:26:38Z"
         },
         {
@@ -3781,7 +3781,7 @@
           "source": "India Today",
           "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxORERDcDdPejVjWEFtT2I0UHJ0T0dOME9OV3RvWnczNjRrazN5ZHRhYlhLOXd3eTFJNEczcU1LWDlFNnZwS1VYR1UtTUVqRmwwQ2R1cGNzRHZlYXViTUNnMF9oeWQ2V0ZyaGJ5TlFJRm5Id3ZwYXo1TTdEeDdjUVlJdkxLWTd3ZUwzWjFtcVZicERDZ1NwX2lOMVQ5N1RTb3lfUXhiMlhBU2ZyeXQzZzNpOEROdmkySlN6WVhjOU9sRXVpd0ktWk9PSGR3QlnSAdIBQVVfeXFMTzNUQlhWZEx0Tkt0cGtaUlotXzdxSlFEcG0wTnBlc2lpN2xhU3JSWUxUV0JQalM0TlpQYW1ESzY5elN5dC1pLUxnbTJIZ3h2ZUpSRnFiRlVkOEZVN0xiZURDLXVuT1UzX0NxR20zbGtzNjlHekhTOTNCalFEY29Tekt0c2tSMHp0a0g4Zm5BSGhydlBraWJjcWZTZUJkcW9YZnQ5Ulh6RHliLThjQXRyTGRxWUZsUnJORXVjS0dlTnBYVHpzN3ZxR1hIRUFTbjYzMXJ3?oc=5",
           "score": -1,
-          "age_h": 24.9,
+          "age_h": 25.7,
           "published_at": "2026-11-18T10:17:16Z"
         },
         {
@@ -3789,7 +3789,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxQOVNIWVhDX1FKUlp0eGVJODRVRlJTWTZBdGI3djNEN1hqT3RpTmdGN0h1endWeko2OFNSYTdoN3lkcEp6WW5ta2JkeGx2d0x2WW9wQmxjVWN0cGkteGE3ZkcwQXVQWGlkRjliYlNoaDhYWHBFUzV3TUxENlA5d0dPcVBpb1REZHM4U0NCMXFKaGF3SXdWNGhWWkVOdTJ5VTlud0NLNmdqdGJNN2ZwbFNtVnMxUWdSckFXLVZMWEUyeVlyWlktQmRpdlBRN29lelRIU21MRlV6S2FjdFp4NWFsZ2tOYV96Zw?oc=5",
           "score": -1,
-          "age_h": 31.2,
+          "age_h": 32.1,
           "published_at": "2026-11-18T03:57:16Z"
         },
         {
@@ -3797,7 +3797,7 @@
           "source": "Bloomberg.com",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxObmhEWEl0NkNSamxDeEdyREVGNWJxV0RYbVhqR1pKbE5IYld1UWd5c3lWREdBb1lfYW5JWUlocGh6S25xS3VFQlRQU21DYVAzRXBheHh0Rmd6X1Z2dnFuT2xlRjY3Qk1BaVh2Q2FoUGYyMW9NZDRaLVYxM3J1THJHWFM5WU5RMmZqaHRNZVNIRGdMOUJqTExkUjh5Q1o5VUs5dU03UGJNZHotdFpBRkNkQ1Y3a0FRQWMw?oc=5",
           "score": -2,
-          "age_h": 2020.2,
+          "age_h": 2021.0,
           "published_at": "2026-08-27T07:00:00Z"
         },
         {
@@ -3805,7 +3805,7 @@
           "source": "Reuters",
           "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQazBsLXlLazNKQ0tJV3JleVhBcV9JZktMbkR1WVB1allUaGcyZjUzdk5HeGRpNmx2REJ0ZEV0c0JOMGo5UkVoTEpEWGNpN1BNd0s0a2lMdGd5RkFuWFFNM0RDcEdEdGRpUGZVclU1QmtTRkR6YWNjclJkdmU0anNrejQ4RkpLeWFPVEtmSVJVcS0xcVZNNHc1UjZWMDQ0ZU5LRnRkSTNVdV83QQ?oc=5",
           "score": 0,
-          "age_h": 2596.2,
+          "age_h": 2597.0,
           "published_at": "2026-08-03T07:00:00Z"
         },
         {
@@ -3813,7 +3813,7 @@
           "source": "Groww",
           "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNMnpQYjIwdmp0MTBCaHRSTllxZDB2WlBIZVFRZy1IV1Nrbk9VR2t3SWdMQVllUmVEbGhNS0l0YUw1WlhpeENva0NxQ1NCMUMyejB5ZTBubTJtbjZzaXprS2JIQkpCSnAtbTR6YzVZZVFOWVNPVkZjN0RCVHFTVmJmbHhEYlhHdw?oc=5",
           "score": 0,
-          "age_h": 5031.4,
+          "age_h": 5032.2,
           "published_at": "2026-04-23T19:48:34Z"
         },
         {
@@ -3821,7 +3821,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMigwJBVV95cUxNam85VFF0bTAtU3UxdE1DWERZRkFlUTRCeE5ENmFjU2I4cldrclo2eW9GYzhEaTRjUEVKOW1NQ0p5UWZ4RFYtQ3VKVUcwc2JiNmxZMzM3UWcwYzZkcmhSUUpjdFgtcXN4MGVCdnhPTUk2OE1uaFYyTUozN3c0ektLREZ6cjFqVUlYNlFPTXkyeUZ5dzd1OXI0eFpWeU5QRUxJajhhMmM1aXhIelZ5M1czQWtKRDFvVklDMmhnbG1JbWFRVVo2ZkhkQmpraS1Wd3F1QkpLQndmVHA1ZGtEV0F3ZnptcGF1Wk1tMnhnZmE5RVA1QWpJRHM5ZWo1b0NYd2NaZkNN?oc=5",
           "score": 0,
-          "age_h": 5044.2,
+          "age_h": 5045.0,
           "published_at": "2026-04-23T07:00:00Z"
         },
         {
@@ -3829,12 +3829,12 @@
           "source": "Value Research",
           "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNekN3cUU2TlF5dG10ZWxnbnZXelF6WTFORGxUNHBLQlhRS2RPemRMb25LVkRQTUdRNm0yQWNyNG5pS18wV0d1ZGxZOTRGeUhiT2NsMWVHT0dNRjZCV1VPQzlKNElkTFRqalhVMnluUnFwSUMtd0kxSkFXWDk2RGpiaGh5WkxKTVNtR3ZOUkpGVG1RLUpQV1JzZjNpWFJQQQ?oc=5",
           "score": 0,
-          "age_h": 5084.6,
+          "age_h": 5085.4,
           "published_at": "2026-04-21T14:36:58Z"
         }
       ],
       "pos_n": 0,
-      "neg_n": 4,
+      "neg_n": 3,
       "retail_adj": 0.53,
       "index_search_shadow": {
         "valid": false,
@@ -4565,18 +4565,18 @@
       "price_unit": "",
       "price_source": "NSE India allIndices API · पिछला बंद भाव",
       "news_query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=%22Bank+Nifty%22+OR+Nifty+Bank+index+OR+banking+index+India&hl=en-IN&gl=IN&ceid=IN:en",
       "score": 10.0,
-      "headline_score": 14.4,
+      "headline_score": 16.0,
       "headlines": [
         {
           "title": "Sensex jumps 990 points to cross 83,000, Nifty reclaims 25,500 as auto stocks power rally",
           "source": "DD India",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPanJCeTdPVDFXZTB3VEYtcUtpbVJtazVWWmZHTnVPelI1dXh1SlVZWTVOMVV2SUpXV2RiMEp1QllwRnhLT2VMSmFEY2l4aWRkY3J5LUNmQXd0Z2pKZGw5aGN1X1dDYTVhd2FOSmNlb3BMUF9WZVdqYjdpODVKSVFzc21pQTRJOHpoY2NUeDU1ZXo0WS0tZXJ5ZDJtZlAzdTdqR0RPVWFFRm1hR1plTWxFcm5DSFRacEZ4?oc=5",
           "score": 3,
-          "age_h": 0.3,
+          "age_h": 1.1,
           "published_at": "2026-11-19T10:55:01Z"
         },
         {
@@ -4584,7 +4584,7 @@
           "source": "Fortune India",
           "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQZnlLc01yeVNueVpzZnNiamh2bjlrLWo2WXZOWkRjV1lMeTl6RTNpMHA1U2tQVlp2akxNdlhKOXE3X1IyaWd2QzFRTDlSUm9qTDZGUVRzY0t5OG42ckNZZkE4YXM1bl9uaGtDZ05zczYwSVM5NjZvVm1zd0JkUHRkbm5zNDFPMlZBcGMydE5wUEhUaERzQUo0U2l0eGQyNzB2cHFCcjZGUmh0ZFBJOU9uOFBnaHp2bEVpcUVjRFRlUVlENVpiekdKMnJLYU9EbjJwUlVwSTdaY2N3Ym8t0gHqAUFVX3lxTE1ZOTgtcjczNU83MVhvTF9mVmlpd0dyTlBvQlctaGNxQTFCNWdMYXAzSWRLbm1TdzVDV1R1b1dOUGg5Vy1abC05dGthWVdUMERqTmRqSVlQc3dpTU9fZE5iLW9XUUQzLTlKUUhiWTJLdUxmbHhPN1cyTThIRVVLMXZrX0JVZk1jU0pBVVg1MnU2MVY1NGhDV1pDVmhGd3l6ZTVqNlVNOC1fbnFyU1FpNlBadF85dnJ6TWNmUXlwbUVydjZHUnFBTmtwVFBNa1Z6RTVuUF9BUjJOVlQ3THdjTC1rb3VIREF0Vmowdw?oc=5",
           "score": 0,
-          "age_h": 0.8,
+          "age_h": 1.7,
           "published_at": "2026-11-19T10:21:37Z"
         },
         {
@@ -4592,7 +4592,7 @@
           "source": "Fortune India",
           "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPMm5pdEVPWW1oblJVZnY3RV9veXNkbDhWb2NMYUJJSzU5Y3Q1Y3cxbG9mMUdtRGp1YXRSY1V1ZUxYVHRWUjgzQi1waHY2dkxFT1h5aFZOWmF3Tl93MXZhdnE3LV9FTzQ0em43eTBJVjhOWEFCUy1BaGllWVotSDRfakc3bGlMbkdTdVBhWC1EdmdKZEs2MDlYMUhXRDh0ODUweGN4U290ejk5NmZhcVQ3YTZQYk5ZX3draEI0R1pUXzdIT2U5TTQ2ZlZINHVYVTZYY0RjTC1XdjFwWDRxc1JRc21LYUxTcGdD0gH2AUFVX3lxTFBYb1dkcEZveWVsdGltWUo4MVI2RndQOW1uZjZWV2FuMlh2V0ZWa3pOV0VhLWtUOFBQWmRTV1lWVVU5OUY1ZlJQWXM5X0wyVi1pRVVxQ3ZjTWhCallhUF8ySkVhTjkxenFTR19BRWU2N1lzdlFOczg4amhMZmprSXpKTVMtRkpUZG0zcWFPeDUwVEM5b19xZ1dXQllCRkxXQ3drWHgwOGRnVFZEZEY4SzZKaGlEYS1oRDhqRFEzaXRzWXVlMVh6WDJpZEhvdUxQeFM2eVcwV3FxYXphcHFLaDk4YnhGVkdZZG8zemt3OVZvVTlQWWtlZw?oc=5",
           "score": 5,
-          "age_h": 1.7,
+          "age_h": 2.5,
           "published_at": "2026-11-19T09:32:20Z"
         },
         {
@@ -4600,7 +4600,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxQSmhEM1BubnJ6RlFMa2F4QWRZY0N3bFVFVDlWSWNYd1lXNzhFWWZEckdpNFRHc0ZGSENfLTRJSmViNHBkSy1ydGtkNW0xMHp0Sm9CdlBCVkd0aVVWc2t2Y1Q1OHpIb2pBOGloZzBVNnN1RlNTOU12Rkl6WDExdk9jNEtmc0trTkt2NDdld0lxZUJ3QXlsV2dqemN6VnNpM0JQTmVJMExVWm5sRF9oOUMwdUpGd2JyLWFfaGNTQU9xYk9aWGdOWjY1QmE1T3ExbmRnaEtYNjh4OHdKYW_SAeABQVVfeXFMTkM3R0ZINHF4aGF0WkU2Mm9lQnJ6RnlVN0lvUzZKYUdsTEVZY3B0N2wwSHVHeUE4Sjg0UHZhWjQ0SURpcXFQUi1XVlNIelFtR1RWTUNjS1NEaUNCVTd0ZHB2cDRJcW80YjliYnMwS0VSM3UtR3FySDhGRmlucnRZZUVfVDUwejB4bjlnXzlLM2JvMEtsUDEyTUNoN0FuVjZQWEN6RkQ0cDdYaVgxNXNpd1ZTc0JRWjl5dHpnZFJ6V0RLeWNET19fTDduTjNJdENqZFBTSnFDNHF5aE9nb2tnUlk?oc=5",
           "score": 6,
-          "age_h": 1.9,
+          "age_h": 2.7,
           "published_at": "2026-11-19T09:19:32Z"
         },
         {
@@ -4608,7 +4608,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxOd1N2Yi1IbExrenp1QWFVdlA3dzVoX1lKSXJ0OEdCYU11bU83empQUFI4YkNmbk1uT3RyTEh3SERKXzMtSVNOT2hoMUxmQjF4YUJxZ05oYmJBR0w5ZXdxLXo5QXQya01lRGVTVFRPZEVwUy04U2hfenkxRmFDeWpWMDJqYV9VREt2SEs1bmlQcHV4bjEzeHRueFRIQUNiZ1VVMW1jTzJlUUx4N1ZPNHpsWThldFpZU3hfbTc3bUJHQjhieHdmb2Joa0txTmlzZEZia0NhcGVQZ0NEd1U0cUtSMDZhVjVOLTV3bkpRR0lB?oc=5",
           "score": 4,
-          "age_h": 2.1,
+          "age_h": 2.9,
           "published_at": "2026-11-19T09:04:36Z"
         },
         {
@@ -4616,7 +4616,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQNkUyc0tSN052czkzNDVZbE5xX1JZajlKYzhkRzVRb2V1Q3ZCRXBkdEFCbGxTa1ZMQ0FYUkk5T0EwUFJPUlFmY3haU042bmNGWk1WOHY4R2JOd2gyWHloRjNsYTZZR2x1UTZRdGkwSi0taXkzUUc4TXVsY29GRmRJdGRLdmhXMFZCR0JFc0gtZFJVZm5TUUVGdGtTT1BEYlJPSEhKRjg0anV3VklaZzg0VDhTYXVBWnBWMTN5MXAxV1JlaDZvU2pkZ2JyTnVrMjZMTXp1d0lTNTY1cGZTZHhYajhhMXlhSHNKUWxIVndXNA?oc=5",
           "score": 0,
-          "age_h": 2.8,
+          "age_h": 3.6,
           "published_at": "2026-11-19T08:22:46Z"
         },
         {
@@ -4624,7 +4624,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQVFZNWGozN2piVFVLNGNia0FBTXpBY3dwWHcwRGZxUzRpZXZaY3hyV2FDRks3aUNQd1dKb1ZQOHJfMFZ4ZWtZQm1mRmhUMFVkVGlqVzJjOVZ1TFpWbFJCWFJ1MmcyU1paMTBOM1NadXB5bVIzUVIwQWJTOHRTT3pQbWQ1RFBPdjRmaWQ4RGdLWjJmaUQ5dGhwZndkZ2RUTUM3X2w1dmxMWHVnTG02b3RWVEFXdDJ1d3BtNU81TnNmNFlzTlFRWFQ3Vk96QVhhX21N0gHWAUFVX3lxTE8wTzdWV0g2Y01qY2oxRGE0blRjR1RCeDZDTkQ4b0NiMjR3YnJwY3V1RTY3ZmRSM1BYYXJXVThzMTJUYWtsTzAzMEdQY2pLZUJGcmg5cGVQUUdqcjdzTHV0UUxScHpsZ1lTeTlmU3pLckdleHhpeTQ3ck9LblVRQzlsaG5GWTIxTlpyWE1zWU5ZZkV2NHkwOXpleG9saVhIaUM4Rk41bjZxaHF2bDdGeDRvUEdTMk9NV01BWE5vWTM2UTNRZV93M2lYVDZTQ0VEY19wUVA3Z1E?oc=5",
           "score": 4,
-          "age_h": 4.4,
+          "age_h": 5.2,
           "published_at": "2026-11-19T06:47:18Z"
         },
         {
@@ -4632,11 +4632,11 @@
           "source": "BigGo Finance",
           "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBmcUlrMXFwalJnTWRQSTBUa1hkb0h4a3VCa04wd1V0d3o3NGpfNF9mYkU3ZUxZZGxyMlgxenhTZ3cyWWFmb0VpN2g2QkNrMGhHblVxY0tLY3lnTC0yU0wtZG90SDhXMi1tRk1tYnQ1VmFRZ3ZSV1E?oc=5",
           "score": 2,
-          "age_h": 23.1,
+          "age_h": 23.9,
           "published_at": "2026-11-18T12:05:00Z"
         }
       ],
-      "pos_n": 12,
+      "pos_n": 6,
       "neg_n": 0,
       "retail_adj": 0.53,
       "index_search_shadow": {
@@ -4740,7 +4740,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T10:55:01Z",
             "oldest_headline_published_at": "2026-11-18T12:05:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4753,7 +4753,7 @@
               "Upstox"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 0.27,
+            "newest_headline_age_h": 1.09,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           }
@@ -4765,7 +4765,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T10:55:01Z",
             "oldest_headline_published_at": "2026-11-18T12:05:00Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -4778,7 +4778,7 @@
               "Upstox"
             ],
             "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-            "newest_headline_age_h": 0.27,
+            "newest_headline_age_h": 1.09,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; cross-index duplicates excluded"
           },
@@ -11066,18 +11066,18 @@
       "price_unit": "",
       "price_source": null,
       "news_query": "USD INR exchange rate India",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 3.2,
-      "headline_score": 3.2,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=USD+INR+exchange+rate+India&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 5.5,
+      "headline_score": 5.5,
       "headlines": [
         {
           "title": "Indian Rupee advances even as US Dollar Index extends rally",
           "source": "FXStreet",
           "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNaTRBc3FZbjg0b1BYYVdUQU9WY1VfbVZGa2xGckNseVVILS1CWHhzQ0tiZ0V4Rjc3X1ZnaXJCdExxUmV3blpWVVNtWGFHSm1pTUI2YklKTTJuVHBuMERBMkxXVzhEcENDOVA1cWRhb0JaY19fM25PZFdiYVdCaVBKSDk5dURCTk5DMTN6Y3FuRFhaUm9WNElDSlBBd0VfbloxclJ4T2hhWkttcF9admxmaXF1NTd6WDNHTTZLUmRNQ29rdw?oc=5",
           "score": 2,
-          "age_h": 2.3,
+          "age_h": 3.1,
           "published_at": "2026-11-19T08:53:16Z"
         },
         {
@@ -11085,7 +11085,7 @@
           "source": "Bloomberg",
           "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNYXpWUTNnRl91dHZrZ25EaEI1bnp3YXBMQXh2TnFmeTNkc2plbTFnZmV2czUxV0RXVW9wcHM0b29LXzZWNHJTWU05RjVtMTBUOVNLVmlaTk0xa0hwSDFqZnAtVnlZX01ZcVctTW9zSUpEZXFMdnBLMzVPSEpaQV9hTHV4MjRJU2RYbXlkZERTMVJ3Y2JnTnRybkMyaU0xaVJwVUpHc09sbUM0MS1IZTRYdW1R?oc=5",
           "score": 2,
-          "age_h": 22.0,
+          "age_h": 22.8,
           "published_at": "2026-11-18T13:13:16Z"
         },
         {
@@ -11093,7 +11093,7 @@
           "source": "www.tmgm.com",
           "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxOckdpRnpiQWJLNnZWamx1dTdLT2JVeWRVUTJyYjJKT0NuRUJYZWg0QU4wb2xIY0gzbXE2bkR3UGdNdlBnbTJLdnF3SUNpanZNdHRrLWxOVnFTTkE4MW5EZVJEMVFuMGJrekJYVThDM2wxRFA2OWlkY3A1RnBQTXhWZDFRUno5MVJ6YjN3TFNUQWlwQU1sVzkwd3NOMkdONktpdDdSMG4zcDZwdV92eGl5YmJVc3VFdFR5NktaejE1M0E5MnBiNDc1ZldTRUNlRGwxVVhaWEtsNXd2SllsX1FzMVd4akoyTWc?oc=5",
           "score": 1,
-          "age_h": 28.3,
+          "age_h": 29.1,
           "published_at": "2026-11-18T06:53:11Z"
         },
         {
@@ -11101,7 +11101,7 @@
           "source": "LiteFinance",
           "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPODJoWHlXdEhEeFl3aFFQTUxrdHhIUWVzbEN5cUlZbHBXUTQzWDc4eGYtbDlCUEhjSWJXcVY2MVFGZWxvX0NZYjNrZzVkeXVsd3RTTXgteFVYMWE5M19ZdjhHMXd4S1kzS3lFQVhuV3IwdVhZS3dua3FhZkV5U3ZJX3J1ZWRuUHdMajA5N25YMGFjTWhLQm8tVGJTYkk?oc=5",
           "score": 0,
-          "age_h": 72.0,
+          "age_h": 72.8,
           "published_at": "2026-11-16T11:11:38Z"
         },
         {
@@ -11109,7 +11109,7 @@
           "source": "Finshots",
           "link": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE9hRjBIZnNwZExMbTR0ZWJORUVrUXZhaEpObjBtQnJlZXZUN3JDUWxuZ3VjNGRQQmdHdUJ5X040R0ZqVEJPeHJESGJTXy1hZkV1ODZhZE83d2JSZk1pMWt6NFVUNA?oc=5",
           "score": 0,
-          "age_h": 81.6,
+          "age_h": 82.5,
           "published_at": "2026-11-16T01:33:39Z"
         },
         {
@@ -11117,7 +11117,7 @@
           "source": "Alice Blue",
           "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1XcEdWeWFjLXlhYU1DYUxoSVNsc2ZzeERxQVZ3a18tN1hmeEdhSmwzQTBXWllaZ2h0T3Q5VS05SlF1anlvT0NXYXluM2hFeS1uTldqUmthMV8yVl9CMlRqdEVQRWFOS1R5VDNyRmM5VkRPQ2lybUJZ?oc=5",
           "score": 1,
-          "age_h": 916.2,
+          "age_h": 917.0,
           "published_at": "2026-10-12T07:00:00Z"
         },
         {
@@ -11125,7 +11125,7 @@
           "source": "Telegraph India",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQbWRma2FiSzYtY2FQdjlpSWZuODI0anBBQ1NCZW9pVnc3UmlnZzN1ZjhZanBkc3lzRUpNMUVGS2dBaHhqSFVBSDBrek5pa2ttejFLckJCUVJwZy12bWhhMnpEWV9MMzAteWI2OGdvRE5HeWhwMXhhdTBmbnJFNE5mSmN6RHlBbE1IYVhfc2hhVW9pcV9FVVFmZUtqQmRXaGpWVkoxOGVmalR1Z0JqTFZvcDR4NWNyS3hDWjZtU0NGcE9kRmg3eC1zWFV6T2tLN1Nl0gHWAUFVX3lxTE84aGQ2N1BnSnYyaFl3SkRPYjA0OExCaWJNR3YzeFBQM1RTZ2FQZFJHMDdpX25NZV82V0x4RzVJeDZiVTV1a2kzRUpmR1oxTk1mNktHNlgxMFhCdVV2QUV2OGZzckNGQXlwbmJZdnhPdjVRYnIzUnZJaFQyaXdNc0dVcDdmT0o1LUF4bElTdFROMDhSWllvREM4UU1scFhEd3RaMnFGXzJnMEJLSmRnVThWMENnNFJfbVptQnBRX0psNFc1emYxeXJ2WVQxYnc5SEdKVEpBZ1E?oc=5",
           "score": -1,
-          "age_h": 3244.2,
+          "age_h": 3245.0,
           "published_at": "2026-07-07T07:00:00Z"
         },
         {
@@ -11133,13 +11133,13 @@
           "source": "MUFG Research",
           "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOanhmRlhBdWVKRlJ6Rzg0VnJZMm9rMXIxeEY0NjE2bzlfM01ObDNEeVhRMFJJV0l5VE5NRUtuSHVaa29Rb3I0YW9nSG1BRlhLeDZKRDU1U1FVeWloUy1QamNjaWlRUElKWU9xa2lKekVCbnlSY1JURjl6b3RBQ0tBWXk1RFA5UXo5QmYxR1RjX1FJd3J4Q09kU3BIMmVQYVlYZHNj?oc=5",
           "score": 0,
-          "age_h": 3940.2,
+          "age_h": 3941.0,
           "published_at": "2026-06-08T07:00:00Z"
         }
       ],
       "pos_n": 4,
-      "neg_n": 2,
-      "reference_price": 93.32,
+      "neg_n": 1,
+      "reference_price": 93.3,
       "reference_date": "2026-11-19",
       "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)",
       "reference_stale": false,
@@ -11169,7 +11169,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:53:16Z",
             "oldest_headline_published_at": "2026-11-18T13:13:16Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11179,7 +11179,7 @@
               "FXStreet"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 2.3,
+            "newest_headline_age_h": 3.12,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -11191,7 +11191,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:53:16Z",
             "oldest_headline_published_at": "2026-11-18T13:13:16Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11201,7 +11201,7 @@
               "FXStreet"
             ],
             "query": "USD INR exchange rate India",
-            "newest_headline_age_h": 2.3,
+            "newest_headline_age_h": 3.12,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -11246,16 +11246,16 @@
     },
     "GOLD": {
       "type": "index",
-      "change_pct": -0.46,
-      "price": 133092.48,
-      "price_time": "4.37 PM IST",
+      "change_pct": -0.7,
+      "price": 132767.0,
+      "price_time": "5.27 PM IST",
       "price_as_of": "2026-11-19",
       "price_unit": "₹/10g",
       "price_source": "MCX live quote × 3% GST",
       "news_query": "gold price",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
       "news_fetch_status": "refresh_failed_using_cached_headlines",
-      "news_fetch_error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?q=gold+price&hl=en-IN&gl=IN&ceid=IN:en",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=gold+price&hl=en-IN&gl=IN&ceid=IN:en",
       "score": -3.9,
       "headline_score": -3.9,
       "headlines": [
@@ -11264,7 +11264,7 @@
           "source": "The Times of India",
           "link": "https://news.google.com/rss/articles/CBMi7AJBVV95cUxPZ2VnUlE3YmpxQXNsbTN4WWFJdXNtdkRVMjI3em9OWnh6S05Xa1lKRVpTTmcwaFMzUVI2RkktWHZUY3RjM3NIbnJpWlNVWXhKc0l6QzgwUHlWZW5WaWFqWUhTR2tRMlg2dENOYkpMRFp0ci12N1BXYkZ6S0lHYjY3ekEzd0tkVUZCazQzaFFhX0ZhRndoekhoa2dSY2E0ZVpTVGZXNlpjemZNRGZyUHk3U3Q5ZUR6MmtTNWRyNVNzdUFUS1AtX2N2dzBUQ1lNQWRsbHY5RjRmUGNLMGJ1c2RYSk0taW51eHh0ckNEbUo0RG5RWlQzZVpFbWJ5T3AxdkpmY2RoOHNhRXU2RGsyclBHVG91b1pXYm5jSzE5Z0Z2TjlfeFhDMzUwOWQ4U2MxOW15M0xPQ2V5XzhvbUxVRS1SSlVoQkpSSUV2Ti11TUw0MHVvMDQ4X05CaEljdUR4NXZaRHI5OWZIUHdHcHJF0gHyAkFVX3lxTE9KNzJTNy1ZQkFQRjNZaF9wSlh2elBuSlhkejZFaERpd3ZhSkV6OFl0eHo1WF9STGhRSzJWaTY4cmdOdkFXcWphQmhHMXVyNDUxaUZJWGFvOXdNVEpjNVI3dW5RY1B4dzFvYjFEQ190bXRkdUlCck5WSUwxTmpOS2hQaV9tWWVUb3Vkc3o0UFRmLVpwM0ZybTVQUUlreFhSTFJ5ei1MTlRhZjl3QlJuNzd1QlJUWlAyeU5nUGpyTXZPcnozblctanhPVEtyWEtHTWhSMENnaVJUSWU4ZWQxZHAtNkFIcnFvdmM0T0dNZUxEYlFRYmhySHZkTnVobEZ2bjRUTVRZVmRmdEZqRzdfUk96cHc4cUlHWDl0bGpOSGxKd0x2aUtiYnhHbU5TeU5kdjlnN0dzSkE3MzJuUlowOUpqbkowcVQ4WGpEcExOZ3V3MzhITmxjdXExWDgtSURONG1JRTd1a3VsUmRfMmlSS1A3eUE?oc=5",
           "score": -2,
-          "age_h": 2.4,
+          "age_h": 3.2,
           "published_at": "2026-11-19T08:46:00Z"
         },
         {
@@ -11272,7 +11272,7 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMiowJBVV95cUxPMWxRWXpsMkI0dWZTaldzelkweDRsdW9nQUFOeW0yWGZEel8zME1KRTk5b1ROUlU0UEJjdXBwOVp6Rk95c25NZkJFSVBValE5TTYtN0V0UGhOWXZfdzJOMXBqdzk5MkVESWdYUFZJeXBmeEVoU2xrV2oyS052Y0VMeWZaal9yZFJmcTRfVjBoaTJwTkM2T21jRU5OQmlPS19BYUstT0lKcEt2bGRzMU93bVdSTVY4QWViNnpqVlczUHZmOFFEZk9aWXZ3ZVBtSkdISW9uV1VkaEJkZ1dhaU1fNWFZSTktYkkxZHI1TG5xOU5zVTlqNThSZkNqMVloTTVUZUtnSVRPQzRnOWhUb3RjbTlXZTlBLWFjRTlaWHc2WjhWZkXSAaoCQVVfeXFMTm9HQUFST2xrNElVclUydkVqZXdrTVFyd0xNd2FoZDFFNDVXOFZ2a3pwSzlKR3dJOGU1VkxDTHNFYlBWRVNqUkg1bUc0SDBMYV8tQnBva1hTMDdwOTIzS2tpQ0xaQU9uWEtkcnduUjhDaW1ocGp1dk1ZWUpsVkJWMFlxLUpUQXd3eFVQdXRrd2VUNHk2aHA0UXdacGRzekpSenBoSHFhaHpKNGgzdEVDV19FRnVNMmR0enkzei02Yk5seUgzbk9HcVdUX1lSbklMVEx6amlEXzZabW8zbDNBTS1RLUtBbkRGdGRsWnNRbkhxTnM2cjltdFNaMDVGVkpXUzRTa3kyTzRIdmVTbmFVdTY5RkE3aGVabVFHV0Z3NUdSb18tYnV0Vno2QQ?oc=5",
           "score": 0,
-          "age_h": 3.2,
+          "age_h": 4.0,
           "published_at": "2026-11-19T08:01:02Z"
         },
         {
@@ -11280,7 +11280,7 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMilgJBVV95cUxQYVItOEoxcVNwckgyRnBhb0hRVm1kSU9oSGEwWk5VRFRZNEJsRkVxdS1tQ3phZ2tzUjlJc1lvVzlERGNIM1dBbXJFSFJDQ2l0T0tSZVYxRWpIWkM5X1FxU0tuY3pVR3U0MVltMjl2cGxSXzdXRS1FVjRLbTI3YjhVWWU5ZGVYZzFwbmsybGpGaWxtd2lFa001SWhzNEN1YnRiTVp5SFdkbFM1LXU0d1VfWUZEdU90dC1KQm84cGstaFh1ZllraHlLb2JTemNKYzU0Z1FsenZpSjZ0eXVIQjV6VnBqekpIMHZ5OTJXTjRGaThCSExOY1hBcjJ2OHhHNU9jMGczTDFnUVdlVVlxaGFMdnZTSzRkQdIBnAJBVV95cUxORkJiYTl5bXBEQW5GYjJ2TzNiOWNTZ3JsRXBiLVVKZDdHd3Fqb2tYS3Fjak5fbWFuc0NEZXJwSGpkcmVST2NWOVhzUGpsSFhNSllSaWl2RUxKeS1rMEFsNVBZaVpoM3A5d0s4eEtkTzI1b3dnVVhvMFFGcHhPMjF3OEYxVXI4SEtQNWpiVVZYSDEzTFVnaVVlRzlwTVhXVm8tR1dDTW40Q0hma3k5RDFZQUtoSGVHNThYNVRiMFczY1pQdFpYYWhEWTVXdEpzWkxyek4zNFVtSTlJTFVrTzJ3WUMxWjkzRXdzWS1oLXJUQWN5NTB1dGlJUEFmYi16UWw4SjhrYjF6MWt6TUV1REJIaDAtQzRpeUJtQ3BmNw?oc=5",
           "score": 0,
-          "age_h": 3.2,
+          "age_h": 4.0,
           "published_at": "2026-11-19T08:01:02Z"
         },
         {
@@ -11288,7 +11288,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxPeFNuVU5qelZhTS1uRFNEc3k3T082R2NRdW9Qa0lDbUJMdDFhcWpNbHhWaVhpTkpRcTFrZ0R4U1RnNlBxNWZwSWY2emExVVVuak9YZUs2WThwaWJNbEQ0NWhLMVBFVjVOVHliR1Y5TTFOXzlLTzRteTFBdnNYRy1Yc2NJWFpMMzJ1X0FRQTU4dHRKbFA4VzVsckhKcUVmTE5XdnljNXJhd2JhTkV3aHhlQ1dpQ2Fmaks4SnhQckd3R1AxVDJoeUw3Z1R0Nkk3ZklGN25JR2JuZXhUcjAzTzdlUlBIanBMcGtHdHU5R3pZNkhKSnlFWjJuX290bU5lTzYtYXZmQ3p4US1LcXdx0gGSAkFVX3lxTFBBUU9RRjJ3N3FMVlE2VTdQUGFBd25RNUJFYThjM0FZZ0FUaVBxS05mazRVRWxXdzBIMG8xUVlqXzRrWW1fay0yTkNHTGxBRW5QLXJKTno3YURBVjU2Rk1yaUczMDQ2YnV1dnQwNlJlRjBGUHAwX0tOcE9ld3JjY2xGQk5CMC1ORWZkd1RNZnpFVG1ZLWszSGh1aUJDaGNtYjE1bWI5NHF2ZVRsWXBzUElkN3VXaWlRSFBfQlVoX0dKN01VYTlQN0xkUVRMTDFaNm9EMDZnZXBlNWJ0UXFvc3hGN041bnJFVEpyeGtldE1HRUtvd19JaVBPUl81VUdvTVEwTF95aHc0aXRJdzBoeXRpVWc?oc=5",
           "score": -1,
-          "age_h": 4.3,
+          "age_h": 5.1,
           "published_at": "2026-11-19T06:54:26Z"
         },
         {
@@ -11296,7 +11296,7 @@
           "source": "Reuters",
           "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPZ0RVRVVhd0g1djYyRGpzbTcyZXFtSXd3cTV1T0REekJaYm9FOTlzblJzU3hlMmsxSkF0UmtzZ1gwWVFiUzI3VXdGNzJLTndoZC1oVkpXSnRmZ0ZmNkEybVRFSnhIVzFCNnlTS2hQRGV2bnNGTHVsaUZ5RmllU0otWWcxV2wwejMwcXpTOWFxam1xb2dRMXMyQ1c0T0RkZy1SX09YR3lYdmxkQQ?oc=5",
           "score": 0,
-          "age_h": 4.3,
+          "age_h": 5.1,
           "published_at": "2026-11-19T06:53:00Z"
         },
         {
@@ -11304,7 +11304,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNQjVMcEdpOGpTODNoWGdPUFFVc1Ytb0k3MEV2YTdBTUpZUjVxYkJTVHhUcW5tWmlWWWxmSWN6NmFpd2xaNmFtaW9Yd01YdFBncHhLZEgwcm1LWm1rb192V1NjMGxOak1nVzR5bUJPSTk3MTdXdENid2k0Vk9rNkYxRnlqZ3pDSncxVkhiamhINUFmQkNDUTVjVU1jUUw0c1BWMFFmdGtkWmhBaXFWd3ZHZEVwSFJWZ1NEcFRBbWRLakE4dGF1SUMtOVRhN0wtTDZnM0E1eUZCRUfSAd4BQVVfeXFMUHJzVUMxS0NGSDJ0WWRKaTNfWXhoc20zcUZCM1JqQXI4cFRmTXpweFh5SlpqN05SYkU0UUFZYmhXS1RYOWFTQmdkYXB0QUFxUXZQcU1JRzFDMENKMWw4cGd6RzBfZVJwV0FwbDd2RHZNUGNJSlZYR0R1VnNDREdjZXhDMWQ3eWtTdC1jaUhxSlpyTkJVa3VwcUlWQVlXWVBwTnZrLTR6VFVwVjk5UEpHa2pPSnBDcV9TNzZOMEZaSEtVYW5JclJ6c0xOQVkwUy1TNDZrSGFqQUt0Q3NHT1pR?oc=5",
           "score": -2,
-          "age_h": 5.7,
+          "age_h": 6.5,
           "published_at": "2026-11-19T05:28:19Z"
         },
         {
@@ -11312,7 +11312,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxPNGFUWndib3FYd084YUh1M3NDQl8wNHhqX2VrZGFNQldaVUpBNzRRSjlxT1hFQVNLTmR1eUdLR3lMV09DTVNYLTZnY3c0ZEpuSC1aZEFEYnZmc2JQeXdnd3FCWHQxSXlrLU1WbVlYcFBrak5oLWw0dF9CVXhTUExkeFlDOFVqYlgxcm1ZMERUM1VFaHFrSE1yZnhwQXRuUzEtQmt5VkFOZWRvejRHZXJlSnF0TDNWUEZjSWRCY1FVS3dSSVd6b2VIZlFYSkQySnhCdEh1RUdJNVpSSnpJYjJXX0FZRkZkSUw2SzJoeURrZExFOG44QVVCVi1nN0I?oc=5",
           "score": -1,
-          "age_h": 6.0,
+          "age_h": 6.9,
           "published_at": "2026-11-19T05:09:03Z"
         },
         {
@@ -11320,7 +11320,7 @@
           "source": "INDToday",
           "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9Sc0tDMEJfbHBVOVJ0Z08yVVA3Q1JVZkd6UG4wZlhVNk82alR1ZVFsZE4yY2JJakdrQks3aXFPXzBrTW9LM204Z1EzQ0xuV0JfLXI4dVo0NER4ekZ1bTdFekhPeVhxczZETEhLbDZVUUJnVXpf?oc=5",
           "score": 0,
-          "age_h": 6.4,
+          "age_h": 7.2,
           "published_at": "2026-11-19T04:46:35Z"
         }
       ],
@@ -11463,7 +11463,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:46:00Z",
             "oldest_headline_published_at": "2026-11-19T04:46:35Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11478,7 +11478,7 @@
               "The Times of India"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 2.42,
+            "newest_headline_age_h": 3.24,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -11490,7 +11490,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:46:00Z",
             "oldest_headline_published_at": "2026-11-19T04:46:35Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11505,7 +11505,7 @@
               "The Times of India"
             ],
             "query": "gold price",
-            "newest_headline_age_h": 2.42,
+            "newest_headline_age_h": 3.24,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -11675,25 +11675,25 @@
     },
     "SILVER": {
       "type": "index",
-      "change_pct": -0.08,
-      "price": 165429.33,
-      "price_time": "4.38 PM IST",
+      "change_pct": -0.77,
+      "price": 164287.06,
+      "price_time": "5.27 PM IST",
       "price_as_of": "2026-11-19",
       "price_unit": "₹/kg (Estimate)",
       "price_source": "MCX live quote + 3% GST Estimate",
       "news_query": "silver price",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": -2.4,
-      "headline_score": -2.4,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=silver+price&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -3.1,
+      "headline_score": -3.1,
       "headlines": [
         {
           "title": "Gold, Silver Rate Today Live Updates: Gold prices ticked up on Thursday, after hitting a more-than-one-year low",
           "source": "The Times of India",
           "link": "https://news.google.com/rss/articles/CBMi7AJBVV95cUxPZ2VnUlE3YmpxQXNsbTN4WWFJdXNtdkRVMjI3em9OWnh6S05Xa1lKRVpTTmcwaFMzUVI2RkktWHZUY3RjM3NIbnJpWlNVWXhKc0l6QzgwUHlWZW5WaWFqWUhTR2tRMlg2dENOYkpMRFp0ci12N1BXYkZ6S0lHYjY3ekEzd0tkVUZCazQzaFFhX0ZhRndoekhoa2dSY2E0ZVpTVGZXNlpjemZNRGZyUHk3U3Q5ZUR6MmtTNWRyNVNzdUFUS1AtX2N2dzBUQ1lNQWRsbHY5RjRmUGNLMGJ1c2RYSk0taW51eHh0ckNEbUo0RG5RWlQzZVpFbWJ5T3AxdkpmY2RoOHNhRXU2RGsyclBHVG91b1pXYm5jSzE5Z0Z2TjlfeFhDMzUwOWQ4U2MxOW15M0xPQ2V5XzhvbUxVRS1SSlVoQkpSSUV2Ti11TUw0MHVvMDQ4X05CaEljdUR4NXZaRHI5OWZIUHdHcHJF0gHyAkFVX3lxTE9KNzJTNy1ZQkFQRjNZaF9wSlh2elBuSlhkejZFaERpd3ZhSkV6OFl0eHo1WF9STGhRSzJWaTY4cmdOdkFXcWphQmhHMXVyNDUxaUZJWGFvOXdNVEpjNVI3dW5RY1B4dzFvYjFEQ190bXRkdUlCck5WSUwxTmpOS2hQaV9tWWVUb3Vkc3o0UFRmLVpwM0ZybTVQUUlreFhSTFJ5ei1MTlRhZjl3QlJuNzd1QlJUWlAyeU5nUGpyTXZPcnozblctanhPVEtyWEtHTWhSMENnaVJUSWU4ZWQxZHAtNkFIcnFvdmM0T0dNZUxEYlFRYmhySHZkTnVobEZ2bjRUTVRZVmRmdEZqRzdfUk96cHc4cUlHWDl0bGpOSGxKd0x2aUtiYnhHbU5TeU5kdjlnN0dzSkE3MzJuUlowOUpqbkowcVQ4WGpEcExOZ3V3MzhITmxjdXExWDgtSURONG1JRTd1a3VsUmRfMmlSS1A3eUE?oc=5",
           "score": 0,
-          "age_h": 0.2,
+          "age_h": 1.0,
           "published_at": "2026-11-19T11:00:00Z"
         },
         {
@@ -11701,7 +11701,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMihwJBVV95cUxNRDVvc1NXNVNJWTZjN0hjOUNsWS11U0U1VF9NbEJUY0xNNFdDZTFISTlIS2FxYlJYYnY1MUo5TkxTQk9DX3lNTWlVS3RXQjFucWlIbkVuUkRBbU1GNTFTT1hTOHhpLVBMVjZEelJmTVg0UUxYWEVhbHJ2VjFnbDhRemtRZXUyWktNQXVucnQ4RVdpczh2T3Z3ZUppenNwcXZjX2Q2MElwQ0NXV1RBLV9YbXNoblItaEVnTjhfbk5iM1V6S1FLQzZwcUVneUJpOGxjWDRFRVYxVTBWSzZnVkNLUDhGbTBCMmY3N0dPbmhvX0prMXNMTlJaeGZYX1E0Z2VZelpabHQtdw?oc=5",
           "score": -1,
-          "age_h": 2.0,
+          "age_h": 2.8,
           "published_at": "2026-11-19T09:09:55Z"
         },
         {
@@ -11709,7 +11709,7 @@
           "source": "FXStreet",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNbjhOZWV6cVRIUzMtYXRHZWJpTWhienpydmdxMDV4ZnFwRW84VzdiVnBNYVpNUm51RUlCMHVkNlZUcVE1eEI1REI3UEdQRjZidklRZFMtX0lia1pBeDlaZF81UkZMOTZHc2drbFhFNnBIZ3pxMzJzNEdmbXMwa1Rhc2NIRlBUVV9tSkhlNTJORlNzeDh0c3BqYVphRlhSXzhXVE1rTGNPN2ZPT3E0WGM2dmhlVHg4TWs?oc=5",
           "score": 0,
-          "age_h": 2.0,
+          "age_h": 2.8,
           "published_at": "2026-11-19T09:10:35Z"
         },
         {
@@ -11717,7 +11717,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxPeFNuVU5qelZhTS1uRFNEc3k3T082R2NRdW9Qa0lDbUJMdDFhcWpNbHhWaVhpTkpRcTFrZ0R4U1RnNlBxNWZwSWY2emExVVVuak9YZUs2WThwaWJNbEQ0NWhLMVBFVjVOVHliR1Y5TTFOXzlLTzRteTFBdnNYRy1Yc2NJWFpMMzJ1X0FRQTU4dHRKbFA4VzVsckhKcUVmTE5XdnljNXJhd2JhTkV3aHhlQ1dpQ2Fmaks4SnhQckd3R1AxVDJoeUw3Z1R0Nkk3ZklGN25JR2JuZXhUcjAzTzdlUlBIanBMcGtHdHU5R3pZNkhKSnlFWjJuX290bU5lTzYtYXZmQ3p4US1LcXdx0gGSAkFVX3lxTFBBUU9RRjJ3N3FMVlE2VTdQUGFBd25RNUJFYThjM0FZZ0FUaVBxS05mazRVRWxXdzBIMG8xUVlqXzRrWW1fay0yTkNHTGxBRW5QLXJKTno3YURBVjU2Rk1yaUczMDQ2YnV1dnQwNlJlRjBGUHAwX0tOcE9ld3JjY2xGQk5CMC1ORWZkd1RNZnpFVG1ZLWszSGh1aUJDaGNtYjE1bWI5NHF2ZVRsWXBzUElkN3VXaWlRSFBfQlVoX0dKN01VYTlQN0xkUVRMTDFaNm9EMDZnZXBlNWJ0UXFvc3hGN041bnJFVEpyeGtldE1HRUtvd19JaVBPUl81VUdvTVEwTF95aHc0aXRJdzBoeXRpVWc?oc=5",
           "score": -1,
-          "age_h": 4.3,
+          "age_h": 5.1,
           "published_at": "2026-11-19T06:54:26Z"
         },
         {
@@ -11725,7 +11725,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxQQXd2YVl2LTdOT0JlSmEySklBUFNqWGlvSFZsOHFYdEJ5bzJuNFdBY3VkVWFKSmFtdU1fWGVxWmRWbEZ5VkROanlWU3prMW9uZG9ncmgxa1VDMC1TWVVTbGxmbk1NQVgwY2ZTS3h0Snk1ZkdIaFc2LUpteVVfSFVoMGVWUU02ejZYOXRPRjVUNW5qbERudldTbktyT3Q2N1BWOS1TdnAxcjc1OERxWlRjM2VLdEVfTGVFTlFxem55Tk9GQldPby02VnFnTExVMzB2TkdxSm9lY0RNcG5mSUlYaHVYU1JHUS1NdWlSdXNRVDdhaTM2cUE?oc=5",
           "score": 1,
-          "age_h": 4.9,
+          "age_h": 5.7,
           "published_at": "2026-11-19T06:17:22Z"
         },
         {
@@ -11733,7 +11733,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPa01qNzBxb1lSX3B2QlBkbXlpdWFWbjNRWEd0QTNybW5nanAxNGJjWEdUSEFia3J4ZFBxbUhyNWZyWE9Lci1hY3lqbThmdV9XdjRGdkxLQ3FqNEh2THZvTnVQZ1lEUDU1Rl9PRnVzN1JlcGp1OVY2Q2R0aExQUzJITFMtOTBNNVBRWS1LNmVTcFFaaW13QW5UZlBQc1FZWldBQ1h2VDhwSTlBeTE4LXNUUGozYXVBSjY1d1ZGSGFDWFU0RE5iY09DTzk1Ul8?oc=5",
           "score": -2,
-          "age_h": 5.0,
+          "age_h": 5.8,
           "published_at": "2026-11-19T06:14:29Z"
         },
         {
@@ -11741,7 +11741,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxOYWJLM3Z0elhwZW9PSEZ4U1FlYVlTakpPOWZ0SnJtWXMyLWZiYUhPZ3RVanBsNDhsRXBrS0xwczhDQzBtT3dTWVZVbmpsNV96aVZ0RnVJMmluUUpYdFBXTi1IaFJzSnlwRFhfWVV3ZWFGN0hxUDVFMHN4U2ozV2NESXB2VG56QndPeENBNEMwSFFyeElwNUF3cWlsdWtneXhUUG1mX3ByWkNwNzRTNjlZRWs5ejViZm1QakJJNllBSk1fVUhMTUd1ODBEZE5MdVJqbVA2Vg?oc=5",
           "score": -1,
-          "age_h": 6.5,
+          "age_h": 7.3,
           "published_at": "2026-11-19T04:41:10Z"
         },
         {
@@ -11749,12 +11749,12 @@
           "source": "FXStreet",
           "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNV1BwX0c2Qlo4VzB6cm9XQTlxY1hiYVAta3hBMW5WdVVvMWRGT3dJYlhseEFWRVN3N0ZaYUNjcF9XWTVWck1LRElsVGwyV2YzdG9IODNRZnBaOTJaY2hZSkhCb1BvbHFUa1B4VlZqZ0RncmVIczEzNWFKLUZLS2hoelRPZi1mNzlxZmNLSDJMTm14T2NJTS0zZUROcWdLQ09aaXYzMmQ5alRCTXZWbGFuaXV4V3czY3BxdXlCU2tGUUwzSGZQ?oc=5",
           "score": -1,
-          "age_h": 7.5,
+          "age_h": 8.3,
           "published_at": "2026-11-19T03:43:19Z"
         }
       ],
       "pos_n": 1,
-      "neg_n": 6,
+      "neg_n": 5,
       "indicator_label": "BUILDUP DATA UNAVAILABLE",
       "indicator_reason": "एक ही कॉन्ट्रैक्ट का भरोसेमंद Open Interest डेटा उपलब्ध नहीं",
       "asset_search_shadow": {
@@ -11890,7 +11890,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T11:00:00Z",
             "oldest_headline_published_at": "2026-11-19T03:43:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11904,7 +11904,7 @@
               "Upstox"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 0.19,
+            "newest_headline_age_h": 1.01,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -11916,7 +11916,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T11:00:00Z",
             "oldest_headline_published_at": "2026-11-19T03:43:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -11930,7 +11930,7 @@
               "Upstox"
             ],
             "query": "silver price",
-            "newest_headline_age_h": 0.19,
+            "newest_headline_age_h": 1.01,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -12096,25 +12096,25 @@
     },
     "CRUDEOIL": {
       "type": "index",
-      "change_pct": 1.19,
-      "price": 7738.0,
-      "price_time": "4:38 PM IST",
+      "change_pct": 0.71,
+      "price": 7701.0,
+      "price_time": "5:27 PM IST",
       "price_as_of": "2026-11-19",
       "price_unit": "₹/BBL",
       "price_source": "MCX India official Market Watch · FUTCOM",
       "news_query": "MCX crude oil futures India",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": -2.6,
-      "headline_score": -2.6,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=MCX+crude+oil+futures+India&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -3.0,
+      "headline_score": -3.0,
       "headlines": [
         {
           "title": "Crude oil futures tumble over 3 percent to Rs 7,842/barrel",
           "source": "DD India",
           "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPcWNRaHJyamtpYnBpSUV4Mjh0cDR3Y0lpUWJ4aWpJNXE3bHhQOS1VUGZXOU1BNWpyeGhwel8xaGhtdmpjZHBVanNJVFRZaklFbUFsYUJEMHE1amRubkMwYURYRDhoU2dnWVcyQzl5M1JMSmdDUlJnZ0N5dTU3SnV3anFuQ2xpcnRJWXlEWlp1dGZjdw?oc=5",
           "score": -2,
-          "age_h": 24.6,
+          "age_h": 25.4,
           "published_at": "2026-11-18T10:35:00Z"
         },
         {
@@ -12122,7 +12122,7 @@
           "source": "APAC Media",
           "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxNNmkzdlJKZGtUWmh3aWtvLV9iYmVGR20tRjl1OVdxOHliRTVOOUJiaE5YbGJrQWNmbkFnSXdvb3p5dmxxUmdjbjhCV1dTblMwNVRSbU5JXzNxU3ROSkVLZ1ZBY0MtZ1QzeExJdVJtSi1CVFNURUtKUE1KSENEb3NxZzdfZW1kR2ozUjBsUHJtaw?oc=5",
           "score": -1,
-          "age_h": 24.9,
+          "age_h": 25.7,
           "published_at": "2026-11-18T10:19:09Z"
         },
         {
@@ -12130,7 +12130,7 @@
           "source": "Groww",
           "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1MbDhrd01qWkVHejFJaHhvNHhRQ21SRVVxUnNPWlkxRXZzQnp6WTZSRnNSTHhTeEdYVUxmT2RJX2l4c1U3ZjVtcWtLNU1WUjZ2Y3V3TktiVQ?oc=5",
           "score": 0,
-          "age_h": 436.2,
+          "age_h": 437.0,
           "published_at": "2026-11-01T07:00:00Z"
         },
         {
@@ -12138,7 +12138,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPVTB0azVWOW1zNWNseVoyUVhvTjNJVXVWV2hvOVpZLV94NjFoclNOUks0aUg2bkpjWkw3RE1HVE81ckNQbU45RjUtWks1OGZ5R0hfLXhqaXgzQXFVTzdoVTAtZGJ0ZGxSZExCS01rRFhYNUZ4TnhSOWRYbVpvUGhDXzJVZC1Cc3Voanpoa1NncVhoakdqZjlYNVhxWEhMN19BTlY0NGVRWTM?oc=5",
           "score": -1,
-          "age_h": 1828.2,
+          "age_h": 1829.0,
           "published_at": "2026-09-04T07:00:00Z"
         },
         {
@@ -12146,7 +12146,7 @@
           "source": "NiftyTrader",
           "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE16YVpOd2IxX3VJUWNtb1o5elpwRjM1cjkzb2tYOVNxeEJpbnhLVTE5Q05jNS1EQmVfd09nS0prSGl0Nk9tcmtGdjhJbWE5ekMwaHBOeEFQRF9zd2JCN2dKX1U5dHh6M1h4aFdkeDFhcFQ?oc=5",
           "score": 1,
-          "age_h": 2716.2,
+          "age_h": 2717.0,
           "published_at": "2026-07-29T07:00:00Z"
         },
         {
@@ -12154,7 +12154,7 @@
           "source": "ICICI Direct",
           "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQeFhfQlc4RE5kRjF3NlA5SW9fNXB1RjMzS2tYYnJYdmFrN0t4OEl6VXlXU24tbkZrSkI1V0phbm1OLUFZSUNiWEZXcXBGR3FRVHBtZlFaREVuRUNxS041SVlPTnU2X3lBVnlHSUhJeEE5ckoteE1QOEhENlhzSnVGSnZzYVpOSzVlTEhpMndVUmlCeUZ2WlI1ZXd1UjlfVjQzT1E?oc=5",
           "score": 0,
-          "age_h": 2932.2,
+          "age_h": 2933.0,
           "published_at": "2026-07-20T07:00:00Z"
         },
         {
@@ -12162,7 +12162,7 @@
           "source": "ET Auto",
           "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQRmpBZGdaMllzd1EzOWJCc0ZJWGx5eU5PakV6TF9La1FDdlNRQzlFZkg2M29MQzJCNW5qdGhOU0hkQ1lPTXFHMWRTa1puQ1VtS0NIUlE1OS1BVWkwdkNHN09ROUVVZHgtUF9LX2hUUUFxenBYWUJTakxtREdlem5KemZPQUNxcWJxLVQ0VWhRR0hyVC1GZWN2UlpNT2pSaTF5MGs5Y1lydGlrVHc2TjFLMjJTcnRpT29fZ1o0QtIBwgFBVV95cUxPT0Q3eXlvVEd1dVBZM1h6Y0hmR19Db2lOLVp3VHlneWI1YW55N3h4TE9hMGdrWXpIUkVtenM2MVBUYl9IZTEyZUFEVm5uLTUxMmktYkdQY0RBb2drVVFBcmhjWktUaDY0cUliUTZhcTRqeGthXzNUSUhyNHhxVGNBdlBReloyTnpVZHRxa1hDOU5wU0otbElLR3kzSW9CS3FuMEg4a2xhcE9kcmljeUtKaVdVcTlDNFVBeGZ1NWxMSDdEdw?oc=5",
           "score": -1,
-          "age_h": 3268.2,
+          "age_h": 3269.0,
           "published_at": "2026-07-06T07:00:00Z"
         },
         {
@@ -12170,12 +12170,12 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPMWlHOXpDT2RXY2FGS09WNlNhemgwMTNDSElyUXhOSFRzaEI3VW5WaWtxcTNJcl9ramF5b3U1dTNKOHpGbTFFaDltU0NKeEVhQmlhUE5sMVpFalZxV3J6R21HSTZRNWUxN0FRYWxsZHoxcmxTUm5veUdXNnlYMkNtNEdMLWZkVTNtOXdvQXYtaTZKYXd4NF9GcEdDYnlwenV6ZEx4bTU1UFpoMWhJQUxyVWdpdDFkZ0NCbUJDUnpRbnE4SGd2VjhDUUtpS1BLek9WTDZMc3NCMGxrYU9EMUU2TVNrekNoQQ?oc=5",
           "score": 1,
-          "age_h": 3436.2,
+          "age_h": 3437.0,
           "published_at": "2026-06-29T07:00:00Z"
         }
       ],
       "pos_n": 2,
-      "neg_n": 7,
+      "neg_n": 4,
       "asset_search_shadow": {
         "valid": false,
         "scope": "asset_specific_google_related_queries_shadow",
@@ -12524,25 +12524,25 @@
     },
     "BITCOIN": {
       "type": "index",
-      "change_pct": 1.07,
-      "price": 63656.74,
-      "price_time": "4.41 PM IST",
+      "change_pct": 1.2,
+      "price": 63735.75,
+      "price_time": "5.31 PM IST",
       "price_as_of": "2026-11-19",
       "price_unit": "",
       "price_source": "Coinbase BTC-USD latest executed trade",
       "news_query": "bitcoin price",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": -2.4,
-      "headline_score": -2.4,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=bitcoin+price&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -1.5,
+      "headline_score": -1.5,
       "headlines": [
         {
           "title": "Bitcoin Price: Heading For The $50,000s?",
           "source": "Trefis",
           "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNMG5uVWlVUjFtMG9OSm81UWZnbjZ2amY4bEMteDkzZUpHUWtvWklyUUljYkVSUWlDOHozeExNX0dVcVBkdEZyM055bUNsYlpMWHkxTi10Vk9qaFVGV05BQkhqczVIUF9RNzl6b3FKbmlkeGcyTjlEb3JDODNUNFBQaERLOVZ0TGY4Mk9wZzJhMUpTV1oyWWNLQXNGaEtseWJEbmc?oc=5",
           "score": 0,
-          "age_h": 0.2,
+          "age_h": 1.0,
           "published_at": "2026-11-19T11:00:06Z"
         },
         {
@@ -12550,7 +12550,7 @@
           "source": "Robinhood",
           "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxOdHRxWUdDdXJFSEgyMDY1Z3dYVEJZMzM5NUllZ3Joc3Rrc0o4R2FULWo0YmhfS1hTeG5SN3gxYjZ6Mmwxa043SDRGOVN1blBjRWR6QVZDV2UxdWNHektXeEUxT19kRWlKejZTLWtqUF9GXzNpbWZkR3V5WnhHbkoyNlVSeVhtR21qMFdMejVEbGxITXhuTEpCQzRCN2UwXzF4cVM2Y1phY0hodWgxc0E?oc=5",
           "score": 0,
-          "age_h": 1.0,
+          "age_h": 1.8,
           "published_at": "2026-11-19T10:12:45Z"
         },
         {
@@ -12558,7 +12558,7 @@
           "source": "CryptoTicker.io",
           "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1nSUo3ZGZBdGZHSC1TQ0dvc1Q2cEdNb016ZDFHcGNkcWpFaWt3UjFvbGR1NG5xaGdyNEJPeEVsUm53UnBSeTVVanVNVFg2OHhRTVRlbC14aVZUM0VEa2Rra1RSQ0NOYW0zdmQyTXB1WmJIM3c?oc=5",
           "score": 0,
-          "age_h": 1.0,
+          "age_h": 1.8,
           "published_at": "2026-11-19T10:10:43Z"
         },
         {
@@ -12566,7 +12566,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOZUNUSnUzcHcwNlNwYVZQR2UwbktJVGU2Vmk1OHZVbmRhcHNENTZhdDBaQ3VnUmZJVThZUWFEeTZJNkltN3ZVellmNVhUUEdQbDFEcE5kSjN3ZWU2cVg0OEVneFVKa2N2RVAtWmNMWXhfd3dFLUMzcnllTW1ZZlN1Mmp5TUxjRnNmT2hvVURSUmZZRlZkMzktQ04xS2t0aE1xdGpDTmRHLWRKNDNWcEtiZlBadzBxNlROcnJQaFFxVnJrUTVjRmlGWUl3c1hBX05mcGZGUWh3?oc=5",
           "score": -1,
-          "age_h": 3.2,
+          "age_h": 4.0,
           "published_at": "2026-11-19T07:59:00Z"
         },
         {
@@ -12574,7 +12574,7 @@
           "source": "Bitcoin News",
           "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQZ2piNV8zdmZSS1ZZaUppWVk4cWdVOHpvMjdSZkVocENlNVdtY2VHWDVRNG9xZVlUSm5NZURNZVFiZmFmYjktSFFoNjlGaG5uRFdmZ0FaNmtCdmpmbWF5U0NTQnRFWmthYmZOZVRvVDZsTS13QVJGLXZ3WHFzWlZRV1loMEZEdkxFTlhGSmpRUEt4cFlIUjZPTVZiV0pyVmd1alUySQ?oc=5",
           "score": -1,
-          "age_h": 12.7,
+          "age_h": 13.5,
           "published_at": "2026-11-18T22:27:59Z"
         },
         {
@@ -12582,7 +12582,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQaWtHMUx3Q0NiRVROeTFfQVppS0hQRHVUWUh4U0ZvMm5vMlktVFFSOWVsMTI4V3l1QlprbkVKZ25qQnNvazdFVlBkZE8zUUNsbzBZamU4MVhLQTI1cWhKS3FjRXZLVE0ySzVFVjhWNzI3RTFNYUJta2RVMlUwcUVtUG1EcFRsV3NuMEJEbDJwZUkxd3hEcWQ0RjJpYW8xMHJ3Rm5NR2o2VEFHQ1ZMT3FjX0p1LXN1UXFX?oc=5",
           "score": -1,
-          "age_h": 17.2,
+          "age_h": 18.0,
           "published_at": "2026-11-18T17:58:29Z"
         },
         {
@@ -12590,7 +12590,7 @@
           "source": "Fortune",
           "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5BeUI5Y19hOG1KTjJTbVpVRFVMOHJESmpkT2tYNUJVQnJRZmw1NGhFeFBqM3F0UjRRZGo3dnoyeFZHV0JQQlJCS1NHUGZtNktYSzVwY1NsT3JlckpEYUtuZVlkTnV2eEU?oc=5",
           "score": 0,
-          "age_h": 23.4,
+          "age_h": 24.3,
           "published_at": "2026-11-18T11:45:00Z"
         },
         {
@@ -12598,12 +12598,12 @@
           "source": "FXStreet",
           "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxONzh1NUxYQ0VydTlkSHRORlZmbkhRVVkySDBXcFdnbkxHSUpCbmZPWFpmUVNtdEdseFFzcWhVOHhMNDh1M2dhcV90RDhGYjhHQ3BvUTZVdklJUWhIajE5eTgxSzRDeDVVemZoRUY1Ul9iLTdYMm1DYWU2dlZNS3JjalYyejZFX1loaVdrMmduMlQ4TEJaTTI3bXVzeUE2ZWtSRmNDX0gtUElNeURXbjFMWGpyN1ZQT1RPRHJCS2NqbjJ3QjFEWW9lMDZCdmNUbzhsWlE?oc=5",
           "score": 0,
-          "age_h": 27.2,
+          "age_h": 28.0,
           "published_at": "2026-11-18T07:58:36Z"
         }
       ],
       "pos_n": 0,
-      "neg_n": 5,
+      "neg_n": 3,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -12625,59 +12625,57 @@
         },
         "components": {
           "news": {
-            "score": -0.34,
+            "score": -0.39,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T11:00:06Z",
-            "oldest_headline_published_at": "2026-11-18T11:45:00Z",
+            "oldest_headline_published_at": "2026-11-18T17:58:29Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 7,
+            "evidence_count": 6,
             "publishers": [
               "Bitcoin News",
               "CryptoTicker.io",
-              "Fortune",
               "Robinhood",
               "TradingView",
               "Trefis"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 0.19,
+            "newest_headline_age_h": 1.01,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": -0.34,
+            "score": -0.39,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T11:00:06Z",
-            "oldest_headline_published_at": "2026-11-18T11:45:00Z",
+            "oldest_headline_published_at": "2026-11-18T17:58:29Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 7,
+            "evidence_count": 6,
             "publishers": [
               "Bitcoin News",
               "CryptoTicker.io",
-              "Fortune",
               "Robinhood",
               "TradingView",
               "Trefis"
             ],
             "query": "bitcoin price",
-            "newest_headline_age_h": 0.19,
+            "newest_headline_age_h": 1.01,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": -0.34,
+          "score": -0.39,
           "included_components": [
             "news"
           ],
@@ -12701,7 +12699,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -0.34,
+          "score": -0.39,
           "included_components": [
             "news"
           ],
@@ -12722,18 +12720,18 @@
       "price_unit": "",
       "price_source": "Google Finance direct NASDAQ quote · पिछला बंद भाव",
       "news_query": "Nasdaq stock market",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 2.8,
-      "headline_score": 2.8,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?q=Nasdaq+stock+market&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 3.9,
+      "headline_score": 3.9,
       "headlines": [
         {
           "title": "Nasdaq futures jump as Anthropic’s record IPO pricing fuels hopes for strong debut By Reuters",
           "source": "Investing.com",
           "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPak1YZVIxUzJDd2IzTE5nNVN0aFBwTFh6dm5pZVFkcGQtbFRwMTZfMjByOW9ELVh2cHFQT1RHYW91MWRDd3pEYVJRQUp0dXJPTEM3Z0xvVEQ4elR5ckphMTJIQW9EY2ozeFNaUHlKeGFKX29oSG9obGxqaW9yai1LYi0tWU1ybzl2SkJXTklpN25yWVctbGM5dE1IZElRSHJ5TjlPWFB4cXF3bkd2VUFJWC15VTZWbVJ2UzR5bFFRcVdlRjlpX3N4dVRPWHFfSDhRSXJzSQ?oc=5",
           "score": 1,
-          "age_h": 1.9,
+          "age_h": 2.7,
           "published_at": "2026-11-19T09:17:50Z"
         },
         {
@@ -12741,7 +12739,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxNMGM4OFdVM0QtVVI5bmVlRVgyV3p3RVdPTURnRTJkVDBnUkt4b3gxMnI5V3FkZW5GTHI3ZEFXV2dHVFdpZ2hUTXA2OUx3em0zRmN1M2lQQU5RbVRmLVR5Ty1ZQ0ZQc2RERlROdHI4QVY4ZUlrWTNFRXY5VTEzZno1Szd4MFJEQUJGeU4tNkxySEFhOG1OS2lnN3BpZVJFeDhLelcxbDlYUGtPMDNiTU1BT3V5LVBfT2tVbmNhTUk2OV80aGZBNDg4YVpoQnlOMTJrU2pvUExTRXBuTXJPOEVNSlRtRXd4Y2pHV3dPYnRKN01BV1nSAfgBQVVfeXFMT3pvQlRWZkJLVTJoTXlMX213Tk1XTG10SENJRnBuT2dlQTJaOEJrUE1mSUNNYVpYYWlNNlh5YnhqcU5KSFlPNDB4UVlQN1dweEtIZFVLeGJpcTVYOWZETnNVM3gzc28yeHU0UzE1LXYza0FEd04taFNCYWFVUm1uTVM0U29mU1F5RXl6eG9yZklUWXdLZzFZc2Nla2Fjc3prYTFYdlZFV3ZXODZ6d1lGRjRxVVh2MEljZzRCRUlqaW9JOVRlekdrRHFBVk5ZWmduVEp0eGdvQUZpa1FYSklFZGVGMWtpQTNoZ0UtQjFLdkZ0ZWZKUWJMejA?oc=5",
           "score": 0,
-          "age_h": 2.7,
+          "age_h": 3.5,
           "published_at": "2026-11-19T08:29:04Z"
         },
         {
@@ -12749,7 +12747,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQdWdoSi1NQWJNLXdaVjRpcm1BeGlUbmtSbExNeE5ES2R6X2J4akNmN3hSaGlWVEZ1c3EtdUc4Vk1LUW1NYmJGeHVwVm5RZ1dsR3MyTld5VVFVb0lLSEh5MkoyajJkYWNVenhPUDFaSXctWVI0YTZoalNOamJaOE5ldW9yZlJMcUQzT0d6Q0xNQXVsYXFSNDRpYURqLTRUR2cxcmlWcm42UkpWOFZWMFFCTTVsYUhPTmxObWVTeV81SU5BSUp2VlZEU19nYnhLcWR6T0FtVmNuOVhiYmRQdTdiNnJRTzN0RXN3d0VxWTdYMWlORWNDYmlDWNIB_gFBVV95cUxPVXBjeTZHcUVpcjJoMUxEV2RGTUtDakhNN2x3TEo0b09xZnBIYW1HcEJoR21tMFY4VUVRWkRRWFRPYXc4Nk1NX3cxY0tnTjhudTF0elZmT1V1Ti02M3Y3UzlCeGE1dU9GeWNqNTJhV1plcndZY1ozUEF2R1FCdjB1Qy1HX2NvRHdFMENManN1OHFLUnRfOVN3MVlsWWlpR2E1eXR2dmpldVlHMmU0LWNhT1hsTllTU0pHVk4wMmZKam05azZJbm4tQVpQRjNTa3FEaE9DRTBfYUptWFA3ckdCWklxYWJkSEdQZ3A0MUdJQzM2a0JoLUpwd0d6djlJUQ?oc=5",
           "score": 2,
-          "age_h": 3.7,
+          "age_h": 4.6,
           "published_at": "2026-11-19T07:27:36Z"
         },
         {
@@ -12757,7 +12755,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPQ0w3Mmdrc3EtaHNJdUR0OEtRTmg5b3I5N25tUTZ5VnhIVlFVNTFUb0NzU0dlTlRVREtDQ2paVDJVVWE1QlRBT2JwZ0xSYVBYUElxQnF4ckNTT2JSN2ZabUdmby01UnVqUE16cEhWV2JBTmNPR0ZpSnZjaFNZQmoxQi0tandJVDNmRlZ6UHJYUm1sVmdZSlJ4SDc4VkJOWUk1TjJ0T1MzNUJQby1qZUNJcFc5cVNuWE9CU3JieExXbnUtYW9ObUcydFVrUUxLUnlrbUZtLTlUTm92WF9jeHpGNDdabjNEeEY3U3MwbFBKbHhLdGxGQlhhbWR5eVZvN0VhM29xYm01VFViTlHSAZACQVVfeXFMTW5SeDlyaTFUNTZURmhpM2xiaDc5M3h4YXZzc0xOX2tzS0pFX2t6R2lIajgxTV94czRTNFpFSEctVUN6OFJCWDZ3VkpJZWRSSDBraV90YmRMVWhsaFBjZHo1a3d0VV9QQlBQcGRrLUNKaE9hUDY3UmxVdUpZNGs2R1dxUWhmSnBSdmp2dE5jM1J6dUFNR0RaT25jTHcwS1BqY0ExMUh2aXFCZ1ByVlREQXVXbFRJM2U0dmhyM21XbkJ4bVpScUFQakROLWY1Q013Y09MNmZiSEd4NXpfckJzak9SU1ViQURsM1ZIdkZxVDRFVlE5UzRIdm53bmE0LVZVd2dRMkVxbm1VQVRRMW1wTnY?oc=5",
           "score": 0,
-          "age_h": 10.1,
+          "age_h": 10.9,
           "published_at": "2026-11-19T01:06:38Z"
         },
         {
@@ -12765,7 +12763,7 @@
           "source": "The Financial Express",
           "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOUDVrbi0xcHJuNFc4TEd3UFpRc1pScDBLdWtFWGxqZi1zVTVKaUdoUUNjNGhhOG52NVZndTlLdjNFNEFfTXFOT2p1bnplWjE1T3pLTklreV9wc1ZLeVVITnN2MnUxMjliWV8wTUVoM19jT0FLRE0wZ1E1SGE1cGpTMnVnQk9yaTFoaUk5aTg5ZUxEWFJCVGlqMXBMWGtVV3NFSV9YWGVrS0toMnZxZXN3TDJ5cnRTSjZrdlRLdENmeFp1OFRiRjdsX0FwRzBWSEFHbnBwS2ZlONIB3gFBVV95cUxOQTBGMTZFSkc2T1ZfWV9wbGF2RWVEbFJqRDFNamtUTWFzU0d1ZVhpMlBKeDlRSFpxWXRfOFpOUHdkcjZBMVp5TW40aEo2dEhlWXFaVVJjVWN0WXJrcUFNcHhjX0dNYjgwUjJDbXp2M2o4enRpUkFLLXpmVVh1bEFnSW1aM3JxYk0ydUdXaVNiTm53YllOSEh4aFY5YkRBR1NLYlRrTUNaaEVXcDhLZ2lTa3NLdzdNd3ZiTWRzaE1WQ1FjQjVpdzVDNFNtc0JrMzRLcEVMLVlSREpsWDU5d2c?oc=5",
           "score": 1,
-          "age_h": 11.7,
+          "age_h": 12.6,
           "published_at": "2026-11-18T23:27:00Z"
         },
         {
@@ -12773,7 +12771,7 @@
           "source": "Bloomberg",
           "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNMHJMMGxuVjE0QlBiMjdlLVg4Snd2RjdIVmxmMlFGX3E1cEpBS3BHaEQ0YnpUb19jc2lXMG9RQk9nSk8xSVFmN2d4VFRoSC1nQkJUdk5DTF9MWlVqRklPelgyUGpNREtJQUpEd3BTZ3A0VmVZdGRZZ21mT0x5bEdhUkd1OVVKZHNLUkRqdWY3M3VxOHBu?oc=5",
           "score": 2,
-          "age_h": 13.1,
+          "age_h": 13.9,
           "published_at": "2026-11-18T22:07:41Z"
         },
         {
@@ -12781,7 +12779,7 @@
           "source": "Investing.com India",
           "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPTFN6ZDVrR2tfZTBObDZpQWJUT0FCSlJHU25ObGpVNHlLdllWSTZCQUdFS2ZELVNad2puXzhlZm9GeDZKQlhvSzdZOFlGc3NKX01qM2NvZENjX0JFZ0ozOVhSZS00N2hYd2FaYjlmaVZ1bUNMRHZGZmg4QjNwc2taSDgyWERvR0pVVTRnbk84QnNCS3J0d2x3dHpaNmcyc1NhTWtqTXhPZnRLczBUN2VGVDJqWmsyNldBSnliaUtzeWFUYjgzZWtoSFhDX0ZIU0hhSmhZQg?oc=5",
           "score": 0,
-          "age_h": 13.5,
+          "age_h": 14.3,
           "published_at": "2026-11-18T21:44:11Z"
         },
         {
@@ -12789,7 +12787,7 @@
           "source": "Investing.com India",
           "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNTVlHdE9IU3VZTkRsT0kzdFJzNEgxei13TUVpVDZQbkVTLWVVLUp1VW1vN1BqVXJ5MXlkcGhHSU8zR1EzM1cxekpSaElFNnRYRUlFZmpzdWJyTDBxNGhFMFdMdlg2aEozcjYyV1piZG5uVWdSblZVT3FYZ0VOdFFrb1Y3N3c0c3B1UzNBM3c2QWd5N0hzVVZUTUtwTQ?oc=5",
           "score": 0,
-          "age_h": 14.0,
+          "age_h": 14.8,
           "published_at": "2026-11-18T21:14:05Z"
         }
       ],
@@ -12816,12 +12814,12 @@
         },
         "components": {
           "news": {
-            "score": 0.8,
+            "score": 0.79,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T09:17:50Z",
             "oldest_headline_published_at": "2026-11-18T21:14:05Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -12835,19 +12833,19 @@
               "The Financial Express"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 1.89,
+            "newest_headline_age_h": 2.71,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": 0.8,
+            "score": 0.79,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T09:17:50Z",
             "oldest_headline_published_at": "2026-11-18T21:14:05Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -12861,14 +12859,14 @@
               "The Financial Express"
             ],
             "query": "Nasdaq stock market",
-            "newest_headline_age_h": 1.89,
+            "newest_headline_age_h": 2.71,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": 0.8,
+          "score": 0.79,
           "included_components": [
             "news"
           ],
@@ -12892,7 +12890,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": 0.8,
+          "score": 0.79,
           "included_components": [
             "news"
           ],
@@ -12913,18 +12911,18 @@
       "price_unit": "",
       "price_source": "Google Finance direct DOW JONES quote · पिछला बंद भाव",
       "news_query": "Dow Jones stock market",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
       "news_fetch_status": "refresh_failed_using_cached_headlines",
-      "news_fetch_error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?q=Dow+Jones+stock+market&hl=en-IN&gl=IN&ceid=IN:en",
-      "score": -0.5,
-      "headline_score": -0.5,
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Dow+Jones+stock+market&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -0.2,
+      "headline_score": -0.2,
       "headlines": [
         {
           "title": "Asian Stocks Set to Fall Ahead of Anthropic Debut: Markets Wrap",
           "source": "Bloomberg",
           "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNMHJMMGxuVjE0QlBiMjdlLVg4Snd2RjdIVmxmMlFGX3E1cEpBS3BHaEQ0YnpUb19jc2lXMG9RQk9nSk8xSVFmN2d4VFRoSC1nQkJUdk5DTF9MWlVqRklPelgyUGpNREtJQUpEd3BTZ3A0VmVZdGRZZ21mT0x5bEdhUkd1OVVKZHNLUkRqdWY3M3VxOHBu?oc=5",
           "score": -1,
-          "age_h": 2.3,
+          "age_h": 3.1,
           "published_at": "2026-11-19T08:52:52Z"
         },
         {
@@ -12932,7 +12930,7 @@
           "source": "FXStreet",
           "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNZG5lZXI5ZkpBaEJEeEJNQ1E0d0pvbU9TTm5NRjJzUUxqUUwxbHZvQUhhWkM4QjBkbkcxNWFvNXVITnVGOEpFaVhGTkxLNTA5NnhvT1ZVY3NSYlB1Z0kzV2lyUmVDUHl0RTFEVFBQYk1BdVlHZTZBVU9mdE82STYxYlZPckxuaWZwUGN6SmFmbXhOM0tVUmtYTzBtZUlYN0x4TWNR?oc=5",
           "score": 1,
-          "age_h": 2.7,
+          "age_h": 3.5,
           "published_at": "2026-11-19T08:30:06Z"
         },
         {
@@ -12940,7 +12938,7 @@
           "source": "CNBC",
           "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFAwTDVScDA1ZzNHQi1GT1RaRFVzYTJPa2lHVVJyVzR6RlhfaGZNbG5Va1BFblNtYm54eG82YWl4dlA3SkltcC1WSmdCVEUtMlVKNXlCVDNVcG8wRnBaNkc0UVctakctUDdZUDJsNEp4dWN0Z0Vsczlv0gF8QVVfeXFMT014TXpKZ2hKbVhJT0dVekl1Z2tCbjE3MnMtLWhMUG1DaUc3UUd0emE1R2xPd2pDZXMzVXhGbHFVRmdWRm1iRWJnejN6YjJJYlpDWkxJOVhDS3RuRGUyQkhHZ2wzSzJJdnVrNDVqcHQxb2ZXVkUwSVRJcjE4RA?oc=5",
           "score": -2,
-          "age_h": 2.9,
+          "age_h": 3.7,
           "published_at": "2026-11-19T08:17:51Z"
         },
         {
@@ -12948,7 +12946,7 @@
           "source": "CNBC",
           "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9haDBGN05NTm5JVm5PcFdVQ3hJV3Q3N1BQeUJfaGhhbkluOGpOWW1sU2dWb2ZtY3dEX2VTWHN5S2RaSkhWQTgxZFJ0UEZFTkVnaTRoZFQtZV9DelB0SkdBdUhSckR2VWFmWmw4R2tWejJNMEhSaVpn0gF8QVVfeXFMTkFhZVJoMnczYWE3UFBMLTAzcmhienFUYjlqUmNXWURGd3dsamhpbkVhSmpheXBmdDVvYk11ellHMEtGcG1ZOXBUYmxBandtMTVWOVl5M1hGZUZMSERKb1lDR1IzZVN4eC1qWklncjZTc2tzVUJod1F3Uk83dw?oc=5",
           "score": 1,
-          "age_h": 5.7,
+          "age_h": 6.6,
           "published_at": "2026-11-19T05:26:43Z"
         },
         {
@@ -12956,7 +12954,7 @@
           "source": "Investor's Business Daily",
           "link": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQeVBnRUZJVFdOVnpFN2VzbW14dEJLZjBNM1RMM29ERmY1cGF3eDF6WWcwb0t6OVNMbC1Jd2Nvcmx6QVlERkNYQUtHaGhQb3FVdVVRemk5YmV1am1PN3hzZHBQbzlrcDB6MWgyNV85a0sxLW9oLWZFQmdVZmNwWDlZVDVWZ3hPdTNaRm1SYmlNVnNLU1RJU2FVdEVHSnFXdU45Y1JXMS00ZUk3bFpvVWVubHBISS1fX2gtT0ZZUFowTHhiYlBvSlNPMDVTY0lUeDRpejU5YkxPSXYzbEhOZEU2Sno4OU1kTFRUbmdrMUhzdmpTUQ?oc=5",
           "score": 3,
-          "age_h": 7.2,
+          "age_h": 8.0,
           "published_at": "2026-11-19T04:02:00Z"
         },
         {
@@ -12964,7 +12962,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQcV9qZ1RibGZRTUcxbHJFRU5IbHp1Q1VPRkdReWF1S0lzYTI1TGU3YnltbzFUUWZkblFtcHZaT1cwVV9NN3F0ckV2OFBHSVVCNWFOclNQNUxlUHlHN3ZXMWJyRDV6Tkk4dVkxS3M2clNORVVNQXBNcnE0eDVVNzBiZUphVlVIc2VFQk1aQUNXMG5QenVEVU1zZXRYUmV6VG5ONEd1Wmd5VE9Lc2RjMlU5RGdQUHhYMlVT?oc=5",
           "score": -1,
-          "age_h": 7.8,
+          "age_h": 8.6,
           "published_at": "2026-11-19T03:21:51Z"
         },
         {
@@ -12972,7 +12970,7 @@
           "source": "WSJ",
           "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNWF9SSWdwQ1BBTkhfMnRGdVRodTBUeEpibW9RRlgzWURreHZVY2RKYXM5el9YQU1XeVpnTnl3QWJnbzRpdEVBT1JDbWNodTRKWHBsdnFKOGFYM1lGaUtNbmRlYUJhaTZrandnaFpUVHFDaEV6UUVaSW9jU05fakc1UVRTRkhibWM?oc=5",
           "score": 0,
-          "age_h": 10.3,
+          "age_h": 11.1,
           "published_at": "2026-11-19T00:54:00Z"
         },
         {
@@ -12980,7 +12978,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPeUR3dzJnVGk3OVZRaU9zTXNDYVk3V05rMUxfSDdCNjZfMFA2czNYUnJVcmRNMXNLUEFMd1lXT2dBTENBQndoNExSOVE0UVZQNUY0dWk3bHVVS2dwcFdIbDllemVudWNFUjhEc0otM3lZeFlHREhoOEhjLXhFSWRhN0pxc2p4MnJzSEVpNzM4X0NBQnBWSmFvNG4wRE5YMkNkek9ocEJ3YTFYc2xqTkFkQU5KUm9XTVpnNUs3Y0NnNGpzT0htY1J4ZHlFTjltN1lYcDVsMGJEMk9JcTTSAeABQVVfeXFMTlJpZndRa2hNbkM2eXk3WU9nRm5QOGF0cmZvWTlpaWthbnJTV0hEZUNvWE0xSWMzckQyX202S0JPWlhkUVZKOEdJQjR5NW1NbU5RRGktRmxVdGFrdjdNbkoyWmo2S0pyRGRnLUxKQXFpLVJpT0hjX2EtNHBhdmNIYnRLaFNXeUczcHc0WDVidGYtUUpvc3NGS2FWWHZQSXpyQjhmZEREOUlONWo2X0RfN2xSdFhKUkNTM0JUWTBNb3lIeTg0eDZPZnVXZ3JGTE5HdG1ISVo0RE9lRFNKcmFzRGE?oc=5",
           "score": -1,
-          "age_h": 11.6,
+          "age_h": 12.4,
           "published_at": "2026-11-18T23:37:08Z"
         }
       ],
@@ -13007,12 +13005,12 @@
         },
         "components": {
           "news": {
-            "score": -0.09,
+            "score": -0.03,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:52:52Z",
             "oldest_headline_published_at": "2026-11-18T23:37:08Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13027,19 +13025,19 @@
               "WSJ"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 2.31,
+            "newest_headline_age_h": 3.13,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": -0.09,
+            "score": -0.03,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T08:52:52Z",
             "oldest_headline_published_at": "2026-11-18T23:37:08Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13054,14 +13052,14 @@
               "WSJ"
             ],
             "query": "Dow Jones stock market",
-            "newest_headline_age_h": 2.31,
+            "newest_headline_age_h": 3.13,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": -0.09,
+          "score": -0.03,
           "included_components": [
             "news"
           ],
@@ -13085,7 +13083,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": -0.09,
+          "score": -0.03,
           "included_components": [
             "news"
           ],
@@ -13106,18 +13104,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Reliance Industries share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 3.3,
-      "headline_score": 3.3,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?q=Reliance+Industries+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 2.7,
+      "headline_score": 2.7,
       "headlines": [
         {
           "title": "Missed the RIL rally? JPMorgan sees another 23% upside, highlights two key triggers",
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNMnYzcmJWNUkxUjZnTzNZSUd4bHRVODI3dm5iZC03d2pYVnhHRW5vNWtXb1Q2ZGF2TTl5dXN5eGtTQlJzRElvd1VNWl95enROVXlzc21lOEtJb2xIVzdIQVhvQjRlSndYRXRQN2MzNEhFOWg1R3NpR21CZmFqREFpYTdxOUpDNnp1ZEIzTTVwYVNselQxeFA3Y18wV0xPOTNja0dqNThqMy0tUnRrUFFYS1pzSDYwZ0NCRzJBN2lIM2lGalRUQzZuRVJKVGlXOEpkZ3V4cXZtdm_SAd4BQVVfeXFMUHoySnhEeHFla3VrcE9aNDZMaDVxRi1RMjR6M1B2Q2NLTG8yU0pfUFRsQmxfUlRfcWRBLXp0NGVKYmVIT2VQLTl3OFVyYTItamlpVXhWNDFFeXVuWXNfWUlOMVNPeml0WmRCSkRldkwyRndSNDhuSG5yZHU2QnhObzl2eGg3aXV1R0VwV0o0LWtrRzYzUVhjd3V4ZlFkakVKQnFtaGNqaFp2Z1BQcjdHSkdKcFJWSGV2akZqLWFzRWtIR1FBeWNpOFNPeUEwUVZiMGVSU1FPNVY2bTBnMGRR?oc=5",
           "score": 1,
-          "age_h": 5.6,
+          "age_h": 6.4,
           "published_at": "2026-11-19T05:37:57Z"
         },
         {
@@ -13125,7 +13123,7 @@
           "source": "NiftyTrader",
           "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNM2tJOFFoVkNtQlRjWm1SSEI0dlJYYWRIZkNqVWNaQ1REaTFVeVdESU1GTVBxV190YkhGdGdhS0RvUGhDS2xpNXlZd3JHcnRWZzI4cHphZndyLUtQTVpKbFo4MWNlTy1nc1IwVm9HVXpfbnR4N0tockU1SFJZb3d4NQ?oc=5",
           "score": 3,
-          "age_h": 23.7,
+          "age_h": 24.5,
           "published_at": "2026-11-18T11:27:57Z"
         },
         {
@@ -13133,7 +13131,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOdjItdmxaMnZXaUFOMnhBZFFzNzd3Ni1UU3FiQlh6emFoMVd0bUtkODNsVXRjLVotOUp5OXRVNjVFOEx3MDRQcHdKUVZ6ZjNIS2tkNGZ1MFMyNTAxVmNlX0lUZUE2Z0xrenBBTGVXRUtyTG4wRUIweVhiRTNlTEY3ZGNBVUZhampBam0zUFBlbnVRWWduY19vOW9HT1FSdGg5VDJfU2hYaVdiTTdNdHphS3RoQjhqX3Z0YUVEVlhYeUF5RjTSAcgBQVVfeXFMUFI3emhsRHAyS19IMl9mdUZJWFJHTlZic3dla3VXQllKV3RtMjZPVWE3WlphcUlZejViMWV0cWpOV3ZGNnNIWkl0TVFfZ3BYdXBCUVNISW1Jam1vSEFHM2M2VUpoRkxQSVJvUXVWdG14cGR0REw4eFgyQlB4UmlwQndqS096eWJYTjJuMlFiNDdBZ2ppLU15UXQ2UnBzbnR0SlpvMHdldENXZWl3TWZxb19wTEdlMkRmWjBYdGIySWQwOGVGQmNOcEs?oc=5",
           "score": 0,
-          "age_h": 26.7,
+          "age_h": 27.5,
           "published_at": "2026-11-18T08:29:50Z"
         },
         {
@@ -13141,7 +13139,7 @@
           "source": "Yahoo Finance UK",
           "link": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE4xeXJjVnZ0V2gtTms3eTY0ak1yaTZnR0RXVHpEMEQ0bTh1SElpTFBkV3c1R1dIUlk5SEZVMnFzLUM3MmcwS1BPRWxLV0RHS1prbmU1U2NKbTByNm8?oc=5",
           "score": 0,
-          "age_h": 29.8,
+          "age_h": 30.6,
           "published_at": "2026-11-18T05:23:55Z"
         },
         {
@@ -13149,7 +13147,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMib0FVX3lxTFB6bHBYSldaWTEwM0pneWlBUVNlVjM0Njl2NFVCNGR3NTlneGlzM3VRa3Zha1RQWXJDRkxjUjR6V0hPTGsyN2FKTmFtak50X0pjUjNtQmhvMmRCTHJnNXdhYzI4c0lKU3hlVnB4cWRNbw?oc=5",
           "score": 0,
-          "age_h": 30.5,
+          "age_h": 31.4,
           "published_at": "2026-11-18T04:38:51Z"
         },
         {
@@ -13157,7 +13155,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMilAJBVV95cUxQcWtNMHZIZDZ5ZFpRUHg4WVRZaDh3LVVDNkdLTTVia1hkNWlOSTh2VExIZGxIcWQ4SGZYc2o4Wm83S095MUM3OUFxLWZiWTJlQ2VSblk3X1pEVFg2d19RcjlNTjI4dzZTeVFYWlNoZ3E1RVJfZGpCeS14RDFVOEhwOHBvMTlaU1V0b1l1X0Y2ZnlXQVlBOU8tTllkdW1PMm55alNIbGg0UGJMLU9ubEYyOU00NkNQei1GT0poMkpXTV9ETVpmZDZTOXZCX0dyamNIeUlIRnlhVWxmMW43TFVQVl93VXBxeVVXZm95eldoOEJ6dlZ3UjJsSElYTjJaNkVCOWRONkVxbWYydVF6OExTYVN1YTE?oc=5",
           "score": 0,
-          "age_h": 39.6,
+          "age_h": 40.4,
           "published_at": "2026-11-17T19:35:47Z"
         },
         {
@@ -13165,7 +13163,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOcDBtOWtWN3NEMjBFRVhoSloyU3JKNG5DNnlHTE5ndFRnZzQ5VmNMQjVULVJOVDRseEU4dnpCb0dSOEdRX1JsZUVCWHVtRjhMRkZvU3lfa2oxemIzZG1CZE80REdRSFpJTU9QWGNMckNZdTJDdE9jRV9XU3YxVVFyS3BacHRkdzFqWU1DRzR5Q0FLTDUtYUY3ZlJIY1BvbzJTR0p1dlI3LVRobnB0b0JYNWF2TmhGZDNLaXRrRENsU3RNaG5uR0MtQW5MQQ?oc=5",
           "score": -1,
-          "age_h": 532.2,
+          "age_h": 533.0,
           "published_at": "2026-10-28T07:00:00Z"
         },
         {
@@ -13173,11 +13171,11 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxOVm96SVh1TGp3Y0J4SldnWUdkQUd3T1R2cWxJMUEtWkh1TUhzRGJWWVNrYzJqY1UxanlraFNRc0JmY1FFMnBMbWRwTGc4TXRabG9pTGU5aGZlWS1oQzBNQU5nRjRaVDdOUzhqTnJqa0RDZUYwVkNySmRjYXBoZUNRU3VhVGJiZ0s2Z3lkUFM4TUg1UzJVcjI0NVdZYU1kWk4tN2pVQ3ZETXdJYkZGSmVZTTFSUXI4emc1VHhhR0RBcmFiRzZSUkVFNElVQVc3UVUt0gHWAUFVX3lxTFBud2lyYTdvdnY0UGhFZ0ZBbmpKaHJrN0xRckdzZWd1MFMtajFvS3BJMEo4ZFZ4WGp3Rko5RExoekUtY3NoYXVnbk1LU2FsLWVQeVJ5U25fYjgtdjRMdm96NmUzTTRvYzYxcTIxUy1MeE01aWJ5eF9BMlRMOWpaQUdab0gxeXkwb0dXSkNQemVIS1NYcFNGS1NVM2lrZmxUZk1UYlgtZk51cWtJRGNQaE40eFBMUVZTVkV6Nnp5cXlqRTBJYVR4UHcwbDBKWnZmNDFBZWxrUWc?oc=5",
           "score": 0,
-          "age_h": 916.2,
+          "age_h": 917.0,
           "published_at": "2026-10-12T07:00:00Z"
         }
       ],
-      "pos_n": 5,
+      "pos_n": 2,
       "neg_n": 1,
       "component_breakdown": {
         "version": 1,
@@ -13200,51 +13198,49 @@
         },
         "components": {
           "news": {
-            "score": 1.63,
+            "score": 1.0,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:37:57Z",
-            "oldest_headline_published_at": "2026-11-18T11:27:57Z",
+            "oldest_headline_published_at": "2026-11-19T05:37:57Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 2,
+            "evidence_count": 1,
             "publishers": [
-              "CNBC TV18",
-              "NiftyTrader"
+              "CNBC TV18"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 5.56,
+            "newest_headline_age_h": 6.38,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_components": {
           "news": {
-            "score": 1.63,
+            "score": 1.0,
             "source": "Google News RSS · asset-specific card query",
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:37:57Z",
-            "oldest_headline_published_at": "2026-11-18T11:27:57Z",
+            "oldest_headline_published_at": "2026-11-19T05:37:57Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-            "evidence_count": 2,
+            "evidence_count": 1,
             "publishers": [
-              "CNBC TV18",
-              "NiftyTrader"
+              "CNBC TV18"
             ],
             "query": "Reliance Industries share",
-            "newest_headline_age_h": 5.56,
+            "newest_headline_age_h": 6.38,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
         },
         "provisional_final": {
           "status": "available",
-          "score": 1.63,
+          "score": 1.0,
           "included_components": [
             "news"
           ],
@@ -13268,7 +13264,7 @@
         "client_market_context": null,
         "final": {
           "status": "available",
-          "score": 1.63,
+          "score": 1.0,
           "included_components": [
             "news"
           ],
@@ -13289,18 +13285,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "HDFC Bank share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 1.0,
-      "headline_score": 1.0,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=HDFC+Bank+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 1.4,
+      "headline_score": 1.4,
       "headlines": [
         {
           "title": "HDFC Bank shares edge higher, but heavy selling keeps pressure on stock",
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNWEJGZURDNnNwYmV5NTFtUU51QWJ0U0xDWjN2eGl5Z3RvYTNDYTY1T09VcDN5UHgyVVZMckhiWURtVmg2ampncW02N0tvYk1xQ1RlNS0xTlRFVWhtOGFNbERzeG9GZzNIc0JZd015SWs0MEtualNvT2ZTWlRqTUkwY3VSN25KWExfN1VvVUtNU1R2X2Z4QW9qU29sU2otTTE4ZXZDOC00V18zNU5sYXhIVVdLQkdZUTV1V0paN21YemIxN05HaWc?oc=5",
           "score": 1,
-          "age_h": 4.1,
+          "age_h": 4.9,
           "published_at": "2026-11-19T07:08:00Z"
         },
         {
@@ -13308,7 +13304,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPanIwOXNGS1NUUXRNbk9taTV4bHU2QWM4dlZvRGtrX1NURUZNUTRCZU1nYWctTmtlTU9RRV8tekpGeXRSX0c0LWlJWDhkell2dlNxZEQ5bkJNeXo0Z0QyY0xJOUVncTU3VFIzdjE1clEteFNrMWt2V01iWEsyX1dQTVlmZlZsbVNfemowZjBPUjZtcE5SdnZSYjBaYk1iWWU4NjR3VWxZVFhNQzBKWG1KMHJiRTB3Tk9nWl9LN1pNd3ZrQ2pDS3Awd3dKNWdmYVZxaTliT212RUhBbFo0SllUMWk3NS0yY25tVHFZOXFVbkNVdm12TTVFZjBDUENsbk80WDlpRDd0aVBEWGPSAZACQVVfeXFMT1ppYkhldmtxRmViRXdfbndtNmNGVzlJaG9zc3JreWQ0UG1kd09lLXNlZjV6ZjZHOTNudWcxVFRnRnZvcHhiNUZveXRlZjZyRVUwWEVRWERhM0t6UExlZjZueFBzX2tDSTMwQ05sTDQwRkg4RHN6MTJSRzl2bTc4SkJxaUdKNi13U2dvS1EyaHFEd2doblMtNktLbUhQYzZBajVoNWpqaVV0TktiT1JMNk1uQlZ4Z3pPTnNXWlBfNFBLNXAtWG91V1RDUWVQeUtJUzAtTHRWeWtndjRNVXNldHB2OFRNX01KSE1mZ1BBVHZrUUpCMmE0SUVfTnplRG40OUp6c25yLWpQTlJlSXVRM1U?oc=5",
           "score": 0,
-          "age_h": 6.3,
+          "age_h": 7.1,
           "published_at": "2026-11-19T04:51:40Z"
         },
         {
@@ -13316,7 +13312,7 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOY2F2MzVFMllPWWpaTWRHSDE0Q3duZVdyN2NrbE9hNGVnSVUzYVZyS0tfaHR5NUZydlBqME9PVG1mdHhGTFF0d25MNC03WUQwNEVYbTBOdVR6ZlpXcTl2ellUZzlMSnIySU1WN1ZOMlpNSUVFY1EwWUc5bTJJV3dLQ2VTQVpodklvVVB3a0U0UWhJOXNyU2pnMTBicFA1anRyd1BZUlVNbExjUFRQMHRHMWtPMnY1QkZkYjIxT2NLamRrZW1IMEh6d21lb3ZmczhqX3dlVkEzONIB3gFBVV95cUxOeEVnMXhOQUxqaWdPd1EzYXVJckVQWWd1TEpXdHI4Sk5xZ0RjakktbnV2R1JnYzdsdkFfelhMRXRySEJVWDJ5THU3RXhmcGVVSW1SS3Fob2tZcUxxTU00X0VxV1ozdVRHY216T2RoeEFBeDF6RENrUjdZUEFpaGlUVXhUeXExdklaSXUtVWFnVXdaNTRhNFBobnpwWmNZVXFoOEQ1TmJQb2NJTnMtRDBkY2h0WFVjQ3ZSUU9UVUZlQktVb05GMWlHeVJ5YmxrOUJqXzY1dHVFak5JdFZBQ0E?oc=5",
           "score": -1,
-          "age_h": 27.8,
+          "age_h": 28.6,
           "published_at": "2026-11-18T07:22:17Z"
         },
         {
@@ -13324,7 +13320,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNU2IwaW9ZNkRLdlhOWlpxUm5hbV9ERks2SWtSUlg3ZkZzd0VIMU5DczE0V1VJeHZZNFQ3VXFERExJSmZ3SGY4ckRoSnhrME5EZ2ppaEFXbFhLbnBvVDdSTzUydzJ5eTlYU0gzOVZoRERUSlNlRnNSMFpvNVNGVl9jZldBLUpZczhJbEJ6VkZacFYyajZoY0ZsZkVOX1FlQktFRGtFSEFSVjZhOGNUbW8tdDdkck4yN0xCR2tCcUJ0WTRBa3dqV0VrOVVDcDJKZTlUMllDYUxmV2J1MEJuMzdfZ1o3WHNzZldJeUt5NzVXem9kSU150gH6AUFVX3lxTE1XY0tWelA5QnBYdGFldUhKT0pzaXhYMGNRX09RTExPMVhqVlVqdnpkYXRpQkpjQWtmejE1VWlnS2dmVWdWWG1oNENaOElUdlhDWVp6azJKcTQ1eDBhQ0ZIcDlwNzVDSE1sSnNfai1uM01LVVNsell4bTh2V05jU0RSZDVHUnpLY0RoTnR1V0VGNkhhN2lvX2xwdElFTjFwWG5xd1BrVkFoblI1TTVSQlRtRXNSZDhmOERydkU2UDhjSldjOFVJRDc2V1BlWEtiNGVQcktiRFhPV0NfMXhHd2JRWUQxSUlBUXBXWmRCNFpHem9KMnU1MWVNSXc?oc=5",
           "score": 0,
-          "age_h": 30.2,
+          "age_h": 31.1,
           "published_at": "2026-11-18T04:56:45Z"
         },
         {
@@ -13332,7 +13328,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQanBkZXZUc0FiSkVnOGhtVEFtZWlwSTFTV3JSSzU4OEN6aE1IcWlVcXB0VEF5RFA3ZWYzYy1KYVM4WGpNX3FTWnpvVlJRSDFHWmY3THNRVUQ0bHpPX25GVEg0YWRjY1JjaVMzOGJacHNybFE3T212dHNJeWpDZTl5THVSeDY4WDZEYnpTSjgtQjBNSG1JRmZjSmlUQ0VhYVJpaFptYng4WDI1V1piVzJhWjNwODJwZkRnU1M5ZDY4X0pYR1pSckpPdWh5TGU1d9IB0wFBVV95cUxQV24wTDI4bkUzR1FaVTBqUlhpRlBva1RhM1JnWTdQTDZUcnJHRVh4Rmg2OFl4cW9NN1lueU5LS1phX0ZwalZlYzJVVXVhTVpiQ1E0SFA3eGZxLVF3YmlkSlJSazdJd1Vzd252T0hsdlN1bGFYbEdwRzJTRlNZeFlhcTRTVUVUMU8yZ2tMQk85aE9KdDNuaE5YTjR4TEZkQ096WFB2TWs4YWlXN1Y5Tk9wczJUNHVwazh3NEFHbUxiYW1XS0lHX3lqTEloODI5bTlQTTJz?oc=5",
           "score": 0,
-          "age_h": 44.0,
+          "age_h": 44.8,
           "published_at": "2026-11-17T15:11:01Z"
         },
         {
@@ -13340,7 +13336,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOMURWT3l5MlZGYjZvb1ZoNkVsOEZ0a2owYk8yWm5QdnltcWdydGFhLXVtcFdpSExlWHh1ZGduOFpfNEJRTHdTb016WDFEY1JFVldSSWJPdFZEYmxmekNCRW9UdnAwRUNHYXlxRHV4SFlZdng3YzVDbnBzT2FnMjJ6M1pBWkV0dVBrSTR2WWdIZGh4YVdtdFFLcE1lNXozOFpaQzk5Q2lyMi1ZcHRMZ09EaXpXaFBkSXE2bER2azhFclNsU05fMWw40gHMAUFVX3lxTE5ZcTRDVVZ3cGxSN0g2RGozcmpVQlV1aFNBaVllV3M4U3BVMXE4WUhfaEZFbGx4VWJsNkppSGVHOXNZMzNDOW1qREoyNG1kbUI1c1dyVWJIWDdCdDBaSERCekxnLWNPZEdIREdtVE9VTFJqT0lrNXFKR1dNOVJxNkpRalpNVERaTllSdFg3NEozN1J1dW9XdUE0THhnQTcySm5hMkVsbkFXdmZ5WUdneE1qNUFudVI4cXJNQi1GN0RwRTNxMVgxTDVFY2g0dw?oc=5",
           "score": 0,
-          "age_h": 56.9,
+          "age_h": 57.7,
           "published_at": "2026-11-17T02:16:20Z"
         },
         {
@@ -13348,7 +13344,7 @@
           "source": "India Infoline",
           "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPbjI2UGZOWG9mUF8wa0dPWV9oTnZkZEZWTEtaNFVLcHAzLVJZZjJIcGxsTW8zMXN4VWlNdGN6elExNUlpc1hPTENOakk2N1VIbWFUUnkyT1NXcWNWTjU2WmxiOGo0a0RqRGpHbU9pTEp4cmlONU5IdHE3QU1XeTE5ckIwY19xQmQ3cTVlYnRIb0hYVXJQMXlheVhzcGlxaHJwSXBkLXFIV2h6S3Z1ODZtamp2M0lweUI0V1NXNVZzdXItWkFnV0hZVXVfek9EZw?oc=5",
           "score": 3,
-          "age_h": 196.9,
+          "age_h": 197.7,
           "published_at": "2026-11-11T06:19:25Z"
         },
         {
@@ -13356,12 +13352,12 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxORmtoeGNKSmZQNS1sS0VvdUhnRU5HVkJnemdyZFJYdVlIWVAzVm5zTmJ6eWFNVmtyZk95SzNkdXVQWFJFSGtaRmFPSER5TDRETjQzY3BtaFJhM3B0X01IY1FuVUxpRlFyZ0lLdmhMY2Q1Ym5qNk96dGVvZE5XLW40a2dndXJZa25sQVlKdGNrVzRCWVRWQUYweXFzNUdwbXdpd3ZiOUkyTURCT0MwSjRCekFGa2R2OFE5NmJxdzVobHJyUTdxTm1HOF9iZHphSTYyRnhycFgzeG5ITktw0gHjAUFVX3lxTE9WLTl5dm1oOC05c01BaGdINjhFMmFweE9zT09YTHlxWC1iZ1AxZF9ZWHlDQXhPT1hQYTJCbHFwUTlGRmtIQjduYVN6VGoyUVlGRGxBcUotcE1aYzk4WW1Xa002b2lDZTlwakdyUGRoRWI2cF9nSlhLTUxPZ2gtMk5rQnNscXUtckFUY0dRcjJ0aGFVZnhxdXp4SVp4MjdjdmxnaW9DMVZWNlBYVGNjbkFiMWVXTUM2eC1YN0lJcWpuazdVMTF0dkQxalBYUGJrazNxZ0FWb2FubFp0RUp6NlJpNW1j?oc=5",
           "score": 1,
-          "age_h": 508.2,
+          "age_h": 509.0,
           "published_at": "2026-10-29T07:00:00Z"
         }
       ],
-      "pos_n": 4,
-      "neg_n": 2,
+      "pos_n": 3,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -13388,7 +13384,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:08:00Z",
             "oldest_headline_published_at": "2026-11-19T04:51:40Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13398,7 +13394,7 @@
               "TradingView"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 4.06,
+            "newest_headline_age_h": 4.88,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13410,7 +13406,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:08:00Z",
             "oldest_headline_published_at": "2026-11-19T04:51:40Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13420,7 +13416,7 @@
               "TradingView"
             ],
             "query": "HDFC Bank share",
-            "newest_headline_age_h": 4.06,
+            "newest_headline_age_h": 4.88,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13472,18 +13468,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Tata Motors Passenger Vehicles share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 0.9,
-      "headline_score": 0.9,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Tata+Motors+Passenger+Vehicles+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 4.6,
+      "headline_score": 4.6,
       "headlines": [
         {
           "title": "Maruti Suzuki shares jump 5%, M&M, Tata Motors, Eicher Motors rally as Nifty Auto surges 2.6%",
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQN21KNmJoLVNDaTBMM2pBS2lZZFNRMktzMUpUTlNNZzNxZWJTV1QycWV6UmVpQjNQRUlCeDZtZ3lxYXlHNmV4LUR2eVNEQXhDYXZNbTh1RkFLM0gzSG40clZqMGhkdzhVTUY0Q1BWck94R3EzdmJkSjg4S3J2Z1VDV0xHamZBbVE1TkMyMzRQUzM3TFpJYjJhWXRmTUlxbU5kV0dpcTVkRzBkaWtaNDBfcVYyU0ZlN2gzSW5lZ2l4RkloMVRuOXZ2OFNHdHI3WU9pMVpORThYOURBaTNnMG1IZG9rNVlqalU20gHuAUFVX3lxTFAzcVVIdzFRWWlLX3hDNjRyZjJ3b3VxR3NWQVJtNE1LaEJ1VGNDdWFQVzFvb21DNklmV2xhZTN1V1FxVFlDYjVwLTQ4U1NyUVNzaGgzaWVEalZRY2NMdVZvY1BYb092dFJDdW1oQmk2OVBGZlNXNl8wU3JpS1U0aTBqU1ZtV1R6dFZWcEYwMC1Bd0xJWVQ4TDdVZFV0SU8yZkkyeF9LX0d5anM2RHdHUUFoSmtWczBYNloyRFpkWUE2ZnhDRHdXOTJFTUZ0SnNlVGlnUnZsQVVEQmw5RnpvUHVWV1RfazF6R0VNWGpsYlE?oc=5",
           "score": 5,
-          "age_h": 6.2,
+          "age_h": 7.0,
           "published_at": "2026-11-19T05:01:19Z"
         },
         {
@@ -13491,7 +13487,7 @@
           "source": "Autocar India",
           "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNdE8xRVd5bnRFay1yY21ib2RwZTVxbDV5UVpVSHNIS2w2bG9UTmJPS0JkQ0tfQlZCTmUzTDZSb1J2bEd6SXJqby1sOW44YS13MkF4Nmt2VWUzS25XRjZtWTZMdVlnSlhrR1hFcFFKNnpmZGpjYWVPVzBZcjBRTUFsZlJuVUhwV1J1NG5NbjZ3UW1DcTBIbzFtY1dnNl85NnlyWXl2QlRfQUJKTU53S2EtZWdZM2RjOVhPb1lqOXB4TkRaQdIBxwFBVV95cUxPQXpTYVFzZk5FcTJVT19SWm1JNkJ1M3ZpamREckVGN1JSTHE4M3J0WW1zVVZfSzVTckVUdGRqSGNVOTJwU0NQMDAtVTNSTnlRMER6Ykx2ZDVsZ0c2V29BcWVnUS1GUkpiZm5ZOTJOdTdNakhKYzRkVEVWVDg0aFJPbTU1WTZleHdTMl84bG5UWWtjbmhQVzF3TUdnUEpzOFNmaGVHMVZqSkZrb2N4ZUFfN05kUU9rNUNxelYxaE9wbGxjYl9uRjQ0?oc=5",
           "score": 0,
-          "age_h": 26.6,
+          "age_h": 27.4,
           "published_at": "2026-11-18T08:35:43Z"
         },
         {
@@ -13499,7 +13495,7 @@
           "source": "Equitymaster",
           "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNOEY3dVc2THNmWWZnYXBJc3BaTWthME0yNE1hTHQtNXRrZmlVZC1UMzJLWE00QnIyTXJCRjZVT1pBemp1WlhIbzdOLWRYajNCbW9tQ0JoZmVxS19SYnRKRm1fZDI2S3JoV2ZmWVM0YnB3aExHTlo3NHZlZmp4elVrcUs5UG5qRlU5WF9XWUN2TXJ6a05ZV2lZNG9xeVhJblBrNV9TRF9LSHRMWGdkM3BkRUp0VDA0NTBiZ3VPM3dod1VHWEVxRFJCVV9hU3ZCMEFKMXRnWkpWZw?oc=5",
           "score": 0,
-          "age_h": 58.7,
+          "age_h": 59.5,
           "published_at": "2026-11-17T00:30:00Z"
         },
         {
@@ -13507,7 +13503,7 @@
           "source": "Briefs Finance",
           "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPaXUwWkdfVjRoRVlra0plbkl6cHVYb1BsbXF4NWp4cXowdEhERGlDcktzdWFDNDZfS1k5R0U3RDNmLUgyOUFORHlRMU8xM1o1OVdKRFdUZm5oOG0tYm5WNlJKN2ZkQ25WaVVKYUtlamYtVVNmRkwtWlQyRXQ4MlBfODhVdktIRGxMcFlLUHNFLWU1QQ?oc=5",
           "score": -2,
-          "age_h": 62.4,
+          "age_h": 63.3,
           "published_at": "2026-11-16T20:45:00Z"
         },
         {
@@ -13515,7 +13511,7 @@
           "source": "The New Indian Express",
           "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPSXRyU292QnR5OU9GX1NoMVJwZzlON0swNHRDVTNpWGxrT0NKRnU2Y1Y2V3p2ZUd1YmVQbjljVkdDa0xQXzlwSG9DREd0cGM2TE5mQ2w5bkoteHdfeldNWUxHVEo0aFRuR0U5djJhd3B6VFg3YnBQYV9jMDRUeFQzQV9zM2FGd3lfMVVSblVwRm5KbVVTc1R6d3p3QUhjQWtjVVFLMjR1U3BaeHJmZDh1NTA1cjR6NS02LTBVNHB5b9IBzAFBVV95cUxNM19fS0h3YXczRzV2MF8wZjBDYjhWLXp5b1ZVaUc1VVktMm9tRlB3aTlxeDFvYV9UZUhWcXV2Nzc4S3kyZC1GRFJadWpydXI1TE1UTEh0NGZNOFJ4aW1SMmJUMHZXLVlBeFBVOUpaSFZwSGdCZEpWWjNEczZmUXctamRuY21VMTdIdXJrQndERmVaUmRKb1VqY1dRTjFlLVBUS3M3Y0g3dDhjaGxZZDRVNXRsLWFZWUZmenNlLU9waTN0R2hZR2F4SmJfV0M?oc=5",
           "score": -2,
-          "age_h": 66.3,
+          "age_h": 67.1,
           "published_at": "2026-11-16T16:55:59Z"
         },
         {
@@ -13523,7 +13519,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNeUtDLVFLVUZBcDd3OVVNSmxIcGxmYVNkSEVVYWtxU3UyTkVrR01CakpJZXZGZEVCXzVLUUZmZVFsZGdWSGI5TE9KeW1TczhvS1pydFlqWXRYZy1kVGFONHk5cjl5OXItSEdYWXVRYW1yUEsyVDdocXFMR0RQTTZtQi1FOUhBTG03NzgzTlo5eHhHZGl5V2FNM0tsOEU2MGhMQmstOEtkTW12OEVROE81U2dSbEV2Mk5WaE95blFqY2NzMkplU3BQNlNoSmxGaldGUEHSAdcBQVVfeXFMTTFJT0N5M2pUaFlzTDZrYjNnQ3ZYT28tMTN2NVFDN3JEY2d4RGVwY09ReDVaZ1NXMmt2NEl5ZXBXc1R4eFczM3lwR2JCT3FZc2o3eTNybTJPX2VNeXRpVlNqRUN4dzJFYXloTkpfOUNHU3c4anVUSllfRUZLUFRab0ZkMmZWRzZId01NMWZIRXZkYVJ1N2tMcTNhOXdSZ3dJWWlTWk5pX1lzMk54dkZUQXNYT1ltS09YM2xpQUhGZGNTSTlBLUlhNGR6OF9SclB6TUQ2R0Y1Vk0?oc=5",
           "score": 0,
-          "age_h": 72.8,
+          "age_h": 73.6,
           "published_at": "2026-11-16T10:22:25Z"
         },
         {
@@ -13531,7 +13527,7 @@
           "source": "Telegraph India",
           "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxQcS1vY0lvNElDbGFHNFNyb01Mei1KUHl6bWNsdDFoalY3eG1aX2hWUlowNWpaM3czQkpmTllZZk0wQTlMOUxWYkp2c1kxbDR1Wk5DN2JNUmtIbG1ScF9PNFF0cE5sZURUVTdTVGdnSlpKTjdQRDZDUDJ3T1lLVEo1aWctTU5BOEdVaWpIYnVxUU1IOUVvdTVhcE95SDVsMUZMcFNCZElETG1PSHdLaDdWNmw5WVc3RW9MY3pMSjdoMVFTSDR0dUdXcFhRSnN6X29oTVgwY242RXNqNzBMeV91VEI2NFRyUFNtVldSQ01sdllyVkxKd05qY2h0WllaRm1aY1FUYnVR0gGLAkFVX3lxTE51QzVlYXJhV2ZsWGdFNDRKdW1IeGhGQWV5Z0VZWEtoMVR5M2xxc3A0TzVORkdrUmYxd19Xdm1sb0lUNnU0dzN2Um1MQWZhVkoxUExHYnViUEptQXdHUlE4U1QxejY5UUZfdEk0Tm5PTTBIWnpkYmwyWFhxNXhfZEFSRVd6cGs0REJpNWhFQ0dZWV9wTUtPa1VMdUxFMF93ZVBiMkRoNWZJc2tMWWpJc2tRQ2NDekFKTGhXNjA3aHlmb2xEZlhUWGZuVjRzMk02N3J0TmtUZ1dva2FZT1UtYTJjdEF1OG15clpWbFp3bW14QllCVWZoaWhHbHY3Q0l5ejhzamswMHg2bkRNUQ?oc=5",
           "score": -3,
-          "age_h": 75.0,
+          "age_h": 75.8,
           "published_at": "2026-11-16T08:14:13Z"
         },
         {
@@ -13539,12 +13535,12 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPd3BBQmYyOHUyOVBwWXZDM015V1ZtVHZTeTM1WkhZc2NBSmlGc2I1eEc1QzN5ZnlpRWVTcGRablJmZXdTWlE5MEJtLTJJaV81WktUZmdYckIyTUxCWlJ0ckhmUjdVLVlYME9ZV0ZCSktYQjlqUXUwcnhwSFRsWGRVTTNwZDI5aTNKc29YMFRiQkJ5VGpETENxN0tTcktxUERNMXBvNDljM25PSnc?oc=5",
           "score": -3,
-          "age_h": 75.3,
+          "age_h": 76.1,
           "published_at": "2026-11-16T07:55:21Z"
         }
       ],
       "pos_n": 1,
-      "neg_n": 8,
+      "neg_n": 4,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -13571,7 +13567,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:01:19Z",
             "oldest_headline_published_at": "2026-11-19T05:01:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13580,7 +13576,7 @@
               "Moneycontrol.com"
             ],
             "query": "Tata Motors Passenger Vehicles share",
-            "newest_headline_age_h": 6.17,
+            "newest_headline_age_h": 6.99,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13592,7 +13588,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:01:19Z",
             "oldest_headline_published_at": "2026-11-19T05:01:19Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13601,7 +13597,7 @@
               "Moneycontrol.com"
             ],
             "query": "Tata Motors Passenger Vehicles share",
-            "newest_headline_age_h": 6.17,
+            "newest_headline_age_h": 6.99,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13653,18 +13649,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Hindalco share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": -2.8,
-      "headline_score": -2.8,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Hindalco+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -3.7,
+      "headline_score": -3.7,
       "headlines": [
         {
           "title": "Hindalco Industries to host non-deal roadshow meetings in Singapore",
           "source": "scanx.trade",
           "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQUDk1ckF5eHduV1A0bVJnblY4aDJLcEFsWkREbFVDTjR0dGNFeGhDYUdQLTBsSXVYVUR4RkVFQUVYakxBMDBEOEJBdnAyb3RqTWZSOTE2bEhoc214SWJiYWM5dS1BUzhTZmU4Y1BjSUh4d3EtYmhDY1VhNlA2VjllRGQyemYyaUR0S1BmanBNdGx6MFdWYldoRXFPcTRCSmtqRkhfUDd2QWthVVFQYWxydzlfNFREak5pbEE?oc=5",
           "score": 0,
-          "age_h": 4.1,
+          "age_h": 4.9,
           "published_at": "2026-11-19T07:05:23Z"
         },
         {
@@ -13672,7 +13668,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMib0FVX3lxTE5LanFkeG95aGdQRGNtS2RLWTRfUkx0VnFNNmVIQ0pXWXFXUGZXcXFkYnF5YUhfS1hCNnR0QmhhazlPYmowNmdGclp6U3RqRDk5WjRwZmkyeUg4QWJGWXc3eGdZV2otYzFsZ05JWkp6WQ?oc=5",
           "score": 0,
-          "age_h": 17.0,
+          "age_h": 17.8,
           "published_at": "2026-11-18T18:12:15Z"
         },
         {
@@ -13680,7 +13676,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNRW5FX21OMlJWTTNDbVB2Vy1sNEgwb3ZEckMyR01XT3VIcU50SGJRdW1TV1BuMWp5ZHFaMF91U01ROUMyVTJkOHIxb1BRcEljd1ZkVHZQTkpGRHFCSWpKSU9RV0cwc3kzcngzdmxkQjMtbVduQ3ZJYVozeTJKamx1cGRFdTNLdFJtVTBtT3c3LUtLa01jZjVzQTY4dDhsWmxnb3JZRkdNb21XOWowcDg5Zml1dTdTa1B5SlNCSTVlMmJIRGM3UzNWWTh5QzgwU29naThF0gHYAUFVX3lxTE1KQWM2TmpZRkY5WHl1TGNtVG04dHRtOU1WSTN3N0NwSUcxcEpRaV9SakJZOHprQy1STEFnMzZUeUVhMGlSX0RBVnNfRUdKcVppXzlGNkl3bVVhR182NGFDanpHQWk2RWtiZHdZZThUMndQYlgwWWJwazZSekdiNTRpWDFldTBsdlNRaXpuM05ONnFRakZiRU9SeHdHdFpHSUoyM0gzeFRJTU1JaFlnMW4tXzhqNmdPSl90UTM1WmY0blA3QUYwbkNkMlU1VEs3THppY1dGYVZNcw?oc=5",
           "score": -2,
-          "age_h": 28.4,
+          "age_h": 29.2,
           "published_at": "2026-11-18T06:49:44Z"
         },
         {
@@ -13688,7 +13684,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPUHJZV2I4Nmh0OHFHS3Q5dUlXdFdaWkZYVWhnZEdLVURPdnhMaE81S01nVUpvWndndHNZWHpLLW1jVTlSUUYyQk91VHJVcmVMeS1BVFk5MkpPYjJOTlJ3aTdhX044OERIX0RwM21Id2Exb0I3alR1OUtiVGU4aWxXNnExSS1RMmt2RzZVYTRLaXNrdUxPYURWUHNuT0RIUUE3dVUtS1dsYlNPdnN2SEMta09JRE9PVVcySzU4TnV5SWJNMDlVdWpMVTlZVld0N05LXzFOd085WlRINkUwQjN1SmRWT3FUb2c?oc=5",
           "score": -2,
-          "age_h": 29.2,
+          "age_h": 30.0,
           "published_at": "2026-11-18T06:01:19Z"
         },
         {
@@ -13696,7 +13692,7 @@
           "source": "scanx.trade",
           "link": "https://news.google.com/rss/articles/CBMiYEFVX3lxTFBPVUo5WUViSG9TSFl3MFhJU0pGZlJTaWItRUhsR29aTFI0V1NHaFZyR0xHMHc0blBaZzh5eDU4T2IyMm9ZTS1McURGemhRM2NnUzRoV2xlM0xJRUV4emFZQg?oc=5",
           "score": 0,
-          "age_h": 74.3,
+          "age_h": 75.1,
           "published_at": "2026-11-16T08:54:55Z"
         },
         {
@@ -13704,7 +13700,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMixgJBVV95cUxPdjhRM1VlWVg1UXowRVRWaGNnT08zaURyMmJaZ3gxWmVvTWlKMEI0MVBySVJGTnF2cExxVTA2bDVIMHdMUU5hRkRjTGExaXc3WWVoU0lwMDdYaVFxN1BlanRYS1hSZ2k5SkhYTmcwMXI0Q01rRGw2ckxVc3VnNGZnNXMta0lDVWhaTy05SVY2dWtGdld2eWdEUzN5X090RVJKTzNEWXR6X3Fsd2VMdzR6ZUUxajI1SnE1S2R6QVRpUnBCcHM0MGZRV3dJblQzWjZPenJtWDEyQXFid05hY1BHZXY0c2xYeXM0OVZYMjlDM21vUlJpd1ZhVGJNMlpMTmtWZVpxb3F4ZTJKUE5aUVJYZi1aZ2ZwcUxyT0NZUkJXQlFHZ2ExaXltZzhBSENxRElKa3dRMk9GbnJJWjdaNzFOczlpY0IwZ9IBywJBVV95cUxNdUFHelpiR1JEN2szR1ptMlBtcVdaZHhTWkI2QlB0THl5Uno2a0M2QUszcWhEYVlUeExxY0l0YWJLMUx1N2pyVWZtaUZsbm5jNndXTDRzWFVtZlJ2S3hjZDgwQ19xY1RoM2psNGx6QmpjbTdhZE1QR2N0RC1tb1c1d3ZVZ0JtRW5fQUlrMlRQMFV6LXZFMXVuQ1NKYTc0d1JqV2dvUWp1T3NVLUVnSXBoaGlBaUxiRlI5cndtQTloUlVMQjIzNlFPeFV5UXhYeUpaSng2QkRtZWlzWmNMZXFMMjNRY0M3QkFKSlRnSHJQbnRSYVpCMkw2NjBtUUpVN29xdnhydy05M0JXUFJTOUtrVGdnN1dFS1UzS2c4enNmVWlJV1o1THRHeVhydzhtbktOSl9lOGo4Z0hGbGRNbUNZMjUyTllHYmZPdFFF?oc=5",
           "score": 0,
-          "age_h": 81.5,
+          "age_h": 82.4,
           "published_at": "2026-11-16T01:38:56Z"
         },
         {
@@ -13712,7 +13708,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPRXJudFM2X0M5aWF0c25NemdfcnZoZ3VzeHFjanFfZi04Tk9FdXp0Y0stbXB0b1dBVzJxTFBxdkd4MzRiVldiNmpwZGVUdDFIYjgtNjctenc1NFM5T2RjdE55QXNvNmhvZDVHNUkzeS1nTjlGZU1VLTFQNWFUOFlJZjVoUHVNbDRT?oc=5",
           "score": 0,
-          "age_h": 99.2,
+          "age_h": 100.0,
           "published_at": "2026-11-15T08:00:00Z"
         },
         {
@@ -13720,12 +13716,12 @@
           "source": "Equitypandit",
           "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE12WW9yeHYxQXN5TW5TdjJ0NHRKR1dyeWZKMklBX205NGJWaXNQWVFySlVsdGQ1M25jWHBzbjM3RTR0V2JIY2lBSktKc0Q2S1RrT201NG1zVlk0Qk83bkRwNnpjWkh2X0d6MXRv?oc=5",
           "score": 0,
-          "age_h": 147.2,
+          "age_h": 148.0,
           "published_at": "2026-11-13T08:00:00Z"
         }
       ],
       "pos_n": 0,
-      "neg_n": 4,
+      "neg_n": 2,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -13752,7 +13748,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:05:23Z",
             "oldest_headline_published_at": "2026-11-18T18:12:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13762,7 +13758,7 @@
               "scanx.trade"
             ],
             "query": "Hindalco share",
-            "newest_headline_age_h": 4.1,
+            "newest_headline_age_h": 4.92,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13774,7 +13770,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:05:23Z",
             "oldest_headline_published_at": "2026-11-18T18:12:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -13784,7 +13780,7 @@
               "scanx.trade"
             ],
             "query": "Hindalco share",
-            "newest_headline_age_h": 4.1,
+            "newest_headline_age_h": 4.92,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -13836,18 +13832,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Adani Ports share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 7.3,
-      "headline_score": 7.3,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Adani+Ports+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 3.5,
+      "headline_score": 3.5,
       "headlines": [
         {
           "title": "Global acquisitions, integrated operations to boost Adani Ports' growth",
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxPQXJYMkNESFlZbzdPRXR3VjkxRXkzVUdoU1ZEMm4wWUowNlNFbmVwZU5MZ3N0eUlCQjFpMzh3bmtNSk9scEtHbXhibTROMUw0MVFYMGd5blN2VmdBamo0S1ZzVlRtOERzcThpckN4NVZ3amh2NHc3b2pPbWVISlc3NnRRSGVpcWJLbXJGT3J0TmZnSFBsdFBLRFpYTXMtTVFQbjJSV3RfRHY0bnZYNnR4MXEyaUZnakpyMV9WX3AyQjU2STgwanYwT0J1LW0wcjlTT3dpUzVJMGlZZV9ZLVRtdzVR0gHnAUFVX3lxTFBPdDNJWGdOVVh1bzMxbGFOay1ncW9DVTFmdllLT2FtRVJYX0NzQWNwbWhma3dUczFnSmZVMFp3clJPSjZQT2V4elNWZW1YSWlpS1dKVjdjTTVsdEdRNDRGeGJJbURoUEFXaUdsVGNkQUZQak1kb0Z3WFFHMkpNcFdMRTc1RVpPWE9SUHdKd2dodUdDTkllazZ4OElHbHNScUpXSmp0Q0RaZm9nMy1QdTR4Smt0dVNvLTVQNlkwc1VXUl9aYXBIeUtIbndXcWNvS2NPZ3F3Q2FJdXpWMFFyUG9ET2dlUkJGQQ?oc=5",
           "score": 0,
-          "age_h": 80.9,
+          "age_h": 81.7,
           "published_at": "2026-11-16T02:20:00Z"
         },
         {
@@ -13855,7 +13851,7 @@
           "source": "Value Research",
           "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOaHRwemJWRXZ6ejI4Q1M4VC0tdTVvdDdJREhHdVV5SGhuM25vTF92X1dabnZ2bWhFSlNRX3IwSmpBQ3pHRHFnUjlFcXMtajBfQkVMY2Zsd1BmZlZmRGhNR2Z5bVVCMWZvTkZUaTk3M3R2TDZOZFlnU2tjcDUzejlGaEZjODh3b0VzNWY5dmZTREJITjRKblpaNUpQd3B2TmYyUkJfNA?oc=5",
           "score": 1,
-          "age_h": 171.2,
+          "age_h": 172.0,
           "published_at": "2026-11-12T08:00:00Z"
         },
         {
@@ -13863,7 +13859,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxPQjlxTWtCQ2JiaDlYWkZmZ25vOVJwRlVPMFIwbnBieTVSakM0dnZGWG5qZHA5amR1TGFPSW9rQWVyVzdyT0Y2TjJ3RnpmV1R2UlFRdVRKb01vOGlYeTRmMTJpNktpbThRdmJNbWNTMjVuNzBwYzRqWnRDdzJ3VFRGaDFBTTVYMjEtdmRyM0ZORkxpRFlqYlFFUTcxNFRndk5HSzhFX3VoR3RNVHRraU1acmJKTFFkcGpyclEzeEVSNC1abkV4QTJ0WjF4cTg1Q1dYUk02Zm9kMS0zQ2ptZ0NRMmcyMXNqOVZtRFNISlFLNkd6WXRmeWZsS1p3aw?oc=5",
           "score": 0,
-          "age_h": 186.9,
+          "age_h": 187.7,
           "published_at": "2026-11-11T16:20:00Z"
         },
         {
@@ -13871,7 +13867,7 @@
           "source": "Reuters",
           "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPU0RkWTlHZG5ua3hFdjJqeDctNGdzQTlKNU54VzJsdFV2dC05QV9jQVJKVV9GOURPUDVaczBXWTdJYzl4NXZ5YTN6TF9uRjU1dFhYQzZqQV9VdHRHZ0NOZy03ZV9zdGtwWEtJbmc4NkM1QkcwS2pqOUFnODJsc0JHSnJQUm9EQjV3SFFqNEljT0U5LU1GR08wU0xEcE1BbnNsUmRwZkdwNVhJeDB3TjZ1SDBNQ1pZdFBqbDh5V1k3aw?oc=5",
           "score": 1,
-          "age_h": 339.2,
+          "age_h": 340.0,
           "published_at": "2026-11-05T08:00:00Z"
         },
         {
@@ -13879,7 +13875,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOQzY0SWV0S1FHcmJtY0RxUU9NazBVZUkzUXU0TjZ6TGk1cFJHdzZHaGE4OXZNRm52WF9XRGM3ajJVMU84T3JxeHk0NWNtTmlzSFk4Z2oyZGxwTjUzb1NtbUFOU3dhVDU2WGhEZER0VW9OX040SF8zeW1HLU5hcFBqQlk5MzF1S2Q5WTJFdnA0djJ5QnhpMEVKNDBFcw?oc=5",
           "score": 1,
-          "age_h": 339.2,
+          "age_h": 340.0,
           "published_at": "2026-11-05T08:00:00Z"
         },
         {
@@ -13887,7 +13883,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNZ0ttYmtiT2VWZW9BUy15X2RhSHhEa0toRzQxWjl5R01yb3FTeEFqZnQtUm1EeDRoYmF0NjFoTnhTQUdRSTZzaVhzNUhIV1FqandBcnprRDlqZ194UGo3ZzZPUXVkYjhHWVEwNl9ub0d4V1NCYU8taEt5VTM3bFRubko5RFR4aVQyOFRET1hmejJiYVVBMzNES25INHQtUXdfMlBqamNvbmFjbk9JYlJ2RnBzUzcydWdvc2pLWi00T3ZSeEhGVjNNSExfb9IB0AFBVV95cUxOU01VRUVIV0NIbFZpYlEzQklLV204VmQwZlA5TjB0czJlQ3lPQV9lazJXT3doU3hsMmdvMjA4YmFGVTU4bE9abHZfWkt5UUFEVlRNZDRtc0c1RUFNVFhCeU5QcWRJX0l3UW5zYmNOWW12RXphYW5fbGFsdkJMNEVUME9Icy1NMGs3RWNlUGtYZUdsM3BNc2FVTUEyeElwWlFkdXJ2Mm5zWTRGMk1RQ2lHNUJwMEtIMnJ3TTNnUkQzMm9DRFQtM3VURzV0MWwtS2xl?oc=5",
           "score": -1,
-          "age_h": 484.2,
+          "age_h": 485.0,
           "published_at": "2026-10-30T07:00:00Z"
         },
         {
@@ -13895,7 +13891,7 @@
           "source": "India Business Trade",
           "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE1SN3AwTzA1X3RDLXRQWTF0UlgyNVRUNTdod0JxNWdrTE1RaS1fTWF5T01WWDB2emhVbG4yU2FjcU0yOXdTc2VRQ3hjT083eG4xZndZd19DbkpBZjV1dmFlbEZ6eHgtTE9oZDRGSTRUYnM4UQ?oc=5",
           "score": 1,
-          "age_h": 493.2,
+          "age_h": 494.0,
           "published_at": "2026-10-29T22:00:48Z"
         },
         {
@@ -13903,11 +13899,11 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNcGNybmtBb0lxdzQ1LS1VNTYtckZSdGk1bkV4SmQtUmVDaDJqa3pMWHlkOGRmeTVSa0pWOE5PcnhTaEluRUZhOFpRQlgzTTQ1MGhTQnMzSEs1UE1EcDRQS2owNTgxQkJ1dVlOWjdRU3UxVE1LT2F3cko4MW9USW1UYkY3XzgxV3ZZVkRtcXNaR1JJa1RLRXc?oc=5",
           "score": 3,
-          "age_h": 508.2,
+          "age_h": 509.0,
           "published_at": "2026-10-29T07:00:00Z"
         }
       ],
-      "pos_n": 11,
+      "pos_n": 5,
       "neg_n": 1,
       "component_breakdown": {
         "version": 1,
@@ -13975,18 +13971,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Coal India share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 0.1,
-      "headline_score": 0.1,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Coal+India+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 0.0,
+      "headline_score": 0.0,
       "headlines": [
         {
           "title": "Mutual funds received 53% of Mahanadi Coalfields IPO anchor book: Which schemes will own Coal India subsidiary shares?",
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMikAJBVV95cUxPTERWWjZxdVpFWktrczFxdkQtVW5UVnRwd3hza28zYlpLTUJKY3BKbkhWdndYOU4zY2Q0T3gwM1g2YWQtWnZBMjN0UU9mMVNoWHVxem1JY2tDZENveGhZZmMzZ0xnTk5Ialp2b3d5SEZaX2tKdXdvSGdaQWZoUEtYRzEwNy1xblJGaHhGNncySlhtSnhKNDRyT0x3dXZlakc1TGU4Zk1OZXJiSnl2R3BIbXFpT2FNZ2xHSW45LU1xcHN2cU1EbEtwbmlHSUtlN1hJc1VGZFdqUWpSdDJqWlQ5bFJoUldhOXlfdTFDMUZjUG1FSmhqS0h4Skc0X3M1cUpqX3A1X1pnSUctNlZISkZGQtIBlgJBVV95cUxPOElXNHZXaUpidHNPaWNOVG03ZW95Z1otYzlzNkpGX2gySUM2SFk3d2Vnc1JTWTlZTnJXWUtoZ1dNUHJvNTJiU2NxRkJxdEdteU40NmFLS2FibjhtMXJsRnI0ajhBcVRDb2huRHFqaDRhYmd2eS1QTXJUTWFuSVJqS3ZrQUlBWnU2ZzVnU2ZYNW5odFZWaUYyVG5WX0xfR09Tdkp0aGt4VTFzLTc2ajUzVmNyLWFDUURNRjZPQWFQQ2lEa09kaWdQcG1GSUFOSUxSa0FibDBKenRRQ2VWS3pKZzZ4dkpKcUFaRmUyU25KRnIwSlQyWEtXYVhXZlFRX1RiSTlMTGxMWGQ0MnBMa3oybnpsRDFQQQ?oc=5",
           "score": 0,
-          "age_h": 3.2,
+          "age_h": 4.0,
           "published_at": "2026-11-19T07:58:56Z"
         },
         {
@@ -13994,7 +13990,7 @@
           "source": "Groww",
           "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQWXROODA0OGFjNDBzdE1YVUVQMTNmM2FzcWhXVGo1NDJneFBYOExjekEtbTRDdTlfQWxyUV9Fdm8teEhicWhlTzZPcTZCOENIOWVUc09WY2RrSVRkMFhQYmdmcWFwN3J6bWVwNmc4WUgtNF9xM0NYZlFIUml2Z0tqVkpYUG13cEhqeGJsYjE3RklmWUNrRFRGNGZZR3A3QkVOT09fQQ?oc=5",
           "score": 0,
-          "age_h": 6.2,
+          "age_h": 7.0,
           "published_at": "2026-11-19T05:01:15Z"
         },
         {
@@ -14002,7 +13998,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNMHlPUzZsUVN2N3FqN1lqQ0tCSy14VEx0aDZ6WnZKMXRlYlBJQ1ZSZkRxU0hUaXZmNERyOFc2bmlMRTl4YThZNlpSN0pVYlVpTzV2Z2p4RjdfdkJJSjNuakNvUjJON1Z4RnZsUWxDOGVWWHNMNmJKbi1Na2YxaFFTUkczQnJPU3BBLXZvT2FoRDA1VktjdUJvekJMS1JveDN0QXp3Y2Z1OU1jNm1Xd3lteGVrNkxkZTRwb2FyODdOWjItemxMVDBJdHRESGVpODU4eDBmNnNsY9IB3AFBVV95cUxQdGZNV1R2bFZnbThMRTFkYmlrX2tvZUI1elV0U3JYYzZaeWp1NDlFSVQ4UzR3eGZGcXNPYzlucWRaVHcyUHFoTlNid2tYSkdhcGRHeFJEMjMwQ0N3M0VSZmJqcGJMeS13SnhRZXVmYkNaUGZQbEtQdlNSY0JmakZTMm1nWEtWSUNfQmNtX2tlOXY3Sm1xWWNKSnlJSXUyT0tKTW83Q2xQV0NLdmU3OE5xNHVBMk4zamNYUG9nYjAxSGphTm9TbzZuem42MmhYY1ljUFhCcGg2NkVWYmps?oc=5",
           "score": 0,
-          "age_h": 6.5,
+          "age_h": 7.3,
           "published_at": "2026-11-19T04:41:00Z"
         },
         {
@@ -14010,7 +14006,7 @@
           "source": "HDFC Sky",
           "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQMWZES1hHcE9mdjVpTi0xSU5pclhEa1pKVUNiOFUwS1FqTWtNVlNSbDhzZ2hSLVVzNlpHSTBxRlZtemdFbE5WQ3dQRDJRQzdCcHZYTHdjVjNmbHhqTVR2TF9RNm1velZGMkVPa0pVOXpVa0NRZ0VXc0dDSXVLN29ld3ZqNi15OG0wZ19tMXV6ZldqMmN1RG5KTk5nVENPcW5EdmZRcU9XeGEzdjZFZVlfOUVSN2NfdzloeUx2LVExNUtJdWpUNTlRTVlzUllmcllDR01J?oc=5",
           "score": 0,
-          "age_h": 7.4,
+          "age_h": 8.2,
           "published_at": "2026-11-19T03:50:42Z"
         },
         {
@@ -14018,7 +14014,7 @@
           "source": "Livemint",
           "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxNVlhQS0NJbUZaQzl6OXBGSngzMHdTWWpaejh1T3JXTkRRZ0tnWHMwXzJ6X3BKSi1MRnVPQkNPUE50TWoxamF1aExsNE5HRXN5YWt3MjZyTnNXUlQ1UGJDdUdCSG1oRFRxV2NtX2tEZXpIVWhWRHM5bnhzYm1ZNGhLakRBWUJqRm53blNJQmpNa0ZPbmNzTmI5Y21qOTJWUUwwNUwtQndDQzd5d3VKd2JCeGtNc2c4czV0T2ltbnZTTGV5Yjdwb1czYnFOeGExMjJ6MEdwZjJyR2s5X1VJTmNfUG9TX2lGQzhwQ2EyaWNHUS1INEVVUmNva1pKMDRHZ9IBgwJBVV95cUxObWd0eTFMWl9EVDJidEtKd3VaR1NHbFk0dXc3MEFvemZJT18yY3JwTzV3WkdfOUl2NkhXcnRUNmJnOXhtRUplR2RyTnFuYjRWZjhIRzdWa1htWVRmU2hkdjI4QVVxYmJmSzNqTzNpMFlHaE5QMENCdk9mMFVhVU54aXZEaTI5QXBhME10MlBzdmxub2N5Wk9USWl5eTdqZnY4akpXNlRGb3pqT0x6N0h4WkZGYXdzMlVOVEh2MENoNWhsSVZGVG1XcHJCaDgwQnRtNGF0LTV3THBTZTFNNWRBVUdjWHdwMkIxSlhlMjRWMnBBV0NpZlpOTHk4X0VRZTk3Tk5R?oc=5",
           "score": 0,
-          "age_h": 8.2,
+          "age_h": 9.0,
           "published_at": "2026-11-19T02:59:03Z"
         },
         {
@@ -14026,7 +14022,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQTlNoS2VxaE1YTzdiLVRjVmhyN1ljbjFDSlU2aWpTWmt4WVZReUkzZk1uLUJkd3pMM1FjdWRsMmVNaGdKbHY3b0ZsaXpraFpyUFJUVTM5bklrS3RFWHI5WEU4cU05R29HeUsyUXFQZmhXSklSQ1AzUXFISkFfRmNNTGhQSmk3Tm1wWVNTZldKNnRnWVlxQk9vcHIwMGVRdEJ6emdYclphSTBUZzZHeHRJZFo1MmZjSjJTZHo5REtIRzltNTFSamxzTG5Rcm5QTEYwRkZ0aF9QdExGS1N5Zm52WGZNVzh6YWhL?oc=5",
           "score": 0,
-          "age_h": 8.3,
+          "age_h": 9.2,
           "published_at": "2026-11-19T02:50:45Z"
         },
         {
@@ -14034,7 +14030,7 @@
           "source": "Rediff MoneyWiz",
           "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQaE1jMmFGSFdPSmpGMDJ6d2h4QVJObWFGUElDbmR1N1FHV3B3Q3RaUUJKM3ZGaDdqQlRjQy1xUGYwTFBuMFZXd2hoU2hfWktERHg4ZV92dHVxNWJVWVBfREg3VjgxNHhxbEFHVmNBWVRXdDNLemJPOWJxeG1Xel9DeHA1Sy1RSGxUVmRHeHZmS2tTYV9sMzJaN2JIVG1RSUZfUHRfSkdMOUFGNWlDbWfSAbMBQVVfeXFMTzJQZUhWNGJOWTAyd3h2WFhoNVFSOC1CTjk1ZC0xNDZvMmFTX2VhdVktSFU3VDFWLWpoaGdQTU84eEFGSEIyNVhtVERpbHJnQTBhV3FHLXZmNm44bmFqREJjLWtrUXpqOXZ4M0hycE54MWQ5YlV4ZUdnSDFoM0ozejZtVHRHdktYNjRYYXhpUEJOTHBSV1hkM1p5TkYyV2FIZlRzWnBDX3JjNllHTmtSeXQ1Z0U?oc=5",
           "score": 0,
-          "age_h": 16.7,
+          "age_h": 17.6,
           "published_at": "2026-11-18T18:27:33Z"
         },
         {
@@ -14042,11 +14038,11 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQYlNSbXlBZkpLc1BwbC1sdW1vX2dvcHpmZkp0d3ZiWWVsUks5RFZLSXpTeUxQWmlyd1F4ZF9ydk11Yl8xSnk0dTl4dzFRRVlFSXpiZ0s3UDJhME5XN0JxT0NBN24zdzMxR01qVndmS2pRbGJCYUVhWU5BRDI1dWZ1U3dfZ3lMNEtLcWk0bmp4SUtubDhoNXNoMmxWNUI1OHM2RTlBRGFrNTcyVjVnOXFkd0FZeGQwSVVSaUxsMjZvREs4RUFrVVFzRTNwTXFEOG5fdjNqbXQzcFU?oc=5",
           "score": 0,
-          "age_h": 21.7,
+          "age_h": 22.5,
           "published_at": "2026-11-18T13:30:33Z"
         }
       ],
-      "pos_n": 1,
+      "pos_n": 0,
       "neg_n": 0,
       "indicator_signals": [
         {
@@ -14080,7 +14076,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:58:56Z",
             "oldest_headline_published_at": "2026-11-18T13:30:33Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14095,7 +14091,7 @@
               "Upstox"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 3.21,
+            "newest_headline_age_h": 4.03,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14107,7 +14103,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T07:58:56Z",
             "oldest_headline_published_at": "2026-11-18T13:30:33Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14122,7 +14118,7 @@
               "Upstox"
             ],
             "query": "Coal India share",
-            "newest_headline_age_h": 3.21,
+            "newest_headline_age_h": 4.03,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14174,18 +14170,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Eicher Motors share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 7.9,
-      "headline_score": 7.9,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Eicher+Motors+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 10.5,
+      "headline_score": 10.5,
       "headlines": [
         {
           "title": "Maruti, M&M, Hero Moto, Eicher rally up to 5%; what's driving auto stocks?",
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQLWl5RXlRQy1SMFViZWFGLTRkZHQ4VkFGUEZjNmdSc0RQdmJCODFyVENjMlhDd19QS0N1b3lEYjh5MklBU3Z5MmZ5RjZlWV9wOWY0WlRtX3ZsaGo3bjNWc203UnFGaUFZM1M5bjB5YS1KZmRYY0EzX1dPdGk1Sk5QRm5leEUtYW52bjFreXd2MDhmVC1PQUZTYjlScEdxQ0JYUm9PTnVYWEFWTHN0X1NZZmFGeURwM0pCdHBaVXNfX0h5X3lBZlBDMG8tYUZpSUxW0gHWAUFVX3lxTE12ZHlNaXE3S20zUXRfNlhmbXR5QTQ1QUdiNHRxUTJXT2ZfZGh6TFpXb2pYME5SVHJEcy16dlZFdGtiSGNqY1Q4ZTJ2UTRxSzhJYUtqd0RCbTBQTnBpUnBlVVdoRnptLXotTk1jcEN0QmtFc1FZUzFLRmZzdXlMaWZXZzkxdkY0V0pxVzdEQ1NLRkNEczVoTlNCcUIwQy1FdnZQVzJLWXM0bkVSQlU1b3BtZ0dGb0VkZjFnX1d0YXcxODBTSTBLLTVURFF2YmdRZ2ludVducVE?oc=5",
           "score": 2,
-          "age_h": 5.9,
+          "age_h": 6.7,
           "published_at": "2026-11-19T05:16:32Z"
         },
         {
@@ -14193,7 +14189,7 @@
           "source": "LinkedIn",
           "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOR0t5TW0wdTF4YmZCM2hJa0ZhT2lJVzJnVFdqc2t1dmdsTURING1UZHF6T09paEROLVA0cUt1MnQ4cmdldExTai1vNE9RWkZoWlE0ZGZsWkp6UEoxRjZYelNTTGFrUkpUQ2hhVnpYZlZuVUhFWWZjSGVHY0J3MUVqc25weWhBTzVJanB6cF9LR01oaC13Q2MyNGx0QTliTk1ETFpSU0FaWlJrVGx3WkN4LWJTRHNyXzIzYmkyQQ?oc=5",
           "score": 5,
-          "age_h": 6.0,
+          "age_h": 6.8,
           "published_at": "2026-11-19T05:11:45Z"
         },
         {
@@ -14201,7 +14197,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOZno3empRUVBld01TRW1NbTN0STNpaTgycDB4aDlQYUd3RDFxTnFvSFF1ZGlPZk5NYmNUNm90clhoUll4WDJfYkp0OUl1R0pfTmJZay03NkFKREZWa2xSMzZiYUNPTTFPRlhkazMtbmhPeHJvTE5tNmZNNElYR3dMYzh3d2VuYzYtNjg3X2dRTzRzWTJUdFVBczZ2VDhleWhtN3NrRDdWTHg2YUVyRmUwNU90T2VrNmN6Mks4R1FxUXp5RkFUaFdGRlc3c1c5SUpXRS1F0gHYAUFVX3lxTE1FMW5NUHlMM0JpSURXMUQ0S3ZubVF2VldtbkhYcmJSZ0hXamlJUGZ5RXZkZ19fNnV2WDY3Y1RKcFVLY1hMM1ZKS2JKZTJGMHJyb290N2tGcjZ1NzJwdG5HNmwyZHlqVnBrUkFWVEVCVkc1YzI1WldsNHBRWjhVY0RtUTRhRlNza2VUSmVSM29HVmhPRUdIeVJSNEx5ZnVWQVBEcXNzdFhXbHBxay01QjBaSDRjb24yZmRJNnlwWVZhOUhtMDdneXBJS0ZxUlFIaDRuVkhNbDg0bw?oc=5",
           "score": 2,
-          "age_h": 49.6,
+          "age_h": 50.4,
           "published_at": "2026-11-17T09:33:54Z"
         },
         {
@@ -14209,7 +14205,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQc2FVNXFpNkVFQlI4ZVgxOGd1RVJyMS1UT2ZRM1ZITVZBeVlWaVZjMjNYNDdwWjVqOEVaZFdyWmdCUWpKUlBsUUxxQUhER3FlaGVXLWFFZ3c4Tzdoc01WTy1wRm1pNGV6ckNmNjdCZXhyZmpDbUR1M1ZKLW1Za241NnE2S0V1dGo4SEVxYjVMdnBaSFlQNFl4cWhhWWlaN2xCWEtxbUNNRlBORjROaUktQk1YRmU1dGZSQ0hOQU5ZVVg3OFg1Y1ZHQklRQWV4anFRcGVYTTVFY1BqUjRB0gHiAUFVX3lxTE0xZVNRaHZRdjVCZG5Qb1hWRU5udF9MVGFTOEItRzNaWEFsbkJ1enlJV2RiRnFwdk11aVlwSnp3UldkOU5OVndjRUJfY1ZoNTZReGZOc3F4S1FQejR5MzRZMzdMSU5Ma1dHVkpJYlNWZ2llT0FtNUx3ZEUtdlVvcElGNlNGV1ZUMWdWZlMtYWcyVHdaWHVyT09wdTBGZ09NQ2hoT2gzbnVjS2V1R2lEYW5rbWFPTE1qSXRFNk1LeEtBa3lMdFpnTldYRmVodHR5ZGEycWhSR3djUEdQTGV1Ylh5TGc?oc=5",
           "score": -2,
-          "age_h": 59.1,
+          "age_h": 60.0,
           "published_at": "2026-11-17T00:03:08Z"
         },
         {
@@ -14217,7 +14213,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOWmhKZzVyT29uMWtUV3NVTHVldHdzQjJxQTRtellxcmdVdnNPTlByejdnTktLVDc5dk5aSkNnVmxkZkdudTI1Y19EbnVQN0h3R0VEZ2VxWFJsSVh3VzBUX2daNWcwb3NwblFyWVJ6c1hwZzR3US1HbmJoblhDc1o0MFg5bVdLTE5hU051QmdXbmJzc25CZVA0UE01REV0c2xLdjZWcGRfaEJua3RMVDdXa1lhZTFtZ0RSSzVzSGFIS0x5S2RLZ0RSR3M3Z2xtbFMtZENyTzV30gHbAUFVX3lxTE9nal9vZ1UzNmR1ODJ3dEtvTEZlQVBZamJ5cTA3aFQ4bU82UFIwWVRMN2VpXzVSenJiV3gtbVJLZWxpVWt3NzIyaGVNeEhqN2tOWENING16Y0htVTItUkNfRERiYlh2bHA1TTdlY19VczQ4ZWtfUW51WjBiSjBFVmlMX1dXbldDRW1iN2Fsa2wtdnI1cnlRRHl4MF9ZQV9WYWFZcGFjLUhwNXhXYnJ1bklLaUQxd0NRQ0toa19xV0hIQTY3T01YOEwzOFpYY25wUllKeFZrUDJ1aEZVSQ?oc=5",
           "score": 0,
-          "age_h": 71.9,
+          "age_h": 72.7,
           "published_at": "2026-11-16T11:19:51Z"
         },
         {
@@ -14225,7 +14221,7 @@
           "source": "LinkedIn",
           "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPN2trSWhlMGVWa0RraE5KTU1XQmJDbTZNVVk1YmcxZVkybkVYNTV0ak9vbjdrLXp6elJNZGJvdkNIelNnRERscmJpdk1DZkM1NmtpS0JqWHprbHNwVmdSOUhUWlpXUWQtZ0RWT3JCVzZ2emxwU3IteTB3NVRJUm9lWnU2Ulh2bzB5Ujd6WnlnRmw3UmVlbzN6TEtQRnFWck9DNVhVekZNQ1ZfOE9iVk9UeXZ4WER6bVU?oc=5",
           "score": 2,
-          "age_h": 74.9,
+          "age_h": 75.7,
           "published_at": "2026-11-16T08:17:56Z"
         },
         {
@@ -14233,7 +14229,7 @@
           "source": "TradingView",
           "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxObWNUdVBULWRmS1NMbG9qN0NrbVZSclpwencta1ZaUDFTV3NybjJXR1g2c0VtWXllVkthNzlFa1ItdFdoakFmMzEtLWRVSXN5YVJXSEVEN1NEN1BUQ2NBZG9MZGlOenRyUkVSa3MtWXh2aWVXSTBFbHFWcXEwTmo0amZtMEhhZmhoTU10YmJDaXJXQzFIblhHd2lzWmxrcGdjT1RmVE5kbExQUHJLU3Jiam1aWTNUckNqcTFqdzhFYldnc0V2c0Q2Zmw5dDR2Zk55RGx3cGRoT3VBSGRxSUhMTjc0cWpDa2dTQ1BYckIxby0yTUVTWjVDRmk0VGx2V3ZodlE?oc=5",
           "score": 2,
-          "age_h": 75.1,
+          "age_h": 75.9,
           "published_at": "2026-11-16T08:06:08Z"
         },
         {
@@ -14241,12 +14237,12 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxQNEhGTUpQT2lMZVBUanBZRUJyWEJSM19kdWhQQXhFYnAxY1Z2Y1UxUVpSMDhiYTdXNjcyLVlva2QxVXJNT01yU25Rd0ZFZmxZSFUxRlc1alV1ZlVtZ0JJZFFFQm5nUl92ZWRpazIzYXozZW9EUjJTQm4yRnQxM1BkOGVLeExFdzNYb0RGUWNVX3prYlR2NVktY1lpNXpTejBWS0o1Z2l6S1B3REVqbDJISVhjMjF4cEdGMjdxOU9uS0lSV3luSXV4YjU5a3gwVXNVNzc1ZzhVQ29WeGJFMDZnZGVJakpIMHlwaDlYck9DZG1TYmlXLXUweW1MYi1DX2JYQzBUWFJUM3Q?oc=5",
           "score": 0,
-          "age_h": 77.2,
+          "age_h": 78.0,
           "published_at": "2026-11-16T05:58:34Z"
         }
       ],
-      "pos_n": 8,
-      "neg_n": 2,
+      "pos_n": 5,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -14273,7 +14269,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:16:32Z",
             "oldest_headline_published_at": "2026-11-19T05:11:45Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14283,7 +14279,7 @@
               "LinkedIn"
             ],
             "query": "Eicher Motors share",
-            "newest_headline_age_h": 5.91,
+            "newest_headline_age_h": 6.74,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14295,7 +14291,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T05:16:32Z",
             "oldest_headline_published_at": "2026-11-19T05:11:45Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14305,7 +14301,7 @@
               "LinkedIn"
             ],
             "query": "Eicher Motors share",
-            "newest_headline_age_h": 5.91,
+            "newest_headline_age_h": 6.74,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14357,18 +14353,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "Apollo Hospitals share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 0.7,
-      "headline_score": 0.7,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=Apollo+Hospitals+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": -1.0,
+      "headline_score": -1.0,
       "headlines": [
         {
           "title": "Apollo, Microsoft turn to AI to help hospitals learn from medical errors",
           "source": "YourStory.com",
           "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOeF9FZGM3c29BM2NWZVR1d1Z4akx1dzN1Q01OMnRScjZfRFdMdWxWYjVfM2hCdGRzNENDdGQ5bUIwVnhuR01nbHh0UWVWTl8yZ2J3UWtIYm9SaHRKclhIMmowamgzM21JVFNkcG9LdWJFelBWTkxaM010VFFZQWdFNXU5WmJBYlB2YnpSeEgzLTVKQlZLeFI4N0RfSURacFJLbzI0?oc=5",
           "score": 0,
-          "age_h": 21.8,
+          "age_h": 22.6,
           "published_at": "2026-11-18T13:26:15Z"
         },
         {
@@ -14376,7 +14372,7 @@
           "source": "Simply Wall St",
           "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPdGMyQkNfT2lUNWxwU1hOa2pUc05vSVptQUpJeWV4MC1sRmhRX1hKQVBWQ3E5YU14eGQ0MVo4TVllWDVmb3k0SDhZT2d4Z2RNU2JKVGR5WUtYcWZQWnlpWVhydXctdHF4bE5tc0VpZ2YwWFZJbndRQzhaT1pCY3pVU01DRm1vUTJxZlBkV3R2SW5VUnFiM3lLN19HdW5OTC1E?oc=5",
           "score": 0,
-          "age_h": 51.2,
+          "age_h": 52.0,
           "published_at": "2026-11-17T08:00:00Z"
         },
         {
@@ -14384,7 +14380,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9tOGU1TFY5eEZXQ0hKeFR0MUNSYkdVX0VGLXhlSHFtNzRZd1UyTHVQNUI5cmI4cjFOdFMtTlNsd2h4WUFEak1BTTRWZ3V5Ymt6d1pqRVlKR212TDJWN2VFWi1rSzE0andENTNsMldmVFU?oc=5",
           "score": 0,
-          "age_h": 54.2,
+          "age_h": 55.0,
           "published_at": "2026-11-17T05:01:41Z"
         },
         {
@@ -14392,7 +14388,7 @@
           "source": "Univest",
           "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOREFSeF8xbVZkdnVlUjhyTkpvQzJ0Vi1mMU15a0EwSFdlZjdLZHZuWjN2d3VTN2wwNWlpcVJCMkRsRWVVZThfeEhqNDRETW9LdVM2cngySnMwaFlnOFhUamlhVU1QdjhrWXhnZFJ0WndmZHYyQWgwS3VmQWhiYlQ2M2kzMlRpS0ZxNDNpZg?oc=5",
           "score": -1,
-          "age_h": 748.2,
+          "age_h": 749.0,
           "published_at": "2026-10-19T07:00:00Z"
         },
         {
@@ -14400,7 +14396,7 @@
           "source": "CNBC TV18",
           "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxPWVpIZHVsdEZPZGJkNWh2cGdSWi1tdFM1VURsV0d4V1FCQWpfdUVHeE00b21mZmtoSVJGOU00TXZzTHZGNE0zQjJBRXJqUk43U1RGLVg0R09ONEhVU0xpaGVRdEJRZ0llYWt0dDF2MEhXSHQzMml4YVloeUhDQVVQcnVVUGdtOHpRZTY0MnYweHd1MkQtTTFFSElyNzFLRXVxU00tRy14NE40TUx0dFExT2tSRk56d2RUMmF5cGtlSkhYZUJYZjd1cklJTU54SVdwWEt5V0paUFYtbGRDSW1hWC1odzZjMGFNNlZFdnlZc9IB9AFBVV95cUxOU1FjUExQT1RITkk1UEJ1VWIxZEowR05xWGg2U1hOT0NiM0JnSjVsT1lNRjlMcDh4bk4tZFVzd0FaSmVIc2h1NnB4clhhLXRnRDZxUHlJNUNQRkVWRDJrMFFVWFltMFFKYS1oanR5dmxwMHl2LVZ2TGRXZWJWVHowR0NiOFBhT0YxQzk2TEh5SFZMTU1XTGthQnZvRXh3VG93eVJRLTktNGVjZlA0Qkx6RFF1WG1LOE5CLUtYaFdGd2NaS1gzTEU2VFdZckpfRml3TS1WXzRhVjV5N2ZEODdVbDlQMDdUX2dFVUs0bGpVUnhVOXhu?oc=5",
           "score": 0,
-          "age_h": 916.2,
+          "age_h": 917.0,
           "published_at": "2026-10-12T07:00:00Z"
         },
         {
@@ -14408,7 +14404,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxNb2E0OUpncnBVdnNuYzY5SUdDYkRYeG9Obm9xcUF5elFqUGNSaVdsNzVPYXFBdlVtNWNTZW0wU1Z0U1duR3pWbEthV0xRVUR0MnlIbEhXTVJWcy1NMlZOT3hsak0tZmp2N2o3ejVpbjJxTTZTY3poUTI0Ulh5VW5MWlpwVU9QUFhzSXhGWGZuTjZWdEY1Wk1tT3J6RHk1UFg1T0dFRXUwd2RSVXktMlRVX2hFMFhNS0toNm1fMkhzRUFLVGx4UHUzYXpjMDZFZGJRb2twRkV30gHbAUFVX3lxTFBiajAtY3Q4V2RHOUhWSUdPUWlvMUxnV1RxVGdma2ZRNmhTcXhwYWQ3Y0t6S2pGZ0FoQTRjbXZyVjBUTVI5cFBmeC1keFFLYkVmX2o0UUsxem03Wkl6LW9Mb3RCZGhlV2oxaW1VZ25NNVN4ZWJVVjl3LXBBUVFIQ0V5X2ttYTdLLTFHbC1CYnEwbHZkNm00bTl6TEtTcXpTZXdsRDJFak5vZkM3VWlSODdjMnRTZE84NVlSUW5CNmtndGJ3RUVLYUtBR3JfMzQyVzd3SDhFR2ZBVjd2QQ?oc=5",
           "score": 0,
-          "age_h": 1348.2,
+          "age_h": 1349.0,
           "published_at": "2026-09-24T07:00:00Z"
         },
         {
@@ -14416,7 +14412,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPWVA2TE92U2lIM0M1VjZJNk1WUC13WTFVQ2Y0UndTY2l2UGRtUWVxMHdDU1p1NVhfbnNpdGFxd2hDd2hvdm5hVkVjT1J0ZF9Va1BKVGFuSEZYU2NXTW1raEY3SnNtYXRjYVpqMjNMSF93R3lWTzBPZWpCVHN4YTUtdWQtdGNCSGQ1cWFtem5pMkRoRzkyTjdpMEs0RTVvaVVQbzJjTVlqMWQwZEdjSnNWMzAyNGRLelVKS3JNemtxQ01tbVExQWxFb1JuQ2g2RF9BaENUOXhRVmhrNXRBdHFqOXNyclBuQQ?oc=5",
           "score": -1,
-          "age_h": 2380.2,
+          "age_h": 2381.0,
           "published_at": "2026-08-12T07:00:00Z"
         },
         {
@@ -14424,11 +14420,11 @@
           "source": "Facebook",
           "link": "https://news.google.com/rss/articles/CBMiogVBVV95cUxNMU9CUTZLQzVVWUlFdGhVODliS1BaM3B6TTFKdlJYWFJER3ZlTWZtRTZfeV9odEtDcVN4TTFsVGw5cGZ1WFdmckl5TkJCaUhYOHlFMHNWTFdLWHZRSWtBdWhGanRROFlnWG9SR3JTRXZTQ2R2LXRpc2JGOEVhamxFRm9lOC1JRXBvR1JrUnlobWlXdHFJU0xIRjZaZElXLUxsaExxQjFRWHpnRlRCdzBDWDhGU1ZDSVFzTWo4M1NrWHl2bWpnYWJ1d1dwMXhqUGc0M0JCM3R0SHZZWmFkVVh5MDJPbDhlYlUwNGlwdVR3UlMxQlJiUUttWi1fTzl5anhlODlyVVBhN0pKblNUN0llYnA2WlJtcUpZeThhcXdubjJzclVSS0ZmczRLYTFOM3JaT04zNWpkSkpOX1BPM0Z2Z1pDVUluMmZCYjR2aXVQdHRUQm5aZGlJRFJZRGhzNzJqeGEySGRVRlhDbzRIZEVjOEZLMk5yTGdxN2VoYXJ3N3VrbUNGMFl6ZWdWQ2ZGLTgyU3k5RDhFZjZocjZ3OU1lZXEyTWVtZHJxRjBUazMyNjc0Xy1GalpyLVBGb2hxWlVHaUZPU2gwVFVSTEUxdGEtSk1vOFJoeUVxY2ZXejMtRWR2dGdTWGxjWDhPbnZhN2xPVmZfcTFyWkloaF9LQmNpZnUtc0pFcnM0bURJYzl1LWtFbkVXazRSMDl0MHJpTldCYkMzTmNCRjV3cU9XZ1BqN1ZtOXpxR18wZWlBcUY5d0dLay10Q09xUVZiM0wxVndMU2w2WDJiSkJuUzdvMm1CVHlWdHRaNHlqalN2Q1VYQU8wVGpwMmJjdkxWSGhsVk43aEdIOXlYZUhsYlpTT1VicmtsQmNUTHFuYXpYckJ2VFRCZw?oc=5",
           "score": 0,
-          "age_h": 2404.2,
+          "age_h": 2405.0,
           "published_at": "2026-08-11T07:00:00Z"
         }
       ],
-      "pos_n": 3,
+      "pos_n": 0,
       "neg_n": 2,
       "component_breakdown": {
         "version": 1,
@@ -14456,7 +14452,7 @@
             "source_date": "2026-11-18",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-18T13:26:15Z",
             "oldest_headline_published_at": "2026-11-18T13:26:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14465,7 +14461,7 @@
               "YourStory.com"
             ],
             "query": "Apollo Hospitals share",
-            "newest_headline_age_h": 21.75,
+            "newest_headline_age_h": 22.57,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14477,7 +14473,7 @@
             "source_date": "2026-11-18",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-18T13:26:15Z",
             "oldest_headline_published_at": "2026-11-18T13:26:15Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14486,7 +14482,7 @@
               "YourStory.com"
             ],
             "query": "Apollo Hospitals share",
-            "newest_headline_age_h": 21.75,
+            "newest_headline_age_h": 22.57,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14538,18 +14534,18 @@
       "price_unit": "",
       "price_source": "NSE India direct quote API · पिछला बंद भाव",
       "news_query": "SBI share",
-      "news_fetch_attempted_at": "2026-11-19T11:11:21.260115Z",
-      "news_fetch_status": "fresh",
-      "news_fetch_error": null,
-      "score": 3.6,
-      "headline_score": 3.6,
+      "news_fetch_attempted_at": "2026-11-19T12:00:39.851072Z",
+      "news_fetch_status": "refresh_failed_using_cached_headlines",
+      "news_fetch_error": "503 Server Error: Service Unavailable for url: https://news.google.com/rss/search?q=SBI+share&hl=en-IN&gl=IN&ceid=IN:en",
+      "score": 4.7,
+      "headline_score": 4.7,
       "headlines": [
         {
           "title": "PSU Bank index nears record high; SBI, PNB, BoI rally up 27% in November",
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQVFZNWGozN2piVFVLNGNia0FBTXpBY3dwWHcwRGZxUzRpZXZaY3hyV2FDRks3aUNQd1dKb1ZQOHJfMFZ4ZWtZQm1mRmhUMFVkVGlqVzJjOVZ1TFpWbFJCWFJ1MmcyU1paMTBOM1NadXB5bVIzUVIwQWJTOHRTT3pQbWQ1RFBPdjRmaWQ4RGdLWjJmaUQ5dGhwZndkZ2RUTUM3X2w1dmxMWHVnTG02b3RWVEFXdDJ1d3BtNU81TnNmNFlzTlFRWFQ3Vk96QVhhX21N0gHWAUFVX3lxTE8wTzdWV0g2Y01qY2oxRGE0blRjR1RCeDZDTkQ4b0NiMjR3YnJwY3V1RTY3ZmRSM1BYYXJXVThzMTJUYWtsTzAzMEdQY2pLZUJGcmg5cGVQUUdqcjdzTHV0UUxScHpsZ1lTeTlmU3pLckdleHhpeTQ3ck9LblVRQzlsaG5GWTIxTlpyWE1zWU5ZZkV2NHkwOXpleG9saVhIaUM4Rk41bjZxaHF2bDdGeDRvUEdTMk9NV01BWE5vWTM2UTNRZV93M2lYVDZTQ0VEY19wUVA3Z1E?oc=5",
           "score": 4,
-          "age_h": 4.4,
+          "age_h": 5.2,
           "published_at": "2026-11-19T06:47:18Z"
         },
         {
@@ -14557,7 +14553,7 @@
           "source": "Moneycontrol.com",
           "link": "https://news.google.com/rss/articles/CBMiwwJBVV95cUxPN2FhOUx2ZmJzSFpBUVpXbEdDNWcxQVRVM18xaVBJR3I5R2N1RU40QnR6TW81b3k2SWhXMVpqNFZFTlk2ZmdEZWU4WXBxOXJHQU5jODY4VWJlTjJway0zNThPVGJGbEZaOVVfM0FRWDNjR3RvX3Zjb2NxQU5FTzlpYVJPS2lhR3NkVHU2UGoxRXE3VkxJUlJwdTQtcjVFMDNfaHowcFlnME5jTVpBTTU1ZnpLZThGcDBENzdzWk5EOUhwQlRWYU15V2tnS2NDTjlRelBFRXliY3FCSnpRTTE3bUdHdzR0cnF0WVBSMG9FOURscWRjS3V2dkpGRlAxeE04OW03M3hvWUo0VnBVdGJ6SVp1WVM2Yl9XQU5OZnVhSEZRMm1jVmoybXR5QVFES3RuYTNINEh0R2UtcE5VbTlYbjdkQdIByAJBVV95cUxOYTJpaGZ1YXY3UG12Q1RQZ3JIOXRGZWJ4VUNGSmRubF9jTUpnUm9NdmRqaDJjY3ZweDFiUUNOaTBVM0JXVXI5MnRHdlFxSGRxbGJoZzFQaTU5NXF6dk1ZVEpHY1JsT1o1M3gxMW44UXF3dDUxejVyZUFTS01tZnFKZER0d29rWFdmQjFJNWU1YmlWNkY3c1ctaklxTFdxZ0xlZlBjbE0ta0lpR1UwUE1sSWZ2bUZadFlwRkdtYXlHUEtKMk5mUlNKbEpaYnNCUGduZzJrTzdTdS1rUkhVWENESUVKTk4xNlZ3eXFHMWp2SVA3S1hvekFBVk9QcFF1dmxwbVdfYjRHNXRGXzJWb1paakpLeDgwcTZzcEZydE1hRk5jMS1XVlh5UlJVSU1mR1ljSS16SG9jUWlrNzV2ZXlsV3paR20zUGxm?oc=5",
           "score": 0,
-          "age_h": 8.6,
+          "age_h": 9.4,
           "published_at": "2026-11-19T02:34:26Z"
         },
         {
@@ -14565,7 +14561,7 @@
           "source": "Cafemutual",
           "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQMm5KVzM5d2RlN0RUdWNWOGRwT1RhSHl1VV9RZXRYOXdwWEtZSlBCa243N0oxSDg4MUdOVEpSR1d3YXJ3cU9seENGeC1kekpRVkNLN1p1V08zTUFnUDN2Z09ZbTBLSjM3VTRBSEZnX0dtWlViaHQzczdSNXBfcmU3dkJFaFVjMzFYbjY3R29xcUllX3h2YXRURGxMbXcyQlFMYWthWjh6MzlBSjBXTGEyRGtiT0dkV2psRnc?oc=5",
           "score": 0,
-          "age_h": 17.9,
+          "age_h": 18.7,
           "published_at": "2026-11-18T17:17:49Z"
         },
         {
@@ -14573,7 +14569,7 @@
           "source": "Business Standard",
           "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOQzFGNFRCYlY3SU5HNWpVZktMMFZMM2pPdW1tWUwxSWFvdnZQa2puNzZUaWZYOTNIc3Z6SDE4TVFzVC15T18zV0NvT1pfeFI4ZGZ5ekJweEEtMzNyZ3MzYWx2STJ5RFFHZC1YWkJEMFhENmxRZ2ZISWJub3NTNzM3T0IwZ3JrVndvbExZSE9XSXA1blNfLUpoS1dFeXNTdG9nOGZVT3hiLUtFV2RteUtpM2I3ZnlTanlKUDVvTjlsUEJCVFVEeDdhVXdqa0d6a1FUMk42VUh30gHbAUFVX3lxTE1nR3VNS1NKS0lSbUNpYzdDY1lrei10WlRleC1QbXVSNlZuSnF2RUdFellTaFhuUmNYU3loSVRJSFRwNnFwaGtJOGF5dzVpLW9hTVlOTmYwVU5nVUNMdlNNbXFTNmQzTjQ3bHpmS0VEbl9MeXBLRTJnWGs3Q3RQdkZiZmZmV2stZmFuVGlKYlZQZjJoUkdiSno4THJvZWZ3aVJSaDJDUlFTMFNSVkhOX2pIbGEtR19RamMycTRnSEhNLTBETTd4SElna3RNZ0VGeGdKamU2ak1tTFVQSQ?oc=5",
           "score": 0,
-          "age_h": 28.3,
+          "age_h": 29.1,
           "published_at": "2026-11-18T06:56:44Z"
         },
         {
@@ -14581,7 +14577,7 @@
           "source": "Equitypandit",
           "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5RQjVNcXM1Mmp0d0NaT1NMUWh5S1ByaDdEeGlQQkd5TzgwbkpwNTUyOVRZRnVaVHBhSkZYU1VDQmhZLUJ4TkZJNU1SbUFRSTgyUHFQMjBSbzJlUEtvTGptM29QNEdMZw?oc=5",
           "score": 0,
-          "age_h": 147.2,
+          "age_h": 148.0,
           "published_at": "2026-11-13T08:00:00Z"
         },
         {
@@ -14589,7 +14585,7 @@
           "source": "Equitymaster",
           "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQQkZVSWFxV0lzWlQ0NndkY2dMNWh4dTdmUFBtaDVWcjRGVTgxdnRmQ2NRaHRNeTY5d0V6Q19XRGJlREthTHkzNDh0WVl3bGhZam1fdm16dWdYUVpSTVotdFZmTHVSbzdpVWQyNVl1M2hRaFJFa2hfdnJydEdnS1l4YVBrWXBZNmRwb3QyM0loSWxVb19iRkVjRlJHQm5NUDBBRGxWZkFwdHNpR2dGR3hEMGYtN0F1aExYcVdWeGJfVV9GdFdsWGEtZjdWVWo?oc=5",
           "score": 0,
-          "age_h": 1516.2,
+          "age_h": 1517.0,
           "published_at": "2026-09-17T07:00:00Z"
         },
         {
@@ -14597,7 +14593,7 @@
           "source": "Upstox",
           "link": "https://news.google.com/rss/articles/CBMilgJBVV95cUxOaTlTdlNIUnFTTmdfZ25vc2Nvc0N2VGJ0LUF5NE1GWF81UEZmTUlIeE1fOHBPbktNM1o3RXhTUFk3ZE4yN2VRZDNHVlltdjF3OTdCT04zV0p5VnJXSVlIVVNwNFdOVGVDSjF2TDVEcVZNdzhncDhXZ0VLQjNtYXlPRExVM3huZGFYVEt0aS1UQlBsQi0yVExpbVMwd1lISVdPU1ZNRldlVC1vRUhjNXF5N0pzTjd1UWczMWtCTUJ0bTZpOWpxSlkwVEZCZGE0cHMxTXNWSVJuVDBxZXJiUkZ4WjFkcTlaakNINnRNN2g2YWZOcmI5Sk9FbkZMZlI3dnFleXNQN2FrMGk1U1I1Q1NmWGxOanExdw?oc=5",
           "score": -1,
-          "age_h": 2428.2,
+          "age_h": 2429.0,
           "published_at": "2026-08-10T07:00:00Z"
         },
         {
@@ -14605,12 +14601,12 @@
           "source": "BusinessLine",
           "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPajNFTTlaZUNJeVN1NmFqMXJRVEdNMjF6YmU1WFpQcXAweVdHZTgxZVFWWkgyYUJnWlhudTZ1aHk3SWEwUjdvbWgwZFlEUC00ZURBUEdMaVFERmtHU3lSYmRsRGF5alJoTjZjdkVpdEpZa3UybFdrTnRzYmljcVlMX1NnS2g1QU0zY3JYUlJ6QUdibnM0ZWpNSkdPbFpNV3dBdEFSalp2N0tIbTRTM0kxakp5aHkzR2M0TlAxcVZ3RHJDX0ZPOUxoV0VjRU82UGhhelBPY9IB2wFBVV95cUxPNTVwdko0MnUyN28yRnozRXhVVzE4MWx5cU1jWDJzaTdndWhtaWx0cU9ZSEx6X0hvLU1QSERSN2czM3FFVlEwekxsUFhmY0FENUJuVXVZdkRHeHMyNEwwcTZKRnpEdkQwOS0yNldsRkJlaEI2VzlvZi1jZi10Q3lrX3ZiQ3NkTXlTaUdvTWpSdkJHa2xFWDZ5Ri1BMlBrc1lReVRmVG9GQzBESW1fSnRwX0lRa0huNnI3eExUT1lHNXpXdGQzX2RyQjBQek9scXVQeFhkOE1RU3dSN0k?oc=5",
           "score": 0,
-          "age_h": 2428.2,
+          "age_h": 2429.0,
           "published_at": "2026-08-10T07:00:00Z"
         }
       ],
-      "pos_n": 5,
-      "neg_n": 4,
+      "pos_n": 1,
+      "neg_n": 1,
       "component_breakdown": {
         "version": 1,
         "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -14637,7 +14633,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T06:47:18Z",
             "oldest_headline_published_at": "2026-11-18T17:17:49Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14648,7 +14644,7 @@
               "Moneycontrol.com"
             ],
             "query": "SBI share",
-            "newest_headline_age_h": 4.4,
+            "newest_headline_age_h": 5.22,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -14660,7 +14656,7 @@
             "source_date": "2026-11-19",
             "weight": 40.0,
             "included": true,
-            "observed_at": "2026-11-19T11:11Z",
+            "observed_at": "2026-11-19T12:00Z",
             "newest_headline_published_at": "2026-11-19T06:47:18Z",
             "oldest_headline_published_at": "2026-11-18T17:17:49Z",
             "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -14671,7 +14667,7 @@
               "Moneycontrol.com"
             ],
             "query": "SBI share",
-            "newest_headline_age_h": 4.4,
+            "newest_headline_age_h": 5.22,
             "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
             "note": "24h timestamped headlines; asset-specific card query"
           }
@@ -19805,7 +19801,7 @@
     "fii": 5866.78,
     "dii": -3159.9,
     "stale": false,
-    "as_of_run": "2026-11-19T11:11Z"
+    "as_of_run": "2026-11-19T12:00Z"
   },
   "participant_oi": {
     "ok": true,
@@ -20208,14 +20204,15 @@
         "age_h": 7.0
       }
     ],
-    "stale": false,
-    "as_of": "2026-11-19T11:11Z"
+    "stale": true,
+    "as_of": "2026-11-19T11:11Z",
+    "error": "बाज़ार से जुड़ी खबरें इस बार नहीं मिलीं"
   },
   "trends": {
     "ok": false,
     "stale": false,
     "cached": false,
-    "error": "आख़िरी सफल Google Trends reading 180 मिनट से पुरानी है; पुराना मूड छिपाया गया",
+    "error": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी",
     "daily_slots": {
       "date": "2026-11-19",
       "slots": {}
@@ -20292,13 +20289,13 @@
   "signals": {
     "state": {
       "NIFTY": {
-        "score": 3.2,
+        "score": 10.0,
         "sent": 1,
         "price_dir": 1,
         "vwap_side": null,
         "vol_hi": null,
         "vol_ok": false,
-        "since": "2026-11-19T11:11Z",
+        "since": "2026-11-19T12:00Z",
         "last_30m": {
           "start": "2026-11-19T09:30:00Z",
           "end": "2026-11-19T10:00:00Z",
@@ -20327,20 +20324,20 @@
             "open": 25201.9004,
             "high": 25201.9004,
             "low": 25077.5996,
-            "close": 25134.3008,
+            "close": 25133.75,
             "volume": 0.0,
-            "change_pct": -0.2682,
+            "change_pct": -0.2704,
             "direction": -1
           },
           {
             "start": "2026-11-13T04:00:00Z",
             "end": "2026-11-13T04:30:00Z",
-            "open": 25133.4004,
+            "open": 25130.1504,
             "high": 25229.4004,
             "low": 25117.3496,
             "close": 25200.3496,
             "volume": 0.0,
-            "change_pct": 0.2664,
+            "change_pct": 0.2793,
             "direction": 1
           },
           {
@@ -20382,9 +20379,9 @@
             "open": 25172.6992,
             "high": 25176.1992,
             "low": 25134.5996,
-            "close": 25146.5508,
+            "close": 25146.5996,
             "volume": 0.0,
-            "change_pct": -0.1039,
+            "change_pct": -0.1037,
             "direction": -1
           },
           {
@@ -20434,23 +20431,23 @@
           {
             "start": "2026-11-13T08:30:00Z",
             "end": "2026-11-13T09:00:00Z",
-            "open": 25097.0508,
+            "open": 25097.3496,
             "high": 25098.9004,
             "low": 25054.4492,
             "close": 25087.3008,
             "volume": 0.0,
-            "change_pct": -0.0388,
+            "change_pct": -0.04,
             "direction": -1
           },
           {
             "start": "2026-11-13T09:00:00Z",
             "end": "2026-11-13T09:30:00Z",
-            "open": 25086.9004,
+            "open": 25086.6504,
             "high": 25130.5508,
             "low": 25086.1504,
             "close": 25109.0996,
             "volume": 0.0,
-            "change_pct": 0.0885,
+            "change_pct": 0.0895,
             "direction": 1
           },
           {
@@ -20492,20 +20489,20 @@
             "open": 25320.75,
             "high": 25328.1504,
             "low": 25257.3496,
-            "close": 25262.25,
+            "close": 25262.1504,
             "volume": 0.0,
-            "change_pct": -0.231,
+            "change_pct": -0.2314,
             "direction": -1
           },
           {
             "start": "2026-11-16T05:00:00Z",
             "end": "2026-11-16T05:30:00Z",
-            "open": 25263.5508,
+            "open": 25262.6504,
             "high": 25263.6504,
             "low": 25192.1504,
             "close": 25227.0,
             "volume": 0.0,
-            "change_pct": -0.1447,
+            "change_pct": -0.1411,
             "direction": -1
           },
           {
@@ -20536,9 +20533,9 @@
             "open": 25255.6992,
             "high": 25301.4492,
             "low": 25242.25,
-            "close": 25251.6504,
+            "close": 25250.9004,
             "volume": 0.0,
-            "change_pct": -0.016,
+            "change_pct": -0.019,
             "direction": -1
           },
           {
@@ -20610,56 +20607,56 @@
           {
             "start": "2026-11-17T03:30:00Z",
             "end": "2026-11-17T04:00:00Z",
-            "open": 25323.6504,
+            "open": 25277.3008,
             "high": 25357.8496,
             "low": 25269.1992,
             "close": 25321.9004,
             "volume": 0.0,
-            "change_pct": -0.0069,
-            "direction": -1
+            "change_pct": 0.1764,
+            "direction": 1
           },
           {
             "start": "2026-11-17T04:00:00Z",
             "end": "2026-11-17T04:30:00Z",
-            "open": 25323.6992,
+            "open": 25321.8496,
             "high": 25382.0,
             "low": 25292.8496,
             "close": 25372.5996,
             "volume": 0.0,
-            "change_pct": 0.1931,
+            "change_pct": 0.2004,
             "direction": 1
           },
           {
             "start": "2026-11-17T04:30:00Z",
             "end": "2026-11-17T05:00:00Z",
-            "open": 25373.75,
+            "open": 25372.4492,
             "high": 25416.8008,
             "low": 25359.25,
             "close": 25400.5996,
             "volume": 0.0,
-            "change_pct": 0.1058,
+            "change_pct": 0.1109,
             "direction": 1
           },
           {
             "start": "2026-11-17T05:00:00Z",
             "end": "2026-11-17T05:30:00Z",
-            "open": 25401.5996,
+            "open": 25400.1504,
             "high": 25416.0508,
             "low": 25371.5996,
             "close": 25404.6504,
             "volume": 0.0,
-            "change_pct": 0.012,
+            "change_pct": 0.0177,
             "direction": 1
           },
           {
             "start": "2026-11-17T05:30:00Z",
             "end": "2026-11-17T06:00:00Z",
-            "open": 25405.0,
+            "open": 25404.8008,
             "high": 25452.75,
             "low": 25402.6504,
             "close": 25438.4492,
             "volume": 0.0,
-            "change_pct": 0.1317,
+            "change_pct": 0.1324,
             "direction": 1
           },
           {
@@ -20679,9 +20676,9 @@
             "open": 25483.5508,
             "high": 25501.3496,
             "low": 25472.25,
-            "close": 25486.6504,
+            "close": 25486.9004,
             "volume": 0.0,
-            "change_pct": 0.0122,
+            "change_pct": 0.0131,
             "direction": 1
           },
           {
@@ -20698,12 +20695,12 @@
           {
             "start": "2026-11-17T07:30:00Z",
             "end": "2026-11-17T08:00:00Z",
-            "open": 25445.5508,
+            "open": 25452.9492,
             "high": 25453.6504,
             "low": 25347.1504,
             "close": 25386.5508,
             "volume": 0.0,
-            "change_pct": -0.2319,
+            "change_pct": -0.2609,
             "direction": -1
           },
           {
@@ -20764,12 +20761,12 @@
           {
             "start": "2026-11-18T04:00:00Z",
             "end": "2026-11-18T04:30:00Z",
-            "open": 25293.9492,
+            "open": 25293.6992,
             "high": 25336.5508,
             "low": 25206.3008,
             "close": 25291.0508,
             "volume": 0.0,
-            "change_pct": -0.0115,
+            "change_pct": -0.0105,
             "direction": -1
           },
           {
@@ -20841,34 +20838,34 @@
           {
             "start": "2026-11-18T07:30:00Z",
             "end": "2026-11-18T08:00:00Z",
-            "open": 25181.0996,
+            "open": 25188.6992,
             "high": 25196.6504,
             "low": 25141.8008,
-            "close": 25169.8008,
+            "close": 25170.0508,
             "volume": 0.0,
-            "change_pct": -0.0449,
+            "change_pct": -0.074,
             "direction": -1
           },
           {
             "start": "2026-11-18T08:00:00Z",
             "end": "2026-11-18T08:30:00Z",
-            "open": 25170.3496,
+            "open": 25177.5,
             "high": 25246.3008,
             "low": 25143.6992,
             "close": 25237.0508,
             "volume": 0.0,
-            "change_pct": 0.265,
+            "change_pct": 0.2365,
             "direction": 1
           },
           {
             "start": "2026-11-18T08:30:00Z",
             "end": "2026-11-18T09:00:00Z",
-            "open": 25237.0508,
+            "open": 25234.0,
             "high": 25270.1504,
             "low": 25209.9004,
             "close": 25249.0996,
             "volume": 0.0,
-            "change_pct": 0.0477,
+            "change_pct": 0.0598,
             "direction": 1
           },
           {
@@ -20910,9 +20907,9 @@
             "open": 25116.1992,
             "high": 25281.4492,
             "low": 25104.8008,
-            "close": 25278.0,
+            "close": 25279.5,
             "volume": 0.0,
-            "change_pct": 0.6442,
+            "change_pct": 0.6502,
             "direction": 1
           },
           {
@@ -20940,12 +20937,12 @@
           {
             "start": "2026-11-19T05:30:00Z",
             "end": "2026-11-19T06:00:00Z",
-            "open": 25292.9004,
+            "open": 25302.1992,
             "high": 25327.4492,
             "low": 25291.0,
             "close": 25316.9492,
             "volume": 0.0,
-            "change_pct": 0.0951,
+            "change_pct": 0.0583,
             "direction": 1
           },
           {
@@ -20973,12 +20970,12 @@
           {
             "start": "2026-11-19T07:00:00Z",
             "end": "2026-11-19T07:30:00Z",
-            "open": 25358.3496,
+            "open": 25362.3008,
             "high": 25386.3008,
             "low": 25351.5,
             "close": 25374.6992,
             "volume": 0.0,
-            "change_pct": 0.0645,
+            "change_pct": 0.0489,
             "direction": 1
           },
           {
@@ -21006,12 +21003,12 @@
           {
             "start": "2026-11-19T08:30:00Z",
             "end": "2026-11-19T09:00:00Z",
-            "open": 25392.75,
+            "open": 25390.0508,
             "high": 25481.25,
             "low": 25390.0508,
-            "close": 25468.5996,
+            "close": 25468.6504,
             "volume": 0.0,
-            "change_pct": 0.2987,
+            "change_pct": 0.3096,
             "direction": 1
           },
           {
@@ -21074,9 +21071,9 @@
             "open": 61300.5508,
             "high": 61300.5508,
             "low": 60862.3516,
-            "close": 60958.5,
+            "close": 60957.0,
             "volume": 0.0,
-            "change_pct": -0.558,
+            "change_pct": -0.5604,
             "direction": -1
           },
           {
@@ -21173,9 +21170,9 @@
             "open": 60956.0,
             "high": 60991.1484,
             "low": 60882.5,
-            "close": 60925.3008,
+            "close": 60926.8516,
             "volume": 0.0,
-            "change_pct": -0.0504,
+            "change_pct": -0.0478,
             "direction": -1
           },
           {
@@ -21313,12 +21310,12 @@
           {
             "start": "2026-11-16T08:00:00Z",
             "end": "2026-11-16T08:30:00Z",
-            "open": 61494.0,
+            "open": 61493.1992,
             "high": 61510.1992,
             "low": 61338.0508,
             "close": 61365.3984,
             "volume": 0.0,
-            "change_pct": -0.2091,
+            "change_pct": -0.2078,
             "direction": -1
           },
           {
@@ -21558,9 +21555,9 @@
             "open": 62208.3516,
             "high": 62244.25,
             "low": 62112.3008,
-            "close": 62210.3008,
+            "close": 62209.0,
             "volume": 0.0,
-            "change_pct": 0.0031,
+            "change_pct": 0.001,
             "direction": 1
           },
           {
@@ -21591,9 +21588,9 @@
             "open": 62039.1484,
             "high": 62051.5,
             "low": 61850.6992,
-            "close": 61865.4492,
+            "close": 61865.1992,
             "volume": 0.0,
-            "change_pct": -0.28,
+            "change_pct": -0.2804,
             "direction": -1
           },
           {
@@ -21657,9 +21654,9 @@
             "open": 61999.1992,
             "high": 62410.9492,
             "low": 61964.3008,
-            "close": 62378.5,
+            "close": 62374.8008,
             "volume": 0.0,
-            "change_pct": 0.6118,
+            "change_pct": 0.6058,
             "direction": 1
           },
           {
@@ -21701,20 +21698,20 @@
             "open": 62436.9492,
             "high": 62548.5,
             "low": 62433.1992,
-            "close": 62537.6016,
+            "close": 62534.75,
             "volume": 0.0,
-            "change_pct": 0.1612,
+            "change_pct": 0.1566,
             "direction": 1
           },
           {
             "start": "2026-11-19T06:30:00Z",
             "end": "2026-11-19T07:00:00Z",
-            "open": 62541.4492,
+            "open": 62537.6484,
             "high": 62606.6484,
             "low": 62467.8516,
             "close": 62582.5,
             "volume": 0.0,
-            "change_pct": 0.0656,
+            "change_pct": 0.0717,
             "direction": 1
           },
           {
@@ -21786,7 +21783,7 @@
         ]
       },
       "RELIANCE": {
-        "score": 3.3,
+        "score": 2.7,
         "sent": 1,
         "price_dir": 1,
         "vwap_side": 1,
@@ -22533,7 +22530,7 @@
         ]
       },
       "HDFCBANK": {
-        "score": 1.0,
+        "score": 1.4,
         "sent": 1,
         "price_dir": 1,
         "vwap_side": 1,
@@ -23282,22 +23279,6 @@
     },
     "events": [
       {
-        "time": "2026-11-19T03:22Z",
-        "instrument": "NIFTY",
-        "prev_score": -9.4,
-        "new_score": -8.4,
-        "changed": [
-          "भावना"
-        ],
-        "vol_data": false,
-        "held_minutes": 116,
-        "price_at_change": 25227.9492,
-        "price_after": 25227.9492,
-        "move_pct": 0.0,
-        "after_minutes": 4,
-        "direction": "लगभग स्थिर"
-      },
-      {
         "time": "2026-11-19T03:26Z",
         "instrument": "NIFTY",
         "prev_score": -8.4,
@@ -23487,10 +23468,10 @@
         "vol_data": false,
         "held_minutes": 106,
         "price_at_change": 25514.3008,
-        "price_after": null,
-        "move_pct": null,
-        "after_minutes": null,
-        "direction": null
+        "price_after": 25514.3008,
+        "move_pct": 0.0,
+        "after_minutes": 49,
+        "direction": "लगभग स्थिर"
       },
       {
         "time": "2026-11-19T11:11Z",
@@ -23503,10 +23484,10 @@
         "vol_data": false,
         "held_minutes": 175,
         "price_at_change": 63063.0,
-        "price_after": null,
-        "move_pct": null,
-        "after_minutes": null,
-        "direction": null
+        "price_after": 63063.0,
+        "move_pct": 0.0,
+        "after_minutes": 49,
+        "direction": "लगभग स्थिर"
       },
       {
         "time": "2026-11-19T11:11Z",
@@ -23519,6 +23500,22 @@
         "vol_data": true,
         "held_minutes": 122,
         "price_at_change": 821.8,
+        "price_after": 821.8,
+        "move_pct": 0.0,
+        "after_minutes": 49,
+        "direction": "लगभग स्थिर"
+      },
+      {
+        "time": "2026-11-19T12:00Z",
+        "instrument": "NIFTY",
+        "prev_score": 3.2,
+        "new_score": 10.0,
+        "changed": [
+          "भावना"
+        ],
+        "vol_data": false,
+        "held_minutes": 49,
+        "price_at_change": 25514.3008,
         "price_after": null,
         "move_pct": null,
         "after_minutes": null,
