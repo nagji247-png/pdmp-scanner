@@ -27,20 +27,20 @@ return '<div class="ser-signal"><div class="ser-signal-top"><span class="ser-sec
 }
 function render(data){
 var snap=data&&data.sector_early_radar;
-var valid=!!(snap&&snap.mode==="intraday"&&snap.source&&snap.source_timestamp&&Array.isArray(snap.sectors));
+var sourceTime=snap&&snap.source_timestamp?Date.parse(snap.source_timestamp):NaN;var fresh=Number.isFinite(sourceTime)&&Date.now()-sourceTime>=-60000&&Date.now()-sourceTime<=180000;var valid=!!(snap&&snap.mode==="intraday"&&snap.source&&fresh&&Array.isArray(snap.sectors));
 var buys=valid?snap.sectors.filter(function(x){return x.direction==="buying";}):[];
 var sells=valid?snap.sectors.filter(function(x){return x.direction==="selling";}):[];
 var confirmed=valid?snap.sectors.filter(function(x){return x.status==="confirmed";}).length:0;
 var unusual=valid?count(snap.summary&&snap.summary.unusual_stocks):"—";
-var fpi=valid&&snap.fpi&&snap.fpi.updated?esc(snap.fpi.updated):"डेटा उपलब्ध नहीं";
+var fpi=snap&&snap.fpi?snap.fpi:{};var fpiTele=esc(fpi.telecommunication||"डेटा उपलब्ध नहीं"),fpiIt=esc(fpi.information_technology||"डेटा उपलब्ध नहीं"),fpiFin=esc(fpi.financial_services||"डेटा उपलब्ध नहीं");
 var firstBuy=buys[0],secondBuy=buys[1],firstSell=sells[0],secondSell=sells[1];
 var stamp=valid?esc(snap.source_timestamp):"इंट्राडे स्रोत उपलब्ध नहीं";
 root.innerHTML='<div class="ser-wrap">'+
 '<div class="ser-brand"><span class="ser-eye">👁️</span><div><div class="ser-brand-name">TRINETRA</div><div class="ser-tagline">Crowd Trap · Contrarian Edge</div></div><div class="ser-live">● '+(valid?"LIVE":"WAITING")+'</div></div>'+
 '<div class="ser-title"><span class="ser-radar">◉</span><div><div class="ser-title-main">MARKET ACTIVITY RADAR</div><div class="ser-subtitle">आज बाजार में कहाँ हलचल है? · 218 स्टॉक · 18 सेक्टर</div></div></div>'+
-'<div class="ser-stats"><div class="ser-stat"><strong class="ser-up">'+count(buys.length)+'</strong><span>तेजी वाले<br>सेक्टर</span></div><div class="ser-stat"><strong class="ser-down">'+count(sells.length)+'</strong><span>मंदी वाले<br>सेक्टर</span></div><div class="ser-stat"><strong>'+unusual+'</strong><span>असामान्य<br>स्टॉक</span></div><div class="ser-stat"><strong class="ser-cyan">'+count(confirmed)+'</strong><span>पुष्टि हुए<br>संकेत</span></div></div>'+
+'<div class="ser-stats"><div class="ser-stat"><strong class="ser-up">'+ (valid?count(buys.length):"—")+'</strong><span>तेजी वाले<br>सेक्टर</span></div><div class="ser-stat"><strong class="ser-down">'+ (valid?count(sells.length):"—")+'</strong><span>मंदी वाले<br>सेक्टर</span></div><div class="ser-stat"><strong>'+unusual+'</strong><span>असामान्य<br>स्टॉक</span></div><div class="ser-stat"><strong class="ser-cyan">'+ (valid?count(confirmed):"—")+'</strong><span>पुष्टि हुए<br>संकेत</span></div></div>'+
 '<div class="ser-columns"><div class="ser-side buy"><div class="ser-side-head">↗ तेजी वाले सेक्टर</div>'+signalCard(firstBuy,"buy")+'<div class="ser-divider"></div>'+signalCard(secondBuy,"buy")+'</div><div class="ser-side sell"><div class="ser-side-head">↘ मंदी वाले सेक्टर</div>'+signalCard(firstSell,"sell")+'<div class="ser-divider"></div>'+signalCard(secondSell,"sell")+'</div></div>'+
-'<div class="ser-flow"><div class="ser-flow-title">▤ FPI प्रवाह बदलाव</div><div class="ser-flow-grid"><div class="ser-flow-item"><b>Telecommunication</b><strong>'+fpi+'</strong></div><div class="ser-flow-item"><b>Information Technology</b><strong>'+fpi+'</strong></div><div class="ser-flow-item"><b>Financial Services</b><strong>'+fpi+'</strong></div></div></div>'+
+'<div class="ser-flow"><div class="ser-flow-title">▤ FPI प्रवाह बदलाव</div><div class="ser-flow-grid"><div class="ser-flow-item"><b>Telecommunication</b><strong>'+fpiTele+'</strong></div><div class="ser-flow-item"><b>Information Technology</b><strong>'+fpiIt+'</strong></div><div class="ser-flow-item"><b>Financial Services</b><strong>'+fpiFin+'</strong></div></div></div>'+
 '<div class="ser-foot"><span>ⓘ <b>'+(valid?"सत्यापित इंट्राडे डेटा":"इंट्राडे डेटा उपलब्ध नहीं — कोई शुरुआती संकेत नहीं दिखाया जा रहा")+'</b></span><span>⟳ अपडेट: <b>'+stamp+'</b></span></div></div>';
 }
 function load(){
