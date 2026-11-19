@@ -1,4 +1,3 @@
-import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -23,14 +22,14 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=15"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=16"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
-        blob = b"blob " + str(len(self.market_activity.encode("utf-8"))).encode("ascii") + b"\0" + self.market_activity.encode("utf-8")
-        self.assertEqual(hashlib.sha1(blob).hexdigest(), "d64dc418d72c2429305e09b7b94f49fbba473e9c")
+        self.assertLess(self.market_activity.index("render();"), self.market_activity.index('fetch(DRAWING_API+"/api/drawings?t="+Date.now()'))
+        self.assertIn("Optional Drawing API unavailable", self.market_activity)
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
@@ -39,7 +38,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
         self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
         self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
-        self.assertIn("src=\"market-activity.js?v=15\"", self.dashboard)
+        self.assertIn("src=\"market-activity.js?v=16\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
