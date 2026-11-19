@@ -1723,7 +1723,12 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 8030.0,
+      "time": "2026-11-19T08:45:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.15,
+      "outcome": "reversed"
     },
     "after_60m": {
       "status": "pending"
