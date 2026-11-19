@@ -1,6 +1,9 @@
 name: NSE MCP Isolated Connection Test
 
 on:
+  push:
+    branches:
+      - test/nse-mcp-connection-20261119
   workflow_dispatch:
 
 permissions:
@@ -36,8 +39,6 @@ jobs:
               "Accept": "application/json, text/event-stream",
           }
           session = requests.Session(impersonate="chrome124")
-
-          # Warm only the public NSE homepage; no market-data calls are made.
           warm = session.get("https://www.nseindia.com", timeout=20)
           print(f"NSE homepage warm-up: HTTP {warm.status_code}")
 
@@ -79,8 +80,6 @@ jobs:
           call_headers = dict(headers)
           if session_id:
               call_headers["Mcp-Session-Id"] = session_id
-
-          # Initialized notification is best-effort, matching the existing client behavior.
           try:
               session.post(url, headers=call_headers, json={
                   "jsonrpc": "2.0", "method": "notifications/initialized"
