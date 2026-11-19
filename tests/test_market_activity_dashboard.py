@@ -28,7 +28,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
                         self.dashboard.index('id="market-activity-panel"'))
         self.assertLess(self.dashboard.index('id="market-activity-panel"'),
                         self.dashboard.index('<section class="panel stocks-panel">'))
-        self.assertLess(self.market_activity.index("render();"), self.market_activity.index('fetch(DRAWING_API+"/api/drawings?t="+Date.now()'))
+        self.assertLess(self.market_activity.index("render();"), self.market_activity.index('fetchJson(DRAWING_API+"/api/drawings?t="+Date.now(),"Drawing API",12000)'))
         self.assertIn("Optional Drawing API unavailable", self.market_activity)
         self.assertIn("function fetchJson(url,label,timeoutMs)", self.market_activity)
         self.assertIn('fetchJson("nse-fo-stock-sector-master.json?t="+Date.now(),"NSE master",15000)', self.market_activity)
