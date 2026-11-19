@@ -3619,7 +3619,17 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", load);
 window.addEventListener("pageshow", load);
 </script>
-<script src="market-activity.js?v=16" defer></script>
+<script>
+(function(){
+var root=document.getElementById("market-activity");
+window.setTimeout(function(){
+if(!root||String(root.textContent||"").indexOf("लोड हो रहा है")<0)return;
+var started=window.__TRINETRA_MA_STARTED__===true;
+root.innerHTML='<div class="ma-empty">Market Activity अभी शुरू नहीं हो पाया। '+(started?'स्क्रिप्ट शुरू हुई, लेकिन 20 सेकंड में पैनल रेंडर नहीं हुआ।':'स्क्रिप्ट लोड/शुरू नहीं हुई।')+' कृपया इस संदेश का पूरा टेक्स्ट सहायता के लिए साझा करें।</div>';
+},20000);
+})();
+</script>
+<script src="market-activity.js?v=17" defer></script>
 <script src="daily-stock-buying-activity.js?v=2" defer></script>
 <script src="fpi-sector-tilt.js?v=8" defer></script>
 </body>

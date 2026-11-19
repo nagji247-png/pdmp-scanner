@@ -1,5 +1,6 @@
 (function(){
 "use strict";
+window.__TRINETRA_MA_STARTED__=true;
 var root=document.getElementById("market-activity");if(!root)return;
 var master=null,fpi=null,marketData=null,drawings={snapshots:{}},searchTerm="",stack=[{type:"home",scroll:0}],loading=false,viewRoot=root,popupLayer=null,popupBody=null,bodyOverflowBefore="";
 var css=[
@@ -275,21 +276,26 @@ viewRoot.innerHTML=nav(symbol)+chartPreviewHtml+drawingAdminHtml+'<div class="ma
 '<div class="ma-panel"><h4>5. FPI FLOW + NEWS CONFIRMATION</h4><div class="ma-reason">सेक्टर FPI प्रवाह: '+money(flow)+'<br>अवधि: '+esc(period)+'<br>इसी सेक्टर की उपलब्ध स्टॉक खबरें: '+esc(sectorNewsDirection)+'<br>भीड़ का रुख: '+esc(crowdSummary())+'<br>दिशा तुलना: '+esc(sectorMatch)+'<br><br><b>क्यों?</b> तुलना इस सेक्टर के उपलब्ध quote वाले स्टॉक की कुल positive/negative news counts से की गई है; यह '+esc(symbol)+' की खबरों और FPI का सीधा मिलान नहीं है।<br><br><b>महत्वपूर्ण:</b> व्यक्तिगत स्टॉक FPI उपलब्ध नहीं; यह FPI पूरे '+esc(sector)+' सेक्टर का है।</div></div>';
 }
 function render(){if(!master||!master.stocks){root.innerHTML='<div class="ma-empty">NSE F&amp;O मास्टर लोड नहीं हुआ।</div>';return;}var v=stack[stack.length-1];if(v.type==="home"){closePopup();viewRoot=root;renderHome();return;}ensurePopup();viewRoot=popupBody;if(v.type==="radar")renderRadarList(v.kind);else if(v.type==="sector")renderSector(v.name);else renderStock(v.symbol,v.sector);if(popupBody&&v.scroll===0)popupBody.scrollTop=0;}
+function fetchJson(url,label,timeoutMs){
+return new Promise(function(resolve,reject){
+var settled=false,timer=window.setTimeout(function(){if(!settled){settled=true;reject(Error(label+" timeout"));}},timeoutMs||12000);
+fetch(url,{cache:"no-store"}).then(function(r){if(!r.ok)throw Error(label+" HTTP "+r.status);return r.json();}).then(function(value){if(!settled){settled=true;window.clearTimeout(timer);resolve(value);}},function(err){if(!settled){settled=true;window.clearTimeout(timer);reject(err);}});
+});
+}
 function load(){
 if(loading)return;
 loading=true;
 Promise.all([
-fetch("nse-fo-stock-sector-master.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("master");return r.json();}),
-fetch("fpi-sector-data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("fpi");return r.json();}),
-fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("data");return r.json();}),
-fetch("stock-chart-drawings.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawings");return r.json();}).catch(function(){return {snapshots:{}};})
+fetchJson("nse-fo-stock-sector-master.json?t="+Date.now(),"NSE master",15000),
+fetchJson("data.json?t="+Date.now(),"Market data",15000)
 ]).then(function(v){
-master=v[0];fpi=v[1];marketData=v[2];drawings=v[3]||{snapshots:{}};
-drawings.snapshots=drawings.snapshots||{};
-drawings.records={};
+master=v[0];marketData=v[1];fpi={history:[]};drawings={snapshots:{},records:{}};
 render();
-/* Drawing API is optional: load it in the background so it cannot hold the sector radar on Loading. */
-fetch(DRAWING_API+"/api/drawings?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("drawing api");return r.json();}).then(function(records){
+loading=false;
+/* FPI and drawings are supplementary: neither may delay the sector radar. */
+fetchJson("fpi-sector-data.json?t="+Date.now(),"FPI data",12000).then(function(value){fpi=value||{history:[]};if(stack[stack.length-1].type==="home")render();}).catch(function(err){if(window.console&&console.warn)console.warn("Optional FPI data unavailable",err);});
+fetchJson("stock-chart-drawings.json?t="+Date.now(),"Local drawings",12000).then(function(value){drawings=value||{snapshots:{}};drawings.snapshots=drawings.snapshots||{};if(stack[stack.length-1].type==="stock")render();}).catch(function(err){if(window.console&&console.warn)console.warn("Optional local drawings unavailable",err);});
+fetchJson(DRAWING_API+"/api/drawings?t="+Date.now(),"Drawing API",12000).then(function(records){
 drawings.records=records||{};
 Object.keys(drawings.records).forEach(function(k){var symbol=drawingSymbolFromApiKey(k),rec=drawings.records[k];if(symbol!==k){drawings.records[symbol]=rec;delete drawings.records[k];}if(rec&&rec.snapshotUrl)drawings.snapshots[symbol]=rec.snapshotUrl;});
 if(stack[stack.length-1].type==="stock")render();
