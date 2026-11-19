@@ -1,47 +1,47 @@
 {
   "schema_version": 1,
   "source": "MCX India official FUTCOM Bhavcopy archive",
-  "archive_sessions": 10,
+  "archive_sessions": 11,
   "first_archive_date": "2026-11-02",
-  "last_archive_date": "2026-11-18",
+  "last_archive_date": "2026-11-19",
   "minimum_signal_sessions_per_symbol": 60,
   "evaluation": {
     "status": "insufficient_sample",
-    "observations": 50,
+    "observations": 56,
     "signal_sessions_by_symbol": {
-      "GOLD": 8,
-      "SILVER": 8
+      "GOLD": 9,
+      "SILVER": 9
     },
     "minimum_signal_sessions_per_symbol": 60,
     "sample_unit": "contract-expiry observations; GOLD and SILVER are reported separately; multiple expiries on one date are not independent sessions",
     "by_symbol": {
       "GOLD": {
         "status": "insufficient_sample",
-        "observations": 25,
-        "signal_sessions": 8,
+        "observations": 28,
+        "signal_sessions": 9,
         "minimum_signal_sessions": 60,
         "regimes": {
           "price_down_oi_down": {
-            "observations": 2,
-            "continuation_hits": 2,
+            "observations": 3,
+            "continuation_hits": 3,
             "contrarian_hits": 0,
             "next_up": 0,
-            "next_down": 2,
+            "next_down": 3,
             "next_flat": 0,
-            "directional_observations": 2,
+            "directional_observations": 3,
             "continuation_accuracy_pct_excluding_flat": 100.0,
             "contrarian_accuracy_pct_excluding_flat": 0.0
           },
           "price_down_oi_up": {
-            "observations": 13,
-            "continuation_hits": 6,
+            "observations": 15,
+            "continuation_hits": 8,
             "contrarian_hits": 6,
             "next_up": 6,
-            "next_down": 6,
+            "next_down": 8,
             "next_flat": 1,
-            "directional_observations": 12,
-            "continuation_accuracy_pct_excluding_flat": 50.0,
-            "contrarian_accuracy_pct_excluding_flat": 50.0
+            "directional_observations": 14,
+            "continuation_accuracy_pct_excluding_flat": 57.14,
+            "contrarian_accuracy_pct_excluding_flat": 42.86
           },
           "price_up_oi_down": {
             "observations": 4,
@@ -66,35 +66,35 @@
             "contrarian_accuracy_pct_excluding_flat": 50.0
           }
         },
-        "reason": "signal sessions 8 below minimum 60"
+        "reason": "signal sessions 9 below minimum 60"
       },
       "SILVER": {
         "status": "insufficient_sample",
-        "observations": 25,
-        "signal_sessions": 8,
+        "observations": 28,
+        "signal_sessions": 9,
         "minimum_signal_sessions": 60,
         "regimes": {
           "price_down_oi_down": {
-            "observations": 7,
-            "continuation_hits": 4,
+            "observations": 8,
+            "continuation_hits": 5,
             "contrarian_hits": 3,
             "next_up": 3,
-            "next_down": 4,
+            "next_down": 5,
             "next_flat": 0,
-            "directional_observations": 7,
-            "continuation_accuracy_pct_excluding_flat": 57.14,
-            "contrarian_accuracy_pct_excluding_flat": 42.86
+            "directional_observations": 8,
+            "continuation_accuracy_pct_excluding_flat": 62.5,
+            "contrarian_accuracy_pct_excluding_flat": 37.5
           },
           "price_down_oi_up": {
-            "observations": 11,
-            "continuation_hits": 7,
+            "observations": 13,
+            "continuation_hits": 9,
             "contrarian_hits": 3,
             "next_up": 3,
-            "next_down": 7,
+            "next_down": 9,
             "next_flat": 1,
-            "directional_observations": 10,
-            "continuation_accuracy_pct_excluding_flat": 70.0,
-            "contrarian_accuracy_pct_excluding_flat": 30.0
+            "directional_observations": 12,
+            "continuation_accuracy_pct_excluding_flat": 75.0,
+            "contrarian_accuracy_pct_excluding_flat": 25.0
           },
           "price_up_oi_down": {
             "observations": 1,
@@ -119,11 +119,11 @@
             "contrarian_accuracy_pct_excluding_flat": 83.33
           }
         },
-        "reason": "signal sessions 8 below minimum 60"
+        "reason": "signal sessions 9 below minimum 60"
       }
     },
     "excluded": {
-      "unchanged_signal_input": 38
+      "unchanged_signal_input": 43
     },
     "sample": [
       {
@@ -524,6 +524,54 @@
         "signal_date": "2026-11-17",
         "outcome_date": "2026-11-18",
         "price_oi_regime": "price_up_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_down",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "05APR2027",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "GOLD",
+        "expiry": "05FEB2027",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "04DEC2026",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_down",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAR2027",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_up",
+        "next_session_direction": "down"
+      },
+      {
+        "symbol": "SILVER",
+        "expiry": "05MAY2027",
+        "signal_date": "2026-11-18",
+        "outcome_date": "2026-11-19",
+        "price_oi_regime": "price_down_oi_up",
         "next_session_direction": "down"
       }
     ],
