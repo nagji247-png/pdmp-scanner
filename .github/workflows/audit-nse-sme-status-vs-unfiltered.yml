@@ -109,6 +109,7 @@ jobs:
                   "unique_symbols":len({x["symbol"] for x in uniq.values()}),
                   "type_counts":{k:sum(1 for x in uniq.values() if x["type"]==k) for k in sorted({x["type"] for x in uniq.values()},key=str)},
                   "status_payload":res.get("structuredContent") if name=="cm_get_allstocks_status" else None,
+              "raw_status_result":res if name=="cm_get_allstocks_status" else None,
                   "sample_records":list(uniq.values())[:12],
                   "elapsed_seconds":round(time.time()-started,2)
               })
@@ -127,6 +128,7 @@ jobs:
           print("SUMMARY",json.dumps({
               "captured_at_utc":report["captured_at_utc"],
               "status_payload":calls[0]["status_payload"],
+              "raw_status_result":calls[0]["raw_status_result"],
               "unfiltered_unique_symbols":calls[1]["unique_symbols"],
               "unfiltered_type_counts":calls[1]["type_counts"]
           },ensure_ascii=False))
