@@ -2,8 +2,8 @@ name: Refresh FPI fortnightly sector tilt
 on:
   workflow_dispatch:
   schedule:
-    # NSDL releases fortnightly reports after period-end.
-    - cron: "25 2 8,23 * *"
+    # Check each weekday so newly published NSDL fortnightly reports are picked up promptly.
+    - cron: "0 3 * * 1-5"
   push:
     branches: [main]
     paths:
