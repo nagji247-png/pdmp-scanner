@@ -18,7 +18,7 @@ permissions:
 jobs:
   symbol-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Download existing MCP snapshot artifact
         env:
@@ -31,19 +31,18 @@ jobs:
 
       - name: Download official NSE security master files
         run: |
-          curl --fail --location --retry 1 --max-time 30 \
+          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
             'https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv' -o equity.csv
-          curl --fail --location --retry 1 --max-time 30 \
+          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
             'https://nsearchives.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv' -o sme.csv
-          curl --fail --location --retry 1 --max-time 30 \
+          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
             'https://nsearchives.nseindia.com/content/equities/symbolchange.csv' -o symbol_changes.csv
 
       - name: Compare symbols without publishing raw quote data
         run: |
           python - <<'PY'
-          import csv, io, json, zipfile
+          import csv, io, json
           from pathlib import Path
-          from collections import Counter
 
           def read_csv(path):
               raw = Path(path).read_bytes()
