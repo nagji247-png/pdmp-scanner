@@ -411,7 +411,7 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
             "stock_futures": stock_futures or {},
         })
         archive["schema_version"] = 2
-        archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, and FUTIDX price/OI by exact expiry"
+        archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, IDF index futures and STF stock futures price/OI by exact expiry"
         return True
     records.append({
         "date": day,
@@ -429,7 +429,7 @@ def append_archive(archive, trade_date, source_url, payload, symbols, fetched_at
     archive["schema_version"] = 2
     archive["source"] = "NSE India official F&O UDiFF Common Bhavcopy Final"
     archive["symbols"] = list(SYMBOLS)
-    archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, and FUTIDX price/OI by exact expiry"
+    archive["scope"] = "NIFTY and BANKNIFTY index options CE/PE OI, nearest two expiries contract-level closing premium/OI, IDF index futures and STF stock futures price/OI by exact expiry"
     archive["research_only"] = True
     archive["included_in_asset_final"] = False
     return True
