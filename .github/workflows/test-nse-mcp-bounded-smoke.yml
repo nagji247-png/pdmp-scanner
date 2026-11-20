@@ -1,6 +1,9 @@
 name: NSE MCP Bounded Read-only Smoke Test
 
 on:
+  push:
+    branches:
+      - test/nse-mcp-bounded-readonly-smoke-20261120
   workflow_dispatch:
 
 permissions:
