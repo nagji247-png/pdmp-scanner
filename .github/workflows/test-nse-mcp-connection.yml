@@ -116,6 +116,7 @@ jobs:
                   print(f"SCHEMA {name}: {json.dumps(schema, ensure_ascii=False)}")
 
           prefix_snapshots = {}
+          status_snapshots = {}
 
           def rpc_tool(name, args):
               response = session.post(url, headers=call_headers, json={
@@ -133,6 +134,8 @@ jobs:
               tool_result = result.get("result") or {}
               if name == "cm_get_equity_stocks" and args.get("symbolFilter") is not None:
                   prefix_snapshots[str(args.get("symbolFilter"))] = tool_result
+              if name == "cm_get_allstocks_status":
+                  status_snapshots[name] = tool_result
               content = tool_result.get("content") or []
               for part in content:
                   if isinstance(part, dict) and part.get("text"):
@@ -190,12 +193,96 @@ jobs:
               }, handle, ensure_ascii=False, indent=2)
           print(f"PREFIX SNAPSHOT SAVED: {len(prefix_snapshots)} prefix responses")
 
+          # Build a normalized, de-duplicated stock file and an audit report.
+          import csv
+          from collections import Counter, defaultdict
+
+          all_rows = []
+          prefix_row_counts = {}
+          for prefix, tool_result in prefix_snapshots.items():
+              content = tool_result.get("content") or []
+              text_parts = [part.get("text", "") for part in content
+                            if isinstance(part, dict) and part.get("text")]
+              if not text_parts:
+                  continue
+              payload = json.loads(text_parts[0])
+              rows = payload.get("stocks") or []
+              prefix_row_counts[prefix] = len(rows)
+              for row in rows:
+                  all_rows.append((prefix, row))
+
+          by_symbol = defaultdict(list)
+          for prefix, row in all_rows:
+              symbol = str(row.get("symbol") or "").strip().upper()
+              if symbol:
+                  by_symbol[symbol].append((prefix, row))
+
+          unique_rows = []
+          duplicate_symbols = {}
+          conflicting_duplicates = []
+          for symbol, entries in sorted(by_symbol.items()):
+              unique_rows.append(entries[0][1])
+              if len(entries) > 1:
+                  duplicate_symbols[symbol] = len(entries)
+                  if any(entry[1] != entries[0][1] for entry in entries[1:]):
+                      conflicting_duplicates.append(symbol)
+
+          fieldnames = sorted({key for row in unique_rows for key in row})
+          with open("nse_equity_unique.csv", "w", newline="", encoding="utf-8-sig") as handle:
+              writer = csv.DictWriter(handle, fieldnames=fieldnames)
+              writer.writeheader()
+              writer.writerows(unique_rows)
+
+          official_equity_count = None
+          status_content = (status_snapshots.get("cm_get_allstocks_status") or {}).get("content") or []
+          for part in status_content:
+              if isinstance(part, dict) and part.get("text"):
+                  try:
+                      official_equity_count = (json.loads(part["text"]).get("segmentCounts") or {}).get("EQUITY")
+                  except Exception:
+                      pass
+                  break
+
+          audit = {
+              "captured_at_utc": d["captured_at_utc"],
+              "prefix_responses": len(prefix_snapshots),
+              "raw_prefix_rows": len(all_rows),
+              "unique_symbols": len(unique_rows),
+              "duplicate_symbols": duplicate_symbols,
+              "conflicting_duplicate_symbols": conflicting_duplicates,
+              "official_equity_count": official_equity_count,
+              "difference_vs_official": (
+                  official_equity_count - len(unique_rows)
+                  if isinstance(official_equity_count, int) else None
+              ),
+              "prefix_row_counts": prefix_row_counts,
+              "quote_field_coverage": {
+                  key: sum(1 for row in unique_rows if row.get(key) is not None)
+                  for key in ("lastTradedPrice", "change", "perChange", "volume",
+                              "openPrice", "highPrice", "lowPrice", "preClosePrice",
+                              "latestTimestamp")
+              },
+          }
+          with open("nse_equity_audit.json", "w", encoding="utf-8") as handle:
+              json.dump(audit, handle, ensure_ascii=False, indent=2)
+          print("EQUITY AUDIT: " + json.dumps({
+              "raw_rows": len(all_rows),
+              "unique_symbols": len(unique_rows),
+              "duplicate_symbols": duplicate_symbols,
+              "official_equity_count": official_equity_count,
+              "difference_vs_official": audit["difference_vs_official"],
+              "conflicting_duplicates": conflicting_duplicates,
+          }, ensure_ascii=False))
+
           PY
 
       - name: Upload complete NSE equity prefix snapshot
         uses: actions/upload-artifact@v4
         with:
           name: nse-equity-prefix-snapshot
-          path: nse_equity_prefix_snapshot.json
+          path: |
+            nse_equity_prefix_snapshot.json
+            nse_equity_unique.csv
+            nse_equity_audit.json
           if-no-files-found: error
           retention-days: 7
