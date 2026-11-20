@@ -85,6 +85,22 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
         get.assert_not_called()
         self.assertEqual(result["coverage"], {"expected": 2, "matched": 0})
         self.assertIn("retired", result["source"])
+    def test_full_eod_snapshot_includes_all_cm_eq_and_delivery_fields(self):
+        csv_text = """SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER
+FNOAAA,EQ,19-Nov-2026,100,101,105,99,104,103,102,123456,1260,5000,60000,48.5
+CASHBBB,EQ,19-Nov-2026,80,81,82,79,80,80,80,900,1,20,450,50
+BEONLY,BE,19-Nov-2026,50,51,52,49,50,50,50,100,1,5,40,40
+"""
+        trade_date = datetime(2026, 11, 19).date()
+        result = fetch_and_score.parse_nse_eod_bhavdata_csv(csv_text, None, expected_date=trade_date)
+        self.assertEqual(result["scope"], "CM/EQ")
+        self.assertEqual(result["coverage"], {"expected": 2, "matched": 2})
+        self.assertEqual(set(result["instruments"]), {"FNOAAA", "CASHBBB"})
+        self.assertEqual(result["instruments"]["FNOAAA"]["delivery_qty"], 60000)
+        self.assertEqual(result["instruments"]["FNOAAA"]["delivery_pct"], 48.5)
+        self.assertEqual(result["instruments"]["FNOAAA"]["trades"], 5000)
+        self.assertNotIn("BEONLY", result["instruments"])
+
     def test_parses_official_eod_bhavdata_for_exact_eq_symbols(self):
         csv_text = """SYMBOL,SERIES,DATE1,PREV_CLOSE,OPEN_PRICE,HIGH_PRICE,LOW_PRICE,LAST_PRICE,CLOSE_PRICE,AVG_PRICE,TTL_TRD_QNTY,TURNOVER_LACS,NO_OF_TRADES,DELIV_QTY,DELIV_PER
 AAA,EQ,13-Nov-2026,100,101,105,99,104,103,102,123456,1260,5000,60000,48.5
