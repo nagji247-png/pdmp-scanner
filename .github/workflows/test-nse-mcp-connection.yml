@@ -183,11 +183,12 @@ jobs:
 
           # Preserve complete prefix responses as a downloadable test artifact;
           # console logs above remain intentionally truncated for readability.
+          captured_at_utc = __import__("datetime").datetime.now(
+              __import__("datetime").timezone.utc
+          ).isoformat()
           with open("nse_equity_prefix_snapshot.json", "w", encoding="utf-8") as handle:
               json.dump({
-                  "captured_at_utc": __import__("datetime").datetime.now(
-                      __import__("datetime").timezone.utc
-                  ).isoformat(),
+                  "captured_at_utc": captured_at_utc,
                   "prefixes_requested": sorted(prefix_snapshots.keys()),
                   "responses": prefix_snapshots,
               }, handle, ensure_ascii=False, indent=2)
@@ -244,7 +245,7 @@ jobs:
                   break
 
           audit = {
-              "captured_at_utc": d["captured_at_utc"],
+              "captured_at_utc": captured_at_utc,
               "prefix_responses": len(prefix_snapshots),
               "raw_prefix_rows": len(all_rows),
               "unique_symbols": len(unique_rows),
