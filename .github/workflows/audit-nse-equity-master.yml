@@ -31,12 +31,26 @@ jobs:
 
       - name: Download official NSE security master files
         run: |
-          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
-            'https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv' -o equity.csv
-          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
-            'https://nsearchives.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv' -o sme.csv
-          curl --http1.1 --fail --location --retry 2 --retry-all-errors --retry-delay 2 --connect-timeout 15 --max-time 60 \
-            'https://nsearchives.nseindia.com/content/equities/symbolchange.csv' -o symbol_changes.csv
+          set -euo pipefail
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+          # NSE archive downloads may require a browser-like session and cookies.
+          curl --http1.1 --fail --location --retry 1 --connect-timeout 15 --max-time 45 \
+            -A "$UA" -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+            -c nse-cookies.txt -b nse-cookies.txt 'https://www.nseindia.com/' -o /dev/null
+          # Try the alternate official archives hostname for the mainboard master.
+          curl --http1.1 --fail --location --retry 1 --connect-timeout 15 --max-time 45 \
+            -A "$UA" -H 'Accept: text/csv,*/*;q=0.8' -H 'Referer: https://www.nseindia.com/' \
+            -b nse-cookies.txt 'https://archives.nseindia.com/content/equities/EQUITY_L.csv' -o equity.csv
+          curl --http1.1 --fail --location --retry 1 --connect-timeout 15 --max-time 45 \
+            -A "$UA" -H 'Accept: text/csv,*/*;q=0.8' -H 'Referer: https://www.nseindia.com/' \
+            -b nse-cookies.txt 'https://nsearchives.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv' -o sme.csv
+          curl --http1.1 --fail --location --retry 1 --connect-timeout 15 --max-time 45 \
+            -A "$UA" -H 'Accept: text/csv,*/*;q=0.8' -H 'Referer: https://www.nseindia.com/' \
+            -b nse-cookies.txt 'https://archives.nseindia.com/content/equities/symbolchange.csv' -o symbol_changes.csv
+          test -s equity.csv
+          test -s sme.csv
+          test -s symbol_changes.csv
+          wc -c equity.csv sme.csv symbol_changes.csv
 
       - name: Compare symbols without publishing raw quote data
         run: |
