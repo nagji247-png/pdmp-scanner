@@ -24,7 +24,7 @@ import requests
 from curl_cffi import requests as curl_requests
 from upstox_market_data import fetch_upstox_candles
 from crowd_trap_detector import build_crowd_trap_snapshot
-from stock_basket_freshness import expected_latest_completed_session, load_exchange_calendar
+from stock_basket_freshness import expected_latest_completed_session, is_exchange_session, load_exchange_calendar
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -1815,6 +1815,23 @@ def market_activity_snapshot_is_fresh(snapshot, now=None):
         return -120 <= age_seconds <= 72 * 60 * 60
     max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
     return -120 <= age_seconds <= max_age
+
+
+def cached_nse_eod_bhavdata_is_current(snapshot, now=None):
+    """Reuse a complete official EOD snapshot only for the latest expected weekday."""
+    if not isinstance(snapshot, dict) or "NSE official sec_bhavdata_full" not in str(snapshot.get("source") or ""):
+        return False
+    if not market_activity_snapshot_is_fresh(snapshot, now=now):
+        return False
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    current = current.replace(tzinfo=ist) if current.tzinfo is None else current.astimezone(ist)
+    expected_day = current.date() if (current.hour, current.minute) >= (18, 0) else current.date() - dt.timedelta(days=1)
+    calendar = load_exchange_calendar()
+    while not is_exchange_session(expected_day, calendar):
+        expected_day -= dt.timedelta(days=1)
+    stamp = _parse_market_activity_timestamp(snapshot.get("source_timestamp"))
+    return stamp is not None and stamp.date() == expected_day
 
 
 def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
@@ -6101,12 +6118,16 @@ def main():
         activity_master = load_json("nse-fo-stock-sector-master.json", {})
         activity_symbols = sorted((activity_master.get("stocks") or {}).keys())
         activity_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        cached_activity = previous.get("market_activity_quotes") or {}
         if not activity_quotes.get("instruments"):
-            activity_quotes = fetch_nse_eod_bhavdata_quotes(None)
+            if cached_nse_eod_bhavdata_is_current(cached_activity):
+                activity_quotes = cached_activity
+                print("NSE EOD BHAVDATA cache reused: latest expected trading date")
+            else:
+                activity_quotes = fetch_nse_eod_bhavdata_quotes(None)
         if not activity_quotes.get("instruments"):
             activity_quotes = fetch_nse_eod_bhavdata_quotes(activity_symbols)
         if not activity_quotes.get("instruments"):
-            cached_activity = previous.get("market_activity_quotes") or {}
             if market_activity_snapshot_is_fresh(cached_activity):
                 activity_quotes = cached_activity
         result["market_activity_quotes"] = activity_quotes
