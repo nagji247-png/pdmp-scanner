@@ -119,10 +119,14 @@ jobs:
           status_snapshots = {}
 
           def rpc_tool(name, args):
-              response = session.post(url, headers=call_headers, json={
-                  "jsonrpc": "2.0", "id": 100 + len(name) + len(str(args)), "method": "tools/call",
-                  "params": {"name": name, "arguments": args}
-              }, timeout=30)
+              try:
+                  response = session.post(url, headers=call_headers, json={
+                      "jsonrpc": "2.0", "id": 100 + len(name) + len(str(args)), "method": "tools/call",
+                      "params": {"name": name, "arguments": args}
+                  }, timeout=45)
+              except Exception as exc:
+                  print(f"CALL_ERROR {name} {args}: {type(exc).__name__}: {str(exc)[:220]}")
+                  return None
               print(f"CALL {name}: HTTP {response.status_code}")
               if response.status_code != 200:
                   print((response.text or "")[:300])
