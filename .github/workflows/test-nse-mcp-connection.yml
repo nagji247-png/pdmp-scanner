@@ -115,26 +115,32 @@ jobs:
                   schema = item.get("inputSchema") or {}
                   print(f"SCHEMA {name}: {json.dumps(schema, ensure_ascii=False)}")
 
+          prefix_snapshots = {}
+
           def rpc_tool(name, args):
               response = session.post(url, headers=call_headers, json={
-                  "jsonrpc": "2.0", "id": 100 + len(name), "method": "tools/call",
+                  "jsonrpc": "2.0", "id": 100 + len(name) + len(str(args)), "method": "tools/call",
                   "params": {"name": name, "arguments": args}
               }, timeout=30)
               print(f"CALL {name}: HTTP {response.status_code}")
               if response.status_code != 200:
                   print((response.text or "")[:300])
-                  return
+                  return None
               result = decode(response)
               if result.get("error"):
                   print(f"CALL_ERROR {name}: {result['error']}")
-                  return
-              content = (result.get("result") or {}).get("content") or []
+                  return None
+              tool_result = result.get("result") or {}
+              if name == "cm_get_equity_stocks" and args.get("symbolFilter") is not None:
+                  prefix_snapshots[str(args.get("symbolFilter"))] = tool_result
+              content = tool_result.get("content") or []
               for part in content:
                   if isinstance(part, dict) and part.get("text"):
                       print(f"DATA {name}: {part['text'][:3500]}")
-              structured = (result.get("result") or {}).get("structuredContent")
+              structured = tool_result.get("structuredContent")
               if structured is not None:
                   print(f"STRUCTURED {name}: {json.dumps(structured, ensure_ascii=False)[:3500]}")
+              return tool_result
 
           for name in ("cm_get_data_status", "cm_get_allstocks_status"):
               item = by_name.get(name)
@@ -172,4 +178,24 @@ jobs:
               for prefix in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"):
                   rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": prefix})
 
+          # Preserve complete prefix responses as a downloadable test artifact;
+          # console logs above remain intentionally truncated for readability.
+          with open("nse_equity_prefix_snapshot.json", "w", encoding="utf-8") as handle:
+              json.dump({
+                  "captured_at_utc": __import__("datetime").datetime.now(
+                      __import__("datetime").timezone.utc
+                  ).isoformat(),
+                  "prefixes_requested": sorted(prefix_snapshots.keys()),
+                  "responses": prefix_snapshots,
+              }, handle, ensure_ascii=False, indent=2)
+          print(f"PREFIX SNAPSHOT SAVED: {len(prefix_snapshots)} prefix responses")
+
           PY
+
+      - name: Upload complete NSE equity prefix snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-equity-prefix-snapshot
+          path: nse_equity_prefix_snapshot.json
+          if-no-files-found: error
+          retention-days: 7
