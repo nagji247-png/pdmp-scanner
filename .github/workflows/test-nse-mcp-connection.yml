@@ -154,9 +154,9 @@ jobs:
               if item and not (item.get("inputSchema") or {}).get("required"):
                   rpc_tool(name, {})
 
-          # Small, read-only samples: one capped equity batch and two quotes.
-          if "cm_get_equity_stocks" in by_name:
-              rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": ""})
+          # Small, read-only samples: two quotes. Do not request the empty
+          # equity prefix here: it is capped at 500 and overlaps every letter,
+          # creating duplicate rows without improving universe coverage.
           if "cm_get_index_quote" in by_name:
               rpc_tool("cm_get_index_quote", {"indexName": "NIFTY 50"})
           if "cm_get_stock_quote" in by_name:
@@ -222,14 +222,35 @@ jobs:
               if symbol:
                   by_symbol[symbol].append((prefix, row))
 
+          from datetime import datetime
+
+          def quote_timestamp(row):
+              raw = str(row.get("latestTimestamp") or "").strip()
+              if not raw:
+                  return datetime.min
+              try:
+                  return datetime.fromisoformat(raw.replace("Z", "+00:00")).replace(tzinfo=None)
+              except ValueError:
+                  return datetime.min
+
           unique_rows = []
           duplicate_symbols = {}
           conflicting_duplicates = []
           for symbol, entries in sorted(by_symbol.items()):
-              unique_rows.append(entries[0][1])
+              # Prefix calls are sequential; choose the freshest quote instead
+              # of whichever prefix happened to be processed first.
+              freshest_time = max(quote_timestamp(entry[1]) for entry in entries)
+              freshest_entries = [entry for entry in entries
+                                  if quote_timestamp(entry[1]) == freshest_time]
+              unique_rows.append(freshest_entries[-1][1])
               if len(entries) > 1:
                   duplicate_symbols[symbol] = len(entries)
-                  if any(entry[1] != entries[0][1] for entry in entries[1:]):
+                  # Only flag a genuine same-timestamp disagreement. Different
+                  # timestamps naturally carry different prices/volumes.
+                  if len(freshest_entries) > 1 and any(
+                      entry[1] != freshest_entries[0][1]
+                      for entry in freshest_entries[1:]
+                  ):
                       conflicting_duplicates.append(symbol)
 
           fieldnames = sorted({key for row in unique_rows for key in row})
