@@ -117,6 +117,24 @@ NOT_IN_MASTER,EQ,13-Nov-2026,10,10,11,9,11,11,10,100,1,5,50,50
         self.assertEqual(result["instruments"]["AAA"]["vwap"], 102.0)
         self.assertIn("EOD", result["source"])
 
+    def test_reuses_same_day_full_eod_snapshot_after_1800_ist(self):
+        snapshot = {"source": "NSE official sec_bhavdata_full · EOD previous close · CM/EQ",
+                    "source_timestamp": "20-Nov-2026 15:30:00"}
+        now = datetime(2026, 11, 20, 23, 0, tzinfo=IST)
+        self.assertTrue(fetch_and_score.cached_nse_eod_bhavdata_is_current(snapshot, now=now))
+
+    def test_reuses_previous_weekday_eod_snapshot_before_1800_ist(self):
+        snapshot = {"source": "NSE official sec_bhavdata_full · EOD previous close · CM/EQ",
+                    "source_timestamp": "20-Nov-2026 15:30:00"}
+        now = datetime(2026, 11, 21, 12, 0, tzinfo=IST)
+        self.assertTrue(fetch_and_score.cached_nse_eod_bhavdata_is_current(snapshot, now=now))
+
+    def test_does_not_reuse_old_eod_snapshot_after_new_trading_day_close(self):
+        snapshot = {"source": "NSE official sec_bhavdata_full · EOD previous close · CM/EQ",
+                    "source_timestamp": "20-Nov-2026 15:30:00"}
+        now = datetime(2026, 11, 23, 19, 0, tzinfo=IST)
+        self.assertFalse(fetch_and_score.cached_nse_eod_bhavdata_is_current(snapshot, now=now))
+
     def test_eod_reference_remains_available_during_next_cash_session(self):
         snapshot = {"source": "NSE official sec_bhavdata_full · EOD previous close",
                     "source_timestamp": "13-Nov-2026 15:30:00"}
