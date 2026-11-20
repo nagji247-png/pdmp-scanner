@@ -169,7 +169,7 @@ jobs:
               rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": "Z"})
               # A few additional bounded prefixes to estimate coverage and expose
               # any prefix that reaches the 500-row cap before expanding the scan.
-              for prefix in ("B", "H", "N", "S"):
+              for prefix in ("B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"):
                   rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": prefix})
 
           PY
