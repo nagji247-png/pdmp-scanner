@@ -1,0 +1,124 @@
+name: NSE Equity Master Symbol Audit
+
+on:
+  push:
+    branches:
+      - test/nse-master-symbol-audit-20261120
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  symbol-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download existing MCP snapshot artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/actions/artifacts/14642314267/zip > mcp-snapshot.zip
+          mkdir mcp-snapshot
+          unzip -q mcp-snapshot.zip -d mcp-snapshot
+          test -s mcp-snapshot/nse_equity_unique.csv
+
+      - name: Download official NSE security master files
+        run: |
+          curl --fail --location --retry 1 --max-time 30 \
+            'https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv' -o equity.csv
+          curl --fail --location --retry 1 --max-time 30 \
+            'https://nsearchives.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv' -o sme.csv
+          curl --fail --location --retry 1 --max-time 30 \
+            'https://nsearchives.nseindia.com/content/equities/symbolchange.csv' -o symbol_changes.csv
+
+      - name: Compare symbols without publishing raw quote data
+        run: |
+          python - <<'PY'
+          import csv, io, json, zipfile
+          from pathlib import Path
+          from collections import Counter
+
+          def read_csv(path):
+              raw = Path(path).read_bytes()
+              for enc in ("utf-8-sig", "latin-1"):
+                  try:
+                      return list(csv.DictReader(io.StringIO(raw.decode(enc))))
+                  except UnicodeDecodeError:
+                      continue
+              raise RuntimeError(f"Could not decode {path}")
+
+          def norm_key(value):
+              return "".join(ch for ch in str(value or "").strip().upper() if ch.isalnum())
+
+          def get_symbol_column(rows, path):
+              if not rows:
+                  raise RuntimeError(f"{path} is empty")
+              keys = list(rows[0])
+              for key in keys:
+                  if norm_key(key) in ("SYMBOL", "TRADINGSYMBOL", "SECURITYSYMBOL"):
+                      return key
+              raise RuntimeError(f"No symbol column in {path}; headers={keys}")
+
+          mcp_rows = read_csv("mcp-snapshot/nse_equity_unique.csv")
+          mcp_symbols = {str(r.get("symbol") or "").strip().upper() for r in mcp_rows}
+          mcp_symbols.discard("")
+
+          equity_rows = read_csv("equity.csv")
+          sme_rows = read_csv("sme.csv")
+          changes_rows = read_csv("symbol_changes.csv")
+          eq_col = get_symbol_column(equity_rows, "equity.csv")
+          sme_col = get_symbol_column(sme_rows, "sme.csv")
+
+          equity_symbols = {str(r.get(eq_col) or "").strip().upper() for r in equity_rows}
+          sme_symbols = {str(r.get(sme_col) or "").strip().upper() for r in sme_rows}
+          equity_symbols.discard("")
+          sme_symbols.discard("")
+          all_master = equity_symbols | sme_symbols
+
+          report = {
+              "mcp_snapshot_symbols": len(mcp_symbols),
+              "mcp_snapshot_rows": len(mcp_rows),
+              "nse_equity_master_rows": len(equity_rows),
+              "nse_equity_master_unique_symbols": len(equity_symbols),
+              "nse_sme_master_rows": len(sme_rows),
+              "nse_sme_master_unique_symbols": len(sme_symbols),
+              "nse_equity_plus_sme_unique_symbols": len(all_master),
+              "mcp_and_mainboard_common": len(mcp_symbols & equity_symbols),
+              "mainboard_missing_from_mcp": sorted(equity_symbols - mcp_symbols),
+              "mcp_not_in_mainboard_master": sorted(mcp_symbols - equity_symbols),
+              "mcp_missing_from_equity_plus_sme": sorted(all_master - mcp_symbols),
+              "mcp_not_in_equity_plus_sme_master": sorted(mcp_symbols - all_master),
+              "symbol_change_rows": len(changes_rows),
+              "equity_headers": list(equity_rows[0]) if equity_rows else [],
+              "sme_headers": list(sme_rows[0]) if sme_rows else [],
+              "symbol_change_headers": list(changes_rows[0]) if changes_rows else [],
+              "source_files": {
+                  "equity": "NSE Securities available for Equity segment",
+                  "sme": "NSE Securities available for trading in SME",
+                  "symbol_changes": "NSE Changes in Symbols",
+              },
+          }
+          Path("nse_master_symbol_audit.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          print(json.dumps({
+              k: v for k, v in report.items()
+              if not isinstance(v, list) or k.endswith("headers")
+          }, ensure_ascii=False))
+          print("AUDIT_RESULT: " + json.dumps({
+              "equity_missing_count": len(equity_symbols - mcp_symbols),
+              "equity_extra_count": len(mcp_symbols - equity_symbols),
+              "combined_missing_count": len(all_master - mcp_symbols),
+              "combined_extra_count": len(mcp_symbols - all_master),
+          }))
+          PY
+
+      - name: Upload symbol comparison summary only
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-master-symbol-audit
+          path: nse_master_symbol_audit.json
+          if-no-files-found: error
+          retention-days: 14
