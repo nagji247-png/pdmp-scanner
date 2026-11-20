@@ -1569,8 +1569,8 @@
     "instrument": "BANKNIFTY",
     "score": 8.5,
     "event_time_utc": "2026-11-19T01:21:22Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 2.49,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1632,8 +1632,8 @@
     "instrument": "TATAMOTORS",
     "score": -6.3,
     "event_time_utc": "2026-11-19T01:21:35Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 1.08,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1653,8 +1653,8 @@
     "instrument": "NIFTY",
     "score": -6.7,
     "event_time_utc": "2026-11-19T01:26:30Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 1.12,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1674,8 +1674,8 @@
     "instrument": "ADANIPORTS",
     "score": 7.2,
     "event_time_utc": "2026-11-19T01:26:41Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": -0.01,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1716,8 +1716,8 @@
     "instrument": "EICHERMOT",
     "score": 8.6,
     "event_time_utc": "2026-11-19T08:17:17Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.68,
     "baseline_price": 8042.0,
     "baseline_time": "2026-11-19T08:15:00Z",
     "baseline_attempted": true,
@@ -1927,15 +1927,15 @@
     "next_change": null,
     "baseline_price": null,
     "baseline_time": null,
-    "baseline_attempted": false,
+    "baseline_attempted": true,
     "intraday_source": "Awaiting verified 5-minute candle source",
     "after_30m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     },
     "after_60m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
   }
 ]
