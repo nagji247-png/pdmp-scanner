@@ -1873,13 +1873,14 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
         }
     result.update({
         "source_timestamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
-        "coverage": {"expected": len(expected), "matched": len(instruments)},
+        "coverage": {"expected": len(expected) if expected is not None else len(instruments),
+                      "matched": len(instruments)},
         "instruments": instruments,
     })
     return result
 
 
-def fetch_nse_eod_bhavdata_quotes(expected_symbols):
+def fetch_nse_eod_bhavdata_quotes(expected_symbols=None):
     """Fetch one official all-equity EOD file; None means every CM/EQ row, no per-symbol fan-out."""
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
     now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
