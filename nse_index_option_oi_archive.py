@@ -220,7 +220,7 @@ def aggregate_udiff_rows(rows, trade_date):
 
 
 def aggregate_index_futures_rows(rows, trade_date):
-    """Capture exact NSE NIFTY/BANKNIFTY FUTIDX rows from the same UDiFF file.
+    """Capture exact NSE NIFTY/BANKNIFTY IDF (UDiFF FUTIDX) rows from the same file.
 
     No extra exchange request is made. Rows are retained by exact expiry and
     date so consecutive-session comparisons never roll contracts implicitly.
@@ -233,7 +233,7 @@ def aggregate_index_futures_rows(rows, trade_date):
     for row in rows:
         if not isinstance(row, dict):
             continue
-        if str(row.get("FinInstrmTp") or "").strip().upper() != "FUTIDX":
+        if str(row.get("FinInstrmTp") or "").strip().upper() not in ("IDF", "FUTIDX"):
             continue
         symbol = str(row.get("TckrSymb") or "").strip().upper()
         if symbol not in SYMBOLS:
@@ -283,13 +283,13 @@ def aggregate_index_futures_rows(rows, trade_date):
 
 
 def aggregate_stock_futures_rows(rows, trade_date):
-    """Capture NSE stock FUTSTK OI by exact symbol and expiry; no contract roll."""
+    """Capture NSE stock STF (UDiFF FUTSTK) OI by exact symbol and expiry; no contract roll."""
     target_date = parse_date(trade_date)
     output = {}
     invalid = {}
     seen = set()
     for row in rows:
-        if not isinstance(row, dict) or str(row.get("FinInstrmTp") or "").strip().upper() != "FUTSTK":
+        if not isinstance(row, dict) or str(row.get("FinInstrmTp") or "").strip().upper() not in ("STF", "FUTSTK"):
             continue
         symbol = str(row.get("TckrSymb") or "").strip().upper()
         if not symbol:
