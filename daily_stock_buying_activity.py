@@ -204,7 +204,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         futures_change_pct = None
         oi_change_pct = None
         futures_expiry = None
-        if current_stock.get("available") and prior_stock.get("available"):
+        # Each by_expiry entry is validated independently by the official UDiFF parser.
+        # Do not discard valid same-expiry contracts merely because a different
+        # expiry for the same symbol was invalid or duplicated.
+        if isinstance(current_stock.get("by_expiry"), dict) and isinstance(prior_stock.get("by_expiry"), dict):
             current_contracts = current_stock.get("by_expiry") or {}
             prior_contracts = prior_stock.get("by_expiry") or {}
             common_expiries = sorted(expiry for expiry in set(current_contracts) & set(prior_contracts) if expiry >= latest_date.isoformat())
@@ -359,7 +362,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     for symbol in fno_symbols:
         current_stock = current_futures.get(symbol) or {}
         prior_stock = previous_futures.get(symbol) or {}
-        if not (current_stock.get("available") and prior_stock.get("available")):
+        # Count coverage from validated exact-expiry rows, independently of other
+        # invalid contracts recorded for the same symbol.
+        if not isinstance(current_stock.get("by_expiry"), dict) or not isinstance(prior_stock.get("by_expiry"), dict):
             continue
         current_contracts = current_stock.get("by_expiry") or {}
         prior_contracts = prior_stock.get("by_expiry") or {}
