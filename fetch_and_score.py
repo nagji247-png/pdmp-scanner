@@ -1819,10 +1819,13 @@ def market_activity_snapshot_is_fresh(snapshot, now=None):
 
 def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
     """Parse one official NSE full security bhavdata CSV; these are EOD, never live quotes."""
-    expected = {str(symbol).strip().upper() for symbol in expected_symbols}
-    result = {"source": "NSE official sec_bhavdata_full · EOD previous close",
+    expected = ({str(symbol).strip().upper() for symbol in expected_symbols}
+                if expected_symbols is not None else None)
+    result = {"source": "NSE official sec_bhavdata_full · EOD previous close · CM/EQ",
               "source_timestamp": None,
-              "coverage": {"expected": len(expected), "matched": 0}, "instruments": {}}
+              "scope": "CM/EQ" if expected is None else "requested-symbols/EQ",
+              "coverage": {"expected": len(expected) if expected is not None else 0, "matched": 0},
+              "instruments": {}}
     if not isinstance(text, str) or not text.strip():
         return result
     reader = csv.DictReader(text.lstrip(chr(65279)).splitlines())
@@ -1846,7 +1849,7 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
     for row in rows:
         symbol = str(row.get("SYMBOL") or "").strip().upper()
         series = str(row.get("SERIES") or "").strip().upper()
-        if symbol not in expected or series != "EQ":
+        if (expected is not None and symbol not in expected) or series != "EQ":
             continue
         close = _num(row.get("CLOSE_PRICE"))
         previous = _num(row.get("PREV_CLOSE"))
@@ -1864,6 +1867,9 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
             "price_source": "NSE official sec_bhavdata_full · EOD close",
             "volume_as_of": date_text,
             "volume_source": "NSE official sec_bhavdata_full · TTL_TRD_QNTY",
+            "delivery_qty": int(_num(row.get("DELIV_QTY"))) if _num(row.get("DELIV_QTY")) is not None and _num(row.get("DELIV_QTY")) >= 0 else None,
+            "delivery_pct": _num(row.get("DELIV_PER")),
+            "trades": int(_num(row.get("NO_OF_TRADES"))) if _num(row.get("NO_OF_TRADES")) is not None and _num(row.get("NO_OF_TRADES")) >= 0 else None,
         }
     result.update({
         "source_timestamp": stamp.strftime("%d-%b-%Y %H:%M:%S"),
@@ -1874,7 +1880,7 @@ def parse_nse_eod_bhavdata_csv(text, expected_symbols, expected_date=None):
 
 
 def fetch_nse_eod_bhavdata_quotes(expected_symbols):
-    """Fetch one official all-equity EOD file; no 218-symbol request fan-out."""
+    """Fetch one official all-equity EOD file; None means every CM/EQ row, no per-symbol fan-out."""
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
     now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
     base_day = now.date() if (now.hour, now.minute) >= (18, 0) else now.date() - dt.timedelta(days=1)
@@ -6086,12 +6092,16 @@ def main():
         process(name, sym, query, "stock", events, today_str, result["instruments"],
                 div_events, all_returns, previous_item=previous_instruments.get(name), now_utc=now_utc)
 
-    # Market Activity uses one NSE bulk snapshot for the verified F&O master.
-    # This remains separate from the nine-stock PDMP watchlist and its scoring.
+    # Market Activity prefers one official all-equity EOD file (CM/EQ).
+    # The verified 218-stock F&O master remains the sector-mapping universe;
+    # this broader quote snapshot also retains non-F&O cash equities without
+    # per-symbol API fan-out. EOD rows are never labelled live.
     try:
         activity_master = load_json("nse-fo-stock-sector-master.json", {})
         activity_symbols = sorted((activity_master.get("stocks") or {}).keys())
         activity_quotes = fetch_nse_market_activity_bulk_quotes(activity_symbols)
+        if not activity_quotes.get("instruments"):
+            activity_quotes = fetch_nse_eod_bhavdata_quotes(None)
         if not activity_quotes.get("instruments"):
             activity_quotes = fetch_nse_eod_bhavdata_quotes(activity_symbols)
         if not activity_quotes.get("instruments"):
