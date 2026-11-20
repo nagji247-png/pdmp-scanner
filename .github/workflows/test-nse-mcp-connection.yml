@@ -1,0 +1,317 @@
+name: NSE MCP Isolated Connection Test
+
+on:
+  push:
+    branches:
+      - test/nse-mcp-connection-20261119
+  workflow_dispatch:
+  schedule:
+    # 10:00 AM India time, Monday-Friday (GitHub cron uses UTC).
+    - cron: '30 4 * * 1-5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-mcp-isolated-test
+  cancel-in-progress: false
+
+jobs:
+  connection-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+
+      - name: Test NSE MCP initialize and tools/list
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from curl_cffi import requests
+
+          url = "https://mcp.nseindia.in/cmmkt/mcp"
+          headers = {
+              "Content-Type": "application/json",
+              "Accept": "application/json, text/event-stream",
+          }
+          session = requests.Session(impersonate="chrome124")
+          warm = session.get("https://www.nseindia.com", timeout=20)
+          print(f"NSE homepage warm-up: HTTP {warm.status_code}")
+
+          def decode(response):
+              if "text/event-stream" in response.headers.get("content-type", "").lower():
+                  blocks = response.text.replace("\r\n", "\n").split("\n\n")
+                  for block in reversed(blocks):
+                      data = "\n".join(
+                          line[5:].lstrip() for line in block.splitlines()
+                          if line.startswith("data:")
+                      )
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return response.json()
+
+          init = session.post(url, headers=headers, json={
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "initialize",
+              "params": {
+                  "protocolVersion": "2024-11-05",
+                  "capabilities": {},
+                  "clientInfo": {"name": "trinetra-isolated-test", "version": "1.0"},
+              },
+          }, timeout=30)
+          print(f"MCP initialize: HTTP {init.status_code}")
+          if init.status_code != 200:
+              print((init.text or "")[:500])
+              sys.exit(1)
+          init_data = decode(init)
+          if init_data.get("error"):
+              raise RuntimeError(f"Initialize JSON-RPC error: {init_data['error']}")
+
+          session_id = init.headers.get("mcp-session-id") or init.headers.get("Mcp-Session-Id")
+          print(f"Negotiated protocol: {(init_data.get('result') or {}).get('protocolVersion', 'not reported')}")
+          print(f"Session ID received: {'yes' if session_id else 'no'}")
+
+          call_headers = dict(headers)
+          if session_id:
+              call_headers["Mcp-Session-Id"] = session_id
+          try:
+              session.post(url, headers=call_headers, json={
+                  "jsonrpc": "2.0", "method": "notifications/initialized"
+              }, timeout=15)
+          except Exception as exc:
+              print(f"Initialized notification note: {str(exc)[:160]}")
+
+          listed = session.post(url, headers=call_headers, json={
+              "jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}
+          }, timeout=30)
+          print(f"MCP tools/list: HTTP {listed.status_code}")
+          if listed.status_code != 200:
+              print((listed.text or "")[:500])
+              sys.exit(1)
+          payload = decode(listed)
+          if payload.get("error"):
+              raise RuntimeError(f"tools/list JSON-RPC error: {payload['error']}")
+          tools = (payload.get("result") or {}).get("tools") or []
+          print(f"RESULT: CONNECTION_OK; TOOL_COUNT={len(tools)}")
+          for item in tools:
+              if isinstance(item, dict) and item.get("name"):
+                  print(f"TOOL: {item['name']}")
+          if not tools:
+              print("WARNING: server returned an empty tools list")
+              sys.exit(1)
+
+          # Inspect schemas and safely call only read-only status/universe tools.
+          by_name = {item.get("name"): item for item in tools if isinstance(item, dict)}
+          for name in ("cm_get_data_status", "cm_get_allstocks_status", "cm_get_equity_stocks",
+                       "cm_get_live_market_data", "cm_get_live_indices", "cm_get_index_quote", "cm_get_stock_quote"):
+              item = by_name.get(name)
+              if item:
+                  schema = item.get("inputSchema") or {}
+                  print(f"SCHEMA {name}: {json.dumps(schema, ensure_ascii=False)}")
+
+          prefix_snapshots = {}
+          status_snapshots = {}
+
+          def rpc_tool(name, args):
+              try:
+                  response = session.post(url, headers=call_headers, json={
+                      "jsonrpc": "2.0", "id": 100 + len(name) + len(str(args)), "method": "tools/call",
+                      "params": {"name": name, "arguments": args}
+                  }, timeout=45)
+              except Exception as exc:
+                  print(f"CALL_ERROR {name} {args}: {type(exc).__name__}: {str(exc)[:220]}")
+                  return None
+              print(f"CALL {name}: HTTP {response.status_code}")
+              if response.status_code != 200:
+                  print((response.text or "")[:300])
+                  return None
+              result = decode(response)
+              if result.get("error"):
+                  print(f"CALL_ERROR {name}: {result['error']}")
+                  return None
+              tool_result = result.get("result") or {}
+              if name == "cm_get_equity_stocks" and args.get("symbolFilter") is not None:
+                  prefix_snapshots[str(args.get("symbolFilter"))] = tool_result
+              if name == "cm_get_allstocks_status":
+                  status_snapshots[name] = tool_result
+              content = tool_result.get("content") or []
+              for part in content:
+                  if isinstance(part, dict) and part.get("text"):
+                      print(f"DATA {name}: {part['text'][:3500]}")
+              structured = tool_result.get("structuredContent")
+              if structured is not None:
+                  print(f"STRUCTURED {name}: {json.dumps(structured, ensure_ascii=False)[:3500]}")
+              return tool_result
+
+          for name in ("cm_get_data_status", "cm_get_allstocks_status"):
+              item = by_name.get(name)
+              if item and not (item.get("inputSchema") or {}).get("required"):
+                  rpc_tool(name, {})
+
+          # Small, read-only samples: two quotes. Do not request the empty
+          # equity prefix here: it is capped at 500 and overlaps every letter,
+          # creating duplicate rows without improving universe coverage.
+          if "cm_get_index_quote" in by_name:
+              rpc_tool("cm_get_index_quote", {"indexName": "NIFTY 50"})
+          if "cm_get_stock_quote" in by_name:
+              rpc_tool("cm_get_stock_quote", {"symbol": "RELIANCE"})
+
+          # Probe read-only market-wide endpoints. A successful response outside
+          # market hours is connectivity evidence only, not proof of intraday freshness.
+          live_indices = by_name.get("cm_get_live_indices")
+          if live_indices:
+              required = (live_indices.get("inputSchema") or {}).get("required") or []
+              if required == ["group", "nameFilter"]:
+                  rpc_tool("cm_get_live_indices", {"group": "all", "nameFilter": ""})
+          live_market = by_name.get("cm_get_live_market_data")
+          if live_market:
+              required = (live_market.get("inputSchema") or {}).get("required") or []
+              if required == ["index"]:
+                  rpc_tool("cm_get_live_market_data", {"index": "gainers"})
+                  rpc_tool("cm_get_live_market_data", {"index": "loosers"})
+
+          # Verify prefix filtering without repeatedly polling the exchange.
+          if "cm_get_equity_stocks" in by_name:
+              rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": "A"})
+              rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": "Z"})
+              # A few additional bounded prefixes to estimate coverage and expose
+              # any prefix that reaches the 500-row cap before expanding the scan.
+              for prefix in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"):
+                  rpc_tool("cm_get_equity_stocks", {"limit": 500, "symbolFilter": prefix})
+
+          # Preserve complete prefix responses as a downloadable test artifact;
+          # console logs above remain intentionally truncated for readability.
+          captured_at_utc = __import__("datetime").datetime.now(
+              __import__("datetime").timezone.utc
+          ).isoformat()
+          with open("nse_equity_prefix_snapshot.json", "w", encoding="utf-8") as handle:
+              json.dump({
+                  "captured_at_utc": captured_at_utc,
+                  "prefixes_requested": sorted(prefix_snapshots.keys()),
+                  "responses": prefix_snapshots,
+              }, handle, ensure_ascii=False, indent=2)
+          print(f"PREFIX SNAPSHOT SAVED: {len(prefix_snapshots)} prefix responses")
+
+          # Build a normalized, de-duplicated stock file and an audit report.
+          import csv
+          from collections import Counter, defaultdict
+
+          all_rows = []
+          prefix_row_counts = {}
+          for prefix, tool_result in prefix_snapshots.items():
+              content = tool_result.get("content") or []
+              text_parts = [part.get("text", "") for part in content
+                            if isinstance(part, dict) and part.get("text")]
+              if not text_parts:
+                  continue
+              payload = json.loads(text_parts[0])
+              rows = payload.get("stocks") or []
+              prefix_row_counts[prefix] = len(rows)
+              for row in rows:
+                  all_rows.append((prefix, row))
+
+          by_symbol = defaultdict(list)
+          for prefix, row in all_rows:
+              symbol = str(row.get("symbol") or "").strip().upper()
+              if symbol:
+                  by_symbol[symbol].append((prefix, row))
+
+          from datetime import datetime
+
+          def quote_timestamp(row):
+              raw = str(row.get("latestTimestamp") or "").strip()
+              if not raw:
+                  return datetime.min
+              try:
+                  return datetime.fromisoformat(raw.replace("Z", "+00:00")).replace(tzinfo=None)
+              except ValueError:
+                  return datetime.min
+
+          unique_rows = []
+          duplicate_symbols = {}
+          conflicting_duplicates = []
+          for symbol, entries in sorted(by_symbol.items()):
+              # Prefix calls are sequential; choose the freshest quote instead
+              # of whichever prefix happened to be processed first.
+              freshest_time = max(quote_timestamp(entry[1]) for entry in entries)
+              freshest_entries = [entry for entry in entries
+                                  if quote_timestamp(entry[1]) == freshest_time]
+              unique_rows.append(freshest_entries[-1][1])
+              if len(entries) > 1:
+                  duplicate_symbols[symbol] = len(entries)
+                  # Only flag a genuine same-timestamp disagreement. Different
+                  # timestamps naturally carry different prices/volumes.
+                  if len(freshest_entries) > 1 and any(
+                      entry[1] != freshest_entries[0][1]
+                      for entry in freshest_entries[1:]
+                  ):
+                      conflicting_duplicates.append(symbol)
+
+          fieldnames = sorted({key for row in unique_rows for key in row})
+          with open("nse_equity_unique.csv", "w", newline="", encoding="utf-8-sig") as handle:
+              writer = csv.DictWriter(handle, fieldnames=fieldnames)
+              writer.writeheader()
+              writer.writerows(unique_rows)
+
+          official_equity_count = None
+          status_content = (status_snapshots.get("cm_get_allstocks_status") or {}).get("content") or []
+          for part in status_content:
+              if isinstance(part, dict) and part.get("text"):
+                  try:
+                      official_equity_count = (json.loads(part["text"]).get("segmentCounts") or {}).get("EQUITY")
+                  except Exception:
+                      pass
+                  break
+
+          audit = {
+              "captured_at_utc": captured_at_utc,
+              "prefix_responses": len(prefix_snapshots),
+              "raw_prefix_rows": len(all_rows),
+              "unique_symbols": len(unique_rows),
+              "duplicate_symbols": duplicate_symbols,
+              "conflicting_duplicate_symbols": conflicting_duplicates,
+              "official_equity_count": official_equity_count,
+              "difference_vs_official": (
+                  official_equity_count - len(unique_rows)
+                  if isinstance(official_equity_count, int) else None
+              ),
+              "prefix_row_counts": prefix_row_counts,
+              "quote_field_coverage": {
+                  key: sum(1 for row in unique_rows if row.get(key) is not None)
+                  for key in ("lastTradedPrice", "change", "perChange", "volume",
+                              "openPrice", "highPrice", "lowPrice", "preClosePrice",
+                              "latestTimestamp")
+              },
+          }
+          with open("nse_equity_audit.json", "w", encoding="utf-8") as handle:
+              json.dump(audit, handle, ensure_ascii=False, indent=2)
+          print("EQUITY AUDIT: " + json.dumps({
+              "raw_rows": len(all_rows),
+              "unique_symbols": len(unique_rows),
+              "duplicate_symbols": duplicate_symbols,
+              "official_equity_count": official_equity_count,
+              "difference_vs_official": audit["difference_vs_official"],
+              "conflicting_duplicates": conflicting_duplicates,
+          }, ensure_ascii=False))
+
+          PY
+
+      - name: Upload complete NSE equity prefix snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-equity-prefix-snapshot
+          path: |
+            nse_equity_prefix_snapshot.json
+            nse_equity_unique.csv
+            nse_equity_audit.json
+          if-no-files-found: error
+          retention-days: 90
