@@ -24,6 +24,61 @@ class NSEMarketActivityBulkQuoteTests(unittest.TestCase):
         self.assertNotIn("NOT_IN_MASTER", result["instruments"])
         self.assertEqual(result["instruments"]["AAA"]["price_as_of"], "13/11/2026")
 
+    def test_adapts_nse_mcp_equity_batch_and_preserves_exchange_timestamp(self):
+        rows = [
+            {"type": "CM", "symbol": "AAA", "series": "EQ",
+             "lastTradedPrice": 123.45, "perChange": 1.25, "volume": 123456,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+            {"type": "CM", "symbol": "BBB", "series": "EQ",
+             "lastTradedPrice": 80, "perChange": -0.5, "volume": 9876,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+            {"type": "CM", "symbol": "NOT_IN_MASTER", "series": "EQ",
+             "lastTradedPrice": 999, "perChange": 9, "volume": 999999,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+            {"type": "OPTFUT", "symbol": "AAA", "series": "EQ",
+             "lastTradedPrice": 500, "perChange": 5, "volume": 10,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+        ]
+        now = datetime(2026, 11, 19, 16, 5, tzinfo=IST)
+        result = fetch_and_score.parse_nse_mcp_equity_stocks(rows, {"AAA", "BBB"}, now=now)
+        self.assertEqual(result["coverage"], {"expected": 2, "matched": 2})
+        self.assertEqual(result["instruments"]["AAA"]["price"], 123.45)
+        self.assertEqual(result["instruments"]["AAA"]["change_pct"], 1.25)
+        self.assertEqual(result["instruments"]["AAA"]["volume"], 123456)
+        self.assertEqual(result["instruments"]["BBB"]["change_pct"], -0.5)
+        self.assertEqual(result["instruments"]["AAA"]["price_as_of"], "19/11/2026")
+        self.assertEqual(result["source_timestamp"], "19-Nov-2026 16:00:28")
+        self.assertNotIn("NOT_IN_MASTER", result["instruments"])
+
+    def test_mcp_adapter_rejects_stale_or_missing_timestamps(self):
+        now = datetime(2026, 11, 20, 10, 0, tzinfo=IST)
+        rows = [
+            {"type": "CM", "symbol": "AAA", "series": "EQ",
+             "lastTradedPrice": 123.45, "perChange": 1.25, "volume": 123456,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+            {"type": "CM", "symbol": "BBB", "series": "EQ",
+             "lastTradedPrice": 80, "perChange": -0.5, "volume": 9876},
+        ]
+        result = fetch_and_score.parse_nse_mcp_equity_stocks(rows, {"AAA", "BBB"}, now=now)
+        self.assertEqual(result["coverage"], {"expected": 2, "matched": 0})
+        self.assertEqual(result["instruments"], {})
+        self.assertIsNone(result["source_timestamp"])
+
+    def test_mcp_adapter_rejects_invalid_prices_and_keeps_zero_volume(self):
+        now = datetime(2026, 11, 19, 16, 5, tzinfo=IST)
+        rows = [
+            {"type": "CM", "symbol": "AAA", "series": "EQ",
+             "lastTradedPrice": 0, "perChange": 1, "volume": 2,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+            {"type": "CM", "symbol": "BBB", "series": "EQ",
+             "lastTradedPrice": 80, "perChange": 0, "volume": 0,
+             "latestTimestamp": "2026-11-19 16:00:28"},
+        ]
+        result = fetch_and_score.parse_nse_mcp_equity_stocks(rows, {"AAA", "BBB"}, now=now)
+        self.assertEqual(result["coverage"]["matched"], 1)
+        self.assertEqual(result["instruments"]["BBB"]["volume"], 0)
+        self.assertNotIn("AAA", result["instruments"])
+
     def test_retired_intraday_bulk_route_is_not_called(self):
         with patch.object(fetch_and_score.NSE_MCP_HTTP, "get") as get:
             result = fetch_and_score.fetch_nse_market_activity_bulk_quotes({"AAA", "BBB"})
