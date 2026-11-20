@@ -1918,7 +1918,7 @@ def fetch_nse_eod_bhavdata_quotes(expected_symbols=None):
     return {
         "source": "NSE official sec_bhavdata_full · EOD previous close",
         "source_timestamp": None,
-        "coverage": {"expected": len(expected_symbols), "matched": 0},
+        "coverage": {"expected": len(expected_symbols) if expected_symbols is not None else 0, "matched": 0},
         "instruments": {},
     }
 
