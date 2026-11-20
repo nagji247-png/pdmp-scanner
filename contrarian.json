@@ -1876,15 +1876,15 @@
     "next_change": null,
     "baseline_price": null,
     "baseline_time": null,
-    "baseline_attempted": false,
+    "baseline_attempted": true,
     "intraday_source": "Awaiting verified 5-minute candle source",
     "after_30m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     },
     "after_60m": {
-      "status": "pending",
-      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
   },
   {
@@ -1900,11 +1900,42 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 9209.0,
+      "time": "2026-11-20T07:20:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.22,
+      "outcome": "reversed"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 9238.0,
+      "time": "2026-11-20T07:50:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.09,
+      "outcome": "continued"
     },
     "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-20|SILVER",
+    "date": "2026-11-20",
+    "instrument": "SILVER",
+    "score": -7.5,
+    "event_time_utc": "2026-11-20T08:23:11Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]
