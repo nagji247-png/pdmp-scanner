@@ -1915,6 +1915,81 @@ def fetch_nse_eod_bhavdata_quotes(expected_symbols):
         "instruments": {},
     }
 
+def parse_nse_mcp_equity_stocks(stocks, expected_symbols, now=None):
+    """Adapt one NSE MCP cm_get_equity_stocks batch to the market-activity quote schema.
+
+    This is a parser only: it does not call NSE, alter production routing, or
+    treat prior-session rows as live. Each row must carry a fresh exchange timestamp.
+    """
+    expected = {str(symbol).strip().upper() for symbol in expected_symbols}
+    empty = {
+        "source": "NSE MCP cm_get_equity_stocks · timestamp-validated equity batch",
+        "source_timestamp": None,
+        "coverage": {"expected": len(expected), "matched": 0},
+        "instruments": {},
+    }
+    if isinstance(stocks, dict):
+        rows = list(stocks.values())
+    elif isinstance(stocks, (list, tuple)):
+        rows = list(stocks)
+    else:
+        return empty
+
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
+    current = current.replace(tzinfo=ist) if current.tzinfo is None else current.astimezone(ist)
+    max_age = 15 * 60 if india_cash_session_open(current) else 96 * 60 * 60
+    instruments = {}
+    accepted_stamps = []
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get("symbol") or "").strip().upper()
+        if symbol not in expected:
+            continue
+        if str(row.get("type") or "").upper() != "CM":
+            continue
+        if str(row.get("series") or "").upper() != "EQ":
+            continue
+
+        stamp = _parse_market_activity_timestamp(row.get("latestTimestamp"))
+        if stamp is None:
+            continue
+        age_seconds = (current - stamp).total_seconds()
+        if age_seconds < -120 or age_seconds > max_age:
+            continue
+
+        price = _num(row.get("lastTradedPrice"))
+        if price is None or price <= 0:
+            continue
+        change_pct = _num(row.get("perChange"))
+        volume = _num(row.get("volume"))
+        if volume is not None and volume < 0:
+            volume = None
+
+        instruments[symbol] = {
+            "type": "stock",
+            "price": round(price, 2),
+            "change_pct": round(change_pct, 2) if change_pct is not None else None,
+            "volume": int(volume) if volume is not None else None,
+            "price_as_of": stamp.strftime("%d/%m/%Y"),
+            "price_time": stamp.strftime("%I:%M %p IST"),
+            "price_source": "NSE MCP cm_get_equity_stocks · lastTradedPrice",
+            "volume_as_of": stamp.strftime("%d/%m/%Y"),
+            "volume_source": "NSE MCP cm_get_equity_stocks · volume",
+        }
+        accepted_stamps.append(stamp)
+
+    source_stamp = max(accepted_stamps) if accepted_stamps else None
+    return {
+        "source": empty["source"],
+        "source_timestamp": source_stamp.strftime("%d-%b-%Y %H:%M:%S") if source_stamp else None,
+        "coverage": {"expected": len(expected), "matched": len(instruments)},
+        "instruments": instruments,
+    }
+
+
 def parse_nse_market_activity_bulk_payload(payload, expected_symbols, now=None):
     """Parse one NSE NIFTY TOTAL MARKET snapshot for exact verified F&O symbols only."""
     expected = {str(symbol).strip().upper() for symbol in expected_symbols}
