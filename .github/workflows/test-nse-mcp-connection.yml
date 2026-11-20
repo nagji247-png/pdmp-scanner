@@ -130,9 +130,23 @@ jobs:
               except Exception as exc:
                   print(f"CALL_ERROR {name} {args}: {type(exc).__name__}: {str(exc)[:220]}")
                   return None
-              print(f"CALL {name}: HTTP {response.status_code}")
+              print(f"CALL {name} {args}: HTTP {response.status_code}")
+              if response.status_code in (502, 503, 504):
+                  # One bounded retry for transient NSE gateway failures only.
+                  import time
+                  time.sleep(3)
+                  try:
+                      response = session.post(url, headers=call_headers, json={
+                          "jsonrpc": "2.0", "id": 100 + len(name) + len(str(args)) + 1,
+                          "method": "tools/call",
+                          "params": {"name": name, "arguments": args}
+                      }, timeout=45)
+                      print(f"RETRY {name} {args}: HTTP {response.status_code}")
+                  except Exception as exc:
+                      print(f"RETRY_ERROR {name} {args}: {type(exc).__name__}: {str(exc)[:220]}")
+                      return None
               if response.status_code != 200:
-                  print((response.text or "")[:300])
+                  print(f"CALL_FAILED {name} {args}: HTTP {response.status_code}; {(response.text or '')[:300]}")
                   return None
               result = decode(response)
               if result.get("error"):
