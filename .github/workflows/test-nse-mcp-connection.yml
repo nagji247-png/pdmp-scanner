@@ -5,6 +5,9 @@ on:
     branches:
       - test/nse-mcp-connection-20261119
   workflow_dispatch:
+  schedule:
+    # 10:00 AM India time, Monday-Friday (GitHub cron uses UTC).
+    - cron: '30 4 * * 1-5'
 
 permissions:
   contents: read
@@ -311,4 +314,4 @@ jobs:
             nse_equity_unique.csv
             nse_equity_audit.json
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
