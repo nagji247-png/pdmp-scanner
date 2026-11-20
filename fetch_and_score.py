@@ -24,7 +24,7 @@ import requests
 from curl_cffi import requests as curl_requests
 from upstox_market_data import fetch_upstox_candles
 from crowd_trap_detector import build_crowd_trap_snapshot
-from stock_basket_freshness import expected_latest_completed_session, load_exchange_calendar
+from stock_basket_freshness import expected_latest_completed_session, is_exchange_session, load_exchange_calendar
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -1827,7 +1827,8 @@ def cached_nse_eod_bhavdata_is_current(snapshot, now=None):
     current = now or dt.datetime.now(dt.timezone.utc).astimezone(ist)
     current = current.replace(tzinfo=ist) if current.tzinfo is None else current.astimezone(ist)
     expected_day = current.date() if (current.hour, current.minute) >= (18, 0) else current.date() - dt.timedelta(days=1)
-    while expected_day.weekday() >= 5:
+    calendar = load_exchange_calendar()
+    while not is_exchange_session(expected_day, calendar):
         expected_day -= dt.timedelta(days=1)
     stamp = _parse_market_activity_timestamp(snapshot.get("source_timestamp"))
     return stamp is not None and stamp.date() == expected_day
