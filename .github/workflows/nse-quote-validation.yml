@@ -326,6 +326,38 @@ jobs:
               print(f"{name}: price={quote.get('price')} date={date} time={clock} source={quote.get('source')}")
           PY
 
+      # One controlled MCP batch request; manual dispatch only. Never retries per-symbol.
+      - name: Diagnostic NSE MCP equity batch (up to 500 symbols)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          import fetch_and_score as app
+
+          try:
+              stocks = app.nse_stock_universe()
+              rows = list((stocks or {}).values())
+              sample = rows[:3]
+              print("NSE_MCP_EQUITY_BATCH " + json.dumps({
+                  "returned_symbols": len(rows),
+                  "cache_window_seconds": 240,
+                  "sample_fields": sorted(sample[0].keys()) if sample else [],
+                  "sample_rows": sample,
+                  "source": "NSE MCP cm_get_equity_stocks",
+                  "timestamp_fields_found": sorted({
+                      key for row in sample for key in row
+                      if any(token in key.lower() for token in ("time", "date", "update", "stamp"))
+                  }),
+              }, ensure_ascii=False, default=str))
+              if not rows:
+                  print("NSE_MCP_EQUITY_BATCH_STATUS=NO_DATA")
+              else:
+                  print("NSE_MCP_EQUITY_BATCH_STATUS=DATA_RETURNED_SCHEMA_REQUIRES_REVIEW")
+          except Exception as exc:
+              print("NSE_MCP_EQUITY_BATCH_STATUS=ERROR " + str(exc)[:300])
+          PY
+
       - name: Diagnostic official MCX Market Watch probe
         if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
