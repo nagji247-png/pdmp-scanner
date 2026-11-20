@@ -64,6 +64,29 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(row["average_volume_sessions"], 1)
         self.assertIsNone(row["delivery_pct"])
 
+    def test_valid_same_expiry_contract_is_used_when_other_symbol_expiry_is_invalid(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        # available=False records that another expiry for ABC was invalid.
+        # The exact common expiry below is independently validated and usable.
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": False, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": False, "by_expiry": {
+                "2026-11-26": {"open_interest": 1100, "close": 105.0}}}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        row = next(row for row in report["rows"] if row["symbol"] == "ABC")
+        self.assertEqual(row["oi_change_pct"], 10.0)
+        self.assertEqual(row["futures_change_pct"], 5.0)
+        self.assertEqual(row["futures_expiry"], "2026-11-26")
+        self.assertEqual(report["coverage_counts"]["fno_symbols_with_same_expiry_oi"], 1)
+        self.assertEqual(report["coverage"]["futures_oi"], "verified_for_matched_stock_futures")
+
     def test_futures_oi_is_unavailable_when_previous_cash_session_archive_is_missing(self):
         archive = {"records": [
             {"date": "2026-11-16", "equity_rows": [
