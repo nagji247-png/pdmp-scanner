@@ -86,6 +86,36 @@ class NSEIndexOptionOIArchiveTests(unittest.TestCase):
         self.assertFalse(result["NIFTY"]["included_in_asset_final"])
         self.assertFalse(result["BANKNIFTY"]["coverage_validated"])
 
+    def test_udiff_instrument_type_codes_capture_index_and_stock_futures(self):
+        index_base = {
+            "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "IDF",
+            "BizDt": "2026-11-06", "XpryDt": "2026-11-26",
+            "OpnIntrst": "120000", "ChngInOpnIntrst": "5000",
+            "ClsPric": "25125.50", "TckrSymb": "NIFTY",
+        }
+        stock_base = {
+            **index_base, "FinInstrmTp": "STF", "TckrSymb": "RELIANCE",
+            "ClsPric": "1250.50",
+        }
+        index_result = aggregate_index_futures_rows(
+            [index_base, {**index_base, "TckrSymb": "BANKNIFTY"}],
+            "2026-11-06",
+        )
+        stock_result = aggregate_stock_futures_rows(
+            [stock_base, {**stock_base, "TckrSymb": "SBIN"}],
+            "2026-11-06",
+        )
+        self.assertTrue(index_result["NIFTY"]["available"])
+        self.assertTrue(index_result["BANKNIFTY"]["available"])
+        self.assertEqual(
+            index_result["NIFTY"]["by_expiry"]["2026-11-26"]["change_in_oi"], 5000
+        )
+        self.assertTrue(stock_result["RELIANCE"]["available"])
+        self.assertTrue(stock_result["SBIN"]["available"])
+        self.assertEqual(
+            stock_result["RELIANCE"]["by_expiry"]["2026-11-26"]["close"], 1250.5
+        )
+
     def test_stock_futures_capture_all_symbols_by_exact_expiry(self):
         base = {
             "Sgmt": "FO", "Src": "NSE", "FinInstrmTp": "FUTSTK",
