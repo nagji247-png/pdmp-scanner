@@ -299,14 +299,19 @@ jobs:
           with open("nse-fo-stock-sector-master.json", encoding="utf-8") as handle:
               master = json.load(handle)
           symbols = sorted((master.get("stocks") or {}).keys())
-          snapshot = app.fetch_nse_eod_bhavdata_quotes(symbols)
+          # One official EOD CSV request; None selects every CM/EQ row,
+          # rather than filtering back down to the 218-symbol F&O master.
+          snapshot = app.fetch_nse_eod_bhavdata_quotes(None)
           coverage = snapshot.get("coverage") or {}
-          print("NSE_EOD_BULK_PROBE " + json.dumps({
+          instruments = snapshot.get("instruments") or {}
+          print("NSE_EOD_ALL_CM_EQ_PROBE " + json.dumps({
               "source": snapshot.get("source"),
               "trade_timestamp": snapshot.get("source_timestamp"),
-              "matched": coverage.get("matched", 0),
-              "expected": coverage.get("expected", len(symbols)),
-              "sample_symbols": sorted((snapshot.get("instruments") or {}).keys())[:12],
+              "matched_cm_eq": coverage.get("matched", 0),
+              "expected": coverage.get("expected", len(instruments)),
+              "sample_symbols": sorted(instruments)[:12],
+              "has_delivery_qty": sum(1 for q in instruments.values() if q.get("delivery_qty") is not None),
+              "has_delivery_pct": sum(1 for q in instruments.values() if q.get("delivery_pct") is not None),
           }, ensure_ascii=False))
           PY
       # External NSE endpoints can rate-limit or return 404 from GitHub runners.
