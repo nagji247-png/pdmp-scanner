@@ -40,6 +40,15 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("KNOW YOUR STOCK", self.market_activity)
         self.assertNotIn("data-fpi-sector-eye", self.market_activity)
 
+    def test_market_activity_includes_non_fno_eod_cash_symbols_without_fake_sector_mapping(self):
+        self.assertIn('names["सेक्टर मैपिंग उपलब्ध नहीं"]=true', self.market_activity)
+        self.assertIn('symbols=symbols.concat(Object.keys(quotes).filter(function(s){return !known[s];}))', self.market_activity)
+        self.assertIn('industry:"इंडस्ट्री/सेक्टर मैपिंग उपलब्ध नहीं"', self.market_activity)
+        self.assertIn('Delivery Quantity:', self.market_activity)
+        self.assertIn('Delivery %:', self.market_activity)
+        self.assertIn('कुल Trades:', self.market_activity)
+        self.assertIn('universe=Object.assign({},master.stocks||{},marketData&&marketData.market_activity_quotes', self.market_activity)
+
     def test_market_activity_counts_all_sector_quotes_and_warns_on_small_samples(self):
         self.assertIn("symbols.filter(function(k){var q=quote(k);", self.market_activity)
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
