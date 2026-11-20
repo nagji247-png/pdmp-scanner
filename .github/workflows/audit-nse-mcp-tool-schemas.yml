@@ -42,9 +42,9 @@ jobs:
 
           def decode(response):
               if "text/event-stream" in response.headers.get("content-type", "").lower():
-                  blocks = response.text.replace("\\r\\n", "\\n").split("\\n\\n")
+                  blocks = response.text.replace("\r\n", "\n").split("\n\n")
                   for block in reversed(blocks):
-                      data = "\\n".join(
+                      data = "\n".join(
                           line[5:].lstrip() for line in block.splitlines()
                           if line.startswith("data:")
                       )
