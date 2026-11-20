@@ -152,8 +152,10 @@ jobs:
           # Probe read-only market-wide endpoints. A successful response outside
           # market hours is connectivity evidence only, not proof of intraday freshness.
           live_indices = by_name.get("cm_get_live_indices")
-          if live_indices and not (live_indices.get("inputSchema") or {}).get("required"):
-              rpc_tool("cm_get_live_indices", {})
+          if live_indices:
+              required = (live_indices.get("inputSchema") or {}).get("required") or []
+              if required == ["group", "nameFilter"]:
+                  rpc_tool("cm_get_live_indices", {"group": "all", "nameFilter": ""})
           live_market = by_name.get("cm_get_live_market_data")
           if live_market:
               required = (live_market.get("inputSchema") or {}).get("required") or []
