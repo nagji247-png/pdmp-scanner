@@ -1266,20 +1266,27 @@ function openStockBasketDetails(key) {
   const c = item.component || {};
   const e = item.excluded || {};
   const val = (v, suffix="") => v == null || v === "" ? "डेटा नहीं" : esc(String(v) + suffix);
-  const categories = [
+  const hasCashBasket = Number(c.matched) > 0 && Array.isArray(c.constituents);
+  const categories = hasCashBasket ? [
     ["up", "बढ़े हुए शेयर", c.advances],
     ["down", "गिरे हुए शेयर", c.declines],
     ["flat", "स्थिर शेयर", c.unchanged],
     ["all", "मिले हुए शेयर", c.matched]
-  ];
+  ] : [];
+  const combined = item.combined || {};
+  const combinedRows = Object.entries(combined.components || {}).map(([key, value]) =>
+    [key.toUpperCase(), (value && value.score != null ? ((Number(value.score) > 0 ? "+" : "") + Number(value.score).toFixed(2) + "/10") : "डेटा नहीं") +
+      " · " + (value && value.source_date ? value.source_date : "तारीख़ नहीं") +
+      " · " + (value && value.source ? value.source : "स्रोत नहीं")]
+  );
   const categoryHtml = categories.map(([id, label, count]) =>
     '<div class="stock-basket-category"><span class="stock-basket-category-label">' + label + '</span>' +
     '<div class="stock-basket-category-actions"><b>' + val(count) + '</b>' +
     '<button type="button" class="stock-basket-list-eye" data-stock-basket-key="' + key + '" data-stock-basket-category="' + id + '" onclick="showStockBasketConstituentList(this.dataset.stockBasketKey,this.dataset.stockBasketCategory)">👁️ सूची</button></div></div>'
   ).join("");
   const rows = [
-    ["Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
-    ["स्थिति", c.research_only === true || c.score_eligible === false ? "प्रारंभिक diagnostic · नए Component Score का input; पुराने PDMP Main Score से बाहर" : (c.status || "अलग Diagnostic")],
+    ["TRINETRA संयुक्त TEST Score", combined.status === "available" && Number.isFinite(Number(combined.score)) ? ((Number(combined.score) > 0 ? "+" : "") + Number(combined.score).toFixed(2) + "/10") : (c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10"))],
+    ["स्थिति", combined.status === "available" ? "EXPERIMENTAL TEST ONLY · पुराने PDMP Main Score से अलग" : (c.research_only === true || c.score_eligible === false ? "प्रारंभिक diagnostic · पुराने PDMP Main Score से बाहर" : (c.status || "अलग Diagnostic"))],
     ["स्रोत", c.source || "डेटा नहीं"],
     ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
     ["आधिकारिक कुल शेयर", val(c.expected)],
@@ -1287,16 +1294,18 @@ function openStockBasketDetails(key) {
     ["कवरेज", val(c.coverage_pct, "%")],
     ["छूटे हुए शेयर", Array.isArray(c.missing_symbols) ? c.missing_symbols.join(", ") || "कोई नहीं" : "डेटा नहीं"],
     ["गणना", c.combined_formula || c.formula || "10 × (बढ़े − गिरे) ÷ आधिकारिक constituent संख्या; सीमा −10 से +10"],
-    ["शामिल हिस्से", Array.isArray(c.combined_included_components) ? c.combined_included_components.join(", ") : "Cash Basket diagnostic"],
+    ["शामिल हिस्से", Array.isArray(combined.included_components) ? combined.included_components.join(", ") : (Array.isArray(c.combined_included_components) ? c.combined_included_components.join(", ") : "Cash Basket diagnostic")],
+    ["Normalized Weightage", combined.normalized_weights_pct ? Object.entries(combined.normalized_weights_pct).map(([k,v]) => k.toUpperCase() + " " + Number(v).toFixed(1) + "%").join(" · ") : "डेटा नहीं"],
     ["चेतावनी", c.combined_validation || "Cash Basket diagnostic"],
     ["Validation", c.validation && c.validation.passed === true ? "पास" : "अभी पूर्ण सत्यापन नहीं"]
   ];
   content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — TRINETRA 🔱</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
     '<div class="stock-basket-modal-score ' + (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") + '">' + (c.score == null ? "—" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")) + '</div>' +
-    '<div class="stock-basket-category-grid">' + categoryHtml + '</div>' +
+    (categoryHtml ? '<div class="stock-basket-category-grid">' + categoryHtml + '</div>' : '') +
     '<div id="stockBasketConstituentList" aria-live="polite"></div>' +
-    '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
-    '<div class="stock-basket-modal-note">यह equal-weight breadth diagnostic नए provisional Component Score में Stock Basket input है; पुराने PDMP Main Score की गणना इससे नहीं बदलती। पुराने snapshot में शेयर-वाइज विवरण सेव नहीं था तो सूची अगली सफल EOD cash-basket update के बाद उपलब्ध होगी।</div>' +
+    '<div class="stock-basket-detail-grid">' + rows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") +
+      combinedRows.map(([k,v]) => '<div class="stock-basket-detail-cell"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>').join("") + '</div>' +
+    '<div class="stock-basket-modal-note">यह TRINETRA का experimental संयुक्त TEST score है; उपलब्ध ताज़ा inputs से गणना होती है। CLIENT CE/PE और CLIENT Futures market-wide aggregates हैं; Futures unvalidated है। पुराने PDMP Main Score और Production Final Score इससे नहीं बदलते। Cash Basket उपलब्ध न हो तो उसे शून्य नहीं माना जाता।</div>' +
     (e.reason ? '<div class="stock-basket-modal-note">अलग रखने का कारण: ' + esc(e.reason) + '</div>' : '');
   modal.hidden = false;
   document.body.classList.add("stock-basket-modal-open");
@@ -1384,23 +1393,38 @@ document.addEventListener("keydown", event => {
 // Keep this panel research-only and score-ineligible.
 function renderStandaloneStockBasket(b, assetName) {
   const rawComponent = b && b.stock_basket_diagnostic;
+  const combined = b && b.experimental_combined_final;
+  const combinedAvailable = combined && combined.status === "available"
+    && Number.isFinite(Number(combined.score))
+    && Number(combined.score) >= -10 && Number(combined.score) <= 10;
   const component = rawComponent
-    ? {...rawComponent, score: rawComponent.combined_score != null ? rawComponent.combined_score : null}
-    : null;
+    ? {...rawComponent, score: combinedAvailable ? Number(combined.score) : (rawComponent.combined_score != null ? rawComponent.combined_score : null)}
+    : (combinedAvailable ? {
+        status: "combined_test_only",
+        score: Number(combined.score),
+        source: "TRINETRA · उपलब्ध ताज़ा components का संयुक्त TEST score",
+        source_date: null,
+        matched: null, expected: null, coverage_pct: null,
+        combined_included_components: combined.included_components || [],
+        combined_normalized_weights_pct: combined.normalized_weights_pct || {},
+        combined_formula: "उपलब्ध ताज़ा components का weighted average; अनुपलब्ध inputs हटाकर शेष weights normalize किए गए।",
+        combined_validation: "EXPERIMENTAL TEST ONLY · CLIENT CE/PE और CLIENT Futures market-wide aggregates हैं; Futures unvalidated है। यह trade signal नहीं है।"
+      } : null);
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
   const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
-  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
-  // The existing STOCK BASKET row and its detail modal show the six-input combined test score when available.
-  // The original cash breadth remains available as cash_breadth_score for audit.
-  const validScore = component && ["complete_diagnostic", "partial_diagnostic"].includes(component.status)
+  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, combined: combined || null, name: assetName || "INDEX" };
+  // The existing TRINETRA row displays the combined test score independently
+  // of cash-basket availability; missing breadth is never fabricated as zero.
+  const validScore = combinedAvailable || (component
+    && ["complete_diagnostic", "partial_diagnostic"].includes(component.status)
     && Number(component.matched) > 0
     && Number.isFinite(Number(component.score))
-    && Number(component.score) >= -10 && Number(component.score) <= 10;
+    && Number(component.score) >= -10 && Number(component.score) <= 10);
   const score = validScore ? Number(component.score) : null;
   const cls = score > 0 ? "pos" : score < 0 ? "neg" : "zero";
   const label = validScore
     ? ((score > 0 ? "+" : score < 0 ? "−" : "") + Math.abs(score).toFixed(2) + "/10" +
-       (component.status === "partial_diagnostic" ? " · " + Number(component.matched) + "/" + Number(component.expected) : ""))
+       (component.status === "partial_diagnostic" && Number(component.matched) > 0 ? " · " + Number(component.matched) + "/" + Number(component.expected) : ""))
     : "डेटा जमा / जाँच जारी";
   const eodRaw = component && component.source_date ? String(component.source_date) : "";
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
