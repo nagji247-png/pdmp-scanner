@@ -72,6 +72,26 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
         self.assertEqual([item[1] for item in payloads], ["now 1-d"])
         self.assertTrue(all(not item["valid"] for item in result.values()))
 
+    def test_trending_now_fallback_parses_google_page_without_explore(self):
+        import json
+
+        trend = ["Nifty rally", None, None, [1795000000], None, None, 25000, None, 150, [
+            "Nifty breakout", "Nifty gains", "Nifty recovery"
+        ], [], []]
+        payload = [None, [trend]]
+        html = "AF_initDataCallback({key: 'ds:0', hash: '123', data:" + json.dumps(payload) + ", sideChannel: {}});"
+        response = types.SimpleNamespace(text=html, raise_for_status=lambda: None)
+        with patch.object(fetch_and_score.requests, "get", return_value=response) as get:
+            result = fetch_and_score.fetch_google_trending_now_asset_snapshots(hours=168)
+
+        get.assert_called_once()
+        self.assertTrue(result["NIFTY"]["valid"])
+        self.assertEqual(result["NIFTY"]["source"], "Google Trends Trending Now · India")
+        self.assertEqual(result["NIFTY"]["timeframe"], "trending_now_168h")
+        self.assertEqual(result["NIFTY"]["bull_pct"], 100.0)
+        self.assertFalse(result["NIFTY"]["production_score_used"])
+        self.assertFalse(result["SENSEX"]["valid"])
+
     def test_initial_batch_rate_limit_skips_crude_and_phrase_diagnostics(self):
         class RateLimitedTrends:
             def __init__(self):
