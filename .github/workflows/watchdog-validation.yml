@@ -1,0 +1,32 @@
+name: Watchdog Reader Validation
+
+on:
+  pull_request:
+    paths:
+      - "watchdog_data_reader.py"
+      - "tests/test_watchdog_data_reader.py"
+      - ".github/workflows/scan-watchdog.yml"
+      - ".github/workflows/watchdog-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "watchdog_data_reader.py"
+      - "tests/test_watchdog_data_reader.py"
+      - ".github/workflows/scan-watchdog.yml"
+      - ".github/workflows/watchdog-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-watchdog-reader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Validate syntax
+        run: python -m py_compile watchdog_data_reader.py
+      - name: Test large, empty, malformed, and retry responses offline
+        run: python -m unittest discover -s tests -p 'test_watchdog_data_reader.py' -v
