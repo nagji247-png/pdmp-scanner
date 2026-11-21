@@ -87,7 +87,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install yfinance feedparser requests pytrends
+      - name: Validate Python syntax and market-data tests
         run: |
+          python -m py_compile fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py stock_basket_freshness.py
           python -m unittest discover -s tests -p 'test_stock_basket_loader_freshness.py' -v
           python -m unittest discover -s tests -p 'test_market_activity_bulk_quotes.py' -v
           python -m unittest discover -s tests -p 'test_news_fetch_cache.py' -v
