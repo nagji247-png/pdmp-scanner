@@ -995,6 +995,18 @@ function renderComponentBreakdown(b, observedAt, assetName) {
         '<div class="hl-meta">शब्द: ' + esc([terms.bull, terms.bear, terms.neutral].filter(Boolean).join(" · ")) + '</div>' +
         '<div class="hl-meta">यह चयनित phrase-set का relative search-interest mix है, पूरे बाजार की crowd percentage नहीं।</div>'
       : "";
+    const searchDiagnostic = key === "search" && b.search_diagnostic
+      ? b.search_diagnostic : null;
+    const searchEvidenceDetail = searchDiagnostic
+      ? '<div class="hl-meta">खोज जाँच: कुल ' + Number(searchDiagnostic.raw_queries || 0) +
+        ' · Asset से संबंधित ' + Number(searchDiagnostic.in_scope_queries || 0) +
+        ' · वर्गीकृत ' + Number(searchDiagnostic.classified_queries || 0) +
+        ' · जानकारी वाली ' + Number(searchDiagnostic.informational_queries || 0) +
+        ' · वर्गीकरण कवरेज ' + Number(searchDiagnostic.classification_coverage_pct || 0).toFixed(1) + '%</div>' +
+        '<div class="hl-meta">Google Trends स्रोत समय: ' +
+        (searchDiagnostic.source_data_time ? esc(istTime(searchDiagnostic.source_data_time)) + ' IST' : 'उपलब्ध नहीं') +
+        ' · rising queries: ' + Number(searchDiagnostic.rising_queries || 0) + '</div>'
+      : "";
     const valueText = hasScore ? scoreText(score)
       : (clientContextAvailable
         ? "डेटा मौजूद · Diagnostic"
@@ -1013,6 +1025,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       (sourceDate ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(sourceDate)) + '</div>' : '') +
       (detail ? '<div class="hl-meta">' + esc(detail) + '</div>' : '') +
       directionalDetail +
+      searchEvidenceDetail +
       '</div>';
   }).join("");
   const optionBuildup = b.option_buildup_diagnostic || {};
