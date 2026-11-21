@@ -1047,6 +1047,18 @@ def build_asset_component_breakdowns(
             experimental_combined_final = combine_components(
                 experimental_combined_components, PROVISIONAL_WEIGHTS
             )
+
+            # The combined result replaces the number shown in the EXISTING
+            # STOCK BASKET row. Keep the original cash breadth score alongside
+            # it for audit; do not create a second dashboard panel.
+            if isinstance(basket, dict) and experimental_combined_final.get("status") == "available":
+                basket["cash_breadth_score"] = basket.get("score")
+                basket["combined_score"] = experimental_combined_final.get("score")
+                basket["combined_included_components"] = experimental_combined_final.get("included_components", [])
+                basket["combined_normalized_weights_pct"] = experimental_combined_final.get("normalized_weights_pct", {})
+                basket["combined_weight_total"] = experimental_combined_final.get("weight_total")
+                basket["combined_formula"] = "Weighted average of available fresh Stock Basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News and asset-specific Search components; missing inputs excluded and remaining weights normalized."
+                basket["combined_validation"] = "EXPERIMENTAL · CLIENT CE/PE and CLIENT Futures are market-wide aggregates; Futures unvalidated. Not a trade signal."
         applicable_names = set(components)
         applicable_names.update(
             key for key, value in excluded.items()
