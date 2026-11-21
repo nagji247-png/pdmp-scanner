@@ -5214,8 +5214,34 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 f"raw={snapshot.get('raw_queries', 0)} "
                 f"classified={snapshot.get('classified_queries', 0)} "
                 f"informational={snapshot.get('informational_queries', 0)} "
+                f"unclassified={snapshot.get('unclassified_queries', 0)} "
+                f"coverage_pct={snapshot.get('classification_coverage_pct')} "
                 f"reason={str(snapshot.get('reason', ''))[:180]}"
             )
+            # Log a small sample of Google's actual returned terms so the next
+            # review can fix classification from evidence, not guessed vocabulary.
+            # This is local formatting only: it makes no additional Trends request.
+            for bucket in ("informational_terms", "unclassified_terms"):
+                samples = snapshot.get(bucket) or []
+                if samples:
+                    compact = [
+                        f"{str(item.get('term', ''))[:90]}({item.get('weight', 0)})"
+                        for item in samples[:5]
+                    ]
+                    print(
+                        f"ASSET_TRENDS_QUERY_EVIDENCE: asset={asset} "
+                        f"bucket={bucket} terms=" + " | ".join(compact)
+                    )
+            rising_samples = snapshot.get("rising_terms") or []
+            if rising_samples:
+                compact_rising = [
+                    f"{str(item.get('term', ''))[:90]}:{item.get('direction', 'unclassified')}"
+                    for item in rising_samples[:5]
+                ]
+                print(
+                    f"ASSET_TRENDS_RISING_EVIDENCE: asset={asset} "
+                    + " | ".join(compact_rising)
+                )
 
         # A single bounded 7-day batch rescues sparse 1-day related-query
         # snapshots. Never retry after a provider rate-limit response.
