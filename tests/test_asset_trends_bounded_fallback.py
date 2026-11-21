@@ -21,6 +21,15 @@ class _FakeTrends:
 
 
 class AssetTrendsBoundedFallbackTests(unittest.TestCase):
+    def test_manual_asset_refresh_allowed_when_primary_is_sparse_or_unavailable(self):
+        self.assertTrue(fetch_and_score.should_refresh_manual_asset_trends(False, "insufficient classified search interest"))
+
+    def test_manual_asset_refresh_skipped_on_rate_limit(self):
+        self.assertFalse(fetch_and_score.should_refresh_manual_asset_trends(False, "429 Too Many Requests"))
+
+    def test_manual_asset_refresh_allowed_when_primary_succeeds(self):
+        self.assertTrue(fetch_and_score.should_refresh_manual_asset_trends(True, None))
+
     def _run_with_fake_trends(self, summarize):
         fake = _FakeTrends()
         request_module = types.ModuleType("pytrends.request")
