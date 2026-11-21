@@ -1213,6 +1213,41 @@ function renderComponentBreakdown(b, observedAt, assetName) {
       ' · दायरा: ' + esc(client.scope || "Market-wide aggregate") + '</div>' +
       '<div class="hl-meta">CLIENT CE/PE का quantity-based provisional score तीनों Index Final में एक ही market-wide input के रूप में शामिल है; यह किसी एक Index की अलग पोज़िशन नहीं है। CLIENT Futures अभी diagnostic-only है।</div></div>'
     : "";
+  const testComponents = b.experimental_combined_components || {};
+  const testFinal = b.experimental_combined_final || {};
+  const testLabels = {
+    stock_basket: "STOCK BASKET",
+    eod_oi: "NSE EOD OI",
+    client_ce_pe: "CLIENT CE/PE",
+    client_futures: "CLIENT Futures",
+    news: "News",
+    search: "Google Trends"
+  };
+  const testRows = Object.entries(testLabels).map(([key, label]) => {
+    const item = testComponents[key] || {};
+    const has = item.score != null && Number.isFinite(Number(item.score));
+    const value = has ? scoreText(item.score) : "डेटा उपलब्ध नहीं";
+    const cls = !has ? "zero" : Number(item.score) > 0 ? "pos" : Number(item.score) < 0 ? "neg" : "zero";
+    return '<div class="hl-meta"><b>' + label + ':</b> <span class="' + cls + '">' + value + '</span>' +
+      (item.source ? ' · स्रोत: ' + esc(item.source) : '') +
+      (item.source_date ? ' · तारीख़: ' + esc(dateText(item.source_date)) : '') +
+      (item.validation_status ? ' · ' + esc(item.validation_status) : '') + '</div>';
+  }).join("");
+  const testScore = testFinal.status === "available" && Number.isFinite(Number(testFinal.score))
+    ? scoreText(testFinal.score) : "अभी गणना उपलब्ध नहीं";
+  const testClass = testFinal.status !== "available" ? "zero" :
+    Number(testFinal.score) > 0 ? "pos" : Number(testFinal.score) < 0 ? "neg" : "zero";
+  const experimentalCombinedHtml = !isCrudeOil
+    ? '<div class="hl" style="margin-top:10px;border:1px dashed #8b7444">' +
+      '<div class="hl-title"><b>EXPERIMENTAL COMBINED · केवल टेस्टिंग</b> · <b class="' + testClass + '">' + testScore + '</b></div>' +
+      '<div class="hl-meta">यह अलग 6-input परीक्षण है। मौजूदा STOCK BASKET और उत्पादन Final Score अपरिवर्तित हैं। उपलब्ध घटकों के वजन को normalize किया गया है; missing data शून्य नहीं है।</div>' +
+      '<div class="hl-meta">शामिल: ' + (Array.isArray(testFinal.included_components) ? testFinal.included_components.length : 0) +
+      '/6 · लागू कुल वजन: ' + (testFinal.weight_total == null ? "0" : Number(testFinal.weight_total).toFixed(2)) + '% · लागू normalized वजन: ' +
+      Object.entries(testFinal.normalized_weights_pct || {}).map(([key, value]) =>
+        (testLabels[key] || key) + " " + Number(value).toFixed(2) + "%"
+      ).join(" · ") + '</div>' + testRows +
+      '<div class="hl-meta">चेतावनी: CLIENT CE/PE और CLIENT Futures पूरे Index F&O बाजार के साझा aggregate हैं, किसी एक Index के नहीं। Futures unvalidated रहने तक यह स्कोर केवल प्रयोगात्मक तुलना है; ट्रेड सिग्नल नहीं।</div></div>'
+    : "";
   const searchReason = b.search_diagnostic && b.search_diagnostic.reason
     ? '<div class="hl-meta">Google Trends जाँच: ' + esc(b.search_diagnostic.reason) + '</div>' : "";
   return '<div class="hl" style="margin-top:8px">' +
@@ -1222,7 +1257,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     ' · शामिल Components: ' + (weightsMatch ? included.length : "अगले Auto Run पर") + (isCrudeOil ? '/2</div>' : '/6</div>') +
     '<div class="hl-meta">कुल उपलब्ध वजन: ' + (weightsMatch && final.weight_total != null ? Number(final.weight_total).toFixed(2) : "अगली गणना पर") +
     (weightsMatch ? '% · लागू normalized वजन: ' + (normalizedText || "अभी कोई component शामिल नहीं") : ' · मौजूदा snapshot पुरानी weightage पर है; नया स्कोर अगली Auto Run पर बनेगा') + '</div>' +
-    rowHtml + optionBuildupDetail + clientDetail + searchReason + (isCrudeOil ? renderCrudeOilHistoricalCase() : "") +
+    rowHtml + experimentalCombinedHtml + optionBuildupDetail + clientDetail + searchReason + (isCrudeOil ? renderCrudeOilHistoricalCase() : "") +
     (isCrudeOil
       ? '<div class="hl-meta" style="margin-top:8px">गणना: NEWS और Google Trends Search Score का weighted average; अनुपलब्ध घटक का वजन हटाकर उपलब्ध घटक का वजन normalize किया जाता है। यह केवल CRUDEOIL कार्ड का नया Final Score है।</div>'
       : '<div class="hl-meta" style="margin-top:8px">गणना: उपलब्ध Components के Score × निर्धारित Weightage का weighted average; अनुपलब्ध Components का वजन हटाकर शेष वजन normalize किया जाता है। यह नया provisional score है; पुराना PDMP Main Score इससे अलग और अपरिवर्तित है।</div>') +
