@@ -1385,9 +1385,9 @@ document.addEventListener("keydown", event => {
 // Keep this panel research-only and score-ineligible.
 function renderStandaloneStockBasket(b, assetName) {
   const rawComponent = b && b.stock_basket_diagnostic;
-  const component = rawComponent && rawComponent.combined_score != null
-    ? {...rawComponent, score: rawComponent.combined_score}
-    : rawComponent;
+  const component = rawComponent
+    ? {...rawComponent, score: rawComponent.combined_score != null ? rawComponent.combined_score : null}
+    : null;
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
   const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
   stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, name: assetName || "INDEX" };
