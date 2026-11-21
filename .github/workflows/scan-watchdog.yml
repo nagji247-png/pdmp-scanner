@@ -27,16 +27,19 @@ jobs:
   recover-stale-scan:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out watchdog reader
+        uses: actions/checkout@v5
       - name: Dispatch one recovery scan only when needed
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
           python - <<'PY'
-          import base64
           import datetime as dt
           import json
           import os
+          import time
+          import urllib.error
           import urllib.request
 
           repo = os.environ["REPOSITORY"]
@@ -62,9 +65,12 @@ jobs:
                   return json.loads(raw.decode("utf-8")) if raw else {}
 
           try:
-              file_data = api(f"/repos/{repo}/contents/data.json?ref=main")
-              decoded = base64.b64decode(file_data["content"]).decode("utf-8")
-              data = json.loads(decoded)
+              # Read and validate the complete public data.json; reader retries transient failures.
+              from watchdog_data_reader import read_json_object
+
+              source_url = f"https://raw.githubusercontent.com/{repo}/main/data.json"
+              data, byte_count = read_json_object(source_url)
+              print(f"Read data.json successfully: {byte_count} bytes.")
               updated = data.get("updated")
               if not updated:
                   age_minutes = 10**9
