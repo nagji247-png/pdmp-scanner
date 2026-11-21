@@ -1051,7 +1051,9 @@ def build_asset_component_breakdowns(
             # The combined result replaces the number shown in the EXISTING
             # STOCK BASKET row. Keep the original cash breadth score alongside
             # it for audit; do not create a second dashboard panel.
-            if isinstance(basket, dict) and experimental_combined_final.get("status") == "available":
+            if (isinstance(basket, dict)
+                    and "stock_basket" in experimental_combined_components
+                    and experimental_combined_final.get("status") == "available"):
                 basket["cash_breadth_score"] = basket.get("score")
                 basket["combined_score"] = experimental_combined_final.get("score")
                 basket["combined_included_components"] = experimental_combined_final.get("included_components", [])
