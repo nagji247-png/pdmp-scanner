@@ -46,6 +46,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
              patch.object(fetch_and_score, "_trends_snapshot_timestamp", return_value=("2026-11-21T10:00:00+05:30", "retrieval_time")), \
              patch.object(fetch_and_score.time, "sleep"):
             result = fetch_and_score.fetch_asset_trends_shadow()
+        self.assertEqual(fake.interest_calls, 0, "asset related-query refresh must not spend an extra timestamp request")
         return result, fake.payloads
 
     def test_sparse_one_day_uses_one_shared_seven_day_fallback(self):
@@ -57,7 +58,6 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
         result, payloads = self._run_with_fake_trends(summarize)
         self.assertEqual([item[1] for item in payloads], ["now 1-d", "now 7-d"])
         self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
-        self.assertEqual(fake.interest_calls, 0, "asset related-query refresh must not spend an extra timestamp request")
         for snapshot in result.values():
             self.assertTrue(snapshot["valid"])
             self.assertEqual(snapshot["timeframe"], "now 7-d")
