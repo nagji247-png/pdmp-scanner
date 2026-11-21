@@ -52,24 +52,12 @@ class WeekendPriceSourceRegressionTests(unittest.TestCase):
         self.assertFalse(fetch_and_score.mcx_reference_is_fresh(quote, now=now))
 
 
-    def test_mcx_public_fallback_skips_a_fresh_cached_quote_during_session(self):
-        now = datetime(2026, 11, 9, 10, 0, tzinfo=IST)
-        quote = {"source_time": "2026-11-09 09:30 IST"}
-        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
-
-    def test_mcx_public_fallback_runs_for_a_stale_quote_during_session(self):
-        now = datetime(2026, 11, 9, 10, 0, tzinfo=IST)
-        quote = {"source_time": "2026-11-09 09:00 IST"}
-        self.assertTrue(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
-
-    def test_mcx_public_fallback_skips_when_quote_is_missing_outside_session(self):
-        now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
-        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed({}, now=now))
-
-    def test_mcx_public_fallback_skips_stale_quote_after_market_hours(self):
-        now = datetime(2026, 11, 9, 23, 45, tzinfo=IST)
-        quote = {"source_time": "2026-11-09 20:00 IST"}
-        self.assertFalse(fetch_and_score.mcx_reference_fallback_needed(quote, now=now))
+    def test_mcx_prices_have_no_third_party_fallback(self):
+        # MCX quote refresh is exchange-only; missing/stale quotes remain unavailable.
+        self.assertTrue(callable(fetch_and_score.fetch_mcx_market_watch_rows))
+        self.assertTrue(callable(fetch_and_score.parse_mcx_market_watch_rows))
+        self.assertFalse(hasattr(fetch_and_score, "mcx_reference_fallback_needed"))
+        self.assertFalse(hasattr(fetch_and_score, "parse_upstox_mcx_quote"))
 
     def test_nse_equity_friday_close_remains_valid_on_saturday_evening(self):
         now = datetime(2026, 11, 7, 19, 45, tzinfo=IST)
