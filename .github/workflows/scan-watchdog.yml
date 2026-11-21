@@ -63,52 +63,12 @@ jobs:
                   return json.loads(raw.decode("utf-8")) if raw else {}
 
           try:
-              # data.json exceeds the GitHub Contents API inline-content limit.
-              # Read the complete public raw file, as the Pages freshness verifier does.
+              # Read and validate the complete public data.json; reader retries transient failures.
+              from watchdog_data_reader import read_json_object
+
               source_url = f"https://raw.githubusercontent.com/{repo}/main/data.json"
-              data = None
-              last_source_error = None
-              for attempt in range(1, 4):
-                  # A unique query string plus no-cache headers avoids a stale/empty
-                  # intermediary response. Retry transient empty or non-JSON bodies.
-                  request_url = source_url + "?watchdog=" + str(time.time_ns())
-                  source_request = urllib.request.Request(
-                      request_url,
-                      headers={
-                          "Accept": "application/json",
-                          "Cache-Control": "no-cache, no-store",
-                          "Pragma": "no-cache",
-                          "User-Agent": "pdmp-scan-watchdog",
-                      },
-                  )
-                  try:
-                      with urllib.request.urlopen(source_request, timeout=30) as response:
-                          raw_data = response.read()
-                          content_type = response.headers.get("Content-Type", "unknown")
-                          status_code = response.status
-                      if not raw_data.strip():
-                          raise ValueError(
-                              f"raw data.json response was empty (HTTP {status_code}, "
-                              f"Content-Type {content_type})"
-                          )
-                      candidate = json.loads(raw_data.decode("utf-8"))
-                      if not isinstance(candidate, dict):
-                          raise ValueError("data.json root must be a JSON object")
-                      data = candidate
-                      print(
-                          f"Read data.json successfully: {len(raw_data)} bytes "
-                          f"(attempt {attempt}/3)."
-                      )
-                      break
-                  except (urllib.error.URLError, TimeoutError, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
-                      last_source_error = f"{type(exc).__name__}: {str(exc)[:180]}"
-                      print(f"data.json read attempt {attempt}/3 failed: {last_source_error}")
-                      if attempt < 3:
-                          time.sleep(5)
-              if data is None:
-                  raise RuntimeError(
-                      "Could not read valid data.json after 3 attempts; " + str(last_source_error)
-                  )
+              data, byte_count = read_json_object(source_url)
+              print(f"Read data.json successfully: {byte_count} bytes.")
               updated = data.get("updated")
               if not updated:
                   age_minutes = 10**9
