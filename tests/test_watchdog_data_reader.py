@@ -1,13 +1,13 @@
 import json
 import unittest
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 from watchdog_data_reader import read_json_object
 
 
 class WatchdogDataReaderTests(unittest.TestCase):
     def response(self, body, status=200, content_type="application/json"):
-        item = Mock()
+        item = MagicMock()
         item.read.return_value = body
         item.status = status
         item.headers = {"Content-Type": content_type}
