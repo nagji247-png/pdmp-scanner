@@ -39,10 +39,9 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
         request_module.TrendReq = lambda **kwargs: fake
         package_module = types.ModuleType("pytrends")
         package_module.request = request_module
-        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}), \
-             patch.object(fetch_and_score, "_summarize_asset_related_query_snapshot", side_effect=summarize), \
-             patch.object(fetch_and_score, "_trends_snapshot_timestamp", return_value=("2026-11-21T10:00:00+05:30", "retrieval_time")), \
-             patch.object(fetch_and_score.time, "sleep"):
+        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}):
+            with patch.object(fetch_and_score, "_attach_asset_directional_trends_diagnostics", side_effect=lambda output, seeds, enabled=False: output) as diagnostics:
+                with patch.object(fetch_and_score.time, "sleep"):
             result = fetch_and_score.fetch_asset_trends_shadow()
         return result, fake.payloads
 
