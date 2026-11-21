@@ -27,6 +27,8 @@ jobs:
   recover-stale-scan:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out watchdog reader
+        uses: actions/checkout@v5
       - name: Dispatch one recovery scan only when needed
         env:
           GH_TOKEN: ${{ github.token }}
