@@ -9,6 +9,7 @@ import fetch_and_score
 class _FakeTrends:
     def __init__(self):
         self.payloads = []
+        self.interest_calls = 0
 
     def build_payload(self, seeds, timeframe, geo):
         self.payloads.append((list(seeds), timeframe, geo))
@@ -17,6 +18,7 @@ class _FakeTrends:
         return {}
 
     def interest_over_time(self):
+        self.interest_calls += 1
         return None
 
 
@@ -44,6 +46,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
              patch.object(fetch_and_score, "_trends_snapshot_timestamp", return_value=("2026-11-21T10:00:00+05:30", "retrieval_time")), \
              patch.object(fetch_and_score.time, "sleep"):
             result = fetch_and_score.fetch_asset_trends_shadow()
+        self.assertEqual(fake.interest_calls, 0, "asset related-query refresh must not spend an extra timestamp request")
         return result, fake.payloads
 
     def test_sparse_one_day_uses_one_shared_seven_day_fallback(self):
@@ -67,6 +70,32 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
 
         result, payloads = self._run_with_fake_trends(summarize)
         self.assertEqual([item[1] for item in payloads], ["now 1-d"])
+        self.assertTrue(all(not item["valid"] for item in result.values()))
+
+    def test_initial_batch_rate_limit_skips_crude_and_phrase_diagnostics(self):
+        class RateLimitedTrends:
+            def __init__(self):
+                self.payloads = []
+
+            def build_payload(self, seeds, timeframe, geo):
+                self.payloads.append((list(seeds), timeframe, geo))
+                raise RuntimeError("Google returned a response with code 429")
+
+        fake = RateLimitedTrends()
+        request_module = types.ModuleType("pytrends.request")
+        request_module.TrendReq = lambda **kwargs: fake
+        package_module = types.ModuleType("pytrends")
+        package_module.request = request_module
+        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}):
+            with patch.object(fetch_and_score, "_attach_asset_directional_trends_diagnostics", side_effect=lambda output, seeds, enabled=False: output) as diagnostics:
+                with patch.object(fetch_and_score.time, "sleep"):
+                    result = fetch_and_score.fetch_asset_trends_shadow(
+                        include_directional_diagnostics=True, include_crude=True
+                    )
+
+        self.assertEqual(len(fake.payloads), 1)
+        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
+        self.assertFalse(diagnostics.call_args.kwargs["enabled"])
         self.assertTrue(all(not item["valid"] for item in result.values()))
 
     def test_only_invalid_assets_are_reclassified_on_fallback(self):

@@ -5182,17 +5182,16 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
     }
     source = "Google Trends related_queries · India"
     output = {}
+    rate_limited = False
     try:
         py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
         py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
         related = py.related_queries()
-        try:
-            observed = py.interest_over_time()
-        except Exception as timestamp_error:
-            observed = None
-            print(f"Google Trends asset batch hourly timestamp request unavailable: {str(timestamp_error)[:160]}")
+        # related_queries is the data source for this shadow snapshot. Avoid a
+        # second interest_over_time HTTP call solely for timestamp metadata:
+        # it consumes quota without changing the classified related-query data.
         source_data_time, timestamp_basis = _trends_snapshot_timestamp(
-            observed, "Google Trends asset batch timestamp"
+            None, "Google Trends asset batch retrieval timestamp"
         )
         for asset, seed in seeds.items():
             try:
@@ -5222,7 +5221,8 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
         # snapshots. Never retry after a provider rate-limit response.
         fallback_assets = [
             asset for asset, snapshot in output.items()
-            if not snapshot.get("valid")
+            if not rate_limited
+            and not snapshot.get("valid")
             and not is_google_trends_rate_limited(snapshot.get("reason"))
         ]
         if fallback_assets:
@@ -5230,13 +5230,8 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 time.sleep(2)
                 py.build_payload(list(seeds.values()), timeframe="now 7-d", geo="IN")
                 related_7d = py.related_queries()
-                try:
-                    observed_7d = py.interest_over_time()
-                except Exception as timestamp_error:
-                    observed_7d = None
-                    print(f"Google Trends asset 7-day timestamp request unavailable: {str(timestamp_error)[:160]}")
                 source_time_7d, timestamp_basis_7d = _trends_snapshot_timestamp(
-                    observed_7d, "Google Trends asset 7-day batch timestamp"
+                    None, "Google Trends asset 7-day retrieval timestamp"
                 )
                 for asset in fallback_assets:
                     seed = seeds[asset]
@@ -5260,12 +5255,13 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                     )
             except Exception as fallback_batch_error:
                 reason = str(fallback_batch_error)[:220]
+                rate_limited = is_google_trends_rate_limited(reason)
                 print(
                     "ASSET_TRENDS_7D_BATCH_FAILED: "
                     f"type={type(fallback_batch_error).__name__} reason={reason}"
                 )
 
-        if include_crude:
+        if include_crude and not rate_limited:
             crude_seed = "crude oil"
             try:
                 # One additional asset-only batch; callers enable it only for
@@ -5274,13 +5270,8 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 crude_py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
                 crude_py.build_payload([crude_seed], timeframe="now 1-d", geo="IN")
                 crude_related = crude_py.related_queries()
-                try:
-                    crude_observed = crude_py.interest_over_time()
-                except Exception as timestamp_error:
-                    crude_observed = None
-                    print(f"Google Trends CRUDEOIL hourly timestamp request unavailable: {str(timestamp_error)[:160]}")
                 crude_source_time, crude_timestamp_basis = _trends_snapshot_timestamp(
-                    crude_observed, "Google Trends CRUDEOIL batch timestamp"
+                    None, "Google Trends CRUDEOIL retrieval timestamp"
                 )
                 output["CRUDEOIL"] = _summarize_asset_related_query_snapshot(
                     crude_related, "CRUDEOIL", crude_seed, crude_source_time, source,
@@ -5288,6 +5279,7 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 )
             except Exception as crude_error:
                 reason = str(crude_error)[:220]
+                rate_limited = is_google_trends_rate_limited(reason)
                 output["CRUDEOIL"] = {
                     "valid": False, "scope": "asset_specific_google_related_queries_shadow",
                     "seed": crude_seed, "source": source, "timeframe": "now 1-d",
@@ -5296,6 +5288,7 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 print(f"Google Trends CRUDEOIL batch unavailable: {reason}")
     except Exception as exc:
         reason = str(exc)[:240]
+        rate_limited = is_google_trends_rate_limited(reason)
         print(f"ASSET_TRENDS_BATCH_FAILED: type={type(exc).__name__} reason={reason}")
         for asset, seed in seeds.items():
             output[asset] = {
@@ -5313,8 +5306,11 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
     diagnostic_seeds = dict(seeds)
     if include_crude:
         diagnostic_seeds["CRUDEOIL"] = "crude oil"
+    if rate_limited:
+        print("ASSET_TRENDS_RATE_LIMIT_STOP: Explore follow-up requests skipped for this scan")
     return _attach_asset_directional_trends_diagnostics(
-        output, diagnostic_seeds, enabled=include_directional_diagnostics
+        output, diagnostic_seeds,
+        enabled=include_directional_diagnostics and not rate_limited
     )
 
 
