@@ -9,6 +9,7 @@ import fetch_and_score
 class _FakeTrends:
     def __init__(self):
         self.payloads = []
+        self.interest_calls = 0
 
     def build_payload(self, seeds, timeframe, geo):
         self.payloads.append((list(seeds), timeframe, geo))
@@ -17,6 +18,7 @@ class _FakeTrends:
         return {}
 
     def interest_over_time(self):
+        self.interest_calls += 1
         return None
 
 
@@ -55,6 +57,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
         result, payloads = self._run_with_fake_trends(summarize)
         self.assertEqual([item[1] for item in payloads], ["now 1-d", "now 7-d"])
         self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
+        self.assertEqual(fake.interest_calls, 0, "asset related-query refresh must not spend an extra timestamp request")
         for snapshot in result.values():
             self.assertTrue(snapshot["valid"])
             self.assertEqual(snapshot["timeframe"], "now 7-d")
