@@ -1278,8 +1278,7 @@ function openStockBasketDetails(key) {
     '<button type="button" class="stock-basket-list-eye" data-stock-basket-key="' + key + '" data-stock-basket-category="' + id + '" onclick="showStockBasketConstituentList(this.dataset.stockBasketKey,this.dataset.stockBasketCategory)">👁️ सूची</button></div></div>'
   ).join("");
   const rows = [
-    ["Combined Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
-    ["केवल Cash Breadth", c.cash_breadth_score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.cash_breadth_score) > 0 ? "+" : "") + Number(c.cash_breadth_score).toFixed(2) + "/10")],
+    ["Score", c.score == null ? "डेटा उपलब्ध नहीं" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")],
     ["स्थिति", c.research_only === true || c.score_eligible === false ? "प्रारंभिक diagnostic · नए Component Score का input; पुराने PDMP Main Score से बाहर" : (c.status || "अलग Diagnostic")],
     ["स्रोत", c.source || "डेटा नहीं"],
     ["डेटा तारीख़", c.source_date || "डेटा नहीं"],
