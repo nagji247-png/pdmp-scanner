@@ -27,6 +27,9 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
     def test_manual_asset_refresh_skipped_on_rate_limit(self):
         self.assertFalse(fetch_and_score.should_refresh_manual_asset_trends(False, "429 Too Many Requests"))
 
+    def test_manual_asset_refresh_fails_closed_without_error_detail(self):
+        self.assertFalse(fetch_and_score.should_refresh_manual_asset_trends(False, None))
+
     def test_manual_asset_refresh_allowed_when_primary_succeeds(self):
         self.assertTrue(fetch_and_score.should_refresh_manual_asset_trends(True, None))
 
