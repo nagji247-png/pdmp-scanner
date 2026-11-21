@@ -1,5 +1,4 @@
 import json, csv, os, re, time, math, datetime as dt, html
-from html.parser import HTMLParser
 from urllib.parse import quote_plus
 from component_scoring import (
     DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
@@ -2137,11 +2136,6 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
     return -2 <= age <= allowed_age
 
 
-def mcx_reference_fallback_needed(data, now=None):
-    """Use public-page fallback only during MCX hours when cached quote is stale/missing."""
-    return mcx_session_open(now) and not mcx_reference_is_fresh(data, now=now)
-
-
 def mcx_reference_is_live(data, now=None):
     age = mcx_reference_age_minutes(data, now)
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
@@ -2494,7 +2488,7 @@ def refresh_mcx_market_watch_quotes():
             print("MCX official Market Watch returned no fresh GOLD/SILVER/CRUDEOIL FUTCOM rows.")
         return updated_symbols
     except Exception as exc:
-        print(f"MCX official Market Watch refresh failed; trying timestamped public-page fallback: {str(exc)[:220]}")
+        print(f"MCX official Market Watch refresh failed; no third-party quote fallback will be used: {str(exc)[:220]}")
         return set()
 
 def silver_display_price(international_inr_per_kg=None):
