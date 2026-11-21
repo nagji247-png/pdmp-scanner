@@ -5034,7 +5034,7 @@ def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
     return output
 
 
-def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_time, source, timestamp_basis="source_observation"):
+def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_time, source, timestamp_basis="source_observation", timeframe="now 1-d"):
     """Classify one seed's real related queries; no cross-seed score mixing."""
     pack = (related or {}).get(seed) or {}
     top = pack.get("top")
@@ -5078,7 +5078,7 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
     if len(classified_terms) < 3 or total <= 0:
         return {
             "valid": False, "scope": "asset_specific_google_related_queries_shadow",
-            "seed": seed, "source": source, "timeframe": "now 1-d",
+            "seed": seed, "source": source, "timeframe": timeframe,
             "source_data_time": source_data_time,
             "raw_queries": raw_query_count, "in_scope_queries": in_scope_count,
             "out_of_scope_queries": out_of_scope_count,
@@ -5099,7 +5099,7 @@ def _summarize_asset_related_query_snapshot(related, asset, seed, source_data_ti
     directional_total = bull + bear
     return {
         "valid": True, "scope": "asset_specific_google_related_queries_shadow",
-        "seed": seed, "source": source, "timeframe": "now 1-d",
+        "seed": seed, "source": source, "timeframe": timeframe,
         "source_data_time": source_data_time if timestamp_basis == "source_observation" else None,
         "as_of": source_data_time if timestamp_basis == "source_observation" else None,
         "retrieved_at": source_data_time if timestamp_basis == "retrieval_time" else None,
@@ -5212,6 +5212,53 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 f"informational={snapshot.get('informational_queries', 0)} "
                 f"reason={str(snapshot.get('reason', ''))[:180]}"
             )
+
+        # A single bounded 7-day batch rescues sparse 1-day related-query
+        # snapshots. Never retry after a provider rate-limit response.
+        fallback_assets = [
+            asset for asset, snapshot in output.items()
+            if not snapshot.get("valid")
+            and not is_google_trends_rate_limited(snapshot.get("reason"))
+        ]
+        if fallback_assets:
+            try:
+                time.sleep(2)
+                py.build_payload(list(seeds.values()), timeframe="now 7-d", geo="IN")
+                related_7d = py.related_queries()
+                try:
+                    observed_7d = py.interest_over_time()
+                except Exception as timestamp_error:
+                    observed_7d = None
+                    print(f"Google Trends asset 7-day timestamp request unavailable: {str(timestamp_error)[:160]}")
+                source_time_7d, timestamp_basis_7d = _trends_snapshot_timestamp(
+                    observed_7d, "Google Trends asset 7-day batch timestamp"
+                )
+                for asset in fallback_assets:
+                    seed = seeds[asset]
+                    try:
+                        fallback = _summarize_asset_related_query_snapshot(
+                            related_7d, asset, seed, source_time_7d, source,
+                            timestamp_basis_7d, timeframe="now 7-d"
+                        )
+                    except Exception as fallback_error:
+                        fallback = {"valid": False, "reason": str(fallback_error)[:220]}
+                    if fallback.get("valid"):
+                        fallback["fallback_used"] = True
+                        fallback["fallback_reason"] = output[asset].get("reason", "1-day related queries insufficient")
+                        output[asset] = fallback
+                    print(
+                        "ASSET_TRENDS_FALLBACK_RESULT: "
+                        f"asset={asset} valid={bool(fallback.get('valid'))} "
+                        f"timeframe=now_7d raw={fallback.get('raw_queries', 0)} "
+                        f"classified={fallback.get('classified_queries', 0)} "
+                        f"reason={str(fallback.get('reason', ''))[:180]}"
+                    )
+            except Exception as fallback_batch_error:
+                reason = str(fallback_batch_error)[:220]
+                print(
+                    "ASSET_TRENDS_7D_BATCH_FAILED: "
+                    f"type={type(fallback_batch_error).__name__} reason={reason}"
+                )
 
         if include_crude:
             crude_seed = "crude oil"
