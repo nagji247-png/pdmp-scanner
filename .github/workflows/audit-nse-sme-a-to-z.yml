@@ -1,0 +1,153 @@
+name: NSE MCP SME A-Z Coverage Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-sme-a-to-z-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-sme-a-to-z-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+
+      - name: Audit SME prefixes A-Z (26 calls)
+        run: |
+          python - <<'PY'
+          import json, time, string
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          URL = "https://mcp.nseindia.in/cmmkt/mcp"
+          session = requests.Session(impersonate="chrome124")
+          headers = {"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(resp):
+              if "text/event-stream" in resp.headers.get("content-type","").lower():
+                  for block in reversed(resp.text.replace("\r\n","\n").split("\n\n")):
+                      data = "\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return resp.json()
+
+          def post(payload, extra=None):
+              h = dict(headers)
+              if extra:
+                  h.update(extra)
+              r = session.post(URL,headers=h,json=payload,timeout=35)
+              r.raise_for_status()
+              out = decode(r)
+              if out.get("error"):
+                  raise RuntimeError(str(out["error"]))
+              return out,r
+
+          def collect_rows(value, found):
+              if isinstance(value, dict):
+                  keys = {str(k).lower() for k in value}
+                  if keys.intersection({"symbol","symbolname","tradingsymbol"}):
+                      sym = value.get("symbol") or value.get("symbolName") or value.get("tradingsymbol")
+                      if sym:
+                          found.append({"symbol":str(sym).strip().upper(),"type":value.get("type"),"series":value.get("series")})
+                  for child in value.values():
+                      collect_rows(child,found)
+              elif isinstance(value,list):
+                  for child in value:
+                      collect_rows(child,found)
+              elif isinstance(value,str):
+                  s = value.strip()
+                  if s.startswith("{") or s.startswith("["):
+                      try:
+                          collect_rows(json.loads(s),found)
+                      except Exception:
+                          pass
+
+          init, init_resp = post({
+              "jsonrpc":"2.0","id":1,"method":"initialize",
+              "params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-a-to-z-audit","version":"1.0"}}
+          })
+          sid = init_resp.headers.get("mcp-session-id") or init_resp.headers.get("Mcp-Session-Id")
+          session_headers = {"Mcp-Session-Id":sid} if sid else {}
+
+          results = []
+          all_rows = []
+          req_id = 2
+          for prefix in string.ascii_uppercase:
+              started = time.time()
+              args = {"limit":500,"symbolFilter":prefix}
+              try:
+                  out,_ = post({"jsonrpc":"2.0","id":req_id,"method":"tools/call","params":{"name":"cm_get_sme_stocks","arguments":args}},session_headers)
+                  result = out.get("result") or {}
+                  found = []
+                  collect_rows(result.get("structuredContent"),found)
+                  collect_rows(result.get("content") or [],found)
+                  # Keep only distinct symbol records per response.
+                  by_symbol = {}
+                  for row in found:
+                      if row["symbol"]:
+                          by_symbol.setdefault(row["symbol"],row)
+                  symbols = sorted(by_symbol)
+                  mismatches = [s for s in symbols if not s.startswith(prefix)]
+                  results.append({
+                      "prefix":prefix,"ok":not result.get("isError",False),
+                      "returned_symbol_rows":len(found),"unique_symbols":len(symbols),
+                      "symbols":symbols,"nonmatching_prefix_symbols":mismatches,
+                      "is_error":result.get("isError",False),
+                      "elapsed_seconds":round(time.time()-started,2)
+                  })
+                  all_rows.extend(by_symbol.values())
+                  print(f"SME {prefix}: ok={not result.get('isError',False)} rows={len(found)} unique={len(symbols)} mismatches={len(mismatches)}")
+              except Exception as e:
+                  results.append({"prefix":prefix,"ok":False,"error":str(e)[:1000],"elapsed_seconds":round(time.time()-started,2)})
+                  print(f"SME {prefix}: ERROR {str(e)[:300]}")
+              req_id += 1
+              time.sleep(1.5)
+
+          unique = {}
+          for row in all_rows:
+              unique.setdefault(row["symbol"],row)
+          duplicate_excess = sum(max(0, sum(1 for x in all_rows if x["symbol"] == s)-1) for s in unique)
+          successful = sum(1 for x in results if x.get("ok"))
+          report = {
+              "captured_at_utc":datetime.now(timezone.utc).isoformat(),
+              "endpoint":URL,
+              "tool":"cm_get_sme_stocks",
+              "scope":"A-Z alphabetic prefixes only; one request per letter; limit 500; 1.5s spacing; no retries",
+              "calls_made":len(results),
+              "successful_calls":successful,
+              "failed_calls":len(results)-successful,
+              "sum_of_unique_per_prefix":sum(x.get("unique_symbols",0) for x in results),
+              "global_unique_symbols":len(unique),
+              "duplicate_excess_across_prefixes":duplicate_excess,
+              "nonmatching_prefix_rows":[{"prefix":x["prefix"],"symbols":x["nonmatching_prefix_symbols"]} for x in results if x.get("nonmatching_prefix_symbols")],
+              "possible_limit_truncation_prefixes":[x["prefix"] for x in results if x.get("unique_symbols",0)>=500],
+              "coverage_note":"A-Z does not include numeric or special-character prefixes; compare with the SME segment status count only as a coverage indicator, not as proof of missing symbols.",
+              "results":results
+          }
+          with open("nse_sme_a_to_z_audit.json","w",encoding="utf-8") as f:
+              json.dump(report,f,ensure_ascii=False,indent=2)
+          print("SUMMARY:",json.dumps({k:report[k] for k in ["calls_made","successful_calls","failed_calls","sum_of_unique_per_prefix","global_unique_symbols","duplicate_excess_across_prefixes","possible_limit_truncation_prefixes"]},ensure_ascii=False))
+          PY
+
+      - name: Upload SME A-Z audit summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-sme-a-to-z-audit
+          path: nse_sme_a_to_z_audit.json
+          retention-days: 14
