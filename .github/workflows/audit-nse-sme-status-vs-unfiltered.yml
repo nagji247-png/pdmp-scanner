@@ -1,0 +1,142 @@
+name: NSE MCP SME Status vs Unfiltered Endpoint Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-sme-status-vs-unfiltered-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-sme-status-vs-unfiltered-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+      - name: Compare status and unfiltered SME endpoint (2 bounded calls)
+        run: |
+          python - <<'PY'
+          import json, time
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          URL = "https://mcp.nseindia.in/cmmkt/mcp"
+          s = requests.Session(impersonate="chrome124")
+          headers = {"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(r):
+              if "text/event-stream" in r.headers.get("content-type","").lower():
+                  for block in reversed(r.text.replace("\\r\\n","\\n").split("\\n\\n")):
+                      data = "\\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return r.json()
+
+          def post(payload, extra=None):
+              h = dict(headers)
+              h.update(extra or {})
+              r = s.post(URL, headers=h, json=payload, timeout=40)
+              r.raise_for_status()
+              out = decode(r)
+              if out.get("error"):
+                  raise RuntimeError(str(out["error"]))
+              return out, r
+
+          def walk(value, rows):
+              if isinstance(value, dict):
+                  low = {str(k).lower(): k for k in value}
+                  sk = next((low[k] for k in ("symbol","symbolname","tradingsymbol") if k in low), None)
+                  if sk is not None and value.get(sk):
+                      def get(*names):
+                          for n in names:
+                              k = low.get(n)
+                              if k is not None and value.get(k) is not None:
+                                  return str(value.get(k)).strip().upper()
+                          return None
+                      rows.append({
+                          "symbol":str(value.get(sk)).strip().upper(),
+                          "type":get("type","segmenttype","instrumenttype"),
+                          "series":get("series","securityseries"),
+                          "segment":get("segment","marketsegment")
+                      })
+                  for child in value.values():
+                      walk(child, rows)
+              elif isinstance(value, list):
+                  for child in value:
+                      walk(child, rows)
+              elif isinstance(value, str):
+                  st=value.strip()
+                  if st.startswith("{") or st.startswith("["):
+                      try: walk(json.loads(st), rows)
+                      except Exception: pass
+
+          init, ir = post({
+              "jsonrpc":"2.0","id":1,"method":"initialize",
+              "params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-status-audit","version":"1.0"}}
+          })
+          sid = ir.headers.get("mcp-session-id") or ir.headers.get("Mcp-Session-Id")
+          sh = {"Mcp-Session-Id":sid} if sid else {}
+
+          calls = []
+          for req_id, name, args in [
+              (2,"cm_get_allstocks_status",{}),
+              (3,"cm_get_sme_stocks",{"limit":500,"symbolFilter":""})
+          ]:
+              started=time.time()
+              out,_=post({"jsonrpc":"2.0","id":req_id,"method":"tools/call","params":{"name":name,"arguments":args}},sh)
+              res=out.get("result") or {}
+              rows=[]
+              walk(res.get("structuredContent"),rows)
+              walk(res.get("content") or [],rows)
+              uniq={}
+              for row in rows:
+                  if row["symbol"]:
+                      uniq[(row["symbol"],row["type"],row["series"],row["segment"])]=row
+              calls.append({
+                  "tool":name,"arguments":args,"is_error":res.get("isError",False),
+                  "raw_symbol_rows":len(rows),"unique_symbol_type_series_segment_records":len(uniq),
+                  "unique_symbols":len({x["symbol"] for x in uniq.values()}),
+                  "type_counts":{k:sum(1 for x in uniq.values() if x["type"]==k) for k in sorted({x["type"] for x in uniq.values()},key=str)},
+                  "status_payload":res.get("structuredContent") if name=="cm_get_allstocks_status" else None,
+              "raw_status_result":res if name=="cm_get_allstocks_status" else None,
+                  "sample_records":list(uniq.values())[:12],
+                  "elapsed_seconds":round(time.time()-started,2)
+              })
+              print(name, "rows",len(rows),"unique",len({x["symbol"] for x in uniq.values()}),"error",res.get("isError",False))
+              time.sleep(2)
+
+          report={
+              "captured_at_utc":datetime.now(timezone.utc).isoformat(),
+              "endpoint":URL,
+              "calls_made":2,
+              "calls":calls,
+              "interpretation":"One unfiltered request is capped at limit=500 by schema. Compare returned row count with status only as a diagnostic; do not infer missing securities from differing definitions or cache times."
+          }
+          with open("nse_sme_status_vs_unfiltered_audit.json","w",encoding="utf-8") as f:
+              json.dump(report,f,ensure_ascii=False,indent=2)
+          print("SUMMARY",json.dumps({
+              "captured_at_utc":report["captured_at_utc"],
+              "status_payload":calls[0]["status_payload"],
+              "raw_status_result":calls[0]["raw_status_result"],
+              "unfiltered_unique_symbols":calls[1]["unique_symbols"],
+              "unfiltered_type_counts":calls[1]["type_counts"]
+          },ensure_ascii=False))
+          PY
+      - name: Upload short-lived audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-sme-status-vs-unfiltered-audit
+          path: nse_sme_status_vs_unfiltered_audit.json
+          retention-days: 14
