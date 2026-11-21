@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
-  "updated_at": "2026-11-21T20:01:00+00:00",
+  "updated_at": "2026-11-21T20:10:00+00:00",
   "events": [
     {
       "event_key": "2026-10-20|legacy|EXTREME_BEARISH",
@@ -517,6 +517,25 @@
       "neutral_pct": 12.5,
       "directional_bull_share_pct": 71.43,
       "mood": "EXTREME_BULLISH",
+      "index_scope": [
+        "NIFTY",
+        "SENSEX",
+        "BANKNIFTY"
+      ],
+      "outcomes": {},
+      "research_only": true
+    },
+    {
+      "event_key": "2026-11-22|EXTREME_BEARISH",
+      "market_date": "2026-11-22",
+      "captured_at_utc": "2026-11-21T20:10:00+00:00",
+      "trends_source_timestamp_utc": "2026-11-21T20:08:00+00:00",
+      "basis": "now_1d_anchor_relative",
+      "bull_pct": 24.7,
+      "bear_pct": 75.3,
+      "neutral_pct": 0.0,
+      "directional_bull_share_pct": 24.7,
+      "mood": "EXTREME_BEARISH",
       "index_scope": [
         "NIFTY",
         "SENSEX",
@@ -11342,6 +11361,48 @@
     },
     {
       "captured_at_utc": "2026-11-21T20:01:00+00:00",
+      "scan_market_date": "2026-11-22",
+      "market_date": "2026-11-20",
+      "index": "BANKNIFTY",
+      "price": 64635.2,
+      "price_as_of": "20/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-20",
+      "quote_kind": "closing",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-21T20:10:00+00:00",
+      "scan_market_date": "2026-11-22",
+      "market_date": "2026-11-20",
+      "index": "NIFTY",
+      "price": 25800.6,
+      "price_as_of": "20/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-20",
+      "quote_kind": "closing",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-21T20:10:00+00:00",
+      "scan_market_date": "2026-11-22",
+      "market_date": "2026-11-20",
+      "index": "SENSEX",
+      "price": 83919.71,
+      "price_as_of": "2026-11-20",
+      "price_time": "03:32 PM IST · पिछला बंद भाव",
+      "quote_market_date": "2026-11-20",
+      "quote_kind": "closing",
+      "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-21T20:10:00+00:00",
       "scan_market_date": "2026-11-22",
       "market_date": "2026-11-20",
       "index": "BANKNIFTY",
