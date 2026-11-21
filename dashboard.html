@@ -1291,7 +1291,7 @@ function openStockBasketDetails(key) {
     ["चेतावनी", c.combined_validation || "Cash Basket diagnostic"],
     ["Validation", c.validation && c.validation.passed === true ? "पास" : "अभी पूर्ण सत्यापन नहीं"]
   ];
-  content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — STOCK BASKET</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
+  content.innerHTML = '<div class="stock-basket-modal-head"><div><div class="stock-basket-eyebrow">TRINETRA · INDEX BREADTH</div><h2>' + esc(item.name) + ' — TRINETRA</h2></div><button class="stock-basket-close" type="button" aria-label="बंद करें" onclick="closeStockBasketDetails()">✕</button></div>' +
     '<div class="stock-basket-modal-score ' + (Number(c.score) > 0 ? "pos" : Number(c.score) < 0 ? "neg" : "zero") + '">' + (c.score == null ? "—" : ((Number(c.score) > 0 ? "+" : "") + Number(c.score).toFixed(2) + "/10")) + '</div>' +
     '<div class="stock-basket-category-grid">' + categoryHtml + '</div>' +
     '<div id="stockBasketConstituentList" aria-live="polite"></div>' +
@@ -1407,7 +1407,7 @@ function renderStandaloneStockBasket(b, assetName) {
   const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
   return '<div class="stock-basket-compact">' +
     '<div class="stock-basket-compact-main">' +
-      '<span class="stock-basket-compact-title">STOCK BASKET</span>' +
+      '<span class="stock-basket-compact-title">TRINETRA</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
       '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
       (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
