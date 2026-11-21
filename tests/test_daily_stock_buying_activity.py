@@ -201,6 +201,11 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         row = report["rows"][0]
         self.assertEqual(row["delivery_pct"], 60.0)
         self.assertEqual(row["delivery_qty"], 120000)
+        self.assertEqual(row["previous_session_delivery_qty"], 50000)
+        self.assertEqual(row["delivery_qty_change"], 70000)
+        self.assertEqual(row["delivery_qty_change_pct"], 140.0)
+        self.assertEqual(row["delivery_pct_change_points"], 10.0)
+        self.assertEqual(row["delivery_comparison_date"], "2026-11-16")
         self.assertEqual(report["coverage"]["delivery_pct"], "verified_for_matched_symbols")
 
     def test_delivery_record_without_valid_matching_pct_is_not_verified(self):

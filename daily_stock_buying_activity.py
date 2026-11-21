@@ -135,6 +135,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     delivery_record = next((record for record in reversed(delivery_records)
                             if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     delivery_rows = (delivery_record or {}).get("rows") or {}
+    previous_delivery_record = next((record for record in reversed(delivery_records)
+                                     if isinstance(record, dict) and record.get("date") == previous_cash_date), None)
+    previous_delivery_rows = (previous_delivery_record or {}).get("rows") or {}
     delivery_history_by_symbol = {}
     for record in delivery_records:
         if not isinstance(record, dict) or record.get("date") >= latest_date.isoformat():
@@ -333,6 +336,29 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "futures_expiry": futures_expiry,
             "delivery_pct": (delivery_rows.get(symbol) or {}).get("delivery_pct"),
             "delivery_qty": (delivery_rows.get(symbol) or {}).get("delivery_qty"),
+            "previous_session_delivery_qty": (previous_delivery_rows.get(symbol) or {}).get("delivery_qty"),
+            "delivery_qty_change": (
+                finite_number((delivery_rows.get(symbol) or {}).get("delivery_qty"))
+                - finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_qty"))
+                if finite_number((delivery_rows.get(symbol) or {}).get("delivery_qty")) is not None
+                and finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_qty")) is not None
+                else None
+            ),
+            "delivery_qty_change_pct": (
+                round((finite_number((delivery_rows.get(symbol) or {}).get("delivery_qty"))
+                       / finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_qty")) - 1.0) * 100.0, 2)
+                if finite_number((delivery_rows.get(symbol) or {}).get("delivery_qty")) is not None
+                and finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_qty")) not in (None, 0)
+                else None
+            ),
+            "delivery_pct_change_points": (
+                round(finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct"))
+                      - finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_pct")), 2)
+                if finite_number((delivery_rows.get(symbol) or {}).get("delivery_pct")) is not None
+                and finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_pct")) is not None
+                else None
+            ),
+            "delivery_comparison_date": previous_cash_date if previous_delivery_rows.get(symbol) else None,
             "delivery_avg_pct_20": round(avg_delivery_pct, 2) if avg_delivery_pct is not None else None,
             "volume": int(volume) if volume is not None else None,
             "average_volume_20": round(avg_volume, 2) if avg_volume is not None else None,
@@ -347,7 +373,10 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             "missing_fields": ([] if oi_change_pct is not None else ["Futures OI" if symbol in fno_symbols else "Futures OI लागू नहीं"])
                               + ([] if volume is not None else ["Cash Volume"])
                               + ([] if avg_volume is not None else ["Cash Volume baseline"])
-                              + ([] if (delivery_rows.get(symbol) or {}).get("delivery_pct") is not None else ["Security-wise Delivery %"]),
+                              + ([] if (delivery_rows.get(symbol) or {}).get("delivery_pct") is not None else ["Security-wise Delivery %"])
+                              + ([] if finite_number((delivery_rows.get(symbol) or {}).get("delivery_qty")) is not None
+                                   and finite_number((previous_delivery_rows.get(symbol) or {}).get("delivery_qty")) is not None
+                                   else ["पिछले सत्र की Delivery Quantity तुलना"]),
         })
     strength_order = {"STRONG": 0, "WATCH": 1, "EARLY": 2}
     rows.sort(key=lambda row: (
