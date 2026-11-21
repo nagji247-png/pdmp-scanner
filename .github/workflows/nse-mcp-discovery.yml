@@ -1,0 +1,23 @@
+name: NSE MCP Tool Discovery (read-only)
+
+on:
+  pull_request:
+    paths:
+      - "scripts/nse_mcp_discovery.py"
+      - ".github/workflows/nse-mcp-discovery.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Query official NSE MCP tool catalogues
+        run: python scripts/nse_mcp_discovery.py
