@@ -1,5 +1,4 @@
 import json, csv, os, re, time, math, datetime as dt, html
-from html.parser import HTMLParser
 from urllib.parse import quote_plus
 from component_scoring import (
     DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
@@ -22,7 +21,6 @@ from nse_option_buildup import (
 import feedparser, yfinance as yf
 import requests
 from curl_cffi import requests as curl_requests
-from upstox_market_data import fetch_upstox_candles
 from crowd_trap_detector import build_crowd_trap_snapshot
 from stock_basket_freshness import expected_latest_completed_session, is_exchange_session, load_exchange_calendar
 
@@ -2087,148 +2085,6 @@ SILVER_IMPORT_DUTY = 0.15  # अंतरराष्ट्रीय भाव �
 GST_RATE = 0.03  # दुकान/खरीद का अनुमान; एक्सचेंज भाव में GST नहीं
 MCX_SILVER_FILE = "mcx_silver.json"
 
-MCX_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-silver-price/"
-
-# MCX quote parser is covered by the NSE quote-validation workflow's regression test.
-class _UpstoxHistoryTableParser(HTMLParser):
-    """Collect HTML table rows without relying on BeautifulSoup or external packages."""
-    def __init__(self):
-        super().__init__()
-        self.rows = []
-        self.row = None
-        self.cell = None
-
-    def handle_starttag(self, tag, attrs):
-        tag = tag.lower()
-        if tag == "tr":
-            self.row = []
-        elif tag in ("td", "th") and self.row is not None:
-            self.cell = []
-
-    def handle_data(self, data):
-        if self.cell is not None:
-            self.cell.append(data)
-
-    def handle_endtag(self, tag):
-        tag = tag.lower()
-        if tag in ("td", "th") and self.row is not None and self.cell is not None:
-            self.row.append(re.sub(r"\s+", " ", "".join(self.cell)).strip())
-            self.cell = None
-        elif tag == "tr" and self.row is not None:
-            if self.row:
-                self.rows.append(self.row)
-            self.row = None
-            self.cell = None
-
-
-def _parse_upstox_table_date(value):
-    value = re.sub(r"\s+", " ", str(value or "").replace(",", " ")).strip()
-    for fmt in ("%d %b %y", "%d %b %Y", "%d %B %y", "%d %B %Y",
-                "%d-%b-%Y", "%d-%B-%Y"):
-        try:
-            return dt.datetime.strptime(value, fmt).date()
-        except ValueError:
-            pass
-    return None
-
-
-def _upstox_previous_session_close(page_html, quote_date, expiry):
-    """Get the prior trading session CLOSE for the exact same MCX contract."""
-    parser = _UpstoxHistoryTableParser()
-    parser.feed(page_html or "")
-    current_date = dt.date.fromisoformat(str(quote_date))
-    target_expiry = dt.date.fromisoformat(str(expiry))
-    matching_rows = []
-    for row in parser.rows:
-        if len(row) < 6:
-            continue
-        row_date = _parse_upstox_table_date(row[0])
-        row_expiry = _parse_upstox_table_date(row[1])
-        if row_date and row_expiry == target_expiry:
-            matching_rows.append((row_date, row))
-    current_index = next((i for i, item in enumerate(matching_rows)
-                          if item[0] == current_date), None)
-    if not parser.rows:
-        return None, None
-    if current_index is None:
-        raise ValueError("Upstox historical table has no row for the MCX quote date and selected expiry")
-    for row_date, row in matching_rows[current_index + 1:]:
-        if row_date < current_date:
-            raw_close = re.sub(r"[^0-9.]", "", row[5])
-            close = float(raw_close) if raw_close else 0.0
-            if math.isfinite(close) and close > 0:
-                return round(close, 2), row_date.isoformat()
-    raise ValueError("Upstox historical table has no previous-session close for the same MCX contract")
-
-
-def parse_upstox_mcx_quote(page_html, min_price, max_price, label, require_fresh=True):
-    """Extract MCX quote and calculate daily change from the same contract's prior-session CLOSE."""
-    text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page_html)))
-    matches = re.findall(
-        r"(?:₹|&#8377;|&#x20b9;|INR\s*)\s*([0-9]{1,3}(?:,[0-9]{2,3})+(?:\.[0-9]{1,2})?|[0-9]{4,6}(?:\.[0-9]{1,2})?)",
-        page_html, re.I
-    )
-    prices = []
-    for item in matches:
-        try:
-            value = float(item.replace(",", ""))
-            if min_price <= value <= max_price:
-                prices.append(value)
-        except ValueError:
-            continue
-    if not prices:
-        raise ValueError(f"{label} price missing or outside validation range")
-    stamp_match = re.search(
-        r"Last updated on\s*(\d{1,2}\s+[A-Za-z]{3},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2})\s*IST",
-        text, re.I
-    )
-    if not stamp_match:
-        raise ValueError(f"{label} source timestamp missing")
-    stamp = dt.datetime.strptime(stamp_match.group(1).replace(",", ""), "%d %b %Y")
-    hour, minute = map(int, stamp_match.group(2).split(":"))
-    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
-    stamp = stamp.replace(hour=hour, minute=minute, tzinfo=ist)
-    now = dt.datetime.now(dt.timezone.utc).astimezone(ist)
-    age_minutes = (now - stamp).total_seconds() / 60
-    if require_fresh and (age_minutes < -2 or age_minutes > 45):
-        raise ValueError(f"{label} source quote is outside the 45-minute freshness window")
-    expiry_match = re.search(
-        r"Expiry:\s*(\d{1,2})\s+([A-Za-z]+),?\s*(\d{2,4})", text, re.I
-    )
-    expiry = None
-    if expiry_match:
-        expiry_text = f"{expiry_match.group(1)} {expiry_match.group(2)} {expiry_match.group(3)}"
-        for fmt in ("%d %B %y", "%d %B %Y", "%d %b %y", "%d %b %Y"):
-            try:
-                expiry = dt.datetime.strptime(expiry_text, fmt).date()
-                break
-            except ValueError:
-                pass
-    if expiry is None:
-        table_probe = _UpstoxHistoryTableParser()
-        table_probe.feed(page_html or "")
-        if table_probe.rows:
-            raise ValueError(f"{label} historical table exists but selected contract expiry could not be verified")
-    previous_close, previous_close_date = (
-        _upstox_previous_session_close(page_html, stamp.date().isoformat(), expiry.isoformat())
-        if expiry else (None, None)
-    )
-    if previous_close is None:
-        prev_match = re.search(r"Prev\.?\s*Close\s*₹\s*([\d,]+(?:\.\d+)?)", text, re.I)
-        if not prev_match:
-            raise ValueError(f"{label} verified previous-session close missing")
-        previous_close = float(prev_match.group(1).replace(",", ""))
-        if previous_close <= 0:
-            raise ValueError(f"{label} previous close is invalid")
-    change_pct = round((prices[0] / previous_close - 1) * 100, 2)
-    return {
-        "price": round(prices[0], 2), "previous_close": previous_close,
-        "previous_close_date": previous_close_date,
-        "change_pct": change_pct, "date": stamp.date().isoformat(),
-        "time": stamp.strftime("%H:%M"), "source_time": stamp.strftime("%Y-%m-%d %H:%M IST"),
-        "expiry": expiry.isoformat() if expiry else None,
-    }
-
 def india_cash_session_open(now=None):
     """NSE/BSE regular cash session, in IST."""
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
@@ -2278,11 +2134,6 @@ def mcx_reference_is_fresh(data, max_age_minutes=45, now=None):
         current = current.astimezone(ist)
     allowed_age = max_age_minutes if mcx_session_open(current) else 96 * 60
     return -2 <= age <= allowed_age
-
-
-def mcx_reference_fallback_needed(data, now=None):
-    """Use public-page fallback only during MCX hours when cached quote is stale/missing."""
-    return mcx_session_open(now) and not mcx_reference_is_fresh(data, now=now)
 
 
 def mcx_reference_is_live(data, now=None):
@@ -2637,36 +2488,8 @@ def refresh_mcx_market_watch_quotes():
             print("MCX official Market Watch returned no fresh GOLD/SILVER/CRUDEOIL FUTCOM rows.")
         return updated_symbols
     except Exception as exc:
-        print(f"MCX official Market Watch refresh failed; trying timestamped public-page fallback: {str(exc)[:220]}")
+        print(f"MCX official Market Watch refresh failed; no third-party quote fallback will be used: {str(exc)[:220]}")
         return set()
-
-def refresh_mcx_silver_reference():
-    """Fetch the timestamped MCX SILVER quote from Upstox; never substitute SI=F."""
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
-        response = requests.get(MCX_PUBLIC_URL, headers=headers, timeout=15)
-        response.raise_for_status()
-        quote = parse_upstox_mcx_quote(response.text, 50000, 500000, "MCX SILVER")
-        data = load_json(MCX_SILVER_FILE, {})
-        data.update({
-            "mcx_price_per_kg": quote["price"],
-            "previous_mcx_price_per_kg": quote["previous_close"],
-            "change_pct": quote["change_pct"], "date": quote["date"],
-            "previous_close_date": quote["previous_close_date"],
-            "previous_close_source": "Upstox historical table · same MCX expiry",
-            "contract_expiry": quote["expiry"], "source_time": quote["source_time"],
-            "source": "Upstox public MCX Silver quote; source timestamp validated; not exchange-certified",
-            "source_url": MCX_PUBLIC_URL,
-            "note": "Public-page quote, not exchange-certified live feed. Dashboard display applies 3% GST estimate."
-        })
-        with open(MCX_SILVER_FILE, "w", encoding="utf-8") as out:
-            json.dump(data, out, ensure_ascii=False, indent=2)
-        print(f"MCX silver quote refreshed: ₹{quote['price']:,.2f}/kg ({quote['source_time']}, {quote['change_pct']:+.2f}%)")
-        return True
-    except Exception as exc:
-        print(f"MCX silver refresh failed; retaining source timestamp for freshness check: {str(exc)[:180]}")
-        return False
-
 
 def silver_display_price(international_inr_per_kg=None):
     """Show only a recent, timestamp-validated MCX quote plus the GST estimate."""
@@ -2686,36 +2509,6 @@ def silver_display_price(international_inr_per_kg=None):
 
 
 GOLD_MCX_FILE = "mcx_gold.json"
-GOLD_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-gold-price/"
-
-def refresh_mcx_gold_reference():
-    """Fetch the timestamped MCX GOLD quote from Upstox; never stamp scrape time as quote time."""
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
-        response = requests.get(GOLD_PUBLIC_URL, headers=headers, timeout=15)
-        response.raise_for_status()
-        quote = parse_upstox_mcx_quote(response.text, 50000, 500000, "MCX GOLD")
-        data = load_json(GOLD_MCX_FILE, {})
-        data.update({
-            "mcx_price_per_10g": quote["price"],
-            "previous_mcx_price_per_10g": quote["previous_close"],
-            "change_pct": quote["change_pct"], "date": quote["date"],
-            "previous_close_date": quote["previous_close_date"],
-            "previous_close_source": "Upstox historical table · same MCX expiry",
-            "contract_expiry": quote["expiry"], "source_time": quote["source_time"],
-            "source": "Upstox public MCX Gold quote; source timestamp validated; not exchange-certified",
-            "source_url": GOLD_PUBLIC_URL,
-            "note": "Public-page quote per 10g; dashboard display adds 3% GST estimate. Jewellery making charges are not included."
-        })
-        with open(GOLD_MCX_FILE, "w", encoding="utf-8") as out:
-            json.dump(data, out, ensure_ascii=False, indent=2)
-        print(f"MCX gold quote refreshed: ₹{quote['price']:,.2f}/10g ({quote['source_time']}, {quote['change_pct']:+.2f}%)")
-        return True
-    except Exception as exc:
-        print(f"MCX gold refresh failed; retaining source timestamp for freshness check: {str(exc)[:180]}")
-        return False
-
-
 def gold_display_price():
     """Show only a recent, timestamp-validated MCX quote plus the GST estimate."""
     try:
@@ -2733,37 +2526,6 @@ def gold_display_price():
 
 
 CRUDE_MCX_FILE = "mcx_crudeoil.json"
-CRUDE_PUBLIC_URL = "https://upstox.com/commodity-market-trading/mcx-crudeoil-price/"
-
-def refresh_mcx_crude_reference():
-    """Fetch MCX CRUDEOIL and derive daily change from prior-session close of the same expiry."""
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
-        response = requests.get(CRUDE_PUBLIC_URL, headers=headers, timeout=15)
-        response.raise_for_status()
-        quote = parse_upstox_mcx_quote(response.text, 3000, 30000, "MCX CRUDEOIL")
-        data = load_json(CRUDE_MCX_FILE, {})
-        data.update({
-            "mcx_price_per_bbl": quote["price"],
-            "previous_mcx_price_per_bbl": quote["previous_close"],
-            "previous_close_date": quote["previous_close_date"],
-            "previous_close_source": "Upstox historical table · same MCX expiry",
-            "change_pct": quote["change_pct"],
-            "date": quote["date"], "time": quote["time"],
-            "source_time": quote["source_time"],
-            "contract_expiry": quote["expiry"],
-            "source": "Upstox public MCX CRUDEOIL quote; historical close verified; not exchange-certified",
-            "source_url": CRUDE_PUBLIC_URL,
-            "note": "Public MCX contract quote. Daily % is calculated against the previous trading session close for the same expiry."
-        })
-        with open(CRUDE_MCX_FILE, "w", encoding="utf-8") as out:
-            json.dump(data, out, ensure_ascii=False, indent=2)
-        print(f"MCX crude quote refreshed: ₹{quote['price']:,.2f}/BBL ({quote['date']} {quote['time']}, {quote['change_pct']:+.2f}%)")
-        return True
-    except Exception as exc:
-        print(f"MCX crude refresh failed; retaining original quote timestamp if available: {str(exc)[:180]}")
-        return False
-
 def crude_display_quote():
     """Return only a recent, source-timestamped MCX CRUDEOIL quote."""
     data = load_json(CRUDE_MCX_FILE, {})
@@ -2869,7 +2631,7 @@ def daily_returns(sym):
         silver_meta = load_json(MCX_SILVER_FILE, {})
         silver_stamp = str(silver_meta.get("source_time") or "")
         PRICE_CACHE["SI=F_TIME"] = compact_ist_time(silver_stamp) if mcx_reference_is_fresh(silver_meta) and silver_stamp[:10] == str(silver_meta.get("date") or "") else None
-        # Use Upstox's source-reported daily change, not the previous scan's quote.
+        # Use the validated MCX source-reported daily change, not the previous scan's quote.
         try:
             PRICE_CACHE["SI=F_CHANGE_PCT"] = float(silver_meta.get("change_pct")) if mcx_reference_is_fresh(silver_meta) else None
         except (TypeError, ValueError):
@@ -3247,8 +3009,8 @@ def fetch_participant_oi(base_date=None, lookback_days=7):
 def _completed_5m_bars(sym):
     """NSE cash instrument की केवल पूरी हुई 5-minute candles लौटाएँ (UTC end time).
 
-    Yahoo primary है; खाली/विफल होने पर optional Upstox V3 से उसी interval का
-    वास्तविक OHLCV लिया जाता है। कोई अनुमानित candle नहीं बनती।
+    केवल Yahoo Finance का डेटा उपयोग होता है; Yahoo विफल होने पर
+    कोई दूसरा broker feed या अनुमानित candle नहीं बनती।
     """
     if not (sym.endswith(".NS") or sym in ("^NSEI", "^NSEBANK", "^BSESN")):
         return []
@@ -3273,17 +3035,8 @@ def _completed_5m_bars(sym):
     if bars:
         return sorted(bars, key=lambda item: item["time"])
 
-    # Backup only after Yahoo produced no completed bars; one request per symbol.
-    backup = fetch_upstox_candles(sym, 5)
-    for candle in backup:
-        bar_end = candle["time"] + dt.timedelta(minutes=5)
-        price = candle["close"]
-        if bar_end <= now and math.isfinite(price) and price > 0:
-            bars.append({"time": bar_end, "price": price, "source": candle["source"]})
-    if bars:
-        print(f"Contrarian 5-minute candles source switched to Upstox V3 for {sym}")
-    else:
-        print(f"Contrarian 5-minute candles unavailable from Yahoo/Upstox for {sym}")
+    if not bars:
+        print(f"Contrarian 5-minute candles unavailable from Yahoo Finance for {sym}")
     return sorted(bars, key=lambda item: item["time"])
 
 def _update_intraday_horizon(event, field, minutes, bars):
@@ -3809,7 +3562,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
 # ---- संकेत-बदलाव लॉग ----
 
 def intraday_snapshot(sym):
-    """30-minute completed OHLC bars, VWAP and volume; Yahoo first, authenticated broker fallback."""
+    """30-minute completed Yahoo OHLC bars, VWAP and volume; no broker fallback."""
     frame = None
     try:
         frame = yf.Ticker(sym).history(period="5d", interval="30m", prepost=False)
@@ -3842,24 +3595,10 @@ def intraday_snapshot(sym):
                 return snap
         except Exception as exc:
             print(f"Yahoo intraday parse error {sym}: {str(exc)[:120]}")
-    candles = fetch_upstox_candles(sym, 30)
-    rows = [{"time":x["time"],"open":x["open"],"high":x["high"],"low":x["low"],
-             "close":x["close"],"volume":x["volume"]} for x in candles]
-    snap = build_crowd_trap_snapshot(rows, now_utc)
-    if not snap:
-        print(f"30-minute OHLC unavailable from Yahoo/Upstox for {sym}")
-        return None
-    bars = snap["completed_30m_bars"]
-    today = now_utc.astimezone(dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat()
-    selected = [x for x in bars if dt.datetime.fromisoformat(x["start"].replace("Z","+00:00")).astimezone(
-        dt.timezone(dt.timedelta(hours=5, minutes=30))).date().isoformat() == today] or bars
-    total = sum(x["volume"] for x in selected)
-    vwap = sum(((x["high"]+x["low"]+x["close"])/3)*x["volume"] for x in selected)/total if total > 0 else None
-    vols = [x["volume"] for x in selected]
-    avg = sum(vols)/len(vols) if vols else 0
-    snap.update({"vwap":vwap,"vol_ratio":vols[-1]/avg if avg > 0 else None,
-                 "vol_ok":total > 0,"source":"Upstox API V3"})
-    return snap
+    print(f"30-minute OHLC unavailable from Yahoo Finance for {sym}")
+    return None
+
+
 
 def _band(x, band):
     if x >= band:
@@ -6066,24 +5805,8 @@ def update_market_signal_history(result):
 def main():
     global SKIP_EVENTS
     mcx_updated = refresh_mcx_market_watch_quotes()
-    # Public-page fallbacks are only needed during MCX hours when the cached
-    # exchange quote is missing/stale. Keep the last valid close on weekends,
-    # after hours, and while a recent quote is still within its freshness window.
-    if "SILVER" not in mcx_updated:
-        if mcx_reference_fallback_needed(load_json(MCX_SILVER_FILE, {})):
-            refresh_mcx_silver_reference()
-        else:
-            print("MCX SILVER fallback skipped: cached quote is fresh or market is closed.")
-    if "GOLD" not in mcx_updated:
-        if mcx_reference_fallback_needed(load_json(GOLD_MCX_FILE, {})):
-            refresh_mcx_gold_reference()
-        else:
-            print("MCX GOLD fallback skipped: cached quote is fresh or market is closed.")
-    if "CRUDEOIL" not in mcx_updated:
-        if mcx_reference_fallback_needed(load_json(CRUDE_MCX_FILE, {})):
-            refresh_mcx_crude_reference()
-        else:
-            print("MCX CRUDEOIL fallback skipped: cached quote is fresh or market is closed.")
+    # MCX prices come only from the official MCX Market Watch path above.
+    # If unavailable, retain the dated cache subject to existing freshness guards.
     now_utc = dt.datetime.now(dt.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     updated = now_utc.isoformat(timespec="minutes").replace("+00:00", "Z")
