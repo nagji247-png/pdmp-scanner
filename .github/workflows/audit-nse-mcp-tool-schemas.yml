@@ -1,0 +1,120 @@
+name: NSE MCP Tool Schema Inventory
+
+on:
+  push:
+    branches:
+      - audit/nse-mcp-tool-schemas-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-mcp-tool-schema-inventory
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+
+      - name: Read NSE MCP tool inventory (no market-data calls)
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          url = "https://mcp.nseindia.in/cmmkt/mcp"
+          session = requests.Session(impersonate="chrome124")
+          headers = {
+              "Content-Type": "application/json",
+              "Accept": "application/json, text/event-stream",
+          }
+
+          def decode(response):
+              if "text/event-stream" in response.headers.get("content-type", "").lower():
+                  blocks = response.text.replace("\r\n", "\n").split("\n\n")
+                  for block in reversed(blocks):
+                      data = "\n".join(
+                          line[5:].lstrip() for line in block.splitlines()
+                          if line.startswith("data:")
+                      )
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return response.json()
+
+          init = session.post(url, headers=headers, json={
+              "jsonrpc": "2.0", "id": 1, "method": "initialize",
+              "params": {
+                  "protocolVersion": "2024-11-05",
+                  "capabilities": {},
+                  "clientInfo": {"name": "trinetra-schema-audit", "version": "1.0"},
+              },
+          }, timeout=30)
+          init.raise_for_status()
+          init_payload = decode(init)
+          if init_payload.get("error"):
+              raise RuntimeError(init_payload["error"])
+
+          session_id = init.headers.get("mcp-session-id") or init.headers.get("Mcp-Session-Id")
+          call_headers = dict(headers)
+          if session_id:
+              call_headers["Mcp-Session-Id"] = session_id
+
+          listed = session.post(url, headers=call_headers, json={
+              "jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {},
+          }, timeout=30)
+          listed.raise_for_status()
+          payload = decode(listed)
+          if payload.get("error"):
+              raise RuntimeError(payload["error"])
+
+          tools = (payload.get("result") or {}).get("tools") or []
+          if not tools:
+              raise RuntimeError("NSE MCP returned an empty tool list")
+
+          inventory = []
+          for item in tools:
+              schema = item.get("inputSchema") or {}
+              props = schema.get("properties") or {}
+              inventory.append({
+                  "name": item.get("name"),
+                  "description": item.get("description"),
+                  "required": schema.get("required") or [],
+                  "properties": props,
+                  "read_only_assessment": "candidate read-only market-data endpoint; execution not attempted",
+              })
+
+          output = {
+              "captured_at_utc": datetime.now(timezone.utc).isoformat(),
+              "endpoint": "https://mcp.nseindia.in/cmmkt/mcp",
+              "protocol_version": (init_payload.get("result") or {}).get("protocolVersion"),
+              "tool_count": len(inventory),
+              "market_data_calls_made": 0,
+              "tools": inventory,
+          }
+          with open("nse_mcp_tool_inventory.json", "w", encoding="utf-8") as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
+
+          print(f"RESULT: SCHEMA_INVENTORY_OK; TOOL_COUNT={len(inventory)}")
+          print("MARKET_DATA_CALLS_MADE: 0")
+          for item in inventory:
+              print(f"TOOL: {item['name']}; REQUIRED: {item['required']}")
+          PY
+
+      - name: Upload schema inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-mcp-tool-schema-inventory
+          path: nse_mcp_tool_inventory.json
+          retention-days: 14
