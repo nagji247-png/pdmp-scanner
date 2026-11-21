@@ -5190,8 +5190,27 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
             observed, "Google Trends asset batch timestamp"
         )
         for asset, seed in seeds.items():
-            output[asset] = _summarize_asset_related_query_snapshot(
-                related, asset, seed, source_data_time, source, timestamp_basis
+            try:
+                snapshot = _summarize_asset_related_query_snapshot(
+                    related, asset, seed, source_data_time, source, timestamp_basis
+                )
+            except Exception as asset_error:
+                reason = str(asset_error)[:220]
+                snapshot = {
+                    "valid": False,
+                    "scope": "asset_specific_google_related_queries_shadow",
+                    "seed": seed, "source": source, "timeframe": "now 1-d",
+                    "source_data_time": source_data_time,
+                    "reason": reason, "production_score_used": False,
+                }
+            output[asset] = snapshot
+            print(
+                "ASSET_TRENDS_RESULT: "
+                f"asset={asset} valid={bool(snapshot.get('valid'))} "
+                f"raw={snapshot.get('raw_queries', 0)} "
+                f"classified={snapshot.get('classified_queries', 0)} "
+                f"informational={snapshot.get('informational_queries', 0)} "
+                f"reason={str(snapshot.get('reason', ''))[:180]}"
             )
 
         if include_crude:
@@ -5225,6 +5244,7 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
                 print(f"Google Trends CRUDEOIL batch unavailable: {reason}")
     except Exception as exc:
         reason = str(exc)[:240]
+        print(f"ASSET_TRENDS_BATCH_FAILED: type={type(exc).__name__} reason={reason}")
         for asset, seed in seeds.items():
             output[asset] = {
                 "valid": False,
