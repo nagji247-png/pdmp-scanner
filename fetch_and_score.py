@@ -963,6 +963,90 @@ def build_asset_component_breakdowns(
         provisional_final = combine_components(
             provisional_components, PROVISIONAL_WEIGHTS
         )
+
+        # Separate experiment: combine the six requested inputs without changing
+        # either the published PDMP score or the existing provisional Final.
+        experimental_combined_components = {}
+        experimental_combined_final = None
+        if name in index_names:
+            experimental_combined_components = {
+                key: value for key, value in provisional_components.items()
+                if key in PROVISIONAL_WEIGHTS
+            }
+
+            # The current cash-basket diagnostic (including partial/research-only
+            # coverage) is allowed in this TEST score only, never promoted to Final.
+            if "stock_basket" not in experimental_combined_components and isinstance(basket, dict):
+                basket_score = basket.get("score")
+                basket_date = basket.get("source_date")
+                try:
+                    basket_matched = int(basket.get("matched") or 0)
+                except (TypeError, ValueError):
+                    basket_matched = 0
+                if (
+                    basket.get("status") in ("complete_diagnostic", "partial_diagnostic")
+                    and basket_matched > 0
+                    and finite_number(basket_score) is not None
+                    and source_date_is_fresh(basket_date, news_source_date, max_age_days=3)
+                ):
+                    basket_test_component = build_component(
+                        basket_score,
+                        basket.get("source") or "NSE/BSE official EOD cash-market breadth diagnostic",
+                        basket_date,
+                        PROVISIONAL_WEIGHTS["stock_basket"],
+                        method=basket.get("method") or "उपलब्ध सत्यापित cash-market shares का diagnostic breadth",
+                        matched=basket_matched,
+                        expected=basket.get("expected"),
+                        coverage_pct=basket.get("coverage_pct"),
+                        validation_status="TEST_ONLY · partial/research-only basket; not eligible for production Final",
+                        test_only=True,
+                    )
+                    if basket_test_component:
+                        experimental_combined_components["stock_basket"] = basket_test_component
+
+            # CLIENT CE/PE is market-wide, not index-specific; keep its explicit
+            # experimental status and never copy it into production components.
+            if client_ce_pe_component:
+                experimental_combined_components["client_ce_pe"] = dict(client_ce_pe_component)
+                experimental_combined_components["client_ce_pe"]["test_only"] = True
+
+            # Raw CLIENT Futures positioning is shown in this experiment only.
+            # It remains withheld from production until the 14-session gate passes.
+            if "client_futures" not in experimental_combined_components and isinstance(client_context, dict):
+                evidence = client_context.get("evidence_components") or {}
+                long_row = evidence.get("futures_long") or {}
+                short_row = evidence.get("futures_short") or {}
+                long_change = finite_number(long_row.get("change"))
+                short_change = finite_number(short_row.get("change"))
+                long_gross = finite_number(long_row.get("previous_gross"))
+                short_gross = finite_number(short_row.get("previous_gross"))
+                futures_gross = (
+                    long_gross + short_gross
+                    if long_gross is not None and short_gross is not None else None
+                )
+                client_date = client_context.get("source_date")
+                if (
+                    client_context.get("available") is True
+                    and long_change is not None and short_change is not None
+                    and futures_gross is not None and futures_gross > 0
+                    and source_date_is_fresh(client_date, news_source_date, max_age_days=3)
+                ):
+                    futures_test_component = build_component(
+                        10.0 * (long_change - short_change) / futures_gross,
+                        client_context.get("source") or "NSE official participant-wise OI · CLIENT Index Futures",
+                        client_date,
+                        PROVISIONAL_WEIGHTS["client_futures"],
+                        method="TEST ONLY: 10 × (CLIENT Futures Long change − Short change) ÷ previous gross exposure; clamp −10..+10",
+                        validation_status="UNVALIDATED_TEST_ONLY · prospective 14-session all-index validation gate not passed",
+                        scope="shared market-wide CLIENT Futures aggregate; not index-specific",
+                        test_only=True,
+                    )
+                    if futures_test_component:
+                        experimental_combined_components["client_futures"] = futures_test_component
+
+            experimental_combined_final = combine_components(
+                experimental_combined_components, PROVISIONAL_WEIGHTS
+            )
         applicable_names = set(components)
         applicable_names.update(
             key for key, value in excluded.items()
