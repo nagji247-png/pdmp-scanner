@@ -1274,7 +1274,7 @@ function openStockBasketDetails(key) {
     ["all", "मिले हुए शेयर", c.matched]
   ] : [];
   const combined = item.combined || {};
-  const combinedRows = Object.entries(combined.components || {}).map(([key, value]) =>
+  const combinedRows = Object.entries(item.combinedComponents || {}).map(([key, value]) =>
     [key.toUpperCase(), (value && value.score != null ? ((Number(value.score) > 0 ? "+" : "") + Number(value.score).toFixed(2) + "/10") : "डेटा नहीं") +
       " · " + (value && value.source_date ? value.source_date : "तारीख़ नहीं") +
       " · " + (value && value.source ? value.source : "स्रोत नहीं")]
@@ -1412,7 +1412,7 @@ function renderStandaloneStockBasket(b, assetName) {
       } : null);
   const excluded = b && b.excluded_components && b.excluded_components.stock_basket;
   const key = String(assetName || "INDEX").replace(/[^A-Za-z0-9_-]/g, "_");
-  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, combined: combined || null, name: assetName || "INDEX" };
+  stockBasketDetailStore[key] = { component: component || null, excluded: excluded || null, combined: combined || null, combinedComponents: (b && b.experimental_combined_components) || {}, name: assetName || "INDEX" };
   // The existing TRINETRA row displays the combined test score independently
   // of cash-basket availability; missing breadth is never fabricated as zero.
   const validScore = combinedAvailable || (component
