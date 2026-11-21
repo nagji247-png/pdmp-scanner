@@ -1237,7 +1237,7 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     ? scoreText(testFinal.score) : "अभी गणना उपलब्ध नहीं";
   const testClass = testFinal.status !== "available" ? "zero" :
     Number(testFinal.score) > 0 ? "pos" : Number(testFinal.score) < 0 ? "neg" : "zero";
-  const experimentalCombinedHtml = !isCrudeOil
+  const experimentalCombinedHtml = ["NIFTY", "SENSEX", "BANKNIFTY"].includes(assetName)
     ? '<div class="hl" style="margin-top:10px;border:1px dashed #8b7444">' +
       '<div class="hl-title"><b>EXPERIMENTAL COMBINED · केवल टेस्टिंग</b> · <b class="' + testClass + '">' + testScore + '</b></div>' +
       '<div class="hl-meta">यह अलग 6-input परीक्षण है। मौजूदा STOCK BASKET और उत्पादन Final Score अपरिवर्तित हैं। उपलब्ध घटकों के वजन को normalize किया गया है; missing data शून्य नहीं है।</div>' +
