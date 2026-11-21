@@ -33,7 +33,6 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           python - <<'PY'
-          import base64
           import datetime as dt
           import json
           import os
@@ -62,9 +61,20 @@ jobs:
                   return json.loads(raw.decode("utf-8")) if raw else {}
 
           try:
-              file_data = api(f"/repos/{repo}/contents/data.json?ref=main")
-              decoded = base64.b64decode(file_data["content"]).decode("utf-8")
-              data = json.loads(decoded)
+              # data.json exceeds the GitHub Contents API inline-content limit.
+              # Read the complete public raw file, as the Pages freshness verifier does.
+              source_url = f"https://raw.githubusercontent.com/{repo}/main/data.json"
+              source_request = urllib.request.Request(
+                  source_url,
+                  headers={
+                      "Cache-Control": "no-cache",
+                      "User-Agent": "pdmp-scan-watchdog",
+                  },
+              )
+              with urllib.request.urlopen(source_request, timeout=30) as response:
+                  data = json.loads(response.read().decode("utf-8"))
+              if not isinstance(data, dict):
+                  raise ValueError("data.json root must be a JSON object")
               updated = data.get("updated")
               if not updated:
                   age_minutes = 10**9
