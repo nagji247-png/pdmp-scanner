@@ -1,0 +1,169 @@
+name: NSE MCP SME A-Z Record Type Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-sme-a-to-z-record-types-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-sme-a-to-z-record-type-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+      - name: Capture A-Z SME records with type and series (26 bounded calls)
+        run: |
+          python - <<'PY'
+          import json, time, string
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          URL = "https://mcp.nseindia.in/cmmkt/mcp"
+          s = requests.Session(impersonate="chrome124")
+          base_headers = {"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(r):
+              if "text/event-stream" in r.headers.get("content-type","").lower():
+                  for block in reversed(r.text.replace("\\r\\n","\\n").split("\\n\\n")):
+                      data = "\\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return r.json()
+
+          def post(payload, extra=None):
+              h = dict(base_headers)
+              h.update(extra or {})
+              r = s.post(URL, headers=h, json=payload, timeout=35)
+              r.raise_for_status()
+              out = decode(r)
+              if out.get("error"):
+                  raise RuntimeError(str(out["error"]))
+              return out, r
+
+          def norm(v):
+              if v is None:
+                  return None
+              return str(v).strip().upper() or None
+
+          def walk(value, rows):
+              if isinstance(value, dict):
+                  lower = {str(k).lower(): k for k in value}
+                  sk = next((lower[k] for k in ("symbol","symbolname","tradingsymbol") if k in lower), None)
+                  if sk is not None and value.get(sk):
+                      def get(*names):
+                          for n in names:
+                              k = lower.get(n)
+                              if k is not None and value.get(k) is not None:
+                                  return value.get(k)
+                          return None
+                      rows.append({
+                          "symbol": norm(value.get(sk)),
+                          "type": norm(get("type","segmenttype","instrumenttype")),
+                          "series": norm(get("series","securityseries")),
+                          "segment": norm(get("segment","marketsegment")),
+                          "board": norm(get("board","boardtype"))
+                      })
+                  for child in value.values():
+                      walk(child, rows)
+              elif isinstance(value, list):
+                  for child in value:
+                      walk(child, rows)
+              elif isinstance(value, str):
+                  st = value.strip()
+                  if st.startswith("{") or st.startswith("["):
+                      try:
+                          walk(json.loads(st), rows)
+                      except Exception:
+                          pass
+
+          init, ir = post({
+              "jsonrpc":"2.0","id":1,"method":"initialize",
+              "params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-type-audit","version":"1.0"}}
+          })
+          sid = ir.headers.get("mcp-session-id") or ir.headers.get("Mcp-Session-Id")
+          sh = {"Mcp-Session-Id":sid} if sid else {}
+
+          results, all_records = [], []
+          req_id = 2
+          for prefix in string.ascii_uppercase:
+              started = time.time()
+              try:
+                  out, _ = post({
+                      "jsonrpc":"2.0","id":req_id,"method":"tools/call",
+                      "params":{"name":"cm_get_sme_stocks","arguments":{"limit":500,"symbolFilter":prefix}}
+                  }, sh)
+                  res = out.get("result") or {}
+                  rows = []
+                  walk(res.get("structuredContent"), rows)
+                  walk(res.get("content") or [], rows)
+                  unique = {}
+                  for row in rows:
+                      if row["symbol"]:
+                          key = (row["symbol"],row["type"],row["series"],row["segment"],row["board"])
+                          unique[key] = row
+                  records = sorted(unique.values(), key=lambda x:(x["symbol"],str(x["type"]),str(x["series"]),str(x["segment"])))
+                  all_records.extend(records)
+                  results.append({
+                      "prefix":prefix,"ok":not res.get("isError",False),
+                      "raw_symbol_rows":len(rows),"unique_symbol_type_records":len(records),
+                      "unique_symbols":len({x["symbol"] for x in records}),
+                      "type_counts":{k:sum(1 for x in records if x["type"]==k) for k in sorted({x["type"] for x in records},key=str)},
+                      "records":records,"is_error":res.get("isError",False),
+                      "elapsed_seconds":round(time.time()-started,2)
+                  })
+                  print(f"{prefix}: rows={len(rows)} typed_records={len(records)} symbols={len({x['symbol'] for x in records})} ok={not res.get('isError',False)}")
+              except Exception as e:
+                  results.append({"prefix":prefix,"ok":False,"error":str(e)[:1000],"elapsed_seconds":round(time.time()-started,2)})
+                  print(f"{prefix}: ERROR {str(e)[:300]}")
+              req_id += 1
+              time.sleep(2)
+
+          by_symbol_type = {}
+          for row in all_records:
+              key = (row["symbol"],row["type"],row["series"],row["segment"],row["board"])
+              by_symbol_type[key] = row
+          all_unique_symbols = {x["symbol"] for x in by_symbol_type.values()}
+          typed_counts = {}
+          for row in by_symbol_type.values():
+              typed_counts[row["type"] or "UNTYPED"] = typed_counts.get(row["type"] or "UNTYPED",0)+1
+          sme_candidates = [x for x in by_symbol_type.values() if x["type"] == "SME"]
+          report = {
+              "captured_at_utc":datetime.now(timezone.utc).isoformat(),
+              "tool":"cm_get_sme_stocks",
+              "scope":"A-Z one request per prefix; limit 500; 2s spacing; no retries; preserve symbol/type/series/segment/board",
+              "calls_made":len(results),
+              "successful_calls":sum(1 for x in results if x.get("ok")),
+              "failed_calls":sum(1 for x in results if not x.get("ok")),
+              "unique_symbol_type_records":len(by_symbol_type),
+              "unique_symbols_across_all_types":len(all_unique_symbols),
+              "record_counts_by_type":typed_counts,
+              "unique_symbols_with_type_SME":len({x["symbol"] for x in sme_candidates}),
+              "untype_or_non_sme_records":[x for x in by_symbol_type.values() if x["type"] != "SME"],
+              "possible_limit_truncation_prefixes":[x["prefix"] for x in results if x.get("unique_symbols",0)>=500],
+              "results":results,
+              "note":"The type field is preserved for audit. Do not treat the count of records typed SME as equivalent to NSE status segmentCounts until definitions are confirmed."
+          }
+          with open("nse_sme_a_to_z_record_type_audit.json","w",encoding="utf-8") as f:
+              json.dump(report,f,ensure_ascii=False,indent=2)
+          print("SUMMARY",json.dumps({k:report[k] for k in ["calls_made","successful_calls","failed_calls","unique_symbol_type_records","unique_symbols_across_all_types","record_counts_by_type","unique_symbols_with_type_SME","possible_limit_truncation_prefixes"]},ensure_ascii=False))
+          PY
+      - name: Upload type audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-sme-a-to-z-record-type-audit
+          path: nse_sme_a_to_z_record_type_audit.json
+          retention-days: 14
