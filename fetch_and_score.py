@@ -365,6 +365,11 @@ def should_refresh_asset_search(trends_scan, event_name):
     return bool(trends_scan and str(event_name or "").lower() in {"workflow_dispatch", "push"})
 
 
+def should_refresh_manual_asset_trends(trends_ok, error=None):
+    """Permit one bounded asset batch after non-rate-limit Crowd Trends failures."""
+    return bool(trends_ok) or (bool(error) and not is_google_trends_rate_limited(error))
+
+
 def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fresh_results=None):
     """Attach each asset's own one-day Trends snapshot without extra polling.
 
@@ -6444,11 +6449,14 @@ def main():
             print("ASSET_TRENDS_REFRESH: primary Crowd Trends unavailable; running only the independent CRUDEOIL batch")
             _fresh_asset_search = fetch_crude_trends_shadow()
     elif should_refresh_asset_search(trends_scan, os.getenv("GITHUB_EVENT_NAME", "")):
-        if trends.get("ok"):
-            print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+        if should_refresh_manual_asset_trends(trends.get("ok"), trends.get("error")):
+            if trends.get("ok"):
+                print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+            else:
+                print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends unavailable without rate limit; attempting one bounded five-seed + CRUDEOIL asset refresh")
             _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
         else:
-            print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends failed; extra asset requests skipped to protect Google Trends quota")
+            print("ASSET_TRENDS_REFRESH: Google Trends rate limit detected; all secondary asset requests skipped")
     attach_asset_search_snapshots(
         result["instruments"], _previous_asset_instruments, now_utc,
         fresh_results=_fresh_asset_search,
