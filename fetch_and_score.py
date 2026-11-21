@@ -367,7 +367,7 @@ def should_refresh_asset_search(trends_scan, event_name):
 
 def should_refresh_manual_asset_trends(trends_ok, error=None):
     """Permit one bounded asset batch after non-rate-limit Crowd Trends failures."""
-    return bool(trends_ok) or not is_google_trends_rate_limited(error)
+    return bool(trends_ok) or (bool(error) and not is_google_trends_rate_limited(error))
 
 
 def attach_asset_search_snapshots(instruments, previous_instruments, now_utc, fresh_results=None):
