@@ -2,7 +2,7 @@ import json, csv, os, re, time, math, datetime as dt, html
 from html.parser import HTMLParser
 from urllib.parse import quote_plus
 from component_scoring import (
-    DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components,
+    DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components, finite_number,
     search_component_from_snapshot, client_oi_context, is_fresh_timestamp,
     parse_utc_timestamp,
     compare_mcx_bhavcopy_contract_oi, compare_nse_udiff_index_futures_oi,
@@ -1077,6 +1077,10 @@ def build_asset_component_breakdowns(
             "components": components,
             "provisional_components": provisional_components,
             "provisional_final": provisional_final,
+            "experimental_combined_components": experimental_combined_components,
+            "experimental_combined_final": experimental_combined_final,
+            "experimental_combined_weights": PROVISIONAL_WEIGHTS,
+            "experimental_combined_scope": "TEST ONLY · six inputs: stock basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News, Search; excluded from every production score",
             "stock_basket_diagnostic": stock_basket_diagnostics.get(name),
             "option_buildup_diagnostic": (
                 build_option_buildup_diagnostic(
