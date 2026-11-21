@@ -5186,7 +5186,7 @@ def fetch_google_trending_now_asset_snapshots(hours=168):
     response.raise_for_status()
     body = response.text or ""
     match = re.search(
-        r"AF_initDataCallback\\(\\{key: 'ds:0', hash: '\\d+', data:(\\[.*?\\]), sideChannel: \\{\\}\\}\\);",
+        r"AF_initDataCallback\(\{key: 'ds:0', hash: '\d+', data:(\[.*?\]), sideChannel: \{\}\}\);",
         body, re.S,
     )
     if not match:
