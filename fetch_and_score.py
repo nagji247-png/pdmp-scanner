@@ -5165,91 +5165,6 @@ def fetch_crude_trends_shadow():
             "reason": reason, "production_score_used": False,
         }}
 
-def fetch_google_trending_now_asset_snapshots(hours=168):
-    """One-request fallback from Google's public Trending Now page (not Explore).
-
-    This is a distinct Google Trends surface. It classifies only asset-scoped
-    trend titles and their Google-provided breakdown queries. Percentages are
-    query-item shares, never mislabeled as Explore interest or search volume.
-    """
-    import json as _json
-    from datetime import datetime, timezone
-
-    if hours not in (24, 48, 168):
-        raise ValueError("Trending Now fallback hours must be 24, 48, or 168")
-    url = f"https://trends.google.com/trending?geo=IN&hl=en-IN&hours={hours}"
-    response = requests.get(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; TRINETRA/1.0)"},
-        timeout=(10, 30),
-    )
-    response.raise_for_status()
-    body = response.text or ""
-    match = re.search(
-        r"AF_initDataCallback\(\{key: 'ds:0', hash: '\d+', data:(\[.*?\]), sideChannel: \{\}\}\);",
-        body, re.S,
-    )
-    if not match:
-        raise ValueError("Google Trending Now page did not contain its data block")
-    payload = _json.loads(match.group(1))
-    trend_rows = payload[1] if isinstance(payload, list) and len(payload) > 1 else []
-    observed_at = datetime.now(timezone.utc).isoformat()
-    assets = {
-        "NIFTY": "nifty", "SENSEX": "sensex", "BANKNIFTY": "bank nifty",
-        "GOLD": "gold price", "SILVER": "silver price",
-    }
-    output = {}
-    for asset, seed in assets.items():
-        seen = set()
-        classified = []
-        totals = {"bull": 0, "bear": 0, "neutral": 0}
-        for trend in trend_rows or []:
-            if not isinstance(trend, list) or not trend:
-                continue
-            title = str(trend[0] or "").strip()
-            breakdown = trend[9] if len(trend) > 9 and isinstance(trend[9], list) else []
-            candidates = [title] + [str(value).strip() for value in breakdown if value]
-            for term in candidates:
-                normalized = re.sub(r"\\s+", " ", term).strip().lower()
-                if not normalized or normalized in seen or _asset_search_is_out_of_scope(term, asset):
-                    continue
-                direction = _asset_search_direction(term, asset)
-                if direction not in totals:
-                    continue
-                seen.add(normalized)
-                totals[direction] += 1
-                classified.append({
-                    "term": term, "direction": direction,
-                    "trend_title": title,
-                    "trend_volume_lower_bound": trend[6] if len(trend) > 6 else None,
-                })
-        total = sum(totals.values())
-        valid = len(classified) >= 3 and total > 0
-        output[asset] = {
-            "valid": valid,
-            "scope": "asset_specific_google_trending_now_shadow",
-            "seed": seed, "source": "Google Trends Trending Now · India",
-            "timeframe": f"trending_now_{hours}h",
-            "source_data_time": observed_at, "retrieved_at": observed_at,
-            "timestamp_basis": "retrieval_time",
-            "unit": "share of distinct asset-scoped Trending Now query items",
-            "denominator": "distinct classified title/breakdown query items; not search volume or Explore interest",
-            "bull_pct": round(totals["bull"] / total * 100, 1) if total else None,
-            "bear_pct": round(totals["bear"] / total * 100, 1) if total else None,
-            "neutral_pct": round(totals["neutral"] / total * 100, 1) if total else None,
-            "neutral_aware_score": round((totals["bull"] - totals["bear"]) / total * 10, 2) if total else None,
-            "classified_queries": len(classified), "raw_queries": len(seen),
-            "terms": classified[:30], "production_score_used": False,
-            "reason": None if valid else "Google Trending Now में इस एसेट के कम से कम 3 स्पष्ट directional/neutral queries नहीं मिले",
-        }
-        print(
-            "ASSET_TRENDS_TRENDING_NOW_FALLBACK: "
-            f"asset={asset} valid={valid} classified={len(classified)} "
-            f"bull={output[asset]['bull_pct']} bear={output[asset]['bear_pct']} neutral={output[asset]['neutral_pct']}"
-        )
-    return output
-
-
 def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
     """Refresh five asset seeds together; optionally refresh CRUDEOIL separately.
 
@@ -5393,20 +5308,6 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
         diagnostic_seeds["CRUDEOIL"] = "crude oil"
     if rate_limited:
         print("ASSET_TRENDS_RATE_LIMIT_STOP: Explore follow-up requests skipped for this scan")
-    # After Explore throttling, use one separate public Google Trends surface.
-    # This does not retry Explore and does not overwrite any successful asset data.
-    if rate_limited:
-        try:
-            trending_now = fetch_google_trending_now_asset_snapshots(hours=168)
-            for asset, snapshot in trending_now.items():
-                current = output.get(asset)
-                if not (isinstance(current, dict) and current.get("valid")) and snapshot.get("valid"):
-                    output[asset] = snapshot
-        except Exception as trending_error:
-            print(
-                "ASSET_TRENDS_TRENDING_NOW_FALLBACK_FAILED: "
-                f"type={type(trending_error).__name__} reason={str(trending_error)[:200]}"
-            )
     return _attach_asset_directional_trends_diagnostics(
         output, diagnostic_seeds,
         enabled=include_directional_diagnostics and not rate_limited
