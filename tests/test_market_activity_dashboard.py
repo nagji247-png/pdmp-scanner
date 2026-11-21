@@ -94,6 +94,19 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("return selectActivityAlerts(out);", self.market_activity)
         self.assertIn("selected.slice(0,8)", self.market_activity)
 
+    def test_photo_matched_early_sector_radar_is_separate_and_keeps_two_columns(self):
+        radar = (ROOT / "sector-early-radar.js").read_text(encoding="utf-8")
+        self.assertIn('id="sector-early-radar-panel"', self.dashboard)
+        self.assertIn('id="sector-early-radar"', self.dashboard)
+        self.assertIn('src="sector-early-radar.js?v=1"', self.dashboard)
+        self.assertLess(self.dashboard.index('id="sector-early-radar-panel"'),
+                        self.dashboard.index('id="market-activity-panel"'))
+        self.assertIn(".ser-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))", radar)
+        self.assertIn("पहली पहचान:", radar)
+        self.assertIn("पुष्टि:", radar)
+        self.assertIn('snap.mode==="intraday"', radar)
+        self.assertIn("इंट्राडे डेटा उपलब्ध नहीं", radar)
+        self.assertNotIn("market-activity.js", radar)
     def test_existing_dashboard_safety_and_refresh_hooks_remain(self):
         self.assertIn("function updateTradeGuard(data)", self.dashboard)
         self.assertIn("const REFRESH_MS = 5 * 60 * 1000", self.dashboard)
