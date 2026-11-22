@@ -1772,7 +1772,7 @@ function renderNiftyPremiumRadar(data) {
   // Preserve the complete TradingView section, including its widget instance and provider links.
   // Recreating it on each refresh or temporary stale-data state resets the chart selection/zoom.
   const existingTvSection = box.querySelector(".trinetra-tv-section");
-  const tvSectionHtml = `    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
+  const tvSectionHtml = `    <style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>\n    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
         <b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b>
         <span class="sub">5 मिनट · TradingView</span>
@@ -1780,7 +1780,7 @@ function renderNiftyPremiumRadar(data) {
       <div id="trinetra-tv-widget" class="tradingview-widget-container" style="height:430px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730">
         <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
+      <div class="trinetra-premium-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
         <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
             <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">5 मिनट</span>
