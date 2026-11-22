@@ -77,15 +77,19 @@ unusual.sort(function(a,b){return Math.abs(b.change)-Math.abs(a.change)||a.row.s
 var fpiDelta=fpiDeltaMap(),fpiChanged=Object.keys(fpiDelta).filter(function(k){return fpiDelta[k]!==0;}).length;
 var alerts=activityAlerts(),alertHtml=alerts.length?alerts.map(function(a){var tag=a.kind==="high"?"HIGH":a.kind==="watch"?"WATCH":"FLOW";var target=a.symbol?' data-stock="'+esc(a.symbol)+'" data-sector-name="'+esc(a.sector)+'"':' data-sector="'+esc(a.sector)+'"';return '<button type="button" class="ma-alert '+a.kind+'"'+target+'><span class="ma-alert-label">'+tag+'</span><b>'+esc(a.symbol||a.sector)+'</b> · '+esc(a.text)+'<small>'+esc(a.sector)+' · '+esc(a.date||"अवधि उपलब्ध नहीं")+(a.symbol?" · स्टॉक विवरण खोलें":" · सेक्टर विवरण खोलें")+'</small></button>';}).join(""):'<div class="ma-empty">अभी HIGH / WATCH / FLOW के लिए पर्याप्त सत्यापित बदलाव नहीं मिला।</div>';
 var sectorGroups=[
-{key:"bull",title:"तेजी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===0;})},
-{key:"bear",title:"मंदी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===2;})},
+{key:"bull",title:"↗ तेजी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===0;})},
+{key:"bear",title:"↘ मंदी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===2;})},
 {key:"neutral",title:"मिश्रित / डेटा कम",items:sectors.filter(function(s){return sectorOrder(s)===1;})}
 ];
-var sectorHtml=sectorGroups.map(function(g){
+function renderSectorGroup(g){
 if(!g.items.length)return "";
 var cards=g.items.map(function(s){var d=s.d,state=sectorState(d),tone=g.key==="bull"?"bull":g.key==="bear"?"bear":"neutral";return '<div class="ma-sector '+tone+'"><button class="ma-sector-button" type="button" data-sector="'+esc(s.name)+'"><div class="ma-sector-head"><span class="ma-sector-name">'+esc(s.name)+'</span><span class="ma-count">'+s.rows.length+' स्टॉक　›</span></div><span class="ma-state '+tone+'">'+(g.key==="bull"?"उपलब्ध भावों में तेजी":g.key==="bear"?"उपलब्ध भावों में मंदी":state)+'</span><div class="ma-meta"><span>भाव उपलब्ध '+d.covered+'/'+s.rows.length+'</span><span class="ma-up">↑ '+d.up+'</span><span class="ma-neutral">सामान्य '+d.flat+'</span><span class="ma-down">↓ '+d.down+'</span></div>'+coverageCaution(d,s.rows.length)+'</button></div>';}).join("");
 return '<section class="ma-sector-group '+g.key+'"><div class="ma-sector-group-title">'+g.title+' <span>'+g.items.length+' सेक्टर</span></div><div class="ma-sector-grid">'+cards+'</div></section>';
-}).join("");
+}
+var bullSectorHtml=renderSectorGroup(sectorGroups[0]);
+var bearSectorHtml=renderSectorGroup(sectorGroups[1]);
+var neutralSectorHtml=renderSectorGroup(sectorGroups[2]);
+var sectorHtml='<div class="ma-two-column-sectors">'+bullSectorHtml+bearSectorHtml+'</div>'+neutralSectorHtml;
 root.innerHTML='<div class="ma-kicker">सबसे ऊपर — आज की हलचल</div><div class="ma-kicker">MARKET ACTIVITY RADAR</div><div class="ma-intro">आज बाजार में कहाँ हलचल है? · '+symbols.length+' स्टॉक · '+sectors.length+' सेक्टर · उपलब्ध सत्यापित डेटा के आधार पर</div>'+
 '<div class="ma-summary">'+
 '<div class="ma-stat bull"><button class="ma-stat-button" type="button" data-radar="bull"><b>'+String(bull).padStart(2,"0")+'</b><span>तेजी वाले सेक्टर<br>हलचल ऊपर की ओर</span></button></div>'+
