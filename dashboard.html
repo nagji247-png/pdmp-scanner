@@ -1772,6 +1772,37 @@ function renderNiftyPremiumRadar(data) {
   // Preserve the complete TradingView section, including its widget instance and provider links.
   // Recreating it on each refresh or temporary stale-data state resets the chart selection/zoom.
   const existingTvSection = box.querySelector(".trinetra-tv-section");
+  const tvSectionHtml = `    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
+        <b style="color:#55e6ff">📈 TRADINGVIEW · NIFTY 50</b>
+        <span class="sub">5 मिनट · Chart provider: TradingView</span>
+      </div>
+      <div id="trinetra-tv-widget" class="tradingview-widget-container" style="height:430px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730">
+        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+      </div>
+      <div class="sub" style="margin-top:7px">डिफॉल्ट NSE:NIFTY है। CE/PE देखने के लिए Symbol Search → Options → NSE: चुनें और उपलब्ध contract की expiry/strike जाँचें। <a href="https://www.tradingview.com/symbols/NSE-NIFTY/options-chain/" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">TradingView NIFTY Option Chain ↗</a> · <a href="https://www.nseindia.com/option-chain" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">NSE Official Option Chain ↗</a>। TradingView का यह Embedded Widget केवल चार्ट दिखाता है; TradingView वेबसाइट पर उपलब्ध Real-time डेटा entitlement इस Widget में लागू होने की गारंटी नहीं है। Widget से CE/PE Premium डेटा TRINETRA में स्वतः प्राप्त नहीं होता। Premium Feed अलग से अधिकृत और सत्यापित होने तक Premium Entry/SL/Target जारी नहीं होंगे।</div>
+    </div>`;
+  const initializeTradingView = () => {
+    const tvContainer = box.querySelector("#trinetra-tv-widget");
+    if (!tvContainer || tvContainer.querySelector("script")) return;
+    const tvScript = document.createElement("script");
+    tvScript.type = "text/javascript";
+    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    tvScript.async = true;
+    tvScript.text = JSON.stringify({
+      autosize: true,
+      symbol: "NSE:NIFTY",
+      interval: "5",
+      timezone: "Asia/Kolkata",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      allow_symbol_change: true,
+      calendar: false,
+      support_host: "https://www.tradingview.com"
+    });
+    tvContainer.appendChild(tvScript);
+  };
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
   const updated = data && data.updated ? new Date(data.updated) : null;
@@ -1780,9 +1811,10 @@ function renderNiftyPremiumRadar(data) {
   const tradeGuardBlocked = document.getElementById("trade-guard")?.classList.contains("block");
   const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !tradeGuardBlocked && !(n && n.stale);
   if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
-    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div><div id="trinetra-tv-section-slot"></div>';
+    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>' + tvSectionHtml;
     const staleTvSlot = box.querySelector("#trinetra-tv-section-slot");
     if (existingTvSection && staleTvSlot) staleTvSlot.replaceWith(existingTvSection);
+    else initializeTradingView();
     return;
   }
   const previous = r.previous_session || {};
@@ -1867,43 +1899,13 @@ function renderNiftyPremiumRadar(data) {
       <div class="sub" style="margin-top:5px">CE/PE का वास्तविक या प्रमाणित DELAYED LTP, प्रीमियम-वैल्यू ज़ोन, एंट्री, SL और Target अभी उपलब्ध नहीं। इसलिए ATM स्ट्राइक केवल निगरानी संदर्भ है—BUY CALL नहीं।</div>
       <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · 5m/15m candle और premium पुष्टि बाकी</div>
     </div>
-    <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होगा।</div>
-    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
-        <b style="color:#55e6ff">📈 TRADINGVIEW · NIFTY 50</b>
-        <span class="sub">5 मिनट · Chart provider: TradingView</span>
-      </div>
-      <div id="trinetra-tv-widget" class="tradingview-widget-container" style="height:430px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730">
-        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-      </div>
-      <div class="sub" style="margin-top:7px">डिफॉल्ट NSE:NIFTY है। CE/PE देखने के लिए Symbol Search → Options → NSE: चुनें और उपलब्ध contract की expiry/strike जाँचें। <a href="https://www.tradingview.com/symbols/NSE-NIFTY/options-chain/" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">TradingView NIFTY Option Chain ↗</a> · <a href="https://www.nseindia.com/option-chain" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">NSE Official Option Chain ↗</a>। TradingView का यह Embedded Widget केवल चार्ट दिखाता है; TradingView वेबसाइट पर उपलब्ध Real-time डेटा entitlement इस Widget में लागू होने की गारंटी नहीं है। Widget से CE/PE Premium डेटा TRINETRA में स्वतः प्राप्त नहीं होता। Premium Feed अलग से अधिकृत और सत्यापित होने तक Premium Entry/SL/Target जारी नहीं होंगे।</div>
-    </div>`;
-  // Initialize the official Advanced Chart after innerHTML creates its container.
-  // Script tags inserted via innerHTML do not execute.
+    <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होग    ${tvSectionHtml}   </div>`;
+  // Preserve the existing widget instance on refresh; initialize only on first render.
   const tvSlot = box.querySelector("#trinetra-tv-section-slot");
   if (existingTvSection && tvSlot) {
     tvSlot.replaceWith(existingTvSection);
-    return;
-  }
-  const tvContainer = box.querySelector("#trinetra-tv-widget");
-  if (tvContainer) {
-    const tvScript = document.createElement("script");
-    tvScript.type = "text/javascript";
-    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    tvScript.async = true;
-    tvScript.text = JSON.stringify({
-      autosize: true,
-      symbol: "NSE:NIFTY",
-      interval: "5",
-      timezone: "Asia/Kolkata",
-      theme: "dark",
-      style: "1",
-      locale: "en",
-      allow_symbol_change: true,
-      calendar: false,
-      support_host: "https://www.tradingview.com"
-    });
-    tvContainer.appendChild(tvScript);
+  } else {
+    initializeTradingView();
   }
 }
 
