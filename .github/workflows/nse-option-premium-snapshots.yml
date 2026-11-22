@@ -1,12 +1,17 @@
 name: NSE NIFTY Option Premium Snapshots
 
 on:
+  pull_request:
+    paths:
+      - "nse_option_premium_snapshots.py"
+      - "tests/test_nse_option_premium_snapshots.py"
+      - ".github/workflows/nse-option-premium-snapshots.yml"
   workflow_dispatch:
   schedule:
     # 09:15 IST opening snapshot, then every 10 minutes through 15:30 IST.
     - cron: "45 3 * * 1-5"
     - cron: "*/10 4-9 * * 1-5"
-    - cron: "0,10,20,30 10 * * 1-5"
+    - cron: "0 10 * * 1-5"
 
 permissions:
   contents: write
@@ -29,8 +34,10 @@ jobs:
       - name: Validate snapshot parser
         run: python -m unittest discover -s tests -p "test_nse_option_premium_snapshots.py" -v
       - name: Fetch one NSE snapshot
+        if: github.event_name != 'pull_request'
         run: python nse_option_premium_snapshots.py
       - name: Commit verified snapshot only
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
