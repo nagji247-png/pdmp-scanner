@@ -1853,8 +1853,30 @@ function renderNiftyPremiumRadar(data) {
         const expiry = box.querySelector("#trinetra-" + side + "-expiry")?.value || "";
         const strike = Number(strikeRaw);
         const status = box.querySelector("#trinetra-" + side + "-status");
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry) || !Number.isInteger(strike) || strike <= 0) {
-          if (status) status.textContent = "सही Strike Price और Expiry भरें।";
+        // NIFTY strikes use 50-point intervals. Validate the actual calendar date
+        // and reject expired contracts before constructing a TradingView symbol.
+        const dateParts = expiry.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const validCalendarDate = (() => {
+          if (!dateParts) return false;
+          const year = Number(dateParts[1]), month = Number(dateParts[2]), day = Number(dateParts[3]);
+          const parsed = new Date(Date.UTC(year, month - 1, day));
+          return parsed.getUTCFullYear() === year &&
+            parsed.getUTCMonth() === month - 1 &&
+            parsed.getUTCDate() === day;
+        })();
+        const todayIST = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+        }).format(new Date());
+        if (!strikeRaw.trim() || !Number.isInteger(strike) || strike <= 0 || strike % 50 !== 0) {
+          if (status) status.textContent = "NIFTY Strike 50 के गुणक में भरें (जैसे 25800)।";
+          return;
+        }
+        if (!validCalendarDate) {
+          if (status) status.textContent = "कैलेंडर में सही Expiry Date चुनें।";
+          return;
+        }
+        if (expiry < todayIST) {
+          if (status) status.textContent = "बीती हुई Expiry नहीं चुन सकते।";
           return;
         }
         const [yyyy, mm, dd] = expiry.split("-");
