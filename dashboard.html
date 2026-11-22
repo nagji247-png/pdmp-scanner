@@ -593,7 +593,9 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 </header>
 
 <div id="status" aria-live="polite" style="display:none"></div>
-<div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
+<div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div>
+
+<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">सत्यापित NIFTY डेटा की प्रतीक्षा…</div></div></section></div>
 
 <section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
 
@@ -1762,6 +1764,47 @@ function card(name, d, participantOI, observedAt) {
     openChart(name);
   });
   return el;
+}
+
+function renderNiftyPremiumRadar(data) {
+  const box = document.getElementById("nifty-premium-radar");
+  if (!box) return;
+  const r = data && data.range;
+  const n = data && data.instruments && data.instruments.NIFTY;
+  const updated = data && data.updated ? new Date(data.updated) : null;
+  const validUpdated = updated && Number.isFinite(updated.getTime());
+  const ageMin = validUpdated ? (Date.now() - updated.getTime()) / 60000 : Infinity;
+  const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !(n && n.stale);
+  if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
+    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>';
+    return;
+  }
+  const spot = Number(r.last_close);
+  const atm = Math.round(spot / 50) * 50;
+  const fmt = value => Number(value).toLocaleString("en-IN", {maximumFractionDigits: 2});
+  const stamp = updated.toLocaleString("en-IN", {timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});
+  const levels = Array.isArray(data.levels) ? data.levels.slice(0, 6) : [];
+  const levelHtml = levels.length
+    ? levels.map(x => '<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #285078;border-radius:7px;color:#cde7ff">'+fmt(x.level)+'</span>').join("")
+    : '<span class="sub">अलग वॉच-लेवल उपलब्ध नहीं</span>';
+  box.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
+      <strong style="color:#55e6ff;font-size:16px">PRE-MARKET REFERENCE</strong>
+      <span style="font-size:11px;color:#aab4c4">NIFTY EOD / PDMP snapshot · ${esc(stamp)} IST</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-top:12px">
+      <div class="card"><div class="lbl">अंतिम सत्यापित बंद</div><div class="big">${fmt(spot)}</div></div>
+      <div class="card"><div class="lbl">ATM संदर्भ स्ट्राइक</div><div class="big">${fmt(atm)}</div><div class="sub">50-पॉइंट स्ट्राइक अंतर</div></div>
+      <div class="card"><div class="lbl">VIX आधारित संभावित रेंज</div><div class="big" style="font-size:19px">${fmt(r.low)} – ${fmt(r.high)}</div><div class="sub">68% सांख्यिकीय अनुमान, गारंटी नहीं</div></div>
+    </div>
+    <div style="margin-top:12px"><b>CE निगरानी:</b> ${fmt(atm)} CE · <b>PE निगरानी:</b> ${fmt(atm)} PE</div>
+    <div style="margin-top:8px"><b>महत्वपूर्ण स्पॉट वॉच-लेवल:</b><div style="margin-top:5px">${levelHtml}</div></div>
+    <div style="margin-top:12px;padding:10px;border:1px solid #a56b32;border-radius:9px;background:rgba(95,55,16,.16)">
+      <b style="color:#ffd28a">⏳ OPTION PREMIUM FEED CONNECTED नहीं</b>
+      <div class="sub" style="margin-top:5px">CE/PE का वास्तविक या प्रमाणित DELAYED LTP, प्रीमियम-वैल्यू ज़ोन, एंट्री, SL और Target अभी उपलब्ध नहीं। इसलिए ATM स्ट्राइक केवल निगरानी संदर्भ है—BUY CALL नहीं।</div>
+      <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · प्रीमियम की पुष्टि होने तक प्रतीक्षा</div>
+    </div>
+    <div class="sub" style="margin-top:9px">अगला चरण: GAP UP / GAP DOWN / FLAT OPEN के अनुसार CE/PE प्रीमियम-वॉच ज़ोन और 5m/15m retest confirmation. डेटा अनुपलब्ध होने पर कोई काल्पनिक भाव नहीं दिखेगा।</div>`;
 }
 
 function renderRange(r) {
@@ -3671,6 +3714,7 @@ async function load() {
 
     scoreHistory = await loadHistory();
     renderRange(data.range);
+    renderNiftyPremiumRadar(data);
     renderCrowd(data);
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
