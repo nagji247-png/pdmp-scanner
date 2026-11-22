@@ -5355,9 +5355,12 @@ def is_google_trends_rate_limited(message):
     return any(token in lowered for token in ("429", "too many requests", "rate limit", "ratelimit"))
 
 
-def should_run_asset_directional_diagnostics(slot_id):
-    """Run the six extra phrase batches once daily, in the final scheduled slot."""
-    return str(slot_id or "").strip() == "1900"
+def should_run_asset_directional_diagnostics(slot_id, event_name=""):
+    """Run bounded phrase diagnostics in manual scans and the final daily scheduled slot."""
+    return (
+        str(event_name or "").strip().lower() == "workflow_dispatch"
+        or str(slot_id or "").strip() == "1900"
+    )
 
 
 def fetch_trends():
@@ -6472,11 +6475,26 @@ def main():
             _fresh_asset_search = fetch_crude_trends_shadow()
     elif should_refresh_asset_search(trends_scan, os.getenv("GITHUB_EVENT_NAME", "")):
         if should_refresh_manual_asset_trends(trends.get("ok"), trends.get("error")):
+            run_phrase_diagnostics = should_run_asset_directional_diagnostics(
+                "", os.getenv("GITHUB_EVENT_NAME", "")
+            )
             if trends.get("ok"):
-                print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+                print(
+                    "ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL; "
+                    + ("six Google Trends directional phrase batches enabled" if run_phrase_diagnostics
+                       else "phrase diagnostics skipped outside workflow_dispatch")
+                )
             else:
-                print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends unavailable without rate limit; attempting one bounded five-seed + CRUDEOIL asset refresh")
-            _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+                print(
+                    "ASSET_TRENDS_REFRESH: manual primary Crowd Trends unavailable without rate limit; "
+                    "attempting one bounded five-seed + CRUDEOIL asset refresh; "
+                    + ("six Google Trends directional phrase batches enabled" if run_phrase_diagnostics
+                       else "phrase diagnostics skipped outside workflow_dispatch")
+                )
+            _fresh_asset_search = fetch_asset_trends_shadow(
+                include_directional_diagnostics=run_phrase_diagnostics,
+                include_crude=True,
+            )
         else:
             print("ASSET_TRENDS_REFRESH: Google Trends rate limit detected; all secondary asset requests skipped")
     attach_asset_search_snapshots(
