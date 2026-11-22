@@ -1791,16 +1791,28 @@ function renderNiftyPremiumRadar(data) {
     : '<span class="sub">अलग वॉच-लेवल उपलब्ध नहीं</span>';
 
   // Only a timestamped NSE/validated live quote from today's open session may drive a spot trigger.
-  const quoteDate = String(n && n.price_as_of || "");
-  const quoteTime = String(n && n.price_time || "");
-  const quoteMatch = quoteDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  const timeMatch = quoteTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)\s*IST$/i);
+  const quoteDate = String(n && n.price_as_of || "").trim();
+  const quoteTime = String(n && n.price_time || "").trim();
+  const dateMatch = quoteDate.match(/^(?:(\d{2})\/(\d{2})\/(\d{4})|(\d{4})-(\d{2})-(\d{2}))/);
+  const timeMatch = quoteTime.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
   let quoteAgeMin = Infinity;
-  if (quoteMatch && timeMatch) {
+  if (dateMatch && timeMatch) {
+    const day = Number(dateMatch[1] || dateMatch[6]);
+    const month = Number(dateMatch[2] || dateMatch[5]);
+    const year = Number(dateMatch[3] || dateMatch[4]);
     let hh = Number(timeMatch[1]) % 12;
+    const mm = Number(timeMatch[2]);
     if (timeMatch[3].toUpperCase() === "PM") hh += 12;
-    const qDate = new Date(Number(quoteMatch[3]), Number(quoteMatch[2])-1, Number(quoteMatch[1]), hh, Number(timeMatch[2]));
-    quoteAgeMin = (Date.now() - qDate.getTime()) / 60000;
+    const validDate = month >= 1 && month <= 12 && day >= 1 && day <= 31;
+    const validTime = hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
+    if (validDate && validTime) {
+      // Convert the published IST clock to UTC explicitly; do not depend on device timezone.
+      const qDate = Date.UTC(year, month - 1, day, hh, mm) - 330 * 60000;
+      const check = new Date(Date.UTC(year, month - 1, day));
+      if (check.getUTCFullYear() === year && check.getUTCMonth() === month - 1 && check.getUTCDate() === day) {
+        quoteAgeMin = (Date.now() - qDate) / 60000;
+      }
+    }
   }
   const liveSpot = Number(n && n.price);
   const liveQuoteFresh = data.market_closed !== true && Number.isFinite(liveSpot) && liveSpot > 0
