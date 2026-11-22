@@ -36,6 +36,16 @@ def _number(value):
     return result if math.isfinite(result) else None
 
 
+def _expiry_key(value):
+    text = str(value or "").strip()
+    for fmt in ("%d-%b-%Y", "%d-%m-%Y", "%d-%b-%y", "%d-%m-%y"):
+        try:
+            return dt.datetime.strptime(text, fmt).date().isoformat()
+        except ValueError:
+            pass
+    return text.casefold()
+
+
 def _source_time(value):
     text = str(value or "").strip()
     for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M:%S"):
@@ -71,7 +81,7 @@ def parse_option_chain(payload, expiry, fetched_at=None):
             if not isinstance(leg, dict):
                 continue
             leg_expiry = str(leg.get("expiryDate") or item.get("expiryDate") or "").strip()
-            if leg_expiry and leg_expiry != expiry:
+            if leg_expiry and _expiry_key(leg_expiry) != _expiry_key(expiry):
                 continue
             ltp = _number(leg.get("lastPrice"))
             if ltp is None or ltp <= 0:
