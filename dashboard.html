@@ -546,9 +546,9 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 #market-activity .ma-sector-group.bull{border:2px solid #08d477;box-shadow:0 0 15px rgba(0,220,120,.1)}
 #market-activity .ma-sector-group.bear{border:2px solid #ed3855;box-shadow:0 0 15px rgba(255,45,75,.1)}
 #market-activity .ma-sector-group.neutral{border:1px solid #49678d}
-#market-activity .ma-sector-group-title{font-size:clamp(17px,2vw,22px);padding:4px 3px 10px}
-#market-activity .ma-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#market-activity .ma-sector{border-radius:12px;background:linear-gradient(145deg,#071d31,#071529)}
+#market-activity .ma-sector-group-title{font-size:clamp(17px,2vw,22px);padding:12px 10px;margin:-13px -13px 12px;border-radius:15px 15px 0 0;background:linear-gradient(110deg,#07533d,#06352f);color:#eafff5}\n#market-activity .ma-sector-group.bear .ma-sector-group-title{background:linear-gradient(110deg,#7e1831,#451629);color:#fff0f2}
+#market-activity .ma-two-column-sectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}\n#market-activity .ma-sector-grid{grid-template-columns:1fr;gap:10px}
+#market-activity .ma-sector{border-radius:12px;background:linear-gradient(145deg,#071d31,#071529);box-shadow:0 4px 12px rgba(0,0,0,.18)}
 #market-activity .ma-sector.bull{border-color:#08c977}
 #market-activity .ma-sector.bear{border-color:#ed3855}
 #market-activity .ma-sector-button{padding:13px}
@@ -556,9 +556,9 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 #market-activity .ma-state{font-size:10px;padding:5px 9px;border-radius:20px;font-weight:900}
 #market-activity .ma-meta{font-size:12px;gap:6px 12px}
 #market-activity .ma-alert{border-radius:12px;padding:12px;font-size:13px}
-#market-activity .ma-foot{margin-top:16px;padding:12px;border:1px solid #204d7c;border-radius:10px;background:#071a32;font-size:11px}
+#market-activity .ma-foot{margin-top:16px;padding:12px;border:1px solid #204d7c;border-radius:10px;background:#071a32;font-size:11px}\n#market-activity .ma-alert{background:linear-gradient(110deg,#0b203a,#0b1a31);border:1px solid #234c78;border-left:4px solid #f3b64e;box-shadow:0 3px 10px rgba(0,0,0,.18)}\n#market-activity .ma-kicker:has(+ .ma-intro){letter-spacing:1px}
 #fpi-sector-tilt{border:1px solid #236cc4;border-radius:16px;background:linear-gradient(145deg,#0a2447,#06152e);padding:16px}
-@media(max-width:760px){#market-activity-panel .market-activity-box{padding:11px}#market-activity .ma-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#market-activity .ma-stat,#market-activity .ma-stat-button{min-height:105px}#market-activity .ma-sector-grid{grid-template-columns:1fr}#market-activity-panel>h2{border-radius:16px;padding:14px 10px}}
+@media(max-width:760px){#market-activity-panel .market-activity-box{padding:11px}#market-activity .ma-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#market-activity .ma-stat,#market-activity .ma-stat-button{min-height:105px}#market-activity .ma-two-column-sectors{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#market-activity .ma-sector-group{padding:8px;margin:8px 0 12px}#market-activity .ma-sector-group-title{font-size:clamp(12px,2.5vw,17px);padding:9px 6px;margin:-8px -8px 8px}#market-activity .ma-sector-button{padding:8px}#market-activity .ma-sector-name{font-size:12px}#market-activity .ma-meta{font-size:10px;gap:4px 7px}#market-activity-panel>h2{border-radius:16px;padding:14px 10px}}
 @media(min-width:1100px){#market-activity .ma-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
