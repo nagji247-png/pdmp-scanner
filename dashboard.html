@@ -1774,7 +1774,8 @@ function renderNiftyPremiumRadar(data) {
   const updated = data && data.updated ? new Date(data.updated) : null;
   const validUpdated = updated && Number.isFinite(updated.getTime());
   const ageMin = validUpdated ? (Date.now() - updated.getTime()) / 60000 : Infinity;
-  const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !(n && n.stale);
+  const tradeGuardBlocked = document.getElementById("trade-guard")?.classList.contains("block");
+  const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !tradeGuardBlocked && !(n && n.stale);
   if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
     box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>';
     return;
@@ -1790,7 +1791,7 @@ function renderNiftyPremiumRadar(data) {
   box.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
       <strong style="color:#55e6ff;font-size:16px">PRE-MARKET REFERENCE</strong>
-      <span style="font-size:11px;color:#aab4c4">NIFTY EOD / PDMP snapshot · ${esc(stamp)} IST</span>
+      <span style="font-size:11px;color:#aab4c4">Dashboard snapshot · ${esc(stamp)} IST</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-top:12px">
       <div class="card"><div class="lbl">अंतिम सत्यापित बंद</div><div class="big">${fmt(spot)}</div></div>
