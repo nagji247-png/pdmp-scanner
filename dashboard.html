@@ -1785,12 +1785,7 @@ function renderNiftyPremiumRadar(data) {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
             <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">5 मिनट</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
-            <label class="sub">Strike Price<input id="trinetra-pe-strike" type="number" inputmode="numeric" min="1" step="50" placeholder="जैसे 25800" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:8px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
-            <label class="sub">Expiry<input id="trinetra-pe-expiry" type="date" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:7px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
-          </div>
-          <button type="button" id="trinetra-pe-load" style="width:100%;padding:8px;border:1px solid #a75b6a;border-radius:7px;background:#321d2a;color:#ffdce2;font-weight:700">PE चार्ट दिखाएँ</button>
-          <div id="trinetra-pe-status" class="sub" style="margin:5px 0">Strike और Expiry भरें</div>
+          <div class="sub" style="margin-bottom:6px">TradingView चार्ट में ऊपर Symbol Search से अपना NIFTY PE Strike चुनें।</div>
           <div id="trinetra-pe-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
             <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
           </div>
@@ -1799,18 +1794,13 @@ function renderNiftyPremiumRadar(data) {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
             <b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b><span class="sub">5 मिनट</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
-            <label class="sub">Strike Price<input id="trinetra-ce-strike" type="number" inputmode="numeric" min="1" step="50" placeholder="जैसे 25800" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:8px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
-            <label class="sub">Expiry<input id="trinetra-ce-expiry" type="date" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:7px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
-          </div>
-          <button type="button" id="trinetra-ce-load" style="width:100%;padding:8px;border:1px solid #39866c;border-radius:7px;background:#17352d;color:#d5fff0;font-weight:700">CE चार्ट दिखाएँ</button>
-          <div id="trinetra-ce-status" class="sub" style="margin:5px 0">Strike और Expiry भरें</div>
+          <div class="sub" style="margin-bottom:6px">TradingView चार्ट में ऊपर Symbol Search से अपना NIFTY CE Strike चुनें।</div>
           <div id="trinetra-ce-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
             <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
           </div>
         </div>
       </div>
-      <div class="sub" style="margin-top:8px">Expiry और Strike भरकर संबंधित बटन दबाएँ। TradingView का आधिकारिक Option Symbol format इस्तेमाल होगा। अगर Contract उपलब्ध न हो या Symbol format बदल चुका हो, चार्ट उसे लोड नहीं कर पाएगा। चार्ट का LIVE/DELAYED भाव TradingView की उपलब्धता और आपके डेटा अधिकार पर निर्भर है; यह TRINETRA के Premium Feed में स्वतः नहीं आता।</div>
+      <div class="sub" style="margin-top:8px">PE और CE दोनों चार्ट पहले से खुले रहेंगे। अपने Strike और Expiry का Option Symbol TradingView के Symbol Search में चुनें। भाव LIVE/DELAYED TradingView की उपलब्धता और आपके डेटा अधिकार पर निर्भर है; यह TRINETRA Premium Feed में स्वतः नहीं आता।</div>
     </div>`;
   const mountTradingViewChart = (id, symbol) => {
     const container = box.querySelector("#" + id);
@@ -1844,48 +1834,7 @@ function renderNiftyPremiumRadar(data) {
       const container = box.querySelector("#" + chart.id);
       if (container && !container.querySelector("script")) mountTradingViewChart(chart.id, chart.symbol);
     });
-    ["pe", "ce"].forEach(side => {
-      const button = box.querySelector("#trinetra-" + side + "-load");
-      if (!button || button.dataset.bound === "true") return;
-      button.dataset.bound = "true";
-      button.addEventListener("click", () => {
-        const strikeRaw = box.querySelector("#trinetra-" + side + "-strike")?.value || "";
-        const expiry = box.querySelector("#trinetra-" + side + "-expiry")?.value || "";
-        const strike = Number(strikeRaw);
-        const status = box.querySelector("#trinetra-" + side + "-status");
-        // NIFTY strikes use 50-point intervals. Validate the actual calendar date
-        // and reject expired contracts before constructing a TradingView symbol.
-        const dateParts = expiry.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        const validCalendarDate = (() => {
-          if (!dateParts) return false;
-          const year = Number(dateParts[1]), month = Number(dateParts[2]), day = Number(dateParts[3]);
-          const parsed = new Date(Date.UTC(year, month - 1, day));
-          return parsed.getUTCFullYear() === year &&
-            parsed.getUTCMonth() === month - 1 &&
-            parsed.getUTCDate() === day;
-        })();
-        const todayIST = new Intl.DateTimeFormat("en-CA", {
-          timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
-        }).format(new Date());
-        if (!strikeRaw.trim() || !Number.isInteger(strike) || strike <= 0 || strike % 50 !== 0) {
-          if (status) status.textContent = "NIFTY Strike 50 के गुणक में भरें (जैसे 25800)।";
-          return;
-        }
-        if (!validCalendarDate) {
-          if (status) status.textContent = "कैलेंडर में सही Expiry Date चुनें।";
-          return;
-        }
-        if (expiry < todayIST) {
-          if (status) status.textContent = "बीती हुई Expiry नहीं चुन सकते।";
-          return;
-        }
-        const [yyyy, mm, dd] = expiry.split("-");
-        const optionType = side === "pe" ? "P" : "C";
-        const symbol = "NSE:NIFTY" + yyyy.slice(2) + mm + dd + optionType + strike;
-        if (status) status.textContent = "लोड किया जा रहा है: " + symbol;
-        mountTradingViewChart("trinetra-" + side + "-widget", symbol);
-      });
-    });
+
   };
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
