@@ -35,6 +35,15 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
     def test_manual_asset_refresh_allowed_when_primary_succeeds(self):
         self.assertTrue(fetch_and_score.should_refresh_manual_asset_trends(True, None))
 
+    def test_directional_phrase_diagnostics_run_on_manual_dispatch(self):
+        self.assertTrue(fetch_and_score.should_run_asset_directional_diagnostics("", "workflow_dispatch"))
+
+    def test_directional_phrase_diagnostics_remain_on_final_scheduled_slot(self):
+        self.assertTrue(fetch_and_score.should_run_asset_directional_diagnostics("1900", "schedule"))
+
+    def test_directional_phrase_diagnostics_skip_other_scheduled_slots(self):
+        self.assertFalse(fetch_and_score.should_run_asset_directional_diagnostics("1300", "schedule"))
+
     def _run_with_fake_trends(self, summarize):
         fake = _FakeTrends()
         request_module = types.ModuleType("pytrends.request")
