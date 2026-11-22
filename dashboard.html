@@ -2217,6 +2217,7 @@ function createSilverProjectionCard() {
 }
 function createTradingViewSnapshotCard(title, snapshotUrl, accent, drawingUrl = snapshotUrl, subtitle = "", callToAction = "") {
   const el = document.createElement("details");
+  el.open = true;
   el.className = "tv-snapshot-card";
   el.style.cssText = "grid-column:1/-1;overflow:hidden;border:1px solid "+accent+";border-radius:14px;background:linear-gradient(145deg,#081426,#101c31);box-shadow:0 6px 18px #0007;color:#fff;margin-top:10px";
   const summary = document.createElement("summary");
