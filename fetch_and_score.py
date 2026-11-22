@@ -5013,11 +5013,11 @@ def fetch_asset_directional_trends_diagnostics():
     return output
 
 
-def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False):
+def _attach_asset_directional_trends_diagnostics(output, seeds, enabled=False, diagnostics=None):
     """Attach optional phrase diagnostics without extra Trends calls by default."""
     directional_diagnostics = (
-        fetch_asset_directional_trends_diagnostics() if enabled else {}
-    )
+        diagnostics if diagnostics is not None else fetch_asset_directional_trends_diagnostics()
+    ) if enabled else {}
     for asset in seeds:
         record = output.setdefault(asset, {
             "valid": False, "scope": "asset_specific_google_related_queries_shadow",
@@ -5166,10 +5166,11 @@ def fetch_crude_trends_shadow():
         }}
 
 def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_crude=False):
-    """Refresh five asset seeds together; optionally refresh CRUDEOIL separately.
+    """Refresh asset search data; when requested, prioritize directional phrases.
 
-    Scheduled slots may opt into phrase diagnostics. Manual scans refresh the
-    five asset seeds plus CRUDEOIL but leave the six extra phrase batches off.
+    Directional diagnostics run first so a 429 on related_queries cannot prevent
+    the manual diagnostic requested by the operator. A diagnostic 429 is a hard
+    stop and suppresses all subsequent related-query requests for this scan.
     """
     from pytrends.request import TrendReq
 
@@ -5183,6 +5184,29 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
     source = "Google Trends related_queries · India"
     output = {}
     rate_limited = False
+    diagnostic_seeds = dict(seeds)
+    if include_crude:
+        diagnostic_seeds["CRUDEOIL"] = "crude oil"
+    directional_diagnostics = (
+        fetch_asset_directional_trends_diagnostics()
+        if include_directional_diagnostics else None
+    )
+    if include_directional_diagnostics and any(
+        is_google_trends_rate_limited(item.get("reason"))
+        for item in (directional_diagnostics or {}).values()
+        if isinstance(item, dict) and not item.get("available")
+    ):
+        print("ASSET_TRENDS_RATE_LIMIT_STOP: directional diagnostics hit 429; related-query requests skipped")
+        for asset, seed in diagnostic_seeds.items():
+            output[asset] = {
+                "valid": False, "scope": "asset_specific_google_related_queries_shadow",
+                "seed": seed, "source": source, "timeframe": "now 1-d",
+                "reason": "Related-query refresh skipped because directional diagnostics hit Google Trends rate limit",
+                "production_score_used": False,
+            }
+        return _attach_asset_directional_trends_diagnostics(
+            output, diagnostic_seeds, enabled=True, diagnostics=directional_diagnostics
+        )
     try:
         py = TrendReq(hl="en-IN", tz=-330, timeout=(10, 25))
         py.build_payload(list(seeds.values()), timeframe="now 1-d", geo="IN")
@@ -5329,14 +5353,12 @@ def fetch_asset_trends_shadow(include_directional_diagnostics=False, include_cru
     # Optional only: one bounded phrase payload per requested asset. Keep
     # disabled by default; scheduled scans explicitly enable it. Include crude
     # only when its independent related-query payload was requested.
-    diagnostic_seeds = dict(seeds)
-    if include_crude:
-        diagnostic_seeds["CRUDEOIL"] = "crude oil"
     if rate_limited:
         print("ASSET_TRENDS_RATE_LIMIT_STOP: Explore follow-up requests skipped for this scan")
     return _attach_asset_directional_trends_diagnostics(
         output, diagnostic_seeds,
-        enabled=include_directional_diagnostics and not rate_limited
+        enabled=include_directional_diagnostics,
+        diagnostics=directional_diagnostics
     )
 
 
