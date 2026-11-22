@@ -14,7 +14,7 @@ class NiftyPremiumRadarLevelTests(unittest.TestCase):
         self.assertAlmostEqual(by_label["S1"], round(2 * pivot - 26000, 2))
         self.assertEqual(by_label["पिछला High"], 26000)
         self.assertEqual(by_label["पिछला Low"], 25800)
-        self.assertTrue(all(item["source"].startswith("पिछले पूरे NSE सत्र") for item in levels))
+        self.assertTrue(all(item["source"].startswith("पिछले पूरे सत्र") for item in levels))
 
     def test_invalid_or_missing_ohlc_returns_no_levels(self):
         self.assertEqual(build_previous_session_levels(None, 25800, 25900), [])
