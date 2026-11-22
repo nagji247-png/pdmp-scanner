@@ -1802,7 +1802,20 @@ function renderNiftyPremiumRadar(data) {
       const L=62,R=14,T=16,B=34,pw=w-L-R,ph=h-T-B;
       const valid=(Array.isArray(points)?points:[]).filter(p=>Number.isFinite(Number(p.value))&&Number.isFinite(Date.parse(p.time)));
       ctx.font="11px Arial"; ctx.fillStyle="#9db3cc"; ctx.strokeStyle="rgba(139,169,201,.18)";
-      if(valid.length<2){ctx.fillText(emptyText,14,Math.round(h/2));return;}
+      if(valid.length<2){
+        // Keep a visible chart frame even when the market is closed or no NSE
+        // archive has been captured yet. Never fabricate a price line.
+        for(let i=0;i<=4;i++){
+          const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();
+          ctx.textAlign="right";ctx.fillText("--",L-7,y+4);
+        }
+        for(let i=0;i<=2;i++){
+          const x=L+pw*i/2;ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();
+        }
+        ctx.textAlign="center";ctx.fillText("पिछला डेटा",L,h-10);ctx.fillText("नया डेटा",w-R,h-10);
+        ctx.textAlign="left";ctx.fillStyle="#d7e7f8";ctx.fillText(emptyText,14,Math.round(h/2));
+        return;
+      }
       const vals=valid.map(p=>Number(p.value)); let min=Math.min(...vals),max=Math.max(...vals);
       if(max===min){const pad=Math.max(1,Math.abs(max)*.01);min-=pad;max+=pad;}else{const pad=(max-min)*.12;min-=pad;max+=pad;}
       for(let i=0;i<=4;i++){const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.textAlign="right";ctx.fillText((max-(max-min)*i/4).toLocaleString("en-IN",{maximumFractionDigits:2}),L-7,y+4);}
