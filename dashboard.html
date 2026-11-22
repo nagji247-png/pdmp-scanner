@@ -595,8 +595,6 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
 
-<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">सत्यापित NIFTY डेटा की प्रतीक्षा…</div></div></section>
-
 <section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
 
 <section class="panel flow-panel"><h2>🏦 संस्थागत प्रवाह (FII / DII) <span id="last-updated" class="last-updated">-- --- ---- · --:-- -- IST</span></h2><div class="box" id="flow"></div></section>
@@ -633,6 +631,8 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 <section class="panel stocks-panel"><details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:18px;font-weight:900;color:#4fc3f7;padding:12px 6px;line-height:1.5">🏢 स्टॉक 👇 खोलें</summary><div class="grid" id="stocksMore" style="margin-top:8px"></div></details><div class="grid" id="stocks"></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
+
+<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">सत्यापित NIFTY डेटा की प्रतीक्षा…</div></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>🎯 Verified Prediction Accuracy</h2><div class="box" id="verified-accuracy"></div></section>
 
@@ -3715,7 +3715,6 @@ async function load() {
 
     scoreHistory = await loadHistory();
     renderRange(data.range);
-    renderNiftyPremiumRadar(data);
     renderCrowd(data);
   renderTrapDetector(data);
     renderFlow(data.fii_dii);
@@ -3728,6 +3727,7 @@ async function load() {
     loadFpiSectorTilt(data);
     renderNews(data.market_news);
     renderSectorMap(data);
+    renderNiftyPremiumRadar(data);
     renderFoPanel(data.participant_oi, data.instruments);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
