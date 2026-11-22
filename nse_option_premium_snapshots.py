@@ -81,7 +81,25 @@ def parse_option_chain(payload, expiry, fetched_at=None):
                 "oi": int(_number(leg.get("openInterest")) or 0),
             })
     if not rows:
-        raise ValueError("NSE option-chain response has no valid traded premiums for nearest expiry")
+        available_expiries = sorted({
+            str(item.get("expiryDate", "")).strip()
+            for item in records["data"]
+            if isinstance(item, dict) and item.get("expiryDate")
+        })
+        sample = next((item for item in records["data"] if isinstance(item, dict)), {})
+        sample_legs = {
+            side: {
+                "keys": sorted(sample.get(side, {}).keys()) if isinstance(sample.get(side), dict) else [],
+                "lastPrice": sample.get(side, {}).get("lastPrice") if isinstance(sample.get(side), dict) else None,
+            }
+            for side in ("PE", "CE")
+        }
+        raise ValueError(
+            "NSE option-chain has no valid LTP rows; "
+            f"requested_expiry={expiry!r}; rows={len(records['data'])}; "
+            f"available_expiries={available_expiries[:8]}; "
+            f"sample_expiry={sample.get('expiryDate')!r}; sample_legs={sample_legs}"
+        )
     return {
         "source_timestamp": source_stamp.isoformat(),
         "fetched_at": fetched_at.astimezone(dt.timezone.utc).isoformat(),
