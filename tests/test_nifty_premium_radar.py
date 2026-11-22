@@ -5,10 +5,10 @@ from nifty_premium_radar import build_previous_session_levels
 
 class NiftyPremiumRadarLevelTests(unittest.TestCase):
     def test_builds_classic_pivot_support_and_resistance(self):
-        levels = build_previous_session_levels(26000, 25800, 25900, 25900)
+        levels = build_previous_session_levels(26000, 25800, 25950, 25950)
         self.assertEqual(len(levels), 7)
         by_label = {item["label"]: item["level"] for item in levels}
-        pivot = (26000 + 25800 + 25900) / 3
+        pivot = (26000 + 25800 + 25950) / 3
         self.assertAlmostEqual(by_label["Pivot"], round(pivot, 2))
         self.assertAlmostEqual(by_label["R1"], round(2 * pivot - 25800, 2))
         self.assertAlmostEqual(by_label["S1"], round(2 * pivot - 26000, 2))
