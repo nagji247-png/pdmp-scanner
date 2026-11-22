@@ -1,6 +1,11 @@
 name: NSE NIFTY Option Premium Snapshots
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "nse_option_premium_snapshots.py"
+      - ".github/workflows/nse-option-premium-snapshots.yml"
   pull_request:
     paths:
       - "nse_option_premium_snapshots.py"
