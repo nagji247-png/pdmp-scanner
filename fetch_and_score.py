@@ -4907,14 +4907,48 @@ def _asset_rising_diagnostics(rising, asset):
     }
 
 
+ASSET_DIRECTIONAL_TRENDS_MIN_TOTAL_ANCHOR_RELATIVE_INTEREST = 1.0
+
 ASSET_DIRECTIONAL_TRENDS_QUERIES = {
-    # Search-interest diagnostics only. Query volume is not proof of trader positioning.
-    "NIFTY": {"seed": "nifty", "bull": "nifty breakout", "bear": "nifty crash", "neutral": "nifty sideways"},
-    "SENSEX": {"seed": "sensex", "bull": "sensex rally", "bear": "sensex crash", "neutral": "sensex sideways"},
-    "BANKNIFTY": {"seed": "bank nifty", "bull": "bank nifty breakout", "bear": "bank nifty crash", "neutral": "bank nifty sideways"},
-    "GOLD": {"seed": "gold price", "bull": "gold price rise", "bear": "gold price fall", "neutral": "gold price stable"},
-    "SILVER": {"seed": "silver price", "bull": "silver price rise", "bear": "silver price fall", "neutral": "silver price stable"},
-    "CRUDEOIL": {"seed": "crude oil", "bull": "crude oil price rise", "bear": "crude oil price fall", "neutral": "crude oil price stable"},
+    # Google Trends '+' joins equivalent search terms (OR). Keep one comparison
+    # term per direction so each asset still uses one four-term request.
+    # These are search-interest diagnostics, not trader positioning or crowd shares.
+    "NIFTY": {
+        "seed": "nifty",
+        "bull": "nifty breakout + nifty rally + निफ्टी में तेजी + निफ्टी ऊपर",
+        "bear": "nifty crash + nifty fall + निफ्टी में गिरावट + निफ्टी नीचे",
+        "neutral": "nifty sideways + nifty stable + निफ्टी स्थिर + निफ्टी सपाट",
+    },
+    "SENSEX": {
+        "seed": "sensex",
+        "bull": "sensex rally + sensex rise + सेंसेक्स में तेजी + सेंसेक्स ऊपर",
+        "bear": "sensex crash + sensex fall + सेंसेक्स में गिरावट + सेंसेक्स नीचे",
+        "neutral": "sensex sideways + sensex stable + सेंसेक्स स्थिर + सेंसेक्स सपाट",
+    },
+    "BANKNIFTY": {
+        "seed": "bank nifty",
+        "bull": "bank nifty breakout + bank nifty rally + बैंक निफ्टी में तेजी + बैंक निफ्टी ऊपर",
+        "bear": "bank nifty crash + bank nifty fall + बैंक निफ्टी में गिरावट + बैंक निफ्टी नीचे",
+        "neutral": "bank nifty sideways + bank nifty stable + बैंक निफ्टी स्थिर + बैंक निफ्टी सपाट",
+    },
+    "GOLD": {
+        "seed": "gold price",
+        "bull": "gold price rise + gold rate up + सोने में तेजी + सोना महंगा",
+        "bear": "gold price fall + gold rate down + सोने में गिरावट + सोना सस्ता",
+        "neutral": "gold price stable + gold rate stable + सोने का भाव स्थिर + सोना स्थिर",
+    },
+    "SILVER": {
+        "seed": "silver price",
+        "bull": "silver price rise + silver rate up + चांदी में तेजी + चांदी महंगी",
+        "bear": "silver price fall + silver rate down + चांदी में गिरावट + चांदी सस्ती",
+        "neutral": "silver price stable + silver rate stable + चांदी का भाव स्थिर + चांदी स्थिर",
+    },
+    "CRUDEOIL": {
+        "seed": "crude oil",
+        "bull": "crude oil price rise + crude oil up + कच्चे तेल में तेजी + कच्चा तेल महंगा",
+        "bear": "crude oil price fall + crude oil down + कच्चे तेल में गिरावट + कच्चा तेल सस्ता",
+        "neutral": "crude oil price stable + crude oil steady + कच्चे तेल का भाव स्थिर + कच्चा तेल स्थिर",
+    },
 }
 
 
@@ -4940,6 +4974,12 @@ def _summarize_asset_directional_trends(df, asset, spec):
     total = sum(ratios.values())
     if not math.isfinite(total) or total <= 0:
         raise ValueError("तीनों asset-specific directional phrases का ताज़ा search-interest शून्य है")
+    if total < ASSET_DIRECTIONAL_TRENDS_MIN_TOTAL_ANCHOR_RELATIVE_INTEREST:
+        raise ValueError(
+            "तीनों directional phrase groups की संयुक्त खोज-रुचि asset anchor के "
+            f"{ASSET_DIRECTIONAL_TRENDS_MIN_TOTAL_ANCHOR_RELATIVE_INTEREST:.1f}% से कम है "
+            f"(मिला={total:.2f}%)"
+        )
     mix = {key: round(value / total * 100.0, 1) for key, value in ratios.items()}
     return {
         "available": True,
