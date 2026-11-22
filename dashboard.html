@@ -1786,7 +1786,7 @@ function renderNiftyPremiumRadar(data) {
   const stamp = updated.toLocaleString("en-IN", {timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});
   const levels = Array.isArray(data.levels) ? data.levels.slice(0, 6) : [];
   const levelHtml = levels.length
-    ? levels.map(x => '<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #285078;border-radius:7px;color:#cde7ff">'+fmt(x.level)+'</span>').join("")
+    ? levels.map(x => '<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #285078;border-radius:7px;color:#cde7ff">'+(x.label ? esc(x.label)+' · ' : '')+fmt(x.level)+'</span>').join("")
     : '<span class="sub">अलग वॉच-लेवल उपलब्ध नहीं</span>';
   box.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
