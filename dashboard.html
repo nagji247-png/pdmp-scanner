@@ -1802,9 +1802,8 @@ function renderNiftyPremiumRadar(data) {
       const L=62,R=14,T=16,B=34,pw=w-L-R,ph=h-T-B;
       const valid=(Array.isArray(points)?points:[]).filter(p=>Number.isFinite(Number(p.value))&&Number.isFinite(Date.parse(p.time)));
       ctx.font="11px Arial"; ctx.fillStyle="#9db3cc"; ctx.strokeStyle="rgba(139,169,201,.18)";
-      if(valid.length<2){
-        // Keep a visible chart frame even when the market is closed or no NSE
-        // archive has been captured yet. Never fabricate a price line.
+      if(valid.length===0){
+        // Keep a visible chart frame when no verified NSE point is available.
         for(let i=0;i<=4;i++){
           const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();
           ctx.textAlign="right";ctx.fillText("--",L-7,y+4);
@@ -1820,9 +1819,10 @@ function renderNiftyPremiumRadar(data) {
       if(max===min){const pad=Math.max(1,Math.abs(max)*.01);min-=pad;max+=pad;}else{const pad=(max-min)*.12;min-=pad;max+=pad;}
       for(let i=0;i<=4;i++){const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.textAlign="right";ctx.fillText((max-(max-min)*i/4).toLocaleString("en-IN",{maximumFractionDigits:2}),L-7,y+4);}
       const t0=Date.parse(valid[0].time),t1=Date.parse(valid[valid.length-1].time),span=Math.max(1,t1-t0);
+      const pointX=p=>valid.length===1?L+pw/2:L+(Date.parse(p.time)-t0)/span*pw;
       ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
-      valid.forEach((p,i)=>{const x=L+(Date.parse(p.time)-t0)/span*pw,y=T+(max-Number(p.value))/(max-min)*ph;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
-      ctx.fillStyle=color;valid.forEach(p=>{const x=L+(Date.parse(p.time)-t0)/span*pw,y=T+(max-Number(p.value))/(max-min)*ph;ctx.beginPath();ctx.arc(x,y,2.4,0,Math.PI*2);ctx.fill();});
+      valid.forEach((p,i)=>{const x=pointX(p),y=T+(max-Number(p.value))/(max-min)*ph;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+      ctx.fillStyle=color;valid.forEach(p=>{const x=pointX(p),y=T+(max-Number(p.value))/(max-min)*ph;ctx.beginPath();ctx.arc(x,y,valid.length===1?5:2.8,0,Math.PI*2);ctx.fill();});
       ctx.fillStyle="#9db3cc";ctx.textAlign="center";[0,.5,1].forEach(f=>ctx.fillText(new Date(t0+span*f).toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hour12:false}),L+pw*f,h-10));
     };
     const render = () => {
