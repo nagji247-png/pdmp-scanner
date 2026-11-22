@@ -61,7 +61,7 @@ def parse_option_chain(payload, expiry, fetched_at=None):
         fetched_at = dt.datetime.now(dt.timezone.utc)
     rows = []
     for item in records["data"]:
-        if not isinstance(item, dict) or item.get("expiryDate") != expiry:
+        if not isinstance(item, dict):
             continue
         strike = _number(item.get("strikePrice"))
         if strike is None or strike <= 0:
@@ -69,6 +69,9 @@ def parse_option_chain(payload, expiry, fetched_at=None):
         for side in ("PE", "CE"):
             leg = item.get(side)
             if not isinstance(leg, dict):
+                continue
+            leg_expiry = str(leg.get("expiryDate") or item.get("expiryDate") or "").strip()
+            if leg_expiry and leg_expiry != expiry:
                 continue
             ltp = _number(leg.get("lastPrice"))
             if ltp is None or ltp <= 0:
@@ -82,9 +85,11 @@ def parse_option_chain(payload, expiry, fetched_at=None):
             })
     if not rows:
         available_expiries = sorted({
-            str(item.get("expiryDate", "")).strip()
-            for item in records["data"]
-            if isinstance(item, dict) and item.get("expiryDate")
+            str(leg.get("expiryDate", "")).strip()
+            for item in records["data"] if isinstance(item, dict)
+            for side in ("PE", "CE")
+            for leg in [item.get(side)]
+            if isinstance(leg, dict) and leg.get("expiryDate")
         })
         sample = next((item for item in records["data"] if isinstance(item, dict)), {})
         sample_legs = {
@@ -98,7 +103,7 @@ def parse_option_chain(payload, expiry, fetched_at=None):
             "NSE option-chain has no valid LTP rows; "
             f"requested_expiry={expiry!r}; rows={len(records['data'])}; "
             f"available_expiries={available_expiries[:8]}; "
-            f"sample_expiry={sample.get('expiryDate')!r}; sample_legs={sample_legs}"
+            f"sample_expiries={{side: sample.get(side, {{}}).get('expiryDate') if isinstance(sample.get(side), dict) else None for side in ('PE', 'CE')}}; sample_legs={sample_legs}"
         )
     return {
         "source_timestamp": source_stamp.isoformat(),
