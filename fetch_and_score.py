@@ -5009,6 +5009,11 @@ def fetch_asset_directional_trends_diagnostics():
                 "timeframe": "now 1-d",
                 "reason": reason,
             }
+            print(
+                "ASSET_DIRECTIONAL_TRENDS_RESULT: "
+                f"asset={asset} available=False "
+                f"reason={reason[:180]}"
+            )
             # Google Trends throttling is a hard stop. Do not continue with
             # the remaining four-phrase batches after a 429/rate-limit response.
             lowered = reason.lower()
