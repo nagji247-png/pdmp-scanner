@@ -23,6 +23,7 @@ import requests
 from curl_cffi import requests as curl_requests
 from crowd_trap_detector import build_crowd_trap_snapshot
 from stock_basket_freshness import expected_latest_completed_session, is_exchange_session, load_exchange_calendar
+from nifty_premium_radar import build_previous_session_levels
 
 # ---- इंडेक्स और कमोडिटी ----
 # (yfinance सिंबल, न्यूज़ खोज शब्द)
@@ -141,9 +142,6 @@ MARKET_IMPACT_WORDS = [
 # भीड़ की सोच: इस सीमा से ऊपर/नीचे का मतलब "सोच एकतरफ़ा" है
 CROWD_EXTREME = 70
 CROWD_LOW = 30
-# Nifty के वॉच-स्तर (आप यहाँ अपने लेवल जोड़ सकते हैं)
-NIFTY_WATCH_LEVELS = [21000, 22000, 23000]
-
 # ⚡ संकेत: स्कोर और कीमत की दिशा अलग हो, इन सीमाओं के साथ
 DIV_SCORE_MIN = 1.0
 DIV_CHANGE_MIN = 0.2
@@ -4194,33 +4192,57 @@ def score_opportunities(raws):
 
 
 def nifty_range():
-    """India VIX से अगले सत्र का 68% संभावना वाला दायरा।
-    सूत्र: दैनिक σ = VIX/100 ÷ √252, फिर अंतिम बंद × σ।"""
+    """पिछले पूरे NSE सत्र के OHLC और उसी सत्र के India VIX से संदर्भ रेंज।"""
     try:
-        vix_s = yf.Ticker("^INDIAVIX").history(period="5d")["Close"].dropna()
-        nifty_s = yf.Ticker("^NSEI").history(period="5d")["Close"].dropna()
-        if vix_s.empty or nifty_s.empty:
-            raise ValueError("VIX या निफ़्टी का डेटा खाली है")
-        vix = float(vix_s.iloc[-1])
-        last = float(nifty_s.iloc[-1])
+        now_ist = dt.datetime.now(dt.timezone.utc).astimezone(
+            dt.timezone(dt.timedelta(hours=5, minutes=30)))
+        vix_frame = yf.Ticker("^INDIAVIX").history(period="10d", interval="1d")
+        nifty_frame = yf.Ticker("^NSEI").history(period="10d", interval="1d")
+        if vix_frame is None or vix_frame.empty or nifty_frame is None or nifty_frame.empty:
+            raise ValueError("VIX या निफ़्टी का दैनिक डेटा खाली है")
+
+        # आज की अधूरी दैनिक candle को 15:45 IST से पहले पिछले सत्र का OHLC न मानें।
+        if (now_ist.time() < dt.time(15, 45)
+                and nifty_frame.index[-1].date() == now_ist.date()):
+            nifty_frame = nifty_frame.iloc[:-1]
+        if nifty_frame.empty:
+            raise ValueError("पिछले पूरे सत्र का NIFTY OHLC उपलब्ध नहीं")
+
+        row = nifty_frame.iloc[-1]
+        prev_date = nifty_frame.index[-1].date()
+        high, low, last = float(row["High"]), float(row["Low"]), float(row["Close"])
+        if not all(math.isfinite(x) and x > 0 for x in (high, low, last)) or high < low:
+            raise ValueError("पिछले सत्र का NIFTY OHLC अमान्य है")
+
+        # VIX को उसी या उससे पहले के पूरे NIFTY सत्र की तारीख से align करें।
+        vix_completed = vix_frame[vix_frame.index.date <= prev_date]
+        if vix_completed.empty:
+            raise ValueError("NIFTY सत्र से मेल खाता पूरा India VIX डेटा उपलब्ध नहीं")
+        vix = float(vix_completed["Close"].dropna().iloc[-1])
+        if not math.isfinite(vix) or vix <= 0:
+            raise ValueError("India VIX का मान अमान्य है")
+
         pct = vix / 100 / math.sqrt(252)
         pts = last * pct
         return {"ok": True, "vix": round(vix, 2), "last_close": round(last, 2),
+                "low": round(last - pts, 1), "high": round(last + pts, 1),
                 "move_pts": round(pts, 1), "move_pct": round(pct * 100, 2),
-                "low": round(last - pts, 1), "high": round(last + pts, 1)}
+                "previous_session": {"date": prev_date.isoformat(), "high": high,
+                                     "low": low, "close": last}}
     except Exception as e:
         return {"ok": False, "error": f"रेंज नहीं निकली: {e}"}
 
 
 def build_levels(range_info):
-    """Nifty के वॉच-स्तर और अंतिम बंद से उनकी दूरी (%)।"""
+    """पिछले पूरे सत्र के OHLC से Pivot, Support और Resistance स्तर।"""
     if not range_info or not range_info.get("ok"):
         return []
-    last = range_info["last_close"]
-    out = []
-    for lvl in NIFTY_WATCH_LEVELS:
-        out.append({"level": lvl, "dist_pct": round((lvl / last - 1) * 100, 2)})
-    return out
+    previous = range_info.get("previous_session") or {}
+    last = range_info.get("last_close")
+    levels = build_previous_session_levels(
+        previous.get("high"), previous.get("low"), previous.get("close"), last
+    )
+    return levels
 
 
 def fetch_fii_dii():

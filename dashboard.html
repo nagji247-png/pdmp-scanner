@@ -632,6 +632,8 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
 
+<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">NIFTY डेटा की प्रतीक्षा…</div></div></section>
+
 <section class="panel" style="grid-column:1 / -1"><h2>🎯 Verified Prediction Accuracy</h2><div class="box" id="verified-accuracy"></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>📰 बाज़ार पर असर वाली ताज़ा खबरें</h2><div class="box" id="news"></div></section>
@@ -1762,6 +1764,183 @@ function card(name, d, participantOI, observedAt) {
     openChart(name);
   });
   return el;
+}
+
+function renderNiftyPremiumRadar(data) {
+  const box = document.getElementById("nifty-premium-radar");
+  if (!box) return;
+  // Preserve the complete TradingView section, including its widget instance and provider links.
+  // Recreating it on each refresh or temporary stale-data state resets the chart selection/zoom.
+  const existingTvSection = box.querySelector(".trinetra-tv-section");
+  const tvSectionHtml = `    <style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>\n    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
+        <b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b>
+        <span class="sub">5 मिनट · TradingView</span>
+      </div>
+      <div id="trinetra-tv-widget" class="tradingview-widget-container" style="height:430px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730">
+        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+      </div>
+      <div class="trinetra-premium-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
+        <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
+            <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">5 मिनट</span>
+          </div>
+          <div class="sub" style="margin-bottom:6px">TradingView चार्ट में ऊपर Symbol Search से अपना NIFTY PE Strike चुनें।</div>
+          <div id="trinetra-pe-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
+            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+          </div>
+        </div>
+        <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
+            <b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b><span class="sub">5 मिनट</span>
+          </div>
+          <div class="sub" style="margin-bottom:6px">TradingView चार्ट में ऊपर Symbol Search से अपना NIFTY CE Strike चुनें।</div>
+          <div id="trinetra-ce-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
+            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sub" style="margin-top:8px">PE और CE दोनों चार्ट पहले से खुले रहेंगे। अपने Strike और Expiry का Option Symbol TradingView के Symbol Search में चुनें। भाव LIVE/DELAYED TradingView की उपलब्धता और आपके डेटा अधिकार पर निर्भर है; यह TRINETRA Premium Feed में स्वतः नहीं आता।</div>
+    </div>`;
+  const mountTradingViewChart = (id, symbol) => {
+    const container = box.querySelector("#" + id);
+    if (!container) return;
+    container.innerHTML = '<div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>';
+    const tvScript = document.createElement("script");
+    tvScript.type = "text/javascript";
+    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    tvScript.async = true;
+    tvScript.text = JSON.stringify({
+      autosize: true,
+      symbol,
+      interval: "5",
+      timezone: "Asia/Kolkata",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      allow_symbol_change: true,
+      calendar: false,
+      support_host: "https://www.tradingview.com"
+    });
+    container.appendChild(tvScript);
+  };
+  const initializeTradingView = () => {
+    const charts = [
+      { id: "trinetra-tv-widget", symbol: "NSE:NIFTY" },
+      { id: "trinetra-pe-widget", symbol: "NSE:NIFTY" },
+      { id: "trinetra-ce-widget", symbol: "NSE:NIFTY" }
+    ];
+    charts.forEach(chart => {
+      const container = box.querySelector("#" + chart.id);
+      if (container && !container.querySelector("script")) mountTradingViewChart(chart.id, chart.symbol);
+    });
+
+  };
+  const r = data && data.range;
+  const n = data && data.instruments && data.instruments.NIFTY;
+  const updated = data && data.updated ? new Date(data.updated) : null;
+  const validUpdated = updated && Number.isFinite(updated.getTime());
+  const ageMin = validUpdated ? (Date.now() - updated.getTime()) / 60000 : Infinity;
+  const tradeGuardBlocked = document.getElementById("trade-guard")?.classList.contains("block");
+  const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !tradeGuardBlocked && !(n && n.stale);
+  if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
+    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>' + tvSectionHtml;
+    const staleTvSlot = box.querySelector("#trinetra-tv-section-slot");
+    if (existingTvSection && staleTvSlot) staleTvSlot.replaceWith(existingTvSection);
+    else initializeTradingView();
+    return;
+  }
+  const previous = r.previous_session || {};
+  const spot = Number(r.last_close);
+  const fmt = value => Number(value).toLocaleString("en-IN", {maximumFractionDigits: 2});
+  const stamp = updated.toLocaleString("en-IN", {timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});
+  const levels = Array.isArray(data.levels) ? data.levels.slice(0, 7) : [];
+  const levelHtml = levels.length
+    ? levels.map(x => '<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #285078;border-radius:7px;color:#cde7ff">'+(x.label ? esc(x.label)+' · ' : '')+fmt(x.level)+'</span>').join("")
+    : '<span class="sub">अलग वॉच-लेवल उपलब्ध नहीं</span>';
+
+  // Only a timestamped NSE/validated live quote from today's open session may drive a spot trigger.
+  const quoteDate = String(n && n.price_as_of || "").trim();
+  const quoteTime = String(n && n.price_time || "").trim();
+  const dateMatch = quoteDate.match(/^(?:(\d{2})\/(\d{2})\/(\d{4})|(\d{4})-(\d{2})-(\d{2})|(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4}))/);
+  const timeMatch = quoteTime.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
+  let quoteAgeMin = Infinity;
+  if (dateMatch && timeMatch) {
+    const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const day = Number(dateMatch[1] || dateMatch[6] || dateMatch[7]);
+    const month = Number(dateMatch[2] || dateMatch[5] || months[dateMatch[8]]);
+    const year = Number(dateMatch[3] || dateMatch[4] || dateMatch[9]);
+    let hh = Number(timeMatch[1]) % 12;
+    const mm = Number(timeMatch[2]);
+    if (timeMatch[3].toUpperCase() === "PM") hh += 12;
+    const validDate = month >= 1 && month <= 12 && day >= 1 && day <= 31;
+    const validTime = hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
+    if (validDate && validTime) {
+      // Convert the published IST clock to UTC explicitly; do not depend on device timezone.
+      const qDate = Date.UTC(year, month - 1, day, hh, mm) - 330 * 60000;
+      const check = new Date(Date.UTC(year, month - 1, day));
+      if (check.getUTCFullYear() === year && check.getUTCMonth() === month - 1 && check.getUTCDate() === day) {
+        quoteAgeMin = (Date.now() - qDate) / 60000;
+      }
+    }
+  }
+  const liveSpot = Number(n && n.price);
+  const liveQuoteFresh = data.market_closed !== true && Number.isFinite(liveSpot) && liveSpot > 0
+    && quoteAgeMin >= -2 && quoteAgeMin <= 15;
+  // Use today's verified quote for ATM only while fresh; otherwise retain the previous-close reference.
+  const atmReferenceSpot = liveQuoteFresh ? liveSpot : spot;
+  const atm = Math.round(atmReferenceSpot / 50) * 50;
+  const atmLabel = liveQuoteFresh ? "ताज़ा Spot आधारित ATM" : "पिछले बंद पर ATM संदर्भ";
+  let triggerTitle = "ताज़ा live Spot Quote उपलब्ध नहीं";
+  let triggerDetail = "अंतिम बंद और पिछले सत्र के स्तर केवल संदर्भ हैं। आज का Spot Quote मिलने तक कोई CE/PE दिशा नहीं।";
+  let triggerSide = "NO TRADE";
+  if (liveQuoteFresh && Number.isFinite(Number(previous.high)) && Number.isFinite(Number(previous.low))) {
+    if (liveSpot > Number(previous.high)) {
+      triggerTitle = "पिछले High के ऊपर — CE निगरानी";
+      triggerDetail = "Spot पिछले सत्र के High से ऊपर है। इसे breakout entry न मानें; 5m/15m candle close और retest/reclaim की पुष्टि बाकी है।";
+      triggerSide = "CE WATCH · CONFIRMATION PENDING";
+    } else if (liveSpot < Number(previous.low)) {
+      triggerTitle = "पिछले Low के नीचे — PE निगरानी";
+      triggerDetail = "Spot पिछले सत्र के Low से नीचे है। इसे breakdown entry न मानें; 5m/15m candle close और retest/rejection की पुष्टि बाकी है।";
+      triggerSide = "PE WATCH · CONFIRMATION PENDING";
+    } else {
+      triggerTitle = "पिछले High–Low के बीच — Range";
+      triggerDetail = "Spot पिछले सत्र की range में है। स्पष्ट breakout/breakdown और retest मिलने तक CE/PE में जल्दबाज़ी नहीं।";
+      triggerSide = "WAIT · RANGE";
+    }
+  }
+  box.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
+      <strong style="color:#55e6ff;font-size:16px">PRE-MARKET REFERENCE</strong>
+      <span style="font-size:11px;color:#aab4c4">Dashboard snapshot · ${esc(stamp)} IST</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-top:12px">
+      <div class="card"><div class="lbl">पिछले पूरे सत्र का बंद</div><div class="big">${fmt(spot)}</div></div>
+      <div class="card"><div class="lbl">${atmLabel}</div><div class="big">${fmt(atm)}</div><div class="sub">${liveQuoteFresh ? 'Live Spot '+fmt(liveSpot)+' · '+esc(quoteTime) : 'पिछले बंद '+fmt(spot)+' के आधार पर · 50-पॉइंट अंतर'}</div></div>
+      <div class="card"><div class="lbl">VIX आधारित संभावित रेंज</div><div class="big" style="font-size:19px">${fmt(r.low)} – ${fmt(r.high)}</div><div class="sub">68% सांख्यिकीय अनुमान, गारंटी नहीं</div></div>
+    </div>
+    <div style="margin-top:12px"><b>CE निगरानी:</b> ${fmt(atm)} CE · <b>PE निगरानी:</b> ${fmt(atm)} PE</div>
+    <div style="margin-top:8px"><b>महत्वपूर्ण स्पॉट वॉच-लेवल:</b><div style="margin-top:5px">${levelHtml}</div></div><div class="sub" style="margin-top:4px">स्रोत: Yahoo Finance दैनिक OHLC · ये संदर्भ स्तर हैं, लाइव स्पॉट या Option Premium नहीं।</div>
+    <div style="margin-top:12px;padding:10px;border:1px solid #285078;border-radius:9px">
+      <b style="color:#8edbff">SPOT TRIGGER · ${esc(triggerSide)}</b>
+      <div style="font-weight:800;margin-top:5px">${esc(triggerTitle)}</div>
+      <div class="sub" style="margin-top:5px">${esc(triggerDetail)}</div>
+      <div class="sub" style="margin-top:5px">${liveQuoteFresh ? 'Live Spot: '+fmt(liveSpot)+' · '+esc(quoteTime) : 'Live Spot quote timestamp/freshness verified नहीं'}</div>
+    </div>
+    <div style="margin-top:12px;padding:10px;border:1px solid #a56b32;border-radius:9px;background:rgba(95,55,16,.16)">
+      <b style="color:#ffd28a">⏳ OPTION PREMIUM FEED CONNECTED नहीं</b>
+      <div class="sub" style="margin-top:5px">CE/PE का वास्तविक या प्रमाणित DELAYED LTP, प्रीमियम-वैल्यू ज़ोन, एंट्री, SL और Target अभी उपलब्ध नहीं। इसलिए ATM स्ट्राइक केवल निगरानी संदर्भ है—BUY CALL नहीं।</div>
+      <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · 5m/15m candle और premium पुष्टि बाकी</div>
+    </div>
+    <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होगा।</div>
+    ${tvSectionHtml}`;
+  // Preserve the existing widget instance on refresh; initialize only on first render.
+  const tvSlot = box.querySelector("#trinetra-tv-section-slot");
+  if (existingTvSection && tvSlot) {
+    tvSlot.replaceWith(existingTvSection);
+  } else {
+    initializeTradingView();
+  }
 }
 
 function renderRange(r) {
@@ -3683,6 +3862,7 @@ async function load() {
     loadFpiSectorTilt(data);
     renderNews(data.market_news);
     renderSectorMap(data);
+    renderNiftyPremiumRadar(data);
     renderFoPanel(data.participant_oi, data.instruments);
   } catch (err) {
     document.getElementById("status").textContent = "डेटा लोड नहीं हुआ: " + err.message;
