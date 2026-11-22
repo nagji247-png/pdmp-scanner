@@ -120,8 +120,8 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
             }
             for asset in fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES
         }
-        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}), \\
-             patch.object(fetch_and_score, "fetch_asset_directional_trends_diagnostics", return_value=diagnostic_result) as diagnostic, \\
+        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}), \
+             patch.object(fetch_and_score, "fetch_asset_directional_trends_diagnostics", return_value=diagnostic_result) as diagnostic, \
              patch.object(fetch_and_score.time, "sleep"):
             result = fetch_and_score.fetch_asset_trends_shadow(
                 include_directional_diagnostics=True, include_crude=True
