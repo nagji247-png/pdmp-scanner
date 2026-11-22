@@ -1793,7 +1793,7 @@ function renderNiftyPremiumRadar(data) {
       niftyTv.style.height = "500px";
       niftyTv.style.width = "100%";
       const widgetHost = niftyTv.querySelector(".tradingview-widget-container__widget") || niftyTv;
-      widgetHost.style.height = "100%";
+      widgetHost.style.height = "calc(100% - 32px)";
       widgetHost.style.width = "100%";
       const widgetScript = document.createElement("script");
       widgetScript.type = "text/javascript";
@@ -1815,7 +1815,10 @@ function renderNiftyPremiumRadar(data) {
         const fallback = niftyTv.querySelector(".trinetra-tv-fallback");
         if (fallback) fallback.style.display = "block";
       };
-      widgetHost.replaceChildren(widgetScript);
+      // TradingView's official embed expects the script as a direct child of
+      // .tradingview-widget-container, alongside its __widget target.
+      // Nesting it inside __widget breaks the widget's container discovery.
+      niftyTv.appendChild(widgetScript);
     }
     const strikeInput = section.querySelector("#trinetra-premium-strike");
     const expiryLabel = section.querySelector("#trinetra-premium-expiry");
