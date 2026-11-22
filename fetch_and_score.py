@@ -4984,6 +4984,20 @@ def fetch_asset_directional_trends_diagnostics():
             py.build_payload(terms, timeframe="now 1-d", geo="IN")
             frame = py.interest_over_time()
             output[asset] = _summarize_asset_directional_trends(frame, asset, spec)
+            diagnostic = output[asset]
+            ratios = diagnostic.get("anchor_relative_interest_pct") or {}
+            mix = diagnostic.get("query_interest_mix_pct") or {}
+            print(
+                "ASSET_DIRECTIONAL_TRENDS_RESULT: "
+                f"asset={asset} available={bool(diagnostic.get('available'))} "
+                f"bullish_pct={mix.get('bull')} bearish_pct={mix.get('bear')} "
+                f"neutral_pct={mix.get('neutral')} "
+                f"bullish_anchor_interest={ratios.get('bull')} "
+                f"bearish_anchor_interest={ratios.get('bear')} "
+                f"neutral_anchor_interest={ratios.get('neutral')} "
+                f"source_data_time={diagnostic.get('source_data_time')} "
+                f"denominator=three_phrase_interest_mix"
+            )
         except Exception as exc:
             reason = str(exc)[:220]
             output[asset] = {
@@ -4995,6 +5009,11 @@ def fetch_asset_directional_trends_diagnostics():
                 "timeframe": "now 1-d",
                 "reason": reason,
             }
+            print(
+                "ASSET_DIRECTIONAL_TRENDS_RESULT: "
+                f"asset={asset} available=False "
+                f"reason={reason[:180]}"
+            )
             # Google Trends throttling is a hard stop. Do not continue with
             # the remaining four-phrase batches after a 429/rate-limit response.
             lowered = reason.lower()
@@ -5009,6 +5028,11 @@ def fetch_asset_directional_trends_diagnostics():
                         "timeframe": "now 1-d",
                         "reason": "Google Trends rate limit; remaining asset requests stopped to protect quota",
                     }
+                    print(
+                        "ASSET_DIRECTIONAL_TRENDS_RESULT: "
+                        f"asset={pending_asset} available=False "
+                        "reason=skipped_after_google_trends_rate_limit"
+                    )
                 break
     return output
 
