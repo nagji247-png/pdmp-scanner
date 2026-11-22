@@ -5028,6 +5028,11 @@ def fetch_asset_directional_trends_diagnostics():
                         "timeframe": "now 1-d",
                         "reason": "Google Trends rate limit; remaining asset requests stopped to protect quota",
                     }
+                    print(
+                        "ASSET_DIRECTIONAL_TRENDS_RESULT: "
+                        f"asset={pending_asset} available=False "
+                        "reason=skipped_after_google_trends_rate_limit"
+                    )
                 break
     return output
 
