@@ -6446,8 +6446,8 @@ def main():
 
     result["trends"] = trends
     # Refresh asset-specific Search on scheduled slots and explicit manual scans.
-    # Manual scans use one five-seed batch plus one CRUDEOIL batch; they do not
-    # launch the six extra directional phrase requests, keeping 429 risk bounded.
+    # Manual scans also run the six asset-scoped directional phrase batches so
+    # BULLISH/BEARISH/NEUTRAL can be checked immediately. The helper stops on 429.
     # If primary Crowd Trends failed, do not add more Google requests in that run.
     _previous_asset_instruments = previous.get("instruments") or {}
     _fresh_asset_search = None
@@ -6473,10 +6473,12 @@ def main():
     elif should_refresh_asset_search(trends_scan, os.getenv("GITHUB_EVENT_NAME", "")):
         if should_refresh_manual_asset_trends(trends.get("ok"), trends.get("error")):
             if trends.get("ok"):
-                print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL (phrase diagnostics skipped to limit requests)")
+                print("ASSET_TRENDS_REFRESH: manual/controlled validation scan; refreshing five asset seeds + CRUDEOIL + six Google Trends directional phrase batches")
             else:
-                print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends unavailable without rate limit; attempting one bounded five-seed + CRUDEOIL asset refresh")
-            _fresh_asset_search = fetch_asset_trends_shadow(include_crude=True)
+                print("ASSET_TRENDS_REFRESH: manual primary Crowd Trends unavailable without rate limit; attempting asset seeds + CRUDEOIL + six directional phrase batches")
+            _fresh_asset_search = fetch_asset_trends_shadow(
+                include_directional_diagnostics=True, include_crude=True
+            )
         else:
             print("ASSET_TRENDS_REFRESH: Google Trends rate limit detected; all secondary asset requests skipped")
     attach_asset_search_snapshots(
