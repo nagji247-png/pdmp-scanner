@@ -1845,7 +1845,7 @@ function renderNiftyPremiumRadar(data) {
       <span style="font-size:11px;color:#aab4c4">Dashboard snapshot · ${esc(stamp)} IST</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-top:12px">
-      <div class="card"><div class="lbl">अंतिम सत्यापित बंद</div><div class="big">${fmt(spot)}</div></div>
+      <div class="card"><div class="lbl">पिछले पूरे सत्र का बंद</div><div class="big">${fmt(spot)}</div></div>
       <div class="card"><div class="lbl">${atmLabel}</div><div class="big">${fmt(atm)}</div><div class="sub">${liveQuoteFresh ? 'Live Spot '+fmt(liveSpot)+' · '+esc(quoteTime) : 'पिछले बंद '+fmt(spot)+' के आधार पर · 50-पॉइंट अंतर'}</div></div>
       <div class="card"><div class="lbl">VIX आधारित संभावित रेंज</div><div class="big" style="font-size:19px">${fmt(r.low)} – ${fmt(r.high)}</div><div class="sub">68% सांख्यिकीय अनुमान, गारंटी नहीं</div></div>
     </div>
