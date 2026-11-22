@@ -1783,27 +1783,57 @@ function renderNiftyPremiumRadar(data) {
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
         <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
-            <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b>
-            <span class="sub">5 मिनट</span>
+            <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">5 मिनट</span>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
+            <label class="sub">Strike Price<input id="trinetra-pe-strike" type="number" inputmode="numeric" min="1" step="50" placeholder="जैसे 25800" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:8px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
+            <label class="sub">Expiry<input id="trinetra-pe-expiry" type="date" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:7px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
+          </div>
+          <button type="button" id="trinetra-pe-load" style="width:100%;padding:8px;border:1px solid #a75b6a;border-radius:7px;background:#321d2a;color:#ffdce2;font-weight:700">PE चार्ट दिखाएँ</button>
+          <div id="trinetra-pe-status" class="sub" style="margin:5px 0">Strike और Expiry भरें</div>
           <div id="trinetra-pe-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
             <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
           </div>
-          <div class="sub" style="margin-top:6px">चार्ट के ऊपर Symbol Search में अपना NIFTY PE strike/expiry चुनें।</div>
         </div>
         <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
-            <b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b>
-            <span class="sub">5 मिनट</span>
+            <b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b><span class="sub">5 मिनट</span>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
+            <label class="sub">Strike Price<input id="trinetra-ce-strike" type="number" inputmode="numeric" min="1" step="50" placeholder="जैसे 25800" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:8px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
+            <label class="sub">Expiry<input id="trinetra-ce-expiry" type="date" style="display:block;box-sizing:border-box;width:100%;margin-top:3px;padding:7px;border:1px solid #42617f;border-radius:6px;background:#0b1730;color:#fff"></label>
+          </div>
+          <button type="button" id="trinetra-ce-load" style="width:100%;padding:8px;border:1px solid #39866c;border-radius:7px;background:#17352d;color:#d5fff0;font-weight:700">CE चार्ट दिखाएँ</button>
+          <div id="trinetra-ce-status" class="sub" style="margin:5px 0">Strike और Expiry भरें</div>
           <div id="trinetra-ce-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
             <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
           </div>
-          <div class="sub" style="margin-top:6px">चार्ट के ऊपर Symbol Search में अपना NIFTY CE strike/expiry चुनें।</div>
         </div>
       </div>
-      <div class="sub" style="margin-top:8px">हर चार्ट के Symbol Search से उपलब्ध contract की सही expiry और strike चुनें। TradingView में उपलब्धता और real-time entitlement अलग हो सकते हैं; चार्ट का भाव अपने TradingView डेटा अधिकार के अनुसार LIVE या DELAYED होगा। ये चार्ट TRINETRA के Premium Feed/स्कोर में स्वतः डेटा नहीं भेजते।</div>
+      <div class="sub" style="margin-top:8px">Expiry और Strike भरकर संबंधित बटन दबाएँ। TradingView का आधिकारिक Option Symbol format इस्तेमाल होगा। अगर Contract उपलब्ध न हो या Symbol format बदल चुका हो, चार्ट उसे लोड नहीं कर पाएगा। चार्ट का LIVE/DELAYED भाव TradingView की उपलब्धता और आपके डेटा अधिकार पर निर्भर है; यह TRINETRA के Premium Feed में स्वतः नहीं आता।</div>
     </div>`;
+  const mountTradingViewChart = (id, symbol) => {
+    const container = box.querySelector("#" + id);
+    if (!container) return;
+    container.innerHTML = '<div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>';
+    const tvScript = document.createElement("script");
+    tvScript.type = "text/javascript";
+    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    tvScript.async = true;
+    tvScript.text = JSON.stringify({
+      autosize: true,
+      symbol,
+      interval: "5",
+      timezone: "Asia/Kolkata",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      allow_symbol_change: true,
+      calendar: false,
+      support_host: "https://www.tradingview.com"
+    });
+    container.appendChild(tvScript);
+  };
   const initializeTradingView = () => {
     const charts = [
       { id: "trinetra-tv-widget", symbol: "NSE:NIFTY" },
@@ -1812,24 +1842,27 @@ function renderNiftyPremiumRadar(data) {
     ];
     charts.forEach(chart => {
       const container = box.querySelector("#" + chart.id);
-      if (!container || container.querySelector("script")) return;
-      const tvScript = document.createElement("script");
-      tvScript.type = "text/javascript";
-      tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-      tvScript.async = true;
-      tvScript.text = JSON.stringify({
-        autosize: true,
-        symbol: chart.symbol,
-        interval: "5",
-        timezone: "Asia/Kolkata",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        allow_symbol_change: true,
-        calendar: false,
-        support_host: "https://www.tradingview.com"
+      if (container && !container.querySelector("script")) mountTradingViewChart(chart.id, chart.symbol);
+    });
+    ["pe", "ce"].forEach(side => {
+      const button = box.querySelector("#trinetra-" + side + "-load");
+      if (!button || button.dataset.bound === "true") return;
+      button.dataset.bound = "true";
+      button.addEventListener("click", () => {
+        const strikeRaw = box.querySelector("#trinetra-" + side + "-strike")?.value || "";
+        const expiry = box.querySelector("#trinetra-" + side + "-expiry")?.value || "";
+        const strike = Number(strikeRaw);
+        const status = box.querySelector("#trinetra-" + side + "-status");
+        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(expiry) || !Number.isInteger(strike) || strike <= 0) {
+          if (status) status.textContent = "सही Strike Price और Expiry भरें।";
+          return;
+        }
+        const [yyyy, mm, dd] = expiry.split("-");
+        const optionType = side === "pe" ? "P" : "C";
+        const symbol = "NSE:NIFTY" + yyyy.slice(2) + mm + dd + optionType + strike;
+        if (status) status.textContent = "लोड किया जा रहा है: " + symbol;
+        mountTradingViewChart("trinetra-" + side + "-widget", symbol);
       });
-      container.appendChild(tvScript);
     });
   };
   const r = data && data.range;
