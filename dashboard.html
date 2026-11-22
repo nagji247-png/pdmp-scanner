@@ -1792,13 +1792,14 @@ function renderNiftyPremiumRadar(data) {
   // Only a timestamped NSE/validated live quote from today's open session may drive a spot trigger.
   const quoteDate = String(n && n.price_as_of || "").trim();
   const quoteTime = String(n && n.price_time || "").trim();
-  const dateMatch = quoteDate.match(/^(?:(\d{2})\/(\d{2})\/(\d{4})|(\d{4})-(\d{2})-(\d{2}))/);
+  const dateMatch = quoteDate.match(/^(?:(\d{2})\/(\d{2})\/(\d{4})|(\d{4})-(\d{2})-(\d{2})|(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4}))/);
   const timeMatch = quoteTime.match(/^(\d{1,2})[:.](\d{2})\s*(AM|PM)\s*IST$/i);
   let quoteAgeMin = Infinity;
   if (dateMatch && timeMatch) {
-    const day = Number(dateMatch[1] || dateMatch[6]);
-    const month = Number(dateMatch[2] || dateMatch[5]);
-    const year = Number(dateMatch[3] || dateMatch[4]);
+    const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const day = Number(dateMatch[1] || dateMatch[6] || dateMatch[7]);
+    const month = Number(dateMatch[2] || dateMatch[5] || months[dateMatch[8]]);
+    const year = Number(dateMatch[3] || dateMatch[4] || dateMatch[9]);
     let hh = Number(timeMatch[1]) % 12;
     const mm = Number(timeMatch[2]);
     if (timeMatch[3].toUpperCase() === "PM") hh += 12;
