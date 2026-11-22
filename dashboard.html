@@ -1769,6 +1769,9 @@ function card(name, d, participantOI, observedAt) {
 function renderNiftyPremiumRadar(data) {
   const box = document.getElementById("nifty-premium-radar");
   if (!box) return;
+  // Keep the existing TradingView widget instance across 5-minute dashboard refreshes.
+  // Recreating it would reset the selected symbol, chart state, and zoom every refresh.
+  const existingTvContainer = box.querySelector("#trinetra-tv-widget");
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
   const updated = data && data.updated ? new Date(data.updated) : null;
@@ -1875,7 +1878,12 @@ function renderNiftyPremiumRadar(data) {
     </div>`;
   // Initialize the official Advanced Chart after innerHTML creates its container.
   // Script tags inserted via innerHTML do not execute.
-  const tvContainer = box.querySelector("#trinetra-tv-widget");
+  const tvSlot = box.querySelector("#trinetra-tv-widget");
+  if (existingTvContainer && tvSlot) {
+    tvSlot.replaceWith(existingTvContainer);
+    return;
+  }
+  const tvContainer = tvSlot;
   if (tvContainer) {
     const tvScript = document.createElement("script");
     tvScript.type = "text/javascript";
