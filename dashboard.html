@@ -632,7 +632,7 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
 
-<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">सत्यापित NIFTY डेटा की प्रतीक्षा…</div></div></section>
+<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div class="sub">NIFTY डेटा की प्रतीक्षा…</div></div></section>
 
 <section class="panel" style="grid-column:1 / -1"><h2>🎯 Verified Prediction Accuracy</h2><div class="box" id="verified-accuracy"></div></section>
 
@@ -1850,7 +1850,7 @@ function renderNiftyPremiumRadar(data) {
       <div class="card"><div class="lbl">VIX आधारित संभावित रेंज</div><div class="big" style="font-size:19px">${fmt(r.low)} – ${fmt(r.high)}</div><div class="sub">68% सांख्यिकीय अनुमान, गारंटी नहीं</div></div>
     </div>
     <div style="margin-top:12px"><b>CE निगरानी:</b> ${fmt(atm)} CE · <b>PE निगरानी:</b> ${fmt(atm)} PE</div>
-    <div style="margin-top:8px"><b>महत्वपूर्ण स्पॉट वॉच-लेवल:</b><div style="margin-top:5px">${levelHtml}</div></div>
+    <div style="margin-top:8px"><b>महत्वपूर्ण स्पॉट वॉच-लेवल:</b><div style="margin-top:5px">${levelHtml}</div></div><div class="sub" style="margin-top:4px">स्रोत: Yahoo Finance दैनिक OHLC · ये संदर्भ स्तर हैं, लाइव स्पॉट या Option Premium नहीं।</div>
     <div style="margin-top:12px;padding:10px;border:1px solid #285078;border-radius:9px">
       <b style="color:#8edbff">SPOT TRIGGER · ${esc(triggerSide)}</b>
       <div style="font-weight:800;margin-top:5px">${esc(triggerTitle)}</div>
