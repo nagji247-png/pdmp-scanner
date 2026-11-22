@@ -57,7 +57,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
 
         result, payloads = self._run_with_fake_trends(summarize)
         self.assertEqual([item[1] for item in payloads], ["now 1-d", "now 7-d"])
-        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"})
+        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
         for snapshot in result.values():
             self.assertTrue(snapshot["valid"])
             self.assertEqual(snapshot["timeframe"], "now 7-d")
@@ -94,7 +94,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
                     )
 
         self.assertEqual(len(fake.payloads), 1)
-        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
+        self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"})
         self.assertTrue(diagnostics.call_args.kwargs["enabled"])
         self.assertTrue(all(not item["valid"] for item in result.values()))
 
