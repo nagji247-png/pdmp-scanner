@@ -522,6 +522,45 @@
   .stock-basket-compact .stock-basket-compact-main small{width:auto;margin-top:1px;line-height:1.2;}
   .stock-basket-compact-score-row .stock-basket-eye{padding:3px 7px;font-size:10px;}
 </style>
+<style id="trinetra-market-radar-main-design">
+/* Main dashboard: Market Activity Radar visual hierarchy */
+body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#020817 100%)}
+.app-main{min-width:0}
+#market-activity-panel{grid-column:1/-1!important;margin:8px 0 18px}
+#market-activity-panel>h2{margin:0 0 10px;padding:17px 20px;border:2px solid #236cc4;border-radius:22px;background:linear-gradient(110deg,#061b39,#0c2c55 55%,#06172f);box-shadow:0 0 20px rgba(23,116,225,.18);font-size:clamp(23px,3.5vw,38px);font-weight:950;letter-spacing:.5px;color:#f2f7ff;text-align:center}
+#market-activity-panel .market-activity-box{margin:0;padding:16px;border:1px solid #194b82;border-radius:18px;background:linear-gradient(160deg,rgba(5,20,43,.98),rgba(2,10,26,.99));box-shadow:0 12px 35px rgba(0,0,0,.28)}
+#market-activity .ma-kicker:first-child{display:none}
+#market-activity .ma-kicker:nth-child(2){margin:0 0 4px;text-align:center;font-size:clamp(24px,3vw,34px);font-weight:1000;letter-spacing:1.2px;color:#f4f8ff;text-shadow:0 2px 14px rgba(51,156,255,.35)}
+#market-activity .ma-intro:first-of-type{text-align:center;font-size:13px;color:#b8cce8;margin:0 0 14px}
+#market-activity .ma-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0 20px}
+#market-activity .ma-stat{min-height:124px;border-radius:18px;box-shadow:inset 0 0 22px rgba(30,130,210,.08),0 6px 18px rgba(0,0,0,.2)}
+#market-activity .ma-stat-button{display:flex;min-height:124px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 8px;gap:8px}
+#market-activity .ma-stat b{font-size:clamp(30px,4vw,44px);line-height:1;font-weight:1000}
+#market-activity .ma-stat span{font-size:clamp(12px,1.5vw,16px);font-weight:800;color:#e3edfc}
+#market-activity .ma-stat.bull{border-color:#08c977;background:linear-gradient(145deg,#063d37,#06263a)}
+#market-activity .ma-stat.bear{border-color:#f13d58;background:linear-gradient(145deg,#42172d,#1b1835)}
+#market-activity .ma-stat.unusual{border-color:#2b68b9;background:linear-gradient(145deg,#112d54,#101b3b)}
+#market-activity .ma-stat.fpi{border-color:#087fae;background:linear-gradient(145deg,#082d52,#061c3b)}
+#market-activity .ma-kicker{font-size:16px;letter-spacing:.6px;font-weight:950;color:#e9f4ff;margin:18px 0 7px}
+#market-activity .ma-sector-group{padding:13px;margin:12px 0 16px;border-radius:18px;background:rgba(3,17,37,.78)}
+#market-activity .ma-sector-group.bull{border:2px solid #08d477;box-shadow:0 0 15px rgba(0,220,120,.1)}
+#market-activity .ma-sector-group.bear{border:2px solid #ed3855;box-shadow:0 0 15px rgba(255,45,75,.1)}
+#market-activity .ma-sector-group.neutral{border:1px solid #49678d}
+#market-activity .ma-sector-group-title{font-size:clamp(17px,2vw,22px);padding:4px 3px 10px}
+#market-activity .ma-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#market-activity .ma-sector{border-radius:12px;background:linear-gradient(145deg,#071d31,#071529)}
+#market-activity .ma-sector.bull{border-color:#08c977}
+#market-activity .ma-sector.bear{border-color:#ed3855}
+#market-activity .ma-sector-button{padding:13px}
+#market-activity .ma-sector-name{font-size:15px;color:#f0f6ff;font-weight:950}
+#market-activity .ma-state{font-size:10px;padding:5px 9px;border-radius:20px;font-weight:900}
+#market-activity .ma-meta{font-size:12px;gap:6px 12px}
+#market-activity .ma-alert{border-radius:12px;padding:12px;font-size:13px}
+#market-activity .ma-foot{margin-top:16px;padding:12px;border:1px solid #204d7c;border-radius:10px;background:#071a32;font-size:11px}
+#fpi-sector-tilt{border:1px solid #236cc4;border-radius:16px;background:linear-gradient(145deg,#0a2447,#06152e);padding:16px}
+@media(max-width:760px){#market-activity-panel .market-activity-box{padding:11px}#market-activity .ma-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#market-activity .ma-stat,#market-activity .ma-stat-button{min-height:105px}#market-activity .ma-sector-grid{grid-template-columns:1fr}#market-activity-panel>h2{border-radius:16px;padding:14px 10px}}
+@media(min-width:1100px){#market-activity .ma-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <aside class="sidebar">
@@ -548,6 +587,8 @@
 
 <div id="status" aria-live="polite" style="display:none"></div>
 <div id="trade-guard" role="status" aria-label="TRINETRA"><div class="mini-brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><linearGradient id="ng3" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#9b4dff"/><stop offset=".52" stop-color="#20d9ff"/><stop offset="1" stop-color="#75fff0"/></linearGradient></defs><path d="M7 50 Q50 3 93 50 Q50 97 7 50Z" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="15" fill="none" stroke="url(#ng3)" stroke-width="5"/><circle cx="48" cy="50" r="6" fill="#dffcff"/><path d="M23 75 L43 57 L54 66 L84 25 M68 27 L84 25 L82 42" fill="none" stroke="url(#ng3)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="brand-title"><span>TRINETRA</span> <i>— The Market Seer</i><div class="brand-hi">त्रिनेत्र</div></div></div>
+<section class="panel" style="grid-column:1 / -1" id="market-activity-panel"><h2>🧭 MARKET ACTIVITY RADAR</h2><div class="box market-activity-box" id="market-activity"><div class="market-activity-status">NSE F&amp;O सेक्टर मास्टर और उपलब्ध सत्यापित डेटा लोड हो रहा है…</div></div></section>
+<section class="panel" style="grid-column:1 / -1"><h2>FPI SECTOR TILT <span style="font-size:11px;color:#aab4c4;font-weight:600">· अलग संदर्भ</span></h2><div class="box" id="fpi-sector-tilt"><div class="sub">NSDL का पखवाड़े वाला Equity डेटा लोड हो रहा है…</div></div></section>
 
 <section class="panel range-panel"><h2>📏 Nifty: अगले सत्र की संभावित रेंज</h2><div class="box" id="range"></div></section>
 
@@ -575,9 +616,9 @@
 
 <section class="panel" style="grid-column:1 / -1"><h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2><div class="box" id="signals"></div></section>
 
-<section class="panel" style="grid-column:1 / -1"><h2>FPI SECTOR TILT <span style="font-size:11px;color:#aab4c4;font-weight:600">· अलग संदर्भ</span></h2><div class="box" id="fpi-sector-tilt"><div class="sub">NSDL का पखवाड़े वाला Equity डेटा लोड हो रहा है…</div></div></section>
 
-<section class="panel" style="grid-column:1 / -1" id="market-activity-panel"><h2>🧭 MARKET ACTIVITY — 218 F&amp;O स्टॉक · 18 सेक्टर</h2><div class="box market-activity-box" id="market-activity"><div class="market-activity-status">NSE F&amp;O सेक्टर मास्टर और उपलब्ध सत्यापित डेटा लोड हो रहा है…</div></div></section>
+
+
 <section class="panel" style="grid-column:1 / -1" id="daily-stock-buying-activity-panel"><div class="box" id="daily-stock-buying-activity"><div class="dsba-note">NSE का सत्यापित EOD buying activity scan लोड हो रहा है…</div></div></section>
 
 
