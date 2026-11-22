@@ -1769,9 +1769,9 @@ function card(name, d, participantOI, observedAt) {
 function renderNiftyPremiumRadar(data) {
   const box = document.getElementById("nifty-premium-radar");
   if (!box) return;
-  // Keep the existing TradingView widget instance across 5-minute dashboard refreshes.
-  // Recreating it would reset the selected symbol, chart state, and zoom every refresh.
-  const existingTvContainer = box.querySelector("#trinetra-tv-widget");
+  // Preserve the complete TradingView section, including its widget instance and provider links.
+  // Recreating it on each refresh or temporary stale-data state resets the chart selection/zoom.
+  const existingTvSection = box.querySelector(".trinetra-tv-section");
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
   const updated = data && data.updated ? new Date(data.updated) : null;
@@ -1780,7 +1780,9 @@ function renderNiftyPremiumRadar(data) {
   const tradeGuardBlocked = document.getElementById("trade-guard")?.classList.contains("block");
   const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !tradeGuardBlocked && !(n && n.stale);
   if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
-    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>';
+    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div><div id="trinetra-tv-section-slot"></div>';
+    const staleTvSlot = box.querySelector("#trinetra-tv-section-slot");
+    if (existingTvSection && staleTvSlot) staleTvSlot.replaceWith(existingTvSection);
     return;
   }
   const previous = r.previous_session || {};
@@ -1866,7 +1868,7 @@ function renderNiftyPremiumRadar(data) {
       <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · 5m/15m candle और premium पुष्टि बाकी</div>
     </div>
     <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होगा।</div>
-    <div style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
+    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
         <b style="color:#55e6ff">📈 TRADINGVIEW · NIFTY 50</b>
         <span class="sub">5 मिनट · Chart provider: TradingView</span>
@@ -1878,12 +1880,12 @@ function renderNiftyPremiumRadar(data) {
     </div>`;
   // Initialize the official Advanced Chart after innerHTML creates its container.
   // Script tags inserted via innerHTML do not execute.
-  const tvSlot = box.querySelector("#trinetra-tv-widget");
-  if (existingTvContainer && tvSlot) {
-    tvSlot.replaceWith(existingTvContainer);
+  const tvSlot = box.querySelector("#trinetra-tv-section-slot");
+  if (existingTvSection && tvSlot) {
+    tvSlot.replaceWith(existingTvSection);
     return;
   }
-  const tvContainer = tvSlot;
+  const tvContainer = box.querySelector("#trinetra-tv-widget");
   if (tvContainer) {
     const tvScript = document.createElement("script");
     tvScript.type = "text/javascript";
