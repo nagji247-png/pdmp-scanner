@@ -29,7 +29,7 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
         for spec in fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES.values():
             for direction in ("bull", "bear", "neutral"):
                 self.assertIn("+", spec[direction])
-                self.assertRegex(spec[direction], r"[\\u0900-\\u097f]")
+                self.assertTrue(any("\u0900" <= char <= "\u097f" for char in spec[direction]))
 
     def test_directional_diagnostic_rejects_tiny_denominator_instead_of_false_100_percent(self):
         spec = fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES["SILVER"]
