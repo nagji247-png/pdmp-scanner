@@ -1802,29 +1802,17 @@ function renderNiftyPremiumRadar(data) {
       </div>
       <div class="sub" style="margin-top:8px">PE और CE दोनों चार्ट पहले से खुले रहेंगे। अपने Strike और Expiry का Option Symbol TradingView के Symbol Search में चुनें। भाव LIVE/DELAYED TradingView की उपलब्धता और आपके डेटा अधिकार पर निर्भर है; यह TRINETRA Premium Feed में स्वतः नहीं आता।</div>
     </div>`;
-  const mountTradingViewChart = (id, symbol) => {
-    const container = box.querySelector("#" + id);
-    if (!container) return;
-    container.innerHTML = '<div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>';
-    const tvScript = document.createElement("script");
-    tvScript.type = "text/javascript";
-    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    tvScript.async = true;
-    tvScript.text = JSON.stringify({
-      autosize: true,
-      symbol,
-      interval: "5",
-      timezone: "Asia/Kolkata",
-      theme: "dark",
-      style: "1",
-      locale: "en",
-      allow_symbol_change: true,
-      calendar: false,
-      support_host: "https://www.tradingview.com"
-    });
-    container.appendChild(tvScript);
-  };
   const initializeTradingView = () => {
+    // Use TradingView's current Web Component embed. Dynamically injecting the
+    // legacy JSON script can fail on pages that render/update their DOM at runtime.
+    if (!document.querySelector('script[data-trinetra-tv-loader="1"]') &&
+        !customElements.get("tv-advanced-chart")) {
+      const loader = document.createElement("script");
+      loader.type = "module";
+      loader.src = "https://widgets.tradingview-widget.com/w/en/tv-advanced-chart.js";
+      loader.dataset.trinetraTvLoader = "1";
+      document.head.appendChild(loader);
+    }
     const charts = [
       { id: "trinetra-tv-widget", symbol: "NSE:NIFTY" },
       { id: "trinetra-pe-widget", symbol: "NSE:NIFTY" },
@@ -1832,9 +1820,21 @@ function renderNiftyPremiumRadar(data) {
     ];
     charts.forEach(chart => {
       const container = box.querySelector("#" + chart.id);
-      if (container && !container.querySelector("script")) mountTradingViewChart(chart.id, chart.symbol);
+      if (!container || container.querySelector("tv-advanced-chart")) return;
+      container.innerHTML = "";
+      const widget = document.createElement("tv-advanced-chart");
+      widget.setAttribute("symbol", chart.symbol);
+      widget.setAttribute("interval", "5");
+      widget.setAttribute("timezone", "Asia/Kolkata");
+      widget.setAttribute("theme", "dark");
+      widget.setAttribute("style", "1");
+      widget.setAttribute("locale", "en");
+      widget.style.display = "block";
+      widget.style.width = "100%";
+      widget.style.height = "100%";
+      widget.style.minHeight = "280px";
+      container.appendChild(widget);
     });
-
   };
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
