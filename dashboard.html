@@ -1774,34 +1774,63 @@ function renderNiftyPremiumRadar(data) {
   const existingTvSection = box.querySelector(".trinetra-tv-section");
   const tvSectionHtml = `    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px">
-        <b style="color:#55e6ff">📈 TRADINGVIEW · NIFTY 50</b>
-        <span class="sub">5 मिनट · Chart provider: TradingView</span>
+        <b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b>
+        <span class="sub">5 मिनट · TradingView</span>
       </div>
       <div id="trinetra-tv-widget" class="tradingview-widget-container" style="height:430px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730">
         <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
       </div>
-      <div class="sub" style="margin-top:7px">डिफॉल्ट NSE:NIFTY है। CE/PE देखने के लिए Symbol Search → Options → NSE: चुनें और उपलब्ध contract की expiry/strike जाँचें। <a href="https://www.tradingview.com/symbols/NSE-NIFTY/options-chain/" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">TradingView NIFTY Option Chain ↗</a> · <a href="https://www.nseindia.com/option-chain" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">NSE Official Option Chain ↗</a> · <a href="https://ezyoptions.com/option-chain" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline">EzyOptions · 15 मिनट DELAYED CE/PE Premium (Free account, no demat/broker login) ↗</a>। EzyOptions का डेटा TRINETRA में स्वतः नहीं आता; यह अलग वेबसाइट पर मैनुअल जाँच के लिए है। TradingView का यह Embedded Widget केवल चार्ट दिखाता है; TradingView वेबसाइट पर उपलब्ध Real-time डेटा entitlement इस Widget में लागू होने की गारंटी नहीं है। Widget से CE/PE Premium डेटा TRINETRA में स्वतः प्राप्त नहीं होता। Premium Feed अलग से अधिकृत और सत्यापित होने तक Premium Entry/SL/Target जारी नहीं होंगे।</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
+        <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
+            <b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b>
+            <span class="sub">5 मिनट</span>
+          </div>
+          <div id="trinetra-pe-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
+            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+          </div>
+          <div class="sub" style="margin-top:6px">चार्ट के ऊपर Symbol Search में अपना NIFTY PE strike/expiry चुनें।</div>
+        </div>
+        <div style="min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px">
+            <b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b>
+            <span class="sub">5 मिनट</span>
+          </div>
+          <div id="trinetra-ce-widget" class="tradingview-widget-container" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730">
+            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+          </div>
+          <div class="sub" style="margin-top:6px">चार्ट के ऊपर Symbol Search में अपना NIFTY CE strike/expiry चुनें।</div>
+        </div>
+      </div>
+      <div class="sub" style="margin-top:8px">हर चार्ट के Symbol Search से उपलब्ध contract की सही expiry और strike चुनें। TradingView में उपलब्धता और real-time entitlement अलग हो सकते हैं; चार्ट का भाव अपने TradingView डेटा अधिकार के अनुसार LIVE या DELAYED होगा। ये चार्ट TRINETRA के Premium Feed/स्कोर में स्वतः डेटा नहीं भेजते।</div>
     </div>`;
   const initializeTradingView = () => {
-    const tvContainer = box.querySelector("#trinetra-tv-widget");
-    if (!tvContainer || tvContainer.querySelector("script")) return;
-    const tvScript = document.createElement("script");
-    tvScript.type = "text/javascript";
-    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    tvScript.async = true;
-    tvScript.text = JSON.stringify({
-      autosize: true,
-      symbol: "NSE:NIFTY",
-      interval: "5",
-      timezone: "Asia/Kolkata",
-      theme: "dark",
-      style: "1",
-      locale: "en",
-      allow_symbol_change: true,
-      calendar: false,
-      support_host: "https://www.tradingview.com"
+    const charts = [
+      { id: "trinetra-tv-widget", symbol: "NSE:NIFTY" },
+      { id: "trinetra-pe-widget", symbol: "NSE:NIFTY" },
+      { id: "trinetra-ce-widget", symbol: "NSE:NIFTY" }
+    ];
+    charts.forEach(chart => {
+      const container = box.querySelector("#" + chart.id);
+      if (!container || container.querySelector("script")) return;
+      const tvScript = document.createElement("script");
+      tvScript.type = "text/javascript";
+      tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+      tvScript.async = true;
+      tvScript.text = JSON.stringify({
+        autosize: true,
+        symbol: chart.symbol,
+        interval: "5",
+        timezone: "Asia/Kolkata",
+        theme: "dark",
+        style: "1",
+        locale: "en",
+        allow_symbol_change: true,
+        calendar: false,
+        support_host: "https://www.tradingview.com"
+      });
+      container.appendChild(tvScript);
     });
-    tvContainer.appendChild(tvScript);
   };
   const r = data && data.range;
   const n = data && data.instruments && data.instruments.NIFTY;
