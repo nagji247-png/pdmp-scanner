@@ -95,8 +95,46 @@ class AssetTrendsBoundedFallbackTests(unittest.TestCase):
 
         self.assertEqual(len(fake.payloads), 1)
         self.assertEqual(set(result), {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER"})
-        self.assertFalse(diagnostics.call_args.kwargs["enabled"])
+        self.assertTrue(diagnostics.call_args.kwargs["enabled"])
         self.assertTrue(all(not item["valid"] for item in result.values()))
+
+
+    def test_manual_directional_diagnostics_run_before_related_batch_and_stop_on_429(self):
+        class ShouldNotBeCalledTrends:
+            def __init__(self):
+                self.payload_calls = 0
+
+            def build_payload(self, seeds, timeframe, geo):
+                self.payload_calls += 1
+                raise AssertionError("related-query batch must not run after diagnostic 429")
+
+        fake = ShouldNotBeCalledTrends()
+        request_module = types.ModuleType("pytrends.request")
+        request_module.TrendReq = lambda **kwargs: fake
+        package_module = types.ModuleType("pytrends")
+        package_module.request = request_module
+        diagnostic_result = {
+            asset: {
+                "available": False, "diagnostic_only": True,
+                "reason": "Google returned a response with code 429",
+            }
+            for asset in fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES
+        }
+        with patch.dict(sys.modules, {"pytrends": package_module, "pytrends.request": request_module}), \\
+             patch.object(fetch_and_score, "fetch_asset_directional_trends_diagnostics", return_value=diagnostic_result) as diagnostic, \\
+             patch.object(fetch_and_score.time, "sleep"):
+            result = fetch_and_score.fetch_asset_trends_shadow(
+                include_directional_diagnostics=True, include_crude=True
+            )
+
+        diagnostic.assert_called_once()
+        self.assertEqual(fake.payload_calls, 0)
+        self.assertIn("directional_query_diagnostic", result["NIFTY"])
+        self.assertEqual(
+            result["NIFTY"]["directional_query_diagnostic"]["reason"],
+            "Google returned a response with code 429",
+        )
+        self.assertIn("CRUDEOIL", result)
 
     def test_only_invalid_assets_are_reclassified_on_fallback(self):
         fallback_assets = []
