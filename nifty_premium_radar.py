@@ -45,6 +45,6 @@ def build_previous_session_levels(high, low, close, reference_close=None):
             "type": kind,
             "level": level,
             "dist_pct": round((level / reference - 1) * 100, 2),
-            "source": "पिछले पूरे NSE सत्र का OHLC · Classic Pivot",
+            "source": "पिछले पूरे सत्र का OHLC · Yahoo Finance दैनिक संदर्भ",
         })
     return result
