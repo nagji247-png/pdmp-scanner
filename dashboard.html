@@ -1780,14 +1780,49 @@ function renderNiftyPremiumRadar(data) {
     box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>';
     return;
   }
+  const previous = r.previous_session || {};
   const spot = Number(r.last_close);
   const atm = Math.round(spot / 50) * 50;
   const fmt = value => Number(value).toLocaleString("en-IN", {maximumFractionDigits: 2});
   const stamp = updated.toLocaleString("en-IN", {timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});
-  const levels = Array.isArray(data.levels) ? data.levels.slice(0, 6) : [];
+  const levels = Array.isArray(data.levels) ? data.levels.slice(0, 7) : [];
   const levelHtml = levels.length
     ? levels.map(x => '<span style="display:inline-block;margin:3px 5px 3px 0;padding:5px 8px;border:1px solid #285078;border-radius:7px;color:#cde7ff">'+(x.label ? esc(x.label)+' · ' : '')+fmt(x.level)+'</span>').join("")
     : '<span class="sub">अलग वॉच-लेवल उपलब्ध नहीं</span>';
+
+  // Only a timestamped NSE/validated live quote from today's open session may drive a spot trigger.
+  const quoteDate = String(n && n.price_as_of || "");
+  const quoteTime = String(n && n.price_time || "");
+  const quoteMatch = quoteDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const timeMatch = quoteTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)\s*IST$/i);
+  let quoteAgeMin = Infinity;
+  if (quoteMatch && timeMatch) {
+    let hh = Number(timeMatch[1]) % 12;
+    if (timeMatch[3].toUpperCase() === "PM") hh += 12;
+    const qDate = new Date(Number(quoteMatch[3]), Number(quoteMatch[2])-1, Number(quoteMatch[1]), hh, Number(timeMatch[2]));
+    quoteAgeMin = (Date.now() - qDate.getTime()) / 60000;
+  }
+  const liveSpot = Number(n && n.price);
+  const liveQuoteFresh = data.market_closed !== true && Number.isFinite(liveSpot) && liveSpot > 0
+    && quoteAgeMin >= -2 && quoteAgeMin <= 15;
+  let triggerTitle = "ताज़ा live Spot Quote उपलब्ध नहीं";
+  let triggerDetail = "अंतिम बंद और पिछले सत्र के स्तर केवल संदर्भ हैं। आज का Spot Quote मिलने तक कोई CE/PE दिशा नहीं।";
+  let triggerSide = "NO TRADE";
+  if (liveQuoteFresh && Number.isFinite(Number(previous.high)) && Number.isFinite(Number(previous.low))) {
+    if (liveSpot > Number(previous.high)) {
+      triggerTitle = "पिछले High के ऊपर — CE निगरानी";
+      triggerDetail = "Spot पिछले सत्र के High से ऊपर है। इसे breakout entry न मानें; 5m/15m candle close और retest/reclaim की पुष्टि बाकी है।";
+      triggerSide = "CE WATCH · CONFIRMATION PENDING";
+    } else if (liveSpot < Number(previous.low)) {
+      triggerTitle = "पिछले Low के नीचे — PE निगरानी";
+      triggerDetail = "Spot पिछले सत्र के Low से नीचे है। इसे breakdown entry न मानें; 5m/15m candle close और retest/rejection की पुष्टि बाकी है।";
+      triggerSide = "PE WATCH · CONFIRMATION PENDING";
+    } else {
+      triggerTitle = "पिछले High–Low के बीच — Range";
+      triggerDetail = "Spot पिछले सत्र की range में है। स्पष्ट breakout/breakdown और retest मिलने तक CE/PE में जल्दबाज़ी नहीं।";
+      triggerSide = "WAIT · RANGE";
+    }
+  }
   box.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
       <strong style="color:#55e6ff;font-size:16px">PRE-MARKET REFERENCE</strong>
@@ -1800,12 +1835,18 @@ function renderNiftyPremiumRadar(data) {
     </div>
     <div style="margin-top:12px"><b>CE निगरानी:</b> ${fmt(atm)} CE · <b>PE निगरानी:</b> ${fmt(atm)} PE</div>
     <div style="margin-top:8px"><b>महत्वपूर्ण स्पॉट वॉच-लेवल:</b><div style="margin-top:5px">${levelHtml}</div></div>
+    <div style="margin-top:12px;padding:10px;border:1px solid #285078;border-radius:9px">
+      <b style="color:#8edbff">SPOT TRIGGER · ${esc(triggerSide)}</b>
+      <div style="font-weight:800;margin-top:5px">${esc(triggerTitle)}</div>
+      <div class="sub" style="margin-top:5px">${esc(triggerDetail)}</div>
+      <div class="sub" style="margin-top:5px">${liveQuoteFresh ? 'Live Spot: '+fmt(liveSpot)+' · '+esc(quoteTime) : 'Live Spot quote timestamp/freshness verified नहीं'}</div>
+    </div>
     <div style="margin-top:12px;padding:10px;border:1px solid #a56b32;border-radius:9px;background:rgba(95,55,16,.16)">
       <b style="color:#ffd28a">⏳ OPTION PREMIUM FEED CONNECTED नहीं</b>
       <div class="sub" style="margin-top:5px">CE/PE का वास्तविक या प्रमाणित DELAYED LTP, प्रीमियम-वैल्यू ज़ोन, एंट्री, SL और Target अभी उपलब्ध नहीं। इसलिए ATM स्ट्राइक केवल निगरानी संदर्भ है—BUY CALL नहीं।</div>
-      <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · प्रीमियम की पुष्टि होने तक प्रतीक्षा</div>
+      <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · 5m/15m candle और premium पुष्टि बाकी</div>
     </div>
-    <div class="sub" style="margin-top:9px">अगला चरण: GAP UP / GAP DOWN / FLAT OPEN के अनुसार CE/PE प्रीमियम-वॉच ज़ोन और 5m/15m retest confirmation. डेटा अनुपलब्ध होने पर कोई काल्पनिक भाव नहीं दिखेगा।</div>`;
+    <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होगा।</div>`;
 }
 
 function renderRange(r) {
