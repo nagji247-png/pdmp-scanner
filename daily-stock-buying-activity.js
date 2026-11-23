@@ -193,7 +193,7 @@ function render(data){
   if(back){var current=back.closest(".dsba-modal-backdrop");if(current)current.remove();return;}
   var close=event.target.closest("[data-close-modal]");
   if(close&&(close.classList.contains("dsba-close")||close.classList.contains("dsba-close-bottom")||event.target===close)){var backdrop=close.closest(".dsba-modal-backdrop");if(backdrop){var restore=backdrop.__savedScroll,overflow=backdrop.__oldOverflow;backdrop.remove();if(restore!==undefined){document.body.style.overflow=overflow||"";window.scrollTo(0,restore);}}return;}
-  var outcome=event.target.closest("[data-outcome-horizon]");
+  var outcome=event.target.closest(".dsba-outcome-count[data-outcome-horizon]");
   if(outcome){var horizon=outcome.getAttribute("data-outcome-horizon"),status=outcome.getAttribute("data-outcome-status"),items=(Array.isArray(data.signal_history)?data.signal_history:[]).filter(function(h){return h.outcomes&&h.outcomes[horizon+"D"]===status;});openOutcomeList(horizon+" सत्र · "+outcomeStatusLabel(status),items,horizon,status);return;}
   var outcomePage=event.target.closest("[data-outcome-page]");
   if(outcomePage&&!outcomePage.disabled){var modal=outcomePage.closest(".dsba-modal"),backdrop=modal&&modal.closest(".dsba-modal-backdrop");if(backdrop){var hz=Number(modal.getAttribute("data-outcome-horizon")),status=modal.getAttribute("data-outcome-status"),title=modal.querySelector("h3").textContent;var items=(Array.isArray(data.signal_history)?data.signal_history:[]).filter(function(x){return x.outcomes&&x.outcomes[hz+"D"]===status;});renderOutcomePage(modal,items,Number(outcomePage.getAttribute("data-outcome-page")),title,hz,status);modal.scrollTop=0;}return;}
