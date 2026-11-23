@@ -91242,13 +91242,13 @@
     },
     {
       "date": "2026-11-23",
-      "captured_at_utc": "2026-11-23T15:03Z",
-      "captured_at_ist": "2026-11-23T20:34+05:30",
+      "captured_at_utc": "2026-11-23T16:21Z",
+      "captured_at_ist": "2026-11-23T21:51+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-23T15:03Z",
+      "news_capture_time_utc": "2026-11-23T16:21Z",
       "trends": {
         "valid": false,
-        "reason": "नई Google Trends reading उपलब्ध नहीं; अगला तय स्कैन आने पर जाँच होगी",
+        "reason": "नया Google Trends डेटा नहीं मिला। hourly_1d: The request failed: Google returned a response with code 429",
         "daily_complete": false,
         "daily_slot_evidence": {
           "date": "2026-11-23",
@@ -91261,7 +91261,9 @@
             {
               "id": "1100",
               "time": "11:00",
-              "status": "pending"
+              "status": "failed",
+              "checked_at": "2026-11-23T16:21:11.137788+00:00",
+              "error": "नया Google Trends डेटा नहीं मिला। hourly_1d: The request failed: Google returned a response with code 429"
             },
             {
               "id": "1300",
@@ -91278,91 +91280,91 @@
       },
       "market_news_context": {
         "ok": true,
-        "as_of": "2026-11-23T15:03Z",
+        "as_of": "2026-11-23T16:21Z",
         "items": [
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex Today Trades Higher | Nifty Above 25,800 | Nifty IT Index Up 1.62%",
+            "source": "Equitymaster",
+            "score": 1,
+            "age_hours": 1.6
+          },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Sensex Today Tanks 1,484 Points | Nifty Below 25,350 | 4 Reasons Why Indian Share Markets Are Falling",
             "source": "Equitymaster",
             "score": -1,
-            "age_hours": 0.3
+            "age_hours": 1.6
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Crash Today: Sensex, Nifty Tumble Nearly 2%; Investors Lose Over ₹5 Lakh Crore – What Triggered The Massive Sell-Off?",
             "source": "Jagran Josh",
             "score": -6,
-            "age_hours": 0.3
-          },
-          {
-            "topic": "भारतीय बाज़ार",
-            "title": "Sensex Today Trades Higher | Nifty Above 25,800 | Nifty IT Index Up 1.62%",
-            "source": "Equitymaster",
-            "score": 1,
-            "age_hours": 0.3
+            "age_hours": 1.6
           },
           {
             "topic": "कच्चा तेल",
             "title": "Oil Price Forecast: WTI Supply Grows as Brent Faces Shipping Risks",
             "source": "FXEmpire",
             "score": 0,
-            "age_hours": 1.0
+            "age_hours": 2.3
           },
           {
             "topic": "कच्चा तेल",
             "title": "Current price of oil as of November 23, 2026",
             "source": "Fortune",
             "score": 0,
-            "age_hours": 1.5
+            "age_hours": 3.4
           },
           {
             "topic": "सोना, डॉलर और रुपया",
             "title": "Rupee records gain against US dollar",
             "source": "Investify",
             "score": 1,
-            "age_hours": 3.1
+            "age_hours": 4.4
           },
           {
             "topic": "कच्चा तेल",
             "title": "Crude oil remains under pressure as demand concerns continue to weigh despite high US-Iran tensions",
             "source": "investingLive",
             "score": -1,
-            "age_hours": 3.4
+            "age_hours": 4.7
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Today: Sensex Falls 1,274 Points, Nifty Slides 1.52%",
             "source": "Multibagg AI",
             "score": -2,
-            "age_hours": 4.1
+            "age_hours": 5.4
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Crash: Sensex Falls 1.77%, Nifty at 25,350",
             "source": "HDFC Sky",
             "score": -3,
-            "age_hours": 4.2
+            "age_hours": 5.4
           },
           {
             "topic": "RBI नीति",
             "title": "India’s New Data Series to Aid RBI Policy, Gupta Says",
             "source": "Bloomberg.com",
             "score": 0,
-            "age_hours": 5.4
+            "age_hours": 6.7
           },
           {
             "topic": "कच्चा तेल",
             "title": "Will Brent crude oil price hold above $90.66 support amid rising supply and demand uncertainties?",
             "source": "Traders Union",
             "score": 0,
-            "age_hours": 5.8
+            "age_hours": 7.1
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Nifty crashes by 350 points, Sensex down 1.35%. Why is the market down today?",
             "source": "India Infoline",
             "score": -2,
-            "age_hours": 6.4
+            "age_hours": 7.7
           }
         ]
       },
@@ -91395,48 +91397,48 @@
             },
             "components": {
               "news": {
-                "score": -1.78,
+                "score": -0.89,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T11:19:37Z",
-                "oldest_headline_published_at": "2026-11-23T07:37:21Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T14:43:54Z",
+                "oldest_headline_published_at": "2026-11-23T08:21:54Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 4,
                 "publishers": [
                   "Bloomberg.com",
-                  "Dalal Street Investment Journal",
                   "HDFC Sky",
-                  "Investing.com"
+                  "Investing.com",
+                  "The Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 3.73,
+                "newest_headline_age_h": 1.62,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -1.78,
+                "score": -0.89,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T11:19:37Z",
-                "oldest_headline_published_at": "2026-11-23T07:37:21Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T14:43:54Z",
+                "oldest_headline_published_at": "2026-11-23T08:21:54Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 4,
                 "publishers": [
                   "Bloomberg.com",
-                  "Dalal Street Investment Journal",
                   "HDFC Sky",
-                  "Investing.com"
+                  "Investing.com",
+                  "The Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 3.73,
+                "newest_headline_age_h": 1.62,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -91468,7 +91470,7 @@
             },
             "provisional_final": {
               "status": "available",
-              "score": -0.55,
+              "score": -0.1,
               "included_components": [
                 "news",
                 "eod_oi"
@@ -91481,24 +91483,24 @@
             },
             "experimental_combined_components": {
               "news": {
-                "score": -1.78,
+                "score": -0.89,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T11:19:37Z",
-                "oldest_headline_published_at": "2026-11-23T07:37:21Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T14:43:54Z",
+                "oldest_headline_published_at": "2026-11-23T08:21:54Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 4,
                 "publishers": [
                   "Bloomberg.com",
-                  "Dalal Street Investment Journal",
                   "HDFC Sky",
-                  "Investing.com"
+                  "Investing.com",
+                  "The Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 3.73,
+                "newest_headline_age_h": 1.62,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -91579,7 +91581,7 @@
             },
             "experimental_combined_final": {
               "status": "available",
-              "score": -1.23,
+              "score": -1.07,
               "included_components": [
                 "news",
                 "eod_oi",
@@ -92074,7 +92076,7 @@
                 }
               ],
               "cash_breadth_score": -5.6,
-              "combined_score": -1.23,
+              "combined_score": -1.07,
               "combined_included_components": [
                 "news",
                 "eod_oi",
@@ -97808,7 +97810,7 @@
             },
             "final": {
               "status": "available",
-              "score": -1.78,
+              "score": -0.89,
               "included_components": [
                 "news"
               ],
@@ -97819,9 +97821,9 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": -7.9,
-          "experimental_news_score": -1.8,
-          "experimental_score": -1.8,
+          "headline_score": -6.1,
+          "experimental_news_score": -0.9,
+          "experimental_score": -0.9,
           "experimental_score_mode": "shadow_news24h_dedup_only",
           "experimental_headline_count": 4,
           "experimental_excluded_old_or_unknown": 0,
@@ -97829,52 +97831,52 @@
           "headline_count": 8,
           "headlines": [
             {
+              "title": "₹5.2 trillion wiped off market value as Sensex, Nifty slump over 1.7%",
+              "source": "Business Standard",
+              "score": -2,
+              "age_hours": 0.6
+            },
+            {
+              "title": "Indian markets fall 1.8% on profit booking, but experts remain optimistic",
+              "source": "The Indian Express",
+              "score": 0,
+              "age_hours": 1.6
+            },
+            {
               "title": "Sensex sheds 1,484 points, Nifty drops below 25,400 amid heavy selling in banking, metal stocks",
-              "source": "DD News",
+              "source": "DD India",
               "score": -1,
-              "age_hours": 3.2
+              "age_hours": 2.4
             },
             {
               "title": "Gift Nifty Signals Flat Open for Sensex, Nifty on Wednesday",
               "source": "HDFC Sky",
               "score": 0,
-              "age_hours": 3.7
+              "age_hours": 5.0
             },
             {
               "title": "India stocks lower at close of trade; Nifty 50 down 1.75%",
               "source": "Investing.com",
               "score": -1,
-              "age_hours": 4.4
+              "age_hours": 5.7
             },
             {
               "title": "Nifty crashes by 350 points, Sensex down 1.35%. Why is the market down today?",
               "source": "India Infoline",
               "score": -2,
-              "age_hours": 6.4
+              "age_hours": 7.7
             },
             {
               "title": "India’s Nifty Stands Apart as Global Stocks, Gold Suffer Rare Joint Selloff",
               "source": "Bloomberg.com",
               "score": -2,
-              "age_hours": 6.7
-            },
-            {
-              "title": "Sensex Plunges 1,041 Points, Nifty 50 Falls Below 25,500 as Metal and Banking Stocks Weigh",
-              "source": "Dalal Street Investment Journal",
-              "score": -4,
-              "age_hours": 7.4
+              "age_hours": 8.0
             },
             {
               "title": "Bank Nifty Crashes Nearly 1,000 Points in Early Trade as Banking Stocks Sell Off; Axis Bank, SBI Lead Losses",
               "source": "Kotak Neo",
               "score": -3,
-              "age_hours": 7.6
-            },
-            {
-              "title": "Stock market crash today: Investors lose over Rs 6 lakh crore as Sensex ends over 1,400 points down; top",
-              "source": "The Times of India",
-              "score": -2,
-              "age_hours": 8.0
+              "age_hours": 8.9
             }
           ],
           "client_retail_adjustment": 0.65,
@@ -97909,57 +97911,59 @@
             },
             "components": {
               "news": {
-                "score": -1.23,
+                "score": -1.51,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T14:43:21Z",
-                "oldest_headline_published_at": "2026-11-23T05:01:59Z",
+                "oldest_headline_published_at": "2026-11-23T03:03:18Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 7,
+                "evidence_count": 8,
                 "publishers": [
                   "Business Standard",
                   "Equitymaster",
                   "Fortune India",
                   "India Today",
+                  "The Times of India",
                   "Upstox"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 0.34,
+                "newest_headline_age_h": 1.63,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -1.23,
+                "score": -1.51,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T14:43:21Z",
-                "oldest_headline_published_at": "2026-11-23T05:01:59Z",
+                "oldest_headline_published_at": "2026-11-23T03:03:18Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 7,
+                "evidence_count": 8,
                 "publishers": [
                   "Business Standard",
                   "Equitymaster",
                   "Fortune India",
                   "India Today",
+                  "The Times of India",
                   "Upstox"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 0.34,
+                "newest_headline_age_h": 1.63,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": -1.23,
+              "score": -1.51,
               "included_components": [
                 "news"
               ],
@@ -97970,25 +97974,26 @@
             },
             "experimental_combined_components": {
               "news": {
-                "score": -1.23,
+                "score": -1.51,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T14:43:21Z",
-                "oldest_headline_published_at": "2026-11-23T05:01:59Z",
+                "oldest_headline_published_at": "2026-11-23T03:03:18Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 7,
+                "evidence_count": 8,
                 "publishers": [
                   "Business Standard",
                   "Equitymaster",
                   "Fortune India",
                   "India Today",
+                  "The Times of India",
                   "Upstox"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 0.34,
+                "newest_headline_age_h": 1.63,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -98044,7 +98049,7 @@
             },
             "experimental_combined_final": {
               "status": "available",
-              "score": -1.26,
+              "score": -1.33,
               "included_components": [
                 "news",
                 "stock_basket",
@@ -98357,7 +98362,7 @@
                 }
               ],
               "cash_breadth_score": -4.67,
-              "combined_score": -1.26,
+              "combined_score": -1.33,
               "combined_included_components": [
                 "news",
                 "stock_basket",
@@ -98683,7 +98688,7 @@
             },
             "final": {
               "status": "available",
-              "score": -1.23,
+              "score": -1.51,
               "included_components": [
                 "news"
               ],
@@ -98694,62 +98699,62 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": -6.2,
-          "experimental_news_score": -1.2,
-          "experimental_score": -1.2,
+          "headline_score": -5.8,
+          "experimental_news_score": -1.5,
+          "experimental_score": -1.5,
           "experimental_score_mode": "shadow_news24h_dedup_only",
-          "experimental_headline_count": 7,
+          "experimental_headline_count": 8,
           "experimental_excluded_old_or_unknown": 0,
-          "experimental_excluded_cross_index_duplicates": 1,
+          "experimental_excluded_cross_index_duplicates": 0,
           "headline_count": 8,
           "headlines": [
             {
               "title": "Sensex Today Tanks 1,484 Points | Nifty Below 25,350 | 4 Reasons Why Indian Share Markets Are Falling",
               "source": "Equitymaster",
               "score": -1,
-              "age_hours": 0.3
+              "age_hours": 1.6
             },
             {
               "title": "Sensex Today Trades Higher | Nifty Above 25,800 | Nifty IT Index Up 1.62%",
               "source": "Equitymaster",
               "score": 1,
-              "age_hours": 0.3
-            },
-            {
-              "title": "Sensex Today Ends 121 Points Lower | Nifty Below 23,400 | Cochin Shipyard Down 9%",
-              "source": "Equitymaster",
-              "score": -1,
-              "age_hours": 2.5
+              "age_hours": 1.6
             },
             {
               "title": "Bulls take a breather! Sensex dives 1,500 pts intraday; a short-term blip?",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 7.6
+              "age_hours": 8.9
             },
             {
               "title": "Stock market crash today: Investors lose over Rs 6 lakh crore as Sensex ends over 1,400 points down; top",
               "source": "The Times of India",
               "score": -2,
-              "age_hours": 8.0
+              "age_hours": 9.3
             },
             {
               "title": "Sensex tumbled nearly 1,500 points: Why stock market fell today?",
               "source": "India Today",
               "score": -3,
-              "age_hours": 8.1
+              "age_hours": 9.4
             },
             {
               "title": "NIFTY50, SENSEX fall over 1%, NIFTY Bank drops as India VIX jumps nearly 8%; Why is the stock market falling today?",
               "source": "Upstox",
               "score": -2,
-              "age_hours": 9.1
+              "age_hours": 10.4
             },
             {
               "title": "Sensex tumbles 1,450 pts from opening high, Nifty sheds 425 pts; metal, bank shares drag",
               "source": "Fortune India",
               "score": -3,
-              "age_hours": 10.0
+              "age_hours": 11.3
+            },
+            {
+              "title": "Black Monday crash fears grip markets: Will Sensex, Nifty open lower today?",
+              "source": "India Today",
+              "score": -3,
+              "age_hours": 13.3
             }
           ],
           "client_retail_adjustment": 0.65,
@@ -98784,50 +98789,48 @@
             },
             "components": {
               "news": {
-                "score": -1.04,
+                "score": -0.25,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T12:50:15Z",
-                "oldest_headline_published_at": "2026-11-23T10:10:02Z",
+                "oldest_headline_published_at": "2026-11-23T10:09:02Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 4,
                 "publishers": [
-                  "Fortune India",
+                  "INDIA New England News",
                   "MorungExpress",
-                  "Rediff MoneyWiz",
                   "The New Indian Express",
-                  "TradingView"
+                  "tripuratimes.com"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 2.22,
+                "newest_headline_age_h": 3.52,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -1.04,
+                "score": -0.25,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T12:50:15Z",
-                "oldest_headline_published_at": "2026-11-23T10:10:02Z",
+                "oldest_headline_published_at": "2026-11-23T10:09:02Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 4,
                 "publishers": [
-                  "Fortune India",
+                  "INDIA New England News",
                   "MorungExpress",
-                  "Rediff MoneyWiz",
                   "The New Indian Express",
-                  "TradingView"
+                  "tripuratimes.com"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 2.22,
+                "newest_headline_age_h": 3.52,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -98859,7 +98862,7 @@
             },
             "provisional_final": {
               "status": "available",
-              "score": 0.12,
+              "score": 0.52,
               "included_components": [
                 "news",
                 "eod_oi"
@@ -98872,25 +98875,24 @@
             },
             "experimental_combined_components": {
               "news": {
-                "score": -1.04,
+                "score": -0.25,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
+                "observed_at": "2026-11-23T16:21Z",
                 "newest_headline_published_at": "2026-11-23T12:50:15Z",
-                "oldest_headline_published_at": "2026-11-23T10:10:02Z",
+                "oldest_headline_published_at": "2026-11-23T10:09:02Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 4,
                 "publishers": [
-                  "Fortune India",
+                  "INDIA New England News",
                   "MorungExpress",
-                  "Rediff MoneyWiz",
                   "The New Indian Express",
-                  "TradingView"
+                  "tripuratimes.com"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 2.22,
+                "newest_headline_age_h": 3.52,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -98971,7 +98973,7 @@
             },
             "experimental_combined_final": {
               "status": "available",
-              "score": -2.08,
+              "score": -1.93,
               "included_components": [
                 "news",
                 "eod_oi",
@@ -99142,7 +99144,7 @@
                 }
               ],
               "cash_breadth_score": -10.0,
-              "combined_score": -2.08,
+              "combined_score": -1.93,
               "combined_included_components": [
                 "news",
                 "eod_oi",
@@ -106448,7 +106450,7 @@
             },
             "final": {
               "status": "available",
-              "score": -1.04,
+              "score": -0.25,
               "included_components": [
                 "news"
               ],
@@ -106459,62 +106461,62 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": -6.4,
-          "experimental_news_score": -1.0,
-          "experimental_score": -1.0,
+          "headline_score": -6.7,
+          "experimental_news_score": -0.2,
+          "experimental_score": -0.2,
           "experimental_score_mode": "shadow_news24h_dedup_only",
-          "experimental_headline_count": 5,
+          "experimental_headline_count": 4,
           "experimental_excluded_old_or_unknown": 0,
-          "experimental_excluded_cross_index_duplicates": 3,
+          "experimental_excluded_cross_index_duplicates": 4,
           "headline_count": 8,
           "headlines": [
+            {
+              "title": "₹5.2 trillion wiped off market value as Sensex, Nifty slump over 1.7%",
+              "source": "Business Standard",
+              "score": -2,
+              "age_hours": 0.6
+            },
+            {
+              "title": "Sensex sheds 1,484 points, Nifty drops below 25,400 amid heavy selling in banking, metal stocks",
+              "source": "DD India",
+              "score": -1,
+              "age_hours": 2.4
+            },
             {
               "title": "Sensex slips 1,484 points as banking stocks lead market decline",
               "source": "The New Indian Express",
               "score": -2,
-              "age_hours": 2.2
+              "age_hours": 3.5
             },
             {
               "title": "Sensex, Nifty tumble nearly 2 pc amid profit booking; over Rs 5 lakh crore wiped out",
               "source": "MorungExpress",
               "score": -1,
-              "age_hours": 2.6
+              "age_hours": 3.9
             },
             {
-              "title": "Sensex sheds 1,484 points, Nifty drops below 25,400 amid heavy selling in banking, metal stocks",
-              "source": "DD News",
+              "title": "Sensex, Nifty tumble nearly 2 pc amid profit booking",
+              "source": "tripuratimes.com",
               "score": -1,
-              "age_hours": 3.2
+              "age_hours": 5.9
             },
             {
-              "title": "Indian Markets Plunge: Sensex Dives 1,484 Pts, Nifty Below 25,350",
-              "source": "Rediff MoneyWiz",
-              "score": -2,
-              "age_hours": 4.3
-            },
-            {
-              "title": "Record highs give way to market rout: Bank Nifty plunges 2,608 points Sensex sheds 2,227 from intraday peaks",
-              "source": "Fortune India",
-              "score": 0,
-              "age_hours": 4.4
-            },
-            {
-              "title": "News by CNBC TV18 on TradingView, 2026-11-23 — cnbctv:43d687d89094b:0",
-              "source": "TradingView",
-              "score": 0,
-              "age_hours": 4.9
+              "title": "Indian Stocks Rally as Sensex Jumps 773 Points, Nifty Closes Above 25,250",
+              "source": "INDIA New England News",
+              "score": 3,
+              "age_hours": 6.2
             },
             {
               "title": "Nifty crashes by 350 points, Sensex down 1.35%. Why is the market down today?",
               "source": "India Infoline",
               "score": -2,
-              "age_hours": 6.4
+              "age_hours": 7.7
             },
             {
               "title": "Bank Nifty Crashes Nearly 1,000 Points in Early Trade as Banking Stocks Sell Off; Axis Bank, SBI Lead Losses",
               "source": "Kotak Neo",
               "score": -3,
-              "age_hours": 7.6
+              "age_hours": 8.9
             }
           ],
           "client_retail_adjustment": 0.65,
@@ -106524,13 +106526,13 @@
       },
       "other_assets": {
         "GOLD": {
-          "close": 130192.0,
+          "close": 130358.86,
           "close_as_of": "2026-11-23",
           "close_valid": true,
           "price_source": "MCX live quote × 3% GST",
-          "day_change_pct": 3.8,
-          "headline_score": 1.4,
-          "published_score": 1.4,
+          "day_change_pct": 3.93,
+          "headline_score": -1.9,
+          "published_score": -1.9,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -106552,63 +106554,57 @@
             },
             "components": {
               "news": {
-                "score": 0.27,
+                "score": 0.16,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T13:56:37Z",
-                "oldest_headline_published_at": "2026-11-23T05:47:38Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T16:04:55Z",
+                "oldest_headline_published_at": "2026-11-23T07:27:11Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
-                  "CNBC TV18",
                   "FXEmpire",
-                  "Frontline Magazine",
-                  "Global Times",
-                  "India Infoline",
                   "Kotak Neo",
                   "Livemint",
-                  "Upstox"
+                  "PRESS Insider",
+                  "World Gold Council"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.12,
+                "newest_headline_age_h": 0.27,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_components": {
               "news": {
-                "score": 0.27,
+                "score": 0.16,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T13:56:37Z",
-                "oldest_headline_published_at": "2026-11-23T05:47:38Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T16:04:55Z",
+                "oldest_headline_published_at": "2026-11-23T07:27:11Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
-                  "CNBC TV18",
                   "FXEmpire",
-                  "Frontline Magazine",
-                  "Global Times",
-                  "India Infoline",
                   "Kotak Neo",
                   "Livemint",
-                  "Upstox"
+                  "PRESS Insider",
+                  "World Gold Council"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.12,
+                "newest_headline_age_h": 0.27,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": 0.27,
+              "score": 0.16,
               "included_components": [
                 "news"
               ],
@@ -106795,7 +106791,7 @@
             "client_market_context": null,
             "final": {
               "status": "available",
-              "score": 0.27,
+              "score": 0.16,
               "included_components": [
                 "news"
               ],
@@ -106947,63 +106943,63 @@
           "headline_count": 8,
           "headlines": [
             {
+              "title": "Gold's Role in an AI-Driven Economy: Direct and Indirect Effects | Post by Joseph Cavatoni | Insights",
+              "source": "World Gold Council",
+              "score": 0,
+              "age_hours": 0.3
+            },
+            {
               "title": "Gold Rate Today in India, 23 Nov 2026 - Live 18K, 22K & 24K Gold Prices",
               "source": "Kotak Neo",
               "score": 0,
-              "age_hours": 1.1
+              "age_hours": 2.4
             },
             {
-              "title": "Gold price swings keep jewellery buyers cautious; big-ticket purchases remain subdued: NAC Jewellers",
-              "source": "CNBC TV18",
-              "score": 1,
-              "age_hours": 4.5
+              "title": "Gold rebounds after steepest weekly decline in eight months",
+              "source": "PRESS Insider",
+              "score": 0,
+              "age_hours": 2.9
             },
             {
               "title": "Gold and Silver Price Forecast: Strong Dollar Caps Rebound Before PCE",
               "source": "FXEmpire",
               "score": 1,
-              "age_hours": 4.6
+              "age_hours": 5.9
             },
             {
               "title": "Gold price forecast: Goldman Sachs sees $4,650 by 2027 despite US rate pressures — what investors should do",
               "source": "Livemint",
               "score": 0,
-              "age_hours": 5.5
+              "age_hours": 6.8
             },
             {
-              "title": "Gold price downturn sparks buying spree in China during weekend; analysts warn of rising market volatility",
-              "source": "Global Times",
-              "score": 1,
-              "age_hours": 7.1
+              "title": "Kalyan Jewellers Shares Rise Nearly 3% as Gold Prices Rebound; Titan, PC Jeweller Also Gain",
+              "source": "Kotak Neo",
+              "score": 3,
+              "age_hours": 8.6
             },
             {
-              "title": "Gold Prices Today: Gold Rebounds After Sharp Weekly Fall; Check City-Wise Rates",
-              "source": "India Infoline",
-              "score": 0,
-              "age_hours": 8.3
-            },
-            {
-              "title": "Gold, silver rates today, November 23: 22k, 24k, 18k gold prices rise; silver unchanged",
-              "source": "Upstox",
-              "score": 1,
-              "age_hours": 8.3
-            },
-            {
-              "title": "What is the Real Reason Behind the Gold Price Crash?",
-              "source": "Frontline Magazine",
+              "title": "Gold price crash with 31% correction: Why investors should wait for November 25, December 4 and 9 - What’s special?",
+              "source": "Livemint",
               "score": -2,
-              "age_hours": 9.3
+              "age_hours": 8.8
+            },
+            {
+              "title": "Gold, silver prices: Rates have rebounded, but experts feel precious metals could extend losses longer term — Here's why",
+              "source": "Livemint",
+              "score": 0,
+              "age_hours": 8.9
             }
           ]
         },
         "SILVER": {
-          "close": 159751.97,
+          "close": 160163.97,
           "close_as_of": "2026-11-23",
           "close_valid": true,
           "price_source": "MCX live quote + 3% GST Estimate",
-          "day_change_pct": 4.93,
-          "headline_score": -1.4,
-          "published_score": -1.4,
+          "day_change_pct": 5.2,
+          "headline_score": -0.6,
+          "published_score": -0.6,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -107025,14 +107021,14 @@
             },
             "components": {
               "news": {
-                "score": 0.16,
+                "score": 0.2,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T13:32:12Z",
-                "oldest_headline_published_at": "2026-11-23T03:19:53Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T13:33:34Z",
+                "oldest_headline_published_at": "2026-11-23T04:16:54Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
@@ -107043,21 +107039,21 @@
                   "Livemint"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.52,
+                "newest_headline_age_h": 2.79,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_components": {
               "news": {
-                "score": 0.16,
+                "score": 0.2,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-23",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-23T15:03Z",
-                "newest_headline_published_at": "2026-11-23T13:32:12Z",
-                "oldest_headline_published_at": "2026-11-23T03:19:53Z",
+                "observed_at": "2026-11-23T16:21Z",
+                "newest_headline_published_at": "2026-11-23T13:33:34Z",
+                "oldest_headline_published_at": "2026-11-23T04:16:54Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
@@ -107068,14 +107064,14 @@
                   "Livemint"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.52,
+                "newest_headline_age_h": 2.79,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": 0.16,
+              "score": 0.2,
               "included_components": [
                 "news"
               ],
@@ -107274,7 +107270,7 @@
             "client_market_context": null,
             "final": {
               "status": "available",
-              "score": 0.16,
+              "score": 0.2,
               "included_components": [
                 "news"
               ],
@@ -107441,49 +107437,49 @@
               "title": "Silver Price Forecast: Weak Chart Keeps Rallies Vulnerable to Selling",
               "source": "FXEmpire",
               "score": 2,
-              "age_hours": 1.5
+              "age_hours": 2.8
+            },
+            {
+              "title": "DSP Mutual Fund set to boost gold and silver exposure: Inside its price-based buying strategy",
+              "source": "Livemint",
+              "score": 1,
+              "age_hours": 3.0
             },
             {
               "title": "Silver Price Forecast: XAG/USD rebounds over 3%, but bears retain control",
               "source": "FXStreet",
               "score": 1,
-              "age_hours": 1.8
+              "age_hours": 3.1
             },
             {
               "title": "Gold, Silver price outlook: Should investors buy, hold or book losses after recent fall?",
               "source": "CNBC TV18",
               "score": -1,
-              "age_hours": 4.3
+              "age_hours": 5.6
             },
             {
               "title": "Silver price today: rises on November 23",
               "source": "FXStreet",
               "score": 1,
-              "age_hours": 5.5
-            },
-            {
-              "title": "Gold, silver prices: Rates have rebounded, but experts feel precious metals could extend losses longer term — Here's why",
-              "source": "Livemint",
-              "score": 0,
-              "age_hours": 7.6
+              "age_hours": 6.8
             },
             {
               "title": "Silver Prices Today, November 23, 2026: Rate Steady at Rs 1,750 per 10 gm on Monday; Vaibhav Global Slides 2.48%",
               "source": "HDFC Sky",
               "score": -1,
-              "age_hours": 9.4
+              "age_hours": 10.6
             },
             {
               "title": "Shimla jewellers see opportunity during wedding season amid sharp decline in gold, silver prices; check retail rates",
               "source": "Livemint",
               "score": -1,
-              "age_hours": 10.3
+              "age_hours": 11.6
             },
             {
-              "title": "Silver Price Forecast: XAG/USD holds opening gains as Fed bigger rate hike prospects wane",
-              "source": "FXStreet",
-              "score": 1,
-              "age_hours": 11.7
+              "title": "Gold, silver prices today, 23 November: Check retail rates of 24K, 22K gold, 999 silver in Delhi, Mumbai and Kolkata",
+              "source": "Livemint",
+              "score": 0,
+              "age_hours": 12.1
             }
           ]
         }
@@ -107627,5 +107623,5 @@
       }
     }
   ],
-  "updated_at": "2026-11-23T15:03Z"
+  "updated_at": "2026-11-23T16:21Z"
 }
