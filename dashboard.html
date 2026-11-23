@@ -632,7 +632,7 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" style="grid-column:1 / -1"><h2>🧭 सेक्टर नक्शा (वॉचलिस्ट)</h2><div class="box" id="sectorMap"></div></section>
 
-<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
+<section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div id="nifty-premium-radar-content"></div><style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
     <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">NSE snapshot · लगभग 10 मिनट · line chart</span></div>
       <div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><div id="trinetra-nifty-tv-container" class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async onerror="this.parentElement.querySelector('.trinetra-tv-fallback').style.display='block'">
@@ -1779,25 +1779,13 @@ function card(name, d, participantOI, observedAt) {
 }
 
 function renderNiftyPremiumRadar(data) {
-  const box = document.getElementById("nifty-premium-radar");
+  const box = document.getElementById("nifty-premium-radar-content");
   if (!box) return;
-  // Preserve the complete TradingView section, including its widget instance and provider links.
-  // Recreating it on each refresh or temporary stale-data state resets the chart selection/zoom.
-  // Preserve chart section and selected strike across dashboard refreshes.
-  const existingTvSection = box.querySelector(".trinetra-tv-section");
-  const tvSectionHtml = `<style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
-    <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">NSE snapshot · लगभग 10 मिनट · line chart</span></div>
-      <div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><div id="trinetra-nifty-tv-container" class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><div class="trinetra-tv-fallback" style="display:none;padding:14px;color:#d7e7f8">TradingView embed नहीं खुला। <a href="https://www.tradingview.com/chart/?symbol=NSE%3ANIFTY" target="_blank" rel="noopener" style="color:#55e6ff">NIFTY का पूरा चार्ट खोलें</a></div></div></div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px"><label for="trinetra-premium-strike" style="font-weight:700;color:#d9eaff">Strike Price</label><input id="trinetra-premium-strike" type="number" min="1" step="50" inputmode="numeric" placeholder="जैसे 26000" style="width:125px;padding:8px;border:1px solid #38638b;border-radius:7px;background:#07152b;color:#fff;font-weight:700"><span id="trinetra-premium-expiry" class="sub">Expiry: NSE डेटा आने पर</span></div>
-      <div class="trinetra-premium-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
-        <div id="trinetra-pe-card" style="display:none;min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)"><div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px"><b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">NSE LTP points</span></div><div id="trinetra-pe-widget" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730"><canvas id="trinetra-pe-canvas" style="display:block;width:100%;height:100%"></canvas></div></div>
-        <div id="trinetra-ce-card" style="display:none;min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)"><div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px"><b style="color:#71e0b5">📈 CE PREMIUM · RIGHT</b><span class="sub">NSE LTP points</span></div><div id="trinetra-ce-widget" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730"><canvas id="trinetra-ce-canvas" style="display:block;width:100%;height:100%"></canvas></div></div>
-      </div>
-      <div id="trinetra-premium-source-status" class="sub" style="margin-top:8px">NSE के सत्यापित snapshots की प्रतीक्षा। Candle data नहीं बनाया जाएगा।</div>
-    </div>`;
+  // Keep the TradingView embed outside this dynamically refreshed content node.
+  // Its original HTML script must remain in place so the browser executes it only once.
+  const tvSectionHtml = "";
   const initializeNsePremiumCharts = () => {
-    const section = box.querySelector("#trinetra-tv-section-slot");
+    const section = document.getElementById("trinetra-tv-section-slot");
     if (!section) return;
     if (section.dataset.nseInitialized === "1") return;
     section.dataset.nseInitialized = "1";
@@ -1886,9 +1874,7 @@ function renderNiftyPremiumRadar(data) {
   const tradeGuardBlocked = document.getElementById("trade-guard")?.classList.contains("block");
   const fresh = validUpdated && ageMin >= -5 && ageMin <= 45 && !tradeGuardBlocked && !(n && n.stale);
   if (!fresh || !r || !r.ok || !Number.isFinite(Number(r.last_close))) {
-    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>' + tvSectionHtml;
-    const staleTvSlot = box.querySelector("#trinetra-tv-section-slot");
-    if (existingTvSection && staleTvSlot) staleTvSlot.replaceWith(existingTvSection);
+    box.innerHTML = '<div class="warn">⛔ NO TRADE — NIFTY का सत्यापित ताज़ा डेटा उपलब्ध नहीं।</div><div class="sub">प्रीमियम या एंट्री लेवल अनुमान से नहीं दिखाए जाएंगे।</div>';
     initializeNsePremiumCharts();
     return;
   }
@@ -1975,12 +1961,8 @@ function renderNiftyPremiumRadar(data) {
       <div style="margin-top:6px;font-weight:800;color:#ff9c9c">अभी: NO TRADE · 5m/15m candle और premium पुष्टि बाकी</div>
     </div>
     <div class="sub" style="margin-top:9px">एक live quote breakout/breakdown की पुष्टि नहीं है। 5m/15m candle close + retest और प्रमाणित option premium के बिना Entry/SL/Target जारी नहीं होगा।</div>
-    ${tvSectionHtml}`;
-  // Preserve the existing widget instance on refresh; initialize only on first render.
-  const tvSlot = box.querySelector("#trinetra-tv-section-slot");
-  if (existingTvSection && tvSlot) {
-    tvSlot.replaceWith(existingTvSection);
-  }
+    `;
+  // The static TradingView embed is never replaced during dashboard refreshes.
   initializeNsePremiumCharts();
 }
 
