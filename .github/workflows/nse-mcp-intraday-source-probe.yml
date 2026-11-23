@@ -1,0 +1,40 @@
+name: Read-only NSE MCP Intraday Source Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/probe_nse_mcp_intraday.py"
+      - ".github/workflows/nse-mcp-intraday-source-probe.yml"
+      - "fetch_and_score.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-mcp-source-probe-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install scanner dependencies
+        run: pip install yfinance feedparser requests pytrends curl_cffi
+      - name: Run read-only NSE MCP source probe
+        run: python scripts/probe_nse_mcp_intraday.py
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-mcp-intraday-source-probe
+          path: nse-mcp-intraday-source-probe.json
+          if-no-files-found: warn
+          retention-days: 7
