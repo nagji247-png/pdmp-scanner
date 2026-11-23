@@ -99,28 +99,8 @@ def main():
     REPORT["pages"].append({"arguments": args, "rows": len(rows)})
     all_rows = list(rows)
 
-    # Check the documented symbol-prefix filter with three bounded probes.
-    # Do not fan out across the full exchange universe during every scan.
-    symbol_filter_key = next((key for key in properties if key.lower() in {"symbolfilter", "symbol_filter"}), None)
-    if symbol_filter_key:
-        REPORT["prefix_probes"] = []
-        for prefix in ("A", "S", "Z"):
-            prefix_args = dict(args)
-            prefix_args[symbol_filter_key] = prefix
-            prefix_payload = scanner._nse_mcp_call_http(TOOL, prefix_args)
-            prefix_rows = get_rows(prefix_payload)
-            REPORT["prefix_probes"].append({
-                "prefix": prefix,
-                "rows": len(prefix_rows),
-                "unique_symbols": len({
-                    str(x.get("symbol") or "").upper()
-                    for x in prefix_rows if isinstance(x, dict) and x.get("symbol")
-                }),
-                "sample_symbols": [
-                    str(x.get("symbol") or "").upper()
-                    for x in prefix_rows[:8] if isinstance(x, dict)
-                ],
-            })
+    # Keep this run to one bounded quote request; pagination is tested only
+    # if the live schema explicitly advertises a pagination parameter.
 
     # Probe one additional page only when the live schema explicitly advertises
     # a pagination field. No guessed/undocumented argument names are sent.
@@ -181,3 +161,5 @@ if __name__ == "__main__":
         encoding="utf-8",
     )
     print(json.dumps(REPORT, ensure_ascii=False, indent=2, default=str))
+    if REPORT["status"] != "ok":
+        sys.exit(1)
