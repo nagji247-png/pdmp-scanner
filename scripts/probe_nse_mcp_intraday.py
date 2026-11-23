@@ -2,8 +2,11 @@
 """Read-only probe of NSE MCP equity quote coverage; never writes production data."""
 import datetime as dt
 import json
+import sys
 from pathlib import Path
 
+# The script lives under scripts/; expose the repository root for importing the scanner.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import fetch_and_score as scanner
 
 TOOL = "cm_get_equity_stocks"
