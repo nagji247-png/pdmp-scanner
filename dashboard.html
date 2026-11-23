@@ -1793,12 +1793,14 @@ function renderNiftyPremiumRadar(data) {
     let niftyChart = null;
     let niftyCandleSeries = null;\n    let niftyEma20Series = null;\n    let niftyEma50Series = null;
     const setNiftyStatus = (p) => {
-      const last = Array.isArray(p.candles)&&p.candles.length ? p.candles[p.candles.length-1] : null;
+      const sourceCount = Array.isArray(p.candles) ? p.candles.length : 0;
+      const chartBars = toChartCandles(p);
+      const last = chartBars.length ? chartBars[chartBars.length-1] : null;
       const fetched = p.fetched_at ? new Date(p.fetched_at) : null;
-      const lastAt = last ? new Date(last.time) : null;
+      const lastAt = last ? new Date(last.time*1000) : null;
       const stamp = d => d&&Number.isFinite(d.getTime()) ? d.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" IST" : "समय उपलब्ध नहीं";
       if(niftyStatus) niftyStatus.textContent = last
-        ? "स्रोत: Yahoo Finance · सत्यापित 5-मिनट OHLC से बने 15-मिनट candles · "+(p.candles.length||0)+" मूल candles · अंतिम candle: "+stamp(lastAt)+" · archive refresh: "+stamp(fetched)+" · ऐतिहासिक/विलंबित डेटा; live feed का दावा नहीं।"
+        ? "स्रोत: Yahoo Finance · सत्यापित 5-मिनट OHLC से बने 15-मिनट candles · "+sourceCount+" मूल 5-मिनट candles · "+chartBars.length+" पूर्ण 15-मिनट bars · अंतिम 15-मिनट candle: "+stamp(lastAt)+" · archive refresh: "+stamp(fetched)+" · ऐतिहासिक/विलंबित डेटा; live feed का दावा नहीं।"
         : "NIFTY के सत्यापित candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
     };
     const toChartCandles = p => {
