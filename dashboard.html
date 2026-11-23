@@ -1782,7 +1782,8 @@ function renderNiftyPremiumRadar(data) {
     let niftyArchive = null;
     let niftyChart = null;
     let niftyCandleSeries = null;
-    let niftyEma20Series = null;\n    let niftyEma50Series = null;
+    let niftyEma20Series = null;
+    let niftyEma50Series = null;
     const setNiftyStatus = (p) => {
       const sourceCount = Array.isArray(p.candles) ? p.candles.length : 0;
       const chartBars = toChartCandles(p);
