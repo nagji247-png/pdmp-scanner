@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
+      - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
       - "stock_basket_freshness.py"
       - "tests/test_stock_basket_loader_freshness.py"
@@ -28,6 +29,7 @@ on:
     branches: [main]
     paths:
       - "fetch_and_score.py"
+      - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
       - "stock_basket_freshness.py"
       - "tests/test_stock_basket_loader_freshness.py"
