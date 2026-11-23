@@ -1,5 +1,7 @@
 import io
 import json
+import runpy
+import sys
 import tempfile
 import unittest
 import zipfile
@@ -412,6 +414,31 @@ class ExistingNSEIndexOIComponentAggregationTests(unittest.TestCase):
         malformed = [rows[0], {**rows[1], "OpnIntrst": "", "XpryDt": ""}]
         self.assertFalse(aggregate_nse_udiff_index_option_oi(
             malformed, "NIFTY", "2026-11-06")["available"])
+
+
+    def test_cli_propagates_missing_latest_session_as_nonzero_exit(self):
+        class NotFoundResponse:
+            status_code = 404
+            content = b""
+
+        class NotFoundSession:
+            def get(self, *args, **kwargs):
+                return NotFoundResponse()
+
+        script = Path(__file__).resolve().parents[1] / "nse_index_option_oi_archive.py"
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = Path(directory) / "nse_index_option_oi.json"
+            argv = [
+                str(script), "--from-date", "2026-11-23",
+                "--to-date", "2026-11-23", "--archive", str(archive_path),
+            ]
+            with patch.object(sys, "argv", argv), patch(
+                "requests.Session", return_value=NotFoundSession()
+            ):
+                with self.assertRaises(SystemExit) as raised:
+                    runpy.run_path(str(script), run_name="__main__")
+            self.assertEqual(raised.exception.code, 1)
+
 
 
 if __name__ == "__main__":
