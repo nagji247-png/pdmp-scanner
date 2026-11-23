@@ -209,6 +209,6 @@ def main():
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     tmp.replace(path)
-    print(json.dumps({"date": target.isoformat(), "rows": len(rows), "status": status}, ensure_ascii=False))
+    print(json.dumps({"date": target.isoformat(), "rows": sum(len(record["rows"]) for record in updated), "status": historical_status}, ensure_ascii=False))
 
 if __name__ == "__main__": main()
