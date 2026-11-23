@@ -1,5 +1,5 @@
 import unittest
-from nse_bulk_block_deals import parse_deal_csv, parse_day, parse_historical_response, report_status_for_date
+from nse_bulk_block_deals import parse_deal_csv, parse_day, parse_historical_csv, parse_historical_response, report_status_for_date
 
 class BulkBlockDealsTests(unittest.TestCase):
     def test_parses_disclosed_buyer_and_seller_rows(self):
@@ -25,6 +25,20 @@ class BulkBlockDealsTests(unittest.TestCase):
             "client": "CLIENT ONE", "side": "BUY", "quantity": 250000,
             "price": 125.5,
         }])
+
+    def test_parses_all_rows_and_dates_from_historical_csv(self):
+        payload = ("Date,Symbol,Security Name,Client Name,Buy / Sell,Quantity Traded,Trade Price / Wght. Avg. Price\\n"
+                   "18-NOV-2026,ABC,ABC LTD,CLIENT ONE,BUY,250000,125.50\\n"
+                   "19-NOV-2026,XYZ,XYZ LTD,CLIENT TWO,SELL,100000,80.25\\n").encode()
+        rows = parse_historical_csv(payload, "Bulk")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([row["date"] for row in rows], ["2026-11-18", "2026-11-19"])
+        self.assertEqual(rows[1]["side"], "SELL")
+        self.assertEqual(rows[0]["quantity"], 250000)
+
+    def test_historical_csv_rejects_missing_columns(self):
+        with self.assertRaises(ValueError):
+            parse_historical_csv(b"Date,Symbol\\n18-NOV-2026,ABC\\n", "Block")
 
     def test_historical_api_empty_data_list_is_valid_complete_response(self):
         self.assertEqual(parse_historical_response(b'{"data":[]}', "Block"), [])
