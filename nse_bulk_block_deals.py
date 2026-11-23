@@ -67,6 +67,60 @@ def report_status_for_date(parsed_rows):
     # the file may simply still contain an older report. Fail closed.
     return "verified" if parsed_rows else "date_not_confirmed_no_rows"
 
+def parse_historical_response(payload, kind):
+    """Parse NSE's date-ranged historical API response; reject unknown schemas."""
+    try:
+        document = json.loads(payload.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(kind + " historical API did not return valid JSON") from exc
+    if isinstance(document, list):
+        records = document
+    elif isinstance(document, dict) and isinstance(document.get("data"), list):
+        records = document["data"]
+    else:
+        raise ValueError(kind + " historical API response missing data list")
+    parsed = []
+    for item in records:
+        if not isinstance(item, dict):
+            raise ValueError(kind + " historical API contains a non-object row")
+        raw_date = item.get("BD_DT_DATE") or item.get("date") or item.get("mTIMESTAMP")
+        raw_symbol = item.get("BD_SYMBOL") or item.get("symbol")
+        raw_client = item.get("BD_CLIENT_NAME") or item.get("clientName") or item.get("client")
+        raw_side = item.get("BD_BUY_SELL") or item.get("buySell") or item.get("side")
+        raw_qty = item.get("BD_QTY_TRD") or item.get("qty") or item.get("quantity")
+        raw_price = item.get("BD_TP_WATP") or item.get("watp") or item.get("price")
+        day = parse_day(raw_date)
+        symbol = str(raw_symbol or "").strip().upper()
+        client = str(raw_client or "").strip()
+        side_text = str(raw_side or "").strip().upper()
+        if not symbol or not client or not (side_text.startswith("B") or side_text.startswith("S")):
+            raise ValueError(kind + " historical row missing symbol/client/side")
+        parsed.append({
+            "date": day.isoformat(), "kind": kind, "symbol": symbol,
+            "client": client, "side": "SELL" if side_text.startswith("S") else "BUY",
+            "quantity": parse_number(raw_qty, "quantity", True),
+            "price": parse_number(raw_price, "trade price"),
+        })
+    return parsed
+
+
+def fetch_historical_range(session, kind, start_date, end_date):
+    option = "bulk_deals" if kind == "Bulk" else "block_deals"
+    url = "https://www.nseindia.com/api/historicalOR/bulk-block-short-deals"
+    params = {"optionType": option, "from": start_date.strftime("%d-%m-%Y"),
+              "to": end_date.strftime("%d-%m-%Y")}
+    response = session.get(url, params=params, headers={
+        **HEADERS, "Accept": "application/json,text/plain,*/*",
+        "Referer": "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
+    }, timeout=(10, 45))
+    if response.status_code != 200:
+        raise RuntimeError(kind + " historical API HTTP " + str(response.status_code))
+    parsed = parse_historical_response(response.content, kind)
+    if any(not (start_date <= dt.date.fromisoformat(row["date"]) <= end_date) for row in parsed):
+        raise ValueError(kind + " historical API returned rows outside requested date range")
+    return parsed, response.url
+
+
 def fetch_file(session, kind):
     filename = "bulk.csv" if kind == "Bulk" else "block.csv"
     response = session.get(BASE + filename, headers=HEADERS, timeout=(10, 45))
@@ -83,27 +137,59 @@ def main():
     if not dates: raise RuntimeError("no verified NSE CM session for deal date")
     target = max(dates)
     session = requests.Session()
-    rows, sources, status = [], {}, {}
+    # NSE's historical endpoint is date-ranged. Warm the browser-like session first,
+    # then fetch a single bounded range for both report types instead of assuming
+    # today's bulk.csv/block.csv can reconstruct earlier sessions.
+    try:
+        session.get("https://www.nseindia.com", headers=HEADERS, timeout=(10, 30))
+    except requests.RequestException:
+        pass
+    path = Path(args.archive)
+    archive = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schema_version": 1, "records": []}
+    # Backfill the latest 10 verified cash sessions, including the latest date.
+    session_dates = sorted(set(dates))[-10:]
+    start_date = session_dates[0]
+    historical_by_kind, historical_sources, historical_status = {}, {}, {}
     for index, kind in enumerate(("Bulk", "Block")):
         if index: time.sleep(1.2)
         try:
-            payload, url = fetch_file(session, kind)
-            parsed = parse_deal_csv(payload, kind, target)
-            rows.extend(parsed); sources[kind] = url
-            status[kind] = report_status_for_date(parsed)
+            parsed, url = fetch_historical_range(session, kind, start_date, target)
+            historical_by_kind[kind] = parsed
+            historical_sources[kind] = url
+            historical_status[kind] = "verified"
         except Exception as exc:
-            status[kind] = "unavailable: " + str(exc)
-    if not any(value == "verified" for value in status.values()):
-        print(json.dumps({"date": target.isoformat(), "rows": 0, "status": status,
-                          "warning": "No exact-date disclosed deal rows were confirmed; this is not proof of zero deals."}, ensure_ascii=False))
-    path = Path(args.archive)
-    archive = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schema_version": 1, "records": []}
-    record = {"date": target.isoformat(), "rows": rows, "status": status, "sources": sources,
-              "verified_report_count": sum(v == "verified" for v in status.values()),
-              "research_only": True, "included_in_asset_final": False}
-    archive["records"] = [x for x in archive.get("records", []) if x.get("date") != target.isoformat()]
-    archive["records"].append(record)
-    archive["records"] = sorted(archive["records"], key=lambda x:x["date"])[-260:]
+            historical_status[kind] = "unavailable: " + str(exc)
+
+    # A successful date-ranged response with a valid data list verifies the
+    # requested coverage, including a date with no rows. That is different from
+    # an empty current-day CSV whose date scope is unknown.
+    updated = []
+    for day in session_dates:
+        day_key = day.isoformat()
+        day_rows = [row for kind in ("Bulk", "Block")
+                    for row in historical_by_kind.get(kind, [])
+                    if row["date"] == day_key]
+        day_status = {kind: historical_status.get(kind, "unavailable")
+                      for kind in ("Bulk", "Block")}
+        day_sources = {kind: historical_sources[kind] for kind in historical_sources}
+        verified_count = sum(value == "verified" for value in day_status.values())
+        if verified_count:
+            updated.append({"date": day_key, "rows": day_rows, "status": day_status,
+                            "sources": day_sources, "verified_report_count": verified_count,
+                            "coverage_method": "NSE historicalOR date-range API",
+                            "research_only": True, "included_in_asset_final": False})
+    for record in updated:
+        archive["records"] = [x for x in archive.get("records", [])
+                              if x.get("date") != record["date"]]
+        archive["records"].append(record)
+    archive["records"] = sorted(archive.get("records", []), key=lambda x:x["date"])[-260:]
+    print(json.dumps({
+        "requested_sessions": [day.isoformat() for day in session_dates],
+        "updated_sessions": [record["date"] for record in updated],
+        "rows_by_date": {record["date"]: len(record["rows"]) for record in updated},
+        "historical_status": historical_status,
+        "warning": "A date is marked verified only for report types whose historical range request returned a valid data list."
+    }, ensure_ascii=False))
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     tmp.replace(path)
