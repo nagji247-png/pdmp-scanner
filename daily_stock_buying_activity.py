@@ -174,9 +174,26 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     deals_records = (deals_archive or {}).get("records", []) if isinstance(deals_archive, dict) else []
     deals_record = next((record for record in reversed(deals_records)
                          if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
-    deal_rows = (deals_record or {}).get("rows") or []
+    # Keep the latest-session rows separate for signal matching: an older disclosed
+    # deal must never be attached to today's price/OI signal. The dashboard's
+    # Bulk / Block table, however, is a dated activity history and must retain
+    # every row from every archive date whose official report was verified.
+    current_deal_rows = (deals_record or {}).get("rows") or []
+    deal_rows = []
+    for deal_record in deals_records:
+        if not isinstance(deal_record, dict) or not deal_record.get("date"):
+            continue
+        if int(deal_record.get("verified_report_count") or 0) < 1:
+            continue
+        try:
+            report_date = dt.date.fromisoformat(str(deal_record["date"])).isoformat()
+        except (TypeError, ValueError):
+            continue
+        for deal in deal_record.get("rows") or []:
+            if isinstance(deal, dict):
+                deal_rows.append({**deal, "date": deal.get("date") or report_date})
     deals_by_symbol = {}
-    for deal in deal_rows:
+    for deal in current_deal_rows:
         if not isinstance(deal, dict):
             continue
         symbol = str(deal.get("symbol") or "").upper()
@@ -279,6 +296,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         ]
         deal_evidence = [
             {
+                "date": deal.get("date") or latest_date.isoformat(),
                 "kind": deal.get("kind"),
                 "side": deal.get("side"),
                 "client": deal.get("client"),
