@@ -515,5 +515,43 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
 
 
 
+    def test_strong_diagnostics_explain_missing_same_expiry_futures_oi(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}},
+                              fo_archive={"records": []})
+        diagnostic = report["strong_diagnostics"]
+        self.assertEqual(diagnostic["fno_universe"], 1)
+        self.assertIsNone(diagnostic["current_fo_record_date"])
+        self.assertIsNone(diagnostic["previous_fo_record_date"])
+        self.assertEqual(diagnostic["missing_snapshot_symbols"], 1)
+        self.assertEqual(diagnostic["usable_same_expiry_pairs"], 0)
+        self.assertEqual(diagnostic["strong_count"], 0)
+
+    def test_strong_diagnostics_distinguish_missing_deal_from_missing_oi(self):
+        archive = {"records": [
+            {"date": "2026-11-16", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 105, "previous_close": 100, "volume": 200000}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-16", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0}}}}},
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1100, "close": 105.0}}}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        diagnostic = report["strong_diagnostics"]
+        self.assertEqual(diagnostic["usable_same_expiry_pairs"], 1)
+        self.assertEqual(diagnostic["long_build_up_watch"], 1)
+        self.assertEqual(diagnostic["directional_build_up_without_deal"], 1)
+        self.assertEqual(diagnostic["strong_count"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

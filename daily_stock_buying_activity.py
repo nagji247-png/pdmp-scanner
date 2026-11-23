@@ -376,12 +376,17 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     # Source coverage is measured across the scanned universe, not only alert rows.
     # Otherwise a quiet market day would incorrectly look like disconnected data.
     fno_futures_oi_matched = 0
+    fno_same_expiry_pairs = 0
+    fno_no_common_expiry = 0
+    fno_missing_snapshot = 0
+    fno_invalid_contract_values = 0
     for symbol in fno_symbols:
         current_stock = current_futures.get(symbol) or {}
         prior_stock = previous_futures.get(symbol) or {}
         # Count coverage from validated exact-expiry rows, independently of other
         # invalid contracts recorded for the same symbol.
         if not isinstance(current_stock.get("by_expiry"), dict) or not isinstance(prior_stock.get("by_expiry"), dict):
+            fno_missing_snapshot += 1
             continue
         current_contracts = current_stock.get("by_expiry") or {}
         prior_contracts = prior_stock.get("by_expiry") or {}
@@ -390,7 +395,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             if expiry >= latest_date.isoformat()
         ]
         if not common_expiries:
+            fno_no_common_expiry += 1
             continue
+        fno_same_expiry_pairs += 1
         expiry = sorted(common_expiries)[0]
         now_contract, old_contract = current_contracts[expiry], prior_contracts[expiry]
         current_oi = finite_number(now_contract.get("open_interest"))
@@ -404,6 +411,18 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                 and current_close is not None and current_close > 0
                 and previous_close is not None and previous_close > 0):
             fno_futures_oi_matched += 1
+        else:
+            fno_invalid_contract_values += 1
+
+    long_build_up_watch = sum(1 for row in rows if row.get("signal") == "LONG BUILD-UP")
+    short_build_up_watch = sum(1 for row in rows if row.get("signal") == "SHORT BUILD-UP")
+    directional_build_up_with_deal = sum(
+        1 for row in rows
+        if row.get("signal") in ("LONG BUILD-UP", "SHORT BUILD-UP")
+        and row.get("deal_evidence")
+    )
+    directional_build_up_without_deal = long_build_up_watch + short_build_up_watch - directional_build_up_with_deal
+    strong_count = sum(1 for row in rows if row.get("strength") == "STRONG")
 
     latest_eq_symbols = {
         str(item.get("symbol") or "").upper()
@@ -437,6 +456,24 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         "strength_summary": {
             level: sum(1 for row in rows if row.get("strength") == level)
             for level in ("STRONG", "WATCH", "EARLY")
+        },
+        "strong_diagnostics": {
+            "rule": "LONG BUILD-UP plus same-session NSE disclosed BUY, or SHORT BUILD-UP plus same-session NSE disclosed SELL",
+            "fno_universe": len(fno_symbols),
+            "current_fo_record_date": (current_fo or {}).get("date"),
+            "previous_fo_record_date": (previous_fo or {}).get("date"),
+            "current_fo_symbol_records": len(current_futures),
+            "previous_fo_symbol_records": len(previous_futures),
+            "same_expiry_pairs": fno_same_expiry_pairs,
+            "usable_same_expiry_pairs": fno_futures_oi_matched,
+            "missing_snapshot_symbols": fno_missing_snapshot,
+            "no_common_expiry_symbols": fno_no_common_expiry,
+            "invalid_contract_symbols": fno_invalid_contract_values,
+            "long_build_up_watch": long_build_up_watch,
+            "short_build_up_watch": short_build_up_watch,
+            "directional_build_up_with_deal": directional_build_up_with_deal,
+            "directional_build_up_without_deal": directional_build_up_without_deal,
+            "strong_count": strong_count,
         },
         "signal_history": signal_history,
         "outcome_summary": outcome_summary,
