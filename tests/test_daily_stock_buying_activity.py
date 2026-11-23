@@ -1,5 +1,5 @@
 import unittest
-from daily_stock_buying_activity import build_report, build_price_volume_outcomes
+from daily_stock_buying_activity import build_report, build_price_volume_outcomes, futures_oi_metrics
 
 
 class DailyStockBuyingActivityTests(unittest.TestCase):
@@ -552,6 +552,66 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(diagnostic["directional_build_up_without_deal"], 1)
         self.assertEqual(diagnostic["strong_count"], 0)
 
+
+
+    def test_rollover_uses_aggregate_active_expiry_oi_not_near_month_drop(self):
+        archive = {"records": [
+            {"date": "2026-11-17", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-18", "equity_rows": [
+                {"symbol": "ABC", "close": 102, "previous_close": 100, "volume": 100000}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-17", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0},
+                "2026-12-31": {"open_interest": 100, "close": 101.0},
+            }}}},
+            {"date": "2026-11-18", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 600, "close": 102.0},
+                "2026-12-31": {"open_interest": 600, "close": 102.0},
+            }}}},
+        ]}
+        deals = {"records": [
+            {"date": "2026-11-18", "verified_report_count": 2, "rows": [
+                {"symbol": "ABC", "kind": "Bulk", "client": "DISCLOSED BUYER",
+                 "side": "BUY", "quantity": 50000, "price": 102.0}
+            ]}
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}},
+                              fo_archive=fo_archive, deals_archive=deals)
+        row = next(item for item in report["rows"] if item["symbol"] == "ABC")
+        # Near expiry OI fell 40%, but next expiry rose enough that combined
+        # active OI increased from 1,100 to 1,200 (+9.09%).
+        self.assertEqual(row["futures_expiry"], "2026-11-26")
+        self.assertEqual(row["oi_change_pct"], 9.09)
+        self.assertEqual(row["futures_change_pct"], 2.0)
+        self.assertEqual(row["signal"], "LONG BUILD-UP")
+        self.assertEqual(row["strength"], "STRONG")
+        self.assertEqual(report["strength_summary"]["STRONG"], 1)
+        self.assertEqual(report["strong_diagnostics"]["usable_same_expiry_pairs"], 1)
+
+    def test_expiry_day_excludes_contract_expiring_that_day(self):
+        archive = {"records": [
+            {"date": "2026-11-25", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-26", "equity_rows": [
+                {"symbol": "ABC", "close": 102, "previous_close": 100, "volume": 100000}]},
+        ]}
+        fo_archive = {"records": [
+            {"date": "2026-11-25", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 1000, "close": 100.0},
+                "2026-12-31": {"open_interest": 100, "close": 101.0},
+            }}}},
+            {"date": "2026-11-26", "stock_futures": {"ABC": {"available": True, "by_expiry": {
+                "2026-11-26": {"open_interest": 0, "close": 102.0},
+                "2026-12-31": {"open_interest": 120, "close": 102.0},
+            }}}},
+        ]}
+        report = build_report(archive, {"stocks": {"ABC": {}}}, fo_archive=fo_archive)
+        row = next(item for item in report["rows"] if item["symbol"] == "ABC")
+        self.assertEqual(row["futures_expiry"], "2026-12-31")
+        self.assertEqual(row["oi_change_pct"], 20.0)
+        self.assertEqual(row["signal"], "LONG BUILD-UP")
 
 if __name__ == "__main__":
     unittest.main()
