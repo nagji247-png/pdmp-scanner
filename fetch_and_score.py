@@ -359,8 +359,8 @@ def experimental_news_scores(
 
 
 def should_refresh_asset_search(trends_scan, event_name):
-    """Allow bounded asset Search refresh on manual scans and explicit validation pushes."""
-    return bool(trends_scan and str(event_name or "").lower() in {"workflow_dispatch", "push"})
+    """Allow bounded asset Search refresh on manual scans only, never PRs or code pushes."""
+    return bool(trends_scan and str(event_name or "").lower() == "workflow_dispatch")
 
 
 def should_refresh_manual_asset_trends(trends_ok, error=None):
