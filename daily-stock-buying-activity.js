@@ -4,6 +4,8 @@ var root=document.getElementById("daily-stock-buying-activity");
 if(!root)return;
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmt(v,d){return v==null?"—":Number(v).toLocaleString("en-IN",{maximumFractionDigits:d==null?2:d});}
+function dealDate(v){var m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(v||""));if(!m)return "";var y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]),dt=new Date(Date.UTC(y,mo-1,day));return dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===day?String(day).padStart(2,"0")+"/"+String(mo).padStart(2,"0")+"/"+y:"";}
+function verifiedDeals(items){return (Array.isArray(items)?items:[]).filter(function(d){return dealDate(d.date)!=="";});}
 function badge(signal){
  var map={
   "LONG BUILD-UP":["🟢","ma-buy"],
@@ -66,7 +68,7 @@ function chartPageUrl(r){
 }
 function openStock(r){
  var kind=rowKind(r), label=kind==="buy"?"BUYING":kind==="sell"?"SELLING":kind==="deals"?"DISCLOSED DEAL":kind==="unusual"?"UNUSUAL ACTIVITY":"ACTIVITY";
- var dealRows=(r.deal_evidence||[]).map(function(d){return '<tr><td>'+esc(d.kind)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.client)+'</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join("");
+ var dealRows=verifiedDeals(r.deal_evidence).map(function(d){return '<tr><td>'+esc(dealDate(d.date))+'</td><td>'+esc(d.kind)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.client)+'</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join("");
  var fields=[
   ["Category",r.category],["EOD Date",r.as_of],["Closing Price","₹"+fmt(r.price)],["Price Change",(Number(r.change_pct)>0?"+":"")+fmt(r.change_pct)+"%"],
   ["Cash Volume",fmt(r.volume,0)],["Average Volume",fmt(r.average_volume_20,0)],["Volume Ratio",fmt(r.volume_ratio)+"x"],
@@ -81,7 +83,7 @@ function openStock(r){
  '<div class="dsba-chart-actions"><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">TradingView Chart खोलें</a><a class="dsba-action dsba-link" href="'+chartPageUrl(r)+'" target="_blank" rel="noopener">Chart अलग टैब में</a></div>'+
  '<div class="dsba-proof"><b>मुख्य प्रमाण</b><p>'+esc(mainEvidence(r,kind==="sell"?"SELL":"BUY"))+'</p><b>उपलब्ध प्रमाण</b><p>'+esc(evidenceText(r))+'</p></div>'+
  '<div class="dsba-table-wrap"><table class="dsba-table dsba-detail-table"><tbody>'+fields.filter(Boolean).map(function(x){return '<tr><th>'+esc(x[0])+'</th><td>'+esc(x[1])+'</td></tr>';}).join("")+'</tbody></table></div>'+
- (dealRows?'<h4>NSE Disclosed Deals</h4><div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Type</th><th>Side</th><th>Client</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+dealRows+'</tbody></table></div>':'')+
+ (dealRows?'<h4>NSE Disclosed Deals</h4><div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Deal Date</th><th>Type</th><th>Side</th><th>Client</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+dealRows+'</tbody></table></div>':'')+
  (Array.isArray(r.missing_fields)&&r.missing_fields.length?'<p class="dsba-note">डेटा उपलब्ध नहीं: '+esc(r.missing_fields.join(" · "))+'</p>':'')+
  '</section></div>';
  root.insertAdjacentHTML("beforeend",html);
@@ -148,7 +150,7 @@ function render(data){
  shortlistHtml+
  sellingHtml+
  '<div class="dsba-details" style="margin:8px 0"><b>NSE Disclosed Deals</b>'+
- (function(){var top=shortlist.concat(sellingShortlist),deals=[];top.forEach(function(r){(r.deal_evidence||[]).forEach(function(d){deals.push({symbol:r.symbol,kind:d.kind,side:d.side,client:d.client});});});return deals.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Type</th><th>Side</th><th>Client</th></tr></thead><tbody>'+deals.map(function(d){return '<tr><td>'+esc(d.symbol)+'</td><td>'+esc(d.kind||"—")+'</td><td>'+esc(d.side||"—")+'</td><td>'+esc(d.client||"नाम उपलब्ध नहीं")+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="dsba-note">Top 10 शेयरों के लिए इस तारीख का सत्यापित NSE disclosed deal रिकॉर्ड उपलब्ध नहीं है।</div>';})()+
+ (function(){var top=shortlist.concat(sellingShortlist),deals=[];top.forEach(function(r){verifiedDeals(r.deal_evidence).forEach(function(d){deals.push({date:d.date,symbol:r.symbol,kind:d.kind,side:d.side,client:d.client});});});return deals.length?'<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Deal Date</th><th>Stock</th><th>Type</th><th>Side</th><th>Client</th></tr></thead><tbody>'+deals.map(function(d){return '<tr><td>'+esc(dealDate(d.date))+'</td><td>'+esc(d.symbol)+'</td><td>'+esc(d.kind||"—")+'</td><td>'+esc(d.side||"—")+'</td><td>'+esc(d.client||"नाम उपलब्ध नहीं")+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="dsba-note">Top 10 शेयरों के लिए इस तारीख का सत्यापित NSE disclosed deal रिकॉर्ड उपलब्ध नहीं है।</div>';})()+
  '</div>'+
  '<div class="dsba-note">OI केवल उसी expiry के दो लगातार सत्रों से सत्यापित होने पर दिखेगा। Delivery % केवल उसी तारीख की NSE Full Bhavcopy से मिलेगा। EARLY BUYING WATCH केवल भाव + असामान्य वॉल्यूम का शुरुआती संकेत है, पक्की खरीदारी नहीं। यह EOD स्कैन है—इंट्राडे एंट्री अलर्ट नहीं।</div>'+
  '<details class="dsba-details"><summary>पिछले संकेतों का नतीजा (1 / 3 / 5 सत्र)</summary>'+
@@ -161,9 +163,9 @@ function render(data){
  '<div class="dsba-note">नतीजे केवल NSE cash EOD price-volume दिशा पर आधारित हैं। Pending नतीजे सही/गलत में नहीं गिने जाते; यह संस्थागत खरीदारी की पुष्टि नहीं है।</div></details>'+
  '<details class="dsba-details"><summary>बड़े सौदों की गतिविधि (Bulk / Block Deals)</summary>'+
  (data.coverage&&data.coverage.bulk_block_deals==="partial"?'<div class="dsba-note">चेतावनी: NSE की केवल एक रिपोर्ट सत्यापित हुई है। नीचे की सूची आंशिक है; दूसरी रिपोर्ट उपलब्ध नहीं है।</div>':'')+
- (Array.isArray(data.bulk_block_deals)&&data.bulk_block_deals.length?
-  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Stock</th><th>Buyer / Seller</th><th>Side</th><th>Activity</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+
-  data.bulk_block_deals.map(function(d){return '<tr><td><b>'+esc(d.symbol)+'</b></td><td>'+esc(d.client)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.kind)+' Deal</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join('')+
+ (verifiedDeals(data.bulk_block_deals).length?
+  '<div class="dsba-table-wrap"><table class="dsba-table"><thead><tr><th>Deal Date</th><th>Stock</th><th>Buyer / Seller</th><th>Side</th><th>Activity</th><th>Quantity</th><th>Price</th></tr></thead><tbody>'+
+  verifiedDeals(data.bulk_block_deals).map(function(d){return '<tr><td>'+esc(dealDate(d.date))+'</td><td><b>'+esc(d.symbol)+'</b></td><td>'+esc(d.client)+'</td><td>'+esc(d.side)+'</td><td>'+esc(d.kind)+' Deal</td><td>'+fmt(d.quantity,0)+'</td><td>₹'+fmt(d.price)+'</td></tr>';}).join('')+
   '</tbody></table></div>':
   (data.coverage&&data.coverage.bulk_block_deals==="verified"?
    '<div class="dsba-note">इस तारीख की दोनों सत्यापित NSE रिपोर्टों में कोई Bulk / Block Deal रिकॉर्ड नहीं मिला।</div>':
