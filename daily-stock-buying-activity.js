@@ -4,7 +4,7 @@ var root=document.getElementById("daily-stock-buying-activity");
 if(!root)return;
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmt(v,d){return v==null?"—":Number(v).toLocaleString("en-IN",{maximumFractionDigits:d==null?2:d});}
-function dealDate(v){var m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(v||""));if(!m)return "";var y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]),dt=new Date(Date.UTC(y,mo-1,day));return dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===day?String(day).padStart(2,"0")+"/"+String(mo).padStart(2,"0")+"/"+y:"";}
+function dealDate(v){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v||""));if(!m)return "";var y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]),dt=new Date(Date.UTC(y,mo-1,day));return dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===day?String(day).padStart(2,"0")+"/"+String(mo).padStart(2,"0")+"/"+y:"";}
 function verifiedDeals(items){return (Array.isArray(items)?items:[]).filter(function(d){return dealDate(d.date)!=="";});}
 function badge(signal){
  var map={
