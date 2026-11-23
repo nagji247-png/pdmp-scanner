@@ -1,40 +1,5 @@
 [
   {
-    "time": "2026-11-17T08:27Z",
-    "instrument": "BANKNIFTY",
-    "prev_score": 8.3,
-    "new_score": 10.0,
-    "changed": [
-      "भावना",
-      "कीमत"
-    ],
-    "vol_data": false,
-    "held_minutes": 179,
-    "price_at_change": 62219.1016,
-    "price_after": 62364.9492,
-    "move_pct": 0.23,
-    "after_minutes": 26,
-    "direction": "ऊपर"
-  },
-  {
-    "time": "2026-11-17T08:27Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 0.0,
-    "new_score": 5.1,
-    "changed": [
-      "भावना",
-      "कीमत",
-      "VWAP"
-    ],
-    "vol_data": true,
-    "held_minutes": 1234,
-    "price_at_change": 814.95,
-    "price_after": 817.4,
-    "move_pct": 0.3,
-    "after_minutes": 26,
-    "direction": "ऊपर"
-  },
-  {
     "time": "2026-11-17T08:53Z",
     "instrument": "NIFTY",
     "prev_score": 9.6,
@@ -3165,10 +3130,10 @@
     "vol_data": false,
     "held_minutes": 102,
     "price_at_change": 25641.5,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 25557.0,
+    "move_pct": -0.33,
+    "after_minutes": 80,
+    "direction": "नीचे"
   },
   {
     "time": "2026-11-23T04:29Z",
@@ -3182,10 +3147,10 @@
     "vol_data": false,
     "held_minutes": 484,
     "price_at_change": 63517.6484,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 63366.6484,
+    "move_pct": -0.24,
+    "after_minutes": 80,
+    "direction": "नीचे"
   },
   {
     "time": "2026-11-23T04:29Z",
@@ -3200,10 +3165,10 @@
     "vol_data": true,
     "held_minutes": 153,
     "price_at_change": 1366.8,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 1357.6,
+    "move_pct": -0.67,
+    "after_minutes": 80,
+    "direction": "नीचे"
   },
   {
     "time": "2026-11-23T04:29Z",
@@ -3218,6 +3183,38 @@
     "vol_data": true,
     "held_minutes": 91,
     "price_at_change": 833.5,
+    "price_after": 829.9,
+    "move_pct": -0.43,
+    "after_minutes": 80,
+    "direction": "नीचे"
+  },
+  {
+    "time": "2026-11-23T05:49Z",
+    "instrument": "NIFTY",
+    "prev_score": 1.1,
+    "new_score": -2.0,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 80,
+    "price_at_change": 25557.0,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-23T05:49Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": 5.1,
+    "new_score": 2.7,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 80,
+    "price_at_change": 63366.6484,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
