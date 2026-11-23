@@ -1873,6 +1873,8 @@ function renderNiftyPremiumRadar(data) {
           initNiftyInteractiveChart();
           if(niftyCandleSeries&&bars.length){
             niftyCandleSeries.setData(bars);
+            niftyEma20Series.setData(emaPoints(bars,20));
+            niftyEma50Series.setData(emaPoints(bars,50));
             niftyChart.timeScale().fitContent();
           } else if(niftyStatus) niftyStatus.textContent="NIFTY के पूर्ण 15-मिनट candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
         } else if(niftyStatus) niftyStatus.textContent="इंटरैक्टिव चार्ट लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचें; डेटा स्रोत उपलब्ध है।";
