@@ -104,18 +104,61 @@ def parse_historical_response(payload, kind):
     return parsed
 
 
+def parse_historical_csv(payload, kind):
+    """Parse the complete CSV download returned by NSE historical reports."""
+    if not payload:
+        raise ValueError(kind + " historical CSV is empty")
+    try:
+        decoded = payload.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError(kind + " historical CSV is not UTF-8") from exc
+    reader = csv.DictReader(io.StringIO(decoded))
+    if not reader.fieldnames:
+        raise ValueError(kind + " historical CSV missing header")
+    headers = {str(name).strip().lower(): name for name in reader.fieldnames if name}
+    def column(*names):
+        for name in names:
+            for normalized, original in headers.items():
+                if normalized.startswith(name):
+                    return original
+        return None
+    date_col = column("date")
+    symbol_col = column("symbol")
+    client_col = column("client")
+    side_col = column("buy / sell", "buy/sell", "buy sell", "buy")
+    qty_col = column("quantity")
+    price_col = column("trade price", "price")
+    if any(value is None for value in (date_col, symbol_col, client_col, side_col, qty_col, price_col)):
+        raise ValueError(kind + " historical CSV missing required columns")
+    parsed = []
+    for raw in reader:
+        day = parse_day(raw.get(date_col))
+        symbol = str(raw.get(symbol_col) or "").strip().upper()
+        client = str(raw.get(client_col) or "").strip()
+        side_text = str(raw.get(side_col) or "").strip().upper()
+        if not symbol or not client or not (side_text.startswith("B") or side_text.startswith("S")):
+            raise ValueError(kind + " historical CSV row missing symbol/client/side")
+        parsed.append({
+            "date": day.isoformat(), "kind": kind, "symbol": symbol,
+            "client": client, "side": "SELL" if side_text.startswith("S") else "BUY",
+            "quantity": parse_number(raw.get(qty_col), "quantity", True),
+            "price": parse_number(raw.get(price_col), "trade price"),
+        })
+    return parsed
+
+
 def fetch_historical_range(session, kind, start_date, end_date):
     option = "bulk_deals" if kind == "Bulk" else "block_deals"
     url = "https://www.nseindia.com/api/historicalOR/bulk-block-short-deals"
     params = {"optionType": option, "from": start_date.strftime("%d-%m-%Y"),
-              "to": end_date.strftime("%d-%m-%Y")}
+              "to": end_date.strftime("%d-%m-%Y"), "csv": "true"}
     response = session.get(url, params=params, headers={
-        **HEADERS, "Accept": "application/json,text/plain,*/*",
+        **HEADERS, "Accept": "text/csv,application/octet-stream,*/*",
         "Referer": "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
     }, timeout=(10, 45))
     if response.status_code != 200:
         raise RuntimeError(kind + " historical API HTTP " + str(response.status_code))
-    parsed = parse_historical_response(response.content, kind)
+    parsed = parse_historical_csv(response.content, kind)
     if any(not (start_date <= dt.date.fromisoformat(row["date"]) <= end_date) for row in parsed):
         raise ValueError(kind + " historical API returned rows outside requested date range")
     return parsed, response.url
