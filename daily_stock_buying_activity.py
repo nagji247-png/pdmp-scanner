@@ -192,6 +192,9 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         for deal in deal_record.get("rows") or []:
             if isinstance(deal, dict):
                 deal_rows.append({**deal, "date": deal.get("date") or report_date})
+    # Keep the newest disclosed dates first; if the latest session has no rows,
+    # the first visible entries naturally fall back to the most recent verified history.
+    deal_rows.sort(key=lambda deal: str(deal.get("date") or ""), reverse=True)
     deals_by_symbol = {}
     for deal in current_deal_rows:
         if not isinstance(deal, dict):
