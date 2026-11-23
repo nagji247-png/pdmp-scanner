@@ -634,18 +634,8 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div id="nifty-premium-radar-content"></div><style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
     <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">Yahoo Finance · सत्यापित 5-मिनट OHLC candles</span></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin:0 0 6px"><button id="trinetra-nifty-fit" type="button" style="padding:5px 10px;border:1px solid #38638b;border-radius:6px;background:#102b49;color:#d9eaff">Fit all</button><button id="trinetra-nifty-refresh" type="button" style="padding:5px 10px;border:1px solid #38638b;border-radius:6px;background:#102b49;color:#d9eaff">Refresh data</button></div><div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><div id="trinetra-nifty-chart" role="img" aria-label="Interactive NIFTY 50 verified 5-minute candlestick chart" style="width:100%;height:100%"></div></div><div id="trinetra-nifty-chart-status" class="sub" style="margin-top:7px">Yahoo Finance से सत्यापित 5-मिनट OHLC डेटा लोड हो रहा है…</div>
-      <div id="trinetra-tv-link-loader" style="margin-top:14px;padding:10px;border:1px solid #38638b;border-radius:9px;background:rgba(4,14,31,.45)">
-        <div style="font-weight:800;color:#55e6ff;margin-bottom:7px">🔗 अपना TradingView Chart Link खोलें</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
-          <input id="trinetra-tv-link-input" type="url" inputmode="url" autocomplete="url" placeholder="https://www.tradingview.com/chart/..." aria-label="TradingView chart link" style="flex:1;min-width:190px;padding:9px;border:1px solid #38638b;border-radius:7px;background:#07152b;color:#fff">
-          <button id="trinetra-tv-link-open" type="button" style="padding:8px 13px;border:1px solid #1686ad;border-radius:7px;background:#07506c;color:#fff;font-weight:800">Open Chart</button>
-        </div>
-        <div id="trinetra-tv-link-status" class="sub" style="margin-top:7px">TradingView का लिंक पेस्ट करें। Symbol उपलब्ध होने पर चार्ट यहीं खुलेगा; पूरा saved layout खोलने के लिए TradingView पर सीधा लिंक भी मिलेगा।</div>
-        <div id="trinetra-tv-link-result" style="margin-top:8px"></div>
-        <div id="trinetra-tv-link-chart" style="display:none;height:520px;width:100%;margin-top:10px;overflow:hidden;border-radius:8px;background:#0b1730"></div>
-      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">Yahoo Finance · वास्तविक 15-मिनट OHLC candles (5-मिनट डेटा से)</span></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin:0 0 6px"><button id="trinetra-nifty-fit" type="button" style="padding:5px 10px;border:1px solid #38638b;border-radius:6px;background:#102b49;color:#d9eaff">Fit all</button><button id="trinetra-nifty-refresh" type="button" style="padding:5px 10px;border:1px solid #38638b;border-radius:6px;background:#102b49;color:#d9eaff">Refresh data</button></div><div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><div id="trinetra-nifty-chart" role="img" aria-label="Interactive NIFTY 50 verified 15-minute candlestick chart" style="width:100%;height:100%"></div></div><div id="trinetra-nifty-chart-status" class="sub" style="margin-top:7px">Yahoo Finance के सत्यापित 5-मिनट डेटा से 15-मिनट candles तैयार हो रही हैं…</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px"><label for="trinetra-premium-strike" style="font-weight:700;color:#d9eaff">Strike Price</label><input id="trinetra-premium-strike" type="number" min="1" step="50" inputmode="numeric" placeholder="जैसे 26000" style="width:125px;padding:8px;border:1px solid #38638b;border-radius:7px;background:#07152b;color:#fff;font-weight:700"><span id="trinetra-premium-expiry" class="sub">Expiry: NSE डेटा आने पर</span></div>
       <div class="trinetra-premium-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
         <div id="trinetra-pe-card" style="display:none;min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)"><div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px"><b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">NSE LTP points</span></div><div id="trinetra-pe-widget" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730"><canvas id="trinetra-pe-canvas" style="display:block;width:100%;height:100%"></canvas></div></div>
@@ -1801,21 +1791,48 @@ function renderNiftyPremiumRadar(data) {
     const niftyStatus = section.querySelector("#trinetra-nifty-chart-status");
     let niftyArchive = null;
     let niftyChart = null;
-    let niftyCandleSeries = null;
+    let niftyCandleSeries = null;\n    let niftyEma20Series = null;\n    let niftyEma50Series = null;
     const setNiftyStatus = (p) => {
       const last = Array.isArray(p.candles)&&p.candles.length ? p.candles[p.candles.length-1] : null;
       const fetched = p.fetched_at ? new Date(p.fetched_at) : null;
       const lastAt = last ? new Date(last.time) : null;
       const stamp = d => d&&Number.isFinite(d.getTime()) ? d.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" IST" : "समय उपलब्ध नहीं";
       if(niftyStatus) niftyStatus.textContent = last
-        ? "स्रोत: Yahoo Finance · 5-मिनट OHLC · "+p.candles.length+" candles · अंतिम candle: "+stamp(lastAt)+" · archive refresh: "+stamp(fetched)+" · ऐतिहासिक/विलंबित डेटा; live feed का दावा नहीं।"
-        : "NIFTY 5-मिनट candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
+        ? "स्रोत: Yahoo Finance · सत्यापित 5-मिनट OHLC से बने 15-मिनट candles · "+(p.candles.length||0)+" मूल candles · अंतिम candle: "+stamp(lastAt)+" · archive refresh: "+stamp(fetched)+" · ऐतिहासिक/विलंबित डेटा; live feed का दावा नहीं।"
+        : "NIFTY के सत्यापित candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
     };
-    const toChartCandles = p => (Array.isArray(p.candles)?p.candles:[])
-      .filter(x=>x&&Number.isFinite(Date.parse(x.time))&&["open","high","low","close"].every(k=>Number.isFinite(Number(x[k]))&&Number(x[k])>0))
-      .map(x=>({time:Math.floor(Date.parse(x.time)/1000),open:Number(x.open),high:Number(x.high),low:Number(x.low),close:Number(x.close)}))
-      .sort((x,y)=>x.time-y.time)
-      .filter((x,i,a)=>i===0||x.time>a[i-1].time);
+    const toChartCandles = p => {
+      const source=(Array.isArray(p.candles)?p.candles:[])
+        .filter(x=>x&&Number.isFinite(Date.parse(x.time))&&["open","high","low","close"].every(k=>Number.isFinite(Number(x[k]))&&Number(x[k])>0))
+        .map(x=>({time:Math.floor(Date.parse(x.time)/1000),open:Number(x.open),high:Number(x.high),low:Number(x.low),close:Number(x.close)}))
+        .sort((x,y)=>x.time-y.time)
+        .filter((x,i,a)=>i===0||x.time>a[i-1].time);
+      const groups=new Map();
+      source.forEach(bar=>{
+        const d=new Date(bar.time*1000);
+        const ist=new Date(d.getTime()+330*60000);
+        const mins=ist.getUTCHours()*60+ist.getUTCMinutes();
+        if(mins<555||mins>=930)return;
+        const session=ist.toISOString().slice(0,10);
+        const slot=Math.floor((mins-555)/15);
+        const key=session+"_"+slot;
+        if(!groups.has(key))groups.set(key,[]);
+        groups.get(key).push(bar);
+      });
+      const result=[];
+      groups.forEach(group=>{
+        group.sort((a,b)=>a.time-b.time);
+        if(group.length!==3)return; // अधूरा 15-मिनट bar कभी नहीं दिखाएँ
+        const first=group[0],last=group[2];
+        result.push({time:first.time,open:first.open,high:Math.max(...group.map(x=>x.high)),low:Math.min(...group.map(x=>x.low)),close:last.close});
+      });
+      return result.sort((a,b)=>a.time-b.time);
+    };
+    const emaPoints=(bars,period)=>{
+      if(!bars.length)return [];
+      const k=2/(period+1);let value=bars[0].close;
+      return bars.map((bar,i)=>{value=i===0?bar.close:bar.close*k+value*(1-k);return {time:bar.time,value:Number(value.toFixed(2))};});
+    };
     const initNiftyInteractiveChart = () => {
       if(!niftyHost || niftyChart || !window.LightweightCharts) return;
       niftyChart = LightweightCharts.createChart(niftyHost,{
@@ -1833,13 +1850,15 @@ function renderNiftyPremiumRadar(data) {
         upColor:"#71e0b5",downColor:"#ff8b9b",borderUpColor:"#71e0b5",borderDownColor:"#ff8b9b",
         wickUpColor:"#71e0b5",wickDownColor:"#ff8b9b",priceLineVisible:true,lastValueVisible:true
       });
+      niftyEma20Series=niftyChart.addLineSeries({color:"#f5c451",lineWidth:2,title:"EMA 20",lastValueVisible:true,priceLineVisible:false});
+      niftyEma50Series=niftyChart.addLineSeries({color:"#6bbcff",lineWidth:2,title:"EMA 50",lastValueVisible:true,priceLineVisible:false});
       niftyChart.subscribeCrosshairMove(param=>{
         if(!niftyStatus||!param||!param.time||!param.seriesData) return;
         const bar=param.seriesData.get(niftyCandleSeries);
         if(!bar) return;
         const time=typeof param.time==="number"?new Date(param.time*1000):null;
         const stamp=time?time.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false})+" IST":"";
-        niftyStatus.textContent="NIFTY 50 · "+stamp+" · O "+bar.open.toFixed(2)+" · H "+bar.high.toFixed(2)+" · L "+bar.low.toFixed(2)+" · C "+bar.close.toFixed(2)+" · वास्तविक 5-मिनट OHLC";
+        niftyStatus.textContent="NIFTY 50 · "+stamp+" · O "+bar.open.toFixed(2)+" · H "+bar.high.toFixed(2)+" · L "+bar.low.toFixed(2)+" · C "+bar.close.toFixed(2)+" · वास्तविक 15-मिनट OHLC";
       });
       if(typeof ResizeObserver==="function"){
         new ResizeObserver(()=>{if(niftyChart&&niftyHost)niftyChart.applyOptions({width:Math.max(280,niftyHost.clientWidth),height:Math.max(260,niftyHost.clientHeight)});}).observe(niftyHost);
@@ -1855,7 +1874,7 @@ function renderNiftyPremiumRadar(data) {
           if(niftyCandleSeries&&bars.length){
             niftyCandleSeries.setData(bars);
             niftyChart.timeScale().fitContent();
-          } else if(niftyStatus) niftyStatus.textContent="NIFTY 5-मिनट candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
+          } else if(niftyStatus) niftyStatus.textContent="NIFTY के पूर्ण 15-मिनट candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
         } else if(niftyStatus) niftyStatus.textContent="इंटरैक्टिव चार्ट लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचें; डेटा स्रोत उपलब्ध है।";
         setNiftyStatus(p);
       })
@@ -3983,104 +4002,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", load);
 window.addEventListener("pageshow", load);
 </script>
-<script>
-(function(){
-  "use strict";
-  var input=document.getElementById("trinetra-tv-link-input");
-  var button=document.getElementById("trinetra-tv-link-open");
-  var status=document.getElementById("trinetra-tv-link-status");
-  var chartBox=document.getElementById("trinetra-tv-link-chart");
-  var result=document.getElementById("trinetra-tv-link-result");
-  if(!input||!button||!status||!chartBox||!result)return;
-  var widgetLoader=null, widgetSequence=0;
-  function safeLink(raw){
-    var u;
-    try{u=new URL(String(raw||"").trim());}catch(e){return null;}
-    var host=u.hostname.toLowerCase();
-    if((u.protocol!=="https:"&&u.protocol!=="http:")||!(host==="tradingview.com"||host.endsWith(".tradingview.com")))return null;
-    return u;
-  }
-  function symbolFrom(u){
-    var raw=u.searchParams.get("symbol");
-    if(!raw)return "";
-    try{raw=decodeURIComponent(raw);}catch(e){}
-    raw=String(raw).trim().toUpperCase();
-    return /^[A-Z0-9_!.$:-]{1,80}$/.test(raw)?raw:"";
-  }
-  function showExternal(u,message){
-    chartBox.style.display="none";
-    result.replaceChildren();
-    var a=document.createElement("a");
-    a.href=u.href;a.target="_blank";a.rel="noopener noreferrer";
-    a.textContent="पूरा TradingView Chart खोलें ↗";
-    a.style.cssText="display:inline-block;padding:8px 11px;border:1px solid #1686ad;border-radius:7px;background:#07506c;color:#fff;font-weight:800;text-decoration:none";
-    result.appendChild(a);
-    status.textContent=message;
-  }
-  function loadWidget(symbol,u){
-    widgetSequence++;
-    var seq=widgetSequence;
-    chartBox.replaceChildren();
-    chartBox.style.display="block";
-    result.replaceChildren();
-    status.textContent="TradingView chart लोड हो रहा है: "+symbol;
-    var mount=document.createElement("div");
-    mount.id="trinetra-tv-dynamic-"+seq;
-    mount.style.cssText="width:100%;height:100%";
-    chartBox.appendChild(mount);
-    function init(){
-      if(seq!==widgetSequence)return;
-      if(!window.TradingView||typeof window.TradingView.widget!=="function"){
-        showExternal(u,"TradingView widget लोड नहीं हुआ। नीचे दिए लिंक से पूरा चार्ट खोलें।");return;
-      }
-      try{
-        new window.TradingView.widget({
-          autosize:true,
-          symbol:symbol,
-          interval:"5",
-          timezone:"Asia/Kolkata",
-          theme:"dark",
-          style:"1",
-          locale:"in",
-          toolbar_bg:"#0b1730",
-          enable_publishing:false,
-          hide_top_toolbar:false,
-          hide_legend:false,
-          save_image:false,
-          allow_symbol_change:true,
-          details:true,
-          hotlist:false,
-          calendar:false,
-          support_host:"https://www.tradingview.com",
-          container_id:mount.id
-        });
-        status.textContent="TradingView embedded chart · "+symbol+" · 5 मिनट · अगर यह Symbol embed में समर्थित नहीं है तो पूरा चार्ट नीचे के लिंक से खोलें।";
-        var a=document.createElement("a");
-        a.href=u.href;a.target="_blank";a.rel="noopener noreferrer";
-        a.textContent="यही चार्ट TradingView पर पूरा खोलें ↗";
-        a.style.cssText="color:#55e6ff;font-weight:700";
-        result.appendChild(a);
-      }catch(e){showExternal(u,"इस Symbol का embedded chart नहीं खुला। पूरा चार्ट TradingView पर खोलें।");}
-    }
-    if(window.TradingView&&typeof window.TradingView.widget==="function"){init();return;}
-    if(widgetLoader&&widgetLoader.parentNode)widgetLoader.parentNode.removeChild(widgetLoader);
-    widgetLoader=document.createElement("script");
-    widgetLoader.src="https://s3.tradingview.com/tv.js";
-    widgetLoader.onload=init;
-    widgetLoader.onerror=function(){if(seq===widgetSequence)showExternal(u,"TradingView की widget library लोड नहीं हुई। पूरा चार्ट नीचे के लिंक से खोलें।");};
-    document.head.appendChild(widgetLoader);
-  }
-  function open(){
-    var u=safeLink(input.value);
-    if(!u){status.textContent="कृपया https://www.tradingview.com से शुरू होने वाला सही TradingView chart link पेस्ट करें।";chartBox.style.display="none";result.replaceChildren();return;}
-    var symbol=symbolFrom(u);
-    if(symbol){loadWidget(symbol,u);return;}
-    showExternal(u,"इस TradingView लिंक में share किया गया पूरा chart layout है, लेकिन URL में Symbol नहीं है। उस saved layout को डैशबोर्ड के अंदर पढ़ना TradingView की अनुमति/API के बिना संभव नहीं; पूरा वही चार्ट सीधे TradingView में खोलें।");
-  }
-  button.addEventListener("click",open);
-  input.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();open();}});
-})();
-</script>
+
 <script>
 (function(){
 var root=document.getElementById("market-activity");
