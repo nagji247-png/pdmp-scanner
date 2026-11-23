@@ -24,6 +24,23 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertGreaterEqual(summary[1]["right"], 1)
         self.assertGreaterEqual(summary[3]["pending"], 1)
 
+    def test_signal_outcome_history_is_not_truncated_at_200_records(self):
+        symbols = ["S%03d" % index for index in range(205)]
+        sessions = [
+            {"date": "2026-11-16"},
+            {"date": "2026-11-17"},
+        ]
+        maps = [
+            {symbol: {"close": 100, "previous_close": 100, "volume": 1000}
+             for symbol in symbols},
+            {symbol: {"close": 101, "previous_close": 100, "volume": 2000}
+             for symbol in symbols},
+        ]
+        history, summary = build_price_volume_outcomes(sessions, maps)
+        self.assertEqual(len(history), 205)
+        self.assertEqual(summary[1]["pending"], 205)
+        self.assertEqual({item["symbol"] for item in history}, set(symbols))
+
     def test_same_expiry_futures_price_and_oi_create_long_buildup(self):
         master = {"stocks": {"ABC": {}}}
         archive = {"records": [
