@@ -95,7 +95,9 @@ def build_price_volume_outcomes(sessions, session_maps):
                 "basis": "NSE cash EOD price-volume; not institutional attribution",
             })
     history.sort(key=lambda item: (item["date"], item["symbol"]), reverse=True)
-    return history[:200], summary
+    # Keep every scored record so the dashboard's clickable outcome counts
+    # can open the exact matching stock list instead of an incomplete 200-row sample.
+    return history, summary
 
 
 def build_report(archive, master, generated_at=None, fo_archive=None, delivery_archive=None, deals_archive=None):
