@@ -220,6 +220,25 @@ class DailyStockBuyingActivityTests(unittest.TestCase):
         self.assertEqual(report["coverage_counts"]["delivery_symbols_matched"], 0)
         self.assertEqual(report["coverage_counts"]["delivery_eq_symbols_scanned"], 1)
 
+    def test_bulk_block_history_keeps_prior_verified_rows_when_latest_session_has_no_deals(self):
+        archive = {"records": [
+            {"date": "2026-11-18", "equity_rows": [
+                {"symbol": "ABC", "close": 100, "previous_close": 99, "volume": 100000}]},
+            {"date": "2026-11-19", "equity_rows": [
+                {"symbol": "ABC", "close": 101, "previous_close": 100, "volume": 110000}]},
+        ]}
+        deals = {"records": [
+            {"date": "2026-11-18", "verified_report_count": 1, "rows": [
+                {"symbol": "OLD", "kind": "Bulk", "client": "OLDER CLIENT",
+                 "side": "BUY", "quantity": 1000, "price": 10}]},
+            {"date": "2026-11-19", "verified_report_count": 0, "rows": []},
+        ]}
+        report = build_report(archive, {"stocks": {}}, deals_archive=deals)
+        self.assertEqual(len(report["bulk_block_deals"]), 1)
+        self.assertEqual(report["bulk_block_deals"][0]["date"], "2026-11-18")
+        self.assertEqual(report["bulk_block_deals"][0]["client"], "OLDER CLIENT")
+        self.assertEqual(report["coverage_counts"]["bulk_block_deal_rows"], 1)
+
     def test_official_bulk_block_deals_join_only_exact_session(self):
         archive = {"records": [
             {"date": "2026-11-17", "equity_rows": [
