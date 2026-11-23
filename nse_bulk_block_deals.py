@@ -1,4 +1,4 @@
-"""Capture disclosed NSE bulk and block deals from official current CSV reports."""
+"""Archive disclosed NSE bulk and block deals from date-ranged historical CSV reports."""
 from __future__ import annotations
 import argparse, csv, datetime as dt, io, json, math, time
 from pathlib import Path
