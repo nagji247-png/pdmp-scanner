@@ -1781,7 +1781,8 @@ function renderNiftyPremiumRadar(data) {
     const niftyStatus = section.querySelector("#trinetra-nifty-chart-status");
     let niftyArchive = null;
     let niftyChart = null;
-    let niftyCandleSeries = null;\n    let niftyEma20Series = null;\n    let niftyEma50Series = null;
+    let niftyCandleSeries = null;
+    let niftyEma20Series = null;\n    let niftyEma50Series = null;
     const setNiftyStatus = (p) => {
       const sourceCount = Array.isArray(p.candles) ? p.candles.length : 0;
       const chartBars = toChartCandles(p);
