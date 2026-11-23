@@ -174,9 +174,23 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     deals_records = (deals_archive or {}).get("records", []) if isinstance(deals_archive, dict) else []
     deals_record = next((record for record in reversed(deals_records)
                          if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
-    deal_rows = (deals_record or {}).get("rows") or []
+    # Keep the latest-session rows separate for signal matching: an older disclosed
+    # deal must never be attached to today's price/OI signal. The history table must
+    # preserve every archived deal row, even when its date or verification metadata
+    # is missing; missing dates are a display fallback, never a reason to drop a deal.
+    current_deal_rows = (deals_record or {}).get("rows") or []
+    deal_rows = []
+    for deal_record in deals_records:
+        if not isinstance(deal_record, dict):
+            continue
+        report_date = deal_record.get("date")
+        for deal in deal_record.get("rows") or []:
+            if isinstance(deal, dict):
+                deal_rows.append({**deal, "date": deal.get("date") or report_date})
+    # Keep dated history newest-first; rows without a usable date remain visible at the end.
+    deal_rows.sort(key=lambda deal: str(deal.get("date") or ""), reverse=True)
     deals_by_symbol = {}
-    for deal in deal_rows:
+    for deal in current_deal_rows:
         if not isinstance(deal, dict):
             continue
         symbol = str(deal.get("symbol") or "").upper()
@@ -279,6 +293,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         ]
         deal_evidence = [
             {
+                "date": deal.get("date") or latest_date.isoformat(),
                 "kind": deal.get("kind"),
                 "side": deal.get("side"),
                 "client": deal.get("client"),
