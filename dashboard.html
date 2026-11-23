@@ -634,10 +634,8 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" id="nifty-premium-radar-panel" style="grid-column:1 / -1"><h2>🔱 NIFTY LIVE PREMIUM RADAR</h2><div class="box" id="nifty-premium-radar"><div id="nifty-premium-radar-content"></div><style>@media(max-width:640px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:minmax(0,1fr)!important}}@media(min-width:641px){#trinetra-tv-section-slot .trinetra-premium-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
     <div id="trinetra-tv-section-slot" class="trinetra-tv-section" style="margin-top:14px;padding:10px;border:1px solid #285078;border-radius:10px;background:rgba(4,14,31,.55)">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">NSE snapshot · लगभग 10 मिनट · line chart</span></div>
-      <div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><div id="trinetra-nifty-tv-container" class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async onerror="this.parentElement.querySelector('.trinetra-tv-fallback').style.display='block'">
-{"autosize":true,"symbol":"NSE:NIFTY","interval":"5","timezone":"Asia/Kolkata","theme":"dark","style":"1","locale":"en","allow_symbol_change":true,"calendar":false,"support_host":"https://www.tradingview.com"}
-</script><div class="trinetra-tv-fallback" style="display:none;padding:14px;color:#d7e7f8">TradingView embed नहीं खुला। <a href="https://www.tradingview.com/chart/?symbol=NSE%3ANIFTY" target="_blank" rel="noopener" style="color:#55e6ff">NIFTY का पूरा चार्ट खोलें</a></div></div></div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px"><b style="color:#55e6ff">📈 NIFTY INDEX · FULL-WIDTH CHART</b><span class="sub">Yahoo Finance · सत्यापित 5-मिनट OHLC candles</span></div>
+      <div id="trinetra-tv-widget" style="height:500px;width:100%;overflow:hidden;border-radius:8px;background:#0b1730"><canvas id="trinetra-nifty-canvas" aria-label="NIFTY 50 verified 5-minute OHLC candlestick chart" style="display:block;width:100%;height:100%"></canvas></div><div id="trinetra-nifty-chart-status" class="sub" style="margin-top:7px">Yahoo Finance से सत्यापित 5-मिनट OHLC डेटा लोड हो रहा है…</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px"><label for="trinetra-premium-strike" style="font-weight:700;color:#d9eaff">Strike Price</label><input id="trinetra-premium-strike" type="number" min="1" step="50" inputmode="numeric" placeholder="जैसे 26000" style="width:125px;padding:8px;border:1px solid #38638b;border-radius:7px;background:#07152b;color:#fff;font-weight:700"><span id="trinetra-premium-expiry" class="sub">Expiry: NSE डेटा आने पर</span></div>
       <div class="trinetra-premium-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px">
         <div id="trinetra-pe-card" style="display:none;min-width:0;border:1px solid #285078;border-radius:9px;padding:8px;background:rgba(4,14,31,.45)"><div style="display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:7px"><b style="color:#ff8b9b">📉 PE PREMIUM · LEFT</b><span class="sub">NSE LTP points</span></div><div id="trinetra-pe-widget" style="height:330px;width:100%;overflow:hidden;border-radius:7px;background:#0b1730"><canvas id="trinetra-pe-canvas" style="display:block;width:100%;height:100%"></canvas></div></div>
@@ -1789,17 +1787,60 @@ function renderNiftyPremiumRadar(data) {
     if (!section) return;
     if (section.dataset.nseInitialized === "1") return;
     section.dataset.nseInitialized = "1";
-    const niftyTv = section.querySelector("#trinetra-nifty-tv-container");
-    if (niftyTv && niftyTv.dataset.bound !== "1") {
-      niftyTv.dataset.bound = "1";
-      niftyTv.style.height = "500px";
-      niftyTv.style.width = "100%";
-      const widgetHost = niftyTv.querySelector(".tradingview-widget-container__widget") || niftyTv;
-      widgetHost.style.height = "calc(100% - 32px)";
-      widgetHost.style.width = "100%";
-      // The TradingView embed is present in the initial HTML. Do not inject its script dynamically:
-      // TradingView warns that dynamically injected embed code may fail to initialize.
-    }
+    const niftyCanvas = section.querySelector("#trinetra-nifty-canvas");
+    const niftyStatus = section.querySelector("#trinetra-nifty-chart-status");
+    let niftyArchive = null;
+    const drawNifty = () => {
+      if (!niftyCanvas) return;
+      const rect = niftyCanvas.getBoundingClientRect();
+      const w = Math.max(280, rect.width || 600), h = Math.max(260, rect.height || 500);
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      niftyCanvas.width = Math.round(w*dpr); niftyCanvas.height = Math.round(h*dpr);
+      const ctx = niftyCanvas.getContext("2d"); if (!ctx) return;
+      ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle="#0b1730"; ctx.fillRect(0,0,w,h);
+      const L=76,R=16,T=22,B=42,pw=w-L-R,ph=h-T-B;
+      const bars=(niftyArchive && Array.isArray(niftyArchive.candles)?niftyArchive.candles:[])
+        .filter(x=>x&&Number.isFinite(Date.parse(x.time))&&["open","high","low","close"].every(k=>Number.isFinite(Number(x[k]))&&Number(x[k])>0))
+        .slice(-100);
+      ctx.font="11px Arial"; ctx.fillStyle="#9db3cc"; ctx.strokeStyle="rgba(139,169,201,.2)"; ctx.lineWidth=1;
+      if(!bars.length){
+        for(let i=0;i<=4;i++){const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();}
+        ctx.textAlign="center";ctx.fillStyle="#d7e7f8";ctx.font="bold 14px Arial";
+        ctx.fillText("सत्यापित NIFTY 5-मिनट डेटा उपलब्ध नहीं",w/2,h/2);
+        ctx.font="11px Arial";ctx.fillStyle="#9db3cc";ctx.fillText("डेटा मिलने पर वास्तविक candles यहाँ दिखेंगी",w/2,h/2+22);
+        return;
+      }
+      let min=Math.min(...bars.map(x=>Number(x.low))),max=Math.max(...bars.map(x=>Number(x.high)));
+      if(max===min){const pad=Math.max(1,Math.abs(max)*.002);min-=pad;max+=pad;}else{const pad=(max-min)*.06;min-=pad;max+=pad;}
+      const yOf=v=>T+(max-v)/(max-min)*ph;
+      for(let i=0;i<=4;i++){const y=T+ph*i/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.textAlign="right";ctx.fillStyle="#9db3cc";ctx.fillText((max-(max-min)*i/4).toLocaleString("en-IN",{maximumFractionDigits:2}),L-7,y+4);}
+      const slot=pw/bars.length,body=Math.max(2,Math.min(12,slot*.62));
+      bars.forEach((bar,i)=>{
+        const x=L+(i+.5)*slot,open=Number(bar.open),close=Number(bar.close),high=Number(bar.high),low=Number(bar.low);
+        const color=close>=open?"#71e0b5":"#ff8b9b";
+        ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.25;
+        ctx.beginPath();ctx.moveTo(x,yOf(high));ctx.lineTo(x,yOf(low));ctx.stroke();
+        const top=Math.min(yOf(open),yOf(close)),height=Math.max(1.4,Math.abs(yOf(open)-yOf(close)));
+        ctx.fillRect(x-body/2,top,body,height);
+      });
+      ctx.strokeStyle="rgba(139,169,201,.35)";ctx.beginPath();ctx.moveTo(L,T+ph);ctx.lineTo(w-R,T+ph);ctx.stroke();
+      ctx.fillStyle="#9db3cc";ctx.textAlign="center";
+      [0,.33,.66,1].forEach(f=>{const index=Math.min(bars.length-1,Math.round(f*(bars.length-1)));const d=new Date(bars[index].time);ctx.fillText(d.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false}),L+f*pw,h-12);});
+      const last=bars[bars.length-1],lastY=yOf(Number(last.close));
+      ctx.strokeStyle="#55e6ff";ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(L,lastY);ctx.lineTo(w-R,lastY);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle="#55e6ff";ctx.textAlign="left";ctx.font="bold 11px Arial";ctx.fillText("अंतिम "+Number(last.close).toLocaleString("en-IN",{maximumFractionDigits:2}),L+4,Math.max(13,lastY-7));
+    };
+    fetch("nifty_chart_data.json?ts="+Date.now(),{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).then(p=>{
+      niftyArchive=p;drawNifty();
+      const last=Array.isArray(p.candles)&&p.candles.length?p.candles[p.candles.length-1]:null;
+      const fetched=p.fetched_at?new Date(p.fetched_at):null;
+      const lastAt=last?new Date(last.time):null;
+      const stamp=d=>d&&Number.isFinite(d.getTime())?d.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" IST":"समय उपलब्ध नहीं";
+      if(niftyStatus)niftyStatus.textContent=last
+        ?"स्रोत: Yahoo Finance · 5-मिनट OHLC · "+p.candles.length+" candles · अंतिम candle: "+stamp(lastAt)+" · archive refresh: "+stamp(fetched)+" · ऐतिहासिक/विलंबित डेटा; live feed का दावा नहीं।"
+        :"NIFTY 5-मिनट candles उपलब्ध नहीं। कोई अनुमानित candle नहीं दिखाई जाएगी।";
+    }).catch(()=>{niftyArchive=null;drawNifty();if(niftyStatus)niftyStatus.textContent="NIFTY chart data अभी उपलब्ध नहीं। पिछली सत्यापित candles का archive नहीं मिला; कोई नकली डेटा नहीं दिखाया गया।";});
+    if(niftyCanvas&&typeof ResizeObserver==="function"&&!niftyCanvas.dataset.resizeBound){niftyCanvas.dataset.resizeBound="1";new ResizeObserver(drawNifty).observe(niftyCanvas);}
     const strikeInput = section.querySelector("#trinetra-premium-strike");
     const expiryLabel = section.querySelector("#trinetra-premium-expiry");
     const statusLabel = section.querySelector("#trinetra-premium-source-status");
