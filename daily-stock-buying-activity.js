@@ -96,6 +96,7 @@ function openCategory(title,items){
 }
 function outcomeStatusLabel(status){return status==="RIGHT"?"सही":status==="WRONG"?"गलत":"Pending";}
 function renderOutcomePage(modal,items,page,title,horizon,status){
+ modal.setAttribute("data-outcome-horizon",String(horizon));modal.setAttribute("data-outcome-status",status);
  var pageSize=100,totalPages=Math.max(1,Math.ceil(items.length/pageSize)),safePage=Math.min(Math.max(0,page),totalPages-1);
  var slice=items.slice(safePage*pageSize,(safePage+1)*pageSize);
  var rows=slice.map(function(h){return '<tr><td>'+esc(h.date)+'</td><td><b>'+esc(h.symbol)+'</b></td><td>'+esc(h.signal)+'</td><td>'+(Number(h.change_pct)>0?"+":"")+fmt(h.change_pct)+'%</td><td>'+fmt(h.volume_ratio)+'x</td><td>'+outcomeStatusLabel(status)+'</td></tr>';}).join("");
@@ -195,7 +196,7 @@ function render(data){
   var outcome=event.target.closest("[data-outcome-horizon]");
   if(outcome){var horizon=outcome.getAttribute("data-outcome-horizon"),status=outcome.getAttribute("data-outcome-status"),items=(Array.isArray(data.signal_history)?data.signal_history:[]).filter(function(h){return h.outcomes&&h.outcomes[horizon+"D"]===status;});openOutcomeList(horizon+" सत्र · "+outcomeStatusLabel(status),items,horizon,status);return;}
   var outcomePage=event.target.closest("[data-outcome-page]");
-  if(outcomePage&&!outcomePage.disabled){var modal=outcomePage.closest(".dsba-modal"),backdrop=modal&&modal.closest(".dsba-modal-backdrop");if(backdrop){var h=modal.querySelector(".dsba-modal-sub").textContent.match(/^(\d+)/),hz=h?Number(h[1]):1;var title=modal.querySelector("h3").textContent,status=title.indexOf("सही")>=0?"RIGHT":title.indexOf("गलत")>=0?"WRONG":"PENDING";var items=(Array.isArray(data.signal_history)?data.signal_history:[]).filter(function(x){return x.outcomes&&x.outcomes[hz+"D"]===status;});renderOutcomePage(modal,items,Number(outcomePage.getAttribute("data-outcome-page")),title,hz,status);modal.scrollTop=0;}return;}
+  if(outcomePage&&!outcomePage.disabled){var modal=outcomePage.closest(".dsba-modal"),backdrop=modal&&modal.closest(".dsba-modal-backdrop");if(backdrop){var hz=Number(modal.getAttribute("data-outcome-horizon")),status=modal.getAttribute("data-outcome-status"),title=modal.querySelector("h3").textContent;var items=(Array.isArray(data.signal_history)?data.signal_history:[]).filter(function(x){return x.outcomes&&x.outcomes[hz+"D"]===status;});renderOutcomePage(modal,items,Number(outcomePage.getAttribute("data-outcome-page")),title,hz,status);modal.scrollTop=0;}return;}
   var outcomeTop=event.target.closest("[data-outcome-top]");
   if(outcomeTop){var m=outcomeTop.closest(".dsba-modal");if(m)m.scrollTop=0;return;}
   var card=event.target.closest("[data-category]");
