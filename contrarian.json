@@ -1872,8 +1872,8 @@
     "instrument": "GOLD",
     "score": -6.0,
     "event_time_utc": "2026-11-20T06:52:09Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 2.67,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -1923,8 +1923,8 @@
     "instrument": "SILVER",
     "score": -7.5,
     "event_time_utc": "2026-11-20T08:23:11Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 2.99,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2112,6 +2112,69 @@
     "instrument": "EICHERMOT",
     "score": 6.7,
     "event_time_utc": "2026-11-22T21:15:32Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-23|NIFTY",
+    "date": "2026-11-23",
+    "instrument": "NIFTY",
+    "score": 6.2,
+    "event_time_utc": "2026-11-23T01:56:37Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-23|BANKNIFTY",
+    "date": "2026-11-23",
+    "instrument": "BANKNIFTY",
+    "score": 10.5,
+    "event_time_utc": "2026-11-23T01:56:39Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-23|APOLLOHOSP",
+    "date": "2026-11-23",
+    "instrument": "APOLLOHOSP",
+    "score": 6.6,
+    "event_time_utc": "2026-11-23T01:56:54Z",
     "outcome": null,
     "next_change": null,
     "baseline_price": null,
