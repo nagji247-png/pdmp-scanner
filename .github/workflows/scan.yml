@@ -43,9 +43,15 @@ on:
       - ".github/workflows/scan.yml"
       - ".github/workflows/scan-watchdog.yml"
   schedule:
-    # सामान्य PDMP स्कैन हर 30 मिनट; Trends केवल तय चार स्लॉट पर।
+    # सामान्य PDMP स्कैन हर 30 मिनट; Trends केवल अलग तय चार स्लॉट पर।
     - cron: "7,37 * * * *"
-    # Schedule registration refresh; Google Trends के चार स्लॉट (IST): 09:15, 11:00, 13:00, 19:00।
+    # अतिरिक्त dashboard refresh slots (IST): 10:00, 12:00, 14:00, 15:15.
+    # ये स्लॉट data.json / Market Activity refresh करते हैं; Google Trends नहीं चलाते।
+    - cron: "30 4 * * 1-5"
+    - cron: "30 6 * * 1-5"
+    - cron: "30 8 * * 1-5"
+    - cron: "45 9 * * 1-5"
+    # Google Trends के मौजूदा चार स्लॉट (IST): 09:15, 11:00, 13:00, 19:00।
   # consolidated validation: trigger a real Trends-enabled scan on this push.
     - cron: "45 3 * * *"
     - cron: "30 5 * * *"
