@@ -2,8 +2,12 @@ name: Refresh FPI fortnightly sector tilt
 on:
   workflow_dispatch:
   schedule:
-    # Check each weekday so newly published NSDL fortnightly reports are picked up promptly.
-    - cron: "0 3 * * 1-5"
+    # NSDL reports are fortnightly; re-check at the user's four dashboard refresh slots.
+    # IST 10:00, 12:00, 14:00, 15:15 (GitHub cron uses UTC).
+    - cron: "30 4 * * 1-5"
+    - cron: "30 6 * * 1-5"
+    - cron: "30 8 * * 1-5"
+    - cron: "45 9 * * 1-5"
   push:
     branches: [main]
     paths:
