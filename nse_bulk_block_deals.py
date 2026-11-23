@@ -164,14 +164,30 @@ def main():
     # requested coverage, including a date with no rows. That is different from
     # an empty current-day CSV whose date scope is unknown.
     updated = []
+    existing_by_date = {item.get("date"): item for item in archive.get("records", [])
+                        if isinstance(item, dict) and item.get("date")}
     for day in session_dates:
         day_key = day.isoformat()
-        day_rows = [row for kind in ("Bulk", "Block")
-                    for row in historical_by_kind.get(kind, [])
-                    if row["date"] == day_key]
-        day_status = {kind: historical_status.get(kind, "unavailable")
-                      for kind in ("Bulk", "Block")}
-        day_sources = {kind: historical_sources[kind] for kind in historical_sources}
+        previous_record = existing_by_date.get(day_key) or {}
+        previous_status = previous_record.get("status") or {}
+        previous_sources = previous_record.get("sources") or {}
+        previous_rows = previous_record.get("rows") or []
+        day_rows, day_status, day_sources = [], {}, {}
+        for kind in ("Bulk", "Block"):
+            if historical_status.get(kind) == "verified":
+                day_rows.extend(row for row in historical_by_kind.get(kind, [])
+                                if row["date"] == day_key)
+                day_status[kind] = "verified"
+                day_sources[kind] = historical_sources[kind]
+            else:
+                # A temporary failure for one report type must not erase an
+                # already verified archive for that same type/date.
+                day_rows.extend(row for row in previous_rows
+                                if isinstance(row, dict) and row.get("kind") == kind)
+                old_state = previous_status.get(kind)
+                day_status[kind] = old_state if old_state == "verified" else historical_status.get(kind, "unavailable")
+                if kind in previous_sources and old_state == "verified":
+                    day_sources[kind] = previous_sources[kind]
         verified_count = sum(value == "verified" for value in day_status.values())
         if verified_count:
             updated.append({"date": day_key, "rows": day_rows, "status": day_status,
