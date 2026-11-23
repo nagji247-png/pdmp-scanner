@@ -11,6 +11,9 @@ on:
   workflow_run:
     workflows: ["NSE CM Cash Bhavcopy EOD Archive"]
     types: [completed]
+  schedule:
+    # Incremental batches during the session: 11:15 and 15:15 IST.
+    - cron: "45 5,9 * * 1-5"
   workflow_dispatch:
     inputs:
       batch_size:
