@@ -33,6 +33,53 @@ def finite_number(value):
     return result if math.isfinite(result) else None
 
 
+def futures_oi_metrics(current_contracts, previous_contracts, as_of_date):
+    """Compare active-contract aggregate OI while using the front active expiry for price.
+
+    Expiring contracts are excluded on their expiry date. Summing OI across the
+    same set of still-active expiries prevents routine near-month rollover from
+    being misclassified as market-wide OI unwinding.
+    """
+    if not isinstance(current_contracts, dict) or not isinstance(previous_contracts, dict):
+        return None, "missing_snapshot"
+    active_expiries = sorted(
+        expiry for expiry in set(current_contracts) & set(previous_contracts)
+        if expiry > as_of_date
+    )
+    if not active_expiries:
+        return None, "no_common_expiry"
+
+    current_oi_values = [
+        finite_number(current_contracts[expiry].get("open_interest"))
+        for expiry in active_expiries
+        if isinstance(current_contracts.get(expiry), dict)
+    ]
+    previous_oi_values = [
+        finite_number(previous_contracts[expiry].get("open_interest"))
+        for expiry in active_expiries
+        if isinstance(previous_contracts.get(expiry), dict)
+    ]
+    if (len(current_oi_values) != len(active_expiries)
+            or len(previous_oi_values) != len(active_expiries)
+            or any(value is None or value < 0 for value in current_oi_values + previous_oi_values)):
+        return None, "invalid_contract"
+    current_oi = sum(current_oi_values)
+    previous_oi = sum(previous_oi_values)
+    front_expiry = active_expiries[0]
+    current_close = finite_number(current_contracts[front_expiry].get("close"))
+    previous_close = finite_number(previous_contracts[front_expiry].get("close"))
+    if (previous_oi <= 0 or current_close is None or current_close <= 0
+            or previous_close is None or previous_close <= 0):
+        return None, "invalid_contract"
+    return {
+        "expiry": front_expiry,
+        "oi_expiries": active_expiries,
+        "oi_expiry_count": len(active_expiries),
+        "oi_change_pct": round((current_oi / previous_oi - 1.0) * 100.0, 2),
+        "futures_change_pct": round((current_close / previous_close - 1.0) * 100.0, 2),
+    }, "verified"
+
+
 def build_price_volume_outcomes(sessions, session_maps):
     """Reconstruct EOD price/volume alerts and score only completed 1/3/5-session outcomes."""
     history = []
@@ -220,24 +267,17 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
         futures_change_pct = None
         oi_change_pct = None
         futures_expiry = None
-        # Each by_expiry entry is validated independently by the official UDiFF parser.
-        # Do not discard valid same-expiry contracts merely because a different
-        # expiry for the same symbol was invalid or duplicated.
-        if isinstance(current_stock.get("by_expiry"), dict) and isinstance(prior_stock.get("by_expiry"), dict):
-            current_contracts = current_stock.get("by_expiry") or {}
-            prior_contracts = prior_stock.get("by_expiry") or {}
-            common_expiries = sorted(expiry for expiry in set(current_contracts) & set(prior_contracts) if expiry >= latest_date.isoformat())
-            if common_expiries:
-                futures_expiry = common_expiries[0]
-                now_contract = current_contracts[futures_expiry]
-                old_contract = prior_contracts[futures_expiry]
-                old_oi = finite_number(old_contract.get("open_interest"))
-                now_oi = finite_number(now_contract.get("open_interest"))
-                old_close = finite_number(old_contract.get("close"))
-                now_close = finite_number(now_contract.get("close"))
-                if old_oi and now_oi is not None and old_close and now_close is not None:
-                    oi_change_pct = round((now_oi / old_oi - 1.0) * 100.0, 2)
-                    futures_change_pct = round((now_close / old_close - 1.0) * 100.0, 2)
+        # Compare total OI across the same set of active expiries so routine
+        # rollover out of the near month is not mistaken for broad unwinding.
+        metrics, _ = futures_oi_metrics(
+            current_stock.get("by_expiry") or {},
+            prior_stock.get("by_expiry") or {},
+            latest_date.isoformat(),
+        )
+        if metrics:
+            futures_expiry = metrics["expiry"]
+            oi_change_pct = metrics["oi_change_pct"]
+            futures_change_pct = metrics["futures_change_pct"]
         volume_baseline_note = (
             str(len(prior_volumes)) + " उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
         )
@@ -255,7 +295,7 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
                     ("UNUSUAL ACTIVITY WATCH", "EARLY") if volume_alert_eligible
                     else ("NO SIGNAL", "EARLY")
                 )
-            evidence = ["Futures भाव और उसी expiry का OI उपलब्ध",
+            evidence = ["Futures भाव और सभी उपलब्ध active expiries का संयुक्त OI उपलब्ध",
                         volume_baseline_note if volume_alert_eligible else ("कैश वॉल्यूम उपलब्ध नहीं; Futures संकेत स्वतंत्र रूप से उपलब्ध" if volume is None else "कैश वॉल्यूम 1.5x सीमा पर नहीं; Futures संकेत स्वतंत्र रूप से उपलब्ध" if futures_change_pct != 0 and oi_change_pct != 0 else "कैश वॉल्यूम 1.5x सीमा पर नहीं; Futures भाव/OI में स्पष्ट दिशात्मक संयोजन नहीं")]
         elif volume_alert_eligible and change_pct >= 0.2:
             signal, strength = "EARLY BUYING WATCH", "EARLY"
@@ -390,26 +430,17 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
             continue
         current_contracts = current_stock.get("by_expiry") or {}
         prior_contracts = prior_stock.get("by_expiry") or {}
-        common_expiries = [
-            expiry for expiry in set(current_contracts) & set(prior_contracts)
-            if expiry >= latest_date.isoformat()
-        ]
-        if not common_expiries:
+        metrics, status = futures_oi_metrics(
+            current_contracts, prior_contracts, latest_date.isoformat()
+        )
+        if status == "no_common_expiry":
             fno_no_common_expiry += 1
             continue
+        if status == "missing_snapshot":
+            fno_missing_snapshot += 1
+            continue
         fno_same_expiry_pairs += 1
-        expiry = sorted(common_expiries)[0]
-        now_contract, old_contract = current_contracts[expiry], prior_contracts[expiry]
-        current_oi = finite_number(now_contract.get("open_interest"))
-        previous_oi = finite_number(old_contract.get("open_interest"))
-        current_close = finite_number(now_contract.get("close"))
-        previous_close = finite_number(old_contract.get("close"))
-        # A zero previous OI cannot be used as the denominator for a valid
-        # percentage change; do not count it as usable same-expiry coverage.
-        if (current_oi is not None and current_oi >= 0
-                and previous_oi is not None and previous_oi > 0
-                and current_close is not None and current_close > 0
-                and previous_close is not None and previous_close > 0):
+        if metrics:
             fno_futures_oi_matched += 1
         else:
             fno_invalid_contract_values += 1
