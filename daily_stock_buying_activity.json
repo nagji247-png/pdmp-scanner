@@ -1,68 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-21T03:23:40+05:30",
+  "generated_at": "2026-11-23T19:21:47+05:30",
   "as_of": "2026-11-20",
   "source": "NSE India official CM-UDiFF Common Bhavcopy Final",
   "universe": {
     "fno_symbols_in_master": 218,
     "nse_eq_symbols_scanned": 2760,
-    "qualifying_activity_rows": 1137,
-    "other_nse_rows": 920
+    "qualifying_activity_rows": 1131,
+    "other_nse_rows": 914
   },
   "rows": [
-    {
-      "symbol": "OAL",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 1,
-      "price": 516.7,
-      "change_pct": 20.0,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 2.73,
-      "delivery_qty": 143751,
-      "delivery_avg_pct_20": 54.77,
-      "volume": 5266433,
-      "average_volume_20": 22411.6,
-      "average_volume_sessions": 10,
-      "volume_ratio": 234.99,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 186720,
-          "price": 492.56
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MICROCURVES TRADING PRIVATE LIMITED",
-          "quantity": 213961,
-          "price": 499.13
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-          "quantity": 194696,
-          "price": 495.79
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
     {
       "symbol": "PVTBANK",
       "category": "अन्य NSE",
@@ -119,249 +66,6 @@
         "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से 11.2 प्रतिशत-अंक अधिक; यह खरीददार की पहचान नहीं बताता"
       ],
       "deal_evidence": [],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "HMAAGRO",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 2,
-      "price": 33.91,
-      "change_pct": 15.58,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 6.19,
-      "delivery_qty": 6995822,
-      "delivery_avg_pct_20": 57.79,
-      "volume": 112970399,
-      "average_volume_20": 2425718.1,
-      "average_volume_sessions": 10,
-      "volume_ratio": 46.57,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-          "quantity": 4880262,
-          "price": 33.16
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MARWADI SHARES AND FINANCE LTD.",
-          "quantity": 889339,
-          "price": 33.07
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 2988190,
-          "price": 33.0
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MICROCURVES TRADING PRIVATE LIMITED",
-          "quantity": 5135411,
-          "price": 33.29
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 6349411,
-          "price": 32.93
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-          "quantity": 3211389,
-          "price": 33.19
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "UGROCAP",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 1,
-      "price": 80.72,
-      "change_pct": 9.6,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 3.74,
-      "delivery_qty": 3156862,
-      "delivery_avg_pct_20": 46.28,
-      "volume": 84307107,
-      "average_volume_20": 2011498.0,
-      "average_volume_sessions": 10,
-      "volume_ratio": 41.91,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 3376316,
-          "price": 82.01
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "IRAGE BROKING SERVICES LLP",
-          "quantity": 812664,
-          "price": 81.89
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "IMC INDIA SECURITIES PRIVATE LIMITED",
-          "quantity": 1919079,
-          "price": 82.48
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-          "quantity": 2750014,
-          "price": 81.96
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "CLT RESEARCH TECH PRIVATE LTD",
-          "quantity": 2061743,
-          "price": 81.36
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "J4S FINANCIAL SOLUTIONS LLP",
-          "quantity": 883095,
-          "price": 81.85
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 3461968,
-          "price": 82.0
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QICAP MARKETS LLP",
-          "quantity": 1088656,
-          "price": 81.63
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MICROCURVES TRADING PRIVATE LIMITED",
-          "quantity": 3242148,
-          "price": 81.91
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-          "quantity": 1892825,
-          "price": 81.86
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "GERMAN",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 1,
-      "price": 113.96,
-      "change_pct": 5.67,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 6.82,
-      "delivery_qty": 1036131,
-      "delivery_avg_pct_20": 37.19,
-      "volume": 15200776,
-      "average_volume_20": 464071.2,
-      "average_volume_sessions": 10,
-      "volume_ratio": 32.76,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 614681,
-          "price": 117.69
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 557810,
-          "price": 117.77
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "HRTI PRIVATE LIMITED",
-          "quantity": 512516,
-          "price": 116.63
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-          "quantity": 401980,
-          "price": 117.35
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MICROCURVES TRADING PRIVATE LIMITED",
-          "quantity": 430444,
-          "price": 117.66
-        }
-      ],
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": [
@@ -673,52 +377,6 @@
       "missing_fields": []
     },
     {
-      "symbol": "SMCGLOBAL",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 1,
-      "price": 85.58,
-      "change_pct": 0.85,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 18.96,
-      "delivery_qty": 1818001,
-      "delivery_avg_pct_20": 41.16,
-      "volume": 9588513,
-      "average_volume_20": 1672076.5,
-      "average_volume_sessions": 10,
-      "volume_ratio": 5.73,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ARIHANT CAPITAL MARKETS LIMITED",
-          "quantity": 2282076,
-          "price": 86.69
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 1011193,
-          "price": 86.0
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
       "symbol": "TATAELXSI",
       "category": "F&O",
       "new_discovery": false,
@@ -809,52 +467,6 @@
       ]
     },
     {
-      "symbol": "WEWIN",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 5,
-      "price": 43.91,
-      "change_pct": -0.45,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 66.18,
-      "delivery_qty": 93084,
-      "delivery_avg_pct_20": 44.96,
-      "volume": 140649,
-      "average_volume_20": 25947.8,
-      "average_volume_sessions": 10,
-      "volume_ratio": 5.42,
-      "signal": "SELLING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव नकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed SELL deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ORION STOCKS LTD",
-          "quantity": 101553,
-          "price": 45.29
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "IRAGE BROKING SERVICES LLP",
-          "quantity": 33,
-          "price": 46.35
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
       "symbol": "INDUSINDBK",
       "category": "F&O",
       "new_discovery": false,
@@ -881,45 +493,6 @@
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": []
-    },
-    {
-      "symbol": "SULA",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 1,
-      "price": 139.25,
-      "change_pct": 3.42,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 43.5,
-      "delivery_qty": 525243,
-      "delivery_avg_pct_20": 47.97,
-      "volume": 1207476,
-      "average_volume_20": 224535.6,
-      "average_volume_sessions": 10,
-      "volume_ratio": 5.38,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "AEGIS INVESTMENT FUND",
-          "quantity": 435000,
-          "price": 138.91
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
     },
     {
       "symbol": "ALPL30IETF",
@@ -2054,80 +1627,6 @@
         "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से 11.3 प्रतिशत-अंक अधिक; यह खरीददार की पहचान नहीं बताता"
       ],
       "deal_evidence": [],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "V2RETAIL",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 3,
-      "price": 162.06,
-      "change_pct": 2.99,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 8.82,
-      "delivery_qty": 9084550,
-      "delivery_avg_pct_20": 14.56,
-      "volume": 103025785,
-      "average_volume_20": 44987047.1,
-      "average_volume_sessions": 10,
-      "volume_ratio": 2.29,
-      "signal": "EARLY BUYING WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "भाव सकारात्मक",
-        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम",
-        "NSE disclosed BUY deal भी दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 5944515,
-          "price": 162.41
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 3928111,
-          "price": 162.07
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "PLUTUS WEALTH MANAGEMENT LLP",
-          "quantity": 2042330,
-          "price": 161.83
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-          "quantity": 2581834,
-          "price": 162.3
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "MICROCURVES TRADING PRIVATE LIMITED",
-          "quantity": 4019516,
-          "price": 162.24
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "HRTI PRIVATE LIMITED",
-          "quantity": 4627201,
-          "price": 161.82
-        }
-      ],
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": [
@@ -8502,50 +8001,6 @@
       "missing_fields": []
     },
     {
-      "symbol": "MARKOLINES",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 160.92,
-      "change_pct": -4.15,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 29.94,
-      "delivery_qty": 114232,
-      "delivery_avg_pct_20": 18.05,
-      "volume": 381567,
-      "average_volume_20": 392951.0,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.97,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "VISTAAR TRADING SERVICE PRIVATE LIMITED",
-          "quantity": 121967,
-          "price": 163.66
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "VISTAAR TRADING SERVICE PRIVATE LIMITED",
-          "quantity": 108039,
-          "price": 162.68
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
       "symbol": "MALUPAPER",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -8795,64 +8250,6 @@
         "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से 10.0 प्रतिशत-अंक अधिक; यह खरीददार की पहचान नहीं बताता"
       ],
       "deal_evidence": [],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "MANAKCOAT",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 157.52,
-      "change_pct": -1.75,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 55.15,
-      "delivery_qty": 1191334,
-      "delivery_avg_pct_20": 51.68,
-      "volume": 2160266,
-      "average_volume_20": 2279339.7,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.95,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ARIHANT CAPITAL MARKETS LIMITED",
-          "quantity": 598236,
-          "price": 160.14
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "RSL SECURITIES PRIVATE LIMITED",
-          "quantity": 800000,
-          "price": 160.0
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ARIHANT CAPITAL MARKETS LIMITED",
-          "quantity": 564365,
-          "price": 160.03
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ELYSIAN WEALTH FUND",
-          "quantity": 1000000,
-          "price": 160.0
-        }
-      ],
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": [
@@ -9514,50 +8911,6 @@
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": []
-    },
-    {
-      "symbol": "MARSONS",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 152.56,
-      "change_pct": -1.47,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 26.8,
-      "delivery_qty": 1702862,
-      "delivery_avg_pct_20": 25.76,
-      "volume": 6352892,
-      "average_volume_20": 7080926.8,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.9,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ARIHANT CAPITAL MARKETS LIMITED",
-          "quantity": 1082497,
-          "price": 156.09
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ARIHANT CAPITAL MARKETS LIMITED",
-          "quantity": 951154,
-          "price": 155.13
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
     },
     {
       "symbol": "VMM",
@@ -10867,120 +10220,6 @@
         "Delivery % अपने उपलब्ध पिछले सत्रों के औसत से 17.7 प्रतिशत-अंक अधिक; यह खरीददार की पहचान नहीं बताता"
       ],
       "deal_evidence": [],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
-      "symbol": "BLSPOLY",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 271.44,
-      "change_pct": -3.94,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 7.04,
-      "delivery_qty": 1137290,
-      "delivery_avg_pct_20": 6.45,
-      "volume": 16162817,
-      "average_volume_20": 20119317.5,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.8,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 414422,
-          "price": 273.3
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "QE SECURITIES LLP",
-          "quantity": 1071662,
-          "price": 272.55
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "JUMP TRADING FINANCIAL INDIA PRIVATE LIMITED",
-          "quantity": 612007,
-          "price": 272.23
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "PLUTUS WEALTH MANAGEMENT LLP",
-          "quantity": 1053743,
-          "price": 273.58
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "HRTI PRIVATE LIMITED",
-          "quantity": 620351,
-          "price": 270.82
-        },
-        {
-          "kind": "Bulk",
-          "side": "BUY",
-          "client": "ELIXIR WEALTH MANAGEMENT PRIVATE LIMITED",
-          "quantity": 313269,
-          "price": 274.84
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "PLUTUS WEALTH MANAGEMENT LLP",
-          "quantity": 1053743,
-          "price": 273.68
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "QE SECURITIES LLP",
-          "quantity": 1036778,
-          "price": 273.76
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "JUMP TRADING FINANCIAL INDIA PRIVATE LIMITED",
-          "quantity": 612007,
-          "price": 276.12
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-          "quantity": 414422,
-          "price": 273.55
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "ELIXIR WEALTH MANAGEMENT PRIVATE LIMITED",
-          "quantity": 334250,
-          "price": 275.35
-        },
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "HRTI PRIVATE LIMITED",
-          "quantity": 760754,
-          "price": 273.25
-        }
-      ],
       "source": "NSE CM-UDiFF Common Bhavcopy Final",
       "as_of": "2026-11-20",
       "missing_fields": [
@@ -15788,50 +15027,6 @@
       ]
     },
     {
-      "symbol": "INDGN",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 657.65,
-      "change_pct": 1.9,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 55.67,
-      "delivery_qty": 178671,
-      "delivery_avg_pct_20": 52.24,
-      "volume": 320954,
-      "average_volume_20": 696589.0,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.46,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Block",
-          "side": "BUY",
-          "client": "RAJESH BHASKARAN NAIR",
-          "quantity": 380750,
-          "price": 657.0
-        },
-        {
-          "kind": "Block",
-          "side": "SELL",
-          "client": "AARABHI PARTNERS CONSULTANTS LLP",
-          "quantity": 380750,
-          "price": 657.0
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
       "symbol": "UEL",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -18840,64 +18035,6 @@
       ]
     },
     {
-      "symbol": "GALLANTT",
-      "category": "अन्य NSE",
-      "new_discovery": true,
-      "activity_days": 0,
-      "price": 538.1,
-      "change_pct": -0.16,
-      "oi_change_pct": null,
-      "futures_change_pct": null,
-      "futures_expiry": null,
-      "delivery_pct": 30.73,
-      "delivery_qty": 70101,
-      "delivery_avg_pct_20": 32.31,
-      "volume": 228099,
-      "average_volume_20": 979619.2,
-      "average_volume_sessions": 10,
-      "volume_ratio": 0.23,
-      "signal": "DISCLOSED DEAL ACTIVITY WATCH",
-      "strength": "WATCH",
-      "evidence": [
-        "NSE की उसी तारीख की disclosed deal report में सौदा दर्ज"
-      ],
-      "deal_evidence": [
-        {
-          "kind": "Bulk",
-          "side": "SELL",
-          "client": "DINESH R AGARWAL",
-          "quantity": 1610292,
-          "price": 523.93
-        },
-        {
-          "kind": "Block",
-          "side": "BUY",
-          "client": "SHREE SURABHI FLOUR MILLS PRIVATE LIMITED",
-          "quantity": 550000,
-          "price": 523.0
-        },
-        {
-          "kind": "Block",
-          "side": "BUY",
-          "client": "SURYALAXMI INFRACON PRIVATE LIMITED",
-          "quantity": 1060292,
-          "price": 524.41
-        },
-        {
-          "kind": "Block",
-          "side": "SELL",
-          "client": "DINESH R AGARWAL",
-          "quantity": 1610292,
-          "price": 523.93
-        }
-      ],
-      "source": "NSE CM-UDiFF Common Bhavcopy Final",
-      "as_of": "2026-11-20",
-      "missing_fields": [
-        "Futures OI लागू नहीं"
-      ]
-    },
-    {
       "symbol": "MALLCOM",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -20610,6 +19747,36 @@
       ]
     },
     {
+      "symbol": "OAL",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 1,
+      "price": 516.7,
+      "change_pct": 20.0,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 2.73,
+      "delivery_qty": 143751,
+      "delivery_avg_pct_20": 54.77,
+      "volume": 5266433,
+      "average_volume_20": 22411.6,
+      "average_volume_sessions": 10,
+      "volume_ratio": 234.99,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
       "symbol": "SILVER001",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -20700,6 +19867,66 @@
       ]
     },
     {
+      "symbol": "HMAAGRO",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 2,
+      "price": 33.91,
+      "change_pct": 15.58,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 6.19,
+      "delivery_qty": 6995822,
+      "delivery_avg_pct_20": 57.79,
+      "volume": 112970399,
+      "average_volume_20": 2425718.1,
+      "average_volume_sessions": 10,
+      "volume_ratio": 46.57,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
+      "symbol": "UGROCAP",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 1,
+      "price": 80.72,
+      "change_pct": 9.6,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 3.74,
+      "delivery_qty": 3156862,
+      "delivery_avg_pct_20": 46.28,
+      "volume": 84307107,
+      "average_volume_20": 2011498.0,
+      "average_volume_sessions": 10,
+      "volume_ratio": 41.91,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
       "symbol": "WELINV",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -20776,6 +20003,36 @@
       "average_volume_20": 36823.6,
       "average_volume_sessions": 10,
       "volume_ratio": 32.77,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
+      "symbol": "GERMAN",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 1,
+      "price": 113.96,
+      "change_pct": 5.67,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 6.82,
+      "delivery_qty": 1036131,
+      "delivery_avg_pct_20": 37.19,
+      "volume": 15200776,
+      "average_volume_20": 464071.2,
+      "average_volume_sessions": 10,
+      "volume_ratio": 32.76,
       "signal": "EARLY BUYING WATCH",
       "strength": "EARLY",
       "evidence": [
@@ -21690,6 +20947,36 @@
       ]
     },
     {
+      "symbol": "SMCGLOBAL",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 1,
+      "price": 85.58,
+      "change_pct": 0.85,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 18.96,
+      "delivery_qty": 1818001,
+      "delivery_avg_pct_20": 41.16,
+      "volume": 9588513,
+      "average_volume_20": 1672076.5,
+      "average_volume_sessions": 10,
+      "volume_ratio": 5.73,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
       "symbol": "BAJAJINDEF",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -21720,6 +21007,36 @@
       ]
     },
     {
+      "symbol": "WEWIN",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 5,
+      "price": 43.91,
+      "change_pct": -0.45,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 66.18,
+      "delivery_qty": 93084,
+      "delivery_avg_pct_20": 44.96,
+      "volume": 140649,
+      "average_volume_20": 25947.8,
+      "average_volume_sessions": 10,
+      "volume_ratio": 5.42,
+      "signal": "SELLING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव नकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
       "symbol": "VIDHIING",
       "category": "अन्य NSE",
       "new_discovery": true,
@@ -21740,6 +21057,36 @@
       "strength": "EARLY",
       "evidence": [
         "भाव नकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
+      "symbol": "SULA",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 1,
+      "price": 139.25,
+      "change_pct": 3.42,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 43.5,
+      "delivery_qty": 525243,
+      "delivery_avg_pct_20": 47.97,
+      "volume": 1207476,
+      "average_volume_20": 224535.6,
+      "average_volume_sessions": 10,
+      "volume_ratio": 5.38,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
         "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
       ],
       "deal_evidence": [],
@@ -27020,6 +26367,36 @@
       "strength": "EARLY",
       "evidence": [
         "भाव नकारात्मक",
+        "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
+      ],
+      "deal_evidence": [],
+      "source": "NSE CM-UDiFF Common Bhavcopy Final",
+      "as_of": "2026-11-20",
+      "missing_fields": [
+        "Futures OI लागू नहीं"
+      ]
+    },
+    {
+      "symbol": "V2RETAIL",
+      "category": "अन्य NSE",
+      "new_discovery": true,
+      "activity_days": 3,
+      "price": 162.06,
+      "change_pct": 2.99,
+      "oi_change_pct": null,
+      "futures_change_pct": null,
+      "futures_expiry": null,
+      "delivery_pct": 8.82,
+      "delivery_qty": 9084550,
+      "delivery_avg_pct_20": 14.56,
+      "volume": 103025785,
+      "average_volume_20": 44987047.1,
+      "average_volume_sessions": 10,
+      "volume_ratio": 2.29,
+      "signal": "EARLY BUYING WATCH",
+      "strength": "EARLY",
+      "evidence": [
+        "भाव सकारात्मक",
         "10 उपलब्ध पिछले सत्रों के औसत से कम-से-कम 1.5 गुना कैश वॉल्यूम"
       ],
       "deal_evidence": [],
@@ -33782,8 +33159,8 @@
   ],
   "strength_summary": {
     "STRONG": 0,
-    "WATCH": 697,
-    "EARLY": 440
+    "WATCH": 683,
+    "EARLY": 448
   },
   "signal_history": [
     {
@@ -36807,1030 +36184,12 @@
       "pending": 2489
     }
   },
-  "bulk_block_deals": [
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 414422,
-      "price": 273.3
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 1071662,
-      "price": 272.55
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "JUMP TRADING FINANCIAL INDIA PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 612007,
-      "price": 272.23
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "PLUTUS WEALTH MANAGEMENT LLP",
-      "side": "BUY",
-      "quantity": 1053743,
-      "price": 273.58
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 620351,
-      "price": 270.82
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "ELIXIR WEALTH MANAGEMENT PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 313269,
-      "price": 274.84
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "CUDML",
-      "client": "CAPACIOUS WEALTH MANAGEMENT LLP",
-      "side": "BUY",
-      "quantity": 127000,
-      "price": 99.72
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "ENCOMPAS",
-      "client": "GENZ INVESTMENT ADVISORS PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 1600,
-      "price": 230.98
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 614681,
-      "price": 117.69
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 557810,
-      "price": 117.77
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 512516,
-      "price": 116.63
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 401980,
-      "price": 117.35
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 430444,
-      "price": 117.66
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GSMFOILS",
-      "client": "HI GROWTH CORPORATE SERVICES PVT LTD",
-      "side": "BUY",
-      "quantity": 74500,
-      "price": 42.81
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 4880262,
-      "price": 33.16
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "MARWADI SHARES AND FINANCE LTD.",
-      "side": "BUY",
-      "quantity": 889339,
-      "price": 33.07
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 2988190,
-      "price": 33.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 5135411,
-      "price": 33.29
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 6349411,
-      "price": 32.93
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 3211389,
-      "price": 33.19
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "IEML-RE1",
-      "client": "SHABBIR NAZMUDDIN PARATHA",
-      "side": "BUY",
-      "quantity": 150000,
-      "price": 3.15
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "ITALIANE",
-      "client": "SACHIN GOVINDLAL MODI",
-      "side": "BUY",
-      "quantity": 200000,
-      "price": 25.7
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MANAKCOAT",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "BUY",
-      "quantity": 598236,
-      "price": 160.14
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MANAKCOAT",
-      "client": "RSL SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 800000,
-      "price": 160.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MARKOLINES",
-      "client": "VISTAAR TRADING SERVICE PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 121967,
-      "price": 163.66
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MARSONS",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "BUY",
-      "quantity": 1082497,
-      "price": 156.09
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "NEWJAISA",
-      "client": "SAHIL GANDHI",
-      "side": "BUY",
-      "quantity": 262500,
-      "price": 15.7
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 186720,
-      "price": 492.56
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 213961,
-      "price": 499.13
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 194696,
-      "price": 495.79
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "RAMBHAJO",
-      "client": "NAVRATRI SHARE TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 250000,
-      "price": 328.25
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "SMCGLOBAL",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "BUY",
-      "quantity": 2282076,
-      "price": 86.69
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "SMCGLOBAL",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 1011193,
-      "price": 86.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "SULA",
-      "client": "AEGIS INVESTMENT FUND",
-      "side": "BUY",
-      "quantity": 435000,
-      "price": 138.91
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 3376316,
-      "price": 82.01
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "IRAGE BROKING SERVICES LLP",
-      "side": "BUY",
-      "quantity": 812664,
-      "price": 81.89
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "IMC INDIA SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 1919079,
-      "price": 82.48
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 2750014,
-      "price": 81.96
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "CLT RESEARCH TECH PRIVATE LTD",
-      "side": "BUY",
-      "quantity": 2061743,
-      "price": 81.36
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "J4S FINANCIAL SOLUTIONS LLP",
-      "side": "BUY",
-      "quantity": 883095,
-      "price": 81.85
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 3461968,
-      "price": 82.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "QICAP MARKETS LLP",
-      "side": "BUY",
-      "quantity": 1088656,
-      "price": 81.63
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 3242148,
-      "price": 81.91
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 1892825,
-      "price": 81.86
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "URBAN",
-      "client": "NIPA MANTHAN SANGHAVI",
-      "side": "BUY",
-      "quantity": 1600,
-      "price": 84.95
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "QE SECURITIES LLP",
-      "side": "BUY",
-      "quantity": 5944515,
-      "price": 162.41
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 3928111,
-      "price": 162.07
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "PLUTUS WEALTH MANAGEMENT LLP",
-      "side": "BUY",
-      "quantity": 2042330,
-      "price": 161.83
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 2581834,
-      "price": 162.3
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 4019516,
-      "price": 162.24
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 4627201,
-      "price": 161.82
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "VALUE360",
-      "client": "PRAFULL  RAI",
-      "side": "BUY",
-      "quantity": 100800,
-      "price": 89.63
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "VALUE360",
-      "client": "3 SIGMA GLOBAL FUND",
-      "side": "BUY",
-      "quantity": 99600,
-      "price": 86.2
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "WEWIN",
-      "client": "IRAGE BROKING SERVICES LLP",
-      "side": "BUY",
-      "quantity": 73390,
-      "price": 45.22
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "WEWIN",
-      "client": "ORION STOCKS LTD",
-      "side": "BUY",
-      "quantity": 16935,
-      "price": 45.97
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "PLUTUS WEALTH MANAGEMENT LLP",
-      "side": "SELL",
-      "quantity": 1053743,
-      "price": 273.68
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 1036778,
-      "price": 273.76
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "JUMP TRADING FINANCIAL INDIA PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 612007,
-      "price": 276.12
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 414422,
-      "price": 273.55
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "ELIXIR WEALTH MANAGEMENT PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 334250,
-      "price": 275.35
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "BLSPOLY",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 760754,
-      "price": 273.25
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "CUDML",
-      "client": "INDIAEMERGING INFRASTRUCTURE PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 106000,
-      "price": 99.22
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "ENCOMPAS",
-      "client": "GENZ INVESTMENT ADVISORS PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 133200,
-      "price": 224.5
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GALLANTT",
-      "client": "DINESH R AGARWAL",
-      "side": "SELL",
-      "quantity": 1610292,
-      "price": 523.93
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 495772,
-      "price": 117.2
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 614681,
-      "price": 117.71
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 402388,
-      "price": 117.39
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 571688,
-      "price": 117.14
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GERMAN",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 430444,
-      "price": 117.74
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "GSMFOILS",
-      "client": "HI GROWTH CORPORATE SERVICES PVT LTD",
-      "side": "SELL",
-      "quantity": 40500,
-      "price": 42.91
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 3076350,
-      "price": 32.68
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 3211389,
-      "price": 33.21
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "MARWADI SHARES AND FINANCE LTD.",
-      "side": "SELL",
-      "quantity": 2599511,
-      "price": 31.14
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 6349411,
-      "price": 32.92
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 4887084,
-      "price": 33.19
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "HMAAGRO",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 5135411,
-      "price": 33.31
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "ITALIANE",
-      "client": "AKSHAY MAKHIJA",
-      "side": "SELL",
-      "quantity": 234000,
-      "price": 25.7
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "JAYBARMARU",
-      "client": "SHUKLAMBER EXPORTS LTD",
-      "side": "SELL",
-      "quantity": 600000,
-      "price": 127.03
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MANAKCOAT",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "SELL",
-      "quantity": 564365,
-      "price": 160.03
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MANAKCOAT",
-      "client": "ELYSIAN WEALTH FUND",
-      "side": "SELL",
-      "quantity": 1000000,
-      "price": 160.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MARKOLINES",
-      "client": "VISTAAR TRADING SERVICE PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 108039,
-      "price": 162.68
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "MARSONS",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "SELL",
-      "quantity": 951154,
-      "price": 155.13
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "NEWJAISA",
-      "client": "PEGASUS GROWTH FUND 1",
-      "side": "SELL",
-      "quantity": 204000,
-      "price": 15.7
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 195720,
-      "price": 496.27
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 213961,
-      "price": 499.42
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "OAL",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 186720,
-      "price": 493.05
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "SMCGLOBAL",
-      "client": "ARIHANT CAPITAL MARKETS LIMITED",
-      "side": "SELL",
-      "quantity": 2282076,
-      "price": 86.3
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "SMCGLOBAL",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 1062616,
-      "price": 86.38
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "TIPSFILMS",
-      "client": "ARHAM SHARE PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 25000,
-      "price": 427.68
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 3399158,
-      "price": 82.1
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "IRAGE BROKING SERVICES LLP",
-      "side": "SELL",
-      "quantity": 806735,
-      "price": 82.05
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 3461968,
-      "price": 82.07
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "NK SECURITIES RESEARCH PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 2750014,
-      "price": 82.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "CLT RESEARCH TECH PRIVATE LTD",
-      "side": "SELL",
-      "quantity": 2061743,
-      "price": 81.39
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "J4S FINANCIAL SOLUTIONS LLP",
-      "side": "SELL",
-      "quantity": 883095,
-      "price": 81.98
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "QICAP MARKETS LLP",
-      "side": "SELL",
-      "quantity": 1088656,
-      "price": 81.76
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "IMC INDIA SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 1579964,
-      "price": 82.48
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 3242148,
-      "price": 82.02
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "UGROCAP",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 1900140,
-      "price": 81.92
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "URBAN",
-      "client": "NIPA MANTHAN SANGHAVI",
-      "side": "SELL",
-      "quantity": 69600,
-      "price": 85.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "PLUTUS WEALTH MANAGEMENT LLP",
-      "side": "SELL",
-      "quantity": 2042330,
-      "price": 161.91
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "ALPHAGREP SECURITIES PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 3912441,
-      "price": 162.17
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "HRTI PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 4840649,
-      "price": 161.74
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "MICROCURVES TRADING PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 4019516,
-      "price": 162.32
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "QE SECURITIES LLP",
-      "side": "SELL",
-      "quantity": 6092959,
-      "price": 161.82
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "V2RETAIL",
-      "client": "JUNOMONETA FINSOL PRIVATE LIMITED",
-      "side": "SELL",
-      "quantity": 2598108,
-      "price": 162.33
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "WEWIN",
-      "client": "ORION STOCKS LTD",
-      "side": "SELL",
-      "quantity": 101553,
-      "price": 45.29
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Bulk",
-      "symbol": "WEWIN",
-      "client": "IRAGE BROKING SERVICES LLP",
-      "side": "SELL",
-      "quantity": 33,
-      "price": 46.35
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Block",
-      "symbol": "GALLANTT",
-      "client": "SHREE SURABHI FLOUR MILLS PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 550000,
-      "price": 523.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Block",
-      "symbol": "GALLANTT",
-      "client": "SURYALAXMI INFRACON PRIVATE LIMITED",
-      "side": "BUY",
-      "quantity": 1060292,
-      "price": 524.41
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Block",
-      "symbol": "INDGN",
-      "client": "RAJESH BHASKARAN NAIR",
-      "side": "BUY",
-      "quantity": 380750,
-      "price": 657.0
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Block",
-      "symbol": "GALLANTT",
-      "client": "DINESH R AGARWAL",
-      "side": "SELL",
-      "quantity": 1610292,
-      "price": 523.93
-    },
-    {
-      "date": "2026-11-20",
-      "kind": "Block",
-      "symbol": "INDGN",
-      "client": "AARABHI PARTNERS CONSULTANTS LLP",
-      "side": "SELL",
-      "quantity": 380750,
-      "price": 657.0
-    }
-  ],
+  "bulk_block_deals": [],
   "coverage": {
     "cash_price_volume": "verified",
     "futures_oi": "verified_for_matched_stock_futures",
     "delivery_pct": "verified_for_matched_symbols",
-    "bulk_block_deals": "verified",
+    "bulk_block_deals": "not_yet_connected",
     "intraday": "not_available_in_this_eod_scan"
   },
   "coverage_counts": {
@@ -37840,8 +36199,8 @@
     "fno_symbols_with_same_expiry_oi": 218,
     "delivery_symbols_matched": 2760,
     "delivery_eq_symbols_scanned": 2760,
-    "bulk_block_reports_verified": 2,
-    "bulk_block_deal_rows": 113
+    "bulk_block_reports_verified": 0,
+    "bulk_block_deal_rows": 0
   },
   "note": "EARLY is an EOD price-volume alert, not proof of institutional buying or a buy recommendation. Delivery and OI are shown only when verified."
 }
