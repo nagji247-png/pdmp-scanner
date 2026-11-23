@@ -175,25 +175,19 @@ def build_report(archive, master, generated_at=None, fo_archive=None, delivery_a
     deals_record = next((record for record in reversed(deals_records)
                          if isinstance(record, dict) and record.get("date") == latest_date.isoformat()), None)
     # Keep the latest-session rows separate for signal matching: an older disclosed
-    # deal must never be attached to today's price/OI signal. The dashboard's
-    # Bulk / Block table, however, is a dated activity history and must retain
-    # every row from every archive date whose official report was verified.
+    # deal must never be attached to today's price/OI signal. The history table must
+    # preserve every archived deal row, even when its date or verification metadata
+    # is missing; missing dates are a display fallback, never a reason to drop a deal.
     current_deal_rows = (deals_record or {}).get("rows") or []
     deal_rows = []
     for deal_record in deals_records:
-        if not isinstance(deal_record, dict) or not deal_record.get("date"):
+        if not isinstance(deal_record, dict):
             continue
-        if int(deal_record.get("verified_report_count") or 0) < 1:
-            continue
-        try:
-            report_date = dt.date.fromisoformat(str(deal_record["date"])).isoformat()
-        except (TypeError, ValueError):
-            continue
+        report_date = deal_record.get("date")
         for deal in deal_record.get("rows") or []:
             if isinstance(deal, dict):
                 deal_rows.append({**deal, "date": deal.get("date") or report_date})
-    # Keep the newest disclosed dates first; if the latest session has no rows,
-    # the first visible entries naturally fall back to the most recent verified history.
+    # Keep dated history newest-first; rows without a usable date remain visible at the end.
     deal_rows.sort(key=lambda deal: str(deal.get("date") or ""), reverse=True)
     deals_by_symbol = {}
     for deal in current_deal_rows:
