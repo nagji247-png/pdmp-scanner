@@ -1,0 +1,100 @@
+name: Refresh Daily Stock Buying Activity after OI Archive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/refresh-daily-stock-buying-activity.yml"
+  workflow_run:
+    workflows:
+      - "NSE Index Option OI EOD Archive"
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-daily-stock-buying-activity
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Check whether the report is behind the latest OI archive
+        id: freshness
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+
+          oi_path = Path("nse_index_option_oi.json")
+          report_path = Path("daily_stock_buying_activity.json")
+          if not oi_path.is_file() or not report_path.is_file():
+              print("refresh=false")
+              print("reason=required archive or report file is missing")
+          else:
+              oi = json.loads(oi_path.read_text(encoding="utf-8"))
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              dates = [
+                  str(row.get("date"))
+                  for row in oi.get("records", [])
+                  if isinstance(row, dict) and row.get("date")
+              ]
+              latest_oi_date = max(dates) if dates else None
+              diagnostics = report.get("strong_diagnostics") or {}
+              report_oi_date = diagnostics.get("current_fo_record_date")
+              report_cash_date = report.get("as_of")
+              fresh = bool(
+                  latest_oi_date
+                  and report_cash_date == latest_oi_date
+                  and report_oi_date == latest_oi_date
+              )
+              print("refresh=" + ("false" if fresh else "true"))
+              print("latest_oi_date=" + str(latest_oi_date or "unavailable"))
+              print("report_cash_date=" + str(report_cash_date or "unavailable"))
+              print("report_oi_date=" + str(report_oi_date or "unavailable"))
+          PY
+
+      - name: Validate Daily Stock Buying Activity code and tests
+        if: steps.freshness.outputs.refresh == 'true'
+        run: |
+          python -m py_compile daily_stock_buying_activity.py
+          python -m unittest discover -s tests -p 'test_daily_stock_buying_activity.py' -v
+
+      - name: Rebuild report using the newly archived Futures OI
+        if: steps.freshness.outputs.refresh == 'true'
+        run: |
+          python daily_stock_buying_activity.py \
+            --delivery-archive nse_delivery_archive.json \
+            --deals-archive nse_bulk_block_deals.json
+
+      - name: Commit refreshed diagnostic report
+        if: steps.freshness.outputs.refresh == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "pdmp-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add daily_stock_buying_activity.json
+          if git diff --cached --quiet; then
+            echo "Daily Stock Buying Activity report did not change."
+            exit 0
+          fi
+          git commit -m "Refresh daily buying activity after NSE OI archive"
+          git pull --rebase -X theirs origin main
+          git push origin HEAD:main
