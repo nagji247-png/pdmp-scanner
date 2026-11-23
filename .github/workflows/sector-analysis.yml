@@ -7,7 +7,7 @@ on:
       - "sector_watchlist.py"
       - "sector-analysis.json"
   schedule:
-    - cron: "35 3 * * 1-5"
+    - cron: "35 3,5,7,9 * * 1-5"
 permissions:
   contents: write
 jobs:
