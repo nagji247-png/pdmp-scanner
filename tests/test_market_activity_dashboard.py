@@ -99,23 +99,26 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("const REFRESH_MS = 5 * 60 * 1000", self.dashboard)
         self.assertIn("NO TRADE", self.dashboard)
 
-    def test_radar_summary_cards_match_approved_four_card_visual_system(self):
+    def test_radar_uses_two_buy_sell_panels_with_four_clickable_signal_groups(self):
         for marker in (
-            ".ma-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px",
-            ".ma-stat{min-height:188px;border-width:2px;border-radius:23px",
-            ".ma-stat.bull{border-color:#00dca0",
-            ".ma-stat.bear{border-color:#9c477c",
-            ".ma-stat.unusual{border-color:#2869bf",
-            ".ma-stat.fpi{border-color:#1268bd",
-            ".ma-stat.bull b:after{content:'▲'",
-            ".ma-stat.bear b:after{content:'▼'",
-            ".ma-stat.unusual b:after{content:'⚠'",
-            ".ma-stat.fpi b:after{content:'●●'",
-            "@media(max-width:760px){.ma-summary{grid-template-columns:repeat(2,minmax(0,1fr))",
+            ".ma-buy-sell-layout{gap:14px}",
+            ".ma-buy-sell-layout>.ma-sector-group.bull",
+            ".ma-buy-sell-layout>.ma-sector-group.bear",
+            ".ma-signal-subgroup",
+            "EARLY BUYING",
+            "CONFIRMED BUYING",
+            "EARLY SELLING",
+            "SELLING WATCH",
+            "function sectorBuyingState(s)",
+            "news.total>=2&&news.positive>news.negative",
+            "news.total>=2&&news.negative>news.positive",
+            "वॉल्यूम वृद्धि का सत्यापित तुलनात्मक डेटा उपलब्ध न होने पर",
         ):
             self.assertIn(marker, self.market_activity)
-        for action in ('data-radar="bull"', 'data-radar="bear"',
-                       'data-radar="unusual"', 'data-radar="fpi"'):
+        self.assertNotIn("data-radar=\"unusual\"", self.market_activity)
+        self.assertNotIn("data-radar=\"fpi\"", self.market_activity)
+        for action in ('data-radar="early-buying"', 'data-radar="confirmed-buying"',
+                       'data-radar="early-selling"', 'data-radar="selling-watch"'):
             self.assertIn(action, self.market_activity)
 
 if __name__ == "__main__":
