@@ -82,32 +82,20 @@ window.addEventListener("popstate",function(){if(stack.length>1){stack.pop();ren
 window.addEventListener("keydown",function(e){if(e.key==="Escape"&&popupLayer){goBack();}});
 root.addEventListener("click",function(e){var close=e.target.closest("[data-close-view]");if(close){goBack();return;}var back=e.target.closest("[data-back]");if(back){goBack();return;}var radar=e.target.closest("[data-radar]");if(radar){push({type:"radar",kind:radar.getAttribute("data-radar"),scroll:0});return;}var sec=e.target.closest("[data-sector]");if(sec){push({type:"sector",name:sec.getAttribute("data-sector"),scroll:0});return;}var stk=e.target.closest("[data-stock]");if(stk){push({type:"stock",symbol:stk.getAttribute("data-stock"),sector:stk.getAttribute("data-sector-name")||"",scroll:0});return;}});
 function renderHome(){
-var sectors=allSectors(),universe=Object.assign({},master.stocks||{},marketData&&marketData.market_activity_quotes&&marketData.market_activity_quotes.instruments||{}),symbols=Object.keys(universe),bull=sectors.filter(function(s){return sectorOrder(s)===0;}).length,bear=sectors.filter(function(s){return sectorOrder(s)===2;}).length;
-var unusual=[];sectors.forEach(function(s){s.rows.forEach(function(r){var c=r.q&&n(r.q.change_pct);if(c!==null&&Math.abs(c)>=1)unusual.push({sector:s.name,row:r,change:c,date:r.q.price_as_of||"तारीख़ उपलब्ध नहीं"});});});
-unusual.sort(function(a,b){return Math.abs(b.change)-Math.abs(a.change)||a.row.symbol.localeCompare(b.row.symbol);});
-var fpiDelta=fpiDeltaMap(),fpiChanged=Object.keys(fpiDelta).filter(function(k){return fpiDelta[k]!==0;}).length;
+var sectors=allSectors().filter(function(s){return s.name!=="सेक्टर मैपिंग उपलब्ध नहीं";}),symbols=Object.keys(master.stocks||{});
+var fpiDelta=fpiDeltaMap();
 var alerts=activityAlerts(),alertHtml=alerts.length?alerts.map(function(a){var tag=a.kind==="high"?"HIGH":a.kind==="watch"?"WATCH":"FLOW";var target=a.symbol?' data-stock="'+esc(a.symbol)+'" data-sector-name="'+esc(a.sector)+'"':' data-sector="'+esc(a.sector)+'"';return '<button type="button" class="ma-alert '+a.kind+'"'+target+'><span class="ma-alert-label">'+tag+'</span><b>'+esc(a.symbol||a.sector)+'</b> · '+esc(a.text)+'<small>'+esc(a.sector)+' · '+esc(a.date||"अवधि उपलब्ध नहीं")+(a.symbol?" · स्टॉक विवरण खोलें":" · सेक्टर विवरण खोलें")+'</small></button>';}).join(""):'<div class="ma-empty">अभी HIGH / WATCH / FLOW के लिए पर्याप्त सत्यापित बदलाव नहीं मिला।</div>';
-var sectorGroups=[
-{key:"bull",title:"↗ तेजी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===0;})},
-{key:"bear",title:"↘ मंदी वाले सेक्टर",items:sectors.filter(function(s){return sectorOrder(s)===2;})},
-{key:"neutral",title:"मिश्रित / डेटा कम",items:sectors.filter(function(s){return sectorOrder(s)===1;})}
-];
-function renderSectorGroup(g){
-if(!g.items.length)return "";
-var cards=g.items.map(function(s){var d=s.d,state=sectorState(d),tone=g.key==="bull"?"bull":g.key==="bear"?"bear":"neutral";return '<div class="ma-sector '+tone+'"><button class="ma-sector-button" type="button" data-sector="'+esc(s.name)+'"><div class="ma-sector-head"><span class="ma-sector-name">'+esc(s.name)+'</span><span class="ma-count">'+s.rows.length+' स्टॉक　›</span></div><span class="ma-state '+tone+'">'+(g.key==="bull"?"उपलब्ध भावों में तेजी":g.key==="bear"?"उपलब्ध भावों में मंदी":state)+'</span><div class="ma-meta"><span>भाव उपलब्ध '+d.covered+'/'+s.rows.length+'</span><span class="ma-up">↑ '+d.up+'</span><span class="ma-neutral">सामान्य '+d.flat+'</span><span class="ma-down">↓ '+d.down+'</span></div>'+coverageCaution(d,s.rows.length)+'</button></div>';}).join("");
-return '<section class="ma-sector-group '+g.key+'"><div class="ma-sector-group-title">'+g.title+' <span>'+g.items.length+' सेक्टर</span></div><div class="ma-sector-grid">'+cards+'</div></section>';
+var bullSectors=sectors.filter(function(s){return sectorOrder(s)===0;});
+var bearSectors=sectors.filter(function(s){return sectorOrder(s)===2;});
+var neutralSectors=sectors.filter(function(s){return sectorOrder(s)===1;});
+function renderSectorCards(items,tone){
+return items.map(function(s){var d=s.d,state=sectorState(d);return '<div class="ma-sector '+tone+'"><button class="ma-sector-button" type="button" data-sector="'+esc(s.name)+'"><div class="ma-sector-head"><span class="ma-sector-name">'+esc(s.name)+'</span><span class="ma-count">'+s.rows.length+' स्टॉक　›</span></div><span class="ma-state '+tone+'">'+(tone==="bull"?"उपलब्ध भावों में तेजी":tone==="bear"?"उपलब्ध भावों में मंदी":state)+'</span><div class="ma-meta"><span>भाव उपलब्ध '+d.covered+'/'+s.rows.length+'</span><span class="ma-up">↑ '+d.up+'</span><span class="ma-neutral">सामान्य '+d.flat+'</span><span class="ma-down">↓ '+d.down+'</span></div>'+coverageCaution(d,s.rows.length)+'</button></div>';}).join("");
 }
-var bullSectorHtml=renderSectorGroup(sectorGroups[0]);
-var bearSectorHtml=renderSectorGroup(sectorGroups[1]);
-var neutralSectorHtml=renderSectorGroup(sectorGroups[2]);
-var sectorHtml='<div class="ma-two-column-sectors">'+bullSectorHtml+bearSectorHtml+'</div>'+neutralSectorHtml;
+var neutralSectorHtml=neutralSectors.length?'<div class="ma-neutral-subgroup"><div class="ma-sector-group-title">मिश्रित / डेटा कम <span>'+neutralSectors.length+' सेक्टर</span></div><div class="ma-sector-grid">'+renderSectorCards(neutralSectors,"neutral")+'</div></div>':"";
+var bullSectorHtml='<section class="ma-sector-group bull"><div class="ma-sector-group-title">↗ तेजी वाले सेक्टर <span>'+bullSectors.length+' सेक्टर</span></div><div class="ma-sector-grid">'+renderSectorCards(bullSectors,"bull")+'</div>'+neutralSectorHtml+'</section>';
+var bearSectorHtml='<section class="ma-sector-group bear"><div class="ma-sector-group-title">↘ मंदी वाले सेक्टर <span>'+bearSectors.length+' सेक्टर</span></div><div class="ma-sector-grid">'+renderSectorCards(bearSectors,"bear")+'</div></section>';
+var sectorHtml='<div class="ma-two-column-sectors">'+bullSectorHtml+bearSectorHtml+'</div>';
 root.innerHTML='<div class="ma-radar-hero"><span class="ma-radar-eye" aria-hidden="true">◉</span><div class="ma-radar-heading"><div class="ma-radar-kicker">आज की बाजार गतिविधि</div><h2>MARKET ACTIVITY RADAR</h2><p>आज बाजार में कहाँ हलचल है? · '+symbols.length+' स्टॉक · '+sectors.length+' सेक्टर · उपलब्ध सत्यापित डेटा के आधार पर</p></div><span class="ma-radar-chart" aria-hidden="true">↗</span></div>'+
-'<div class="ma-summary">'+
-'<div class="ma-stat bull"><button class="ma-stat-button" type="button" data-radar="bull"><b>'+String(bull).padStart(2,"0")+'</b><span>तेजी वाले सेक्टर<br>हलचल ऊपर की ओर</span></button></div>'+
-'<div class="ma-stat bear"><button class="ma-stat-button" type="button" data-radar="bear"><b>'+String(bear).padStart(2,"0")+'</b><span>मंदी वाले सेक्टर<br>दबाव नीचे की ओर</span></button></div>'+
-'<div class="ma-stat unusual"><button class="ma-stat-button" type="button" data-radar="unusual"><b>'+String(unusual.length).padStart(2,"0")+'</b><span>असामान्य स्टॉक<br>कीमत में ±1% या अधिक हलचल</span></button></div>'+
-'<div class="ma-stat fpi"><button class="ma-stat-button" type="button" data-radar="fpi"><b>'+String(fpiChanged).padStart(2,"0")+'</b><span>FPI प्रवाह बदलाव<br>पिछली अवधि से तुलना</span></button></div>'+
-'</div>'+
 '<div class="ma-kicker">LATEST ACTIVITY ALERTS</div><div class="ma-intro">HIGH: कम-से-कम दो स्वतंत्र संकेत एक दिशा में। WATCH: एक महत्वपूर्ण संकेत, पुष्टि बाकी। FLOW: सत्यापित FPI बदलाव।</div>'+alertHtml+'<div class="ma-kicker">SECTOR ACTIVITY — '+sectors.length+' सेक्टर</div>'+'<div class="ma-intro">सेक्टर की दिशा उपलब्ध सत्यापित शेयर भावों के आधार पर है। सेक्टर खोलकर उसके शेयर देखें।</div>'+sectorHtml+
 '<div class="ma-foot">भाव डेटा उपलब्ध '+symbols.filter(function(k){var q=quote(k);return q&&n(q.change_pct)!==null;}).length+'/'+symbols.length+' स्टॉक। बाकी स्टॉक सेक्टर सूची में रहेंगे, लेकिन बिना सत्यापित भाव के उन्हें तेजी/मंदी नहीं दिया जाएगा। असामान्य स्टॉक की गिनती कीमत बदलाव पर आधारित है; वॉल्यूम डेटा उपलब्ध नहीं है। FPI बदलाव नवीनतम दो उपलब्ध NSDL fortnightly अवधियों की तुलना है।<br><b>'+esc(radarFreshness())+'</b> · FPI अवधि: '+esc(fpiPeriod())+'</div>';
 }
