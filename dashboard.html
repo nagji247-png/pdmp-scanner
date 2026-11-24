@@ -2105,7 +2105,6 @@ function renderCrowd(data) {
   const t = data.trends || {};
   const hs = data.headline_split || { pos: 0, neg: 0 };
   const cs = data.crowd_stats || { tracked: 0, trap: 0, followed: 0 };
-  const levels = data.levels || [];
 
   let moodHtml;
   const hasFreshOneDayMood = t.ok && !t.stale
@@ -2139,15 +2138,7 @@ function renderCrowd(data) {
     `<div class="sub" style="margin-top:14px">समाचार भावना: डेटा उपलब्ध नहीं</div>`;
 
   const trapLine = `<div class="sub" style="margin-top:12px">भीड़ एकतरफ़ा दिन: उलटी गई ${cs.trap} · सही निकली ${cs.followed} · कुल ${cs.tracked}</div>`;
-  const levelHtml = levels.map(l => {
-    const sign = l.dist_pct >= 0 ? "+" : "";
-    const near = Math.abs(l.dist_pct) <= 1 ? ' <span class="tag t-rev">करीब</span>' : "";
-    return `<div class="lvl"><div>NIFTY ${l.level.toLocaleString("en-IN")}${near}</div>
-      <div class="${l.dist_pct > 0 ? "pos" : "neg"}">${sign}${l.dist_pct}% दूर</div></div>`;
-  }).join("");
-
-  box.innerHTML = `${moodHtml}${headHtml}${trapLine}
-    ${levelHtml ? `<div style="margin-top:14px" class="sub">Nifty वॉच-स्तर:</div>${levelHtml}` : ""}`;
+  box.innerHTML = `${moodHtml}${headHtml}${trapLine}`;
 }
 
 function renderTrapDetector(data) {
