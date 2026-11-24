@@ -101,7 +101,7 @@ var bullSectorHtml=renderSectorGroup(sectorGroups[0]);
 var bearSectorHtml=renderSectorGroup(sectorGroups[1]);
 var neutralSectorHtml=renderSectorGroup(sectorGroups[2]);
 var sectorHtml='<div class="ma-two-column-sectors">'+bullSectorHtml+bearSectorHtml+'</div>'+neutralSectorHtml;
-root.innerHTML='<div class="ma-radar-hero"><span class="ma-radar-eye" aria-hidden="true">◉</span><div class="ma-radar-heading"><div class="ma-radar-kicker">सबसे ऊपर — आज की हलचल</div><h2>MARKET ACTIVITY RADAR</h2><p>आज बाजार में कहाँ हलचल है? · '+symbols.length+' स्टॉक · '+sectors.length+' सेक्टर · उपलब्ध सत्यापित डेटा के आधार पर</p></div><span class="ma-radar-chart" aria-hidden="true">↗</span></div>'+
+root.innerHTML='<div class="ma-radar-hero"><span class="ma-radar-eye" aria-hidden="true">◉</span><div class="ma-radar-heading"><div class="ma-radar-kicker">आज की बाजार गतिविधि</div><h2>MARKET ACTIVITY RADAR</h2><p>आज बाजार में कहाँ हलचल है? · '+symbols.length+' स्टॉक · '+sectors.length+' सेक्टर · उपलब्ध सत्यापित डेटा के आधार पर</p></div><span class="ma-radar-chart" aria-hidden="true">↗</span></div>'+
 '<div class="ma-summary">'+
 '<div class="ma-stat bull"><button class="ma-stat-button" type="button" data-radar="bull"><b>'+String(bull).padStart(2,"0")+'</b><span>तेजी वाले सेक्टर<br>हलचल ऊपर की ओर</span></button></div>'+
 '<div class="ma-stat bear"><button class="ma-stat-button" type="button" data-radar="bear"><b>'+String(bear).padStart(2,"0")+'</b><span>मंदी वाले सेक्टर<br>दबाव नीचे की ओर</span></button></div>'+
