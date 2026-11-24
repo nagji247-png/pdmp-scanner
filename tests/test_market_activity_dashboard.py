@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=21"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=22"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
@@ -54,7 +54,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
         self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
         self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
-        self.assertIn("src=\"market-activity.js?v=21\"", self.dashboard)
+        self.assertIn("src=\"market-activity.js?v=22\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
@@ -115,8 +115,11 @@ class MarketActivityDashboardTests(unittest.TestCase):
             "तुलनात्मक वॉल्यूम डेटा सत्यापित न होने पर",
         ):
             self.assertIn(marker, self.market_activity)
-        self.assertNotIn("data-radar=\"unusual\"", self.market_activity)
-        self.assertNotIn("data-radar=\"fpi\"", self.market_activity)
+        self.assertIn('class="ma-quick-summary"', self.market_activity)
+        for key, label in (("bull", "तेजी वाले सेक्टर"), ("bear", "मंदी वाले सेक्टर"),
+                           ("unusual", "असामान्य स्टॉक"), ("fpi", "FPI प्रवाह बदलाव")):
+            self.assertIn('data-radar="' + key + '"', self.market_activity)
+            self.assertIn(label, self.market_activity)
         for key in ('early-buying', 'confirmed-buying', 'early-selling', 'selling-watch'):
             self.assertIn('key:"' + key + '"', self.market_activity)
         self.assertIn('data-radar=', self.market_activity)
