@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=18"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=19"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
