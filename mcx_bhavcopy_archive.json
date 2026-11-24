@@ -1370,6 +1370,120 @@
         }
       ],
       "contract_count": 11
+    },
+    {
+      "date": "2026-11-23",
+      "captured_at_utc": "2026-11-24T03:20:36Z",
+      "source": "MCX India official date-wise Bhavcopy · FUTCOM",
+      "normalized_rows_sha256": "edb1d2a0965712241e214f6dda56dcac936c9410bdc334e361fc030e023f2826",
+      "hash_scope": "SHA-256 of canonical filtered contract rows; raw HTTP response bytes are not exposed by the current fetch helper",
+      "scope": "All returned GOLD and SILVER FUTCOM expiry rows; exact date and expiry retained",
+      "symbols": [
+        "GOLD",
+        "SILVER"
+      ],
+      "contract_rows": [
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "04DEC2026",
+          "OptionType": "-",
+          "OpenInterest": 9476,
+          "Close": 125996.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "04JUN2027",
+          "OptionType": "-",
+          "OpenInterest": 3,
+          "Close": 132604.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05APR2027",
+          "OptionType": "-",
+          "OpenInterest": 160,
+          "Close": 130997.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05AUG2027",
+          "OptionType": "-",
+          "OpenInterest": 0,
+          "Close": 131131.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05FEB2027",
+          "OptionType": "-",
+          "OpenInterest": 7627,
+          "Close": 128783.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "GOLD",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05OCT2027",
+          "OptionType": "-",
+          "OpenInterest": 0,
+          "Close": 133469.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "SILVER",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "03SEP2027",
+          "OptionType": "-",
+          "OpenInterest": 0,
+          "Close": 159798.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "SILVER",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "04DEC2026",
+          "OptionType": "-",
+          "OpenInterest": 12733,
+          "Close": 154217.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "SILVER",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05JUL2027",
+          "OptionType": "-",
+          "OpenInterest": 2,
+          "Close": 163935.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "SILVER",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05MAR2027",
+          "OptionType": "-",
+          "OpenInterest": 8775,
+          "Close": 158959.0
+        },
+        {
+          "InstrumentName": "FUTCOM",
+          "Symbol": "SILVER",
+          "DateDisplay": "23 Nov 2026",
+          "ExpiryDate": "05MAY2027",
+          "OptionType": "-",
+          "OpenInterest": 169,
+          "Close": 163840.0
+        }
+      ],
+      "contract_count": 11
     }
   ]
 }
