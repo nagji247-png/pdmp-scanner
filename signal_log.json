@@ -1,40 +1,5 @@
 [
   {
-    "time": "2026-11-18T05:04Z",
-    "instrument": "RELIANCE",
-    "prev_score": 4.7,
-    "new_score": 3.3,
-    "changed": [
-      "भावना",
-      "VWAP",
-      "वॉल्यूम"
-    ],
-    "vol_data": true,
-    "held_minutes": 574,
-    "price_at_change": 1363.0,
-    "price_after": 1373.3,
-    "move_pct": 0.76,
-    "after_minutes": 218,
-    "direction": "ऊपर"
-  },
-  {
-    "time": "2026-11-18T08:42Z",
-    "instrument": "NIFTY",
-    "prev_score": 7.5,
-    "new_score": 1.8,
-    "changed": [
-      "भावना",
-      "कीमत"
-    ],
-    "vol_data": false,
-    "held_minutes": 218,
-    "price_at_change": 25237.0508,
-    "price_after": 25227.9492,
-    "move_pct": -0.04,
-    "after_minutes": 107,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-11-18T08:42Z",
     "instrument": "BANKNIFTY",
     "prev_score": 7.5,
@@ -3179,10 +3144,10 @@
     "vol_data": false,
     "held_minutes": 37,
     "price_at_change": 25366.4004,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 25366.4004,
+    "move_pct": 0.0,
+    "after_minutes": 203,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-24T02:52Z",
@@ -3195,10 +3160,10 @@
     "vol_data": true,
     "held_minutes": 37,
     "price_at_change": 1351.0,
-    "price_after": null,
-    "move_pct": null,
-    "after_minutes": null,
-    "direction": null
+    "price_after": 1351.0,
+    "move_pct": 0.0,
+    "after_minutes": 203,
+    "direction": "लगभग स्थिर"
   },
   {
     "time": "2026-11-24T02:52Z",
@@ -3211,6 +3176,38 @@
     "vol_data": true,
     "held_minutes": 37,
     "price_at_change": 817.8,
+    "price_after": 817.8,
+    "move_pct": 0.0,
+    "after_minutes": 203,
+    "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-24T06:15Z",
+    "instrument": "NIFTY",
+    "prev_score": -10.0,
+    "new_score": -7.6,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": false,
+    "held_minutes": 203,
+    "price_at_change": 25366.4004,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-24T06:15Z",
+    "instrument": "RELIANCE",
+    "prev_score": 4.2,
+    "new_score": 6.2,
+    "changed": [
+      "भावना"
+    ],
+    "vol_data": true,
+    "held_minutes": 203,
+    "price_at_change": 1351.0,
     "price_after": null,
     "move_pct": null,
     "after_minutes": null,
