@@ -3889,7 +3889,7 @@ function renderFpiSectorTilt(payload) {
   box.innerHTML =
     '<div class="hl-title">इक्विटी · ' + esc(latest.label || latest.end_date) + '</div>' +
     '<div class="sub">NSDL · Equity net investment · ₹ करोड़ · रिपोर्ट अवधि समाप्त: ' + esc(latest.end_date) + '</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:9px">' +
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:9px">' +
       '<div class="hl"><b>सबसे ज़्यादा खरीदारी</b>' + (buys.length ? buys.map(row).join("") : '<div class="sub">इस अवधि में कोई शुद्ध खरीदारी वाला उद्योग सेक्टर नहीं।</div>') + '</div>' +
       '<div class="hl"><b>सबसे ज़्यादा बिकवाली</b>' + (sells.length ? sells.map(row).join("") : '<div class="sub">इस अवधि में कोई शुद्ध बिकवाली वाला उद्योग सेक्टर नहीं।</div>') + '</div>' +
     '</div>' +
