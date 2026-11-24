@@ -112,7 +112,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
             "function sectorBuyingState(s)",
             "news.total>=2&&news.positive>news.negative",
             "news.total>=2&&news.negative>news.positive",
-            "वॉल्यूम वृद्धि का सत्यापित तुलनात्मक डेटा उपलब्ध न होने पर",
+            "तुलनात्मक वॉल्यूम डेटा सत्यापित न होने पर",
         ):
             self.assertIn(marker, self.market_activity)
         self.assertNotIn("data-radar=\"unusual\"", self.market_activity)
