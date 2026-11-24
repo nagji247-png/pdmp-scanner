@@ -99,5 +99,24 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("const REFRESH_MS = 5 * 60 * 1000", self.dashboard)
         self.assertIn("NO TRADE", self.dashboard)
 
+    def test_radar_summary_cards_match_approved_four_card_visual_system(self):
+        for marker in (
+            ".ma-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px",
+            ".ma-stat{min-height:188px;border-width:2px;border-radius:23px",
+            ".ma-stat.bull{border-color:#00dca0",
+            ".ma-stat.bear{border-color:#9c477c",
+            ".ma-stat.unusual{border-color:#2869bf",
+            ".ma-stat.fpi{border-color:#1268bd",
+            ".ma-stat.bull b:after{content:'▲'",
+            ".ma-stat.bear b:after{content:'▼'",
+            ".ma-stat.unusual b:after{content:'⚠'",
+            ".ma-stat.fpi b:after{content:'●●'",
+            "@media(max-width:760px){.ma-summary{grid-template-columns:repeat(2,minmax(0,1fr))",
+        ):
+            self.assertIn(marker, self.market_activity)
+        for action in ('data-radar="bull"', 'data-radar="bear"',
+                       'data-radar="unusual"', 'data-radar="fpi"'):
+            self.assertIn(action, self.market_activity)
+
 if __name__ == "__main__":
     unittest.main()
