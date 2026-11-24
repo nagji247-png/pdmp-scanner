@@ -22,7 +22,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
 
     def test_market_activity_remains_separate_and_pre_fpi_drilldown(self):
         self.assertIn('id="market-activity"', self.dashboard)
-        self.assertIn('src="market-activity.js?v=20"', self.dashboard)
+        self.assertIn('src="market-activity.js?v=21"', self.dashboard)
         self.assertIn('id="fpi-sector-tilt"', self.dashboard)
         self.assertLess(self.dashboard.index('id="fpi-sector-tilt"'),
                         self.dashboard.index('id="market-activity-panel"'))
@@ -54,7 +54,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
         self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
         self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
-        self.assertIn("src=\"market-activity.js?v=20\"", self.dashboard)
+        self.assertIn("src=\"market-activity.js?v=21\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
@@ -99,24 +99,30 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertIn("const REFRESH_MS = 5 * 60 * 1000", self.dashboard)
         self.assertIn("NO TRADE", self.dashboard)
 
-    def test_radar_summary_cards_match_approved_four_card_visual_system(self):
+    def test_radar_uses_two_buy_sell_panels_with_four_clickable_signal_groups(self):
         for marker in (
-            ".ma-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px",
-            ".ma-stat{min-height:188px;border-width:2px;border-radius:23px",
-            ".ma-stat.bull{border-color:#00dca0",
-            ".ma-stat.bear{border-color:#9c477c",
-            ".ma-stat.unusual{border-color:#2869bf",
-            ".ma-stat.fpi{border-color:#1268bd",
-            ".ma-stat.bull b:after{content:'▲'",
-            ".ma-stat.bear b:after{content:'▼'",
-            ".ma-stat.unusual b:after{content:'⚠'",
-            ".ma-stat.fpi b:after{content:'●●'",
-            "@media(max-width:760px){.ma-summary{grid-template-columns:repeat(2,minmax(0,1fr))",
+            ".ma-buy-sell-layout{gap:14px}",
+            ".ma-buy-sell-layout>.ma-sector-group.bull",
+            ".ma-buy-sell-layout>.ma-sector-group.bear",
+            ".ma-signal-subgroup",
+            "EARLY BUYING",
+            "CONFIRMED BUYING",
+            "EARLY SELLING",
+            "SELLING WATCH",
+            "function sectorBuyingState(s)",
+            "news.total>=2&&news.positive>news.negative",
+            "news.total>=2&&news.negative>news.positive",
+            "तुलनात्मक वॉल्यूम डेटा सत्यापित न होने पर",
         ):
             self.assertIn(marker, self.market_activity)
-        for action in ('data-radar="bull"', 'data-radar="bear"',
-                       'data-radar="unusual"', 'data-radar="fpi"'):
-            self.assertIn(action, self.market_activity)
+        self.assertNotIn("data-radar=\"unusual\"", self.market_activity)
+        self.assertNotIn("data-radar=\"fpi\"", self.market_activity)
+        for key in ('early-buying', 'confirmed-buying', 'early-selling', 'selling-watch'):
+            self.assertIn('key:"' + key + '"', self.market_activity)
+        self.assertIn('data-radar=', self.market_activity)
+        self.assertIn('g.key', self.market_activity)
+        self.assertIn('closest("[data-radar]")', self.market_activity)
+        self.assertIn('push({type:"radar",kind:radar.getAttribute("data-radar")', self.market_activity)
 
 if __name__ == "__main__":
     unittest.main()
