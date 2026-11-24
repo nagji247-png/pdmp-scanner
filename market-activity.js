@@ -122,7 +122,13 @@ root.innerHTML='<div class="ma-radar-hero"><span class="ma-radar-eye" aria-hidde
 }
 function renderRadarList(kind){
 var sectors=allSectors(),delta=fpiDeltaMap(),title="",body="";
-if(kind==="bull"||kind==="bear"){
+if(kind==="early-buying"||kind==="confirmed-buying"||kind==="early-selling"||kind==="selling-watch"){
+var labels={"early-buying":"EARLY BUYING","confirmed-buying":"CONFIRMED BUYING","early-selling":"EARLY SELLING","selling-watch":"SELLING WATCH"};
+var chosenCategory=sectors.filter(function(s){return sectorBuyingState(s)===kind;});
+title=labels[kind];
+body=chosenCategory.length?chosenCategory.map(function(s){var d=s.d,vals=s.rows.map(function(r){return r.q&&n(r.q.change_pct);}).filter(function(v){return v!==null;}),avg=vals.length?vals.reduce(function(x,y){return x+y;},0)/vals.length:null;return '<div class="ma-sector"><button class="ma-sector-button" type="button" data-sector="'+esc(s.name)+'"><div class="ma-sector-head"><span class="ma-sector-name">'+esc(s.name)+'</span><span class="ma-count">'+s.rows.length+' शेयर　›</span></div><b class="ma-group-change '+(avg!==null&&avg>=0?"ma-up":"ma-down")+'">'+(avg===null?"भाव उपलब्ध नहीं":(avg>0?"+":"")+avg.toFixed(2)+"%")+'</b><div class="ma-meta"><span>↑ '+d.up+'</span><span>↓ '+d.down+'</span><span>भाव '+d.covered+'/'+s.rows.length+'</span></div>'+coverageCaution(d,s.rows.length)+'</button></div>';}).join(""):'<div class="ma-empty">इस श्रेणी में अभी कोई सेक्टर उपलब्ध नहीं।</div>';
+body='<div class="ma-intro">श्रेणी का आधार: उपलब्ध भावों की दिशा और पिछले 24 घंटे की उपलब्ध स्टॉक-स्तरीय खबरें। प्रत्येक सेक्टर खोलकर शेयरों का विवरण देखें।</div><div class="ma-sector-grid">'+body+'</div>';
+}else if(kind==="bull"||kind==="bear"){
 var chosen=sectors.filter(function(s){return sectorOrder(s)===(kind==="bull"?0:2);});
 title=kind==="bull"?"तेजी वाले सेक्टर":"मंदी वाले सेक्टर";
 body=chosen.length?chosen.map(function(s){return '<div class="ma-sector"><button class="ma-sector-button" type="button" data-sector="'+esc(s.name)+'"><div class="ma-sector-head"><span class="ma-sector-name">'+esc(s.name)+'</span><span class="ma-count">'+s.rows.length+' स्टॉक　›</span></div><span class="ma-state '+(kind==="bull"?"bull":"bear")+'">'+(kind==="bull"?"तेजी की हलचल":"मंदी की हलचल")+'</span><div class="ma-meta"><span>भाव उपलब्ध '+s.d.covered+'/'+s.rows.length+'</span><span class="ma-up">↑ '+s.d.up+'</span><span class="ma-down">↓ '+s.d.down+'</span></div></button></div>';}).join(""):'<div class="ma-empty">इस समय उपलब्ध सत्यापित भावों से कोई सेक्टर इस श्रेणी में नहीं है।</div>';
