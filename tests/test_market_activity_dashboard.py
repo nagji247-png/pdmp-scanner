@@ -54,7 +54,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("Object.keys(marketData&&marketData.instruments||{}).filter", self.market_activity)
         self.assertIn("coverageCaution(d,s.rows.length)", self.market_activity)
         self.assertIn("दिशा केवल उपलब्ध ", self.market_activity)
-        self.assertIn("src=\"market-activity.js?v=18\"", self.dashboard)
+        self.assertIn("src=\"market-activity.js?v=19\"", self.dashboard)
 
     def test_fpi_eye_is_inline_between_sector_name_and_net_amount(self):
         self.assertIn('class="fpi-eye" data-fpi-sector-eye=', self.dashboard)
