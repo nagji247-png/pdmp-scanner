@@ -2159,7 +2159,7 @@ function renderTrapDetector(data) {
     ["now_1d_anchor_relative", "now_1d_related_queries"].includes(t.today_basis);
   const mood = freshMood ? classifyThreeWayCrowdMood(t) : null;
   if (!mood) {
-    box.innerHTML = '<div class="warn">भीड़ का ताज़ा रुझान उपलब्ध नहीं</div><div class="sub">कीमत का रिकॉर्ड अलग से जारी रहेगा; पुरानी Crowd Reading से आज का Trap तय नहीं होगा।</div>' + priceEvidence;
+    box.innerHTML = '<div class="warn">भीड़ का ताज़ा रुझान उपलब्ध नहीं</div>';
     return;
   }
   if (!mood.extreme) {
