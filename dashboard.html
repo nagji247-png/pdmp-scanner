@@ -1596,6 +1596,11 @@ function card(name, d, participantOI, observedAt) {
       : (hasPrice ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) +
         (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—");
   const compactDateTime = [priceDate, priceTime].filter(Boolean);
+  const gstNote = name === "GOLD"
+    ? '<div style="margin-top:4px;font-size:10px;line-height:1.35;color:#d8c28b">भौतिक खरीद: MCX भाव + 3% GST · दुकान का भाव अलग हो सकता है।</div>'
+    : name === "SILVER"
+      ? '<div style="margin-top:4px;font-size:10px;line-height:1.35;color:#b8d8ef">भौतिक खरीद: MCX भाव + 3% GST · वास्तविक भाव अलग हो सकता है।</div>'
+      : "";
   const indicatorSignals = Array.isArray(d.indicator_signals) ? d.indicator_signals : [];
   const detailSignals = indicatorSignals.map(signal =>
     '<div class="div">' + esc(signal.label) + '</div>' +
@@ -1628,6 +1633,7 @@ function card(name, d, participantOI, observedAt) {
     </div>
     ${compactSource ? '<div class="compact-source">' + esc(compactSource) + '</div>' : ''}
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
+    ${gstNote}
     ${isIndianIndex ? renderStandaloneStockBasket(d.component_breakdown, name) : ""}
     ${compactTechnicalDivergence}
     ${divergence(divergenceScore, d.change_pct, isIndianIndex, {count: allHeads.length, html: heads}, renderParticipantOI(participantOI))}
