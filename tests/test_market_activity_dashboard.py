@@ -118,7 +118,7 @@ class MarketActivityDashboardTests(unittest.TestCase):
         self.assertNotIn("data-radar=\"unusual\"", self.market_activity)
         self.assertNotIn("data-radar=\"fpi\"", self.market_activity)
         for key in ('early-buying', 'confirmed-buying', 'early-selling', 'selling-watch'):
-            self.assertIn('"key":"' + key + '"', self.market_activity)
+            self.assertIn('key:"' + key + '"', self.market_activity)
         self.assertIn('data-radar="'+ ' + g.key + ', self.market_activity)
         self.assertIn('closest("[data-radar]")', self.market_activity)
         self.assertIn('push({type:"radar",kind:radar.getAttribute("data-radar")', self.market_activity)
