@@ -69,7 +69,7 @@ on:
   # Watchdog only dispatches when published scan data is older than 45 minutes.
   # This event does not run Google Trends; it is a normal recovery scan.
   repository_dispatch:
-    types: [scan-watchdog]
+    types: [scan-watchdog, trends-slot-recovery]
   # GITHUB_TOKEN archive commits do not trigger other workflows. Run a normal
   # no-Trends PDMP refresh after official cash-basket or index-option EOD archives complete.
   workflow_run:
@@ -117,8 +117,8 @@ jobs:
         env:
           # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।
           # सामान्य 30-मिनट schedule और code push पर Trends कॉल नहीं होंगे।
-          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) }}
-          TRENDS_SLOT: ${{ github.event.schedule == '45 3 * * *' && '0915' || github.event.schedule == '30 5 * * *' && '1100' || github.event.schedule == '30 7 * * *' && '1300' || github.event.schedule == '30 13 * * *' && '1900' || '' }}
+          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) || (github.event_name == 'repository_dispatch' && github.event.client_payload.trends_slot != '') }}
+          TRENDS_SLOT: ${{ github.event.client_payload.trends_slot || (github.event.schedule == '45 3 * * *' && '0915') || (github.event.schedule == '30 5 * * *' && '1100') || (github.event.schedule == '30 7 * * *' && '1300') || (github.event.schedule == '30 13 * * *' && '1900') || '' }}
         if: github.event_name != 'pull_request'
         run: python fetch_and_score.py
       - name: Refresh NIFTY 5-minute chart archive
