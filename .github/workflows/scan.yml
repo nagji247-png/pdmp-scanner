@@ -102,6 +102,7 @@ jobs:
         run: |
           python -m py_compile nifty_chart_data.py fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py stock_basket_freshness.py signal_performance.py
           python -m unittest discover -s tests -p 'test_signal_performance.py' -v
+          node --check signal-performance.js
           python -m unittest discover -s tests -p 'test_stock_basket_loader_freshness.py' -v
           python -m unittest discover -s tests -p 'test_market_activity_bulk_quotes.py' -v
           python -m unittest discover -s tests -p 'test_news_fetch_cache.py' -v
