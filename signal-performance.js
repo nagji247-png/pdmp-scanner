@@ -22,7 +22,7 @@ function render(data){
  var bestAccuracy=ranked.filter(function(x){return x.stats.accuracy_pct!=null;}).sort(function(a,b){return b.stats.accuracy_pct-a.stats.accuracy_pct;})[0];
  var bestProfit=ranked.filter(function(x){return x.stats.net_return_pct!=null;}).sort(function(a,b){return b.stats.net_return_pct-a.stats.net_return_pct;})[0];
  root.innerHTML=
- '<div class="sp-summary"><div><small>Accuracy</small><b>'+pct(accuracy)+'</b></div><div><small>कुल रिकॉर्ड</small><b>'+num(data.events.length,0)+'</b></div><div><small>Net Signal Return</small><b class="'+(hasNet&&net>=0?"sp-good":"sp-bad")+'">'+(hasNet?pct(net):"—")+'</b></div></div>'+
+ '<div class="sp-summary"><div><small>Accuracy</small><b>'+formatAccuracy(overallAccuracy)+'</b></div><div><small>कुल रिकॉर्ड</small><b>'+num(data.events.length,0)+'</b></div><div><small>Net Signal Return</small><b class="'+(hasNet&&net>=0?"sp-good":"sp-bad")+'">'+(hasNet?pct(net):"—")+'</b></div></div>'+
  '<div class="sp-note">केवल अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग पर मूल्यांकन। Net Signal Return दिशात्मक प्रतिशत का कुल योग है; यह वास्तविक पोर्टफोलियो/₹ मुनाफा नहीं है। ब्रोकरेज और स्लिपेज शामिल नहीं हैं।</div>'+
  '<details class="sp-details"><summary>पाँचों विभागों का पूरा हिसाब खोलें</summary>'+
  '<div class="sp-table-wrap"><table class="sp-table"><thead><tr><th>विभाग</th><th>कुल</th><th>सही</th><th>गलत</th><th>Flat</th><th>Pending</th><th>Unverified</th><th>Accuracy</th><th>Avg Profit</th><th>Avg Loss</th><th>Net %</th><th>PF</th><th>Sample</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
