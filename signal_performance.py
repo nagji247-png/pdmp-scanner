@@ -6,9 +6,11 @@ scored only from a later, completed NSE session snapshot (>= 15:45 IST).
 """
 import json
 import math
-from datetime import datetime, date
+from datetime import datetime, date\nimport datetime as dt
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from stock_basket_freshness import expected_latest_completed_session, is_exchange_session, load_exchange_calendar
 
 IST = ZoneInfo("Asia/Kolkata")
 LEDGER = Path("signal_performance.json")
@@ -270,24 +272,35 @@ def collect_signals(data, master, daily, contrarian, fpi, stamp):
     return [event for event in found if event]
 
 def evaluate_pending(events, data, stamp):
-    # Do not treat intraday quotes as closing prices.
-    if stamp.hour * 60 + stamp.minute < 15 * 60 + 45:
+    # Use the project's exchange calendar and its 20:00 IST EOD-ready cutoff.
+    try:
+        calendar = load_exchange_calendar()
+        close_date = date.fromisoformat(expected_latest_completed_session(data.get("updated"), calendar))
+    except (TypeError, ValueError):
         return
     quotes = quote_map(data)
-    current_date = stamp.date()
     for event in events:
         if event.get("status") != "PENDING":
             continue
         signal_date = parse_date(event.get("signal_date"))
-        if not signal_date or current_date <= signal_date:
+        if not signal_date or close_date <= signal_date:
+            continue
+        next_session = signal_date + dt.timedelta(days=1)
+        while not is_exchange_session(next_session, calendar):
+            next_session += dt.timedelta(days=1)
+        if close_date < next_session:
+            continue
+        if close_date > next_session:
+            event.update({"status": "UNVERIFIED", "evaluation_date": close_date.isoformat(),
+                          "reason": "अगले ट्रेडिंग सत्र की क्लोजिंग समय पर सत्यापित नहीं हो सकी"})
             continue
         entry = number(event.get("entry_price"))
         if entry is not None and entry > 0:
             quote = quotes.get(event.get("instrument")) or {}
             exit_price = valid_price(quote)
             quote_date = parse_date(quote.get("price_as_of"))
-            if exit_price is None or exit_price <= 0 or quote_date != current_date:
-                event.update({"status": "UNVERIFIED", "evaluation_date": current_date.isoformat(),
+            if exit_price is None or exit_price <= 0 or quote_date != close_date:
+                event.update({"status": "UNVERIFIED", "evaluation_date": close_date.isoformat(),
                               "reason": "अगले सत्र की सत्यापित क्लोजिंग कीमत उपलब्ध नहीं"})
                 continue
             move = (exit_price / entry - 1) * 100
@@ -297,13 +310,13 @@ def evaluate_pending(events, data, stamp):
             for symbol, old_price in members.items():
                 quote = quotes.get(symbol) or {}
                 new_price = valid_price(quote)
-                quote_date = parse_date(quote.get("price_as_of")) or parse_date(data.get("updated"))
+                quote_date = parse_date(quote.get("price_as_of"))
                 old = number(old_price)
-                if old and old > 0 and new_price and new_price > 0 and quote_date == current_date:
+                if old and old > 0 and new_price and new_price > 0 and quote_date == close_date:
                     moves.append((new_price / old - 1) * 100)
             required = max(3, math.ceil(len(members) * 0.6))
             if len(moves) < required:
-                event.update({"status": "UNVERIFIED", "evaluation_date": current_date.isoformat(),
+                event.update({"status": "UNVERIFIED", "evaluation_date": close_date.isoformat(),
                               "reason": f"सेक्टर क्लोजिंग कवरेज अपर्याप्त ({len(moves)}/{len(members)})"})
                 continue
             move = sum(moves) / len(moves)
@@ -314,14 +327,13 @@ def evaluate_pending(events, data, stamp):
         else:
             status = "CORRECT" if signed > 0 else "INCORRECT"
         event.update({
-            "evaluation_date": current_date.isoformat(),
+            "evaluation_date": close_date.isoformat(),
             "exit_price": round(exit_price, 6) if exit_price is not None else None,
             "return_pct": round(move, 4),
             "signed_return_pct": round(signed, 4),
             "status": status,
-            "reason": "अगले ट्रेडिंग सेशन की क्लोजिंग से जाँचा गया",
+            "reason": "अगले ट्रेडिंग सेशन की आधिकारिक EOD-ready क्लोजिंग से जाँचा गया",
         })
-
 
 def summarize(events):
     summary = {}
