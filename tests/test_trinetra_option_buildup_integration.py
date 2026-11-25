@@ -66,7 +66,8 @@ class TrinetraOptionBuildupIntegrationTests(unittest.TestCase):
 
         self.assertEqual(nifty["experimental_combined_final"]["score"], 4.0)
         self.assertEqual(banknifty["experimental_combined_final"]["score"], -6.0)
-        self.assertIsNone(sensex["experimental_combined_final"])
+        self.assertEqual(sensex["experimental_combined_final"]["status"], "unavailable")
+        self.assertIsNone(sensex["experimental_combined_final"]["score"])
         self.assertNotIn("option_buildup", sensex["experimental_combined_components"])
         self.assertEqual(nifty["experimental_combined_components"]["option_buildup"]["score"], 4.0)
         self.assertEqual(banknifty["experimental_combined_components"]["option_buildup"]["score"], -6.0)
