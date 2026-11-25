@@ -66,8 +66,8 @@ on:
     # Daily participant OI research/backtest after EOD archive refresh (20:45 IST).
     - cron: "15 15 * * *"
   workflow_dispatch:
-  # Watchdog only dispatches when published scan data is older than 45 minutes.
-  # This event does not run Google Trends; it is a normal recovery scan.
+  # scan-watchdog is a normal no-Trends recovery; trends-slot-recovery is
+  # accepted only for the four allowlisted IST Trends slots below.
   repository_dispatch:
     types: [scan-watchdog, trends-slot-recovery]
   # GITHUB_TOKEN archive commits do not trigger other workflows. Run a normal
@@ -115,10 +115,10 @@ jobs:
           python -m unittest discover -s tests -p 'test_client_futures_promotion.py' -v
       - name: Run PDMP scan
         env:
-          # Manual dispatch और तय चार schedule स्लॉट पर Trends चलेगा।
-          # सामान्य 30-मिनट schedule और code push पर Trends कॉल नहीं होंगे।
-          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) || (github.event_name == 'repository_dispatch' && github.event.client_payload.trends_slot != '') }}
-          TRENDS_SLOT: ${{ github.event.client_payload.trends_slot || (github.event.schedule == '45 3 * * *' && '0915') || (github.event.schedule == '30 5 * * *' && '1100') || (github.event.schedule == '30 7 * * *' && '1300') || (github.event.schedule == '30 13 * * *' && '1900') || '' }}
+          # Manual dispatch, तय चार schedule स्लॉट और allowlisted Trends recovery पर ही Trends चलेगा।
+          # सामान्य 30-मिनट schedule, scan-watchdog, PR और code push पर Trends कॉल नहीं होंगे।
+          TRENDS_SCAN: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '45 3 * * *' || github.event.schedule == '30 5 * * *' || github.event.schedule == '30 7 * * *' || github.event.schedule == '30 13 * * *')) || (github.event_name == 'repository_dispatch' && github.event.action == 'trends-slot-recovery' && contains(fromJSON('["0915","1100","1300","1900"]'), github.event.client_payload.trends_slot)) }}
+          TRENDS_SLOT: ${{ (github.event_name == 'repository_dispatch' && github.event.action == 'trends-slot-recovery' && contains(fromJSON('["0915","1100","1300","1900"]'), github.event.client_payload.trends_slot) && github.event.client_payload.trends_slot) || (github.event.schedule == '45 3 * * *' && '0915') || (github.event.schedule == '30 5 * * *' && '1100') || (github.event.schedule == '30 7 * * *' && '1300') || (github.event.schedule == '30 13 * * *' && '1900') || '' }}
         if: github.event_name != 'pull_request'
         run: python fetch_and_score.py
       - name: Refresh NIFTY 5-minute chart archive

@@ -1,4 +1,9 @@
+import sys
+import types
 import unittest
+from unittest.mock import patch
+
+import pandas as pd
 
 import fetch_and_score
 
@@ -28,9 +33,10 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(mood, "NEUTRAL")
         self.assertEqual(fetch_and_score.three_way_crowd_component(35, 35, 30), 0.0)
 
-    def test_information_intent_is_not_neutral_mood(self):
-        self.assertEqual(fetch_and_score.tq_dir("nifty today"), "informational")
-        self.assertEqual(fetch_and_score.tq_dir("option chain"), "informational")
+    def test_market_check_information_terms_count_as_neutral(self):
+        self.assertEqual(fetch_and_score.tq_dir("nifty today"), "neutral")
+        self.assertEqual(fetch_and_score.tq_dir("option chain"), "neutral")
+        self.assertEqual(fetch_and_score.tq_dir("price"), "neutral")
         self.assertEqual(fetch_and_score.tq_dir("nifty sideways"), "neutral")
 
         result = fetch_and_score.tq_aggregate({
@@ -39,11 +45,83 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
             "info": {"term": "nifty today", "weight": 90.0},
             "flat": {"term": "nifty sideways", "weight": 1.0},
         })
-        self.assertAlmostEqual(result["bull_score_pct"], 50.0, places=1)
-        self.assertAlmostEqual(result["bear_score_pct"], 25.0, places=1)
+        self.assertAlmostEqual(result["bull_score_pct"], 2.1, places=1)
+        self.assertAlmostEqual(result["bear_score_pct"], 1.1, places=1)
+        self.assertAlmostEqual(result["neutral_score_pct"], 96.8, places=1)
+        self.assertEqual(result["informational_queries"], 0)
+        self.assertAlmostEqual(result["informational_weight"], 0.0, places=1)
+
+    def test_single_directional_side_is_not_discarded_or_fabricated(self):
+        result = fetch_and_score.tq_aggregate({
+            "bull": {"term": "nifty rally", "weight": 3.0},
+            "neutral": {"term": "nifty today", "weight": 1.0},
+        })
+        self.assertAlmostEqual(result["bull_score_pct"], 75.0, places=1)
+        self.assertAlmostEqual(result["bear_score_pct"], 0.0, places=1)
         self.assertAlmostEqual(result["neutral_score_pct"], 25.0, places=1)
-        self.assertEqual(result["informational_queries"], 1)
-        self.assertAlmostEqual(result["informational_weight"], 90.0, places=1)
+        self.assertAlmostEqual(result["crowd_bull_pct"], 100.0, places=1)
+
+    def test_related_queries_keep_one_sided_data_without_fabricating_50_percent(self):
+        class FakeTrendReq:
+            terms = []
+
+            def __init__(self, **kwargs):
+                pass
+
+            def build_payload(self, seeds, timeframe, geo):
+                self.seeds = list(seeds)
+
+            def related_queries(self):
+                return {
+                    seed: {
+                        "top": pd.DataFrame([
+                            {"query": term, "value": value}
+                            for term, value in self.terms
+                        ]),
+                    }
+                    for seed in self.seeds[:3]
+                }
+
+            def interest_over_time(self):
+                return pd.DataFrame(
+                    {"nifty": [10]},
+                    index=pd.DatetimeIndex([pd.Timestamp.now(tz="UTC")]),
+                )
+
+        request_module = types.ModuleType("pytrends.request")
+        request_module.TrendReq = FakeTrendReq
+        package_module = types.ModuleType("pytrends")
+        package_module.request = request_module
+
+        FakeTrendReq.terms = [
+            ("market rally", 30),
+            ("market recovery", 20),
+            ("market surge", 10),
+        ]
+        with patch.dict(sys.modules, {
+            "pytrends": package_module,
+            "pytrends.request": request_module,
+        }):
+            bullish = fetch_and_score._trends_related_queries()
+        self.assertEqual(bullish["bull_score_pct"], 100.0)
+        self.assertEqual(bullish["bear_score_pct"], 0.0)
+        self.assertEqual(bullish["neutral_score_pct"], 0.0)
+        self.assertEqual(bullish["crowd_bull_pct"], 100)
+
+        FakeTrendReq.terms = [
+            ("market today", 30),
+            ("market live", 20),
+            ("market price", 10),
+        ]
+        with patch.dict(sys.modules, {
+            "pytrends": package_module,
+            "pytrends.request": request_module,
+        }):
+            neutral = fetch_and_score._trends_related_queries()
+        self.assertEqual(neutral["bull_score_pct"], 0.0)
+        self.assertEqual(neutral["bear_score_pct"], 0.0)
+        self.assertEqual(neutral["neutral_score_pct"], 100.0)
+        self.assertIsNone(neutral["crowd_bull_pct"])
 
     def test_invalid_percentages_fail_closed(self):
         mood, _ = fetch_and_score.three_way_crowd_mood(80, 10, 30)

@@ -4393,13 +4393,15 @@ TQ_BEAR_WORDS = ["fall", "crash", "down", "drop", "low", "sell", "bear", "bearis
                  "decline", "sell-off", "selloff", "correction", "correct", "downtrend", "weakness",
                  "girawat", "girega", "giregi", "neeche", "mandi", "tutega", "girawat",
                  "गिरावट", "गिरेगा", "गिरेगी", "नीचे", "मंदी", "बेयरिश", "बिकवाली", "टूटेगा", "करेक्शन"]
-# केवल वास्तविक flat/sideways queries neutral mood हैं।
+# Explicit flat queries और सामान्य market-check intent NEUTRAL में गिने जाते हैं।
 TQ_NEUTRAL_WORDS = ["sideways", "sideway", "flat", "stable", "stability", "rangebound",
                     "range-bound", "consolidation", "consolidating", "unchanged", "steady",
+                    "today", "live", "price", "option", "chain", "prediction", "current",
+                    "आज", "लाइव", "भाव", "कीमत", "ऑप्शन", "चेन", "भविष्यवाणी", "वर्तमान",
                     "सपाट", "स्थिर", "बिना बदलाव", "सीमित दायरा", "दायरे में", "एक ही स्तर"]
-# Navigation/information intent is tracked separately and never counted as neutral mood.
-TQ_INFORMATION_WORDS = ["today", "live", "price", "news", "chart", "index", "market", "stock",
-                        "share", "sensex", "nifty", "bank", "option", "chain", "prediction", "expiry",
+# अन्य navigation/information intent अलग diagnostic में रहे।
+TQ_INFORMATION_WORDS = ["news", "chart", "index", "market", "stock",
+                        "share", "sensex", "nifty", "bank", "expiry",
                         "what", "meaning", "history", "hours", "volume", "oi", "fii", "dii",
                         "आज", "भाव", "समाचार", "चार्ट", "शेयर", "बाजार", "बाज़ार", "निफ्टी", "सेंसेक्स",
                         "बैंक", "ऑप्शन", "चेन", "भविष्यवाणी"]
@@ -4407,7 +4409,7 @@ TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero readi
 
 
 def tq_dir(q):
-    """खोज-वाक्यांश की दिशा; जानकारी/नेविगेशन को neutral mood न मानें।"""
+    """खोज-वाक्यांश की दिशा; सामान्य market-check intent NEUTRAL है।"""
     text = str(q or "").lower()
     tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
     bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
@@ -4490,26 +4492,30 @@ def tq_aggregate(queries):
             if ok:
                 spikes.append({"query": item["term"], "value": str(round(item["weight"])), "stock": stock})
     crowd_terms.sort(key=lambda r: r["now"], reverse=True)
-    if bull_w < TQ_MIN_WEIGHT or bear_w < TQ_MIN_WEIGHT:
+    # एक तरफ की वास्तविक classified reading भी उपयोगी है; दूसरी तरफ का
+    # शून्य weight वास्तविक zero है, fabricated 50/50 नहीं।
+    mood_total = bull_w + bear_w + neutral_w
+    directional_total = bull_w + bear_w
+    if mood_total < TQ_MIN_WEIGHT:
         pct, label = None, "पर्याप्त खोज डेटा नहीं"
         bull_score = bear_score = neutral_score = None
         sentiment = "NO DATA"
     else:
-        total = bull_w + bear_w
-        pct = round(bull_w / total * 100)
-        if pct >= CROWD_EXTREME:
+        pct = round(bull_w / directional_total * 100) if directional_total >= TQ_MIN_WEIGHT else None
+        if pct is None:
+            label = "दिशात्मक खोज रुचि उपलब्ध नहीं"
+        elif pct >= CROWD_EXTREME:
             label = "ज़्यादातर बुलिश सोच"
         elif pct <= CROWD_LOW:
             label = "ज़्यादातर बियरिश सोच"
         else:
             label = "सोच बँटी हुई"
-        # Three-way mood percentages use the actual weight of each query group.
-        # crowd_bull_pct remains a separate bull-vs-bear ratio for the Fear-vs-Greed display only.
-        mood_total = bull_w + bear_w + neutral_w
-        bull_score = round(bull_w / mood_total * 100, 1) if mood_total else None
-        bear_score = round(bear_w / mood_total * 100, 1) if mood_total else None
-        neutral_score = round(neutral_w / mood_total * 100, 1) if mood_total else None
-        sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
+        bull_score = round(bull_w / mood_total * 100, 1)
+        bear_score = round(bear_w / mood_total * 100, 1)
+        neutral_score = round(neutral_w / mood_total * 100, 1)
+        sentiment, mood_label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
+        if sentiment != "NO DATA":
+            label = mood_label
     rising_all = [it for it in queries.values() if it.get("rising")]
     return {
         "crowd_bull_pct": pct, "crowd_label": label,
@@ -4579,41 +4585,35 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
     informational_items = [x for x in queries.values() if x["direction"] == "informational"]
     informational_total = sum(x["weight"] for x in informational_items)
     total = bull_total + bear_total + neutral_total
-    if total <= 0:
-        raise ValueError("Google Trends के directional/explicit-neutral समूहों का कुल डेटा शून्य है")
-    directional_complete = (
-        bull_total >= TQ_MIN_WEIGHT and bear_total >= TQ_MIN_WEIGHT
-    )
-    if not directional_complete and neutral_total < TQ_MIN_WEIGHT:
-        raise ValueError(
-            f"Google Trends में पर्याप्त वर्गीकृत खोज-रुचि नहीं "
-            f"(bull={bull_total:.3f}, bear={bear_total:.3f}, "
-            f"neutral={neutral_total:.3f}, minimum={TQ_MIN_WEIGHT})"
-        )
+    if total < TQ_MIN_WEIGHT:
+        raise ValueError("Google Trends के classified समूहों का वास्तविक कुल डेटा शून्य/अपर्याप्त है")
+    directional_total = bull_total + bear_total
     bull_pct = bull_total / total * 100
     bear_pct = bear_total / total * 100
     neutral_pct = neutral_total / total * 100
     bull_score = round(bull_pct, 1)
     bear_score = round(bear_pct, 1)
     neutral_score = round(neutral_pct, 1)
+    # केवल एक directional side उपलब्ध हो तो observed ratio दिखाएँ; 50/50 न गढ़ें।
     crowd_direction_pct = (
-        bull_total / (bull_total + bear_total) * 100
-        if directional_complete else 50.0
+        bull_total / directional_total * 100
+        if directional_total >= TQ_MIN_WEIGHT else None
     )
-    if directional_complete:
-        sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
-    else:
-        label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
+    sentiment, label = three_way_crowd_mood(bull_score, bear_score, neutral_score)
 
     crowd_terms = [{
         "term": x["term"], "dir": x["direction"], "now": x["weight"],
         "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
     } for x in queries.values()]
     crowd_terms.sort(key=lambda x: x["now"], reverse=True)
-    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={crowd_direction_pct:.1f}%")
+    crowd_direction_label = (
+        f"{crowd_direction_pct:.1f}%" if crowd_direction_pct is not None else "N/A"
+    )
+    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={crowd_direction_label}")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
-        "crowd_bull_pct": round(crowd_direction_pct, 1), "crowd_label": label,
+        "crowd_bull_pct": round(crowd_direction_pct, 1) if crowd_direction_pct is not None else None,
+        "crowd_label": label,
         "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
         "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms,
         "spikes": [], "hidden_spikes": 0,
@@ -4622,7 +4622,10 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "informational_weight": round(informational_total, 2),
         "informational_queries": len(informational_items),
         "informational_terms": [x["term"] for x in informational_items],
-        "today_bull_pct": round(crowd_direction_pct, 1) if timeframe == "now 1-d" else None,
+        "today_bull_pct": (
+            round(crowd_direction_pct, 1)
+            if timeframe == "now 1-d" and crowd_direction_pct is not None else None
+        ),
         "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी खोज-रुचि" if timeframe == "now 1-d" else "डेटा उपलब्ध नहीं",
         "today_basis": "now_1d_anchor_relative" if timeframe == "now 1-d" else timeframe + "_anchor_relative",
         "source_timeframe": timeframe,
@@ -4719,23 +4722,17 @@ def _trends_related_queries(timeframe="now 1-d"):
     bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
     bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
     neutral_pct = round(sum(x[2] for x in per_seed) / len(per_seed), 1)
-    directional_complete = (
-        bull_pct >= TQ_MIN_WEIGHT and bear_pct >= TQ_MIN_WEIGHT
-    )
-    if not directional_complete and neutral_pct < TQ_MIN_WEIGHT:
+    classified_total = bull_pct + bear_pct + neutral_pct
+    if classified_total < TQ_MIN_WEIGHT:
         raise ValueError(
-            f"Google Trends में पर्याप्त वर्गीकृत खोज नहीं "
+            f"Google Trends में पर्याप्त classified search data नहीं "
             f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, "
             f"neutral={neutral_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
         )
-    # Keep the two-way ratio only for Fear-vs-Greed; mood classification uses all three groups.
+    # Keep the real observed two-way ratio; neutral-only data has no directional ratio.
     directional_total = bull_pct + bear_pct
-    crowd_bull_pct = round(bull_pct / directional_total * 100) if directional_total > 0 else 50
-    if directional_complete:
-        label, sentiment = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
-    else:
-        # Neutral-only (or one-sided) results must not be misread as directional crowd evidence.
-        label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
+    crowd_bull_pct = round(bull_pct / directional_total * 100) if directional_total > 0 else None
+    label, sentiment = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
 
     terms = []
     for item in all_terms.values():
@@ -4864,30 +4861,36 @@ def _asset_search_direction(term, asset):
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
+        "today", "live", "option", "options", "chain", "prediction", "current",
+        "आज", "लाइव", "भाव", "कीमत", "ऑप्शन", "चेन", "भविष्यवाणी", "वर्तमान",
         "स्थिर", "स्थिरता", "सपाट", "सीमित", "दायरे", "दायरेबंद", "रेंज", "साइडवेज",
     }
-    if tokens & explicit_neutral:
-        return "neutral"
-    ambiguous = {"range", "target", "targets", "high", "low", "52"}
-    if tokens & ambiguous:
-        return None
     informational = {
-        # Explicit navigation/time/analysis intent. Bare price/rate/quote terms
-        # are deliberately excluded: "gold price" alone is not a mood vote.
-        "today", "live", "current", "chart", "index", "market", "prediction",
-        "predictions", "forecast", "forecasts", "option", "options", "chain",
+        # अन्य navigation/analysis intent अलग रहे; market-check शब्द neutral हैं।
+        "chart", "index", "market", "forecast", "forecasts",
         "expiry", "weekly", "monthly", "analysis", "technical", "support",
         "resistance", "level", "levels", "news", "tomorrow", "trading",
-        "आज", "लाइव", "वर्तमान", "चार्ट", "अनुमान", "भविष्यवाणी",
-        "ऑप्शन", "चेन", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
+        "share", "stock",
+        "चार्ट", "अनुमान", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
-    # Index/instrument lookup phrases are information intent, not neutral mood.
+    # Index/instrument lookup phrases must stay informational even when they
+    # also contain a neutral word such as "price".
     informational_phrases = (
         "nifty 50", "gift nifty", "sgx nifty", "nse nifty",
         "nifty share", "nifty stock", "sensex share", "sensex stock",
         "bse sensex", "bank nifty 50",
     )
-    if tokens & informational or any(phrase in text for phrase in informational_phrases):
+    if any(phrase in text for phrase in informational_phrases):
+        return "informational"
+    ambiguous = {"range", "target", "targets", "high", "low", "52"}
+    if tokens & ambiguous:
+        return None
+    if tokens & explicit_neutral:
+        return "neutral"
+    if ("price" in tokens and asset in {"NIFTY", "SENSEX", "BANKNIFTY"}
+            and not tokens & {"share", "stock"}):
+        return "neutral"
+    if tokens & informational:
         return "informational"
     return None
 

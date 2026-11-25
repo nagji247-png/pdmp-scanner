@@ -4,10 +4,11 @@ import fetch_and_score
 
 
 class AssetTrendsInformationIntentTests(unittest.TestCase):
-    def test_asset_matched_information_queries_are_not_sentiment(self):
+    def test_market_check_intent_is_neutral_for_the_matching_asset(self):
         cases = [
             ("nifty today", "NIFTY"),
-            ("nifty live price chart", "NIFTY"),
+            ("nifty price", "NIFTY"),
+            ("nifty live price", "NIFTY"),
             ("sensex live today", "SENSEX"),
             ("bank nifty option chain", "BANKNIFTY"),
             ("gold price today", "GOLD"),
@@ -17,7 +18,7 @@ class AssetTrendsInformationIntentTests(unittest.TestCase):
             with self.subTest(term=term, asset=asset):
                 self.assertEqual(
                     fetch_and_score._asset_search_direction(term, asset),
-                    "informational",
+                    "neutral",
                 )
 
     def test_directional_terms_take_precedence_over_information_intent(self):
