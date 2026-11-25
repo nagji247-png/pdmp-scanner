@@ -64,7 +64,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         self.assertEqual(fetch_and_score.three_way_crowd_mood(60, 20, 20)[0], "BULLISH")
         self.assertEqual(fetch_and_score.three_way_crowd_mood(20, 20, 60)[0], "NEUTRAL")
 
-    def test_asset_matched_information_searches_are_informational(self):
+    def test_market_check_searches_are_neutral_for_the_matching_asset(self):
         cases = [
             ("nifty today", "NIFTY"),
             ("nifty live price", "NIFTY"),
@@ -75,7 +75,7 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         ]
         for term, asset in cases:
             with self.subTest(term=term, asset=asset):
-                self.assertEqual(fetch_and_score._asset_search_direction(term, asset), "informational")
+                self.assertEqual(fetch_and_score._asset_search_direction(term, asset), "neutral")
 
     def test_bare_price_only_searches_remain_unclassified(self):
         self.assertIsNone(fetch_and_score._asset_search_direction("gold price", "GOLD"))
@@ -505,8 +505,8 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
         # Bare price/rate queries remain unclassified; information lookup intent is not mood.
         self.assertIsNone(classify("gold price", "GOLD"))
         self.assertIsNone(classify("silver rate", "SILVER"))
-        self.assertEqual(classify("gold price today", "GOLD"), "informational")
-        self.assertEqual(classify("Nifty live", "NIFTY"), "informational")
+        self.assertEqual(classify("gold price today", "GOLD"), "neutral")
+        self.assertEqual(classify("Nifty live", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty share price", "NIFTY"), "informational")
         self.assertEqual(classify("Nifty sideways today", "NIFTY"), "neutral")
         self.assertEqual(classify("Nifty rangebound", "NIFTY"), "neutral")
