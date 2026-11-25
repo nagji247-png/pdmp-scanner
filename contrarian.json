@@ -2550,5 +2550,46 @@
       "status": "pending"
     },
     "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-25|SENSEX",
+    "date": "2026-11-25",
+    "instrument": "SENSEX",
+    "score": 6.1,
+    "event_time_utc": "2026-11-25T08:20:16Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 83706.0312,
+    "baseline_time": "2026-11-25T08:10:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    },
+    "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-25|DJI",
+    "date": "2026-11-25",
+    "instrument": "DJI",
+    "score": -6.3,
+    "event_time_utc": "2026-11-25T08:20:18Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]

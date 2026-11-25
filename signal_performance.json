@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-25T13:49:00+05:30",
+  "updated_at": "2026-11-25T13:50:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -678,16 +678,106 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BEARISH",
+      "department": "MARKET ACTIVITY RADAR",
+      "instrument": "Services",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:50:00+05:30",
+      "entry_price": null,
+      "member_prices": {
+        "ADANIPORTS": 1918.6
+      },
+      "source": "NSE quote snapshot",
+      "details": {
+        "advancers": 0,
+        "decliners": 1,
+        "coverage": 1,
+        "return_method": "equal-weight available constituents"
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "SECTOR ACTIVITY|2026-11-25|Services|BEARISH",
+      "department": "SECTOR ACTIVITY",
+      "instrument": "Services",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:50:00+05:30",
+      "entry_price": null,
+      "member_prices": {
+        "ADANIPORTS": 1918.6
+      },
+      "source": "NSE quote snapshot",
+      "details": {
+        "advancers": 0,
+        "decliners": 1,
+        "coverage": 1,
+        "return_method": "equal-weight available constituents"
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-25|SENSEX|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "SENSEX",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:50:16+05:30",
+      "entry_price": 83733.1,
+      "member_prices": {},
+      "source": "Google Finance direct SENSEX quote",
+      "details": {
+        "contrarian_score": 6.1
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-25|DJI|BULLISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "DJI",
+      "direction": "BULLISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:50:18+05:30",
+      "entry_price": null,
+      "member_prices": {},
+      "source": "Google Finance direct DOW JONES quote · पिछला बंद भाव",
+      "details": {
+        "contrarian_score": -6.3
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
     "MARKET ACTIVITY RADAR": {
-      "total": 7,
+      "total": 8,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 7,
+      "pending": 8,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
@@ -710,12 +800,12 @@
       "sample_size": 0
     },
     "SECTOR ACTIVITY": {
-      "total": 7,
+      "total": 8,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 7,
+      "pending": 8,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
@@ -738,12 +828,12 @@
       "sample_size": 0
     },
     "NEXT-SESSION REVERSAL": {
-      "total": 5,
+      "total": 7,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 5,
+      "pending": 7,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
