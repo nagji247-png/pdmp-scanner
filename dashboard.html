@@ -619,8 +619,6 @@ body{background:radial-gradient(ellipse at 50% -15%,#123d72 0,#07152d 42%,#02081
 
 <section class="panel" style="grid-column:1 / -1"><h2>⚡ स्कोर और कीमत उलटे संकेत (इतिहास का मिलान)</h2><div class="box" id="divergence"></div></section>
 
-<section class="panel" style="grid-column:1 / -1"><h2>🔔 संकेत में बदलाव (Nifty, BankNifty, वॉचलिस्ट)</h2><div class="box" id="signals"></div></section>
-
 <section class="panel" style="grid-column:1 / -1"><h2>FPI SECTOR TILT <span style="font-size:11px;color:#aab4c4;font-weight:600">· अलग संदर्भ</span></h2><div class="box" id="fpi-sector-tilt"><div class="sub">NSDL का पखवाड़े वाला Equity डेटा लोड हो रहा है…</div></div></section>
 
 <section class="panel" style="grid-column:1 / -1" id="market-activity-panel"><div class="box market-activity-box" id="market-activity"><div class="market-activity-status">NSE F&amp;O सेक्टर मास्टर और उपलब्ध सत्यापित डेटा लोड हो रहा है…</div></div></section>
@@ -3966,7 +3964,6 @@ async function load() {
     renderContrarian(data.contrarian);
     renderVerifiedAccuracy(data.verified_prediction_accuracy);
     renderDivergence(data.divergence, data.instruments);
-    renderSignals(data.signals);
     loadFpiSectorTilt(data);
     renderNews(data.market_news);
     renderSectorMap(data);
