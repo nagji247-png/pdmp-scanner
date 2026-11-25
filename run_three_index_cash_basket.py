@@ -45,27 +45,41 @@ def append_diagnostic(output_path, result):
                 for key in ("NIFTY", "SENSEX", "BANKNIFTY")
                 if isinstance((item := indices.get(key)), dict)
             )
+        # Keep the best verified basket values, but refresh the diagnostic
+        # timestamp on every scheduled run. The EOD source date remains the
+        # exchange session date; this timestamp records when we last rechecked it.
+        if existing == result:
+            return False
         if verified_row_count(result) > verified_row_count(existing):
-            archive["records"] = [
-                result if row is existing else row for row in archive["records"]
+            replacement = result
+        elif result.get("diagnostic_updated_at_utc") and (
+            result.get("diagnostic_updated_at_utc")
+            != existing.get("diagnostic_updated_at_utc")
+        ):
+            replacement = dict(existing)
+            replacement["diagnostic_updated_at_utc"] = result[
+                "diagnostic_updated_at_utc"
             ]
-            archive["records"].sort(key=lambda row: row["date"])
-            archive["schema_version"] = 1
-            archive["research_only"] = True
-            archive["score_eligible"] = False
-            target = Path(output_path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            temporary = target.with_suffix(target.suffix + ".tmp")
-            temporary.write_text(
-                json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
-                encoding="utf-8",
-            )
-            temporary.replace(target)
-            return True
-        # Keep an equally populated or more populated record. Incomplete
-        # sessions are retried on later archive runs and may be upgraded once
-        # official exchange files arrive; a retry must never downgrade data.
-        return False
+        else:
+            # Without a fresh timestamp or better verified coverage, keep the
+            # prior record unchanged.
+            return False
+        archive["records"] = [
+            replacement if row is existing else row for row in archive["records"]
+        ]
+        archive["records"].sort(key=lambda row: row["date"])
+        archive["schema_version"] = 1
+        archive["research_only"] = True
+        archive["score_eligible"] = False
+        target = Path(output_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = target.with_suffix(target.suffix + ".tmp")
+        temporary.write_text(
+            json.dumps(archive, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(target)
+        return True
     archive["records"].append(result)
     archive["records"].sort(key=lambda row: row["date"])
     archive["records"] = archive["records"][-260:]
@@ -135,6 +149,9 @@ def main():
         result = calculate_three_index_baskets(
             {"NIFTY": nse_archive, "BANKNIFTY": nse_archive, "SENSEX": bse_archive},
             roster_bundle, day,
+        )
+        result["diagnostic_updated_at_utc"] = (
+            dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         )
         changed = append_diagnostic(args.output, result)
         results.append({

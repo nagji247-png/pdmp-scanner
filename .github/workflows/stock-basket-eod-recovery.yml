@@ -1,0 +1,90 @@
+name: Stock Basket EOD Recovery
+
+on:
+  schedule:
+    # Second, lightweight recovery pass at 22:00 IST if the 20:00 EOD run missed an exchange file.
+    - cron: "30 16 * * 1-5"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "nse_cm_bhavcopy_archive.py"
+      - "bse_cm_bhavcopy_archive.py"
+      - "run_three_index_cash_basket.py"
+      - "stock_basket_freshness.py"
+      - "nse_cash_basket_breadth.py"
+      - "index_constituent_rosters.json"
+      - "exchange_calendar.json"
+      - "tests/test_nse_cm_bhavcopy_archive.py"
+      - "tests/test_bse_cm_bhavcopy_archive.py"
+      - "tests/test_run_three_index_cash_basket.py"
+      - "tests/test_stock_basket_freshness.py"
+      - ".github/workflows/stock-basket-eod-recovery.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nse_cm_bhavcopy_archive.py"
+      - "bse_cm_bhavcopy_archive.py"
+      - "run_three_index_cash_basket.py"
+      - "stock_basket_freshness.py"
+      - "nse_cash_basket_breadth.py"
+      - "index_constituent_rosters.json"
+      - "exchange_calendar.json"
+      - "tests/test_nse_cm_bhavcopy_archive.py"
+      - "tests/test_bse_cm_bhavcopy_archive.py"
+      - "tests/test_run_three_index_cash_basket.py"
+      - "tests/test_stock_basket_freshness.py"
+      - ".github/workflows/stock-basket-eod-recovery.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nse-cm-cash-bhavcopy-archive
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install archive dependency
+        run: python -m pip install requests
+      - name: Validate recovery and basket logic offline
+        run: |
+          python -m py_compile nse_cm_bhavcopy_archive.py bse_cm_bhavcopy_archive.py run_three_index_cash_basket.py stock_basket_freshness.py nse_cash_basket_breadth.py
+          python -m unittest discover -s tests -p 'test_nse_cm_bhavcopy_archive.py' -v
+          python -m unittest discover -s tests -p 'test_bse_cm_bhavcopy_archive.py' -v
+          python -m unittest discover -s tests -p 'test_run_three_index_cash_basket.py' -v
+          python -m unittest discover -s tests -p 'test_stock_basket_freshness.py' -v
+      - name: Retry only missing official NSE CM EOD sessions
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: python nse_cm_bhavcopy_archive.py --backfill-days 7
+      - name: Retry only missing official BSE CM EOD sessions
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: python bse_cm_bhavcopy_archive.py --backfill-days 7
+      - name: Rebuild three-index Stock Basket from dated official archives
+        if: github.event_name != 'pull_request'
+        run: python run_three_index_cash_basket.py --backfill-days 7
+      - name: Commit recovered cash archives and Stock Basket diagnostics
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for file in nse_cm_bhavcopy_archive.json bse_cm_bhavcopy_archive.json index_cash_basket_diagnostics.json; do
+            if [ -f "$file" ]; then
+              git add -f -- "$file"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "STOCK_BASKET_RECOVERY_NO_NEW_VERIFIED_DATA"
+          else
+            git commit -m "Recover missing official EOD cash sessions for Stock Basket"
+            git pull --rebase -X theirs origin main
+            git push origin HEAD:main
+          fi

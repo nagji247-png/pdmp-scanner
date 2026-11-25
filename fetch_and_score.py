@@ -536,6 +536,7 @@ def load_latest_stock_basket_diagnostics(scan_date, archive=None, scan_timestamp
                 "score": round(score, 2),
                 "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
                 "source_date": record["date"],
+                "diagnostic_updated_at_utc": record.get("diagnostic_updated_at_utc"),
                 "research_only": True,
                 "score_eligible": False,
                 "included": False,
