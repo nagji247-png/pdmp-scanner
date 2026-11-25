@@ -7,6 +7,7 @@ class AssetTrendsInformationIntentTests(unittest.TestCase):
     def test_market_check_intent_is_neutral_for_the_matching_asset(self):
         cases = [
             ("nifty today", "NIFTY"),
+            ("nifty price", "NIFTY"),
             ("nifty live price", "NIFTY"),
             ("sensex live today", "SENSEX"),
             ("bank nifty option chain", "BANKNIFTY"),
