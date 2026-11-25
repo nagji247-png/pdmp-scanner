@@ -21,7 +21,8 @@ class SignalPerformanceTests(unittest.TestCase):
         }
         evaluate_pending([event], data, datetime(2026, 11, 25, 10, 0, tzinfo=IST))
         self.assertEqual(event["status"], "PENDING")
-        evaluate_pending([event], data, datetime(2026, 11, 25, 15, 50, tzinfo=IST))
+        data["updated"] = "2026-11-25T20:10:00+05:30"
+        evaluate_pending([event], data, datetime(2026, 11, 25, 20, 10, tzinfo=IST))
         self.assertEqual(event["status"], "CORRECT")
         self.assertAlmostEqual(event["signed_return_pct"], 5.0, places=3)
 
@@ -33,10 +34,10 @@ class SignalPerformanceTests(unittest.TestCase):
             price=100, source="test"
         )
         data = {
-            "updated": "2026-11-25T15:50:00+05:30",
+            "updated": "2026-11-25T20:10:00+05:30",
             "instruments": {"SBIN": {"price": 95, "price_as_of": "25/11/2026"}},
         }
-        evaluate_pending([event], data, datetime(2026, 11, 25, 15, 50, tzinfo=IST))
+        evaluate_pending([event], data, datetime(2026, 11, 25, 20, 10, tzinfo=IST))
         self.assertEqual(event["status"], "CORRECT")
         self.assertAlmostEqual(event["signed_return_pct"], 5.0, places=3)
 
@@ -49,13 +50,13 @@ class SignalPerformanceTests(unittest.TestCase):
             source="test"
         )
         data = {
-            "updated": "2026-11-25T15:50:00+05:30",
+            "updated": "2026-11-25T20:10:00+05:30",
             "instruments": {
                 "A": {"price": 101, "price_as_of": "25/11/2026"},
                 "B": {"price": 102, "price_as_of": "25/11/2026"},
             },
         }
-        evaluate_pending([event], data, datetime(2026, 11, 25, 15, 50, tzinfo=IST))
+        evaluate_pending([event], data, datetime(2026, 11, 25, 20, 10, tzinfo=IST))
         self.assertEqual(event["status"], "UNVERIFIED")
 
     def test_summary_keeps_unverified_out_of_accuracy(self):
