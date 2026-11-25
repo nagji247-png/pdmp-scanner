@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - "fetch_and_score.py"
+      - "signal_performance.py"
       - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
       - "stock_basket_freshness.py"
@@ -97,7 +98,7 @@ jobs:
       - run: pip install yfinance feedparser requests pytrends
       - name: Validate Python syntax and market-data tests
         run: |
-          python -m py_compile nifty_chart_data.py fetch_and_score.py provisional_component_scoring.py client_futures_promotion.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py stock_basket_freshness.py
+          python -m py_compile nifty_chart_data.py fetch_and_score.py signal_performance.py provisional_component_scoring.py client_futures_promotion.py crowd_mood_intraday.py crowd_trap_detector.py backtest_participant_oi.py summarize_participant_oi_backtest.py stock_basket_freshness.py
           python -m unittest discover -s tests -p 'test_stock_basket_loader_freshness.py' -v
           python -m unittest discover -s tests -p 'test_market_activity_bulk_quotes.py' -v
           python -m unittest discover -s tests -p 'test_news_fetch_cache.py' -v
@@ -116,6 +117,9 @@ jobs:
       - name: Refresh NIFTY 5-minute chart archive
         if: github.event_name != 'pull_request'
         run: python nifty_chart_data.py
+      - name: Record and evaluate next-session signal performance
+        if: github.event_name != 'pull_request'
+        run: python signal_performance.py
       - name: Run participant OI backtest diagnostics
         if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'workflow_run' || (github.event_name == 'schedule' && github.event.schedule == '15 15 * * *'))
         run: |
@@ -129,7 +133,7 @@ jobs:
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
           output_files=(
-            data.json history.csv participant_oi_history.json participant_oi_backtest.json
+            data.json history.csv signal_performance.json participant_oi_history.json participant_oi_backtest.json
             participant_oi_backtest_summary.json market_signal_history.json crowd_mood_history.json
             contrarian.json crowd_events.json divergence_events.json signal_state.json signal_log.json
             mcx_silver.json mcx_gold.json mcx_crudeoil.json nifty_chart_data.json
