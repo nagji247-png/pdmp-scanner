@@ -33,6 +33,7 @@ class TrinetraRealNseArchiveIntegrationTests(unittest.TestCase):
                 ("BANKNIFTY", 3.75),
             )
         }
+        expected_option_scores = {"NIFTY": 8.4088, "BANKNIFTY": 9.9773}
         now = datetime(2026, 11, 25, 12, 0, tzinfo=timezone.utc)
 
         with (
