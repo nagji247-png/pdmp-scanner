@@ -2420,5 +2420,45 @@
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-25|ADANIPORTS",
+    "date": "2026-11-25",
+    "instrument": "ADANIPORTS",
+    "score": 6.2,
+    "event_time_utc": "2026-11-25T03:59:42Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 1930.5,
+    "baseline_time": "2026-11-25T03:55:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    },
+    "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-25|APOLLOHOSP",
+    "date": "2026-11-25",
+    "instrument": "APOLLOHOSP",
+    "score": 7.5,
+    "event_time_utc": "2026-11-25T03:59:46Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 9274.0,
+    "baseline_time": "2026-11-25T03:55:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    },
+    "baseline_source": "Yahoo Finance"
   }
 ]
