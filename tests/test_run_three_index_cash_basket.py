@@ -80,6 +80,35 @@ class ThreeIndexDiagnosticArchiveTests(unittest.TestCase):
             self.assertFalse(saved["score_eligible"])
             self.assertFalse(append_diagnostic(path, complete))
 
+    def test_same_quality_retry_refreshes_update_time_without_changing_verified_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "diagnostics.json"
+            original = {
+                "date": "2026-11-09",
+                "status": "complete_diagnostic",
+                "diagnostic_updated_at_utc": "2026-11-09T15:00:00Z",
+                "indices": {
+                    "NIFTY": {"matched": 50, "score": 2.0},
+                    "SENSEX": {"matched": 30, "score": 1.0},
+                    "BANKNIFTY": {"matched": 14, "score": -1.0},
+                },
+            }
+            append_diagnostic(path, original)
+            retry = {
+                **original,
+                "diagnostic_updated_at_utc": "2026-11-10T15:00:00Z",
+                "indices": {
+                    "NIFTY": {"matched": 0, "score": None},
+                    "SENSEX": {"matched": 0, "score": None},
+                    "BANKNIFTY": {"matched": 0, "score": None},
+                },
+            }
+            self.assertTrue(append_diagnostic(path, retry))
+            saved = load_json(path, {})["records"][0]
+            self.assertEqual(saved["diagnostic_updated_at_utc"], "2026-11-10T15:00:00Z")
+            self.assertEqual(saved["indices"], original["indices"])
+            self.assertEqual(len(load_json(path, {})["records"]), 1)
+
     def test_same_day_cash_basket_record_cannot_be_downgraded(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "diagnostics.json"
