@@ -48,13 +48,22 @@ def append_diagnostic(output_path, result):
         # Keep the best verified basket values, but refresh the diagnostic
         # timestamp on every scheduled run. The EOD source date remains the
         # exchange session date; this timestamp records when we last rechecked it.
+        if existing == result:
+            return False
         if verified_row_count(result) > verified_row_count(existing):
             replacement = result
-        else:
+        elif result.get("diagnostic_updated_at_utc") and (
+            result.get("diagnostic_updated_at_utc")
+            != existing.get("diagnostic_updated_at_utc")
+        ):
             replacement = dict(existing)
-            replacement["diagnostic_updated_at_utc"] = result.get(
+            replacement["diagnostic_updated_at_utc"] = result[
                 "diagnostic_updated_at_utc"
-            )
+            ]
+        else:
+            # Without a fresh timestamp or better verified coverage, keep the
+            # prior record unchanged.
+            return False
         archive["records"] = [
             replacement if row is existing else row for row in archive["records"]
         ]
