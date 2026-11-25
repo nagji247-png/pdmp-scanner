@@ -186,12 +186,18 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
         if isinstance(row, dict) and _contract_map(row, symbol)
     ]
     valid_records.sort(key=lambda row: str(row.get("date") or ""))
+    latest_record = valid_records[-1] if valid_records else None
+    if latest_record:
+        unavailable["source_date"] = latest_record.get("date")
+        unavailable["fetched_at"] = latest_record.get("fetched_at")
     if len(valid_records) < 2:
         unavailable["reason"] = "दो तुलनीय NSE EOD सत्रों का contract-level premium/OI डेटा अभी जमा नहीं"
         return unavailable
 
     previous, current = valid_records[-2], valid_records[-1]
     previous_date, current_date = _date(previous.get("date")), _date(current.get("date"))
+    unavailable["source_date"] = current.get("date")
+    unavailable["fetched_at"] = current.get("fetched_at")
     if not previous_date or not current_date or current_date <= previous_date:
         unavailable["reason"] = "EOD session dates invalid or not increasing"
         return unavailable
@@ -279,6 +285,7 @@ def build_option_buildup_diagnostic(archive, symbol, as_of_date=None,
         "status": "AVAILABLE" if len(common) >= min_matched_contracts and classified > 0 else "UNAVAILABLE",
         "source_date": current_date.isoformat(),
         "previous_source_date": previous_date.isoformat(),
+        "fetched_at": current.get("fetched_at"),
         "categories": totals,
         "matched_contracts": len(common),
         "classified_contracts": classified,
