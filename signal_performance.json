@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-25T20:13:00+05:30",
+  "updated_at": "2026-11-25T21:25:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -6781,6 +6781,26 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-25|NASDAQ|BULLISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "NASDAQ",
+      "direction": "BULLISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T21:25:31+05:30",
+      "entry_price": 22798.83,
+      "member_prices": {},
+      "source": "Google Finance direct NASDAQ quote",
+      "details": {
+        "contrarian_score": -6.2
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
@@ -6841,12 +6861,12 @@
       "sample_size": 0
     },
     "NEXT-SESSION REVERSAL": {
-      "total": 10,
+      "total": 11,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 10,
+      "pending": 11,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
