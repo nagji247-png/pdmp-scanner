@@ -2133,8 +2133,8 @@
     "instrument": "NIFTY",
     "score": 6.2,
     "event_time_utc": "2026-11-23T01:56:37Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 1.85,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2154,8 +2154,8 @@
     "instrument": "BANKNIFTY",
     "score": 10.5,
     "event_time_utc": "2026-11-23T01:56:39Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 1.79,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2175,8 +2175,8 @@
     "instrument": "APOLLOHOSP",
     "score": 6.6,
     "event_time_utc": "2026-11-23T01:56:54Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.46,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2196,8 +2196,8 @@
     "instrument": "ADANIPORTS",
     "score": 7.2,
     "event_time_utc": "2026-11-23T02:04:14Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.38,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2217,8 +2217,8 @@
     "instrument": "EICHERMOT",
     "score": 7.3,
     "event_time_utc": "2026-11-23T02:04:16Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 2.0,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2280,8 +2280,8 @@
     "instrument": "SENSEX",
     "score": -6.1,
     "event_time_utc": "2026-11-23T10:38:43Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 1.82,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2343,8 +2343,8 @@
     "instrument": "BANKNIFTY",
     "score": -7.3,
     "event_time_utc": "2026-11-24T19:01:06Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 1.79,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2364,8 +2364,8 @@
     "instrument": "ADANIPORTS",
     "score": 6.2,
     "event_time_utc": "2026-11-24T19:01:18Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.38,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2385,8 +2385,8 @@
     "instrument": "NIFTY",
     "score": -6.7,
     "event_time_utc": "2026-11-24T23:09:10Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "reversed",
+    "next_change": 1.85,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2406,8 +2406,8 @@
     "instrument": "APOLLOHOSP",
     "score": 7.5,
     "event_time_utc": "2026-11-24T23:09:28Z",
-    "outcome": null,
-    "next_change": null,
+    "outcome": "continued",
+    "next_change": 0.46,
     "baseline_price": null,
     "baseline_time": null,
     "baseline_attempted": true,
@@ -2524,10 +2524,20 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 25759.4492,
+      "time": "2026-11-25T08:45:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.12,
+      "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 25730.4004,
+      "time": "2026-11-25T09:15:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.01,
+      "outcome": "continued"
     },
     "baseline_source": "Yahoo Finance"
   },
@@ -2544,10 +2554,20 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 63579.1016,
+      "time": "2026-11-25T08:45:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.12,
+      "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 63479.1016,
+      "time": "2026-11-25T09:15:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.04,
+      "outcome": "reversed"
     },
     "baseline_source": "Yahoo Finance"
   },
@@ -2564,10 +2584,20 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 83852.1016,
+      "time": "2026-11-25T08:40:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.17,
+      "outcome": "continued"
     },
     "after_60m": {
-      "status": "pending"
+      "status": "complete",
+      "price": 83777.4297,
+      "time": "2026-11-25T09:10:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": 0.09,
+      "outcome": "continued"
     },
     "baseline_source": "Yahoo Finance"
   },
@@ -2577,6 +2607,27 @@
     "instrument": "DJI",
     "score": -6.3,
     "event_time_utc": "2026-11-25T08:20:18Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": true,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
+    },
+    "after_60m": {
+      "status": "unavailable",
+      "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
+    }
+  },
+  {
+    "key": "2026-11-25|RELIANCE",
+    "date": "2026-11-25",
+    "instrument": "RELIANCE",
+    "score": 6.3,
+    "event_time_utc": "2026-11-25T12:11:53Z",
     "outcome": null,
     "next_change": null,
     "baseline_price": null,

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "description": "Daily extreme crowd events and scan-time index quote evidence; research only",
-  "updated_at": "2026-11-25T08:20:00+00:00",
+  "updated_at": "2026-11-25T12:11:00+00:00",
   "events": [
     {
       "event_key": "2026-10-20|legacy|EXTREME_BEARISH",
@@ -16049,6 +16049,48 @@
       "price_source": "NSE India allIndices API",
       "quote_timestamp_utc": null,
       "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-25T12:11:00+00:00",
+      "scan_market_date": "2026-11-25",
+      "market_date": "2026-11-25",
+      "index": "NIFTY",
+      "price": 25819.25,
+      "price_as_of": "25/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-25",
+      "quote_kind": "closing",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-25T12:11:00+00:00",
+      "scan_market_date": "2026-11-25",
+      "market_date": "2026-11-25",
+      "index": "SENSEX",
+      "price": 83938.28,
+      "price_as_of": "2026-11-25",
+      "price_time": "03:32 PM IST · पिछला बंद भाव",
+      "quote_market_date": "2026-11-25",
+      "quote_kind": "closing",
+      "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
+    },
+    {
+      "captured_at_utc": "2026-11-25T12:11:00+00:00",
+      "scan_market_date": "2026-11-25",
+      "market_date": "2026-11-25",
+      "index": "BANKNIFTY",
+      "price": 63703.25,
+      "price_as_of": "25/11/2026",
+      "price_time": "03:30 PM IST",
+      "quote_market_date": "2026-11-25",
+      "quote_kind": "closing",
+      "price_source": "NSE India allIndices API · पिछला बंद भाव",
+      "quote_timestamp_utc": null,
+      "intraday_eligible": false
     }
   ],
   "intraday_30m_bars": [
@@ -18031,6 +18073,54 @@
       "volume": 0.0,
       "change_pct": -0.0321,
       "direction": -1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-25T08:00:00Z",
+      "end": "2026-11-25T08:30:00Z",
+      "open": 25703.4004,
+      "high": 25754.5508,
+      "low": 25679.5996,
+      "close": 25728.75,
+      "volume": 0.0,
+      "change_pct": 0.0986,
+      "direction": 1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-25T08:30:00Z",
+      "end": "2026-11-25T09:00:00Z",
+      "open": 25729.0508,
+      "high": 25782.3496,
+      "low": 25728.9004,
+      "close": 25738.0508,
+      "volume": 0.0,
+      "change_pct": 0.035,
+      "direction": 1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-25T09:00:00Z",
+      "end": "2026-11-25T09:30:00Z",
+      "open": 25737.9492,
+      "high": 25778.8496,
+      "low": 25717.0,
+      "close": 25758.5,
+      "volume": 0.0,
+      "change_pct": 0.0798,
+      "direction": 1
+    },
+    {
+      "index": "NIFTY",
+      "start": "2026-11-25T09:30:00Z",
+      "end": "2026-11-25T10:00:00Z",
+      "open": 25758.1992,
+      "high": 25819.25,
+      "low": 25756.9492,
+      "close": 25819.25,
+      "volume": 0.0,
+      "change_pct": 0.237,
+      "direction": 1
     }
   ]
 }
