@@ -1,6 +1,10 @@
 import unittest
 
-from fetch_and_score import retail_adjust, validated_news_crowd_score
+from datetime import datetime, timedelta, timezone
+
+from fetch_and_score import (
+    retail_adjust, validated_news_crowd_score, validated_news_component,
+)
 
 
 class ProductionScoreOIGateTests(unittest.TestCase):
@@ -47,6 +51,58 @@ class ProductionScoreOIGateTests(unittest.TestCase):
         self.assertEqual(score, 6.0)
         self.assertEqual(mode, "news_only")
         self.assertEqual(weights, {"news": 100.0})
+
+    def test_missing_sources_are_unavailable_not_neutral_zero(self):
+        score, mode, weights = validated_news_crowd_score(
+            None, None, False, news_valid=False
+        )
+        self.assertIsNone(score)
+        self.assertEqual(mode, "unavailable")
+        self.assertEqual(weights, {})
+
+    def test_valid_crowd_only_score_is_preserved_when_news_is_missing(self):
+        score, mode, weights = validated_news_crowd_score(
+            None, -10.0, True, news_valid=False
+        )
+        self.assertEqual(score, -10.0)
+        self.assertEqual(mode, "crowd_only")
+        self.assertEqual(weights, {"crowd": 100.0})
+
+    def test_real_neutral_news_zero_is_not_treated_as_missing(self):
+        score, mode, weights = validated_news_crowd_score(
+            0.0, None, False, news_valid=True
+        )
+        self.assertEqual(score, 0.0)
+        self.assertEqual(mode, "news_only")
+        self.assertEqual(weights, {"news": 100.0})
+
+    def test_news_component_requires_timestamped_recent_headlines(self):
+        now = datetime(2026, 11, 26, 10, 0, tzinfo=timezone.utc)
+        fresh = (now - timedelta(hours=2)).isoformat().replace("+00:00", "Z")
+        old = (now - timedelta(hours=60)).isoformat().replace("+00:00", "Z")
+        self.assertEqual(
+            validated_news_component([{
+                "score": 0, "source": "Example News", "published_at": fresh,
+            }], now_utc=now),
+            0.0,
+        )
+        self.assertIsNone(validated_news_component([], now_utc=now))
+        self.assertIsNone(validated_news_component([{
+            "score": 0, "source": "Example News",
+        }], now_utc=now))
+        self.assertIsNone(validated_news_component([{
+            "score": -2, "source": "Example News", "published_at": old,
+        }], now_utc=now))
+
+    def test_validated_news_component_keeps_bearish_direction(self):
+        now = datetime(2026, 11, 26, 10, 0, tzinfo=timezone.utc)
+        published = (now - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
+        self.assertEqual(
+            validated_news_component([{
+                "score": -2, "source": "Example News", "published_at": published,
+            }], now_utc=now),
+            -10.0,
+        )
 
     def test_score_is_clamped_to_the_documented_range(self):
         score, mode, weights = validated_news_crowd_score(12.0, 12.0, True)
