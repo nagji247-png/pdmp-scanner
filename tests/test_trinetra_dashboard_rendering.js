@@ -12,6 +12,7 @@ const rendererSource = html.slice(start, end);
 const store = {};
 const context = {
   stockBasketDetailStore: store,
+  formatTimestampIST: () => "",
   esc: value => String(value ?? "").replace(/[&<>"]/g, ch => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
   })[ch])
