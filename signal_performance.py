@@ -283,7 +283,7 @@ def evaluate_pending(events, data, stamp):
         if entry is not None and entry > 0:
             quote = quotes.get(event.get("instrument")) or {}
             exit_price = valid_price(quote)
-            quote_date = parse_date(quote.get("price_as_of")) or parse_date(data.get("updated"))
+            quote_date = parse_date(quote.get("price_as_of"))
             if exit_price is None or exit_price <= 0 or quote_date != current_date:
                 event.update({"status": "UNVERIFIED", "evaluation_date": current_date.isoformat(),
                               "reason": "अगले सत्र की सत्यापित क्लोजिंग कीमत उपलब्ध नहीं"})
