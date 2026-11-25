@@ -1514,14 +1514,16 @@ function card(name, d, participantOI, observedAt) {
     ? d.component_breakdown.final : null;
   const crudeFinalScore = crudeFinal && crudeFinal.status === "available"
     && Number.isFinite(Number(crudeFinal.score)) ? Number(crudeFinal.score) : null;
-  const shownScore = crudeFinalScore != null ? crudeFinalScore : Number(d.score);
+  const hasPublishedScore = d.score != null && Number.isFinite(Number(d.score));
+  const shownScore = crudeFinalScore != null ? crudeFinalScore
+    : (hasPublishedScore ? Number(d.score) : null);
   const divergenceScore = crudeFinalScore != null
-    ? crudeFinalScore : (d.headline_score != null ? d.headline_score : d.score);
-  let [cls, label] = classify(shownScore);
+    ? crudeFinalScore : (d.headline_score != null ? d.headline_score : shownScore);
+  let [cls, label] = shownScore == null ? ["neu", "NO DATA"] : classify(shownScore);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const hasChange = d.change_pct != null && Number.isFinite(Number(d.change_pct));
   const sign = hasChange && Number(d.change_pct) > 0 ? "+" : "";
-  const sScore = (shownScore > 0 ? "+" : "") + shownScore;
+  const sScore = shownScore == null ? "—" : (shownScore > 0 ? "+" : "") + shownScore;
 
   const allHeads = d.headlines || [];
   const heads = allHeads.map(h => `
