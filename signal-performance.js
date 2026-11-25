@@ -4,7 +4,9 @@ var root=document.getElementById("signal-performance");
 if(!root)return;
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function num(v,d){return v==null||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d==null?1:d);}
-function pct(v){return v==null?"—":(Number(v)>0?"+":"")+num(v,2)+"%";}\nfunction accuracy(v){return v==null?"—":num(v,1)+"%";}\nfunction lossPct(v){return v==null?"—":"-"+num(v,2)+"%";}
+function pct(v){return v==null?"—":(Number(v)>0?"+":"")+num(v,2)+"%";}
+function accuracy(v){return v==null?"—":num(v,1)+"%";}
+function lossPct(v){return v==null?"—":"-"+num(v,2)+"%";}
 function pf(v){return v==null?"—":v==="Infinity"?"∞":num(v,2);}
 function render(data){
  if(!data||!data.summary||!Array.isArray(data.events)){root.innerHTML='<div class="sp-note">पहला सत्यापित सिग्नल रिकॉर्ड होने की प्रतीक्षा है। कोई उदाहरण या अनुमानित आँकड़ा नहीं दिखाया जाएगा।</div>';return;}
