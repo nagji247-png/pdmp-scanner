@@ -1,0 +1,126 @@
+name: NSE MCP SME Numeric Prefix Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-sme-numeric-prefix-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-sme-numeric-prefix-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+      - name: Check numeric-leading SME symbols (10 bounded calls)
+        run: |
+          python - <<'PY'
+          import json,time
+          from datetime import datetime,timezone
+          from curl_cffi import requests
+
+          URL="https://mcp.nseindia.in/cmmkt/mcp"
+          s=requests.Session(impersonate="chrome124")
+          headers={"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(r):
+              if "text/event-stream" in r.headers.get("content-type","").lower():
+                  for block in reversed(r.text.replace("\r\n","\n").split("\n\n")):
+                      data="\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip(): return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return r.json()
+
+          def post(payload,extra=None):
+              h=dict(headers); h.update(extra or {})
+              r=s.post(URL,headers=h,json=payload,timeout=35)
+              r.raise_for_status()
+              out=decode(r)
+              if out.get("error"): raise RuntimeError(str(out["error"]))
+              return out
+
+          def collect(value,rows):
+              if isinstance(value,dict):
+                  low={str(k).lower():k for k in value}
+                  symkey=next((low[k] for k in ("symbol","symbolname","tradingsymbol") if k in low),None)
+                  if symkey:
+                      sym=str(value.get(symkey) or "").strip().upper()
+                      if sym:
+                          rows.append({"symbol":sym,"type":value.get("type"),"series":value.get("series"),"segment":value.get("segment")})
+                  for v in value.values(): collect(v,rows)
+              elif isinstance(value,list):
+                  for v in value: collect(v,rows)
+              elif isinstance(value,str):
+                  z=value.strip()
+                  if z.startswith("{") or z.startswith("["):
+                      try: collect(json.loads(z),rows)
+                      except Exception: pass
+
+          init=post({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-numeric-prefix-audit","version":"1.0"}}})
+          # initialize response session header is read from the last response
+          # Repeat initialize with response object to retain its session identifier.
+          ir=s.post(URL,headers=headers,json={"jsonrpc":"2.0","id":99,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-numeric-prefix-audit","version":"1.0"}}},timeout=35)
+          ir.raise_for_status()
+          sid=ir.headers.get("mcp-session-id") or ir.headers.get("Mcp-Session-Id")
+          sh={"Mcp-Session-Id":sid} if sid else {}
+
+          results=[]
+          for i,digit in enumerate("0123456789",2):
+              start=time.time()
+              try:
+                  out=post({"jsonrpc":"2.0","id":i,"method":"tools/call","params":{"name":"cm_get_sme_stocks","arguments":{"limit":500,"symbolFilter":digit}}},sh)
+                  res=out.get("result") or {}
+                  rows=[]
+                  collect(res.get("structuredContent"),rows)
+                  collect(res.get("content") or [],rows)
+                  by_key={}
+                  for row in rows:
+                      key=(row["symbol"],str(row.get("type") or ""),str(row.get("series") or ""))
+                      by_key.setdefault(key,row)
+                  records=list(by_key.values())
+                  results.append({"prefix":digit,"ok":not res.get("isError",False),"rows":len(rows),"unique_symbol_type_series":len(records),"records":records,"is_error":res.get("isError",False),"elapsed_seconds":round(time.time()-start,2)})
+                  print(f"SME prefix {digit}: ok={not res.get('isError',False)} rows={len(rows)} unique={len(records)}")
+              except Exception as e:
+                  results.append({"prefix":digit,"ok":False,"error":str(e)[:1000],"elapsed_seconds":round(time.time()-start,2)})
+                  print(f"SME prefix {digit}: ERROR {str(e)[:250]}")
+              time.sleep(2)
+
+          records=[r for x in results for r in x.get("records",[])]
+          sme=[r for r in records if str(r.get("type") or "").upper()=="SME" or str(r.get("segment") or "").upper()=="SME"]
+          report={
+              "captured_at_utc":datetime.now(timezone.utc).isoformat(),
+              "endpoint":URL,
+              "tool":"cm_get_sme_stocks",
+              "scope":"numeric prefixes 0-9; one request each; limit 500; 2s spacing; no retries",
+              "calls_made":len(results),
+              "successful_calls":sum(bool(x.get("ok")) for x in results),
+              "failed_calls":sum(not x.get("ok") for x in results),
+              "numeric_unique_symbol_count":len({r["symbol"] for r in records}),
+              "numeric_unique_sme_symbol_count":len({r["symbol"] for r in sme}),
+              "non_sme_or_untyped_rows":[r for r in records if r not in sme],
+              "possible_limit_truncation_prefixes":[x["prefix"] for x in results if x.get("unique_symbol_type_series",0)>=500],
+              "results":results,
+              "note":"This checks only numeric-leading symbols. Status counts and prefix results may use different segment/type definitions; this report is not proof of missing securities."
+          }
+          with open("nse_sme_numeric_prefix_audit.json","w",encoding="utf-8") as f:
+              json.dump(report,f,ensure_ascii=False,indent=2,default=str)
+          print("SUMMARY",json.dumps({k:report[k] for k in ("calls_made","successful_calls","failed_calls","numeric_unique_symbol_count","numeric_unique_sme_symbol_count","possible_limit_truncation_prefixes")},ensure_ascii=False))
+          PY
+      - name: Upload numeric prefix audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-sme-numeric-prefix-audit
+          path: nse_sme_numeric_prefix_audit.json
+          retention-days: 14
