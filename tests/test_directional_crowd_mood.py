@@ -28,9 +28,10 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(mood, "NEUTRAL")
         self.assertEqual(fetch_and_score.three_way_crowd_component(35, 35, 30), 0.0)
 
-    def test_information_intent_is_not_neutral_mood(self):
-        self.assertEqual(fetch_and_score.tq_dir("nifty today"), "informational")
-        self.assertEqual(fetch_and_score.tq_dir("option chain"), "informational")
+    def test_market_check_information_terms_count_as_neutral(self):
+        self.assertEqual(fetch_and_score.tq_dir("nifty today"), "neutral")
+        self.assertEqual(fetch_and_score.tq_dir("option chain"), "neutral")
+        self.assertEqual(fetch_and_score.tq_dir("price"), "neutral")
         self.assertEqual(fetch_and_score.tq_dir("nifty sideways"), "neutral")
 
         result = fetch_and_score.tq_aggregate({
@@ -39,11 +40,21 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
             "info": {"term": "nifty today", "weight": 90.0},
             "flat": {"term": "nifty sideways", "weight": 1.0},
         })
-        self.assertAlmostEqual(result["bull_score_pct"], 50.0, places=1)
-        self.assertAlmostEqual(result["bear_score_pct"], 25.0, places=1)
+        self.assertAlmostEqual(result["bull_score_pct"], 2.1, places=1)
+        self.assertAlmostEqual(result["bear_score_pct"], 1.1, places=1)
+        self.assertAlmostEqual(result["neutral_score_pct"], 96.8, places=1)
+        self.assertEqual(result["informational_queries"], 0)
+        self.assertAlmostEqual(result["informational_weight"], 0.0, places=1)
+
+    def test_single_directional_side_is_not_discarded_or_fabricated(self):
+        result = fetch_and_score.tq_aggregate({
+            "bull": {"term": "nifty rally", "weight": 3.0},
+            "neutral": {"term": "nifty today", "weight": 1.0},
+        })
+        self.assertAlmostEqual(result["bull_score_pct"], 75.0, places=1)
+        self.assertAlmostEqual(result["bear_score_pct"], 0.0, places=1)
         self.assertAlmostEqual(result["neutral_score_pct"], 25.0, places=1)
-        self.assertEqual(result["informational_queries"], 1)
-        self.assertAlmostEqual(result["informational_weight"], 90.0, places=1)
+        self.assertAlmostEqual(result["crowd_bull_pct"], 100.0, places=1)
 
     def test_invalid_percentages_fail_closed(self):
         mood, _ = fetch_and_score.three_way_crowd_mood(80, 10, 30)
