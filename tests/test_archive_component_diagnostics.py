@@ -81,16 +81,16 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         for i in range(50):
             old_nifty.append(contract("NIFTY", "CE", 25000+i, 100, 1000))
             new_nifty.append(contract("NIFTY", "CE", 25000+i,
-                                      110 if i < 25 else 90, 1100))
+                                      110 if i < 35 else 90, 1100))
             old_nifty.append(contract("NIFTY", "PE", 25000+i, 100, 1000))
             new_nifty.append(contract("NIFTY", "PE", 25000+i,
-                                      90 if i < 25 else 110, 1100))
+                                      90 if i < 35 else 110, 1100))
             old_bank.append(contract("BANKNIFTY", "CE", 50000+i, 100, 1000))
             new_bank.append(contract("BANKNIFTY", "CE", 50000+i,
-                                     110 if i < 25 else 90, 1100))
+                                     110 if i < 15 else 90, 1100))
             old_bank.append(contract("BANKNIFTY", "PE", 50000+i, 100, 1000))
             new_bank.append(contract("BANKNIFTY", "PE", 50000+i,
-                                     90 if i < 25 else 110, 1100))
+                                     90 if i < 15 else 110, 1100))
         archive = {"records": [
             {"date": "2026-11-11", "option_contracts": {
                 "NIFTY": {"contracts": old_nifty},
@@ -108,7 +108,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         self.assertEqual(bank["classified_contracts"], 100)
         self.assertIsNotNone(nifty["test_score"])
         self.assertIsNotNone(bank["test_score"])
-        self.assertEqual(nifty["test_score"], bank["test_score"])
+        self.assertNotEqual(nifty["test_score"], bank["test_score"])
         self.assertFalse(nifty["included_in_asset_final"])
         self.assertFalse(bank["included_in_asset_final"])
         self.assertFalse(nifty["coverage_validated"])
