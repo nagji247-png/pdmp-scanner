@@ -6668,6 +6668,7 @@ def main():
         _d["experimental_headline_count"] = _exp["headline_count"]
         _d["experimental_excluded_old_or_unknown"] = _exp["excluded_old_or_unknown"]
         _d["experimental_excluded_cross_index_duplicates"] = _exp["excluded_cross_index_duplicates"]
+    per_index_score_methods = {}
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
         if not _d:
@@ -6682,15 +6683,19 @@ def main():
         _d["score_mode"] = _mode
         _d["score_status"] = "available" if _score is not None else "unavailable"
         _d["score_normalized_weights_pct"] = _normalized_weights
+        per_index_score_methods[_n] = {
+            "mode": _mode,
+            "normalized_weights_pct": _normalized_weights,
+            "news_available": news_valid,
+            "crowd_available": crowd_score_valid,
+        }
     result["index_score_method"] = {
         "mode": "per_index_validated_sources",
         "normalization_scope": "प्रत्येक index के उपलब्ध, timestamp-validated News और Crowd स्रोतों पर अलग-अलग",
         "mode_policy": "news_crowd / news_only / crowd_only / unavailable per index",
         "weights": {"news": 50, "crowd": 50},
-        "normalized_weights_pct": (
-            {"news": 50.0, "crowd": 50.0}
-            if crowd_score_valid else {"news": 100.0}
-        ),
+        "normalized_weights_pct": None,
+        "per_index": per_index_score_methods,
         "crowd_included": bool(crowd_score_valid),
         "crowd_source_valid": bool(crowd_valid),
         "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
