@@ -2494,6 +2494,56 @@
     "baseline_attempted": true,
     "intraday_source": "Yahoo Finance",
     "after_30m": {
+      "status": "complete",
+      "price": 847.6,
+      "time": "2026-11-25T06:40:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.15,
+      "outcome": "reversed"
+    },
+    "after_60m": {
+      "status": "complete",
+      "price": 843.7,
+      "time": "2026-11-25T07:10:00Z",
+      "source": "Yahoo Finance",
+      "change_pct": -0.61,
+      "outcome": "reversed"
+    },
+    "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-25|NIFTY",
+    "date": "2026-11-25",
+    "instrument": "NIFTY",
+    "score": 6.6,
+    "event_time_utc": "2026-11-25T08:19:14Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 25728.75,
+    "baseline_time": "2026-11-25T08:15:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
+      "status": "pending"
+    },
+    "after_60m": {
+      "status": "pending"
+    },
+    "baseline_source": "Yahoo Finance"
+  },
+  {
+    "key": "2026-11-25|BANKNIFTY",
+    "date": "2026-11-25",
+    "instrument": "BANKNIFTY",
+    "score": 6.8,
+    "event_time_utc": "2026-11-25T08:19:17Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": 63504.3516,
+    "baseline_time": "2026-11-25T08:15:00Z",
+    "baseline_attempted": true,
+    "intraday_source": "Yahoo Finance",
+    "after_30m": {
       "status": "pending"
     },
     "after_60m": {

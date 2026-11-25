@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-25T11:42:00+05:30",
+  "updated_at": "2026-11-25T13:49:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -615,6 +615,69 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "LATEST ACTIVITY ALERTS|2026-11-25|HINDALCO|BEARISH",
+      "department": "LATEST ACTIVITY ALERTS",
+      "instrument": "HINDALCO",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:49:00+05:30",
+      "entry_price": 885.75,
+      "member_prices": {},
+      "source": "NSE India direct quote API",
+      "details": {
+        "kind": "watch",
+        "change_pct": -1.63,
+        "positive_news": 0,
+        "negative_news": 0
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-25|NIFTY|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "NIFTY",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:49:14+05:30",
+      "entry_price": 25728.15,
+      "member_prices": {},
+      "source": "NSE India allIndices API",
+      "details": {
+        "contrarian_score": 6.6
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-25|BANKNIFTY|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "BANKNIFTY",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-25",
+      "signal_time_ist": "2026-11-25T13:49:17+05:30",
+      "entry_price": 63485.25,
+      "member_prices": {},
+      "source": "NSE India allIndices API",
+      "details": {
+        "contrarian_score": 6.8
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
@@ -633,12 +696,12 @@
       "sample_size": 0
     },
     "LATEST ACTIVITY ALERTS": {
-      "total": 9,
+      "total": 10,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 9,
+      "pending": 10,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
@@ -675,12 +738,12 @@
       "sample_size": 0
     },
     "NEXT-SESSION REVERSAL": {
-      "total": 3,
+      "total": 5,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 3,
+      "pending": 5,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
