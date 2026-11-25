@@ -23,7 +23,7 @@ def _option(**changes):
     base = {
         "available": True, "status": "AVAILABLE",
         "integrity_validation": "PASSED", "source": "NSE F&O UDiFF",
-        "source_date": "2026-11-24", "matched_contracts": 8,
+        "source_date": "2026-11-24", "matched_contracts": 20,
         "classified_contracts": 8, "coverage_validated": False,
         "categories": categories,
     }
