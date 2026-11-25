@@ -2603,7 +2603,7 @@ function renderTrends(t) {
 
   const scoreDetails = `
     <details class="trends-details">
-      <summary><span class="details-toggle-label"><span style="font-size:24px;vertical-align:middle;line-height:1">👁️🖕</span> विवरण खोलें</span></summary>
+      <summary><span class="details-toggle-label"> विवरण खोलें</span></summary>
       <div class="sub" style="margin-top:8px">तीन-भाग प्रतिशत का आधार: BULLISH + BEARISH + NEUTRAL सभी वर्गीकृत खोज-रुचियों का कुल भार।</div>
       <div class="sub" style="margin-top:5px">Crowd Bull % का आधार अलग है: केवल BULLISH + BEARISH। इसलिए Crowd Bull % और इस तीन-भाग विभाजन की सीधे तुलना न करें।</div>
       <div class="sub" style="margin-top:5px">स्रोत: Google Trends · सापेक्ष खोज-रुचि; वास्तविक लोगों की गिनती नहीं। ${t.as_of ? "स्रोत समय: "+esc(istTime(t.as_of))+" IST" : "स्रोत समय उपलब्ध नहीं"}</div>
@@ -2630,7 +2630,7 @@ function renderTrends(t) {
     <div class="sub" style="margin-top:6px">कल (${esc(t.yesterday_date_ist || "IST")}) की दिशा: <b>${yesterdayBull == null ? "डेटा उपलब्ध नहीं" : "बुलिश " + yesterdayBull + "% · बियरिश " + (100 - yesterdayBull).toFixed(1) + "%"}</b> — ${esc(t.yesterday_label || "")}</div>`;
   const fearGreedDetails = hasFearGreed ? `
     <details class="trends-details">
-      <summary><span class="details-toggle-label"><span style="font-size:24px;vertical-align:middle;line-height:1">👁️🖕</span> विवरण खोलें</span></summary>
+      <summary><span class="details-toggle-label"> विवरण खोलें</span></summary>
       <div class="sub" style="margin-top:8px">स्रोत: Google Trends · आज की सापेक्ष खोज-रुचि · स्रोत समय: ${t.as_of ? esc(istTime(t.as_of))+" IST" : "उपलब्ध नहीं"}</div>
       ${daySummary}
     </details>` : "";
@@ -2659,7 +2659,7 @@ function renderTrends(t) {
     ${fearGreedDetails}
     <div style="margin-top:12px;font-weight:700">Google Trends से मिले सभी ट्रैक किए गए शब्द</div>
     <details class="trends-details">
-      <summary><span class="details-toggle-label"><span style="font-size:24px;vertical-align:middle;line-height:1">👁️🖕</span> विवरण खोलें</span></summary>
+      <summary><span class="details-toggle-label"> विवरण खोलें</span></summary>
       <div style="margin-top:6px">${allRows || '<div class="sub">कोई शब्द-डेटा नहीं</div>'}</div>
       <div class="sub" style="margin-top:10px">उभरती खोजें: ${spikes || 'कोई अलग rising-query सूची उपलब्ध नहीं'}</div>
       <div class="sub" style="margin-top:12px">महत्वपूर्ण: ये Google Trends के सापेक्ष रुचि-अनुपात हैं, वास्तविक लोगों की संख्या या सटीक search count नहीं। 0/डेटा नहीं कम खोज, नमूना सीमा या अनुपलब्ध डेटा की वजह से हो सकता है। यह retail search interest है; analyst/media sentiment अलग से समाचार शीर्षकों से मापा जाता है।</div>
