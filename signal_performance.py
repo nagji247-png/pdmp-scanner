@@ -134,22 +134,26 @@ def make_event(department, instrument, direction, signal_date, stamp, price=None
     }
 
 
-def collect_signals(data, master, daily, contrarian, stamp):
+def collect_signals(data, master, daily, contrarian, fpi, stamp):
     signal_date = stamp.date()
     quotes = quote_map(data)
     known = master.get("stocks") if isinstance(master.get("stocks"), dict) else {}
     sectors = {}
     for symbol, info in known.items():
         sector = (info or {}).get("sector") or "सेक्टर उपलब्ध नहीं"
-        q = quotes.get(symbol)
-        price = valid_price(q)
+        price = valid_price(quotes.get(symbol))
         if price is not None and price > 0:
             sectors.setdefault(sector, {})[symbol] = price
+    # Keep non-F&O NSE cash shares in the same unmapped bucket used by the radar.
+    bulk = (data.get("market_activity_quotes") or {}).get("instruments") or {}
+    for symbol, q in bulk.items():
+        if symbol not in known and isinstance(q, dict) and q.get("type") == "stock":
+            price = valid_price(q)
+            if price is not None and price > 0:
+                sectors.setdefault("सेक्टर मैपिंग उपलब्ध नहीं", {})[symbol] = price
 
     found = []
     for sector, members in sectors.items():
-        if len(members) < 1:
-            continue
         ups = downs = 0
         for symbol in members:
             change = number((quotes.get(symbol) or {}).get("change_pct"))
@@ -158,32 +162,80 @@ def collect_signals(data, master, daily, contrarian, stamp):
                 downs += change < 0
         if ups != downs:
             direction = "BULLISH" if ups > downs else "BEARISH"
+            details = {"advancers": ups, "decliners": downs, "coverage": len(members),
+                       "return_method": "equal-weight available constituents"}
             found.append(make_event("MARKET ACTIVITY RADAR", sector, direction, signal_date, stamp,
-                                    members=members, source="NSE quote snapshot",
-                                    details={"advancers": ups, "decliners": downs, "coverage": len(members)}))
+                                    members=members, source="NSE quote snapshot", details=details))
             found.append(make_event("SECTOR ACTIVITY", sector, direction, signal_date, stamp,
-                                    members=members, source="NSE quote snapshot",
-                                    details={"advancers": ups, "decliners": downs, "coverage": len(members)}))
+                                    members=members, source="NSE quote snapshot", details=details))
 
-    # Mirror the dashboard's price/news alert criteria for stock alerts.
+    # Build the same ranked HIGH / WATCH / FLOW alert candidates shown by the dashboard.
+    candidates = []
     for symbol, q in quotes.items():
         if not isinstance(q, dict) or q.get("type") != "stock":
             continue
         change = number(q.get("change_pct"))
-        if change is None or change == 0:
+        if change is None:
             continue
         positive = negative = 0
         for headline in q.get("headlines") or []:
-            age, score = number((headline or {}).get("age_h")), number((headline or {}).get("score"))
+            age = number((headline or {}).get("age_h"))
+            score = number((headline or {}).get("score"))
             if age is not None and age <= 24 and score is not None:
                 positive += score > 0
                 negative += score < 0
-        news_signal = positive + negative >= 2 and abs(positive - negative) >= 2
-        if abs(change) >= 2 or abs(change) >= 1.5 or news_signal:
-            direction = "BULLISH" if change > 0 else "BEARISH"
-            found.append(make_event("LATEST ACTIVITY ALERTS", symbol, direction, signal_date, stamp,
-                                    price=valid_price(q), source=q.get("price_source") or "NSE quote",
-                                    details={"change_pct": change, "positive_news": positive, "negative_news": negative}))
+        news_total = positive + negative
+        news_signal = news_total >= 2 and abs(positive - negative) >= 2
+        news_bias = "bull" if positive > negative else "bear" if negative > positive else "mixed"
+        aligned = (change > 0 and news_bias == "bull") or (change < 0 and news_bias == "bear")
+        if abs(change) >= 2 and news_signal and aligned:
+            candidates.append({"kind": "high", "rank": 0, "activity": abs(change),
+                               "symbol": symbol, "direction": "BULLISH" if change > 0 else "BEARISH",
+                               "price": valid_price(q), "source": q.get("price_source") or "NSE quote",
+                               "details": {"change_pct": change, "positive_news": positive, "negative_news": negative}})
+        elif abs(change) >= 1.5 or news_signal:
+            candidates.append({"kind": "watch", "rank": 1,
+                               "activity": max(abs(change), abs(positive - negative)),
+                               "symbol": symbol, "direction": "BULLISH" if change > 0 else "BEARISH" if change < 0 else
+                                          ("BULLISH" if positive > negative else "BEARISH" if negative > positive else None),
+                               "price": valid_price(q), "source": q.get("price_source") or "NSE quote",
+                               "details": {"change_pct": change, "positive_news": positive, "negative_news": negative}})
+    fpi_history = fpi.get("history") if isinstance(fpi, dict) else []
+    if isinstance(fpi_history, list) and len(fpi_history) >= 2:
+        latest, previous = fpi_history[0], fpi_history[1]
+        old_map = {x.get("name"): number(x.get("net_equity_cr")) for x in previous.get("sectors", []) if isinstance(x, dict)}
+        for item in latest.get("sectors", []) if isinstance(latest, dict) else []:
+            if not isinstance(item, dict) or not item.get("name"):
+                continue
+            current = number(item.get("net_equity_cr"))
+            old = old_map.get(item["name"])
+            if current is None or old is None or current == old:
+                continue
+            sector = item["name"]
+            candidates.append({"kind": "flow", "rank": 2, "activity": abs(current-old),
+                               "symbol": sector, "direction": "BULLISH" if current-old > 0 else "BEARISH",
+                               "members": sectors.get(sector, {}),
+                               "source": "NSDL FPI sector flow change",
+                               "details": {"net_equity_change_cr": current-old}})
+
+    candidates.sort(key=lambda item: (item["rank"], -item["activity"]))
+    selected, counts = [], {"high": 0, "watch": 0, "flow": 0}
+    for kind in ("high", "watch", "flow"):
+        for item in candidates:
+            if item["kind"] == kind and counts[kind] < 3 and len(selected) < 8:
+                if item.get("direction"):
+                    selected.append(item)
+                    counts[kind] += 1
+    for item in candidates:
+        if len(selected) >= 8:
+            break
+        if item not in selected and item.get("direction"):
+            selected.append(item)
+    for item in selected:
+        found.append(make_event("LATEST ACTIVITY ALERTS", item["symbol"], item["direction"],
+                                signal_date, stamp, price=item.get("price"),
+                                members=item.get("members"), source=item.get("source"),
+                                details={"kind": item["kind"], **item.get("details", {})}))
 
     if isinstance(daily, dict) and parse_date(daily.get("as_of")) == signal_date:
         for row in daily.get("rows") or []:
@@ -197,8 +249,7 @@ def collect_signals(data, master, daily, contrarian, stamp):
                                         source="NSE EOD Daily Stock Buying Activity",
                                         details={"signal": row.get("signal"), "as_of": daily.get("as_of")}))
 
-    # Existing Contrarian Watch extreme events supply the signal direction.
-    # Capture a baseline only when the same scan snapshot is close to event time.
+    # Reuse only new extreme events whose event-time price is present in this scan.
     for item in contrarian if isinstance(contrarian, list) else []:
         if not isinstance(item, dict) or parse_date(item.get("date")) != signal_date:
             continue
@@ -206,18 +257,15 @@ def collect_signals(data, master, daily, contrarian, stamp):
         if not event_stamp or abs((stamp - event_stamp).total_seconds()) > 30 * 60:
             continue
         symbol = str(item.get("instrument") or "")
-        q = quotes.get(symbol) or {}
-        price = valid_price(q)
+        price = valid_price(quotes.get(symbol))
         score = number(item.get("score"))
         if score is not None:
             found.append(make_event("NEXT-SESSION REVERSAL", symbol,
                                     "BULLISH" if score > 0 else "BEARISH",
                                     signal_date, event_stamp, price=price,
-                                    source=q.get("price_source") or "TRINETRA event-time quote",
+                                    source=(quotes.get(symbol) or {}).get("price_source") or "TRINETRA event-time quote",
                                     details={"contrarian_score": score}))
-
     return [event for event in found if event]
-
 
 def evaluate_pending(events, data, stamp):
     # Do not treat intraday quotes as closing prices.
@@ -306,6 +354,7 @@ def main():
     master = read_json(MASTER, {})
     daily = read_json(DAILY, {})
     contrarian = read_json(CONTRARIAN, [])
+    fpi = read_json(Path("fpi-sector-data.json"), {})
     stamp = parse_stamp(data.get("updated"))
     if not stamp:
         print("SIGNAL_PERFORMANCE_SKIP invalid data.json updated timestamp")
@@ -314,7 +363,7 @@ def main():
     events = ledger["events"]
     known_ids = {e.get("id") for e in events if isinstance(e, dict)}
     evaluate_pending(events, data, stamp)
-    for event in collect_signals(data, master, daily, contrarian, stamp):
+    for event in collect_signals(data, master, daily, contrarian, fpi, stamp):
         if event["id"] not in known_ids:
             events.append(event)
             known_ids.add(event["id"])
