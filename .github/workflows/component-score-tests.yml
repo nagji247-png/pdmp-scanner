@@ -63,5 +63,7 @@ jobs:
           PY
       - name: Dashboard JavaScript syntax validation
         run: node --check /tmp/pdmp-dashboard-inline.js
+      - name: Offline TRINETRA dashboard score-row rendering tests
+        run: node tests/test_trinetra_dashboard_rendering.js
       - name: Market Activity JavaScript syntax validation
         run: node --check market-activity.js
