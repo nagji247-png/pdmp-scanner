@@ -4888,14 +4888,14 @@ def _asset_search_direction(term, asset):
     )
     if tokens & informational or any(phrase in text for phrase in informational_phrases):
         return "informational"
+    ambiguous = {"range", "target", "targets", "high", "low", "52"}
+    if tokens & ambiguous:
+        return None
     if tokens & explicit_neutral:
         return "neutral"
     if ("price" in tokens and asset in {"NIFTY", "SENSEX", "BANKNIFTY"}
             and not tokens & {"share", "stock"}):
         return "neutral"
-    ambiguous = {"range", "target", "targets", "high", "low", "52"}
-    if tokens & ambiguous:
-        return None
     return None
 
 
