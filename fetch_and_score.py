@@ -4610,10 +4610,14 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "avg": x["avg_weight"], "today_pct": None, "yesterday_pct": None
     } for x in queries.values()]
     crowd_terms.sort(key=lambda x: x["now"], reverse=True)
-    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={crowd_direction_pct:.1f}%")
+    crowd_direction_label = (
+        f"{crowd_direction_pct:.1f}%" if crowd_direction_pct is not None else "N/A"
+    )
+    print(f"Google Trends validated ({timeframe}): bull={bull_total:.2f}, bear={bear_total:.2f}, crowd_bull={crowd_direction_label}")
     return {
         "ok": True, "unit": "anchor-relative points", "fear_vs_avg": attention,
-        "crowd_bull_pct": round(crowd_direction_pct, 1), "crowd_label": label,
+        "crowd_bull_pct": round(crowd_direction_pct, 1) if crowd_direction_pct is not None else None,
+        "crowd_label": label,
         "bull_sum_pct": round(bull_total, 2), "bear_sum_pct": round(bear_total, 2),
         "min_side_pct": TQ_MIN_WEIGHT, "crowd_terms": crowd_terms,
         "spikes": [], "hidden_spikes": 0,
@@ -4622,7 +4626,10 @@ def _trends_once(timeframe="now 7-d", recent_points=24):
         "informational_weight": round(informational_total, 2),
         "informational_queries": len(informational_items),
         "informational_terms": [x["term"] for x in informational_items],
-        "today_bull_pct": round(crowd_direction_pct, 1) if timeframe == "now 1-d" else None,
+        "today_bull_pct": (
+            round(crowd_direction_pct, 1)
+            if timeframe == "now 1-d" and crowd_direction_pct is not None else None
+        ),
         "today_label": "पिछले 24 घंटे में तेजी बनाम मंदी खोज-रुचि" if timeframe == "now 1-d" else "डेटा उपलब्ध नहीं",
         "today_basis": "now_1d_anchor_relative" if timeframe == "now 1-d" else timeframe + "_anchor_relative",
         "source_timeframe": timeframe,
