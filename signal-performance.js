@@ -4,7 +4,7 @@ var root=document.getElementById("signal-performance");
 if(!root)return;
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function num(v,d){return v==null||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d==null?1:d);}
-function pct(v){return v==null?"—":(Number(v)>0?"+":"")+num(v,2)+"%";}
+function pct(v){return v==null?"—":(Number(v)>0?"+":"")+num(v,2)+"%";}\nfunction accuracy(v){return v==null?"—":num(v,1)+"%";}\nfunction lossPct(v){return v==null?"—":"-"+num(v,2)+"%";}
 function pf(v){return v==null?"—":v==="Infinity"?"∞":num(v,2);}
 function render(data){
  if(!data||!data.summary||!Array.isArray(data.events)){root.innerHTML='<div class="sp-note">पहला सत्यापित सिग्नल रिकॉर्ड होने की प्रतीक्षा है। कोई उदाहरण या अनुमानित आँकड़ा नहीं दिखाया जाएगा।</div>';return;}
@@ -24,7 +24,7 @@ function render(data){
  '<div class="sp-note">केवल अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग पर मूल्यांकन। Net Signal Return दिशात्मक प्रतिशत का कुल योग है; यह वास्तविक पोर्टफोलियो/₹ मुनाफा नहीं है। ब्रोकरेज और स्लिपेज शामिल नहीं हैं।</div>'+
  '<details class="sp-details"><summary>पाँचों विभागों का पूरा हिसाब खोलें</summary>'+
  '<div class="sp-table-wrap"><table class="sp-table"><thead><tr><th>विभाग</th><th>कुल</th><th>सही</th><th>गलत</th><th>Flat</th><th>Pending</th><th>Unverified</th><th>Accuracy</th><th>Avg Profit</th><th>Avg Loss</th><th>Net %</th><th>PF</th><th>Sample</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
- '<div class="sp-rank"><div><b>सबसे सटीक विभाग</b><span>'+(bestAccuracy?esc(bestAccuracy.name)+" · "+pct(bestAccuracy.stats.accuracy_pct):"अभी पर्याप्त परिणाम नहीं")+'</span></div><div><b>सबसे ज्यादा Net Signal Return</b><span>'+(bestProfit?esc(bestProfit.name)+" · "+pct(bestProfit.stats.net_return_pct):"अभी पर्याप्त परिणाम नहीं")+'</span></div></div>'+
+ '<div class="sp-rank"><div><b>सबसे सटीक विभाग</b><span>'+(bestAccuracy?esc(bestAccuracy.name)+" · "+accuracy(bestAccuracy.stats.accuracy_pct):"अभी पर्याप्त परिणाम नहीं")+'</span></div><div><b>सबसे ज्यादा Net Signal Return</b><span>'+(bestProfit?esc(bestProfit.name)+" · "+pct(bestProfit.stats.net_return_pct):"अभी पर्याप्त परिणाम नहीं")+'</span></div></div>'+
  '<div class="sp-note">Average Profit/Loss और Profit Factor केवल सत्यापित सिग्नलों से निकाले जाते हैं। Sample Size: '+num(evaluated,0)+' · Flat: '+num(flat,0)+' · Pending: '+num(pending,0)+' · Unverified: '+num(unverified,0)+'.</div>'+
  '<details class="sp-history"><summary>सिग्नल हिस्ट्री खोलें ('+num(data.events.length,0)+')</summary><div class="sp-table-wrap"><table class="sp-table"><thead><tr><th>सिग्नल समय (IST)</th><th>विभाग</th><th>इंस्ट्रूमेंट</th><th>दिशा</th><th>Entry</th><th>जाँच तारीख</th><th>Return</th><th>नतीजा</th></tr></thead><tbody>'+
  data.events.slice().reverse().slice(0,250).map(function(e){return '<tr><td>'+esc(e.signal_time_ist||e.signal_date)+'</td><td>'+esc(e.department)+'</td><td>'+esc(e.instrument)+'</td><td>'+esc(e.direction)+'</td><td>'+(e.entry_price==null?"—":num(e.entry_price,2))+'</td><td>'+esc(e.evaluation_date||"—")+'</td><td>'+pct(e.signed_return_pct)+'</td><td>'+esc(e.status||"PENDING")+'</td></tr>';}).join("")+
