@@ -2,11 +2,12 @@
 """Prospective, next-session-close performance ledger for TRINETRA signals.
 
 The ledger is append-only: original signal snapshots are immutable. Results are
-scored only from a later, completed NSE session snapshot (>= 15:45 IST).
+scored only from a later, completed NSE session snapshot (after the exchange EOD-ready cutoff at 20:00 IST).
 """
 import json
 import math
-from datetime import datetime, date\nimport datetime as dt
+from datetime import datetime, date
+import datetime as dt
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
