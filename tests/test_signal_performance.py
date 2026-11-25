@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from signal_performance import evaluate_pending, make_event, summarize
+from signal_performance import collect_signals, evaluate_pending, make_event, summarize
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -58,6 +58,30 @@ class SignalPerformanceTests(unittest.TestCase):
         }
         evaluate_pending([event], data, datetime(2026, 11, 25, 20, 10, tzinfo=IST))
         self.assertEqual(event["status"], "UNVERIFIED")
+
+    def test_next_session_reversal_uses_opposite_extreme_score_direction(self):
+        stamp = datetime(2026, 11, 25, 10, 0, tzinfo=IST)
+        data = {
+            "updated": stamp.isoformat(),
+            "instruments": {
+                "NIFTY": {"type": "index", "price": 26000, "price_as_of": "25/11/2026"}
+            },
+        }
+        events = collect_signals(
+            data, {"stocks": {}}, {},
+            [{"event_time_utc": "2026-11-25T04:30:00Z", "instrument": "NIFTY", "score": 6.5}],
+            {}, stamp
+        )
+        reversal = next(e for e in events if e["department"] == "NEXT-SESSION REVERSAL")
+        self.assertEqual(reversal["direction"], "BEARISH")
+        data["instruments"]["SENSEX"] = {"type": "index", "price": 84000, "price_as_of": "25/11/2026"}
+        events = collect_signals(
+            data, {"stocks": {}}, {},
+            [{"event_time_utc": "2026-11-25T04:30:00Z", "instrument": "SENSEX", "score": -6.5}],
+            {}, stamp
+        )
+        reversal = next(e for e in events if e["department"] == "NEXT-SESSION REVERSAL")
+        self.assertEqual(reversal["direction"], "BULLISH")
 
     def test_summary_keeps_unverified_out_of_accuracy(self):
         events = [
