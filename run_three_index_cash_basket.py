@@ -136,6 +136,9 @@ def main():
             {"NIFTY": nse_archive, "BANKNIFTY": nse_archive, "SENSEX": bse_archive},
             roster_bundle, day,
         )
+        result["diagnostic_updated_at_utc"] = (
+            dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        )
         changed = append_diagnostic(args.output, result)
         results.append({
             "date": day, "status": result["status"],
