@@ -17,7 +17,7 @@ function render(data){
   var x=summary[n]||{};
   var netValue=typeof x.net_return_pct==="number"?fmt(x.net_return_pct,"%"):"—";
   var pf=x.profit_factor==null?"—":String(x.profit_factor);
-  return '<tr><td>'+esc(n)+'</td><td>'+Number(x.total||0)+'</td><td class="sp-good">'+Number(x.correct||0)+'</td><td class="sp-bad">'+Number(x.incorrect||0)+'</td><td>'+Number(x.flat||0)+'</td><td>'+fmt(x.accuracy_pct,"%")+'</td><td>'+netValue+'</td><td>'+esc(pf)+'</td></tr>';
+  return '<tr><td>'+esc(n)+'</td><td>'+Number(x.total||0)+'</td><td class="sp-good">'+Number(x.correct||0)+'</td><td class="sp-bad">'+Number(x.incorrect||0)+'</td><td>'+Number(x.flat||0)+'</td><td>'+Number(x.unverified||0)+'</td><td>'+fmt(x.accuracy_pct,"%")+'</td><td>'+fmt(x.average_profit_pct,"%")+'</td><td>'+fmt(x.average_loss_pct,"%")+'</td><td>'+netValue+'</td><td>'+esc(pf)+'</td><td>'+Number(x.sample_size||0)+'</td></tr>';
  }).join("");
  var events=Array.isArray(data&&data.events)?data.events:[];
  var pending=events.filter(function(e){return e.status==="pending";}).length;
@@ -25,9 +25,9 @@ function render(data){
  root.innerHTML='<div class="sp-head"><div><b>📊 SIGNAL PERFORMANCE TRACKER</b><small>सभी विभागों के सिग्नल का हिसाब · अगले ट्रेडिंग सेशन का क्लोज</small></div><span class="sp-live">रिकॉर्ड</span></div>'+
  '<div class="sp-overview"><div><small>Accuracy</small><strong>'+accuracy+'</strong></div><div><small>जाँचे गए</small><strong>'+total+'</strong></div><div><small>Net Return</small><strong class="'+(net>=0?"sp-good":"sp-bad")+'">'+(netN?fmt(net,"%"):"—")+'</strong></div></div>'+
  '<details class="sp-details"><summary>▼ पाँचों विभागों का पूरा हिसाब खोलें</summary>'+
- '<div class="sp-table-wrap"><table class="sp-table"><thead><tr><th>विभाग</th><th>कुल</th><th>सही</th><th>गलत</th><th>Flat</th><th>Unverified</th><th>Accuracy</th><th>Net Return</th><th>Profit Factor</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+ '<div class="sp-table-wrap"><table class="sp-table"><thead><tr><th>विभाग</th><th>कुल</th><th>सही</th><th>गलत</th><th>Flat</th><th>Unverified</th><th>Accuracy</th><th>Avg Profit</th><th>Avg Loss</th><th>Net Return</th><th>Profit Factor</th><th>Sample</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
  '<div class="sp-foot">लंबित सिग्नल: '+pending+' · कुल दर्ज: '+events.length+' · डेटा अपडेट: '+esc(updated)+'</div>'+
- '<div class="sp-note">Average Profit / Average Loss और Sample Size हर विभाग के रिकॉर्ड से निकाले जाते हैं। Unverified रिकॉर्ड Accuracy में शामिल नहीं होते। रिटर्न प्रतिशत सकल मूल्य-परिवर्तन है; ब्रोकरेज और स्लिपेज शामिल नहीं हैं।</div>'+
+ '<div class="sp-note">Average Profit / Average Loss और Sample Size हर विभाग के रिकॉर्ड से निकाले जाते हैं। Unverified रिकॉर्ड Accuracy में शामिल नहीं होते। Net Return प्रत्येक सिग्नल के direction-adjusted सकल प्रतिशत बदलाव का योग है; यह ₹ में वास्तविक ट्रेडिंग P&amp;L नहीं है। ब्रोकरेज और स्लिपेज शामिल नहीं हैं।</div>'+
  '<details class="sp-history"><summary>📂 हाल के सिग्नल रिकॉर्ड ('+events.length+')</summary><div class="sp-events">'+events.slice(-30).reverse().map(function(e){return '<div class="sp-event"><b>'+esc(e.department)+' · '+esc(e.instrument)+'</b><span>'+esc(e.direction)+' · '+esc(e.signal_date)+' · '+esc(e.status==="evaluated"?e.result:"जाँच बाकी")+'</span></div>';}).join("")+'</div></details>'+
  '</details>';
 }
