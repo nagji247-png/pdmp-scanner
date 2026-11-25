@@ -71,6 +71,51 @@ jobs:
               source_url = f"https://raw.githubusercontent.com/{repo}/main/data.json"
               data, byte_count = read_json_object(source_url)
               print(f"Read data.json successfully: {byte_count} bytes.")
+
+              # Recover a missed Google Trends slot even when the ordinary
+              # PDMP data snapshot is still fresh. The 5-minute watchdog is
+              # the fallback if GitHub drops/delays the primary cron event.
+              ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+              now_ist = dt.datetime.now(dt.timezone.utc).astimezone(ist)
+              slot_times = {
+                  "0915": dt.time(9, 15),
+                  "1100": dt.time(11, 0),
+                  "1300": dt.time(13, 0),
+                  "1900": dt.time(19, 0),
+              }
+              trends = data.get("trends") if isinstance(data.get("trends"), dict) else {}
+              daily_slots = trends.get("daily_slots") if isinstance(trends.get("daily_slots"), dict) else {}
+              slot_records = daily_slots.get("slots") if daily_slots.get("date") == now_ist.date().isoformat() else {}
+              for slot_id, slot_time in slot_times.items():
+                  scheduled = dt.datetime.combine(now_ist.date(), slot_time, tzinfo=ist)
+                  minutes_late = (now_ist - scheduled).total_seconds() / 60
+                  record = slot_records.get(slot_id) if isinstance(slot_records, dict) else None
+                  if not (0 <= minutes_late <= 45) or isinstance(record, dict):
+                      continue
+
+                  scan_workflow = api(f"/repos/{repo}/actions/workflows/scan.yml")
+                  scan_workflow_id = scan_workflow.get("id")
+                  if not scan_workflow_id:
+                      raise RuntimeError("PDMP Scan workflow ID could not be resolved for Trends recovery")
+                  runs = api(f"/repos/{repo}/actions/workflows/{scan_workflow_id}/runs?per_page=20")
+                  active = [
+                      run for run in runs.get("workflow_runs", [])
+                      if run.get("status") in ("queued", "in_progress", "waiting", "requested", "pending")
+                  ]
+                  if active:
+                      print("A PDMP Scan is already queued or running; Trends slot recovery deferred.")
+                      raise SystemExit(0)
+
+                  api(f"/repos/{repo}/dispatches", method="POST", payload={
+                      "event_type": "trends-slot-recovery",
+                      "client_payload": {
+                          "trends_slot": slot_id,
+                          "reason": f"scheduled Google Trends slot {slot_id} missing from today's published data",
+                      },
+                  })
+                  print(f"Missed Google Trends slot {slot_id} recovered by watchdog.")
+                  raise SystemExit(0)
+
               updated = data.get("updated")
               if not updated:
                   age_minutes = 10**9
