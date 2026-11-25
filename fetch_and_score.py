@@ -4407,7 +4407,7 @@ TQ_MIN_WEIGHT = 0.01  # कोई भी वास्तविक non-zero readi
 
 
 def tq_dir(q):
-    """खोज-वाक्यांश की दिशा; जानकारी/नेविगेशन को neutral mood न मानें।"""
+    """खोज-वाक्यांश की दिशा; सामान्य market-check intent NEUTRAL है।"""
     text = str(q or "").lower()
     tk = set(re.findall(r"[\w\u0900-\u097F-]+", text))
     bull = any(w.lower() in tk for w in TQ_BULL_WORDS)
