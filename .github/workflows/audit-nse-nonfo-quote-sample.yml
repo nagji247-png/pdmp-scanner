@@ -1,0 +1,112 @@
+name: NSE MCP Non-F&O Quote Sample Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-nonfo-quote-sample-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-nonfo-quote-sample-audit
+  cancel-in-progress: false
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+      - name: Check five non-F&O CM/EQ quote responses
+        run: |
+          python - <<'PY'
+          import json, time, re
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          URL = "https://mcp.nseindia.in/cmmkt/mcp"
+          SYMBOLS = ["20MICRONS", "EPACKPEB", "LALPATHLAB", "ROSSELLIND", "ZYDUSWELL"]
+          s = requests.Session(impersonate="chrome124")
+          headers = {"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(r):
+              if "text/event-stream" in r.headers.get("content-type","").lower():
+                  for block in reversed(r.text.replace("\\r\\n","\\n").split("\\n\\n")):
+                      data = "\\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return r.json()
+
+          def post(payload, sid=None):
+              h=dict(headers)
+              if sid: h["Mcp-Session-Id"]=sid
+              r=s.post(URL,headers=h,json=payload,timeout=40)
+              r.raise_for_status()
+              out=decode(r)
+              if out.get("error"): raise RuntimeError(str(out["error"]))
+              return out,r
+
+          init,ir=post({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-nonfo-sample-audit","version":"1.0"}}})
+          sid=ir.headers.get("mcp-session-id") or ir.headers.get("Mcp-Session-Id")
+          results=[]
+
+          def walk(v, out):
+              if isinstance(v,dict):
+                  low={str(k).lower():k for k in v}
+                  sk=next((low[k] for k in ("symbol","symbolname","tradingsymbol") if k in low),None)
+                  if sk is not None:
+                      out.append(v)
+                  for x in v.values(): walk(x,out)
+              elif isinstance(v,list):
+                  for x in v: walk(x,out)
+              elif isinstance(v,str):
+                  st=v.strip()
+                  if st.startswith("{") or st.startswith("["):
+                      try: walk(json.loads(st),out)
+                      except Exception: pass
+
+          for i,symbol in enumerate(SYMBOLS, start=2):
+              try:
+                  env,_=post({"jsonrpc":"2.0","id":i,"method":"tools/call","params":{"name":"cm_get_stock_quote","arguments":{"symbol":symbol}}},sid)
+                  res=env.get("result") or {}
+                  if res.get("isError"): raise RuntimeError("MCP tool returned isError")
+                  nodes=[]
+                  walk(res.get("structuredContent"),nodes)
+                  walk(res.get("content") or [],nodes)
+                  matching=[]
+                  for node in nodes:
+                      low={str(k).lower():k for k in node}
+                      sk=next((low[k] for k in ("symbol","symbolname","tradingsymbol") if k in low),None)
+                      if sk and str(node.get(sk,"")).strip().upper()==symbol:
+                          matching.append(node)
+                  fields=sorted({str(k) for n in matching for k in n.keys()})
+                  ts=[]
+                  for n in matching:
+                      for k,v in n.items():
+                          if any(t in str(k).lower() for t in ("time","date","update","timestamp")) and v is not None:
+                              ts.append({"field":str(k),"value":str(v)[:80]})
+                  results.append({"symbol":symbol,"status":"ok","matching_rows":len(matching),"fields_present":fields,"timestamp_fields":ts[:8],"is_error":False})
+              except Exception as e:
+                  results.append({"symbol":symbol,"status":"error","error":str(e)[:180],"is_error":True})
+              print(symbol,results[-1]["status"],"rows",results[-1].get("matching_rows",0))
+              time.sleep(2)
+
+          report={"captured_at_utc":datetime.now(timezone.utc).isoformat(),"calls_made":len(SYMBOLS),"results":results,
+          "note":"Only five bounded exact-symbol quote calls. No quote prices or raw payloads are retained. A successful response alone does not establish intraday freshness; inspect returned timestamp fields."}
+          with open("nse_nonfo_quote_sample_audit.json","w",encoding="utf-8") as f: json.dump(report,f,ensure_ascii=False,indent=2)
+          print("SUMMARY",json.dumps({"successes":sum(x["status"]=="ok" for x in results),"failures":sum(x["status"]!="ok" for x in results),"results":results},ensure_ascii=False))
+          PY
+      - name: Upload metadata-only audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-nonfo-quote-sample-audit
+          path: nse_nonfo_quote_sample_audit.json
+          retention-days: 14
