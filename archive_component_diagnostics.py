@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 
 from index_oi_expiry_research import build_report as build_index_oi_expiry_report
+from nse_option_buildup import build_option_buildup_diagnostic, validate_option_buildup_diagnostic
+from trinetra_test_components import option_buildup_test_component
 
 NSE_PATH = Path("nse_index_option_oi.json")
 MCX_PATH = Path("mcx_bhavcopy_archive.json")
@@ -77,6 +79,65 @@ def summarize_nse(payload):
         "source": "NSE India official F&O UDiFF Common Bhavcopy Final",
         "assets": assets,
         "limitation": "NSE archive covers NIFTY and BANKNIFTY options only; it is not participant CLIENT category OI and is not SENSEX data.",
+    }
+
+
+
+def summarize_option_buildup(payload, min_classified=100):
+    """Report the latest same-contract EOD premium/OI comparison per index.
+
+    The score is archive-pair TEST research only. It is never eligible for an
+    asset Final and is not a claim that the observation is live/current.
+    """
+    records = _records(payload)
+    latest_date = str(records[-1].get("date") or "") if records else None
+    assets = {}
+    for symbol in ("NIFTY", "BANKNIFTY"):
+        diagnostic = build_option_buildup_diagnostic(
+            payload, symbol, as_of_date=latest_date,
+            max_age_days=10000, min_matched_contracts=20,
+            expected_source_date=None,
+        )
+        checked = validate_option_buildup_diagnostic(
+            diagnostic, min_matched_contracts=20
+        )
+        component, reason = option_buildup_test_component(
+            checked, latest_date, max_age_days=10000,
+            min_classified=min_classified,
+        ) if latest_date else (None, "archive में तारीख़ वाला EOD session नहीं")
+        categories = {}
+        for key, row in (checked.get("categories") or {}).items():
+            if not isinstance(row, dict):
+                continue
+            categories[key] = {
+                "contracts": row.get("contracts", 0),
+                "oi_quantity": row.get("oi_quantity", 0),
+                "ce_oi_quantity": row.get("ce_oi_quantity", 0),
+                "pe_oi_quantity": row.get("pe_oi_quantity", 0),
+            }
+        assets[symbol] = {
+            "source": checked.get("source") or "NSE F&O UDiFF Common Bhavcopy Final",
+            "source_date": checked.get("source_date"),
+            "previous_source_date": checked.get("previous_source_date"),
+            "matched_contracts": checked.get("matched_contracts", 0),
+            "classified_contracts": checked.get("classified_contracts", 0),
+            "categories": categories,
+            "integrity_validation": checked.get("integrity_validation"),
+            "coverage_validated": False,
+            "test_score": component.get("score") if component else None,
+            "test_score_status": (
+                "ARCHIVE_PAIR_TEST_ONLY_NOT_LIVE" if component
+                else "UNAVAILABLE"
+            ),
+            "test_score_reason": reason or checked.get("reason"),
+            "included_in_asset_final": False,
+            "scope": "इस archive के नवीनतम same-expiry/strike/CE-PE EOD pair का diagnostic; live signal या validated predictor नहीं",
+        }
+    return {
+        "source": "NSE India official F&O UDiFF Common Bhavcopy Final",
+        "minimum_classified_contracts_for_test_score": min_classified,
+        "assets": assets,
+        "limitation": "यह archive pair का TEST-only ऐतिहासिक diagnostic है; coverage और predictive accuracy validated नहीं हैं।",
     }
 
 
@@ -155,6 +216,7 @@ def build_report(nse_payload, mcx_payload, generated_at=None):
         "production_dashboard_score_changed": False,
         "minimum_sessions_for_validation": MIN_VALIDATION_SESSIONS,
         "nse_index_options": summarize_nse(nse_payload),
+        "nse_option_buildup_test": summarize_option_buildup(nse_payload),
         "nse_index_expiry_research": build_index_oi_expiry_report(nse_payload),
         "mcx_commodity_futures": summarize_mcx(mcx_payload),
         "guardrail": "All archive-derived results remain diagnostic-only. No archive component is eligible for Final Score until sufficient dated history and out-of-sample directional validation pass.",

@@ -1,6 +1,6 @@
 import unittest
 
-from archive_component_diagnostics import build_report
+from archive_component_diagnostics import build_report, summarize_option_buildup
 
 
 class ArchiveComponentDiagnosticsTests(unittest.TestCase):
@@ -71,6 +71,69 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         result = summarize_mcx(mcx)
         self.assertEqual(result["assets"]["GOLD"]["same_expiry_observations"], 0)
         self.assertEqual(result["assets"]["SILVER"]["same_expiry_observations"], 0)
+
+
+    def test_option_buildup_archive_reports_per_index_test_score_and_category_counts(self):
+        def contract(symbol, side, strike, close, oi, expiry="2026-11-12"):
+            return {"expiry": expiry, "side": side, "strike": strike,
+                    "close": close, "open_interest": oi}
+        old_nifty, new_nifty, old_bank, new_bank = [], [], [], []
+        for i in range(50):
+            old_nifty.append(contract("NIFTY", "CE", 25000+i, 100, 1000))
+            new_nifty.append(contract("NIFTY", "CE", 25000+i,
+                                      110 if i < 25 else 90, 1100))
+            old_nifty.append(contract("NIFTY", "PE", 25000+i, 100, 1000))
+            new_nifty.append(contract("NIFTY", "PE", 25000+i,
+                                      90 if i < 25 else 110, 1100))
+            old_bank.append(contract("BANKNIFTY", "CE", 50000+i, 100, 1000))
+            new_bank.append(contract("BANKNIFTY", "CE", 50000+i,
+                                     110 if i < 25 else 90, 1100))
+            old_bank.append(contract("BANKNIFTY", "PE", 50000+i, 100, 1000))
+            new_bank.append(contract("BANKNIFTY", "PE", 50000+i,
+                                     90 if i < 25 else 110, 1100))
+        archive = {"records": [
+            {"date": "2026-11-11", "option_contracts": {
+                "NIFTY": {"contracts": old_nifty},
+                "BANKNIFTY": {"contracts": old_bank}}},
+            {"date": "2026-11-12", "option_contracts": {
+                "NIFTY": {"contracts": new_nifty},
+                "BANKNIFTY": {"contracts": new_bank}}},
+        ]}
+        report = summarize_option_buildup(archive, min_classified=100)
+        nifty = report["assets"]["NIFTY"]
+        bank = report["assets"]["BANKNIFTY"]
+        self.assertEqual(nifty["matched_contracts"], 100)
+        self.assertEqual(nifty["classified_contracts"], 100)
+        self.assertEqual(bank["matched_contracts"], 100)
+        self.assertEqual(bank["classified_contracts"], 100)
+        self.assertIsNotNone(nifty["test_score"])
+        self.assertIsNotNone(bank["test_score"])
+        self.assertEqual(nifty["test_score"], bank["test_score"])
+        self.assertFalse(nifty["included_in_asset_final"])
+        self.assertFalse(bank["included_in_asset_final"])
+        self.assertFalse(nifty["coverage_validated"])
+        self.assertEqual(nifty["test_score_status"], "ARCHIVE_PAIR_TEST_ONLY_NOT_LIVE")
+
+    def test_option_buildup_archive_does_not_score_insufficient_classified_contracts(self):
+        def row(side, strike, close, oi):
+            return {"expiry": "2026-11-12", "side": side, "strike": strike,
+                    "close": close, "open_interest": oi}
+        old, new = [], []
+        for i in range(10):
+            for side in ("CE", "PE"):
+                old.append(row(side, 25000+i, 100, 1000))
+                new.append(row(side, 25000+i, 110 if side == "CE" else 90, 1100))
+        archive = {"records": [
+            {"date": "2026-11-11", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        result = summarize_option_buildup(archive, min_classified=100)["assets"]["NIFTY"]
+        self.assertEqual(result["matched_contracts"], 20)
+        self.assertEqual(result["classified_contracts"], 20)
+        self.assertIsNone(result["test_score"])
+        self.assertEqual(result["test_score_status"], "UNAVAILABLE")
+        self.assertFalse(result["included_in_asset_final"])
+
 
 
 if __name__ == "__main__":
