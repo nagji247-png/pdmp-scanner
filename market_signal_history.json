@@ -108425,10 +108425,10 @@
     },
     {
       "date": "2026-11-25",
-      "captured_at_utc": "2026-11-25T18:07Z",
-      "captured_at_ist": "2026-11-25T23:38+05:30",
+      "captured_at_utc": "2026-11-25T18:17Z",
+      "captured_at_ist": "2026-11-25T23:48+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-25T18:07Z",
+      "news_capture_time_utc": "2026-11-25T18:17Z",
       "trends": {
         "valid": true,
         "as_of": "2026-11-25T18:00:00+00:00",
@@ -108455,14 +108455,7 @@
             {
               "id": "1300",
               "time": "13:00",
-              "status": "success",
-              "source_data_time": "2026-11-25T18:00:00+00:00",
-              "basis": "now_1d_anchor_relative",
-              "timeframe": "now 1-d",
-              "bull_pct": 0.0,
-              "bear_pct": 83.3,
-              "neutral_pct": 16.7,
-              "crowd_pct": 0.0
+              "status": "pending"
             },
             {
               "id": "1900",
@@ -108474,91 +108467,91 @@
       },
       "market_news_context": {
         "ok": true,
-        "as_of": "2026-11-25T18:07Z",
+        "as_of": "2026-11-25T18:17Z",
         "items": [
           {
             "topic": "कच्चा तेल",
             "title": "Oil prices rise over 1% after Houthis say they attacked Saudi refinery",
             "source": "Reuters",
             "score": 1,
-            "age_hours": 0.5
+            "age_hours": 0.7
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Trump set to add new sweeping tariffs, undeterred by midterms defeat",
             "source": "Yahoo Finance",
             "score": 0,
-            "age_hours": 1.0
+            "age_hours": 1.2
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Trump Unveils New Tariffs on Factory Capacity After Midterm Setback",
             "source": "Global Banking & Finance Review",
             "score": 0,
-            "age_hours": 1.2
+            "age_hours": 1.4
           },
           {
             "topic": "अमेरिकी Fed और ब्याज दर",
             "title": "Gold Hits Near 15-Month Lows, Silver Crashes Below $40 Amid Fed Hike Fears – All Eyes On The Fed Rate Decision",
             "source": "TradingView",
             "score": -2,
-            "age_hours": 1.5
+            "age_hours": 1.7
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex, Nifty surge nearly 2% to post their best session since November 6",
+            "source": "Business Standard",
+            "score": 2,
+            "age_hours": 2.9
           },
           {
             "topic": "कच्चा तेल",
             "title": "Crude Oil Price Forecast: Rising Supplies Threaten a Sustained Rally",
             "source": "FXEmpire",
             "score": 2,
-            "age_hours": 2.9
+            "age_hours": 3.0
+          },
+          {
+            "topic": "अमेरिकी Fed और ब्याज दर",
+            "title": "Bitcoin vs Good Outlook: BTC and XAU falter after hotter-than-expected US PCE inflation",
+            "source": "www.tmgm.com",
+            "score": 0,
+            "age_hours": 3.0
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Stock Market Today: S&P 500, Nasdaq Fall After Trump Proposes New Tariffs",
             "source": "CryptoRank",
             "score": -1,
-            "age_hours": 2.9
+            "age_hours": 3.1
           },
           {
             "topic": "कच्चा तेल",
             "title": "Global crude oil prices rise, Brent trades above $92 per barrel",
             "source": "News On AIR",
             "score": 1,
-            "age_hours": 3.2
+            "age_hours": 3.3
           },
           {
-            "topic": "अमेरिकी Fed और ब्याज दर",
-            "title": "Fed's preferred gauge of inflation climbs ahead of possible rate hike - ABC News",
-            "source": "Breaking News, Latest News and Videos",
+            "topic": "RBI नीति",
+            "title": "Fed monetary news linked to weaker rupee, higher G-sec yields: RBI study",
+            "source": "Business Standard",
             "score": 1,
-            "age_hours": 3.9
+            "age_hours": 4.1
           },
           {
             "topic": "RBI नीति",
             "title": "India's RBI sees broad food inflation pressures; was net dollar buyer in Sept, bulletin shows",
             "source": "Reuters",
             "score": 1,
-            "age_hours": 4.2
+            "age_hours": 4.3
           },
           {
             "topic": "RBI नीति",
             "title": "Fed's monetary policy signals linked to rupee depreciation, higher bond yields, according to RBI...",
             "source": "Moneycontrol.com",
             "score": 1,
-            "age_hours": 4.3
-          },
-          {
-            "topic": "भारतीय बाज़ार",
-            "title": "Why is the Stock Market Up Today? BSE Sensex Soars Over 1400 Points; Nifty 50 Nears 25,800",
-            "source": "Kotak Neo",
-            "score": 0,
-            "age_hours": 4.5
-          },
-          {
-            "topic": "RBI नीति",
-            "title": "RBI may opt for 25 bps rate hike as oil eases, inflation risks persist: Baroda BNP Paribas MF CIO",
-            "source": "The Economic Times",
-            "score": 0,
-            "age_hours": 5.0
+            "age_hours": 4.4
           }
         ]
       },
@@ -108591,48 +108584,50 @@
             },
             "components": {
               "news": {
-                "score": 1.29,
+                "score": 1.39,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T15:22:07Z",
-                "oldest_headline_published_at": "2026-11-25T09:45:04Z",
+                "oldest_headline_published_at": "2026-11-25T09:37:29Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "Dalal Street Investment Journal",
                   "Investing.com",
                   "Investing.com India",
                   "Kotak Neo"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 2.76,
+                "newest_headline_age_h": 2.93,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
             },
             "provisional_components": {
               "news": {
-                "score": 1.29,
+                "score": 1.39,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T15:22:07Z",
-                "oldest_headline_published_at": "2026-11-25T09:45:04Z",
+                "oldest_headline_published_at": "2026-11-25T09:37:29Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "Dalal Street Investment Journal",
                   "Investing.com",
                   "Investing.com India",
                   "Kotak Neo"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 2.76,
+                "newest_headline_age_h": 2.93,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -108664,7 +108659,7 @@
             },
             "provisional_final": {
               "status": "available",
-              "score": 0.82,
+              "score": 0.86,
               "included_components": [
                 "news",
                 "eod_oi"
@@ -108677,24 +108672,25 @@
             },
             "experimental_combined_components": {
               "news": {
-                "score": 1.29,
+                "score": 1.39,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T15:22:07Z",
-                "oldest_headline_published_at": "2026-11-25T09:45:04Z",
+                "oldest_headline_published_at": "2026-11-25T09:37:29Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "Dalal Street Investment Journal",
                   "Investing.com",
                   "Investing.com India",
                   "Kotak Neo"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 2.76,
+                "newest_headline_age_h": 2.93,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -108775,7 +108771,7 @@
             },
             "experimental_combined_final": {
               "status": "available",
-              "score": -1.27,
+              "score": -1.25,
               "included_components": [
                 "news",
                 "eod_oi",
@@ -108805,6 +108801,7 @@
               "score": -5.6,
               "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
               "source_date": "2026-11-23",
+              "diagnostic_updated_at_utc": null,
               "research_only": true,
               "score_eligible": false,
               "included": false,
@@ -109270,7 +109267,7 @@
                 }
               ],
               "cash_breadth_score": -5.6,
-              "combined_score": -1.27,
+              "combined_score": -1.25,
               "combined_included_components": [
                 "news",
                 "eod_oi",
@@ -111746,6 +111743,7 @@
               "coverage_validated": false,
               "included_in_asset_final": false,
               "source_date": "2026-11-25",
+              "fetched_at": "2026-11-25T13:41:43Z",
               "previous_source_date": "2026-11-23",
               "reason": null,
               "integrity_validation": "PASSED",
@@ -112112,7 +112110,7 @@
             },
             "final": {
               "status": "available",
-              "score": 1.29,
+              "score": 1.39,
               "included_components": [
                 "news"
               ],
@@ -112123,62 +112121,62 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 8.8,
-          "experimental_news_score": 1.3,
-          "experimental_score": -4.4,
+          "headline_score": 9.4,
+          "experimental_news_score": 1.4,
+          "experimental_score": -4.3,
           "experimental_score_mode": "shadow_news24h_dedup_crowd",
-          "experimental_headline_count": 5,
+          "experimental_headline_count": 6,
           "experimental_excluded_old_or_unknown": 0,
-          "experimental_excluded_cross_index_duplicates": 3,
+          "experimental_excluded_cross_index_duplicates": 2,
           "headline_count": 8,
           "headlines": [
             {
               "title": "Sensex, Nifty surge nearly 2% to post their best session since November 6",
               "source": "Business Standard",
               "score": 2,
-              "age_hours": 2.8
+              "age_hours": 2.9
             },
             {
               "title": "Closing Bell: Sensex Surges 1,500 Points, Nifty 50 Gains 1.85% as FMCG and Banking Stocks Lead Market Recovery",
               "source": "Dalal Street Investment Journal",
               "score": 3,
-              "age_hours": 7.0
+              "age_hours": 7.2
             },
             {
               "title": "Closing Bell 25 November 2026: Sensex and Nifty 50 Rebound as FII Inflows and Lower Crude Support Markets",
               "source": "Kotak Neo",
               "score": 0,
-              "age_hours": 7.0
+              "age_hours": 7.2
             },
             {
               "title": "Sensex jumps 1,500 points, Nifty reclaims 25,800 as FMCG, private banks lead rally; broader markets lag",
               "source": "Fortune India",
               "score": 3,
-              "age_hours": 7.5
+              "age_hours": 7.6
             },
             {
               "title": "India stocks higher at close of trade; Nifty 50 up 1.85%",
               "source": "Investing.com",
               "score": 1,
-              "age_hours": 7.6
+              "age_hours": 7.7
             },
             {
               "title": "India shares higher at close of trade; Nifty 50 up 1.85% By Investing.com",
               "source": "Investing.com India",
               "score": 1,
-              "age_hours": 7.6
+              "age_hours": 7.8
             },
             {
               "title": "Nifty FMCG index soars 3%; Dabur, Godrej Consumer, HUL rally up to 8%",
               "source": "Business Standard",
               "score": 2,
-              "age_hours": 8.4
+              "age_hours": 8.5
             },
             {
               "title": "Sensex Gains 1,323 Points, Nifty 50 Rises 1.52% as Banking and IT Stocks Support Markets",
               "source": "Dalal Street Investment Journal",
               "score": 2,
-              "age_hours": 8.5
+              "age_hours": 8.7
             }
           ],
           "client_retail_adjustment": 0.51,
@@ -112218,7 +112216,7 @@
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T10:55:34Z",
                 "oldest_headline_published_at": "2026-11-25T05:02:35Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -112230,7 +112228,7 @@
                   "The Times of India"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 7.2,
+                "newest_headline_age_h": 7.37,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -112242,7 +112240,7 @@
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T10:55:34Z",
                 "oldest_headline_published_at": "2026-11-25T05:02:35Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -112254,7 +112252,7 @@
                   "The Times of India"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 7.2,
+                "newest_headline_age_h": 7.37,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -112277,7 +112275,7 @@
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T10:55:34Z",
                 "oldest_headline_published_at": "2026-11-25T05:02:35Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -112289,7 +112287,7 @@
                   "The Times of India"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 7.2,
+                "newest_headline_age_h": 7.37,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -112373,6 +112371,7 @@
               "score": -4.67,
               "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
               "source_date": "2026-11-23",
+              "diagnostic_updated_at_utc": null,
               "research_only": true,
               "score_eligible": false,
               "included": false,
@@ -113031,7 +113030,7 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 5.0,
+          "headline_score": 3.3,
           "experimental_news_score": 1.4,
           "experimental_score": -4.3,
           "experimental_score_mode": "shadow_news24h_dedup_crowd",
@@ -113044,53 +113043,53 @@
               "title": "Indian Equities Defy Asian Trend, Sensex Jumps 1,502 Points",
               "source": "Rediff.com",
               "score": 1,
-              "age_hours": 7.2
+              "age_hours": 7.4
             },
             {
               "title": "Sensex Today Rallies 1,502 Points | Nifty Above 25,800 | 3 Reasons Why Indian Share Markets Are Rising",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 7.4
+              "age_hours": 7.6
             },
             {
               "title": "Indian equity indices stage strong recovery as Sensex jumps 2000 points - India Today",
               "source": "India Today",
               "score": 1,
-              "age_hours": 11.0
+              "age_hours": 11.1
             },
             {
               "title": "Stock market today: Sensex jumps over 2000 points; Nifty50 tops 25,900! Investors richer by Rs 3.84 lakh",
               "source": "The Times of India",
               "score": 1,
-              "age_hours": 12.6
+              "age_hours": 12.7
             },
             {
               "title": "Sensex Today Rallies 1,290 Points | Nifty Above 25,700 | BSE Insurance Index 2.5%",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 13.1
+              "age_hours": 13.3
             },
             {
               "title": "Indian Stocks Add Nearly Rs 35 Lakh Crore in November as Sensex Gains 11 Percent",
               "source": "INDIA New England News",
               "score": 1,
-              "age_hours": 25.9
-            },
-            {
-              "title": "Sensex Today Ends 417 Points Lower | Nifty Below 23,900 | ITC & Trent Losers",
-              "source": "Equitymaster",
-              "score": -1,
-              "age_hours": 30.2
+              "age_hours": 26.1
             },
             {
               "title": "Bulls take a breather! Sensex dives 1,500 pts intraday; a short-term blip?",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 58.7
+              "age_hours": 58.9
+            },
+            {
+              "title": "NIFTY50, SENSEX fall over 1%, NIFTY Bank drops as India VIX jumps nearly 8%; Why is the stock market falling today?",
+              "source": "Upstox",
+              "score": -2,
+              "age_hours": 60.3
             }
           ],
           "client_retail_adjustment": 0.51,
-          "published_score": 0.0,
+          "published_score": -1.7,
           "published_score_mode": "news_crowd"
         },
         "BANKNIFTY": {
@@ -113121,24 +113120,25 @@
             },
             "components": {
               "news": {
-                "score": 1.63,
+                "score": 1.31,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T12:24:23Z",
                 "oldest_headline_published_at": "2026-11-25T05:35:51Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "INDIA New England News",
                   "India Infoline",
                   "Kotak Neo",
                   "TradingView"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 5.72,
+                "newest_headline_age_h": 5.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -113177,24 +113177,25 @@
             },
             "provisional_components": {
               "news": {
-                "score": 1.63,
+                "score": 1.31,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T12:24:23Z",
                 "oldest_headline_published_at": "2026-11-25T05:35:51Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "INDIA New England News",
                   "India Infoline",
                   "Kotak Neo",
                   "TradingView"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 5.72,
+                "newest_headline_age_h": 5.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -113258,7 +113259,7 @@
             },
             "provisional_final": {
               "status": "available",
-              "score": 0.71,
+              "score": 0.61,
               "included_components": [
                 "news",
                 "search",
@@ -113273,24 +113274,25 @@
             },
             "experimental_combined_components": {
               "news": {
-                "score": 1.63,
+                "score": 1.31,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
+                "observed_at": "2026-11-25T18:17Z",
                 "newest_headline_published_at": "2026-11-25T12:24:23Z",
                 "oldest_headline_published_at": "2026-11-25T05:35:51Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
-                "evidence_count": 5,
+                "evidence_count": 6,
                 "publishers": [
                   "Business Standard",
+                  "INDIA New England News",
                   "India Infoline",
                   "Kotak Neo",
                   "TradingView"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 5.72,
+                "newest_headline_age_h": 5.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -113403,7 +113405,7 @@
             },
             "experimental_combined_final": {
               "status": "available",
-              "score": -1.79,
+              "score": -1.84,
               "included_components": [
                 "news",
                 "search",
@@ -113435,6 +113437,7 @@
               "score": -10.0,
               "source": "Official NSE/BSE CM UDiFF · equal-weight breadth",
               "source_date": "2026-11-23",
+              "diagnostic_updated_at_utc": null,
               "research_only": true,
               "score_eligible": false,
               "included": false,
@@ -113576,7 +113579,7 @@
                 }
               ],
               "cash_breadth_score": -10.0,
-              "combined_score": -1.79,
+              "combined_score": -1.84,
               "combined_included_components": [
                 "news",
                 "search",
@@ -116846,6 +116849,7 @@
               "coverage_validated": false,
               "included_in_asset_final": false,
               "source_date": "2026-11-25",
+              "fetched_at": "2026-11-25T13:41:43Z",
               "previous_source_date": "2026-11-23",
               "reason": null,
               "integrity_validation": "PASSED",
@@ -117151,7 +117155,7 @@
             },
             "final": {
               "status": "available",
-              "score": 0.97,
+              "score": 0.81,
               "included_components": [
                 "news",
                 "search"
@@ -117164,62 +117168,62 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 10.3,
-          "experimental_news_score": 1.6,
-          "experimental_score": -4.2,
+          "headline_score": 7.0,
+          "experimental_news_score": 1.3,
+          "experimental_score": -4.3,
           "experimental_score_mode": "shadow_news24h_dedup_crowd",
-          "experimental_headline_count": 5,
+          "experimental_headline_count": 6,
           "experimental_excluded_old_or_unknown": 0,
-          "experimental_excluded_cross_index_duplicates": 3,
+          "experimental_excluded_cross_index_duplicates": 2,
           "headline_count": 8,
           "headlines": [
             {
               "title": "PNB partners with Deutsche Bank to explore acquisition financing in India",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 5.7
+              "age_hours": 5.9
+            },
+            {
+              "title": "Nifty Reaches Nine-Month High as Bank Nifty Hits Record on Strong Buying",
+              "source": "INDIA New England News",
+              "score": 1,
+              "age_hours": 6.0
             },
             {
               "title": "Closing Bell: Sensex Surges 1,500 Points, Nifty 50 Gains 1.85% as FMCG and Banking Stocks Lead Market Recovery",
               "source": "Dalal Street Investment Journal",
               "score": 3,
-              "age_hours": 7.0
+              "age_hours": 7.2
             },
             {
               "title": "Sensex jumps 1,500 points, Nifty reclaims 25,800 as FMCG, private banks lead rally; broader markets lag",
               "source": "Fortune India",
               "score": 3,
-              "age_hours": 7.5
+              "age_hours": 7.6
             },
             {
               "title": "News by CNBC TV18 on TradingView, 2026-11-25 — cnbctv:16d362620094b:0",
               "source": "TradingView",
               "score": 0,
-              "age_hours": 8.0
-            },
-            {
-              "title": "Sensex Gains 1,323 Points, Nifty 50 Rises 1.52% as Banking and IT Stocks Support Markets",
-              "source": "Dalal Street Investment Journal",
-              "score": 2,
-              "age_hours": 8.5
+              "age_hours": 8.2
             },
             {
               "title": "Bank Nifty Jumps Over 1,100 Points Today as HDFC Bank and ICICI Bank Shares Rally Over 3%; Private Banks Lead Gains",
               "source": "Kotak Neo",
               "score": 4,
-              "age_hours": 11.9
+              "age_hours": 12.0
             },
             {
               "title": "ICICI Bank, HDFC Bank, Reliance, and Airtel lead Nifty to 45% rally",
               "source": "India Infoline",
               "score": 2,
-              "age_hours": 12.1
+              "age_hours": 12.3
             },
             {
               "title": "Sensex Today: Sensex surges past 84,000, Nifty gains over 500 points",
               "source": "India Infoline",
               "score": 3,
-              "age_hours": 12.5
+              "age_hours": 12.7
             }
           ],
           "client_retail_adjustment": 0.51,
@@ -117229,13 +117233,13 @@
       },
       "other_assets": {
         "GOLD": {
-          "close": 127050.5,
+          "close": 127168.95,
           "close_as_of": "2026-11-25",
           "close_valid": true,
           "price_source": "MCX पिछला बंद भाव × 3% GST Estimate",
-          "day_change_pct": -1.38,
-          "headline_score": -4.8,
-          "published_score": -4.8,
+          "day_change_pct": -1.28,
+          "headline_score": -4.5,
+          "published_score": -4.5,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -117257,13 +117261,13 @@
             },
             "components": {
               "news": {
-                "score": -0.96,
+                "score": -0.85,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
-                "newest_headline_published_at": "2026-11-25T16:36:00Z",
+                "observed_at": "2026-11-25T18:17Z",
+                "newest_headline_published_at": "2026-11-25T17:33:00Z",
                 "oldest_headline_published_at": "2026-11-25T12:00:17Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
@@ -117277,20 +117281,20 @@
                   "Upstox"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.53,
+                "newest_headline_age_h": 0.75,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -0.96,
+                "score": -0.85,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
-                "newest_headline_published_at": "2026-11-25T16:36:00Z",
+                "observed_at": "2026-11-25T18:17Z",
+                "newest_headline_published_at": "2026-11-25T17:33:00Z",
                 "oldest_headline_published_at": "2026-11-25T12:00:17Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
@@ -117304,14 +117308,14 @@
                   "Upstox"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.53,
+                "newest_headline_age_h": 0.75,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": -0.96,
+              "score": -0.85,
               "included_components": [
                 "news"
               ],
@@ -117537,7 +117541,7 @@
             "client_market_context": null,
             "final": {
               "status": "available",
-              "score": -0.96,
+              "score": -0.85,
               "included_components": [
                 "news"
               ],
@@ -117729,7 +117733,8 @@
               "available": false,
               "diagnostic_only": true,
               "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
-            }
+            },
+            "cached": true
           },
           "headline_count": 8,
           "headlines": [
@@ -117737,60 +117742,60 @@
               "title": "Gold, Silver Rate Today Live Updates: Gold falls Rs 800 to Rs 1.26 lakh per 10 grams, silver crashes Rs 7,000 to hit one-year low",
               "source": "The Times of India",
               "score": -3,
-              "age_hours": 1.5
+              "age_hours": 0.7
             },
             {
               "title": "Gold price tracker, Nov 25: COMEX gold declines 2.4%, silver tumbles 4% as US PCE inflations jumps to 3.8%",
               "source": "Upstox",
               "score": -2,
-              "age_hours": 3.6
+              "age_hours": 3.8
             },
             {
               "title": "Gold rate outlook for November 26: MCX gold drops 1.29%; will prices fall further or recover on Thursday?",
               "source": "Livemint",
               "score": -2,
-              "age_hours": 4.1
+              "age_hours": 4.3
             },
             {
               "title": "Gold Price Forecast: Rallies Remain Vulnerable Despite Falling Yields",
               "source": "FXEmpire",
               "score": 1,
-              "age_hours": 4.6
+              "age_hours": 4.7
             },
             {
               "title": "Gold price falls to $3,496/oz after U.S. durable goods rise 0.2% in October",
               "source": "Kitco",
               "score": 0,
-              "age_hours": 4.9
+              "age_hours": 5.0
             },
             {
-              "title": "Gold price approaches $3,500/oz after U.S. weekly jobless claims fall to 189k",
-              "source": "Kitco",
-              "score": -1,
-              "age_hours": 4.9
+              "title": "Gold Rate Today in Kalahandi (25 Nov 2026)",
+              "source": "Kotak Neo",
+              "score": 0,
+              "age_hours": 5.4
             },
             {
               "title": "Gold Price Analysis as $3,500 Support Shapes the Next Market Move",
               "source": "Brave New Coin",
               "score": 0,
-              "age_hours": 6.1
+              "age_hours": 6.3
             },
             {
               "title": "Gold Rate Today in India, 25 Nov 2026 - Live 18K, 22K & 24K Gold Prices",
               "source": "Kotak Neo",
               "score": 0,
-              "age_hours": 6.1
+              "age_hours": 6.3
             }
           ]
         },
         "SILVER": {
-          "close": 150210.05,
+          "close": 150540.68,
           "close_as_of": "2026-11-25",
           "close_valid": true,
           "price_source": "MCX पिछला बंद भाव + 3% GST Estimate",
-          "day_change_pct": -2.69,
-          "headline_score": -7.4,
-          "published_score": -7.4,
+          "day_change_pct": -2.47,
+          "headline_score": -5.2,
+          "published_score": -5.2,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -117812,63 +117817,63 @@
             },
             "components": {
               "news": {
-                "score": -1.46,
+                "score": -1.49,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
-                "newest_headline_published_at": "2026-11-25T16:36:00Z",
-                "oldest_headline_published_at": "2026-11-25T04:37:00Z",
+                "observed_at": "2026-11-25T18:17Z",
+                "newest_headline_published_at": "2026-11-25T17:45:20Z",
+                "oldest_headline_published_at": "2026-11-25T05:42:17Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
+                  "Business Standard",
                   "FXEmpire",
                   "India Infoline",
                   "Inshorts",
                   "Kitco",
-                  "Rediff MoneyWiz",
                   "Sandesh",
                   "The Times of India",
                   "Traders Union"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.53,
+                "newest_headline_age_h": 0.54,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -1.46,
+                "score": -1.49,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-25",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-25T18:07Z",
-                "newest_headline_published_at": "2026-11-25T16:36:00Z",
-                "oldest_headline_published_at": "2026-11-25T04:37:00Z",
+                "observed_at": "2026-11-25T18:17Z",
+                "newest_headline_published_at": "2026-11-25T17:45:20Z",
+                "oldest_headline_published_at": "2026-11-25T05:42:17Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
                 "evidence_count": 8,
                 "publishers": [
+                  "Business Standard",
                   "FXEmpire",
                   "India Infoline",
                   "Inshorts",
                   "Kitco",
-                  "Rediff MoneyWiz",
                   "Sandesh",
                   "The Times of India",
                   "Traders Union"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.53,
+                "newest_headline_age_h": 0.54,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": -1.46,
+              "score": -1.49,
               "included_components": [
                 "news"
               ],
@@ -118083,7 +118088,7 @@
             "client_market_context": null,
             "final": {
               "status": "available",
-              "score": -1.46,
+              "score": -1.49,
               "included_components": [
                 "news"
               ],
@@ -118264,57 +118269,58 @@
               "available": false,
               "diagnostic_only": true,
               "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
-            }
+            },
+            "cached": true
           },
           "headline_count": 8,
           "headlines": [
             {
+              "title": "Lower inflation, US rate cuts may trigger recovery in gold, silver prices",
+              "source": "Business Standard",
+              "score": -1,
+              "age_hours": 0.5
+            },
+            {
               "title": "Gold, Silver Rate Today Live Updates: Gold falls Rs 800 to Rs 1.26 lakh per 10 grams, silver crashes Rs 7,000 to hit one-year low",
               "source": "The Times of India",
               "score": -3,
-              "age_hours": 1.5
+              "age_hours": 0.7
             },
             {
               "title": "Silver price falls over 6% as US dollar strength and Fed rate hike prospects pressure metals",
               "source": "Traders Union",
               "score": -1,
-              "age_hours": 2.8
+              "age_hours": 2.9
             },
             {
               "title": "The silver trade that cost Felix Zulauf 50%, and why he says gold's fall is different",
               "source": "Kitco",
               "score": -1,
-              "age_hours": 3.3
+              "age_hours": 3.5
             },
             {
               "title": "Gold and silver prices crash in India",
               "source": "Inshorts",
               "score": -2,
-              "age_hours": 4.0
+              "age_hours": 4.2
             },
             {
               "title": "Gold and Silver Price Forecast: AI Selloff Puts Key Support at Risk",
               "source": "FXEmpire",
               "score": -2,
-              "age_hours": 11.6
+              "age_hours": 11.7
             },
             {
               "title": "Gold Price Today: Gold Falls ₹290, Silver Slips ₹340; Check City-Wise Prices",
               "source": "India Infoline",
               "score": -2,
-              "age_hours": 12.0
+              "age_hours": 12.2
             },
             {
               "title": "Gold Silver Price Today Gold and silver prices surge again How much did the price of 10 grams of gold fall today",
               "source": "Sandesh",
               "score": 1,
-              "age_hours": 12.4
-            },
-            {
-              "title": "Chennai Bullion Rates: Gold & Silver Prices - Nov 25",
-              "source": "Rediff MoneyWiz",
-              "score": 0,
-              "age_hours": 13.5
+              "age_hours": 12.6
             }
           ]
         }
@@ -118459,5 +118465,5 @@
       }
     }
   ],
-  "updated_at": "2026-11-25T18:07Z"
+  "updated_at": "2026-11-25T18:17Z"
 }
