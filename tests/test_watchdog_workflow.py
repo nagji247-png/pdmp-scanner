@@ -14,7 +14,8 @@ class WatchdogWorkflowConfigTests(unittest.TestCase):
         scan = Path(".github/workflows/scan.yml").read_text(encoding="utf-8")
         self.assertIn('event_type": "scan-watchdog"', watchdog)
         self.assertIn("repository_dispatch:", scan)
-        self.assertIn("types: [scan-watchdog]", scan)
+        self.assertIn("scan-watchdog", scan)
+        self.assertIn("trends-slot-recovery", scan)
 
     def test_workflow_run_scan_checks_out_latest_main_not_archive_run_sha(self):
         scan = Path(".github/workflows/scan.yml").read_text(encoding="utf-8")
