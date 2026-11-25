@@ -7,6 +7,8 @@ on:
     paths:
       - "fetch_and_score.py"
       - "signal_performance.py"
+      - "signal-performance.js"
+      - "tests/test_signal_performance.py"
       - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
       - "stock_basket_freshness.py"
@@ -31,6 +33,7 @@ on:
     paths:
       - "fetch_and_score.py"
       - "signal_performance.py"
+      - "signal-performance.js"
       - "tests/test_signal_performance.py"
       - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
