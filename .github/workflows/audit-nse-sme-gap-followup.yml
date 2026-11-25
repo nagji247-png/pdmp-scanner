@@ -1,0 +1,70 @@
+name: NSE MCP SME Gap Follow-up
+
+on:
+  push:
+    branches:
+      - audit/nse-sme-a-to-z-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-sme-gap-followup
+  cancel-in-progress: false
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check curl_cffi
+      - name: One bounded follow-up for I, T and SME status
+        run: |
+          python - <<'PY'
+          import json,time
+          from datetime import datetime,timezone
+          from curl_cffi import requests
+          URL="https://mcp.nseindia.in/cmmkt/mcp"
+          s=requests.Session(impersonate="chrome124")
+          h={"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+          def dec(r):
+              if "text/event-stream" in r.headers.get("content-type","").lower():
+                  for b in reversed(r.text.replace("\r\n","\n").split("\n\n")):
+                      z="\n".join(x[5:].lstrip() for x in b.splitlines() if x.startswith("data:"))
+                      if z.strip(): return json.loads(z)
+                  raise RuntimeError("No SSE JSON")
+              return r.json()
+          def post(p,extra=None):
+              hh=dict(h); hh.update(extra or {})
+              r=s.post(URL,headers=hh,json=p,timeout=35); r.raise_for_status()
+              o=dec(r)
+              if o.get("error"): raise RuntimeError(str(o["error"]))
+              return o,r
+          _,ir=post({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-sme-gap-followup","version":"1.0"}}})
+          sid=ir.headers.get("mcp-session-id") or ir.headers.get("Mcp-Session-Id")
+          sh={"Mcp-Session-Id":sid} if sid else {}
+          tasks=[("SME_STATUS","cm_get_allstocks_status",{}),("SME_I","cm_get_sme_stocks",{"limit":500,"symbolFilter":"I"}),("SME_T","cm_get_sme_stocks",{"limit":500,"symbolFilter":"T"})]
+          out=[]
+          for i,(label,tool,args) in enumerate(tasks,2):
+              try:
+                  x,_=post({"jsonrpc":"2.0","id":i,"method":"tools/call","params":{"name":tool,"arguments":args}},sh)
+                  res=x.get("result") or {}
+                  out.append({"label":label,"ok":not res.get("isError",False),"structuredContent":res.get("structuredContent"),"content":res.get("content")})
+                  print(label,"OK")
+              except Exception as e:
+                  out.append({"label":label,"ok":False,"error":str(e)[:1000]})
+                  print(label,"ERROR",str(e)[:300])
+              time.sleep(2)
+          report={"captured_at_utc":datetime.now(timezone.utc).isoformat(),"calls":len(tasks),"retry_policy":"one targeted follow-up call per I/T prefix; no retries","results":out}
+          with open("nse_sme_gap_followup.json","w",encoding="utf-8") as f: json.dump(report,f,ensure_ascii=False,indent=2,default=str)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nse-sme-gap-followup
+          path: nse_sme_gap_followup.json
+          retention-days: 14
