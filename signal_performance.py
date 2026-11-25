@@ -266,7 +266,7 @@ def collect_signals(data, master, daily, contrarian, fpi, stamp):
         score = number(item.get("score"))
         if score is not None:
             found.append(make_event("NEXT-SESSION REVERSAL", symbol,
-                                    "BULLISH" if score > 0 else "BEARISH",
+                                    "BEARISH" if score > 0 else "BULLISH",
                                     signal_date, event_stamp, price=price,
                                     source=(quotes.get(symbol) or {}).get("price_source") or "TRINETRA event-time quote",
                                     details={"contrarian_score": score}))
