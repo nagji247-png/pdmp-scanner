@@ -62,7 +62,9 @@ class TrinetraRealNseArchiveIntegrationTests(unittest.TestCase):
             self.assertTrue(option.get("test_only"))
             self.assertEqual(option.get("source_date"), "2026-11-25")
             self.assertEqual(combined.get("status"), "available")
-            self.assertAlmostEqual(combined.get("score"), option.get("score"), places=6)
+            self.assertAlmostEqual(option.get("score"), expected_option_scores[symbol], places=4)
+            # combine_components intentionally rounds the weighted result to 2 decimals.
+            self.assertEqual(combined.get("score"), round(expected_option_scores[symbol], 2))
             self.assertIn("option_buildup", combined.get("included_components", []))
             self.assertFalse(breakdown["provisional_final"].get("status") == "available")
             self.assertNotIn("option_buildup", breakdown["provisional_components"])
