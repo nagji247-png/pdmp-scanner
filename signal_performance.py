@@ -121,7 +121,9 @@ def capture_radar_and_sectors(events, seen, data, master, calendar):
     stocks = (master.get("stocks") or {}) if isinstance(master, dict) else {}
     sector_members = {}
     valid_prices = {}
-    for symbol, info in stocks.items():
+    all_symbols = set(stocks) | set(quotes)
+    for symbol in all_symbols:
+        info = stocks.get(symbol) or {}
         q = quotes.get(symbol) or (data.get("instruments") or {}).get(symbol) or {}
         price = number(q.get("price"))
         change = number(q.get("change_pct"))
@@ -129,7 +131,7 @@ def capture_radar_and_sectors(events, seen, data, master, calendar):
         if price is None or price <= 0 or change is None or qday != day:
             continue
         valid_prices[symbol] = price
-        sector = str((info or {}).get("sector") or "सेक्टर उपलब्ध नहीं")
+        sector = str((info or {}).get("sector") or "सेक्टर मैपिंग उपलब्ध नहीं")
         sector_members.setdefault(sector, []).append((symbol, price, change))
     bull_sectors, bear_sectors = 0, 0
     for sector, members in sector_members.items():
@@ -287,6 +289,9 @@ def evaluate_pending(events, data, calendar):
             if price is not None and base and base > 0 and price > 0:
                 moves.append((price / base - 1) * 100)
         if not moves:
+            if event.get("target_session") and event.get("target_session") < day_text:
+                event.update({"status": "unverified", "result": "UNVERIFIED",
+                              "reason": "अगले ट्रेडिंग सेशन की प्रमाणित क्लोजिंग उपलब्ध नहीं मिली"})
             continue
         actual = sum(moves) / len(moves)
         expected_sign = 1 if event.get("direction") == "BULLISH" else -1
@@ -310,13 +315,14 @@ def build_summary(events):
         correct = sum(e["result"] == "CORRECT" for e in done)
         incorrect = sum(e["result"] == "INCORRECT" for e in done)
         flat = sum(e["result"] == "FLAT" for e in done)
+        unverified = sum(e.get("status") == "unverified" for e in rows)
         returns = [number(e.get("return_pct")) for e in done]
         returns = [x for x in returns if x is not None]
         gains = sum(x for x in returns if x > 0)
         losses = -sum(x for x in returns if x < 0)
         summary[department] = {
             "total": len(rows), "evaluated": len(done), "pending": sum(e.get("status") == "pending" for e in rows),
-            "correct": correct, "incorrect": incorrect, "flat": flat,
+            "correct": correct, "incorrect": incorrect, "flat": flat, "unverified": unverified,
             "accuracy_pct": round(correct / (correct + incorrect) * 100, 2) if correct + incorrect else None,
             "average_profit_pct": round(sum(x for x in returns if x > 0) / sum(x > 0 for x in returns), 4) if any(x > 0 for x in returns) else None,
             "average_loss_pct": round(sum(x for x in returns if x < 0) / sum(x < 0 for x in returns), 4) if any(x < 0 for x in returns) else None,
