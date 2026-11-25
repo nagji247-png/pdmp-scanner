@@ -4867,23 +4867,20 @@ def _asset_search_direction(term, asset):
     explicit_neutral = {
         "sideways", "sideway", "rangebound", "range-bound", "flat",
         "unchanged", "steady", "stable", "consolidation", "consolidating",
-        "today", "live", "price", "option", "options", "chain", "prediction", "current",
+        "today", "live", "option", "options", "chain", "prediction", "current",
         "आज", "लाइव", "भाव", "कीमत", "ऑप्शन", "चेन", "भविष्यवाणी", "वर्तमान",
         "स्थिर", "स्थिरता", "सपाट", "सीमित", "दायरे", "दायरेबंद", "रेंज", "साइडवेज",
     }
-    if tokens & explicit_neutral:
-        return "neutral"
-    ambiguous = {"range", "target", "targets", "high", "low", "52"}
-    if tokens & ambiguous:
-        return None
     informational = {
         # अन्य navigation/analysis intent अलग रहे; market-check शब्द neutral हैं।
         "chart", "index", "market", "forecast", "forecasts",
         "expiry", "weekly", "monthly", "analysis", "technical", "support",
         "resistance", "level", "levels", "news", "tomorrow", "trading",
+        "share", "stock",
         "चार्ट", "अनुमान", "एक्सपायरी", "विश्लेषण", "समाचार", "कल",
     }
-    # Index/instrument lookup phrases are information intent, not neutral mood.
+    # Index/instrument lookup phrases must stay informational even when they
+    # also contain a neutral word such as "price".
     informational_phrases = (
         "nifty 50", "gift nifty", "sgx nifty", "nse nifty",
         "nifty share", "nifty stock", "sensex share", "sensex stock",
@@ -4891,6 +4888,14 @@ def _asset_search_direction(term, asset):
     )
     if tokens & informational or any(phrase in text for phrase in informational_phrases):
         return "informational"
+    if tokens & explicit_neutral:
+        return "neutral"
+    if ("price" in tokens and asset in {"NIFTY", "SENSEX", "BANKNIFTY"}
+            and not tokens & {"share", "stock"}):
+        return "neutral"
+    ambiguous = {"range", "target", "targets", "high", "low", "52"}
+    if tokens & ambiguous:
+        return None
     return None
 
 
