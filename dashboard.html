@@ -1000,6 +1000,14 @@ function renderComponentBreakdown(b, observedAt, assetName) {
     const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
     return m ? m[3] + "/" + m[2] + "/" + m[1] : (raw || "तारीख़ उपलब्ध नहीं");
   };
+  const updateText = value => {
+    const stamp = value ? new Date(value) : null;
+    if (!stamp || !Number.isFinite(stamp.getTime())) return "";
+    return stamp.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit",
+      year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+    }) + " IST";
+  };
   const rowHtml = Object.entries(labels).map(([key, label]) => {
     const item = components[key];
     const reasonKey = key;
@@ -1172,9 +1180,10 @@ function renderComponentBreakdown(b, observedAt, assetName) {
                 ' · PE ' + Number(entry.item.pe_oi_quantity || 0).toLocaleString("en-IN") + ')</div>').join("") +
               filters + categoryHtml
             : '<div class="hl-meta">' + esc(optionBuildup.reason || "दो तुलनीय NSE EOD सत्रों का डेटा उपलब्ध नहीं") + '</div>') +
-          (optionBuildupDisplay.source_date
-            ? '<div class="hl-meta">डेटा तारीख़: ' + esc(dateText(optionBuildupDisplay.source_date)) +
-              (optionBuildupDisplay.previous_source_date ? ' · पिछला सत्र: ' + esc(dateText(optionBuildupDisplay.previous_source_date)) : '') + '</div>'
+          (optionBuildupDisplay.source_date || optionBuildupDisplay.fetched_at
+            ? '<div class="hl-meta">डेटा तारीख़: ' + esc(optionBuildupDisplay.source_date ? dateText(optionBuildupDisplay.source_date) : "—") +
+              (optionBuildupDisplay.previous_source_date ? ' · पिछला सत्र: ' + esc(dateText(optionBuildupDisplay.previous_source_date)) : '') +
+              (updateText(optionBuildupDisplay.fetched_at) ? ' · आख़िरी अपडेट: ' + esc(updateText(optionBuildupDisplay.fetched_at)) : '') + '</div>'
             : '') +
           '<div class="hl-meta">स्रोत: NSE F&O UDiFF Common Bhavcopy Final · उसी Expiry, Strike और CE/PE का पिछला व आज का Closing Premium तथा OI मिलान। यह EOD diagnostic है, LIVE नहीं और Final Score में शामिल नहीं।</div>' +
           '<div class="hl-meta">मिलान किए गए कॉन्ट्रैक्ट: ' +
@@ -1451,6 +1460,14 @@ document.addEventListener("keydown", event => {
 });
 // Stock Basket refreshes from the latest available dated official EOD diagnostic after archive recovery.
 // Keep this panel research-only and score-ineligible.
+function formatTimestampIST(value) {
+  const stamp = value ? new Date(value) : null;
+  if (!stamp || !Number.isFinite(stamp.getTime())) return "";
+  return stamp.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit",
+    year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+  }) + " IST";
+}
 function renderStandaloneStockBasket(b, assetName) {
   const rawComponent = b && b.stock_basket_diagnostic;
   const combined = b && b.experimental_combined_final;
@@ -1489,12 +1506,14 @@ function renderStandaloneStockBasket(b, assetName) {
   const eodRaw = component && component.source_date ? String(component.source_date) : "";
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
+  const basketUpdatedAt = formatTimestampIST(component && component.diagnostic_updated_at_utc);
   return '<div class="stock-basket-compact">' +
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">TRINETRA 🔱</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
       '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
-      (eodDate ? '<small>EOD · ' + esc(eodDate) + '</small>' : '') +
+      (eodDate || basketUpdatedAt ? '<small>EOD डेटा: ' + esc(eodDate || "—") +
+        (basketUpdatedAt ? ' · अपडेट: ' + esc(basketUpdatedAt) : '') + '</small>' : '') +
     '</div>' +
     '</div>';
 }
