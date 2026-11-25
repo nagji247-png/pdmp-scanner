@@ -117,7 +117,10 @@ class AssetSearchCoverageQualityTests(unittest.TestCase):
                 self.assertEqual(snapshot["out_of_scope_queries"], 1)
                 self.assertEqual(snapshot["in_scope_queries"], snapshot["classified_queries"] + snapshot["informational_queries"])
                 self.assertEqual(snapshot["classification_coverage_pct"], 100.0)
-                self.assertGreater(snapshot["informational_queries"], 0)
+                if asset in {"NIFTY", "SENSEX", "BANKNIFTY"}:
+                    self.assertGreater(snapshot["informational_queries"], 0)
+                else:
+                    self.assertGreater(snapshot["classified_queries"], 0)
                 self.assertEqual(snapshot["raw_queries"],
                                  snapshot["in_scope_queries"] + snapshot["out_of_scope_queries"])
 
