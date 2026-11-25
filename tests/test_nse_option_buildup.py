@@ -26,14 +26,15 @@ class NSEOptionBuildupTests(unittest.TestCase):
             self._contract("2026-11-17", "PE", 25100, 90, 700),   # long unwinding
         ]
         archive = {"records": [
-            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
-            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+            {"date": "2026-11-12", "fetched_at": "2026-11-12T14:45:00Z", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "fetched_at": "2026-11-13T15:02:00Z", "option_contracts": {"NIFTY": {"contracts": new}}},
         ]}
         result = build_option_buildup_diagnostic(
             archive, "NIFTY", as_of_date="2026-11-13", min_matched_contracts=4
         )
         self.assertTrue(result["available"])
         self.assertEqual(result["source_date"], "2026-11-13")
+        self.assertEqual(result["fetched_at"], "2026-11-13T15:02:00Z")
         self.assertEqual(result["categories"]["long_build_up"]["oi_quantity"], 200)
         self.assertEqual(result["categories"]["short_build_up"]["oi_quantity"], 300)
         self.assertEqual(result["categories"]["short_covering"]["oi_quantity"], 200)
