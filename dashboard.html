@@ -1460,14 +1460,6 @@ document.addEventListener("keydown", event => {
 });
 // Stock Basket refreshes from the latest available dated official EOD diagnostic after archive recovery.
 // Keep this panel research-only and score-ineligible.
-function formatTimestampIST(value) {
-  const stamp = value ? new Date(value) : null;
-  if (!stamp || !Number.isFinite(stamp.getTime())) return "";
-  return stamp.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit",
-    year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
-  }) + " IST";
-}
 function renderStandaloneStockBasket(b, assetName) {
   const rawComponent = b && b.stock_basket_diagnostic;
   const combined = b && b.experimental_combined_final;
@@ -1506,14 +1498,13 @@ function renderStandaloneStockBasket(b, assetName) {
   const eodRaw = component && component.source_date ? String(component.source_date) : "";
   const eodMatch = eodRaw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   const eodDate = eodMatch ? eodMatch[3] + "/" + eodMatch[2] + "/" + eodMatch[1] : eodRaw;
-  const basketUpdatedAt = formatTimestampIST(component && component.diagnostic_updated_at_utc);
+
   return '<div class="stock-basket-compact">' +
     '<div class="stock-basket-compact-main">' +
       '<span class="stock-basket-compact-title">TRINETRA 🔱</span>' +
       '<div class="stock-basket-compact-score-row"><b class="' + cls + '">' + label + '</b>' +
       '<button type="button" class="stock-basket-eye" aria-label="' + esc(assetName || "Index") + ' विस्तृत Component विवरण देखें" onclick="openStockBasketDetails(&quot;' + key + '&quot;)">👁️ <span>विवरण</span></button></div>' +
-      (eodDate || basketUpdatedAt ? '<small>EOD डेटा: ' + esc(eodDate || "—") +
-        (basketUpdatedAt ? ' · अपडेट: ' + esc(basketUpdatedAt) : '') + '</small>' : '') +
+      (eodDate ? '<small>EOD डेटा: ' + esc(eodDate) + '</small>' : '') +
     '</div>' +
     '</div>';
 }
