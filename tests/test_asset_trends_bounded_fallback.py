@@ -3,6 +3,8 @@ import types
 import unittest
 from unittest.mock import patch
 
+import pandas as pd
+
 import fetch_and_score
 
 
@@ -23,7 +25,39 @@ class _FakeTrends:
 
 
 class AssetTrendsBoundedFallbackTests(unittest.TestCase):
+    def test_directional_phrase_groups_include_hindi_and_english_alternatives(self):
+        for spec in fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES.values():
+            for direction in ("bull", "bear", "neutral"):
+                self.assertIn("+", spec[direction])
+                self.assertTrue(any("\u0900" <= char <= "\u097f" for char in spec[direction]))
+
+    def test_directional_diagnostic_rejects_tiny_denominator_instead_of_false_100_percent(self):
+        spec = fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES["SILVER"]
+        frame = pd.DataFrame({
+            spec["seed"]: [100.0],
+            spec["bull"]: [0.0],
+            spec["bear"]: [0.0],
+            spec["neutral"]: [0.91],
+        }, index=pd.DatetimeIndex(["2026-11-22T01:52:00Z"]))
+        with patch.object(fetch_and_score, "_trends_observation_time", return_value=pd.Timestamp("2026-11-22T01:52:00Z").to_pydatetime()):
+            with self.assertRaisesRegex(ValueError, "संयुक्त खोज-रुचि"):
+                fetch_and_score._summarize_asset_directional_trends(frame, "SILVER", spec)
+
+    def test_directional_diagnostic_normalizes_only_after_minimum_interest_is_met(self):
+        spec = fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES["SENSEX"]
+        frame = pd.DataFrame({
+            spec["seed"]: [100.0],
+            spec["bull"]: [6.25],
+            spec["bear"]: [0.0],
+            spec["neutral"]: [0.0],
+        }, index=pd.DatetimeIndex(["2026-11-22T01:52:00Z"]))
+        with patch.object(fetch_and_score, "_trends_observation_time", return_value=pd.Timestamp("2026-11-22T01:52:00Z").to_pydatetime()):
+            result = fetch_and_score._summarize_asset_directional_trends(frame, "SENSEX", spec)
+        self.assertEqual(result["query_interest_mix_pct"], {"bull": 100.0, "bear": 0.0, "neutral": 0.0})
+        self.assertTrue(result["diagnostic_only"])
+
     def test_manual_asset_refresh_allowed_when_primary_is_sparse_or_unavailable(self):
+
         self.assertTrue(fetch_and_score.should_refresh_manual_asset_trends(False, "insufficient classified search interest"))
 
     def test_manual_asset_refresh_skipped_on_rate_limit(self):

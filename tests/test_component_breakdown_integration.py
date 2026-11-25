@@ -600,19 +600,13 @@ class ComponentBreakdownIntegrationTests(unittest.TestCase):
             fetch_and_score._summarize_asset_directional_trends(missing, "GOLD", spec)
 
     def test_asset_directional_trends_are_scoped_to_each_asset(self):
-        expected = {
-            "NIFTY": "nifty breakout",
-            "SENSEX": "sensex rally",
-            "BANKNIFTY": "bank nifty breakout",
-            "GOLD": "gold price rise",
-            "SILVER": "silver price rise",
-            "CRUDEOIL": "crude oil price rise",
-        }
+        expected_assets = {"NIFTY", "SENSEX", "BANKNIFTY", "GOLD", "SILVER", "CRUDEOIL"}
         self.assertEqual(
-            {asset: spec["bull"] for asset, spec in
-             fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES.items()},
-            expected,
+            set(fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES),
+            expected_assets,
         )
+        for asset, spec in fetch_and_score.ASSET_DIRECTIONAL_TRENDS_QUERIES.items():
+            self.assertIn(asset.split("NIFTY")[0].lower() if asset.endswith("NIFTY") else asset.lower().replace("crudeoil", "crude oil"), spec["bull"].lower())
 
     def test_nse_index_futures_comparator_is_exact_expiry_and_diagnostic_only(self):
         from component_scoring import compare_nse_udiff_index_futures_oi
