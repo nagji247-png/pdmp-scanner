@@ -1,0 +1,121 @@
+name: NSE MCP Segment Prefix Filter Audit
+
+on:
+  push:
+    branches:
+      - audit/nse-segment-prefix-filter-20261120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nse-segment-prefix-filter-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated HTTP client
+        run: python -m pip install --disable-pip-version-check curl_cffi
+
+      - name: Test segment prefix filters (9 bounded calls)
+        run: |
+          python - <<'PY'
+          import json, time
+          from datetime import datetime, timezone
+          from curl_cffi import requests
+
+          URL = "https://mcp.nseindia.in/cmmkt/mcp"
+          session = requests.Session(impersonate="chrome124")
+          headers = {"Content-Type":"application/json","Accept":"application/json, text/event-stream"}
+
+          def decode(resp):
+              if "text/event-stream" in resp.headers.get("content-type","").lower():
+                  for block in reversed(resp.text.replace("\r\n","\n").split("\n\n")):
+                      data = "\n".join(line[5:].lstrip() for line in block.splitlines() if line.startswith("data:"))
+                      if data.strip():
+                          return json.loads(data)
+                  raise RuntimeError("No JSON-RPC event in SSE response")
+              return resp.json()
+
+          def post(payload, extra=None):
+              h = dict(headers)
+              if extra:
+                  h.update(extra)
+              r = session.post(URL,headers=h,json=payload,timeout=35)
+              r.raise_for_status()
+              out = decode(r)
+              if out.get("error"):
+                  raise RuntimeError(str(out["error"]))
+              return out,r
+
+          init, init_resp = post({
+              "jsonrpc":"2.0","id":1,"method":"initialize",
+              "params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"trinetra-segment-prefix-audit","version":"1.0"}}
+          })
+          sid = init_resp.headers.get("mcp-session-id") or init_resp.headers.get("Mcp-Session-Id")
+          session_headers = {"Mcp-Session-Id":sid} if sid else {}
+
+          endpoints = [
+              ("SME","cm_get_sme_stocks"),
+              ("CALL_AUCTION","cm_get_call_auction_stocks"),
+              ("BONDS","cm_get_bond_stocks"),
+          ]
+          prefixes = ["A","M","Z"]
+          results = []
+          req_id = 2
+          for segment,tool in endpoints:
+              for prefix in prefixes:
+                  started = time.time()
+                  args = {"limit":500,"symbolFilter":prefix}
+                  try:
+                      out,_ = post({"jsonrpc":"2.0","id":req_id,"method":"tools/call","params":{"name":tool,"arguments":args}},session_headers)
+                      result = out.get("result") or {}
+                      structured = result.get("structuredContent")
+                      content = result.get("content") or []
+                      text_blob = " ".join(x.get("text","") for x in content if isinstance(x,dict))
+                      results.append({
+                          "segment":segment,"tool":tool,"prefix":prefix,"limit":500,
+                          "ok":not result.get("isError",False),
+                          "elapsed_seconds":round(time.time()-started,2),
+                          "structured_keys":list(structured.keys())[:30] if isinstance(structured,dict) else [],
+                          "structured_preview":json.dumps(structured,ensure_ascii=False)[:2200] if structured is not None else None,
+                          "content_text_preview":text_blob[:2200],
+                          "is_error":result.get("isError",False)
+                      })
+                      print(f"RESULT {segment} prefix={prefix}: ok={not result.get('isError',False)} elapsed={round(time.time()-started,2)}")
+                  except Exception as e:
+                      results.append({"segment":segment,"tool":tool,"prefix":prefix,"limit":500,"ok":False,"elapsed_seconds":round(time.time()-started,2),"error":str(e)[:1200]})
+                      print(f"ERROR {segment} prefix={prefix}: {str(e)[:500]}")
+                  req_id += 1
+                  time.sleep(1.5)
+
+          report = {
+              "captured_at_utc":datetime.now(timezone.utc).isoformat(),
+              "endpoint":URL,
+              "test_scope":"A, M, Z prefix filter only; three endpoints; one request per segment/prefix; no exhaustive scan",
+              "calls_made":len(results),
+              "polling_or_schedule_added":False,
+              "results":results
+          }
+          with open("nse_segment_prefix_filter_audit.json","w",encoding="utf-8") as f:
+              json.dump(report,f,ensure_ascii=False,indent=2)
+          passed=sum(1 for x in results if x.get("ok"))
+          print(f"SUMMARY: {passed}/{len(results)} calls returned without transport/tool error")
+          PY
+
+      - name: Upload prefix filter audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-segment-prefix-filter-audit
+          path: nse_segment_prefix_filter_audit.json
+          retention-days: 14
