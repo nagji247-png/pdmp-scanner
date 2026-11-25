@@ -30,6 +30,8 @@ on:
     branches: [main]
     paths:
       - "fetch_and_score.py"
+      - "signal_performance.py"
+      - "tests/test_signal_performance.py"
       - "nifty_chart_data.py"
       - "tests/test_market_activity_bulk_quotes.py"
       - "stock_basket_freshness.py"
@@ -103,6 +105,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_market_activity_bulk_quotes.py' -v
           python -m unittest discover -s tests -p 'test_news_fetch_cache.py' -v
           python -m unittest discover -s tests -p 'test_crowd_trap_detector.py' -v
+          python -m unittest discover -s tests -p 'test_signal_performance.py' -v
           python -m unittest discover -s tests -p 'test_client_ce_pe_provisional_score.py' -v
           python -m unittest discover -s tests -p 'test_client_futures_forward_validation.py' -v
           python -m unittest discover -s tests -p 'test_client_futures_promotion.py' -v
