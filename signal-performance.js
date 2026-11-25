@@ -11,7 +11,7 @@ function render(data){
  var order=["MARKET ACTIVITY RADAR","LATEST ACTIVITY ALERTS","SECTOR ACTIVITY","DAILY STOCK BUYING ACTIVITY","NEXT-SESSION REVERSAL"];
  var rows=order.map(function(name){
   var s=data.summary[name]||{};
-  return '<tr><td><b>'+esc(name)+'</b></td><td>'+num(s.total,0)+'</td><td class="sp-good">'+num(s.correct,0)+'</td><td class="sp-bad">'+num(s.incorrect,0)+'</td><td>'+num(s.flat,0)+'</td><td>'+num(s.pending,0)+'</td><td>'+num(s.unverified,0)+'</td><td>'+pct(s.accuracy_pct)+'</td><td>'+pct(s.net_return_pct)+'</td><td>'+pf(s.profit_factor)+'</td></tr>';
+  return '<tr><td><b>'+esc(name)+'</b></td><td>'+num(s.total,0)+'</td><td class="sp-good">'+num(s.correct,0)+'</td><td class="sp-bad">'+num(s.incorrect,0)+'</td><td>'+num(s.flat,0)+'</td><td>'+num(s.pending,0)+'</td><td>'+num(s.unverified,0)+'</td><td>'+pct(s.accuracy_pct)+'</td><td>'+pct(s.average_profit_pct)+'</td><td>'+pct(s.average_loss_pct)+'</td><td>'+pct(s.net_return_pct)+'</td><td>'+pf(s.profit_factor)+'</td><td>'+num(s.sample_size,0)+'</td></tr>';
  }).join("");
  var evaluated=0,correct=0,incorrect=0,pending=0,unverified=0,flat=0,net=0,hasNet=false;
  order.forEach(function(name){var s=data.summary[name]||{};evaluated+=Number(s.sample_size||0);correct+=Number(s.correct||0);incorrect+=Number(s.incorrect||0);pending+=Number(s.pending||0);unverified+=Number(s.unverified||0);flat+=Number(s.flat||0);if(s.net_return_pct!=null){net+=Number(s.net_return_pct);hasNet=true;}});
