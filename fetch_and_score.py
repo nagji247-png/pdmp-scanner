@@ -4722,23 +4722,17 @@ def _trends_related_queries(timeframe="now 1-d"):
     bull_pct = round(sum(x[0] for x in per_seed) / len(per_seed), 1)
     bear_pct = round(sum(x[1] for x in per_seed) / len(per_seed), 1)
     neutral_pct = round(sum(x[2] for x in per_seed) / len(per_seed), 1)
-    directional_complete = (
-        bull_pct >= TQ_MIN_WEIGHT and bear_pct >= TQ_MIN_WEIGHT
-    )
-    if not directional_complete and neutral_pct < TQ_MIN_WEIGHT:
+    classified_total = bull_pct + bear_pct + neutral_pct
+    if classified_total < TQ_MIN_WEIGHT:
         raise ValueError(
-            f"Google Trends में पर्याप्त वर्गीकृत खोज नहीं "
+            f"Google Trends में पर्याप्त classified search data नहीं "
             f"(bull={bull_pct:.1f}%, bear={bear_pct:.1f}%, "
             f"neutral={neutral_pct:.1f}%, minimum={TQ_MIN_WEIGHT}%)"
         )
-    # Keep the two-way ratio only for Fear-vs-Greed; mood classification uses all three groups.
+    # Keep the real observed two-way ratio; neutral-only data has no directional ratio.
     directional_total = bull_pct + bear_pct
-    crowd_bull_pct = round(bull_pct / directional_total * 100) if directional_total > 0 else 50
-    if directional_complete:
-        label, sentiment = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
-    else:
-        # Neutral-only (or one-sided) results must not be misread as directional crowd evidence.
-        label, sentiment = "दिशात्मक खोज स्पष्ट नहीं — तटस्थ", "NEUTRAL"
+    crowd_bull_pct = round(bull_pct / directional_total * 100) if directional_total > 0 else None
+    label, sentiment = three_way_crowd_mood(bull_pct, bear_pct, neutral_pct)
 
     terms = []
     for item in all_terms.values():
