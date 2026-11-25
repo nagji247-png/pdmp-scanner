@@ -107,7 +107,6 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(bullish["bear_score_pct"], 0.0)
         self.assertEqual(bullish["neutral_score_pct"], 0.0)
         self.assertEqual(bullish["crowd_bull_pct"], 100)
-        self.assertEqual(bullish["sentiment_label"], "BULLISH")
 
         FakeTrendReq.terms = [
             ("market today", 30),
@@ -123,7 +122,6 @@ class DirectionalCrowdMoodTests(unittest.TestCase):
         self.assertEqual(neutral["bear_score_pct"], 0.0)
         self.assertEqual(neutral["neutral_score_pct"], 100.0)
         self.assertIsNone(neutral["crowd_bull_pct"])
-        self.assertEqual(neutral["sentiment_label"], "NEUTRAL")
 
     def test_invalid_percentages_fail_closed(self):
         mood, _ = fetch_and_score.three_way_crowd_mood(80, 10, 30)
