@@ -141,15 +141,16 @@ def collect_signals(data, master, daily, contrarian, fpi, stamp):
     sectors = {}
     for symbol, info in known.items():
         sector = (info or {}).get("sector") or "सेक्टर उपलब्ध नहीं"
-        price = valid_price(quotes.get(symbol))
-        if price is not None and price > 0:
+        quote = quotes.get(symbol) or {}
+        price = valid_price(quote)
+        if price is not None and price > 0 and parse_date(quote.get("price_as_of")) == signal_date:
             sectors.setdefault(sector, {})[symbol] = price
     # Keep non-F&O NSE cash shares in the same unmapped bucket used by the radar.
     bulk = (data.get("market_activity_quotes") or {}).get("instruments") or {}
     for symbol, q in bulk.items():
         if symbol not in known and isinstance(q, dict) and q.get("type") == "stock":
             price = valid_price(q)
-            if price is not None and price > 0:
+            if price is not None and price > 0 and parse_date(q.get("price_as_of")) == signal_date:
                 sectors.setdefault("सेक्टर मैपिंग उपलब्ध नहीं", {})[symbol] = price
 
     found = []
@@ -172,7 +173,7 @@ def collect_signals(data, master, daily, contrarian, fpi, stamp):
     # Build the same ranked HIGH / WATCH / FLOW alert candidates shown by the dashboard.
     candidates = []
     for symbol, q in quotes.items():
-        if not isinstance(q, dict) or q.get("type") != "stock":
+        if not isinstance(q, dict) or q.get("type") != "stock" or parse_date(q.get("price_as_of")) != signal_date:
             continue
         change = number(q.get("change_pct"))
         if change is None:
@@ -251,13 +252,14 @@ def collect_signals(data, master, daily, contrarian, fpi, stamp):
 
     # Reuse only new extreme events whose event-time price is present in this scan.
     for item in contrarian if isinstance(contrarian, list) else []:
-        if not isinstance(item, dict) or parse_date(item.get("date")) != signal_date:
+        if not isinstance(item, dict):
             continue
         event_stamp = parse_stamp(item.get("event_time_utc"))
-        if not event_stamp or abs((stamp - event_stamp).total_seconds()) > 30 * 60:
+        if not event_stamp or event_stamp.date() != signal_date or abs((stamp - event_stamp).total_seconds()) > 30 * 60:
             continue
         symbol = str(item.get("instrument") or "")
-        price = valid_price(quotes.get(symbol))
+        event_quote = quotes.get(symbol) or {}
+        price = valid_price(event_quote) if parse_date(event_quote.get("price_as_of")) == signal_date else None
         score = number(item.get("score"))
         if score is not None:
             found.append(make_event("NEXT-SESSION REVERSAL", symbol,
