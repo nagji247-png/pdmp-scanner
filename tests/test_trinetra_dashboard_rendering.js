@@ -36,12 +36,23 @@ function makeBreakdown(score, included) {
   };
 }
 
-for (const [asset, score, label] of [
-  ["NIFTY", 8.4088367182, "+8.41/10"],
-  ["BANKNIFTY", 9.9772556563, "+9.98/10"],
-  ["SENSEX", -1.234, "−1.23/10"]
+for (const [asset, score, label, componentName] of [
+  ["NIFTY", 8.4088367182, "+8.41/10", "option_buildup"],
+  ["BANKNIFTY", 9.9772556563, "+9.98/10", "option_buildup"],
+  ["SENSEX", -1.234, "−1.23/10", "news"]
 ]) {
-  const breakdown = makeBreakdown(score, ["option_buildup"]);
+  const breakdown = {
+    stock_basket_diagnostic: null,
+    experimental_combined_final: {
+      status: "available",
+      score,
+      included_components: [componentName],
+      normalized_weights_pct: { [componentName]: 100 }
+    },
+    experimental_combined_components: {
+      [componentName]: { status: "available", score, test_only: true }
+    }
+  };
   const before = JSON.stringify(breakdown);
   const output = render(breakdown, asset);
   assert.match(output, /TRINETRA 🔱/);
@@ -51,7 +62,9 @@ for (const [asset, score, label] of [
   assert.equal(JSON.stringify(breakdown), before, asset + " input data must not be mutated");
   assert.equal(store[asset].combined.score, score);
 }
-assert.deepEqual(store.SENSEX.combinedComponents.option_buildup, { status: "available", score: -1.234, test_only: true });
+assert.equal(Object.hasOwn(store.SENSEX.combinedComponents, "option_buildup"), false,
+  "SENSEX must never inherit NIFTY/BANKNIFTY option data");
+assert.deepEqual(store.SENSEX.combinedComponents.news, { status: "available", score: -1.234, test_only: true });
 
 for (const bad of [
   { status: "unavailable", score: 0 },
