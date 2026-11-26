@@ -135,6 +135,68 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         self.assertFalse(result["included_in_asset_final"])
 
 
+    def test_walk_forward_uses_next_available_official_close_and_keeps_test_only(self):
+        from archive_component_diagnostics import summarize_option_buildup_next_session
+
+        def make_contract(side, strike, close, oi):
+            return {"expiry": "2026-11-19", "side": side, "strike": strike,
+                    "close": close, "open_interest": oi}
+
+        old, new = [], []
+        for i in range(50):
+            old.append(make_contract("CE", 25000+i, 100, 1000))
+            new.append(make_contract("CE", 25000+i, 110, 1100))
+            old.append(make_contract("PE", 25000+i, 100, 1000))
+            new.append(make_contract("PE", 25000+i, 90, 1100))
+        options = {"records": [
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        closes = {"records": [
+            {"date": "2026-11-13", "indices": {"Nifty 50": 25000, "Nifty Bank": 56000}},
+            {"date": "2026-11-16", "indices": {"Nifty 50": 25250, "Nifty Bank": 56500}},
+        ]}
+        # No same-day close on the signal date means it must fail closed,
+        # rather than silently comparing against a different baseline date.
+        result = summarize_option_buildup_next_session(options, closes)
+        nifty = result["assets"]["NIFTY"]
+        self.assertEqual(nifty["signals_available"], 1)
+        self.assertEqual(nifty["missing_same_day_close"], 1)
+        self.assertEqual(nifty["directional_pairs"], 0)
+        self.assertIsNone(nifty["directional_accuracy_pct"])
+        self.assertFalse(nifty["included_in_asset_final"])
+        self.assertFalse(result["predictive_validation_passed"])
+
+    def test_walk_forward_counts_hit_with_same_day_and_next_session_closes(self):
+        from archive_component_diagnostics import summarize_option_buildup_next_session
+
+        def contract(side, strike, close, oi):
+            return {"expiry": "2026-11-19", "side": side, "strike": strike,
+                    "close": close, "open_interest": oi}
+        old, new = [], []
+        for i in range(50):
+            old.extend([contract("CE", 25000+i, 100, 1000),
+                        contract("PE", 25000+i, 100, 1000)])
+            new.extend([contract("CE", 25000+i, 110, 1100),
+                        contract("PE", 25000+i, 90, 1100)])
+        options = {"records": [
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        closes = {"records": [
+            {"date": "2026-11-12", "indices": {"Nifty 50": 25000}},
+            {"date": "2026-11-13", "indices": {"Nifty 50": 25100}},
+            {"date": "2026-11-16", "indices": {"Nifty 50": 25200}},
+        ]}
+        result = summarize_option_buildup_next_session(options, closes)
+        nifty = result["assets"]["NIFTY"]
+        self.assertEqual(nifty["signals_available"], 1)
+        self.assertEqual(nifty["directional_pairs"], 1)
+        self.assertEqual(nifty["directional_hits"], 1)
+        self.assertEqual(nifty["directional_accuracy_pct"], 100.0)
+        self.assertEqual(nifty["observations"][0]["next_session_date"], "2026-11-13")
+        self.assertFalse(result["predictive_validation_passed"])
+
 
 if __name__ == "__main__":
     unittest.main()
