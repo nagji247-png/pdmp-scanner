@@ -12,6 +12,8 @@ on:
       - "component_score_consolidated_verify.py"
       - "archive_component_diagnostics.py"
       - "nse_index_option_oi.json"
+      - "nse_index_close_archive.json"
+      - "nse_index_close_archive.py"
       - "mcx_bhavcopy_archive.json"
       - ".github/workflows/component-score-consolidated.yml"
   pull_request:
