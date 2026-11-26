@@ -158,7 +158,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         ]}
         # No same-day close on the signal date means it must fail closed,
         # rather than silently comparing against a different baseline date.
-        result = summarize_option_buildup_next_session(options, closes, calendar={"exchange": "NSE", "calendar_year": 2026, "holidays": []})
+        result = summarize_option_buildup_next_session(options, closes, min_classified=20, calendar={"exchange": "NSE", "calendar_year": 2026, "holidays": []})
         nifty = result["assets"]["NIFTY"]
         self.assertEqual(nifty["signals_available"], 1)
         self.assertEqual(nifty["missing_same_day_close"], 1)
@@ -216,7 +216,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
             {"date": "2026-11-17", "indices": {"Nifty 50": 25300}},
         ]}
         calendar = {"exchange": "NSE", "calendar_year": 2026, "holidays": []}
-        result = summarize_option_buildup_next_session(options, closes, calendar=calendar)
+        result = summarize_option_buildup_next_session(options, closes, min_classified=20, calendar=calendar)
         nifty = result["assets"]["NIFTY"]
         self.assertEqual(nifty["missing_expected_next_session_close"], 1)
         self.assertEqual(nifty["directional_pairs"], 0)
