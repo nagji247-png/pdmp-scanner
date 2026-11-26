@@ -158,7 +158,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         ]}
         # No same-day close on the signal date means it must fail closed,
         # rather than silently comparing against a different baseline date.
-        result = summarize_option_buildup_next_session(options, closes)
+        result = summarize_option_buildup_next_session(options, closes, calendar={"exchange": "NSE", "calendar_year": 2026, "holidays": []})
         nifty = result["assets"]["NIFTY"]
         self.assertEqual(nifty["signals_available"], 1)
         self.assertEqual(nifty["missing_same_day_close"], 1)
@@ -197,6 +197,31 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         self.assertEqual(nifty["observations"][0]["next_session_date"], "2026-11-16")
         self.assertFalse(result["predictive_validation_passed"])
 
+    def test_walk_forward_does_not_jump_over_missing_expected_session_close(self):
+        from archive_component_diagnostics import summarize_option_buildup_next_session
+
+        def contract(side, strike, close, oi):
+            return {"expiry": "2026-11-19", "side": side, "strike": strike,
+                    "close": close, "open_interest": oi}
+        old, new = [], []
+        for i in range(50):
+            old.extend([contract("CE", 25000+i, 100, 1000), contract("PE", 25000+i, 100, 1000)])
+            new.extend([contract("CE", 25000+i, 110, 1100), contract("PE", 25000+i, 90, 1100)])
+        options = {"records": [
+            {"date": "2026-11-12", "option_contracts": {"NIFTY": {"contracts": old}}},
+            {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
+        ]}
+        closes = {"records": [
+            {"date": "2026-11-13", "indices": {"Nifty 50": 25000}},
+            {"date": "2026-11-17", "indices": {"Nifty 50": 25300}},
+        ]}
+        calendar = {"exchange": "NSE", "calendar_year": 2026, "holidays": []}
+        result = summarize_option_buildup_next_session(options, closes, calendar=calendar)
+        nifty = result["assets"]["NIFTY"]
+        self.assertEqual(nifty["missing_expected_next_session_close"], 1)
+        self.assertEqual(nifty["directional_pairs"], 0)
+        self.assertEqual(nifty["observations"][0]["expected_next_session_date"], "2026-11-16")
+        self.assertEqual(nifty["observations"][0]["status"], "MISSING_EXPECTED_NEXT_SESSION_CLOSE")
 
 if __name__ == "__main__":
     unittest.main()
