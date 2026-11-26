@@ -243,7 +243,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
             {"date": "2026-11-16", "indices": {"Nifty 50": 25300}},
         ]}
         for calendar in (None, {"exchange": "NSE", "calendar_year": 2025, "holidays": []}):
-            result = summarize_option_buildup_next_session(options, closes, calendar=calendar)
+            result = summarize_option_buildup_next_session(options, closes, min_classified=20, calendar=calendar)
             nifty = result["assets"]["NIFTY"]
             self.assertEqual(nifty["missing_next_session_close"], 1)
             self.assertEqual(nifty["directional_pairs"], 0)
