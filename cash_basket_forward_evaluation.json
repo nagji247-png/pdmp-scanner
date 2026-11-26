@@ -2,15 +2,15 @@
   "schema_version": 1,
   "indices": {
     "NIFTY": {
-      "sample_count": 11,
+      "sample_count": 12,
       "minimum_samples_required": 60,
       "status": "insufficient_sample",
-      "pearson_correlation": -0.3275,
-      "continuation_directional_hits": 5,
+      "pearson_correlation": -0.3086,
+      "continuation_directional_hits": 6,
       "contrarian_directional_hits": 6,
-      "directional_sample_count": 11,
-      "continuation_hit_rate_pct": 45.45,
-      "contrarian_hit_rate_pct": 54.55,
+      "directional_sample_count": 12,
+      "continuation_hit_rate_pct": 50.0,
+      "contrarian_hit_rate_pct": 50.0,
       "samples": [
         {
           "signal_date": "2026-11-06",
@@ -77,21 +77,27 @@
           "next_captured_date": "2026-11-25",
           "breadth_score": -5.6,
           "next_captured_return_pct": 1.8525
+        },
+        {
+          "signal_date": "2026-11-25",
+          "next_captured_date": "2026-11-26",
+          "breadth_score": 6.8,
+          "next_captured_return_pct": 0.2527
         }
       ],
       "research_only": true,
       "score_eligible": false
     },
     "BANKNIFTY": {
-      "sample_count": 11,
+      "sample_count": 12,
       "minimum_samples_required": 60,
       "status": "insufficient_sample",
-      "pearson_correlation": -0.3868,
+      "pearson_correlation": -0.3869,
       "continuation_directional_hits": 5,
-      "contrarian_directional_hits": 6,
-      "directional_sample_count": 11,
-      "continuation_hit_rate_pct": 45.45,
-      "contrarian_hit_rate_pct": 54.55,
+      "contrarian_directional_hits": 7,
+      "directional_sample_count": 12,
+      "continuation_hit_rate_pct": 41.67,
+      "contrarian_hit_rate_pct": 58.33,
       "samples": [
         {
           "signal_date": "2026-11-06",
@@ -158,21 +164,27 @@
           "next_captured_date": "2026-11-25",
           "breadth_score": -10.0,
           "next_captured_return_pct": 1.7862
+        },
+        {
+          "signal_date": "2026-11-25",
+          "next_captured_date": "2026-11-26",
+          "breadth_score": 4.29,
+          "next_captured_return_pct": -0.2636
         }
       ],
       "research_only": true,
       "score_eligible": false
     },
     "SENSEX": {
-      "sample_count": 11,
+      "sample_count": 12,
       "minimum_samples_required": 60,
       "status": "insufficient_sample",
-      "pearson_correlation": -0.3615,
-      "continuation_directional_hits": 5,
+      "pearson_correlation": -0.3162,
+      "continuation_directional_hits": 6,
       "contrarian_directional_hits": 6,
-      "directional_sample_count": 11,
-      "continuation_hit_rate_pct": 45.45,
-      "contrarian_hit_rate_pct": 54.55,
+      "directional_sample_count": 12,
+      "continuation_hit_rate_pct": 50.0,
+      "contrarian_hit_rate_pct": 50.0,
       "samples": [
         {
           "signal_date": "2026-11-06",
@@ -239,6 +251,12 @@
           "next_captured_date": "2026-11-25",
           "breadth_score": -4.67,
           "next_captured_return_pct": 1.8224
+        },
+        {
+          "signal_date": "2026-11-25",
+          "next_captured_date": "2026-11-26",
+          "breadth_score": 7.67,
+          "next_captured_return_pct": 0.465
         }
       ],
       "research_only": true,
