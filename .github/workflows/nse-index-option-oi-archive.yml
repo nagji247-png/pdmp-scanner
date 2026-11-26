@@ -2,6 +2,15 @@ name: NSE Index Option OI EOD Archive
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/nse-index-option-oi-archive.yml"
+      - "nse_index_option_oi_archive.py"
+      - "nse_option_buildup.py"
+      - "fetch_and_score.py"
+      - "tests/test_nse_index_option_oi_archive.py"
+      - "tests/test_nse_option_buildup.py"
   push:
     branches: [main]
     paths:
@@ -43,6 +52,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
           python -m py_compile fetch_and_score.py nse_option_buildup.py
       - name: Backfill the latest five NSE trading dates (idempotent)
+        if: github.event_name != 'pull_request'
         id: capture
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
@@ -70,6 +80,7 @@ jobs:
             echo "::warning::Latest expected NSE EOD session is not yet available; archive retry will continue."
           fi
       - name: Commit archive only
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
@@ -83,7 +94,7 @@ jobs:
           fi
 
       - name: Fail run if latest expected NSE session is still missing
-        if: always() && steps.capture.outputs.latest_session_ok != 'true'
+        if: always() && github.event_name != 'pull_request' && steps.capture.outputs.latest_session_ok != 'true'
         run: |
           echo "::error::Latest expected NSE EOD archive was not validated. The next scheduled retry will try again."
           exit 1
