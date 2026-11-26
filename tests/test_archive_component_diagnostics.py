@@ -153,7 +153,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
             {"date": "2026-11-13", "option_contracts": {"NIFTY": {"contracts": new}}},
         ]}
         closes = {"records": [
-            {"date": "2026-11-13", "indices": {"Nifty 50": 25000, "Nifty Bank": 56000}},
+            {"date": "2026-11-12", "indices": {"Nifty 50": 24900, "Nifty Bank": 55800}},
             {"date": "2026-11-16", "indices": {"Nifty 50": 25250, "Nifty Bank": 56500}},
         ]}
         # No same-day close on the signal date means it must fail closed,
