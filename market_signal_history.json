@@ -118466,19 +118466,13 @@
     },
     {
       "date": "2026-11-26",
-      "captured_at_utc": "2026-11-26T17:12Z",
-      "captured_at_ist": "2026-11-26T22:42+05:30",
+      "captured_at_utc": "2026-11-26T17:50Z",
+      "captured_at_ist": "2026-11-26T23:21+05:30",
       "price_source_note": "Index close must be dated to this trading session",
-      "news_capture_time_utc": "2026-11-26T17:12Z",
+      "news_capture_time_utc": "2026-11-26T17:50Z",
       "trends": {
-        "valid": true,
-        "as_of": "2026-11-26T15:28:00+00:00",
-        "source_data_time": "2026-11-26T15:28:00+00:00",
-        "daily_label": "दैनिक औसत अधूरा — नवीनतम सफल रीडिंग",
-        "crowd_bull_pct": 100.0,
-        "bull_score_pct": 50.0,
-        "bear_score_pct": 0.0,
-        "neutral_score_pct": 50.0,
+        "valid": false,
+        "reason": "दैनिक औसत अधूरा (बाकी: 09:15, 11:00, 19:00)",
         "daily_complete": false,
         "daily_slot_evidence": {
           "date": "2026-11-26",
@@ -118496,7 +118490,14 @@
             {
               "id": "1300",
               "time": "13:00",
-              "status": "pending"
+              "status": "success",
+              "source_data_time": "2026-11-26T17:44:00+00:00",
+              "basis": "now_1d_anchor_relative",
+              "timeframe": "now 1-d",
+              "bull_pct": 0.0,
+              "bear_pct": 0.0,
+              "neutral_pct": 100.0,
+              "crowd_pct": null
             },
             {
               "id": "1900",
@@ -118508,91 +118509,91 @@
       },
       "market_news_context": {
         "ok": true,
-        "as_of": "2026-11-26T17:12Z",
+        "as_of": "2026-11-26T17:50Z",
         "items": [
           {
             "topic": "RBI नीति",
             "title": "Nifty at 29,000 by end-2027; three more RBI rate hikes expected: JP Morgan",
             "source": "The Times of India",
             "score": 0,
-            "age_hours": 0.5
+            "age_hours": 1.1
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Trump Keeps Global Markets on Edge as Stocks Rebound and Wall Street Takes a Break",
             "source": "AgroLatam",
             "score": 1,
-            "age_hours": 1.1
+            "age_hours": 1.7
           },
           {
             "topic": "RBI नीति",
             "title": "Tighter financial conditions put RBI policy decision in focus next week",
             "source": "Business Standard",
             "score": 0,
-            "age_hours": 1.9
+            "age_hours": 2.6
           },
           {
             "topic": "कच्चा तेल",
             "title": "Oil prices up",
             "source": "News On AIR",
             "score": 0,
-            "age_hours": 2.2
+            "age_hours": 2.8
           },
           {
             "topic": "कच्चा तेल",
             "title": "Crude Oil Price Forecast: Gulf Tensions Help Oil Prices Find a Floor",
             "source": "FXEmpire",
             "score": 0,
-            "age_hours": 2.4
+            "age_hours": 3.1
           },
           {
             "topic": "अमेरिकी Fed और ब्याज दर",
             "title": "US Inflation Hits 3.8%: Will the Fed Raise Interest Rates Again in December?",
             "source": "TradingView",
             "score": 0,
-            "age_hours": 2.5
+            "age_hours": 3.2
           },
           {
             "topic": "व्यापार और टैरिफ",
             "title": "Tariffs: Global Markets Rally as Farmers Face Trade and Cost Uncertainty",
             "source": "AgroLatam",
             "score": 2,
-            "age_hours": 3.5
-          },
-          {
-            "topic": "कच्चा तेल",
-            "title": "Crude Oil Prices Fall as Iran-Linked Attacks Raise Fresh Fears Over Global Crude Supply",
-            "source": "APAC Media",
-            "score": -1,
-            "age_hours": 5.5
-          },
-          {
-            "topic": "भारतीय बाज़ार",
-            "title": "Sensex Today Ends 390 Points Higher | Nifty Above 25,850 | Wipro Up 4%",
-            "source": "Equitymaster",
-            "score": 1,
-            "age_hours": 6.1
-          },
-          {
-            "topic": "भारतीय बाज़ार",
-            "title": "Stock Market Highlights: Sensex rises 390 points, Nifty nears 25,900; IT, realty stocks gain up to 3%, HDFC Ba",
-            "source": "CNBC TV18",
-            "score": 2,
-            "age_hours": 6.2
+            "age_hours": 4.1
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Today: Nifty gains 1.85%, Sensex up 1,502 points",
             "source": "Multibagg AI",
             "score": 1,
-            "age_hours": 6.2
+            "age_hours": 6.8
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Sensex Today Ends 390 Points Higher | Nifty Above 25,850 | Wipro Up 4%",
+            "source": "Equitymaster",
+            "score": 1,
+            "age_hours": 6.8
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock Market Highlights: Sensex rises 390 points, Nifty nears 25,900; IT, realty stocks gain up to 3%, HDFC Ba",
+            "source": "CNBC TV18",
+            "score": 2,
+            "age_hours": 6.9
           },
           {
             "topic": "भारतीय बाज़ार",
             "title": "Stock Market Today Highlights: Sensex jumps ends over 350 points; Nifty tops 25,850 despite tariff concerns",
             "source": "The Times of India",
             "score": 1,
-            "age_hours": 6.5
+            "age_hours": 7.1
+          },
+          {
+            "topic": "भारतीय बाज़ार",
+            "title": "Stock Market Close: Sensex ends volatile session 390 pts up, Nifty at 25,885; realty, IT shine",
+            "source": "Business Standard",
+            "score": 0,
+            "age_hours": 7.5
           }
         ]
       },
@@ -118603,7 +118604,7 @@
           "close_valid": true,
           "day_change_pct": 0.25,
           "price_source": "NSE India allIndices API · पिछला बंद भाव",
-          "score_mode": "news_crowd",
+          "score_mode": "news_only",
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -118630,7 +118631,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T13:09:16Z",
                 "oldest_headline_published_at": "2026-11-26T10:33:30Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -118644,7 +118645,7 @@
                   "The New Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 4.05,
+                "newest_headline_age_h": 4.69,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -118656,7 +118657,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T13:09:16Z",
                 "oldest_headline_published_at": "2026-11-26T10:33:30Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -118670,7 +118671,7 @@
                   "The New Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 4.05,
+                "newest_headline_age_h": 4.69,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -118720,7 +118721,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T13:09:16Z",
                 "oldest_headline_published_at": "2026-11-26T10:33:30Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -118734,7 +118735,7 @@
                   "The New Indian Express"
                 ],
                 "query": "\"Nifty 50\" OR Nifty index OR Nifty 50 stocks India",
-                "newest_headline_age_h": 4.05,
+                "newest_headline_age_h": 4.69,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -121901,14 +121902,14 @@
               "timeframe": "now 1-d",
               "source_data_time": null,
               "raw_queries": 25,
-              "in_scope_queries": 21,
-              "out_of_scope_queries": 4,
-              "out_of_scope_weight": 32.0,
+              "in_scope_queries": 22,
+              "out_of_scope_queries": 3,
+              "out_of_scope_weight": 16.0,
               "classified_queries": 3,
-              "unclassified_queries": 2,
-              "classification_coverage_pct": 97.8,
-              "informational_queries": 16,
-              "informational_weight": 350.0,
+              "unclassified_queries": 0,
+              "classification_coverage_pct": 100.0,
+              "informational_queries": 19,
+              "informational_weight": 330.0,
               "informational_terms": [
                 {
                   "term": "nifty 50",
@@ -121916,39 +121917,39 @@
                 },
                 {
                   "term": "gift nifty",
-                  "weight": 58.0
+                  "weight": 51.0
                 },
                 {
                   "term": "nifty share",
-                  "weight": 37.0
+                  "weight": 34.0
                 },
                 {
                   "term": "nifty share price",
-                  "weight": 31.0
+                  "weight": 30.0
                 },
                 {
                   "term": "gift nifty live",
-                  "weight": 20.0
+                  "weight": 17.0
                 },
                 {
                   "term": "sgx nifty",
-                  "weight": 16.0
-                },
-                {
-                  "term": "nifty 50 share price",
                   "weight": 14.0
                 },
                 {
-                  "term": "nifty chart",
+                  "term": "nifty 50 share price",
                   "weight": 12.0
                 },
                 {
-                  "term": "today nifty 50",
-                  "weight": 12.0
+                  "term": "nifty chart",
+                  "weight": 11.0
                 },
                 {
                   "term": "nifty 50 today",
                   "weight": 11.0
+                },
+                {
+                  "term": "nifty index",
+                  "weight": 10.0
                 }
               ],
               "bull_pct": 0.0,
@@ -121957,31 +121958,22 @@
               "directional_bull_pct": null,
               "terms": [
                 {
-                  "term": "today nifty",
+                  "term": "nifty today",
                   "direction": "neutral",
-                  "weight": 45.0
+                  "weight": 41.0
                 },
                 {
                   "term": "nifty live",
                   "direction": "neutral",
-                  "weight": 37.0
+                  "weight": 32.0
                 },
                 {
-                  "term": "nifty today live",
+                  "term": "nifty live today",
                   "direction": "neutral",
-                  "weight": 9.0
+                  "weight": 8.0
                 }
               ],
-              "unclassified_terms": [
-                {
-                  "term": "dow jones",
-                  "weight": 5.0
-                },
-                {
-                  "term": "nse",
-                  "weight": 5.0
-                }
-              ],
+              "unclassified_terms": [],
               "rising_queries": 0,
               "rising_classified_queries": 0,
               "rising_direction_counts": {
@@ -122160,10 +122152,10 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 5.3,
+          "headline_score": 7.4,
           "experimental_news_score": 1.1,
-          "experimental_score": 5.6,
-          "experimental_score_mode": "shadow_news24h_dedup_crowd",
+          "experimental_score": 1.1,
+          "experimental_score_mode": "shadow_news24h_dedup_only",
           "experimental_headline_count": 7,
           "experimental_excluded_old_or_unknown": 0,
           "experimental_excluded_cross_index_duplicates": 1,
@@ -122173,54 +122165,54 @@
               "title": "Sensex gains for second day in a row on foreign fund inflows, IT stocks",
               "source": "The New Indian Express",
               "score": 1,
-              "age_hours": 4.1
+              "age_hours": 4.7
             },
             {
               "title": "J.P. Morgan sees Indian stocks rise further in 2027 after 'great comeback' of 2026",
               "source": "Reuters",
               "score": 1,
-              "age_hours": 4.6
+              "age_hours": 5.2
             },
             {
               "title": "NIFTY 50 rises about 10% in November as smallcaps lag",
               "source": "Multibagg AI",
               "score": 1,
-              "age_hours": 6.1
+              "age_hours": 6.8
             },
             {
               "title": "Stock Market Today: Nifty gains 1.85%, Sensex up 1,502 points",
               "source": "Multibagg AI",
               "score": 1,
-              "age_hours": 6.2
+              "age_hours": 6.8
             },
             {
               "title": "Closing Bell: Nifty 50, Sensex Extend Gains for Second Session; IT Index Surges 3.66%, Realty Gains 3.27%",
               "source": "Dalal Street Investment Journal",
               "score": 4,
-              "age_hours": 6.2
+              "age_hours": 6.8
             },
             {
               "title": "Closing Bell, 26 November 2026: Sensex and Nifty Manage to End Higher After Giving Up Early Gains",
               "source": "Kotak Neo",
               "score": 2,
-              "age_hours": 6.4
+              "age_hours": 7.0
             },
             {
               "title": "India stocks higher at close of trade; Nifty 50 up 0.25%",
               "source": "Investing.com",
               "score": 1,
-              "age_hours": 6.6
+              "age_hours": 7.2
             },
             {
               "title": "India shares higher at close of trade; Nifty 50 up 0.25% By Investing.com",
               "source": "Investing.com India",
               "score": 1,
-              "age_hours": 6.7
+              "age_hours": 7.3
             }
           ],
           "client_retail_adjustment": 0.42,
           "published_score": 10.0,
-          "published_score_mode": "news_crowd"
+          "published_score_mode": "news_only"
         },
         "SENSEX": {
           "close": 84328.59,
@@ -122228,7 +122220,7 @@
           "close_valid": true,
           "day_change_pct": 0.46,
           "price_source": "Google Finance direct SENSEX quote · पिछला बंद भाव",
-          "score_mode": "news_crowd",
+          "score_mode": "news_only",
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -122255,7 +122247,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T04:57:39Z",
                 "oldest_headline_published_at": "2026-11-26T04:57:39Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -122264,7 +122256,7 @@
                   "Equitymaster"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 12.25,
+                "newest_headline_age_h": 12.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -122276,7 +122268,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T04:57:39Z",
                 "oldest_headline_published_at": "2026-11-26T04:57:39Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -122285,7 +122277,7 @@
                   "Equitymaster"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 12.25,
+                "newest_headline_age_h": 12.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -122308,7 +122300,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T04:57:39Z",
                 "oldest_headline_published_at": "2026-11-26T04:57:39Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -122317,7 +122309,7 @@
                   "Equitymaster"
                 ],
                 "query": "\"BSE Sensex\" OR Sensex index India",
-                "newest_headline_age_h": 12.25,
+                "newest_headline_age_h": 12.89,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -122765,30 +122757,30 @@
               "source": "Google Trends related_queries · India",
               "timeframe": "now 1-d",
               "source_data_time": null,
-              "raw_queries": 25,
-              "in_scope_queries": 18,
-              "out_of_scope_queries": 7,
-              "out_of_scope_weight": 36.0,
-              "classified_queries": 4,
-              "unclassified_queries": 5,
-              "classification_coverage_pct": 84.4,
-              "informational_queries": 9,
-              "informational_weight": 88.0,
+              "raw_queries": 15,
+              "in_scope_queries": 14,
+              "out_of_scope_queries": 1,
+              "out_of_scope_weight": 9.0,
+              "classified_queries": 5,
+              "unclassified_queries": 2,
+              "classification_coverage_pct": 98.6,
+              "informational_queries": 7,
+              "informational_weight": 75.0,
               "informational_terms": [
                 {
                   "term": "bse sensex",
-                  "weight": 37.0
+                  "weight": 33.0
                 },
                 {
                   "term": "sensex share price",
-                  "weight": 21.0
+                  "weight": 20.0
                 },
                 {
                   "term": "sensex index",
-                  "weight": 8.0
+                  "weight": 7.0
                 },
                 {
-                  "term": "bse sensex today",
+                  "term": "today bse sensex",
                   "weight": 7.0
                 },
                 {
@@ -122796,15 +122788,7 @@
                   "weight": 4.0
                 },
                 {
-                  "term": "bse share price",
-                  "weight": 4.0
-                },
-                {
                   "term": "sensex chart",
-                  "weight": 3.0
-                },
-                {
-                  "term": "hdfc share price",
                   "weight": 2.0
                 },
                 {
@@ -122818,45 +122802,38 @@
               "directional_bull_pct": null,
               "terms": [
                 {
-                  "term": "today sensex",
+                  "term": "sensex today",
                   "direction": "neutral",
                   "weight": 100.0
                 },
                 {
                   "term": "sensex live",
                   "direction": "neutral",
-                  "weight": 22.0
+                  "weight": 20.0
                 },
                 {
-                  "term": "today sensex live",
+                  "term": "sensex today live",
                   "direction": "neutral",
-                  "weight": 16.0
+                  "weight": 14.0
                 },
                 {
                   "term": "sensex option chain",
                   "direction": "neutral",
                   "weight": 2.0
+                },
+                {
+                  "term": "sensex live chart",
+                  "direction": "neutral",
+                  "weight": 1.0
                 }
               ],
               "unclassified_terms": [
-                {
-                  "term": "bse",
-                  "weight": 36.0
-                },
                 {
                   "term": "sensex moneycontrol",
                   "weight": 2.0
                 },
                 {
-                  "term": "hang seng",
-                  "weight": 2.0
-                },
-                {
-                  "term": "kospi",
-                  "weight": 1.0
-                },
-                {
-                  "term": "dax",
+                  "term": "todays sensex",
                   "weight": 1.0
                 }
               ],
@@ -123038,10 +123015,10 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 3.2,
+          "headline_score": 5.0,
           "experimental_news_score": 1.0,
-          "experimental_score": 5.5,
-          "experimental_score_mode": "shadow_news24h_dedup_crowd",
+          "experimental_score": 1.0,
+          "experimental_score_mode": "shadow_news24h_dedup_only",
           "experimental_headline_count": 1,
           "experimental_excluded_old_or_unknown": 6,
           "experimental_excluded_cross_index_duplicates": 1,
@@ -123051,54 +123028,54 @@
               "title": "Sensex Today Trades Higher | Nifty Above 25,800 | Nifty IT Index Up 2.4%",
               "source": "Equitymaster",
               "score": 1,
-              "age_hours": 12.2
+              "age_hours": 12.9
             },
             {
               "title": "Nifty, Sensex open in green despite fresh US tariff threats; IT index jumps 2%",
               "source": "https://www.indiagazette.com/",
               "score": 1,
-              "age_hours": 16.7
+              "age_hours": 17.3
             },
             {
               "title": "Invesco India BSE Sensex Index Fund - Regular Plan - Growth",
               "source": "Alice Blue",
               "score": 0,
-              "age_hours": 29.4
+              "age_hours": 30.0
             },
             {
               "title": "Indian Equities Defy Asian Trend, Sensex Jumps 1,502 Points",
               "source": "Rediff.com",
               "score": 1,
-              "age_hours": 30.3
+              "age_hours": 30.9
             },
             {
               "title": "Sensex Today Rallies 1,502 Points | Nifty Above 25,800 | 3 Reasons Why Indian Share Markets Are Rising",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 30.5
+              "age_hours": 31.1
             },
             {
               "title": "Stock market today: Sensex jumps over 2000 points; Nifty50 tops 25,900! Investors richer by Rs 3.84 lakh",
               "source": "The Times of India",
               "score": 1,
-              "age_hours": 35.7
+              "age_hours": 36.3
             },
             {
               "title": "Sensex Today Rallies 1,290 Points | Nifty Above 25,700 | BSE Insurance Index 2.5%",
               "source": "Equitymaster",
               "score": 2,
-              "age_hours": 36.2
+              "age_hours": 36.8
             },
             {
               "title": "Sensex Today Ends 417 Points Lower | Nifty Below 23,900 | ITC & Trent Losers",
               "source": "Equitymaster",
               "score": -1,
-              "age_hours": 53.3
+              "age_hours": 53.9
             }
           ],
           "client_retail_adjustment": 0.42,
-          "published_score": 8.2,
-          "published_score_mode": "news_crowd"
+          "published_score": 10.0,
+          "published_score_mode": "news_only"
         },
         "BANKNIFTY": {
           "close": 63535.3,
@@ -123106,7 +123083,7 @@
           "close_valid": true,
           "day_change_pct": -0.26,
           "price_source": "NSE India allIndices API · पिछला बंद भाव",
-          "score_mode": "news_crowd",
+          "score_mode": "news_only",
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -123133,7 +123110,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T11:02:53Z",
                 "oldest_headline_published_at": "2026-11-26T10:21:00Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -123143,7 +123120,7 @@
                   "Multibagg AI"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 6.16,
+                "newest_headline_age_h": 6.8,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               }
@@ -123155,7 +123132,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T11:02:53Z",
                 "oldest_headline_published_at": "2026-11-26T10:21:00Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -123165,7 +123142,7 @@
                   "Multibagg AI"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 6.16,
+                "newest_headline_age_h": 6.8,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -123215,7 +123192,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T11:02:53Z",
                 "oldest_headline_published_at": "2026-11-26T10:21:00Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -123225,7 +123202,7 @@
                   "Multibagg AI"
                 ],
                 "query": "\"Bank Nifty\" OR Nifty Bank index OR banking index India",
-                "newest_headline_age_h": 6.16,
+                "newest_headline_age_h": 6.8,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; cross-index duplicates excluded"
               },
@@ -126859,42 +126836,30 @@
               "source": "Google Trends related_queries · India",
               "timeframe": "now 7-d",
               "source_data_time": null,
-              "raw_queries": 25,
-              "in_scope_queries": 19,
-              "out_of_scope_queries": 6,
-              "out_of_scope_weight": 271.0,
-              "classified_queries": 4,
-              "unclassified_queries": 0,
-              "classification_coverage_pct": 100.0,
-              "informational_queries": 15,
-              "informational_weight": 425.0,
+              "raw_queries": 13,
+              "in_scope_queries": 13,
+              "out_of_scope_queries": 0,
+              "out_of_scope_weight": 0.0,
+              "classified_queries": 5,
+              "unclassified_queries": 1,
+              "classification_coverage_pct": 99.5,
+              "informational_queries": 7,
+              "informational_weight": 296.0,
               "informational_terms": [
                 {
-                  "term": "nifty bank share",
+                  "term": "bank nifty share",
                   "weight": 100.0
                 },
                 {
-                  "term": "nifty bank share price",
-                  "weight": 87.0
+                  "term": "bank nifty share price",
+                  "weight": 83.0
                 },
                 {
                   "term": "bank nifty 50",
-                  "weight": 71.0
+                  "weight": 68.0
                 },
                 {
-                  "term": "hdfc bank share",
-                  "weight": 32.0
-                },
-                {
-                  "term": "hdfc share price",
-                  "weight": 25.0
-                },
-                {
-                  "term": "hdfc bank share price",
-                  "weight": 24.0
-                },
-                {
-                  "term": "nifty bank chart",
+                  "term": "bank nifty chart",
                   "weight": 16.0
                 },
                 {
@@ -126902,23 +126867,23 @@
                   "weight": 16.0
                 },
                 {
-                  "term": "icici bank share",
-                  "weight": 11.0
-                },
-                {
                   "term": "bank nifty expiry",
                   "weight": 10.0
+                },
+                {
+                  "term": "bank nifty expiry day",
+                  "weight": 3.0
                 }
               ],
-              "bull_pct": 0.0,
+              "bull_pct": 1.2,
               "bear_pct": 0.0,
-              "neutral_pct": 100.0,
-              "directional_bull_pct": null,
+              "neutral_pct": 98.8,
+              "directional_bull_pct": 100.0,
               "terms": [
                 {
-                  "term": "bank nifty today",
+                  "term": "nifty bank today",
                   "direction": "neutral",
-                  "weight": 54.0
+                  "weight": 55.0
                 },
                 {
                   "term": "bank nifty live",
@@ -126934,9 +126899,19 @@
                   "term": "bank nifty today live chart",
                   "direction": "neutral",
                   "weight": 3.0
+                },
+                {
+                  "term": "why bank nifty is up today",
+                  "direction": "bull",
+                  "weight": 1.0
                 }
               ],
-              "unclassified_terms": [],
+              "unclassified_terms": [
+                {
+                  "term": "bank nifty lot size",
+                  "weight": 2.0
+                }
+              ],
               "rising_queries": 3,
               "rising_classified_queries": 1,
               "rising_direction_counts": {
@@ -126949,7 +126924,7 @@
               "rising_terms": [
                 {
                   "term": "bank nifty expiry",
-                  "value": "90",
+                  "value": "80",
                   "direction": "informational",
                   "breakout": false
                 },
@@ -126961,7 +126936,7 @@
                 },
                 {
                   "term": "why bank nifty is up today",
-                  "value": "110",
+                  "value": "90",
                   "direction": "bull",
                   "breakout": false
                 }
@@ -127134,10 +127109,10 @@
             },
             "formula": "sum(component_score × user-approved provisional_weight) / sum(weights of available provisional components)"
           },
-          "headline_score": 9.9,
+          "headline_score": 10.5,
           "experimental_news_score": 1.5,
-          "experimental_score": 5.8,
-          "experimental_score_mode": "shadow_news24h_dedup_crowd",
+          "experimental_score": 1.5,
+          "experimental_score_mode": "shadow_news24h_dedup_only",
           "experimental_headline_count": 2,
           "experimental_excluded_old_or_unknown": 4,
           "experimental_excluded_cross_index_duplicates": 2,
@@ -127147,65 +127122,65 @@
               "title": "Top Traded by Value Today 26-Nov-2026: HDFC Bank Leads",
               "source": "Multibagg AI",
               "score": 0,
-              "age_hours": 6.2
+              "age_hours": 6.8
             },
             {
               "title": "Closing Bell: Nifty 50, Sensex Extend Gains for Second Session; IT Index Surges 3.66%, Realty Gains 3.27%",
               "source": "Dalal Street Investment Journal",
               "score": 4,
-              "age_hours": 6.2
+              "age_hours": 6.8
             },
             {
               "title": "Nifty, Sensex end higher after volatile session, IT index rallies 3%",
               "source": "ANI News",
               "score": 3,
-              "age_hours": 6.9
+              "age_hours": 7.5
             },
             {
               "title": "Nifty, Sensex open in green despite fresh US tariff threats; IT index jumps 2%",
               "source": "ChiniMandi",
               "score": 1,
-              "age_hours": 12.8
+              "age_hours": 13.4
             },
             {
               "title": "PNB partners with Deutsche Bank to explore acquisition financing in India",
               "source": "Business Standard",
               "score": 0,
-              "age_hours": 28.8
+              "age_hours": 29.4
             },
             {
               "title": "Closing Bell: Sensex Surges 1,500 Points, Nifty 50 Gains 1.85% as FMCG and Banking Stocks Lead Market Recovery",
               "source": "Dalal Street Investment Journal",
               "score": 3,
-              "age_hours": 30.1
+              "age_hours": 30.7
             },
             {
               "title": "Bank Nifty Jumps Over 1,100 Points Today as HDFC Bank and ICICI Bank Shares Rally Over 3%; Private Banks Lead Gains",
               "source": "Kotak Neo",
               "score": 4,
-              "age_hours": 35.0
+              "age_hours": 35.6
             },
             {
               "title": "ICICI Bank, HDFC Bank, Reliance, and Airtel lead Nifty to 45% rally",
               "source": "India Infoline",
               "score": 2,
-              "age_hours": 35.2
+              "age_hours": 35.8
             }
           ],
           "client_retail_adjustment": 0.42,
           "published_score": 10.0,
-          "published_score_mode": "news_crowd"
+          "published_score_mode": "news_only"
         }
       },
       "other_assets": {
         "GOLD": {
-          "close": 128477.05,
+          "close": 128242.21,
           "close_as_of": "2026-11-26",
           "close_valid": true,
           "price_source": "MCX live quote × 3% GST",
-          "day_change_pct": 1.05,
-          "headline_score": -0.4,
-          "published_score": -0.4,
+          "day_change_pct": 0.87,
+          "headline_score": -1.7,
+          "published_score": -1.7,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -127227,12 +127202,12 @@
             },
             "components": {
               "news": {
-                "score": -0.37,
+                "score": -0.33,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T15:33:32Z",
                 "oldest_headline_published_at": "2026-11-26T05:39:47Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -127247,19 +127222,19 @@
                   "Traders Union"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.65,
+                "newest_headline_age_h": 2.29,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_components": {
               "news": {
-                "score": -0.37,
+                "score": -0.33,
                 "source": "Google News RSS · asset-specific card query",
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T15:33:32Z",
                 "oldest_headline_published_at": "2026-11-26T05:39:47Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -127274,14 +127249,14 @@
                   "Traders Union"
                 ],
                 "query": "gold price",
-                "newest_headline_age_h": 1.65,
+                "newest_headline_age_h": 2.29,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
             },
             "provisional_final": {
               "status": "available",
-              "score": -0.37,
+              "score": -0.33,
               "included_components": [
                 "news"
               ],
@@ -127339,16 +127314,16 @@
               "raw_queries": 25,
               "in_scope_queries": 21,
               "out_of_scope_queries": 4,
-              "out_of_scope_weight": 40.0,
+              "out_of_scope_weight": 38.0,
               "classified_queries": 12,
               "unclassified_queries": 8,
-              "classification_coverage_pct": 75.8,
+              "classification_coverage_pct": 78.1,
               "informational_queries": 1,
-              "informational_weight": 7.0,
+              "informational_weight": 8.0,
               "informational_terms": [
                 {
                   "term": "gold share price",
-                  "weight": 7.0
+                  "weight": 8.0
                 }
               ],
               "bull_pct": 0.0,
@@ -127357,19 +127332,24 @@
               "directional_bull_pct": null,
               "terms": [
                 {
-                  "term": "gold today price",
+                  "term": "gold price today",
                   "direction": "neutral",
                   "weight": 100.0
                 },
                 {
-                  "term": "live gold price",
+                  "term": "gold live price",
                   "direction": "neutral",
                   "weight": 6.0
                 },
                 {
                   "term": "22 carat gold price today",
                   "direction": "neutral",
-                  "weight": 6.0
+                  "weight": 5.0
+                },
+                {
+                  "term": "gold 22 carat price today",
+                  "direction": "neutral",
+                  "weight": 5.0
                 },
                 {
                   "term": "gold price today india",
@@ -127377,22 +127357,17 @@
                   "weight": 4.0
                 },
                 {
-                  "term": "22k gold price today",
+                  "term": "gold price today 22k",
                   "direction": "neutral",
                   "weight": 3.0
                 },
                 {
-                  "term": "gold price today 24 carat",
-                  "direction": "neutral",
-                  "weight": 3.0
-                },
-                {
-                  "term": "gold price today in india",
+                  "term": "24 carat gold price today",
                   "direction": "neutral",
                   "weight": 2.0
                 },
                 {
-                  "term": "gold price today mcx",
+                  "term": "gold price today kolkata",
                   "direction": "neutral",
                   "weight": 2.0
                 }
@@ -127400,7 +127375,7 @@
               "unclassified_terms": [
                 {
                   "term": "gold price india",
-                  "weight": 9.0
+                  "weight": 10.0
                 },
                 {
                   "term": "gold price in india",
@@ -127411,23 +127386,23 @@
                   "weight": 6.0
                 },
                 {
-                  "term": "mcx gold",
-                  "weight": 6.0
-                },
-                {
                   "term": "gold price mcx",
-                  "weight": 6.0
+                  "weight": 5.0
                 },
                 {
-                  "term": "mcx gold price",
+                  "term": "mcx gold",
                   "weight": 5.0
                 },
                 {
                   "term": "price of gold",
-                  "weight": 5.0
+                  "weight": 4.0
                 },
                 {
-                  "term": "gold usd price",
+                  "term": "gold price usd",
+                  "weight": 2.0
+                },
+                {
+                  "term": "10 gram gold price",
                   "weight": 2.0
                 }
               ],
@@ -127443,43 +127418,43 @@
               "rising_terms": [
                 {
                   "term": "1 kg gold price",
-                  "value": "50",
+                  "value": "60",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "1 kg gold price in india",
-                  "value": "150",
+                  "value": "190",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "120 kg gold price in india",
-                  "value": "4550",
+                  "value": "4350",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "121 kg gold price",
-                  "value": "3800",
+                  "value": "4850",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "121 kg gold price in india",
-                  "value": "5150",
+                  "value": "5050",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "1kg gold price",
-                  "value": "90",
+                  "value": "110",
                   "direction": "unclassified",
                   "breakout": false
                 },
                 {
                   "term": "alasdair macleod gold price forecast",
-                  "value": "13700",
+                  "value": "14400",
                   "direction": "informational",
                   "breakout": false
                 }
@@ -127493,7 +127468,7 @@
             "client_market_context": null,
             "final": {
               "status": "available",
-              "score": -0.37,
+              "score": -0.33,
               "included_components": [
                 "news"
               ],
@@ -127512,21 +127487,21 @@
             "timeframe": "now 1-d",
             "source_data_time": null,
             "as_of": null,
-            "retrieved_at": "2026-11-26T15:37:20.045970+00:00",
+            "retrieved_at": "2026-11-26T17:51:32.841261+00:00",
             "timestamp_basis": "retrieval_time",
             "unit": "classified related-query relative-weight share",
             "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
             "raw_queries": 25,
             "in_scope_queries": 21,
             "out_of_scope_queries": 4,
-            "out_of_scope_weight": 40.0,
+            "out_of_scope_weight": 38.0,
             "classified_queries": 12,
             "unclassified_queries": 8,
-            "unclassified_weight": 45.0,
+            "unclassified_weight": 40.0,
             "unclassified_terms": [
               {
                 "term": "gold price india",
-                "weight": 9.0
+                "weight": 10.0
               },
               {
                 "term": "gold price in india",
@@ -127537,35 +127512,35 @@
                 "weight": 6.0
               },
               {
-                "term": "mcx gold",
-                "weight": 6.0
-              },
-              {
                 "term": "gold price mcx",
-                "weight": 6.0
+                "weight": 5.0
               },
               {
-                "term": "mcx gold price",
+                "term": "mcx gold",
                 "weight": 5.0
               },
               {
                 "term": "price of gold",
-                "weight": 5.0
+                "weight": 4.0
               },
               {
-                "term": "gold usd price",
+                "term": "gold price usd",
+                "weight": 2.0
+              },
+              {
+                "term": "10 gram gold price",
                 "weight": 2.0
               }
             ],
             "informational_queries": 1,
-            "informational_weight": 7.0,
+            "informational_weight": 8.0,
             "informational_terms": [
               {
                 "term": "gold share price",
-                "weight": 7.0
+                "weight": 8.0
               }
             ],
-            "classification_coverage_pct": 75.8,
+            "classification_coverage_pct": 78.1,
             "bull_pct": 0.0,
             "bear_pct": 0.0,
             "neutral_pct": 100.0,
@@ -127573,19 +127548,24 @@
             "neutral_aware_score": null,
             "terms": [
               {
-                "term": "gold today price",
+                "term": "gold price today",
                 "direction": "neutral",
                 "weight": 100.0
               },
               {
-                "term": "live gold price",
+                "term": "gold live price",
                 "direction": "neutral",
                 "weight": 6.0
               },
               {
                 "term": "22 carat gold price today",
                 "direction": "neutral",
-                "weight": 6.0
+                "weight": 5.0
+              },
+              {
+                "term": "gold 22 carat price today",
+                "direction": "neutral",
+                "weight": 5.0
               },
               {
                 "term": "gold price today india",
@@ -127593,22 +127573,17 @@
                 "weight": 4.0
               },
               {
-                "term": "22k gold price today",
+                "term": "gold price today 22k",
                 "direction": "neutral",
                 "weight": 3.0
               },
               {
-                "term": "gold price today 24 carat",
-                "direction": "neutral",
-                "weight": 3.0
-              },
-              {
-                "term": "gold price today in india",
+                "term": "24 carat gold price today",
                 "direction": "neutral",
                 "weight": 2.0
               },
               {
-                "term": "gold price today mcx",
+                "term": "gold price today kolkata",
                 "direction": "neutral",
                 "weight": 2.0
               }
@@ -127625,43 +127600,43 @@
             "rising_terms": [
               {
                 "term": "1 kg gold price",
-                "value": "50",
+                "value": "60",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "1 kg gold price in india",
-                "value": "150",
+                "value": "190",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "120 kg gold price in india",
-                "value": "4550",
+                "value": "4350",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "121 kg gold price",
-                "value": "3800",
+                "value": "4850",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "121 kg gold price in india",
-                "value": "5150",
+                "value": "5050",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "1kg gold price",
-                "value": "90",
+                "value": "110",
                 "direction": "unclassified",
                 "breakout": false
               },
               {
                 "term": "alasdair macleod gold price forecast",
-                "value": "13700",
+                "value": "14400",
                 "direction": "informational",
                 "breakout": false
               }
@@ -127671,8 +127646,7 @@
               "available": false,
               "diagnostic_only": true,
               "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
-            },
-            "cached": true
+            }
           },
           "headline_count": 8,
           "headlines": [
@@ -127680,60 +127654,60 @@
               "title": "Gold price at $3,550: Could the sell-off resume?",
               "source": "IG Bank",
               "score": -2,
-              "age_hours": 1.7
+              "age_hours": 2.3
             },
             {
               "title": "Gold Price Forecast: Lower Yields Fuel Rebound Despite Fed Hike Bets",
               "source": "FXEmpire",
               "score": 0,
-              "age_hours": 5.3
+              "age_hours": 6.0
             },
             {
               "title": "Which state sells 22k, 24k gold at the lowest price in India? What buyers should know",
               "source": "Livemint",
               "score": 1,
-              "age_hours": 5.5
+              "age_hours": 6.2
             },
             {
               "title": "Gold Rate Today in India, 26 Nov 2026 - Live 18K, 22K & 24K Gold Prices",
               "source": "Kotak Neo",
               "score": 0,
-              "age_hours": 8.1
+              "age_hours": 8.8
             },
             {
               "title": "Gold price forecast: Consolidation expected between $3,512 support and $3,629 resistance",
               "source": "Traders Union",
               "score": 0,
-              "age_hours": 8.1
+              "age_hours": 8.7
             },
             {
               "title": "Gold price fall triggers dip buying in India; physical demand stays firm: World Gold Council",
               "source": "CNBC TV18",
               "score": -1,
-              "age_hours": 9.2
+              "age_hours": 9.8
             },
             {
               "title": "Gold Price Forecast: Rally Toward $3,600 or Another Fed-Driven Sell-Off?",
               "source": "Investing.com",
               "score": 0,
-              "age_hours": 9.5
+              "age_hours": 10.2
             },
             {
               "title": "RBI brings 60 tonnes of gold home from overseas vaults in six months amid falling global prices: What numbers tell us",
               "source": "Livemint",
               "score": -1,
-              "age_hours": 11.5
+              "age_hours": 12.2
             }
           ]
         },
         "SILVER": {
-          "close": 154542.23,
+          "close": 154384.64,
           "close_as_of": "2026-11-26",
           "close_valid": true,
           "price_source": "MCX live quote + 3% GST Estimate",
-          "day_change_pct": 2.75,
-          "headline_score": 2.2,
-          "published_score": 2.2,
+          "day_change_pct": 2.65,
+          "headline_score": 5.1,
+          "published_score": 5.1,
           "component_breakdown": {
             "version": 1,
             "scope": "per-asset provisional score with shared market-wide CLIENT CE/PE; published PDMP score is unchanged",
@@ -127760,7 +127734,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T16:11:34Z",
                 "oldest_headline_published_at": "2026-11-26T06:56:16Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -127776,7 +127750,7 @@
                   "Traders Union"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.02,
+                "newest_headline_age_h": 1.65,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -127788,7 +127762,7 @@
                 "source_date": "2026-11-26",
                 "weight": 40.0,
                 "included": true,
-                "observed_at": "2026-11-26T17:12Z",
+                "observed_at": "2026-11-26T17:50Z",
                 "newest_headline_published_at": "2026-11-26T16:11:34Z",
                 "oldest_headline_published_at": "2026-11-26T06:56:16Z",
                 "source_date_basis": "newest eligible publisher timestamp converted to IST; observed_at is scan time",
@@ -127804,7 +127778,7 @@
                   "Traders Union"
                 ],
                 "query": "silver price",
-                "newest_headline_age_h": 1.02,
+                "newest_headline_age_h": 1.65,
                 "method": "source-weighted, recency-weighted mean of headline sentiment points; clamped to -10..+10; shadow calibration pending",
                 "note": "24h timestamped headlines; asset-specific card query"
               }
@@ -127869,10 +127843,10 @@
               "raw_queries": 25,
               "in_scope_queries": 15,
               "out_of_scope_queries": 10,
-              "out_of_scope_weight": 275.0,
+              "out_of_scope_weight": 259.0,
               "classified_queries": 6,
               "unclassified_queries": 6,
-              "classification_coverage_pct": 69.5,
+              "classification_coverage_pct": 80.6,
               "informational_queries": 3,
               "informational_weight": 20.0,
               "informational_terms": [
@@ -127895,22 +127869,17 @@
               "directional_bull_pct": null,
               "terms": [
                 {
-                  "term": "today silver price",
+                  "term": "silver today price",
                   "direction": "neutral",
                   "weight": 100.0
                 },
                 {
-                  "term": "today silver rate",
-                  "direction": "neutral",
-                  "weight": 18.0
-                },
-                {
                   "term": "silver price live",
                   "direction": "neutral",
-                  "weight": 10.0
+                  "weight": 9.0
                 },
                 {
-                  "term": "silver price today mcx",
+                  "term": "silver price mcx today",
                   "direction": "neutral",
                   "weight": 7.0
                 },
@@ -127923,20 +127892,17 @@
                   "term": "silver price today in india",
                   "direction": "neutral",
                   "weight": 3.0
+                },
+                {
+                  "term": "silver price today jaipur",
+                  "direction": "neutral",
+                  "weight": 2.0
                 }
               ],
               "unclassified_terms": [
                 {
-                  "term": "silver rate",
-                  "weight": 22.0
-                },
-                {
-                  "term": "silver mcx",
-                  "weight": 17.0
-                },
-                {
                   "term": "mcx silver price",
-                  "weight": 17.0
+                  "weight": 16.0
                 },
                 {
                   "term": "silver price in india",
@@ -127949,6 +127915,14 @@
                 {
                   "term": "silver etf price",
                   "weight": 4.0
+                },
+                {
+                  "term": "silver price usd",
+                  "weight": 2.0
+                },
+                {
+                  "term": "10 gram silver price",
+                  "weight": 2.0
                 }
               ],
               "rising_queries": 0,
@@ -127989,29 +127963,21 @@
             "timeframe": "now 1-d",
             "source_data_time": null,
             "as_of": null,
-            "retrieved_at": "2026-11-26T15:37:20.045970+00:00",
+            "retrieved_at": "2026-11-26T17:51:32.841261+00:00",
             "timestamp_basis": "retrieval_time",
             "unit": "classified related-query relative-weight share",
             "denominator": "same seed's classified related-query relative weights only; not all searches or population percentages",
             "raw_queries": 25,
             "in_scope_queries": 15,
             "out_of_scope_queries": 10,
-            "out_of_scope_weight": 275.0,
+            "out_of_scope_weight": 259.0,
             "classified_queries": 6,
             "unclassified_queries": 6,
-            "unclassified_weight": 71.0,
+            "unclassified_weight": 35.0,
             "unclassified_terms": [
               {
-                "term": "silver rate",
-                "weight": 22.0
-              },
-              {
-                "term": "silver mcx",
-                "weight": 17.0
-              },
-              {
                 "term": "mcx silver price",
-                "weight": 17.0
+                "weight": 16.0
               },
               {
                 "term": "silver price in india",
@@ -128024,6 +127990,14 @@
               {
                 "term": "silver etf price",
                 "weight": 4.0
+              },
+              {
+                "term": "silver price usd",
+                "weight": 2.0
+              },
+              {
+                "term": "10 gram silver price",
+                "weight": 2.0
               }
             ],
             "informational_queries": 3,
@@ -128042,7 +128016,7 @@
                 "weight": 3.0
               }
             ],
-            "classification_coverage_pct": 69.5,
+            "classification_coverage_pct": 80.6,
             "bull_pct": 0.0,
             "bear_pct": 0.0,
             "neutral_pct": 100.0,
@@ -128050,22 +128024,17 @@
             "neutral_aware_score": null,
             "terms": [
               {
-                "term": "today silver price",
+                "term": "silver today price",
                 "direction": "neutral",
                 "weight": 100.0
               },
               {
-                "term": "today silver rate",
-                "direction": "neutral",
-                "weight": 18.0
-              },
-              {
                 "term": "silver price live",
                 "direction": "neutral",
-                "weight": 10.0
+                "weight": 9.0
               },
               {
-                "term": "silver price today mcx",
+                "term": "silver price mcx today",
                 "direction": "neutral",
                 "weight": 7.0
               },
@@ -128078,6 +128047,11 @@
                 "term": "silver price today in india",
                 "direction": "neutral",
                 "weight": 3.0
+              },
+              {
+                "term": "silver price today jaipur",
+                "direction": "neutral",
+                "weight": 2.0
               }
             ],
             "rising_queries": 0,
@@ -128095,8 +128069,7 @@
               "available": false,
               "diagnostic_only": true,
               "reason": "अतिरिक्त Google Trends अनुरोध बचाने के लिए वैकल्पिक phrase diagnostic बंद है"
-            },
-            "cached": true
+            }
           },
           "headline_count": 8,
           "headlines": [
@@ -128104,49 +128077,49 @@
               "title": "Gold, Silver Rate Today Highlights: Gold futures rise to Rs 1.23 lakh/10 gm on firm spot demand",
               "source": "The Times of India",
               "score": 1,
-              "age_hours": 1.0
+              "age_hours": 1.7
             },
             {
               "title": "Gold,silver prices up",
               "source": "News On AIR",
               "score": 0,
-              "age_hours": 2.8
+              "age_hours": 3.4
             },
             {
               "title": "Silver Price Forecast: Rallies Remain Vulnerable as Real Yields Stay High",
               "source": "FXEmpire",
               "score": 2,
-              "age_hours": 4.5
+              "age_hours": 5.1
             },
             {
               "title": "Silver price today: rises on November 26",
               "source": "FXStreet",
               "score": 1,
-              "age_hours": 7.7
+              "age_hours": 8.3
             },
             {
               "title": "Silver price holds steady as oversold RSI and CCI support a consolidation phase",
               "source": "Traders Union",
               "score": 0,
-              "age_hours": 8.0
+              "age_hours": 8.6
             },
             {
               "title": "MCX Share Price rise over 7% as Gold and Silver prices bounce back",
               "source": "India Infoline",
               "score": 1,
-              "age_hours": 9.0
+              "age_hours": 9.7
             },
             {
               "title": "Silver price today: Futures rise to ₹1.45 lakh per kg",
               "source": "BusinessLine",
               "score": 1,
-              "age_hours": 9.9
+              "age_hours": 10.6
             },
             {
               "title": "Gold & Silver Prices Today: Can The Rally Sustain? Anuj Gupta Reveals Key Levels & Outlook",
               "source": "Business Today",
               "score": 2,
-              "age_hours": 10.3
+              "age_hours": 10.9
             }
           ]
         }
@@ -128269,20 +128242,19 @@
         }
       },
       "score_method": {
-        "mode": "news_crowd",
+        "mode": "news_only",
         "weights": {
           "news": 50,
           "crowd": 50
         },
         "normalized_weights_pct": {
-          "news": 50.0,
-          "crowd": 50.0
+          "news": 100.0
         },
-        "crowd_included": true,
+        "crowd_included": false,
         "crowd_source_valid": true,
         "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
-        "crowd_bull_pct": 100.0,
-        "crowd_net_score": 10.0,
+        "crowd_bull_pct": null,
+        "crowd_net_score": null,
         "client_included": false,
         "client_diagnostic_only": true,
         "client_diagnostic_available": true,
@@ -128291,5 +128263,5 @@
       }
     }
   ],
-  "updated_at": "2026-11-26T17:12Z"
+  "updated_at": "2026-11-26T17:50Z"
 }
