@@ -81,7 +81,9 @@ jobs:
           python -m unittest discover -s tests -v
 
   backfill:
-    if: github.event_name == 'workflow_dispatch'
+    # Block the entire job on main BEFORE checkout, dependency install, or any exchange request.
+    # Dispatch only from a reviewable feature branch; the post-download push guard below is defense-in-depth.
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
