@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-27T03:58:00+05:30",
+  "updated_at": "2026-11-27T04:25:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -35536,6 +35536,46 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-27|CRUDEOIL|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "CRUDEOIL",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T04:25:12+05:30",
+      "entry_price": null,
+      "member_prices": {},
+      "source": "MCX पिछला बंद भाव · MCX India official Market Watch · FUTCOM",
+      "details": {
+        "contrarian_score": 6.3
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-27|DJI|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "DJI",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T04:25:13+05:30",
+      "entry_price": null,
+      "member_prices": {},
+      "source": "Google Finance direct DOW JONES quote · पिछला बंद भाव",
+      "details": {
+        "contrarian_score": 6.4
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
@@ -35596,12 +35636,12 @@
       "sample_size": 1023
     },
     "NEXT-SESSION REVERSAL": {
-      "total": 17,
+      "total": 19,
       "correct": 3,
       "incorrect": 6,
       "flat": 0,
       "unverified": 2,
-      "pending": 6,
+      "pending": 8,
       "accuracy_pct": 33.33,
       "average_profit_pct": 2.2917,
       "average_loss_pct": 0.7778,
