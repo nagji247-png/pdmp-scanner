@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-26T18:41:00+05:30",
+  "updated_at": "2026-11-26T19:18:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -35328,6 +35328,26 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "NEXT-SESSION REVERSAL|2026-11-26|RELIANCE|BEARISH",
+      "department": "NEXT-SESSION REVERSAL",
+      "instrument": "RELIANCE",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-26",
+      "signal_time_ist": "2026-11-26T19:18:25+05:30",
+      "entry_price": 1396.2,
+      "member_prices": {},
+      "source": "NSE India direct quote API · पिछला बंद भाव",
+      "details": {
+        "contrarian_score": 6.2
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
@@ -35388,12 +35408,12 @@
       "sample_size": 0
     },
     "NEXT-SESSION REVERSAL": {
-      "total": 15,
+      "total": 16,
       "correct": 0,
       "incorrect": 0,
       "flat": 0,
       "unverified": 0,
-      "pending": 15,
+      "pending": 16,
       "accuracy_pct": null,
       "average_profit_pct": null,
       "average_loss_pct": null,
