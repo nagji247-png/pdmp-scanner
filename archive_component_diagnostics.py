@@ -173,6 +173,9 @@ def _next_official_session(signal_day, calendar):
     special = calendar.get("special_sessions") or {}
     for offset in range(1, 15):
         day = signal_day + dt.timedelta(days=offset)
+        # A single-year calendar cannot certify sessions in the following year.
+        if day.year != signal_day.year:
+            return None
         iso = day.isoformat()
         if iso in special:
             return day
