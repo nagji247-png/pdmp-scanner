@@ -140,4 +140,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Backfill bounded $SOURCE historical OI archive"
-          git push origin HEAD:main
+          TARGET_BRANCH="$GITHUB_REF_NAME"
+          if [ "$TARGET_BRANCH" = "main" ]; then
+            echo "::error::Historical backfill is blocked on main. Dispatch this workflow on the draft feature branch so the archive can be reviewed before merge."
+            exit 1
+          fi
+          git push origin "HEAD:$TARGET_BRANCH"
