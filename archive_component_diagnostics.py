@@ -166,7 +166,8 @@ def _index_close(record, symbol):
 
 def _next_official_session(signal_day, calendar):
     """Return the next NSE session from the committed exchange calendar."""
-    if not isinstance(calendar, dict) or calendar.get("exchange") != "NSE":
+    if (not isinstance(calendar, dict) or calendar.get("exchange") != "NSE"
+            or calendar.get("calendar_year") != signal_day.year):
         return None
     holidays = {str(row.get("date")) for row in calendar.get("holidays", []) if isinstance(row, dict)}
     special = calendar.get("special_sessions") or {}
