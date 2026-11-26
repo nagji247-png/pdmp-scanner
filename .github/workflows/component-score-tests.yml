@@ -12,6 +12,7 @@ on:
       - "provisional_component_scoring.py"
       - "archive_component_diagnostics.py"
       - "nse_option_buildup.py"
+      - "trinetra_test_components.py"
       - "nse_index_option_oi_archive.py"
       - "nse_index_option_oi.json"
       - "mcx_bhavcopy_archive.json"
@@ -62,5 +63,85 @@ jobs:
           PY
       - name: Dashboard JavaScript syntax validation
         run: node --check /tmp/pdmp-dashboard-inline.js
+      - name: Offline TRINETRA dashboard score-row rendering tests
+        run: node tests/test_trinetra_dashboard_rendering.js
+
+      - name: Assemble isolated browser preview bundle (offline archive data only)
+        run: |
+          mkdir -p trinetra-preview
+          cp dashboard.html trinetra-preview/dashboard.html
+          cp archive-component-diagnostics.json trinetra-preview/archive-component-diagnostics.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("archive-component-diagnostics.json").read_text(encoding="utf-8"))
+          assets = (report.get("nse_option_buildup_test") or {}).get("assets") or {}
+          instruments = {}
+          for symbol in ("NIFTY", "BANKNIFTY"):
+              item = assets.get(symbol) or {}
+              score = item.get("test_score")
+              available = (
+                  item.get("test_score_status") == "ARCHIVE_PAIR_TEST_ONLY_NOT_LIVE"
+                  and isinstance(score, (int, float))
+                  and -10 <= score <= 10
+              )
+              component = {
+                  "status": "available" if available else "unavailable",
+                  "score": score if available else None,
+                  "test_only": True,
+                  "source": item.get("source") or "NSE official F&O archive",
+                  "source_date": item.get("source_date"),
+                  "matched": item.get("classified_contracts", 0),
+              }
+              breakdown = {
+                  "stock_basket_diagnostic": None,
+                  "experimental_combined_final": {
+                      "status": "available" if available else "unavailable",
+                      "score": score if available else None,
+                      "included_components": ["option_buildup"] if available else [],
+                      "normalized_weights_pct": {"option_buildup": 100} if available else {},
+                  },
+                  "experimental_combined_components": {
+                      "option_buildup": component
+                  } if available else {},
+              }
+              instruments[symbol] = {
+                  "score": 0,
+                  "price": None,
+                  "change_pct": None,
+                  "headlines": [],
+                  "component_breakdown": breakdown,
+              }
+
+          payload = {
+              "preview_mode": "TEST_ONLY_ARCHIVE_DIAGNOSTIC",
+              "updated": report.get("generated_at"),
+              "instruments": instruments,
+              "preview_notice": "Isolated preview only: archive-pair TEST diagnostic, not live quotes or a trade signal.",
+          }
+          Path("trinetra-preview/data.json").write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          Path("trinetra-preview/README-HI.txt").write_text(
+              "TRINETRA PR #521 — अलग TEST Preview\\n"
+              "इस ZIP में dashboard.html, TEST-only data.json और archive diagnostics हैं।\\n"
+              "केवल NIFTY/BANKNIFTY के archive-derived option buildup TEST scores शामिल हैं।\\n"
+              "ये live quotes, live signals या validated predictors नहीं हैं।\\n"
+              "SENSEX में NIFTY/BANKNIFTY का option data नहीं जोड़ा गया।\\n"
+              "dashboard.html को file:// से खोलने पर Chrome data.json fetch रोक सकता है; ऐसे में ZIP का data.json और diagnostics अलग से देखें।\\n"
+              "इस workflow में Auto Run, Google Trends, NSE या Yahoo Finance scan नहीं चलता।\\n"
+              "Production dashboard और PDMP Final Score अपरिवर्तित रहते हैं.\\n",
+              encoding="utf-8"
+          )
+          PY
+
+      - name: Upload isolated TRINETRA preview bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: trinetra-pr-521-preview
+          path: trinetra-preview/
+          if-no-files-found: error
+          retention-days: 7
       - name: Market Activity JavaScript syntax validation
         run: node --check market-activity.js

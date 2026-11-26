@@ -2,6 +2,15 @@ name: NSE Index Option OI EOD Archive
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/nse-index-option-oi-archive.yml"
+      - "nse_index_option_oi_archive.py"
+      - "nse_option_buildup.py"
+      - "fetch_and_score.py"
+      - "tests/test_nse_index_option_oi_archive.py"
+      - "tests/test_nse_option_buildup.py"
   push:
     branches: [main]
     paths:
@@ -13,11 +22,10 @@ on:
       - "tests/test_nse_index_option_oi_archive.py"
       - "tests/test_nse_option_buildup.py"
   schedule:
-    # Retry the official EOD file after publication delays; all times are UTC.
-    # 19:30, then every 15 minutes through 21:00, plus 21:30 and 22:00 IST.
-    - cron: "0,15,30,45 14 * * 1-5"
-    - cron: "0,15,30 15 * * 1-5"
-    - cron: "0,30 16 * * 1-5"
+    # Two bounded checks only: 21:00 IST (recent five-session gap fill),
+    # then 22:00 IST (latest session retry). All times are UTC.
+    - cron: "30 15 * * 1-5"
+    - cron: "30 16 * * 1-5"
 
 permissions:
   contents: write
@@ -44,6 +52,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
           python -m py_compile fetch_and_score.py nse_option_buildup.py
       - name: Backfill the latest five NSE trading dates (idempotent)
+        if: github.event_name != 'pull_request'
         id: capture
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
@@ -55,11 +64,15 @@ jobs:
           print(f"END_DATE={today.isoformat()}")
           PY
           source "$RUNNER_TEMP/nse_oi_window.env"
-          echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 calendar-confirmed NSE sessions)"
+          MAX_SESSIONS=5
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] && [ "${GITHUB_EVENT_SCHEDULE}" = "30 16 * * 1-5" ]; then
+            MAX_SESSIONS=1
+          fi
+          echo "NSE OI rolling window: $START_DATE to $END_DATE (max $MAX_SESSIONS calendar-confirmed NSE sessions)"
           if python nse_index_option_oi_archive.py \
             --from-date "$START_DATE" \
             --to-date "$END_DATE" \
-            --max-sessions 5 \
+            --max-sessions "$MAX_SESSIONS" \
             --delay-seconds 3; then
             echo "latest_session_ok=true" >> "$GITHUB_OUTPUT"
           else
@@ -67,6 +80,7 @@ jobs:
             echo "::warning::Latest expected NSE EOD session is not yet available; archive retry will continue."
           fi
       - name: Commit archive only
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
@@ -80,7 +94,7 @@ jobs:
           fi
 
       - name: Fail run if latest expected NSE session is still missing
-        if: always() && steps.capture.outputs.latest_session_ok != 'true'
+        if: always() && github.event_name != 'pull_request' && steps.capture.outputs.latest_session_ok != 'true'
         run: |
           echo "::error::Latest expected NSE EOD archive was not validated. The next scheduled retry will try again."
           exit 1

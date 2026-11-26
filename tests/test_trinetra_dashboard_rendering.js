@@ -1,0 +1,81 @@
+"use strict";
+const fs = require("node:fs");
+const vm = require("node:vm");
+const assert = require("node:assert/strict");
+
+const html = fs.readFileSync("dashboard.html", "utf8");
+const start = html.indexOf("function renderStandaloneStockBasket(b, assetName) {");
+const end = html.indexOf("\n\nfunction card(", start);
+assert(start >= 0 && end > start, "existing TRINETRA renderer must be present");
+const rendererSource = html.slice(start, end);
+
+const store = {};
+const context = {
+  stockBasketDetailStore: store,
+  formatTimestampIST: () => "",
+  esc: value => String(value ?? "").replace(/[&<>"]/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
+  })[ch])
+};
+vm.createContext(context);
+vm.runInContext(rendererSource, context, { timeout: 1000 });
+const render = context.renderStandaloneStockBasket;
+
+function makeBreakdown(score, included) {
+  return {
+    stock_basket_diagnostic: null,
+    experimental_combined_final: {
+      status: "available",
+      score,
+      included_components: included,
+      normalized_weights_pct: { option_buildup: 100 }
+    },
+    experimental_combined_components: {
+      option_buildup: { status: "available", score, test_only: true }
+    }
+  };
+}
+
+for (const [asset, score, label, componentName] of [
+  ["NIFTY", 8.4088367182, "+8.41/10", "option_buildup"],
+  ["BANKNIFTY", 9.9772556563, "+9.98/10", "option_buildup"],
+  ["SENSEX", -1.234, "−1.23/10", "news"]
+]) {
+  const breakdown = {
+    stock_basket_diagnostic: null,
+    experimental_combined_final: {
+      status: "available",
+      score,
+      included_components: [componentName],
+      normalized_weights_pct: { [componentName]: 100 }
+    },
+    experimental_combined_components: {
+      [componentName]: { status: "available", score, test_only: true }
+    }
+  };
+  const before = JSON.stringify(breakdown);
+  const output = render(breakdown, asset);
+  assert.match(output, /TRINETRA 🔱/);
+  assert(output.includes(label), asset + " score label missing");
+  assert.equal((output.match(/stock-basket-compact-score-row/g) || []).length, 1);
+  assert.equal((output.match(/stock-basket-compact-title/g) || []).length, 1);
+  assert.equal(JSON.stringify(breakdown), before, asset + " input data must not be mutated");
+  assert.equal(store[asset].combined.score, score);
+}
+assert.equal(Object.hasOwn(store.SENSEX.combinedComponents, "option_buildup"), false,
+  "SENSEX must never inherit NIFTY/BANKNIFTY option data");
+assert.deepEqual(store.SENSEX.combinedComponents.news, { status: "available", score: -1.234, test_only: true });
+
+for (const bad of [
+  { status: "unavailable", score: 0 },
+  { status: "available", score: 11 },
+  { status: "available", score: "not-a-number" }
+]) {
+  const output = render({ experimental_combined_final: bad }, "NIFTY");
+  assert.match(output, /डेटा जमा \/ जाँच जारी/);
+  assert.doesNotMatch(output, /0\.00\/10/);
+}
+
+assert.match(html, /const isIndianIndex = INDIAN_INDEXES\.includes\(name\);/);
+assert.match(html, /isIndianIndex\s*\?\s*renderStandaloneStockBasket\(/);
+console.log("PASS: independent index scores; no fake zero; no input mutation; existing row only.");

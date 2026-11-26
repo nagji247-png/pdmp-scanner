@@ -13,6 +13,11 @@ from provisional_component_scoring import (
     PROVISIONAL_WEIGHTS, index_oi_balance_component,
     client_marketwide_components, source_date_is_fresh,
 )
+from trinetra_test_components import (
+    EXPERIMENTAL_TEST_EXTRA_WEIGHTS, option_buildup_test_component,
+)
+
+EXPERIMENTAL_TEST_WEIGHTS = {**PROVISIONAL_WEIGHTS, **EXPERIMENTAL_TEST_EXTRA_WEIGHTS}
 from validate_market_signal_history import market_snapshot_completeness
 from crowd_mood_intraday import update_archive as update_crowd_mood_archive
 from nse_option_buildup import (
@@ -970,11 +975,24 @@ def build_asset_component_breakdowns(
         # either the published PDMP score or the existing provisional Final.
         experimental_combined_components = {}
         experimental_combined_final = None
+        option_buildup_diag = None
         if name in index_names:
             experimental_combined_components = {
                 key: value for key, value in provisional_components.items()
                 if key in PROVISIONAL_WEIGHTS
             }
+
+            # NSE option premium/OI is included only in the existing TRINETRA
+            # combined TEST score. It remains outside every production score.
+            if name in ("NIFTY", "BANKNIFTY"):
+                option_buildup_diag = validate_option_buildup_diagnostic(
+                    build_option_buildup_diagnostic(
+                        index_oi_archive, name, as_of_date=news_source_date,
+                        max_age_days=3, min_matched_contracts=20,
+                        expected_source_date=expected_option_eod_date,
+                    ),
+                    min_matched_contracts=20,
+                )
 
             # The current cash-basket diagnostic (including partial/research-only
             # coverage) is allowed in this TEST score only, never promoted to Final.
@@ -1046,8 +1064,18 @@ def build_asset_component_breakdowns(
                     if futures_test_component:
                         experimental_combined_components["client_futures"] = futures_test_component
 
+            if option_buildup_diag is not None:
+                option_component, option_reason = option_buildup_test_component(
+                    option_buildup_diag, news_source_date,
+                    weight=EXPERIMENTAL_TEST_WEIGHTS["option_buildup"],
+                )
+                if option_component:
+                    experimental_combined_components["option_buildup"] = option_component
+                else:
+                    print("TRINETRA_OPTION_BUILDUP_TEST_EXCLUDED", name, option_reason)
+
             experimental_combined_final = combine_components(
-                experimental_combined_components, PROVISIONAL_WEIGHTS
+                experimental_combined_components, EXPERIMENTAL_TEST_WEIGHTS
             )
 
             # The combined result replaces the number shown in the EXISTING
@@ -1061,7 +1089,7 @@ def build_asset_component_breakdowns(
                 basket["combined_included_components"] = experimental_combined_final.get("included_components", [])
                 basket["combined_normalized_weights_pct"] = experimental_combined_final.get("normalized_weights_pct", {})
                 basket["combined_weight_total"] = experimental_combined_final.get("weight_total")
-                basket["combined_formula"] = "Weighted average of available fresh Stock Basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News and asset-specific Search components; missing inputs excluded and remaining weights normalized."
+                basket["combined_formula"] = "Weighted average of available fresh Stock Basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News, asset-specific Search and NSE EOD Option Build-up components; missing inputs excluded and remaining weights normalized."
                 basket["combined_validation"] = "EXPERIMENTAL · CLIENT CE/PE and CLIENT Futures are market-wide aggregates; Futures unvalidated. Not a trade signal."
         applicable_names = set(components)
         applicable_names.update(
@@ -1095,17 +1123,10 @@ def build_asset_component_breakdowns(
             "provisional_final": provisional_final,
             "experimental_combined_components": experimental_combined_components,
             "experimental_combined_final": experimental_combined_final,
-            "experimental_combined_weights": PROVISIONAL_WEIGHTS,
-            "experimental_combined_scope": "TEST ONLY · six inputs: stock basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News, Search; excluded from every production score",
+            "experimental_combined_weights": EXPERIMENTAL_TEST_WEIGHTS,
+            "experimental_combined_scope": "TEST ONLY · stock basket, NSE EOD OI, CLIENT CE/PE, CLIENT Futures, News, Search और NSE Option Build-up; excluded from every production score",
             "stock_basket_diagnostic": stock_basket_diagnostics.get(name),
-            "option_buildup_diagnostic": (
-                build_option_buildup_diagnostic(
-                    index_oi_archive, name, as_of_date=news_source_date,
-                    max_age_days=3, min_matched_contracts=20,
-                    expected_source_date=expected_option_eod_date,
-                )
-                if name in ("NIFTY", "BANKNIFTY") else None
-            ),
+            "option_buildup_diagnostic": option_buildup_diag,
             "excluded_components": excluded,
             "coverage": {
                 "status": coverage_status,
