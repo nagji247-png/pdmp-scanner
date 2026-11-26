@@ -15,6 +15,7 @@ from nse_option_buildup import build_option_buildup_diagnostic, validate_option_
 from trinetra_test_components import option_buildup_test_component
 
 NSE_PATH = Path("nse_index_option_oi.json")
+CLOSE_PATH = Path("nse_index_close_archive.json")
 MCX_PATH = Path("mcx_bhavcopy_archive.json")
 OUTPUT_PATH = Path("archive-component-diagnostics.json")
 MIN_VALIDATION_SESSIONS = 60
@@ -141,6 +142,134 @@ def summarize_option_buildup(payload, min_classified=100):
     }
 
 
+
+def _normalise_index_name(value):
+    return "".join(ch for ch in str(value or "").upper() if ch.isalnum())
+
+
+def _index_close(record, symbol):
+    indices = record.get("indices")
+    if not isinstance(indices, dict):
+        return None, None
+    aliases = {"NIFTY": {"NIFTY50"}, "BANKNIFTY": {"NIFTYBANK", "BANKNIFTY"}}
+    for name, value in indices.items():
+        if _normalise_index_name(name) in aliases[symbol]:
+            try:
+                close = float(value)
+            except (TypeError, ValueError, OverflowError):
+                return name, None
+            if close > 0:
+                return name, close
+    return None, None
+
+
+def summarize_option_buildup_next_session(option_payload, close_payload, min_classified=100):
+    """Walk-forward research: signal after EOD pair, compare next official index close."""
+    option_records = _records(option_payload)
+    close_records = _records(close_payload)
+    close_dates = {}
+    for row in close_records:
+        try:
+            day = dt.date.fromisoformat(str(row.get("date"))[:10])
+        except (TypeError, ValueError):
+            continue
+        close_dates[day] = row
+
+    assets = {}
+    for symbol in ("NIFTY", "BANKNIFTY"):
+        results = []
+        counters = {
+            "signals_available": 0, "matched_close_pairs": 0,
+            "missing_same_day_close": 0, "missing_next_session_close": 0,
+            "bullish_hits": 0, "bullish_misses": 0,
+            "bearish_hits": 0, "bearish_misses": 0,
+            "flat_or_zero_excluded": 0,
+        }
+        for index, row in enumerate(option_records):
+            signal_date = str(row.get("date") or "")[:10]
+            try:
+                signal_day = dt.date.fromisoformat(signal_date)
+            except ValueError:
+                continue
+            history = {"records": option_records[:index + 1]}
+            diagnostic = build_option_buildup_diagnostic(
+                history, symbol, as_of_date=signal_date,
+                max_age_days=10000, min_matched_contracts=20,
+                expected_source_date=None,
+            )
+            component, reason = option_buildup_test_component(
+                diagnostic, signal_date, max_age_days=10000,
+                min_classified=min_classified,
+            )
+            if not component:
+                continue
+            counters["signals_available"] += 1
+            baseline = close_dates.get(signal_day)
+            if baseline is None:
+                counters["missing_same_day_close"] += 1
+                results.append({"signal_date": signal_date, "score": component["score"],
+                                "status": "MISSING_SAME_DAY_CLOSE"})
+                continue
+            future_days = [day for day in close_dates if day > signal_day]
+            if not future_days:
+                counters["missing_next_session_close"] += 1
+                results.append({"signal_date": signal_date, "score": component["score"],
+                                "status": "MISSING_NEXT_SESSION_CLOSE"})
+                continue
+            next_day = min(future_days)
+            base_name, base_close = _index_close(baseline, symbol)
+            next_name, next_close = _index_close(close_dates[next_day], symbol)
+            if base_close is None or next_close is None:
+                counters["missing_same_day_close"] += 1
+                results.append({"signal_date": signal_date, "score": component["score"],
+                                "next_close_date": next_day.isoformat(),
+                                "status": "INDEX_CLOSE_MISSING",
+                                "index_key_same_day": base_name, "index_key_next_day": next_name})
+                continue
+            change_pct = (next_close / base_close - 1.0) * 100.0
+            score = float(component["score"])
+            outcome = "FLAT_OR_ZERO"
+            if score > 0 and change_pct > 0:
+                counters["bullish_hits"] += 1
+                outcome = "HIT"
+            elif score > 0 and change_pct < 0:
+                counters["bullish_misses"] += 1
+                outcome = "MISS"
+            elif score < 0 and change_pct < 0:
+                counters["bearish_hits"] += 1
+                outcome = "HIT"
+            elif score < 0 and change_pct > 0:
+                counters["bearish_misses"] += 1
+                outcome = "MISS"
+            else:
+                counters["flat_or_zero_excluded"] += 1
+            counters["matched_close_pairs"] += 1
+            results.append({
+                "signal_date": signal_date, "next_session_date": next_day.isoformat(),
+                "index_name": base_name or next_name, "same_day_close": base_close,
+                "next_session_close": next_close, "next_session_return_pct": round(change_pct, 6),
+                "score": round(score, 6), "outcome": outcome,
+            })
+        eligible = counters["bullish_hits"] + counters["bullish_misses"] + counters["bearish_hits"] + counters["bearish_misses"]
+        hits = counters["bullish_hits"] + counters["bearish_hits"]
+        assets[symbol] = {
+            **counters, "directional_pairs": eligible, "directional_hits": hits,
+            "directional_accuracy_pct": round(100.0 * hits / eligible, 2) if eligible else None,
+            "validation_status": "RESEARCH_ONLY_MINIMUM_60_SESSIONS_NOT_MET" if eligible < MIN_VALIDATION_SESSIONS else "REQUIRES_PREDECLARED_HOLDOUT_REVIEW",
+            "included_in_asset_final": False, "observations": results,
+        }
+    return {
+        "source": "Offline NSE official F&O option archive + official daily index-close archive",
+        "method": "Walk-forward: each signal uses only option EOD records up to that date; outcome uses same-day close to first later archived trading-session close.",
+        "minimum_directional_pairs_for_review": MIN_VALIDATION_SESSIONS,
+        "assets": assets,
+        "external_requests_made": 0,
+        "predictive_validation_passed": False,
+        "limitation": "Exploratory historical directional check only; no predeclared holdout or transaction costs. Never eligible for production Final Score.",
+    }
+
+
+
 def summarize_mcx(payload):
     records = _records(payload)
     assets = {}
@@ -205,7 +334,7 @@ def summarize_mcx(payload):
     }
 
 
-def build_report(nse_payload, mcx_payload, generated_at=None):
+def build_report(nse_payload, mcx_payload, generated_at=None, close_payload=None):
     stamp = generated_at or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     return {
         "report_version": 1,
@@ -217,6 +346,7 @@ def build_report(nse_payload, mcx_payload, generated_at=None):
         "minimum_sessions_for_validation": MIN_VALIDATION_SESSIONS,
         "nse_index_options": summarize_nse(nse_payload),
         "nse_option_buildup_test": summarize_option_buildup(nse_payload),
+        "nse_option_buildup_next_session_research": summarize_option_buildup_next_session(nse_payload, close_payload) if close_payload is not None else {"status": "CLOSE_ARCHIVE_NOT_SUPPLIED", "predictive_validation_passed": False},
         "nse_index_expiry_research": build_index_oi_expiry_report(nse_payload),
         "mcx_commodity_futures": summarize_mcx(mcx_payload),
         "guardrail": "All archive-derived results remain diagnostic-only. No archive component is eligible for Final Score until sufficient dated history and out-of-sample directional validation pass.",
@@ -224,12 +354,13 @@ def build_report(nse_payload, mcx_payload, generated_at=None):
 
 
 def main():
-    for path in (NSE_PATH, MCX_PATH):
+    for path in (NSE_PATH, CLOSE_PATH, MCX_PATH):
         if not path.is_file():
             raise SystemExit(f"FAIL: required archive missing: {path}")
     nse_payload = json.loads(NSE_PATH.read_text(encoding="utf-8"))
     mcx_payload = json.loads(MCX_PATH.read_text(encoding="utf-8"))
-    report = build_report(nse_payload, mcx_payload)
+    close_payload = json.loads(CLOSE_PATH.read_text(encoding="utf-8"))
+    report = build_report(nse_payload, mcx_payload, close_payload=close_payload)
     OUTPUT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     for group, data in (("NSE", report["nse_index_options"]["assets"]), ("MCX", report["mcx_commodity_futures"]["assets"])):
         for asset, item in data.items():
