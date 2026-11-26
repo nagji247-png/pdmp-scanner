@@ -250,6 +250,13 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
             self.assertEqual(nifty["observations"][0]["status"], "OFFICIAL_CALENDAR_UNAVAILABLE")
             self.assertFalse(result["predictive_validation_passed"])
 
+    def test_walk_forward_fails_closed_at_calendar_year_boundary(self):
+        from archive_component_diagnostics import _next_official_session
+        import datetime as dt
+
+        calendar = {"exchange": "NSE", "calendar_year": 2026, "holidays": []}
+        self.assertIsNone(_next_official_session(dt.date(2026, 12, 31), calendar))
+
     def test_walk_forward_respects_weekend_special_nse_session(self):
         from archive_component_diagnostics import _next_official_session
         import datetime as dt
