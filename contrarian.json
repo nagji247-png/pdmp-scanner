@@ -2705,5 +2705,89 @@
       "status": "unavailable",
       "reason": "सिग्नल समय के आसपास की पूरी 5-मिनट candle 30 मिनट में नहीं मिली"
     }
+  },
+  {
+    "key": "2026-11-26|NIFTY",
+    "date": "2026-11-26",
+    "instrument": "NIFTY",
+    "score": 7.7,
+    "event_time_utc": "2026-11-26T02:59:05Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-26|BANKNIFTY",
+    "date": "2026-11-26",
+    "instrument": "BANKNIFTY",
+    "score": 6.1,
+    "event_time_utc": "2026-11-26T02:59:08Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-26|GOLD",
+    "date": "2026-11-26",
+    "instrument": "GOLD",
+    "score": -6.8,
+    "event_time_utc": "2026-11-26T02:59:09Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
+  },
+  {
+    "key": "2026-11-26|HDFCBANK",
+    "date": "2026-11-26",
+    "instrument": "HDFCBANK",
+    "score": 6.8,
+    "event_time_utc": "2026-11-26T02:59:17Z",
+    "outcome": null,
+    "next_change": null,
+    "baseline_price": null,
+    "baseline_time": null,
+    "baseline_attempted": false,
+    "intraday_source": "Awaiting verified 5-minute candle source",
+    "after_30m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    },
+    "after_60m": {
+      "status": "pending",
+      "reason": "सिग्नल समय की पूरी candle फिर खोजी जाएगी"
+    }
   }
 ]
