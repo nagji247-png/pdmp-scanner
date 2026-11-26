@@ -197,6 +197,9 @@ def summarize_option_buildup_next_session(option_payload, close_payload, min_cla
                 max_age_days=10000, min_matched_contracts=20,
                 expected_source_date=None,
             )
+            # Do not duplicate an older symbol signal on unrelated archive rows.
+            if str(diagnostic.get("source_date") or "")[:10] != signal_date:
+                continue
             component, reason = option_buildup_test_component(
                 diagnostic, signal_date, max_age_days=10000,
                 min_classified=min_classified,
