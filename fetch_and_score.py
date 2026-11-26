@@ -270,6 +270,47 @@ def weighted_score(heads):
         den += w
     return round(num / den * 5, 1) if den > 0 else 0.0
 
+def validated_news_component(headlines, now_utc=None, max_age_hours=48.0):
+    """Return a real [-10,+10] news component, or None when no dated headlines qualify.
+
+    A valid neutral headline is allowed to produce 0. Missing, undated, or
+    over-age headlines are not converted into a neutral score.
+    """
+    now = now_utc or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    now = now.astimezone(dt.timezone.utc)
+    try:
+        max_age = float(max_age_hours)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(max_age) or max_age < 0:
+        return None
+
+    numerator = 0.0
+    denominator = 0.0
+    for headline in headlines if isinstance(headlines, list) else []:
+        if not isinstance(headline, dict):
+            continue
+        score = finite_number(headline.get("score"))
+        published = parse_utc_timestamp(headline.get("published_at"))
+        if score is None or published is None:
+            continue
+        age_hours = (now - published).total_seconds() / 3600.0
+        if age_hours < -(5.0 / 60.0) or age_hours > max_age:
+            continue
+        age_hours = max(0.0, age_hours)
+        weight = source_weight(headline.get("source")) * recency_weight(age_hours)
+        if not math.isfinite(weight) or weight <= 0:
+            continue
+        numerator += score * weight
+        denominator += weight
+
+    if denominator <= 0:
+        return None
+    # Match the production headline scale (weighted mean × 5, then × 2).
+    return round(max(-10.0, min(10.0, numerator / denominator * 10.0)), 1)
+
 def shadow_weighted_news_score(heads):
     """Shadow component: retain the weighted mean of headline sentiment points.
 
@@ -3641,6 +3682,7 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
     news_snapshot = fetch_news_snapshot(query, previous_item=previous_item, now_utc=now_utc)
     heads = news_snapshot["headlines"]
     score = weighted_score(heads)
+    news_component = validated_news_component(heads, now_utc=now_utc)
 
     instruments[name] = {
         "type": kind,
@@ -3656,6 +3698,8 @@ def process(name, sym, query, kind, events, today_str, instruments, div_events, 
         "news_fetch_error": news_snapshot["error"],
         "score": score,
         "headline_score": score,
+        "news_component_score": news_component,
+        "news_component_available": news_component is not None,
         "headlines": heads[:8],
         "pos_n": sum(1 for h in heads if h["score"] > 0),
         "neg_n": sum(1 for h in heads if h["score"] < 0),
@@ -5626,26 +5670,43 @@ def retail_adjust(po):
     return adj, {"ce_pct": ce, "pe_pct": pe, "bias": bias, "date": po.get("date"), "adj": adj}
 
 
-def validated_news_crowd_score(news_component, crowd_component=None, crowd_valid=False):
-    """Score only validated News and crowd components; participant OI stays diagnostic."""
-    try:
-        news = float(news_component)
-    except (TypeError, ValueError):
-        raise ValueError("news component must be a finite number")
-    if not math.isfinite(news):
-        raise ValueError("news component must be a finite number")
-    try:
-        crowd = float(crowd_component) if crowd_component is not None else None
-    except (TypeError, ValueError):
-        crowd = None
-    if crowd_valid and crowd is not None and math.isfinite(crowd):
+def validated_news_crowd_score(
+    news_component=None, crowd_component=None, crowd_valid=False, news_valid=True
+):
+    """Combine only validated sources; unavailable inputs never become neutral zero."""
+    news = None
+    if news_valid:
+        try:
+            candidate = float(news_component)
+            if math.isfinite(candidate):
+                news = max(-10.0, min(10.0, candidate))
+        except (TypeError, ValueError, OverflowError):
+            news = None
+
+    crowd = None
+    if crowd_valid:
+        try:
+            candidate = float(crowd_component)
+            if math.isfinite(candidate):
+                crowd = max(-10.0, min(10.0, candidate))
+        except (TypeError, ValueError, OverflowError):
+            crowd = None
+
+    if news is not None and crowd is not None:
         combined = news * 0.50 + crowd * 0.50
         mode = "news_crowd"
         normalized_weights = {"news": 50.0, "crowd": 50.0}
-    else:
+    elif news is not None:
         combined = news
         mode = "news_only"
         normalized_weights = {"news": 100.0}
+    elif crowd is not None:
+        combined = crowd
+        mode = "crowd_only"
+        normalized_weights = {"crowd": 100.0}
+    else:
+        return None, "unavailable", {}
+
     return round(max(-10.0, min(10.0, combined)), 1), mode, normalized_weights
 
 
@@ -6607,23 +6668,34 @@ def main():
         _d["experimental_headline_count"] = _exp["headline_count"]
         _d["experimental_excluded_old_or_unknown"] = _exp["excluded_old_or_unknown"]
         _d["experimental_excluded_cross_index_duplicates"] = _exp["excluded_cross_index_duplicates"]
+    per_index_score_methods = {}
     for _n in ("NIFTY", "SENSEX", "BANKNIFTY"):
         _d = result["instruments"].get(_n)
         if not _d:
             continue
-        news_component = max(-10.0, min(10.0, float(_d.get("headline_score", _d.get("score", 0))) * 2))
+        news_component = _d.get("news_component_score")
+        news_valid = _d.get("news_component_available") is True and news_component is not None
         _score, _mode, _normalized_weights = validated_news_crowd_score(
-            news_component, crowd_component, crowd_score_valid
+            news_component, crowd_component, crowd_score_valid, news_valid=news_valid
         )
+        _d["headline_score"] = news_component
         _d["score"] = _score
         _d["score_mode"] = _mode
+        _d["score_status"] = "available" if _score is not None else "unavailable"
+        _d["score_normalized_weights_pct"] = _normalized_weights
+        per_index_score_methods[_n] = {
+            "mode": _mode,
+            "normalized_weights_pct": _normalized_weights,
+            "news_available": news_valid,
+            "crowd_available": crowd_score_valid,
+        }
     result["index_score_method"] = {
-        "mode": "news_crowd" if crowd_score_valid else "news_only",
+        "mode": "per_index_validated_sources",
+        "normalization_scope": "प्रत्येक index के उपलब्ध, timestamp-validated News और Crowd स्रोतों पर अलग-अलग",
+        "mode_policy": "news_crowd / news_only / crowd_only / unavailable per index",
         "weights": {"news": 50, "crowd": 50},
-        "normalized_weights_pct": (
-            {"news": 50.0, "crowd": 50.0}
-            if crowd_score_valid else {"news": 100.0}
-        ),
+        "normalized_weights_pct": None,
+        "per_index": per_index_score_methods,
         "crowd_included": bool(crowd_score_valid),
         "crowd_source_valid": bool(crowd_valid),
         "crowd_basis": "directional_bull_bear_ratio; (BULLISH%-BEARISH%)/(BULLISH%+BEARISH%) maps to -10..+10; NEUTRAL information interest is displayed separately",
