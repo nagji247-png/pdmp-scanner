@@ -18,6 +18,7 @@ NSE_PATH = Path("nse_index_option_oi.json")
 CLOSE_PATH = Path("nse_index_close_archive.json")
 MCX_PATH = Path("mcx_bhavcopy_archive.json")
 OUTPUT_PATH = Path("archive-component-diagnostics.json")
+CALENDAR_PATH = Path("exchange_calendar.json")
 MIN_VALIDATION_SESSIONS = 60
 
 
@@ -163,8 +164,28 @@ def _index_close(record, symbol):
     return None, None
 
 
-def summarize_option_buildup_next_session(option_payload, close_payload, min_classified=100):
-    """Walk-forward research: signal after EOD pair, compare next official index close."""
+def _next_official_session(signal_day, calendar):
+    """Return the next NSE session from the committed exchange calendar."""
+    if (not isinstance(calendar, dict) or calendar.get("exchange") != "NSE"
+            or calendar.get("calendar_year") != signal_day.year):
+        return None
+    holidays = {str(row.get("date")) for row in calendar.get("holidays", []) if isinstance(row, dict)}
+    special = calendar.get("special_sessions") or {}
+    for offset in range(1, 15):
+        day = signal_day + dt.timedelta(days=offset)
+        # A single-year calendar cannot certify sessions in the following year.
+        if day.year != signal_day.year:
+            return None
+        iso = day.isoformat()
+        if iso in special:
+            return day
+        if day.weekday() < 5 and iso not in holidays:
+            return day
+    return None
+
+
+def summarize_option_buildup_next_session(option_payload, close_payload, min_classified=100, calendar=None):
+    """Walk-forward research; score only the calendar-defined next NSE session."""
     option_records = _records(option_payload)
     close_records = _records(close_payload)
     close_dates = {}
@@ -183,7 +204,7 @@ def summarize_option_buildup_next_session(option_payload, close_payload, min_cla
             "missing_same_day_close": 0, "missing_next_session_close": 0,
             "bullish_hits": 0, "bullish_misses": 0,
             "bearish_hits": 0, "bearish_misses": 0,
-            "flat_or_zero_excluded": 0,
+            "flat_or_zero_excluded": 0, "missing_expected_next_session_close": 0,
         }
         for index, row in enumerate(option_records):
             signal_date = str(row.get("date") or "")[:10]
@@ -213,13 +234,18 @@ def summarize_option_buildup_next_session(option_payload, close_payload, min_cla
                 results.append({"signal_date": signal_date, "score": component["score"],
                                 "status": "MISSING_SAME_DAY_CLOSE"})
                 continue
-            future_days = [day for day in close_dates if day > signal_day]
-            if not future_days:
+            next_day = _next_official_session(signal_day, calendar)
+            if next_day is None:
                 counters["missing_next_session_close"] += 1
                 results.append({"signal_date": signal_date, "score": component["score"],
-                                "status": "MISSING_NEXT_SESSION_CLOSE"})
+                                "status": "OFFICIAL_CALENDAR_UNAVAILABLE"})
                 continue
-            next_day = min(future_days)
+            if next_day not in close_dates:
+                counters["missing_expected_next_session_close"] += 1
+                results.append({"signal_date": signal_date, "score": component["score"],
+                                "expected_next_session_date": next_day.isoformat(),
+                                "status": "MISSING_EXPECTED_NEXT_SESSION_CLOSE"})
+                continue
             base_name, base_close = _index_close(baseline, symbol)
             next_name, next_close = _index_close(close_dates[next_day], symbol)
             if base_close is None or next_close is None:
@@ -263,7 +289,7 @@ def summarize_option_buildup_next_session(option_payload, close_payload, min_cla
         }
     return {
         "source": "Offline NSE official F&O option archive + official daily index-close archive",
-        "method": "Walk-forward: each signal uses only option EOD records up to that date; outcome uses same-day close to first later archived trading-session close.",
+        "method": "Walk-forward: each signal uses only option EOD records up to that date; outcome uses the calendar-defined next NSE session close. Missing expected closes are excluded, never replaced by a later archived date.",
         "minimum_directional_pairs_for_review": MIN_VALIDATION_SESSIONS,
         "assets": assets,
         "external_requests_made": 0,
@@ -337,7 +363,7 @@ def summarize_mcx(payload):
     }
 
 
-def build_report(nse_payload, mcx_payload, generated_at=None, close_payload=None):
+def build_report(nse_payload, mcx_payload, generated_at=None, close_payload=None, calendar_payload=None):
     stamp = generated_at or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     return {
         "report_version": 1,
@@ -349,7 +375,7 @@ def build_report(nse_payload, mcx_payload, generated_at=None, close_payload=None
         "minimum_sessions_for_validation": MIN_VALIDATION_SESSIONS,
         "nse_index_options": summarize_nse(nse_payload),
         "nse_option_buildup_test": summarize_option_buildup(nse_payload),
-        "nse_option_buildup_next_session_research": summarize_option_buildup_next_session(nse_payload, close_payload) if close_payload is not None else {"status": "CLOSE_ARCHIVE_NOT_SUPPLIED", "predictive_validation_passed": False},
+        "nse_option_buildup_next_session_research": summarize_option_buildup_next_session(nse_payload, close_payload, calendar=calendar_payload) if close_payload is not None else {"status": "CLOSE_ARCHIVE_NOT_SUPPLIED", "predictive_validation_passed": False},
         "nse_index_expiry_research": build_index_oi_expiry_report(nse_payload),
         "mcx_commodity_futures": summarize_mcx(mcx_payload),
         "guardrail": "All archive-derived results remain diagnostic-only. No archive component is eligible for Final Score until sufficient dated history and out-of-sample directional validation pass.",
@@ -363,7 +389,9 @@ def main():
     nse_payload = json.loads(NSE_PATH.read_text(encoding="utf-8"))
     mcx_payload = json.loads(MCX_PATH.read_text(encoding="utf-8"))
     close_payload = json.loads(CLOSE_PATH.read_text(encoding="utf-8"))
-    report = build_report(nse_payload, mcx_payload, close_payload=close_payload)
+    calendar_payload = json.loads(CALENDAR_PATH.read_text(encoding="utf-8")) if CALENDAR_PATH.is_file() else None
+    report = build_report(nse_payload, mcx_payload, close_payload=close_payload,
+                          calendar_payload=calendar_payload)
     OUTPUT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     for group, data in (("NSE", report["nse_index_options"]["assets"]), ("MCX", report["mcx_commodity_futures"]["assets"])):
         for asset, item in data.items():
