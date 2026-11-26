@@ -12918,8 +12918,8 @@
         "score": 1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.06
   },
   {
     "key": "2026-11-25|DJI|div",
@@ -13380,8 +13380,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "sentiment",
+    "next_change": 1.62
   },
   {
     "key": "2026-11-26|BITCOIN|div",
@@ -13464,8 +13464,8 @@
         "score": -1
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.78
   },
   {
     "key": "2026-11-26|EICHERMOT|div",
@@ -13506,8 +13506,8 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -1.87
   },
   {
     "key": "2026-11-26|APOLLOHOSP|div",
@@ -13548,7 +13548,91 @@
         "score": 0
       }
     ],
-    "outcome": null,
-    "next_change": null
+    "outcome": "price",
+    "next_change": -0.83
+  },
+  {
+    "key": "2026-11-26|BANKNIFTY|div",
+    "date": "2026-11-26",
+    "instrument": "BANKNIFTY",
+    "score": 9.0,
+    "price_change": -0.26,
+    "sentiment_up": true,
+    "headlines": [
+      {
+        "title": "Top Traded by Value Today 26-Nov-2026: HDFC Bank Leads",
+        "source": "Multibagg AI",
+        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNenNiTEZLQVYwN2F6X0JQamFybHdGTmhUR29mX2ZkT1l2R2pETmdKR1h3T1NwTE5IU0plVnVLSkFrMm9OdmVzZ1V3Z01SUE9STF9qdDVVVGZvQVliMm9FOWdpb2lVRHlZald4ZUkteW5rcnRZdkdVUGthdW1TVWZWWXg4dmxxZlVaWHNEWmk3TkdjT1g1cVlza0ROcGV3M3Q3LVBv?oc=5",
+        "score": 0
+      },
+      {
+        "title": "Closing Bell: Nifty 50, Sensex Extend Gains for Second Session; IT Index Surges 3.66%, Realty Gains 3.27%",
+        "source": "Dalal Street Investment Journal",
+        "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPTVhfYTBpRHVoZTk3N0k0ejhFVUFac21qYTY1VGhQTmVJaVgyck8zREFCSlN3bkJ6TEswaENYSUNlanVpRnVYY0g4ZUQ4d2dJekp0NVd2elVKbmQycFNVLTBKSGZsMWttRUZkZTN1X2RkVWZWOFowY3pMNmpFcWtjZFdadzFheDBoVGRmWmNYVFY5ajhhRm5DWGEyV1RzNXNZTTJjYUhfaVlZWFhxUmR3bVpBMFZlRVJVWHlGQWNlU0VpVXIzVmtkOUhoYzQwSmZ2c0RGcWo5NHpORlJ0Nzcw?oc=5",
+        "score": 4
+      },
+      {
+        "title": "Today's Market: Sensex Today Trades Higher | Nifty Above 25,800 | Nifty IT Index Up 2.4% - Indian Stock Market News",
+        "source": "Equitymaster",
+        "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxObmU2THAtX0pJTjRqZURja2o1dFg4dzJ1VVFybUhQSk5seXJOVEVrVjlHNG03cjhXeFFjeHdzM2o3UzlXX2pFblhGeS1mMmVLMFl4UHpRVFVIbWZaMzZCZ0p6aDA5eUZpSXl5VXJybG9ObzdPMVg1eTFRYm5TcDFza0YxelQydmxFYThjV3NmV1ZacjBNRnBIZU1kV0o0VjVPZzdoczlTREtvZ0JuZ2tKd0ZQR1ptMnNlekpLTEVIUEtwSWp6NFBJ?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Nifty, Sensex open in green despite fresh US tariff threats; IT index jumps 2%",
+        "source": "ChiniMandi",
+        "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOeTJDU1FuYzFkWWxUekVScjdyTXl0WmUzSEllMzE5Z18xNklmdHdLWWgwY0RXM0pSMENZemh6MVBUVEpMSXJCMUcwMGdqU1J2X1dFM0VaWkYtak00YV9HcVYwSFRFT3pTNnQyMVRUUHFsSFFnbXI2T2RFcjFmNzJmeDBMTV9KaDByRjB1aDlYTXBKdWNTVG1uZndkNEJzMDVuY25UT3Fn?oc=5",
+        "score": 1
+      },
+      {
+        "title": "Sensex Surges 1,502 Points as Banking and Consumer Stocks Lead Market Rally",
+        "source": "INDIA New England News",
+        "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQdUE5MnFmbjdYWDBGYm9pd3d2Y08yRmYwcTJ3UnZnbTMxcG8zY0h1alV0QkpTSXB0WkdyTS1Fb1dhaDdtR1hOVFNzY04zSTVheHhsel9BTWFJaWkxMl82X2hTTGdWT2o1TUtLVW1CM2NjOFRhNW1FcWE5cEhQRVlmd056Vy1aUXlIaTVQS2hfNEsxUGhmNzJka1NqRzdQUmlsYW1LWGdR?oc=5",
+        "score": 4
+      }
+    ],
+    "outcome": "price",
+    "next_change": -0.26
+  },
+  {
+    "key": "2026-11-26|SBIN|div",
+    "date": "2026-11-26",
+    "instrument": "SBIN",
+    "score": -1.5,
+    "price_change": 0.3,
+    "sentiment_up": false,
+    "headlines": [
+      {
+        "title": "SBI Share Price - Live NSE: SBIN Stock Price & Chart",
+        "source": "Upstox",
+        "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTFBPa0lHTFVCTVBxWVRmVXR6cE5FMDhDc25ublZmbVllcFgyMU0wZF9NZmdZQWVjQmJrd0tPSFN2OUdVRnpfVVBWdDFCMmRPSkZFc1R4cFIyOGdMSmdtNThoam1zNGN6WnFKbGc?oc=5",
+        "score": 0
+      },
+      {
+        "title": "South Indian Bank Shares in Focus After RBI Allows SBI Mutual Fund to Acquire Up to 9.99% Stake; Check Key Details",
+        "source": "Kotak Neo",
+        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQUkZBMEhETjZUUHN3TzZ4Zjk4Mlh2S01ZWl96M2tjRnRlbUFlWEJzZ3gtVi1Eb3NaN3JfQTc3VzgxYTFWa0xPWU9Ba1NIcURwSUxBSjBCYjd1SF9QSlI4MklrMnV4bmg0RThjRnlDYUlyUGtFenRjTmJNWnVMbFE0azRXY1hCSmhrUlZlX1hidGpZaXhJ?oc=5",
+        "score": 0
+      },
+      {
+        "title": "RBI gives approval to SBI MF to acquire up to 9.99% of South Indian Bank’s paid-up share capital",
+        "source": "BusinessLine",
+        "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxPdTJ4dWI5eENwZ3lxeUVqTkRoNzZsZGFoazdfSEx1elJtYTFhQWtFSDJVaWJvaE5vand1dk1PUkpZTGdsRWxMTmtBaldCcENGalpoXzVhQjVBNHNtRmNGYkVrUFFCLTVkNFpoZU16TWlJSURvTTFkS1ZVNWUxNFhocXVJZ3Y2STE1cmRnTXRRVWZqLVZrSFhGcHVsOEhsRmwtWXZZY1pBSFh2bmgzTUNGN1ZsRHJIYVJRZUdBRVUtNU9qUXFCek1MeG0yaDZ6MkhZbFo0Rm5mdHFGazRUZUNfNmhGRTF5YTNET2hjSTdsMElXblc0V1Z6TkdZNFrSAYMCQVVfeXFMTXZwUnFLVVRmNHpoTUc1QzBfNDMzYm9UZ19FTUpNcWkxenVZMlpjdnMwNHgxSjlvWUZKRDBFOEhtMVBMb3JZUnllc3F4UUZJanNXSlBjQmljVS1ReG02cXFZODVHcnR0aDhOd2oyTkhkTUZZc1llTjlTY2Y1dWlzZzI4WUdJanpRSFJwamdDS2pGdUI2d1RpMW9heDl3aXIxUXpDYlhuRXVHV1JNOVBJR3duaHBCaVhRZkRJOUNGOTI4NU9lYlhwZS1tNk1majRvN1lHemprSnhvZE9XUlgxc1RIcHIydXhyakZvWEFwVnp2WUlPN05aQzVkelg2aE1wMUtrNA?oc=5",
+        "score": 0
+      },
+      {
+        "title": "State Bank Of India Share Price: Price Fall and Valuation",
+        "source": "Univest",
+        "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPU1ZPTFpBRGIzOE5PSXlmOGVUczZCRnZvWVF0Ul8tS0tCaVJZVUNHQlBrYXRJcmRYYVd3Y0tCZDZCcHZYN3h2SXhrMmFqY0I1NWt4VS1uT2tmOVhkNTlNeE9vcVk5ZXh4b2Etb2xuUXVhRFpPa2pjanZ5TjFSY1VQUmJ3?oc=5",
+        "score": -1
+      },
+      {
+        "title": "SBIN Outlook for the Week",
+        "source": "Equitypandit",
+        "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5RQjVNcXM1Mmp0d0NaT1NMUWh5S1ByaDdEeGlQQkd5TzgwbkpwNTUyOVRZRnVaVHBhSkZYU1VDQmhZLUJ4TkZJNU1SbUFRSTgyUHFQMjBSbzJlUEtvTGptM29QNEdMZw?oc=5",
+        "score": 0
+      }
+    ],
+    "outcome": "sentiment",
+    "next_change": -0.13
   }
 ]
