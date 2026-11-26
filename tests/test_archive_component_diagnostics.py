@@ -194,7 +194,7 @@ class ArchiveComponentDiagnosticsTests(unittest.TestCase):
         self.assertEqual(nifty["directional_pairs"], 1)
         self.assertEqual(nifty["directional_hits"], 1)
         self.assertEqual(nifty["directional_accuracy_pct"], 100.0)
-        self.assertEqual(nifty["observations"][0]["next_session_date"], "2026-11-13")
+        self.assertEqual(nifty["observations"][0]["next_session_date"], "2026-11-16")
         self.assertFalse(result["predictive_validation_passed"])
 
 
