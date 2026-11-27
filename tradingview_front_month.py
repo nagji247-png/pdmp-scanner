@@ -44,7 +44,7 @@ def parse_front_month(page_text: str, symbol: str) -> str | None:
     visible = re.sub(r"\s+", " ", visible)
     match = re.search(
         r"\bFront\s+month\s*:?[ \t\u00a0]*"
-        rf"({re.escape(symbol)}[FGHJKMNQUVXZ]\\d{{4}})\\b",
+        rf"({re.escape(symbol)}[FGHJKMNQUVXZ]\d{{4}})\b",
         visible, flags=re.IGNORECASE,
     )
     return match.group(1).upper() if match else None
@@ -75,7 +75,7 @@ def contract_code_month(contract_code: str, symbol: str) -> tuple[int, int] | No
     code = str(contract_code or "").strip().upper()
     if symbol not in _TRADINGVIEW_URLS:
         return None
-    match = re.fullmatch(rf"{re.escape(symbol)}([FGHJKMNQUVXZ])(\\d{{4}})", code)
+    match = re.fullmatch(rf"{re.escape(symbol)}([FGHJKMNQUVXZ])(\d{{4}})", code)
     if not match:
         return None
     year = int(match.group(2))
