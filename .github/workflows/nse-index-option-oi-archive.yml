@@ -84,7 +84,7 @@ jobs:
             echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
       - name: Repair legacy OI-only sessions, then backfill older NSE option sessions
-        if: github.event_name == 'schedule' && github.event.schedule == '0 16 * * 1-5'
+        if: github.event_name == 'schedule' && github.event.schedule == '30 16 * * 1-5'
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_history_window.env"
           import datetime as dt
