@@ -122,10 +122,10 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Run ATM ±5/±10 option OI window backtest (Research Only)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-atm-backtest]'))
         run: python atm_option_window_backtest.py --out atm_option_window_backtest_report.json
       - name: Add ATM option-window results to workflow report
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-atm-backtest]'))
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
@@ -154,7 +154,7 @@ jobs:
           print("- Status: **exploratory_only**; not eligible for live score.")
           PY
       - name: Upload ATM option-window research report
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-atm-backtest]'))
         uses: actions/upload-artifact@v4
         with:
           name: atm-option-window-backtest-${{ github.run_number }}
