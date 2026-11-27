@@ -1,6 +1,15 @@
 name: NSE Next-Session Option OHLC Audit
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - nse_next_session_option_ohlc_audit.py
+      - atm_option_window_backtest.py
+      - nse_index_option_oi.json
+      - nse_index_close_archive.json
+      - .github/workflows/nse-next-session-option-ohlc-audit.yml
   workflow_dispatch:
   push:
     branches:
