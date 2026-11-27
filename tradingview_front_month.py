@@ -41,9 +41,9 @@ def parse_front_month(page_text: str, symbol: str) -> str | None:
     parser = _VisibleText()
     parser.feed(page_text)
     visible = " ".join(parser.parts) if "<" in page_text else page_text
-    visible = re.sub(r"\\s+", " ", visible)
+    visible = re.sub(r"\s+", " ", visible)
     match = re.search(
-        r"\\bFront\\s+month\\s*:?[ \\t\\u00a0]*"
+        r"\bFront\s+month\s*:?[ \t\u00a0]*"
         rf"({re.escape(symbol)}[FGHJKMNQUVXZ]\\d{{4}})\\b",
         visible, flags=re.IGNORECASE,
     )
