@@ -110,6 +110,28 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "incomplete_contract_pair")
 
+    def test_unclassified_contracts_report_zero_premium_and_zero_oi_reasons(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        current = make_record("2026-11-17", "2026-11-24", 1, 10)
+        # One CE has unchanged premium; one PE has unchanged OI.
+        for row in current["option_contracts"]["NIFTY"]["contracts"]:
+            if row["strike"] == 24500 and row["side"] == "CE":
+                row["close"] = 100.0
+            if row["strike"] == 24550 and row["side"] == "PE":
+                row["open_interest"] = 1000
+        result = score_window(previous, current, "NIFTY", 24500, 5)
+        self.assertEqual(result["matched_contracts"], 22)
+        self.assertEqual(result["classified_contracts"], 20)
+        self.assertEqual(result["classification_exclusions_by_reason"], {
+            "ZERO_PREMIUM_CHANGE": 1, "ZERO_OI_CHANGE": 1
+        })
+        excluded = {(row["strike"], row["side"]): row for row in result["unclassified_contracts"]}
+        self.assertEqual(excluded[(24500, "CE")]["reason"], "ZERO_PREMIUM_CHANGE")
+        self.assertEqual(excluded[(24500, "CE")]["premium_change"], 0)
+        self.assertEqual(excluded[(24550, "PE")]["reason"], "ZERO_OI_CHANGE")
+        self.assertEqual(excluded[(24550, "PE")]["oi_change"], 0)
+        self.assertTrue(all(row["signal_date"] == "2026-11-17" for row in excluded.values()))
+
     def test_report_uses_next_archived_session_close_and_stays_research_only(self):
         previous = make_record("2026-11-16", "2026-11-24")
         signal = make_record("2026-11-17", "2026-11-24", 1, 100)
