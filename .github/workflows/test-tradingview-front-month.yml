@@ -1,0 +1,27 @@
+name: TradingView Front Month Tests
+
+on:
+  push:
+    branches:
+      - feature/mcx-tradingview-front-month-20261127
+    paths:
+      - "tradingview_front_month.py"
+      - "tests/test_tradingview_front_month.py"
+      - ".github/workflows/test-tradingview-front-month.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  front-month-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run front-month unit tests
+        run: python -m unittest discover -s tests -p "test_tradingview_front_month.py" -v
