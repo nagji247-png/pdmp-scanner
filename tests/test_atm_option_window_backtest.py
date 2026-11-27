@@ -56,6 +56,18 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         self.assertEqual(len(result["selected_strikes"]), 21)
         self.assertEqual(result["matched_contracts"], 42)
 
+    def test_missing_entire_strike_is_not_silently_skipped(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        current = make_record("2026-11-17", "2026-11-24", 1, 10)
+        for record in (previous, current):
+            record["option_contracts"]["NIFTY"]["contracts"] = [
+                row for row in record["option_contracts"]["NIFTY"]["contracts"]
+                if row["strike"] != 24500
+            ]
+        result = score_window(previous, current, "NIFTY", 24500, 5)
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "non_contiguous_strike_ladder")
+
     def test_incomplete_strike_coverage_fails_closed(self):
         previous = make_record("2026-11-16", "2026-11-24")
         current = make_record("2026-11-17", "2026-11-24", 1, 10)
