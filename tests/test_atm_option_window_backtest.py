@@ -13,7 +13,7 @@ def make_record(day, expiry, premium_offset=0, oi_offset=0):
                 "expiry": expiry,
                 "side": side,
                 "strike": strike,
-                "close": base + premium_offset,
+                "close": base + premium_offset if side == "CE" else base - premium_offset,
                 "open_interest": 1000 + oi_offset,
             })
     return {
