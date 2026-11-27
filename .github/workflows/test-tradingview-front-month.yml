@@ -9,6 +9,12 @@ on:
       - "fetch_and_score.py"
       - "tests/test_tradingview_front_month.py"
       - ".github/workflows/test-tradingview-front-month.yml"
+  pull_request:
+    paths:
+      - "tradingview_front_month.py"
+      - "fetch_and_score.py"
+      - "tests/test_tradingview_front_month.py"
+      - ".github/workflows/test-tradingview-front-month.yml"
   workflow_dispatch:
 
 permissions:
