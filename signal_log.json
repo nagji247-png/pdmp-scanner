@@ -1,53 +1,5 @@
 [
   {
-    "time": "2026-11-22T01:58Z",
-    "instrument": "NIFTY",
-    "prev_score": 0.0,
-    "new_score": 10.0,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 17,
-    "price_at_change": 25800.5996,
-    "price_after": 25800.5996,
-    "move_pct": 0.0,
-    "after_minutes": 96,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-22T01:58Z",
-    "instrument": "BANKNIFTY",
-    "prev_score": 0.0,
-    "new_score": 10.0,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": false,
-    "held_minutes": 17,
-    "price_at_change": 64635.1992,
-    "price_after": 64635.1992,
-    "move_pct": 0.0,
-    "after_minutes": 96,
-    "direction": "लगभग स्थिर"
-  },
-  {
-    "time": "2026-11-22T03:34Z",
-    "instrument": "HDFCBANK",
-    "prev_score": 1.8,
-    "new_score": 0.8,
-    "changed": [
-      "भावना"
-    ],
-    "vol_data": true,
-    "held_minutes": 134,
-    "price_at_change": 846.0,
-    "price_after": 846.0,
-    "move_pct": 0.0,
-    "after_minutes": 5,
-    "direction": "लगभग स्थिर"
-  },
-  {
     "time": "2026-11-22T03:39Z",
     "instrument": "RELIANCE",
     "prev_score": 2.7,
@@ -3219,5 +3171,53 @@
     "move_pct": 0.0,
     "after_minutes": 4,
     "direction": "लगभग स्थिर"
+  },
+  {
+    "time": "2026-11-27T04:00Z",
+    "instrument": "BANKNIFTY",
+    "prev_score": 10.0,
+    "new_score": 10.0,
+    "changed": [
+      "कीमत"
+    ],
+    "vol_data": false,
+    "held_minutes": 50,
+    "price_at_change": 63500.8008,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-27T04:00Z",
+    "instrument": "RELIANCE",
+    "prev_score": 1.4,
+    "new_score": 1.4,
+    "changed": [
+      "VWAP"
+    ],
+    "vol_data": true,
+    "held_minutes": 79,
+    "price_at_change": 1382.8,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
+  },
+  {
+    "time": "2026-11-27T04:00Z",
+    "instrument": "HDFCBANK",
+    "prev_score": 2.5,
+    "new_score": 2.5,
+    "changed": [
+      "VWAP"
+    ],
+    "vol_data": true,
+    "held_minutes": 18,
+    "price_at_change": 861.0,
+    "price_after": null,
+    "move_pct": null,
+    "after_minutes": null,
+    "direction": null
   }
 ]
