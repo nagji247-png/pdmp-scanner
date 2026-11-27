@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-27T09:16:00+05:30",
+  "updated_at": "2026-11-27T09:18:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -35914,16 +35914,68 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "MARKET ACTIVITY RADAR|2026-11-27|Financial Services|BULLISH",
+      "department": "MARKET ACTIVITY RADAR",
+      "instrument": "Financial Services",
+      "direction": "BULLISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T09:18:00+05:30",
+      "entry_price": null,
+      "member_prices": {
+        "HDFCBANK": 863.6,
+        "SBIN": 1140.75
+      },
+      "source": "NSE quote snapshot",
+      "details": {
+        "advancers": 2,
+        "decliners": 0,
+        "coverage": 2,
+        "return_method": "equal-weight available constituents"
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "SECTOR ACTIVITY|2026-11-27|Financial Services|BULLISH",
+      "department": "SECTOR ACTIVITY",
+      "instrument": "Financial Services",
+      "direction": "BULLISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T09:18:00+05:30",
+      "entry_price": null,
+      "member_prices": {
+        "HDFCBANK": 863.6,
+        "SBIN": 1140.75
+      },
+      "source": "NSE quote snapshot",
+      "details": {
+        "advancers": 2,
+        "decliners": 0,
+        "coverage": 2,
+        "return_method": "equal-weight available constituents"
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
     "MARKET ACTIVITY RADAR": {
-      "total": 47,
+      "total": 48,
       "correct": 3,
       "incorrect": 6,
       "flat": 2,
       "unverified": 9,
-      "pending": 27,
+      "pending": 28,
       "accuracy_pct": 33.33,
       "average_profit_pct": 0.6016,
       "average_loss_pct": 0.8058,
@@ -35946,12 +35998,12 @@
       "sample_size": 7
     },
     "SECTOR ACTIVITY": {
-      "total": 47,
+      "total": 48,
       "correct": 3,
       "incorrect": 6,
       "flat": 2,
       "unverified": 9,
-      "pending": 27,
+      "pending": 28,
       "accuracy_pct": 33.33,
       "average_profit_pct": 0.6016,
       "average_loss_pct": 0.8058,
