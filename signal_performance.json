@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-27T12:25:00+05:30",
+  "updated_at": "2026-11-27T14:52:00+05:30",
   "events": [
     {
       "id": "MARKET ACTIVITY RADAR|2026-11-25|Services|BULLISH",
@@ -36234,6 +36234,52 @@
       "signed_return_pct": null,
       "status": "PENDING",
       "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "LATEST ACTIVITY ALERTS|2026-11-27|EICHERMOT|BEARISH",
+      "department": "LATEST ACTIVITY ALERTS",
+      "instrument": "EICHERMOT",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T14:52:00+05:30",
+      "entry_price": 8052.5,
+      "member_prices": {},
+      "source": "NSE India direct quote API",
+      "details": {
+        "kind": "watch",
+        "change_pct": -1.56,
+        "positive_news": 0,
+        "negative_news": 0
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
+    },
+    {
+      "id": "LATEST ACTIVITY ALERTS|2026-11-27|ADANIPORTS|BEARISH",
+      "department": "LATEST ACTIVITY ALERTS",
+      "instrument": "ADANIPORTS",
+      "direction": "BEARISH",
+      "signal_date": "2026-11-27",
+      "signal_time_ist": "2026-11-27T14:52:00+05:30",
+      "entry_price": 1882.6,
+      "member_prices": {},
+      "source": "NSE India direct quote API",
+      "details": {
+        "kind": "watch",
+        "change_pct": -1.5,
+        "positive_news": 0,
+        "negative_news": 0
+      },
+      "evaluation_date": null,
+      "exit_price": null,
+      "return_pct": null,
+      "signed_return_pct": null,
+      "status": "PENDING",
+      "reason": "अगले ट्रेडिंग सेशन की सत्यापित क्लोजिंग बाकी"
     }
   ],
   "summary": {
@@ -36252,12 +36298,12 @@
       "sample_size": 11
     },
     "LATEST ACTIVITY ALERTS": {
-      "total": 44,
+      "total": 46,
       "correct": 4,
       "incorrect": 3,
       "flat": 0,
       "unverified": 6,
-      "pending": 31,
+      "pending": 33,
       "accuracy_pct": 57.14,
       "average_profit_pct": 5.1169,
       "average_loss_pct": 3.7876,
