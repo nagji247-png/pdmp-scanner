@@ -77,10 +77,6 @@ jobs:
               if reader.fieldnames:
                   reader.fieldnames = [h.strip().lstrip("\\ufeff") for h in reader.fieldnames]
               parsed = [{(k or "").strip().lstrip("\\ufeff"): (v or "").strip() for k, v in row.items()} for row in reader]
-              if day == dates[0]:
-                  print("CSV SAMPLE:", repr(data[:700]))
-                  print("CSV HEADERS:", repr(reader.fieldnames))
-                  print("CSV FIRST ROW:", repr(parsed[0] if parsed else None))
               matched = {}
               for r in parsed:
                   name = (r.get("Index Name") or "").strip().lower()
@@ -93,10 +89,10 @@ jobs:
                           except Exception: pass
                       matched[name] = {
                           "index_date": actual_date,
-                          "open": float(r["Open"].replace(",","")),
-                          "high": float(r["High"].replace(",","")),
-                          "low": float(r["Low"].replace(",","")),
-                          "close": float(r["Closing"].replace(",",""))
+                          "open": float(r["Open Index Value"].replace(",","")),
+                          "high": float(r["High Index Value"].replace(",","")),
+                          "low": float(r["Low Index Value"].replace(",","")),
+                          "close": float(r["Closing Index Value"].replace(",",""))
                       }
               if len(matched) != 2 or any(v["index_date"] != day for v in matched.values()):
                   failures.append({"requested_date": day, "error": "Missing index row or Index Date mismatch", "found": matched})
