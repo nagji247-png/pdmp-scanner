@@ -52,19 +52,21 @@ class TradingViewFrontMonthTests(unittest.TestCase):
         self.assertIsNone(fetch_front_month_code("SILVER", get))
 
     def test_selects_matching_mcx_expiry_not_highest_oi(self):
-        feb = {"expiry": "2027-02-05", "open_interest": 50000, "price": 128104}
-        dec = {"expiry": "2026-12-04", "open_interest": 6000, "price": 125534}
+        feb = {"symbol": "GOLD", "expiry": "2027-02-05", "open_interest": 50000, "price": 128104}
+        dec = {"symbol": "GOLD", "expiry": "2026-12-04", "open_interest": 6000, "price": 125534}
         self.assertEqual(select_front_month_quote([feb, dec], "GOLD", "GOLDZ2026"), dec)
 
     def test_missing_or_ambiguous_match_is_not_guessed(self):
-        dec = {"expiry": "2026-12-04", "price": 125534}
+        dec = {"symbol": "GOLD", "expiry": "2026-12-04", "price": 125534}
         self.assertIsNone(select_front_month_quote([dec], "GOLD", None))
         self.assertIsNone(select_front_month_quote([], "GOLD", "GOLDZ2026"))
         self.assertIsNone(select_front_month_quote([dec, dict(dec)], "GOLD", "GOLDZ2026"))
 
     def test_full_size_symbol_is_required(self):
         mini = {"symbol": "GOLDM", "expiry": "2026-12-04", "price": 125000}
+        missing_symbol = {"expiry": "2026-12-04", "price": 125000}
         self.assertIsNone(select_front_month_quote([mini], "GOLD", "GOLDZ2026"))
+        self.assertIsNone(select_front_month_quote([missing_symbol], "GOLD", "GOLDZ2026"))
 
 
 if __name__ == "__main__":
