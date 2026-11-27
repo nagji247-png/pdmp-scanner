@@ -21,6 +21,7 @@ on:
       - "dashboard.html"
       - "tests/test_nse_index_option_oi_archive.py"
       - "tests/test_nse_option_buildup.py"
+      - "nse_index_option_oi.json"
   schedule:
     # Retry the official EOD file after publication delays; all times are UTC.
     # 19:30, then every 15 minutes through 21:00, plus 21:30 and 22:00 IST.
@@ -83,9 +84,9 @@ jobs:
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
-      # Bounded repair complete; next explicit marker starts the first older-history batch.
+      # Archive-bot commits chain one bounded five-session batch at a time until 80 sessions or NSE data exhaustion.
       - name: Repair legacy OI-only sessions, then backfill older NSE option sessions
-        if: (github.event_name == 'schedule' && github.event.schedule == '30 16 * * 1-5') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-archive-repair]'))
+        if: (github.event_name == 'schedule' && github.event.schedule == '30 16 * * 1-5') || (github.event_name == 'push' && (contains(github.event.head_commit.message, '[run-archive-repair]') || contains(github.event.head_commit.message, 'backfill recent NSE index option OI sessions')))
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_history_window.env"
           import datetime as dt
