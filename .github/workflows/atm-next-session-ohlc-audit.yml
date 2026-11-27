@@ -1,0 +1,171 @@
+name: ATM Next Session OHLC Research Audit
+
+on:
+  push:
+    branches:
+      - research/atm-next-session-ohlc-audit-20261127
+    paths:
+      - .github/workflows/atm-next-session-ohlc-audit.yml
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  ohlc-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download existing verified OI report artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os, requests, zipfile, io
+          url = "https://api.github.com/repos/nagji247-png/pdmp-scanner/actions/artifacts/15221391899/zip"
+          r = requests.get(url, headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}", "Accept": "application/vnd.github+json"}, timeout=60)
+          r.raise_for_status()
+          z = zipfile.ZipFile(io.BytesIO(r.content))
+          names = [n for n in z.namelist() if n.endswith("atm_option_window_backtest_report.json")]
+          if len(names) != 1:
+              raise SystemExit(f"Expected one report JSON, found: {names}")
+          z.extract(names[0], "input")
+          os.makedirs("input", exist_ok=True)
+          import shutil
+          shutil.move(os.path.join("input", names[0]), "input/atm_option_window_backtest_report.json")
+          PY
+      - name: Fetch NSE official daily index OHLC and calculate excursions
+        run: |
+          cat > audit_ohlc.py <<'PY'
+          import csv, datetime as dt, io, json, os, time, requests
+          from zipfile import ZipFile, ZIP_DEFLATED
+          from collections import defaultdict
+
+          report = json.load(open("input/atm_option_window_backtest_report.json", encoding="utf-8"))
+          assert report.get("status") == "exploratory_only"
+          assert report.get("production_score_changed") is False
+          assert report.get("eligible_for_live_score") is False
+
+          rows = []
+          dates = sorted({o["next_session_date"] for a in ("NIFTY","BANKNIFTY") for o in report["by_asset"][a]["observations"]})
+          session_data = {}
+          s = requests.Session()
+          s.headers.update({
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36",
+              "Accept": "text/csv,text/plain,*/*",
+              "Referer": "https://www.nseindia.com/"
+          })
+          failures = []
+          for day in dates:
+              d = dt.datetime.strptime(day, "%Y-%m-%d").strftime("%d%m%Y")
+              url = f"https://archives.nseindia.com/content/indices/ind_close_all_{d}.csv"
+              data = None
+              for attempt in range(4):
+                  try:
+                      resp = s.get(url, timeout=30)
+                      if resp.status_code == 200 and "Index Name" in resp.text[:1000]:
+                          data = resp.text
+                          break
+                      err = f"HTTP {resp.status_code}"
+                  except Exception as e:
+                      err = str(e)
+                  time.sleep(1.5 * (attempt + 1))
+              if data is None:
+                  failures.append({"requested_date": day, "url": url, "error": err})
+                  continue
+              parsed = list(csv.DictReader(io.StringIO(data)))
+              matched = {}
+              for r in parsed:
+                  name = (r.get("Index Name") or "").strip().lower()
+                  if name in ("nifty 50", "nifty bank"):
+                      actual_date = (r.get("Index Date") or "").strip()
+                      try:
+                          actual_date = dt.datetime.strptime(actual_date, "%d-%b-%Y").strftime("%Y-%m-%d")
+                      except Exception:
+                          try: actual_date = dt.datetime.strptime(actual_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+                          except Exception: pass
+                      matched[name] = {
+                          "index_date": actual_date,
+                          "open": float(r["Open"].replace(",","")),
+                          "high": float(r["High"].replace(",","")),
+                          "low": float(r["Low"].replace(",","")),
+                          "close": float(r["Closing"].replace(",",""))
+                      }
+              if len(matched) != 2 or any(v["index_date"] != day for v in matched.values()):
+                  failures.append({"requested_date": day, "error": "Missing index row or Index Date mismatch", "found": matched})
+                  continue
+              session_data[day] = matched
+              time.sleep(0.25)
+
+          for asset in ("NIFTY","BANKNIFTY"):
+              index_name = "nifty 50" if asset == "NIFTY" else "nifty bank"
+              for o in report["by_asset"][asset]["observations"]:
+                  day = o["next_session_date"]
+                  if day not in session_data:
+                      continue
+                  q = session_data[day][index_name]
+                  base = float(o["spot_close"])
+                  for window_key, window_label in (("atm_plus_minus_5","±5"),("atm_plus_minus_10","±10")):
+                      w = o["windows"].get(window_key, {})
+                      sig = w.get("signal")
+                      if not w.get("available") or sig not in ("BULLISH","BEARISH"):
+                          continue
+                      for stance, direction in (("crowd",sig),("contrarian","BEARISH" if sig=="BULLISH" else "BULLISH")):
+                          if direction == "BULLISH":
+                              fav = q["high"] - base
+                              adv = base - q["low"]
+                          else:
+                              fav = base - q["low"]
+                              adv = q["high"] - base
+                          close_move = q["close"] - base
+                          rows.append({
+                              "index":asset,"signal_date":o["signal_date"],"next_session_date":day,
+                              "window":window_label,"stance":stance,"oi_signal":sig,"tested_direction":direction,
+                              "signal_day_close":round(base,2),"open":round(q["open"],2),"high":round(q["high"],2),
+                              "low":round(q["low"],2),"close":round(q["close"],2),
+                              "gap_points":round(q["open"]-base,2),"favorable_excursion_points":round(fav,2),
+                              "adverse_excursion_points":round(adv,2),
+                              "favorable_excursion_pct":round(fav/base*100,4),"adverse_excursion_pct":round(adv/base*100,4),
+                              "close_direction_correct":(close_move>0 if direction=="BULLISH" else close_move<0),
+                              "close_move_points":round(close_move,2),"day_range_points":round(q["high"]-q["low"],2)
+                          })
+
+          os.makedirs("output",exist_ok=True)
+          with open("output/atm_next_session_ohlc_rows.csv","w",newline="",encoding="utf-8") as f:
+              if rows:
+                  w=csv.DictWriter(f,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+          summary=[]
+          for asset in ("NIFTY","BANKNIFTY"):
+              for window in ("±5","±10"):
+                  for stance in ("crowd","contrarian"):
+                      group=[r for r in rows if r["index"]==asset and r["window"]==window and r["stance"]==stance]
+                      n=len(group)
+                      summary.append({
+                          "index":asset,"window":window,"stance":stance,"samples":n,
+                          "close_correct":sum(x["close_direction_correct"] for x in group),
+                          "close_accuracy_pct":round(100*sum(x["close_direction_correct"] for x in group)/n,2) if n else None,
+                          "avg_favorable_points":round(sum(x["favorable_excursion_points"] for x in group)/n,2) if n else None,
+                          "avg_adverse_points":round(sum(x["adverse_excursion_points"] for x in group)/n,2) if n else None,
+                          "avg_favorable_pct":round(sum(x["favorable_excursion_pct"] for x in group)/n,4) if n else None,
+                          "avg_adverse_pct":round(sum(x["adverse_excursion_pct"] for x in group)/n,4) if n else None
+                      })
+          result={"status":"exploratory_only","source":"NSE archives ind_close_all daily index CSV","requested_next_sessions":len(dates),
+                  "downloaded_next_sessions":len(session_data),"failures":failures,"rows":len(rows),
+                  "production_score_changed":False,"eligible_for_live_score":False,"summary":summary}
+          json.dump(result,open("output/atm_next_session_ohlc_summary.json","w",encoding="utf-8"),indent=2)
+          if len(session_data) != len(dates):
+              print(f"WARNING: OHLC incomplete {len(session_data)}/{len(dates)}; see failures")
+          else:
+              print(f"OHLC sessions complete: {len(session_data)}/{len(dates)}")
+          print(f"Evaluation rows: {len(rows)}")
+          for x in summary: print(x)
+          if not rows: raise SystemExit("No evaluable rows")
+          PY
+          python audit_ohlc.py
+      - name: Upload research-only OHLC artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atm-next-session-ohlc-audit
+          path: output/
+          if-no-files-found: error
+          retention-days: 30
