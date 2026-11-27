@@ -23,7 +23,7 @@ class TradingViewFrontMonthTests(unittest.TestCase):
 
     def test_rejects_wrong_symbol_and_malformed_code(self):
         self.assertIsNone(parse_front_month("Front month GOLDZ2026", "SILVER"))
-        self.assertIsNone(parse_front_month("Front month GOLDM2026", "GOLD"))
+        self.assertIsNone(parse_front_month("Front month GOLDI2026", "GOLD"))
         self.assertIsNone(parse_front_month("Front month GOLDZ26", "GOLD"))
 
     def test_decodes_standard_month_codes(self):
