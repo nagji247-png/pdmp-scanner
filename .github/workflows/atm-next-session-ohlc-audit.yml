@@ -73,7 +73,10 @@ jobs:
               if data is None:
                   failures.append({"requested_date": day, "url": url, "error": err})
                   continue
-              parsed = list(csv.DictReader(io.StringIO(data)))
+              reader = csv.DictReader(io.StringIO(data.lstrip("\\ufeff")))
+              if reader.fieldnames:
+                  reader.fieldnames = [h.strip().lstrip("\\ufeff") for h in reader.fieldnames]
+              parsed = [{(k or "").strip().lstrip("\\ufeff"): (v or "").strip() for k, v in row.items()} for row in reader]
               matched = {}
               for r in parsed:
                   name = (r.get("Index Name") or "").strip().lower()
