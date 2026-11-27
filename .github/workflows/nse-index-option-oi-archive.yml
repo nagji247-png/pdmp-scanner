@@ -83,7 +83,7 @@ jobs:
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
-      # Bounded history batch 12: five NSE dates maximum, then revalidate the archive cursor.
+      # Final bounded batch uses only the remaining count needed to stop exactly at 80 sessions.
       - name: Repair legacy OI-only sessions, then backfill older NSE option sessions
         if: (github.event_name == 'schedule' && github.event.schedule == '30 16 * * 1-5') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-archive-repair]'))
         run: |
@@ -118,9 +118,12 @@ jobs:
               oldest = dt.date.fromisoformat(dates[0])
               end = oldest - dt.timedelta(days=1)
               start = end - dt.timedelta(days=21)
+              remaining = max(0, 80 - len(dates))
+              batch_size = min(5, remaining)
               print("HISTORY_MODE=older_backfill")
               print(f"HISTORY_START={start.isoformat()}")
               print(f"HISTORY_END={end.isoformat()}")
+              print(f"HISTORY_BATCH_SIZE={batch_size}")
               print(f"ARCHIVE_SESSIONS={len(dates)}")
               print(f"OLDEST_ARCHIVED_DATE={oldest.isoformat()}")
           PY
@@ -146,7 +149,7 @@ jobs:
             if python nse_index_option_oi_archive.py \
               --from-date "$HISTORY_START" \
               --to-date "$HISTORY_END" \
-              --max-sessions 5 \
+              --max-sessions "$HISTORY_BATCH_SIZE" \
               --delay-seconds 3; then
               echo "Historical OI batch completed."
             else
