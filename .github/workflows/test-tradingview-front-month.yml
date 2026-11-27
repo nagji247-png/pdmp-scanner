@@ -28,3 +28,47 @@ jobs:
         run: python -m py_compile fetch_and_score.py tradingview_front_month.py
       - name: Run front-month unit tests
         run: python -m unittest discover -s tests -p "test_tradingview_front_month.py" -v
+      # External calls are manual-only: one MCX Market Watch request and
+      # one TradingView page request per metal. No JSON/card files are written.
+      - name: Install dependencies for manual live-source diagnostic
+        if: github.event_name == 'workflow_dispatch'
+        run: pip install yfinance feedparser requests pytrends curl_cffi
+      - name: Diagnostic MCX Market Watch and TradingView front-month match
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          import datetime as dt
+          import json
+          import fetch_and_score as app
+
+          rows = app.fetch_mcx_market_watch_rows()
+          codes = {
+              symbol: app.fetch_front_month_code(symbol, app.MCX_HTTP.get)
+              for symbol in ("GOLD", "SILVER")
+          }
+          now = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, 30)))
+          quotes = app.parse_mcx_market_watch_rows(
+              rows, now=now, front_month_codes=codes
+          )
+          report = {
+              "checked_at_ist": now.isoformat(),
+              "mcx_market_watch_rows": len(rows),
+              "tradingview_front_month_codes": codes,
+              "matched_quotes": {
+                  symbol: {
+                      "symbol": quote.get("symbol"),
+                      "expiry": quote.get("expiry"),
+                      "ltp": quote.get("price"),
+                      "unit": quote.get("unit"),
+                      "source_time": quote.get("source_time"),
+                  }
+                  for symbol, quote in quotes.items()
+                  if symbol in ("GOLD", "SILVER")
+              },
+              "crude_oil_touched": False,
+              "writes_performed": False,
+          }
+          print("MCX_TRADINGVIEW_LIVE_DIAGNOSTIC " + json.dumps(report, ensure_ascii=False))
+          if set(report["matched_quotes"]) != {"GOLD", "SILVER"}:
+              raise SystemExit("Live source diagnostic did not confirm both metals.")
+        shell: python
