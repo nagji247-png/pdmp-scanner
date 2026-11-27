@@ -12,7 +12,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Discover configs, splits, sizes and a tiny row sample
         shell: bash
@@ -147,6 +147,92 @@ jobs:
           if any("download_error" in x or "parquet_read_error" in x for x in report["latest_option_file_inspection"]):
               raise SystemExit("One or more option Parquet inspections failed; see artifact.")
           PY
+
+      - name: Inspect 2026 intraday Parquet coverage for all three indices
+        shell: bash
+        run: |
+          python -m pip install --quiet pyarrow
+          python - <<'PY'
+          import json, os, urllib.request, time
+          import pyarrow.parquet as pq
+
+          repo = "https://huggingface.co/datasets/rissin/nse-options-intraday/resolve/main"
+          files = {
+              "NIFTY": "upstox_intraday/NIFTY/NIFTY_2026.parquet",
+              "BANKNIFTY": "upstox_intraday/BANKNIFTY/BANKNIFTY_2026.parquet",
+              "SENSEX": "upstox_intraday/SENSEX/SENSEX_2026.parquet",
+          }
+          report_path = "hf_dataset_viewer_probe.json"
+          with open(report_path, encoding="utf-8") as f:
+              report = json.load(f)
+          report["rissin_2026_intraday_coverage"] = []
+          for symbol, rel in files.items():
+              url = repo + "/" + rel
+              path = "/tmp/" + symbol + "_2026.parquet"
+              last_error = None
+              for attempt in range(3):
+                  try:
+                      req = urllib.request.Request(url, headers={"User-Agent": "TRINETRA-research-probe/1.0"})
+                      with urllib.request.urlopen(req, timeout=180) as response, open(path, "wb") as out:
+                          while True:
+                              chunk = response.read(8 * 1024 * 1024)
+                              if not chunk:
+                                  break
+                              out.write(chunk)
+                      last_error = None
+                      break
+                  except Exception as exc:
+                      last_error = repr(exc)
+                      time.sleep(attempt + 2)
+              item = {"symbol": symbol, "file": rel, "url": url}
+              if last_error:
+                  item["download_error"] = last_error
+                  report["rissin_2026_intraday_coverage"].append(item)
+                  continue
+              try:
+                  pf = pq.ParquetFile(path)
+                  item["file_bytes"] = os.path.getsize(path)
+                  item["rows_total"] = pf.metadata.num_rows
+                  item["row_groups"] = pf.metadata.num_row_groups
+                  item["columns"] = pf.schema_arrow.names
+                  item["schema"] = str(pf.schema_arrow)
+                  date_col = "date" if "date" in pf.schema_arrow.names else "trading_day"
+                  item["date_column"] = date_col
+                  item["date_row_group_ranges"] = []
+                  selected_groups = []
+                  for rg in range(pf.metadata.num_row_groups):
+                      col_idx = pf.schema_arrow.get_field_index(date_col)
+                      stats = pf.metadata.row_group(rg).column(col_idx).statistics
+                      if stats and stats.has_min_max:
+                          mn, mx = str(stats.min), str(stats.max)
+                          item["date_row_group_ranges"].append({"row_group": rg, "min": mn, "max": mx})
+                          if mx >= "2026-08-03" and mn <= "2026-11-25":
+                              selected_groups.append(rg)
+                  item["row_groups_overlapping_audit_period"] = selected_groups
+                  if selected_groups:
+                      tables = [pf.read_row_group(rg, columns=[date_col, "timestamp", "underlying", "expiry", "strike", "option_type", "close", "oi", "source", "granularity"]) for rg in selected_groups]
+                      import pyarrow as pa
+                      table = pa.concat_tables(tables, promote_options="default")
+                      dates = [x for x in table[date_col].to_pylist() if x is not None]
+                      item["audit_period_rows"] = len(dates)
+                      item["audit_period_min_date"] = min(dates) if dates else None
+                      item["audit_period_max_date"] = max(dates) if dates else None
+                      item["audit_period_unique_dates"] = len(set(dates))
+                      item["audit_period_null_oi_rows"] = table["oi"].null_count if "oi" in table.column_names else None
+                      item["audit_period_source_values"] = sorted(set(str(x) for x in table["source"].to_pylist() if x is not None)) if "source" in table.column_names else []
+                      item["audit_period_granularity_values"] = sorted(set(str(x) for x in table["granularity"].to_pylist() if x is not None)) if "granularity" in table.column_names else []
+                  else:
+                      item["audit_period_rows"] = 0
+              except Exception as exc:
+                  item["parquet_read_error"] = repr(exc)
+              report["rissin_2026_intraday_coverage"].append(item)
+          with open(report_path, "w", encoding="utf-8") as f:
+              json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+          print(json.dumps(report["rissin_2026_intraday_coverage"], ensure_ascii=False, indent=2, default=str))
+          if any("download_error" in x or "parquet_read_error" in x for x in report["rissin_2026_intraday_coverage"]):
+              raise SystemExit("One or more 2026 coverage inspections failed; see artifact.")
+          PY
+
       - name: Upload probe report
         if: always()
         uses: actions/upload-artifact@v4
