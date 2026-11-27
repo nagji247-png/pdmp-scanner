@@ -52,8 +52,7 @@ jobs:
               config, split = item.get("config"), item.get("split")
               if not config or not split:
                   continue
-              size = get_json("size_" + config + "_" + split, "/size",
-                              {"dataset": dataset, "config": config, "split": split})
+              size = get_json("dataset_size", "/size", {"dataset": dataset})
               report["size_checks"].append({"config": config, "split": split, "response": size})
               rows = get_json("rows_" + config + "_" + split, "/rows",
                               {"dataset": dataset, "config": config, "split": split,
