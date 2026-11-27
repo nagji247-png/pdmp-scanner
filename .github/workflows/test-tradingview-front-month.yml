@@ -47,7 +47,7 @@ jobs:
               symbol: app.fetch_front_month_code(symbol, app.MCX_HTTP.get)
               for symbol in ("GOLD", "SILVER")
           }
-          now = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, 30)))
+          now = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30)))
           quotes = app.parse_mcx_market_watch_rows(
               rows, now=now, front_month_codes=codes
           )
