@@ -97,6 +97,7 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
     totals = {side: {"bullish_oi_change": 0, "bearish_oi_change": 0, "classified_contracts": 0}
               for side in ("CE", "PE")}
     category_totals, matched = {}, 0
+    unclassified_contracts, exclusion_counts = [], {}
     for strike in selected:
         for side in ("CE", "PE"):
             key = (expiry, strike, side)
@@ -104,10 +105,27 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
             if before is None or after is None:
                 return {"available": False, "reason": "incomplete_contract_pair", "expiry": expiry}
             matched += 1
-            category, direction = _classify(side, after["close"]-before["close"],
-                                            after["open_interest"]-before["open_interest"])
-            if direction is None: continue
-            quantity = abs(after["open_interest"]-before["open_interest"])
+            premium_change = after["close"] - before["close"]
+            oi_change = after["open_interest"] - before["open_interest"]
+            category, direction = _classify(side, premium_change, oi_change)
+            if direction is None:
+                zero_premium = premium_change == 0
+                zero_oi = oi_change == 0
+                reason = ("ZERO_PREMIUM_AND_OI_CHANGE" if zero_premium and zero_oi
+                          else "ZERO_PREMIUM_CHANGE" if zero_premium
+                          else "ZERO_OI_CHANGE")
+                exclusion_counts[reason] = exclusion_counts.get(reason, 0) + 1
+                unclassified_contracts.append({
+                    "signal_date": signal_date, "symbol": symbol, "expiry": expiry,
+                    "strike": strike, "side": side,
+                    "previous_premium": before["close"], "current_premium": after["close"],
+                    "premium_change": premium_change,
+                    "previous_open_interest": before["open_interest"],
+                    "current_open_interest": after["open_interest"], "oi_change": oi_change,
+                    "reason": reason,
+                })
+                continue
+            quantity = abs(oi_change)
             bucket = totals[side]
             bucket["classified_contracts"] += 1
             bucket["bullish_oi_change" if direction == "bullish" else "bearish_oi_change"] += quantity
@@ -124,7 +142,9 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
         "bullish_oi_change_quantity": bull, "bearish_oi_change_quantity": bear,
         "net_bullish_minus_bearish_quantity": net,
         "signal": "BULLISH" if net > 0 else "BEARISH" if net < 0 else "NEUTRAL",
-        "category_oi_change_quantity": category_totals, "by_side": {}}
+        "category_oi_change_quantity": category_totals,
+        "classification_exclusions_by_reason": exclusion_counts,
+        "unclassified_contracts": unclassified_contracts, "by_side": {}}
     for side, bucket in totals.items():
         side_net = bucket["bullish_oi_change"]-bucket["bearish_oi_change"]
         result["by_side"][side] = {**bucket, "net_bullish_minus_bearish_quantity": side_net,
