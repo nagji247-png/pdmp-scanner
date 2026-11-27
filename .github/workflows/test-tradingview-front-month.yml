@@ -6,6 +6,7 @@ on:
       - feature/mcx-tradingview-front-month-20261127
     paths:
       - "tradingview_front_month.py"
+      - "fetch_and_score.py"
       - "tests/test_tradingview_front_month.py"
       - ".github/workflows/test-tradingview-front-month.yml"
   workflow_dispatch:
