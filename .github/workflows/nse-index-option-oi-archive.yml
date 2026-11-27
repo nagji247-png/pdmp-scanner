@@ -83,7 +83,7 @@ jobs:
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
-      # Bounded repair batch 2: only the explicit merge marker can trigger this push run.
+      # Bounded repair complete; next explicit marker starts the first older-history batch.
       - name: Repair legacy OI-only sessions, then backfill older NSE option sessions
         if: (github.event_name == 'schedule' && github.event.schedule == '30 16 * * 1-5') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-archive-repair]'))
         run: |
