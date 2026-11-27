@@ -17,6 +17,7 @@ DEFAULT_NSE_CLOSE = Path("nse_index_close_archive.json")
 DEFAULT_OUT = Path("atm_option_window_backtest_report.json")
 SYMBOL_INDEX_NAMES = {"NIFTY": ("Nifty 50",), "BANKNIFTY": ("Nifty Bank",)}
 WINDOWS = (5, 10)
+DISTANCE_BANDS = (("ATM", 0, 0), ("ATM_1_2", 1, 2), ("ATM_3_5", 3, 5), ("ATM_6_10", 6, 10))
 EXPECTED_STRIKE_STEP = {"NIFTY": 50.0, "BANKNIFTY": 100.0}
 
 def _date(value):
@@ -98,13 +99,26 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
               for side in ("CE", "PE")}
     category_totals, matched = {}, 0
     unclassified_contracts, exclusion_counts = [], {}
-    for strike in selected:
+    band_totals = {
+        name: {"bullish_oi_change_quantity": 0, "bearish_oi_change_quantity": 0,
+               "classified_contracts": 0, "matched_contracts": 0,
+               "category_oi_change_quantity": {}, "by_side": {
+                   side: {"bullish_oi_change_quantity": 0, "bearish_oi_change_quantity": 0,
+                          "classified_contracts": 0} for side in ("CE", "PE")}}
+        for name, low, high in DISTANCE_BANDS if high <= steps
+    }
+    contract_details = []
+    for strike_index, strike in enumerate(selected):
+        distance = abs(strike_index - steps)
+        band_name = next(name for name, low, high in DISTANCE_BANDS if low <= distance <= high)
+        band = band_totals[band_name]
         for side in ("CE", "PE"):
             key = (expiry, strike, side)
             before, after = previous.get(key), current.get(key)
             if before is None or after is None:
                 return {"available": False, "reason": "incomplete_contract_pair", "expiry": expiry}
             matched += 1
+            band["matched_contracts"] += 1
             premium_change = after["close"] - before["close"]
             oi_change = after["open_interest"] - before["open_interest"]
             category, direction = _classify(side, premium_change, oi_change)
@@ -115,21 +129,51 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
                           else "ZERO_PREMIUM_CHANGE" if zero_premium
                           else "ZERO_OI_CHANGE")
                 exclusion_counts[reason] = exclusion_counts.get(reason, 0) + 1
-                unclassified_contracts.append({
+                detail = {
                     "signal_date": signal_date, "symbol": symbol, "expiry": expiry,
-                    "strike": strike, "side": side,
+                    "strike": strike, "side": side, "distance_from_atm_steps": distance,
+                    "distance_band": band_name,
                     "previous_premium": before["close"], "current_premium": after["close"],
                     "premium_change": premium_change,
                     "previous_open_interest": before["open_interest"],
                     "current_open_interest": after["open_interest"], "oi_change": oi_change,
                     "reason": reason,
-                })
+                }
+                unclassified_contracts.append(detail)
+                contract_details.append({**detail, "classified": False})
                 continue
             quantity = abs(oi_change)
             bucket = totals[side]
             bucket["classified_contracts"] += 1
             bucket["bullish_oi_change" if direction == "bullish" else "bearish_oi_change"] += quantity
             category_totals[category] = category_totals.get(category, 0) + quantity
+            band["classified_contracts"] += 1
+            band["bullish_oi_change_quantity" if direction == "bullish" else "bearish_oi_change_quantity"] += quantity
+            band["category_oi_change_quantity"][category] = band["category_oi_change_quantity"].get(category, 0) + quantity
+            side_band = band["by_side"][side]
+            side_band["classified_contracts"] += 1
+            side_band["bullish_oi_change_quantity" if direction == "bullish" else "bearish_oi_change_quantity"] += quantity
+            contract_details.append({
+                "signal_date": signal_date, "symbol": symbol, "expiry": expiry,
+                "strike": strike, "side": side, "distance_from_atm_steps": distance,
+                "distance_band": band_name, "previous_premium": before["close"],
+                "current_premium": after["close"], "premium_change": premium_change,
+                "previous_open_interest": before["open_interest"],
+                "current_open_interest": after["open_interest"], "oi_change": oi_change,
+                "category": category, "direction": direction, "oi_change_quantity": quantity,
+                "classified": True})
+    distance_bands = {}
+    for name, bucket in band_totals.items():
+        band_bull, band_bear = bucket["bullish_oi_change_quantity"], bucket["bearish_oi_change_quantity"]
+        band_net = band_bull - band_bear
+        by_side = {}
+        for side, side_bucket in bucket["by_side"].items():
+            side_net = side_bucket["bullish_oi_change_quantity"] - side_bucket["bearish_oi_change_quantity"]
+            by_side[side] = {**side_bucket, "net_bullish_minus_bearish_quantity": side_net,
+                "signal": "BULLISH" if side_net > 0 else "BEARISH" if side_net < 0 else "NEUTRAL"}
+        distance_bands[name] = {**bucket, "by_side": by_side,
+            "net_bullish_minus_bearish_quantity": band_net,
+            "signal": "BULLISH" if band_net > 0 else "BEARISH" if band_net < 0 else "NEUTRAL"}
     bull = sum(x["bullish_oi_change"] for x in totals.values())
     bear = sum(x["bearish_oi_change"] for x in totals.values())
     net, classified = bull-bear, sum(x["classified_contracts"] for x in totals.values())
@@ -144,7 +188,8 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
         "signal": "BULLISH" if net > 0 else "BEARISH" if net < 0 else "NEUTRAL",
         "category_oi_change_quantity": category_totals,
         "classification_exclusions_by_reason": exclusion_counts,
-        "unclassified_contracts": unclassified_contracts, "by_side": {}}
+        "unclassified_contracts": unclassified_contracts, "contract_details": contract_details,
+        "distance_bands": distance_bands, "by_side": {}}
     for side, bucket in totals.items():
         side_net = bucket["bullish_oi_change"]-bucket["bearish_oi_change"]
         result["by_side"][side] = {**bucket, "net_bullish_minus_bearish_quantity": side_net,
@@ -209,6 +254,15 @@ def build_report(oi_archive, close_archive):
             field = f"atm_plus_minus_{steps}"
             summaries[field] = _summarize([{"actual_direction":r["actual_direction"],field:r["windows"][field]}
                                            for r in observations], field)
+            for band_name in (name for name, low, high in DISTANCE_BANDS if high <= steps):
+                band_rows = []
+                for row in observations:
+                    band_result = (row["windows"][field].get("distance_bands") or {}).get(band_name, {})
+                    band_rows.append({"actual_direction": row["actual_direction"], field: {
+                        "available": band_result.get("classified_contracts", 0) > 0
+                                     and band_result.get("signal") in ("BULLISH", "BEARISH"),
+                        "signal": band_result.get("signal")}})
+                summaries[field][f"distance_{band_name.lower()}"] = _summarize(band_rows, field)
             for side in ("CE", "PE"):
                 side_rows = []
                 for row in observations:
@@ -225,6 +279,7 @@ def build_report(oi_archive, close_archive):
         "outcome":"next official NSE session index close versus signal-day index close",
         "evaluation_limit":"close-to-close direction only; not option premium P&L, entry-at-open, slippage, brokerage, or executable strategy",
         "atm_definition":"nearest listed strike to signal-day official index close; ATM plus/minus 5 or 10 listed strikes on each side, including ATM",
+        "distance_band_definition":{"ATM":"0 strikes","ATM_1_2":"1-2 strikes from ATM","ATM_3_5":"3-5 strikes from ATM","ATM_6_10":"6-10 strikes from ATM"},
         "expiry_rule":"nearest common expiry strictly later than signal date; same expiry matched across both EOD sessions",
         "production_score_changed":False,"eligible_for_live_score":False,
         "sensex":{"status":"not_tested","reason":"NSE UDiFF option archive contains NIFTY and BANKNIFTY only; separate verified BSE SENSEX option-contract archive is required"},
