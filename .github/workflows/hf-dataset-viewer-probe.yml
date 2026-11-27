@@ -1,0 +1,64 @@
+name: HF Dataset Viewer Research Probe
+
+on:
+  push:
+    branches:
+      - research/hf-dataset-viewer-probe-20261127
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check Hugging Face dataset viewer endpoints
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.request, urllib.error, time
+          base = "https://datasets-server.huggingface.co"
+          dataset = "thetrademarkk/india-index-options-1m"
+          endpoints = {
+              "is_valid": f"{base}/is-valid?dataset={dataset}",
+              "splits": f"{base}/splits?dataset={dataset}",
+              "parquet": f"{base}/parquet?dataset={dataset}",
+              "size": f"{base}/size?dataset={dataset}&config=default&split=train",
+          }
+          report = {"dataset": dataset, "endpoints": {}, "status": "probe_only"}
+          for name, url in endpoints.items():
+              last_error = None
+              for attempt in range(3):
+                  try:
+                      req = urllib.request.Request(url, headers={"User-Agent": "TRINETRA-research-probe/1.0"})
+                      with urllib.request.urlopen(req, timeout=45) as response:
+                          raw = response.read()
+                          report["endpoints"][name] = {
+                              "http_status": response.status,
+                              "content_type": response.headers.get("Content-Type"),
+                              "body": json.loads(raw.decode("utf-8"))
+                          }
+                      last_error = None
+                      break
+                  except Exception as exc:
+                      last_error = repr(exc)
+                      time.sleep(attempt + 1)
+              if last_error:
+                  report["endpoints"][name] = {"error": last_error}
+          with open("hf_dataset_viewer_probe.json", "w", encoding="utf-8") as f:
+              json.dump(report, f, ensure_ascii=False, indent=2)
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          failures = [k for k,v in report["endpoints"].items() if "error" in v]
+          if failures:
+              raise SystemExit("Dataset Viewer API probe failed for: " + ", ".join(failures))
+          PY
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hf-dataset-viewer-probe
+          path: hf_dataset_viewer_probe.json
+          if-no-files-found: warn
+          retention-days: 14
