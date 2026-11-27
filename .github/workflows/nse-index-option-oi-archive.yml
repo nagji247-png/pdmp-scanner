@@ -62,10 +62,10 @@ jobs:
           source "$RUNNER_TEMP/nse_oi_window.env"
           echo "IST now: $IST_NOW"
           echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 calendar-confirmed NSE sessions)"
-          if python nse_index_option_oi_archive.py \\
-            --from-date "$START_DATE" \\
-            --to-date "$END_DATE" \\
-            --max-sessions 5 \\
+          if python nse_index_option_oi_archive.py \
+            --from-date "$START_DATE" \
+            --to-date "$END_DATE" \
+            --max-sessions 5 \
             --delay-seconds 3; then
             echo "latest_session_ok=true" >> "$GITHUB_OUTPUT"
           else
