@@ -77,6 +77,10 @@ jobs:
               if reader.fieldnames:
                   reader.fieldnames = [h.strip().lstrip("\\ufeff") for h in reader.fieldnames]
               parsed = [{(k or "").strip().lstrip("\\ufeff"): (v or "").strip() for k, v in row.items()} for row in reader]
+              if day == dates[0]:
+                  print("CSV SAMPLE:", repr(data[:700]))
+                  print("CSV HEADERS:", repr(reader.fieldnames))
+                  print("CSV FIRST ROW:", repr(parsed[0] if parsed else None))
               matched = {}
               for r in parsed:
                   name = (r.get("Index Name") or "").strip().lower()
