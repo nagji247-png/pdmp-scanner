@@ -132,6 +132,37 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         self.assertEqual(excluded[(24550, "PE")]["oi_change"], 0)
         self.assertTrue(all(row["signal_date"] == "2026-11-17" for row in excluded.values()))
 
+    def test_distance_bands_split_contracts_and_keep_ce_pe_details(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        current = make_record("2026-11-17", "2026-11-24", 1, 10)
+        result = score_window(previous, current, "NIFTY", 24500, 5)
+        bands = result["distance_bands"]
+        self.assertEqual(set(bands), {"ATM", "ATM_1_2", "ATM_3_5"})
+        self.assertEqual(bands["ATM"]["matched_contracts"], 2)
+        self.assertEqual(bands["ATM_1_2"]["matched_contracts"], 8)
+        self.assertEqual(bands["ATM_3_5"]["matched_contracts"], 12)
+        self.assertEqual(len(result["contract_details"]), 22)
+        self.assertEqual(result["contract_details"][0]["distance_from_atm_steps"], 5)
+        self.assertIn(result["contract_details"][0]["distance_band"], bands)
+        self.assertEqual(bands["ATM"]["by_side"]["CE"]["classified_contracts"], 1)
+        self.assertEqual(bands["ATM"]["by_side"]["PE"]["classified_contracts"], 1)
+
+    def test_distance_band_summaries_are_reported_for_each_asset(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        signal = make_record("2026-11-17", "2026-11-24", 1, 100)
+        oi = {"records": [previous, signal]}
+        closes = {"records": [
+            make_close("2026-11-16", 24500, 52000),
+            make_close("2026-11-17", 24500, 52000),
+            make_close("2026-11-18", 24400, 51900),
+        ]}
+        report = build_report(oi, closes)
+        summary = report["by_asset"]["NIFTY"]["summary"]["atm_plus_minus_5"]
+        self.assertIn("distance_atm", summary)
+        self.assertIn("distance_atm_1_2", summary)
+        self.assertIn("distance_atm_3_5", summary)
+        self.assertNotIn("distance_atm_6_10", summary)
+
     def test_report_uses_next_archived_session_close_and_stays_research_only(self):
         previous = make_record("2026-11-16", "2026-11-24")
         signal = make_record("2026-11-17", "2026-11-24", 1, 100)
