@@ -2,6 +2,15 @@ name: NSE Index Option OI EOD Archive
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/nse-index-option-oi-archive.yml"
+      - "nse_index_option_oi_archive.py"
+      - "nse_option_buildup.py"
+      - "fetch_and_score.py"
+      - "dashboard.html"
+      - "tests/test_nse_index_option_oi_archive.py"
+      - "tests/test_nse_option_buildup.py"
   push:
     branches: [main]
     paths:
@@ -17,7 +26,8 @@ on:
     # 19:30, then every 15 minutes through 21:00, plus 21:30 and 22:00 IST.
     - cron: "0,15,30,45 14 * * 1-5"
     - cron: "0,15,30 15 * * 1-5"
-    - cron: "0,30 16 * * 1-5"
+    - cron: "30 16 * * 1-5"
+    - cron: "0 16 * * 1-5"
 
 permissions:
   contents: write
@@ -43,18 +53,25 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_index_option_oi_archive.py' -v
           python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
           python -m py_compile fetch_and_score.py nse_option_buildup.py
-      - name: Backfill the latest five NSE trading dates (idempotent)
+      - name: Backfill the latest five completed NSE trading dates (idempotent)
+        if: github.event_name != 'pull_request'
         id: capture
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
           import datetime as dt
           from zoneinfo import ZoneInfo
-          today = dt.datetime.now(ZoneInfo("Asia/Kolkata")).date()
-          start = today - dt.timedelta(days=14)
+          now = dt.datetime.now(ZoneInfo("Asia/Kolkata"))
+          today = now.date()
+          # NSE EOD bhavcopy cannot exist before the cash/F&O session closes.
+          # Before 19:30 IST, the latest eligible EOD date is the prior date.
+          end = today if now.time() >= dt.time(19, 30) else today - dt.timedelta(days=1)
+          start = end - dt.timedelta(days=14)
           print(f"START_DATE={start.isoformat()}")
-          print(f"END_DATE={today.isoformat()}")
+          print(f"END_DATE={end.isoformat()}")
+          print(f"IST_NOW={now.isoformat(timespec='minutes')}")
           PY
           source "$RUNNER_TEMP/nse_oi_window.env"
+          echo "IST now: $IST_NOW"
           echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 calendar-confirmed NSE sessions)"
           if python nse_index_option_oi_archive.py \
             --from-date "$START_DATE" \
@@ -64,9 +81,81 @@ jobs:
             echo "latest_session_ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Latest expected NSE EOD session is not yet available; archive retry will continue."
+            echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
+          fi
+      - name: Repair legacy OI-only sessions, then backfill older NSE option sessions
+        if: github.event_name == 'schedule' && github.event.schedule == '0 16 * * 1-5'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/nse_oi_history_window.env"
+          import datetime as dt
+          import json
+          from pathlib import Path
+          archive_path = Path("nse_index_option_oi.json")
+          archive = json.loads(archive_path.read_text(encoding="utf-8")) if archive_path.exists() else {}
+          records = archive.get("records", [])
+          dates = sorted({str(row.get("date")) for row in records if row.get("date")})
+          incomplete = []
+          for row in sorted(records, key=lambda item: str(item.get("date", ""))):
+              options = row.get("option_contracts") or {}
+              options_ok = all(
+                  isinstance(options.get(symbol), dict)
+                  and bool(options[symbol].get("contracts"))
+                  for symbol in ("NIFTY", "BANKNIFTY")
+              )
+              stock_ok = isinstance(row.get("stock_futures"), dict) and bool(row["stock_futures"])
+              if not (options_ok and stock_ok):
+                  incomplete.append(str(row.get("date", "")))
+          repair_dates = [day for day in incomplete if len(day) == 10][:5]
+          print("REPAIR_DATES=" + ",".join(repair_dates))
+          if repair_dates:
+              print("HISTORY_MODE=repair_legacy_records")
+          elif len(dates) >= 80:
+              print("HISTORY_MODE=target_reached")
+          elif not dates:
+              print("HISTORY_MODE=no_archive_cursor")
+          else:
+              oldest = dt.date.fromisoformat(dates[0])
+              end = oldest - dt.timedelta(days=1)
+              start = end - dt.timedelta(days=21)
+              print("HISTORY_MODE=older_backfill")
+              print(f"HISTORY_START={start.isoformat()}")
+              print(f"HISTORY_END={end.isoformat()}")
+              print(f"ARCHIVE_SESSIONS={len(dates)}")
+              print(f"OLDEST_ARCHIVED_DATE={oldest.isoformat()}")
+          PY
+          source "$RUNNER_TEMP/nse_oi_history_window.env"
+          if [ -n "$REPAIR_DATES" ]; then
+            echo "Repairing up to five legacy OI-only sessions before extending history: $REPAIR_DATES"
+            IFS=',' read -ra DAYS <<< "$REPAIR_DATES"
+            for index in "${!DAYS[@]}"; do
+              day="${DAYS[$index]}"
+              if python nse_index_option_oi_archive.py --date "$day"; then
+                echo "Legacy session repaired or already enriched: $day"
+              else
+                echo "::warning::Could not enrich legacy NSE session $day; it will be retried in the next 22:00 IST batch."
+              fi
+              if [ "$index" -lt "$((${#DAYS[@]} - 1))" ]; then
+                sleep 3
+              fi
+            done
+          elif [ "$HISTORY_MODE" = "target_reached" ]; then
+            echo "Historical OI target already reached (80 sessions); no older NSE requests."
+          elif [ "$HISTORY_MODE" = "older_backfill" ]; then
+            echo "Historical OI batch: $HISTORY_START to $HISTORY_END; at most five NSE sessions, 3-second request spacing."
+            if python nse_index_option_oi_archive.py \
+              --from-date "$HISTORY_START" \
+              --to-date "$HISTORY_END" \
+              --max-sessions 5 \
+              --delay-seconds 3; then
+              echo "Historical OI batch completed."
+            else
+              echo "::warning::Historical OI batch partially unavailable; any successfully captured records are retained and retried in the next 22:00 IST batch."
+            fi
+          else
+            echo "::warning::Historical OI backfill skipped because archive has no valid date cursor."
           fi
       - name: Commit archive only
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "pdmp-bot"
           git config user.email "bot@users.noreply.github.com"
@@ -80,7 +169,7 @@ jobs:
           fi
 
       - name: Fail run if latest expected NSE session is still missing
-        if: always() && steps.capture.outputs.latest_session_ok != 'true'
+        if: always() && github.event_name != 'pull_request' && steps.capture.outputs.latest_session_ok != 'true'
         run: |
-          echo "::error::Latest expected NSE EOD archive was not validated. The next scheduled retry will try again."
+          echo "::error::Latest completed NSE EOD archive was not validated. The next scheduled retry will try again."
           exit 1
