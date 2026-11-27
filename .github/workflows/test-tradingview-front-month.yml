@@ -37,6 +37,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: |
+          python - <<'PY'
           import datetime as dt
           import json
           import fetch_and_score as app
@@ -71,4 +72,4 @@ jobs:
           print("MCX_TRADINGVIEW_LIVE_DIAGNOSTIC " + json.dumps(report, ensure_ascii=False))
           if set(report["matched_quotes"]) != {"GOLD", "SILVER"}:
               raise SystemExit("Live source diagnostic did not confirm both metals.")
-        shell: python
+          PY
