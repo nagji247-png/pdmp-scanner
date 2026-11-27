@@ -17,7 +17,8 @@ on:
     # 19:30, then every 15 minutes through 21:00, plus 21:30 and 22:00 IST.
     - cron: "0,15,30,45 14 * * 1-5"
     - cron: "0,15,30 15 * * 1-5"
-    - cron: "0,30 16 * * 1-5"
+    - cron: "30 16 * * 1-5"
+    - cron: "0 16 * * 1-5"
 
 permissions:
   contents: write
