@@ -4,23 +4,24 @@ from atm_option_window_backtest import build_report, score_window
 
 
 def make_record(day, expiry, premium_offset=0, oi_offset=0):
-    contracts = []
-    for i in range(21):
-        strike = 24000 + i * 50
-        for side in ("CE", "PE"):
-            base = 100.0 if side == "CE" else 95.0
-            contracts.append({
-                "expiry": expiry,
-                "side": side,
-                "strike": strike,
-                "close": base + premium_offset if side == "CE" else base - premium_offset,
-                "open_interest": 1000 + oi_offset,
-            })
+    contracts_by_symbol = {"NIFTY": [], "BANKNIFTY": []}
+    for symbol, first_strike, step in (("NIFTY", 24000, 50), ("BANKNIFTY", 51000, 100)):
+        for i in range(21):
+            strike = first_strike + i * step
+            for side in ("CE", "PE"):
+                base = 100.0 if side == "CE" else 95.0
+                contracts_by_symbol[symbol].append({
+                    "expiry": expiry,
+                    "side": side,
+                    "strike": strike,
+                    "close": base + premium_offset if side == "CE" else base - premium_offset,
+                    "open_interest": 1000 + oi_offset,
+                })
     return {
         "date": day,
         "option_contracts": {
-            "NIFTY": {"contracts": contracts},
-            "BANKNIFTY": {"contracts": contracts},
+            symbol: {"contracts": contracts}
+            for symbol, contracts in contracts_by_symbol.items()
         },
     }
 
@@ -55,6 +56,13 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         self.assertTrue(result["available"])
         self.assertEqual(len(result["selected_strikes"]), 21)
         self.assertEqual(result["matched_contracts"], 42)
+
+    def test_banknifty_fixture_uses_its_own_strike_interval(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        current = make_record("2026-11-17", "2026-11-24", 1, 10)
+        result = score_window(previous, current, "BANKNIFTY", 52000, 5)
+        self.assertTrue(result["available"])
+        self.assertEqual(result["selected_strikes"], [51500, 51600, 51700, 51800, 51900, 52000, 52100, 52200, 52300, 52400, 52500])
 
     def test_missing_entire_strike_is_not_silently_skipped(self):
         previous = make_record("2026-11-16", "2026-11-24")
