@@ -52,8 +52,8 @@ jobs:
           now = dt.datetime.now(ZoneInfo("Asia/Kolkata"))
           today = now.date()
           # NSE EOD bhavcopy cannot exist before the cash/F&O session closes.
-          # Before 19:15 IST, the latest eligible EOD date is the prior date.
-          end = today if now.time() >= dt.time(19, 15) else today - dt.timedelta(days=1)
+          # Before 19:30 IST, the latest eligible EOD date is the prior date.
+          end = today if now.time() >= dt.time(19, 30) else today - dt.timedelta(days=1)
           start = end - dt.timedelta(days=14)
           print(f"START_DATE={start.isoformat()}")
           print(f"END_DATE={end.isoformat()}")
