@@ -73,10 +73,11 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
         if expiry > signal_date and any(old_expiry == expiry for old_expiry, _, _ in previous)})
     if not common_expiries: return {"available": False, "reason": "no_common_unexpired_expiry"}
     expiry = common_expiries[0]
-    current_strikes = sorted({strike for exp, strike, side in current
-        if exp == expiry and (expiry, strike, "CE") in current and (expiry, strike, "PE") in current
-        and (expiry, strike, "CE") in previous and (expiry, strike, "PE") in previous})
-    if not current_strikes: return {"available": False, "reason": "no_complete_common_CE_PE_strikes"}
+    # Build the strike ladder from every listed strike for this expiry. Do not
+    # silently remove a strike with a missing CE/PE leg and then substitute a
+    # farther strike; selected-window completeness is checked below.
+    current_strikes = sorted({strike for exp, strike, _side in current if exp == expiry})
+    if not current_strikes: return {"available": False, "reason": "no_listed_strikes_for_expiry"}
     atm = min(current_strikes, key=lambda strike: (abs(strike - spot_close), strike))
     atm_index = current_strikes.index(atm)
     selected = current_strikes[max(0, atm_index-steps):atm_index+steps+1]
