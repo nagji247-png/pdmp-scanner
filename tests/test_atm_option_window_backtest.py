@@ -67,6 +67,29 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "insufficient_symmetric_strike_coverage")
 
+    def test_missing_leg_does_not_shift_or_expand_the_listed_strike_window(self):
+        previous = make_record("2026-11-16", "2026-11-24")
+        current = make_record("2026-11-17", "2026-11-24", 1, 10)
+        # Add three outer strikes on both sides so an implementation that
+        # drops incomplete strikes could otherwise replace the missing ATM.
+        for strike in (23850, 23900, 23950, 25050, 25100, 25150):
+            for record, premium, oi in ((previous, 0, 0), (current, 1, 10)):
+                for side in ("CE", "PE"):
+                    record["option_contracts"]["NIFTY"]["contracts"].append({
+                        "expiry": "2026-11-24", "side": side, "strike": strike,
+                        "close": (100 if side == "CE" else 95) + (premium if side == "CE" else -premium),
+                        "open_interest": 1000 + oi,
+                    })
+        current["option_contracts"]["NIFTY"]["contracts"] = [
+            row for row in current["option_contracts"]["NIFTY"]["contracts"]
+            if not (row["strike"] == 24500 and row["side"] == "PE")
+        ]
+
+        result = score_window(previous, current, "NIFTY", 24500, 10)
+
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "incomplete_contract_pair")
+
     def test_report_uses_next_archived_session_close_and_stays_research_only(self):
         previous = make_record("2026-11-16", "2026-11-24")
         signal = make_record("2026-11-17", "2026-11-24", 1, 100)
