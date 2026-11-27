@@ -43,28 +43,34 @@ jobs:
           python -m unittest discover -s tests -p 'test_nse_index_option_oi_archive.py' -v
           python -m unittest discover -s tests -p 'test_nse_option_buildup.py' -v
           python -m py_compile fetch_and_score.py nse_option_buildup.py
-      - name: Backfill the latest five NSE trading dates (idempotent)
+      - name: Backfill the latest five completed NSE trading dates (idempotent)
         id: capture
         run: |
           python - <<'PY' > "$RUNNER_TEMP/nse_oi_window.env"
           import datetime as dt
           from zoneinfo import ZoneInfo
-          today = dt.datetime.now(ZoneInfo("Asia/Kolkata")).date()
-          start = today - dt.timedelta(days=14)
+          now = dt.datetime.now(ZoneInfo("Asia/Kolkata"))
+          today = now.date()
+          # NSE EOD bhavcopy cannot exist before the cash/F&O session closes.
+          # Before 19:15 IST, the latest eligible EOD date is the prior date.
+          end = today if now.time() >= dt.time(19, 15) else today - dt.timedelta(days=1)
+          start = end - dt.timedelta(days=14)
           print(f"START_DATE={start.isoformat()}")
-          print(f"END_DATE={today.isoformat()}")
+          print(f"END_DATE={end.isoformat()}")
+          print(f"IST_NOW={now.isoformat(timespec='minutes')}")
           PY
           source "$RUNNER_TEMP/nse_oi_window.env"
+          echo "IST now: $IST_NOW"
           echo "NSE OI rolling window: $START_DATE to $END_DATE (max 5 calendar-confirmed NSE sessions)"
-          if python nse_index_option_oi_archive.py \
-            --from-date "$START_DATE" \
-            --to-date "$END_DATE" \
-            --max-sessions 5 \
+          if python nse_index_option_oi_archive.py \\
+            --from-date "$START_DATE" \\
+            --to-date "$END_DATE" \\
+            --max-sessions 5 \\
             --delay-seconds 3; then
             echo "latest_session_ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Latest expected NSE EOD session is not yet available; archive retry will continue."
+            echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
       - name: Commit archive only
         run: |
@@ -82,5 +88,5 @@ jobs:
       - name: Fail run if latest expected NSE session is still missing
         if: always() && steps.capture.outputs.latest_session_ok != 'true'
         run: |
-          echo "::error::Latest expected NSE EOD archive was not validated. The next scheduled retry will try again."
+          echo "::error::Latest completed NSE EOD archive was not validated. The next scheduled retry will try again."
           exit 1
