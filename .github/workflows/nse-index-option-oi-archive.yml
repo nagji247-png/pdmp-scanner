@@ -72,6 +72,51 @@ jobs:
             echo "latest_session_ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Latest completed NSE EOD session is not yet available; scheduled retry will continue."
           fi
+      - name: Backfill older NSE option sessions (one bounded batch per 22:00 IST run)
+        if: github.event_name == 'schedule' && github.event.schedule == '0 16 * * 1-5'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/nse_oi_history_window.env"
+          import datetime as dt
+          import json
+          from pathlib import Path
+          archive_path = Path("nse_index_option_oi.json")
+          archive = json.loads(archive_path.read_text(encoding="utf-8")) if archive_path.exists() else {}
+          records = archive.get("records", [])
+          dates = sorted({str(row.get("date")) for row in records if row.get("date")})
+          if len(dates) >= 80:
+              print("HISTORY_TARGET_REACHED=true")
+              raise SystemExit(0)
+          if not dates:
+              print("HISTORY_TARGET_REACHED=false")
+              print("HISTORY_START=")
+              print("HISTORY_END=")
+              raise SystemExit(0)
+          oldest = dt.date.fromisoformat(dates[0])
+          end = oldest - dt.timedelta(days=1)
+          start = end - dt.timedelta(days=21)
+          print("HISTORY_TARGET_REACHED=false")
+          print(f"HISTORY_START={start.isoformat()}")
+          print(f"HISTORY_END={end.isoformat()}")
+          print(f"ARCHIVE_SESSIONS={len(dates)}")
+          print(f"OLDEST_ARCHIVED_DATE={oldest.isoformat()}")
+          PY
+          source "$RUNNER_TEMP/nse_oi_history_window.env"
+          if [ "$HISTORY_TARGET_REACHED" = "true" ]; then
+            echo "Historical OI target already reached (80 sessions); no older NSE requests."
+          elif [ -z "$HISTORY_START" ] || [ -z "$HISTORY_END" ]; then
+            echo "::warning::Historical OI backfill skipped because archive has no valid date cursor."
+          else
+            echo "Historical OI batch: $HISTORY_START to $HISTORY_END; at most five NSE sessions, 3-second request spacing."
+            if python nse_index_option_oi_archive.py \
+              --from-date "$HISTORY_START" \
+              --to-date "$HISTORY_END" \
+              --max-sessions 5 \
+              --delay-seconds 3; then
+              echo "Historical OI batch completed."
+            else
+              echo "::warning::Historical OI batch partially unavailable; any successfully captured records are retained and retried in the next 22:00 IST batch."
+            fi
+          fi
       - name: Commit archive only
         run: |
           git config user.name "pdmp-bot"
