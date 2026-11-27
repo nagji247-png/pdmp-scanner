@@ -209,7 +209,10 @@ jobs:
                   "LTTValue": "2026-11-04 23:54:58", "InstrumentName": "OPTFUT",
               },
           ]
-          quotes = app.parse_mcx_market_watch_rows(rows, now=before_open)
+          quotes = app.parse_mcx_market_watch_rows(
+    rows, now=before_open,
+    front_month_codes={"GOLD": "GOLDZ2026", "SILVER": "SILVERZ2026"},
+)
           assert quotes["GOLD"]["price"] == 143293, quotes
           assert quotes["GOLD"]["expiry"] == "2026-12-04", quotes
           assert quotes["GOLD"]["open_interest"] == 15955, quotes
@@ -217,8 +220,11 @@ jobs:
           assert quotes["CRUDEOIL"]["price"] == 8381, quotes
 
           during_session = dt.datetime(2026, 11, 5, 12, 0, tzinfo=ist)
-          assert app.parse_mcx_market_watch_rows(rows, now=during_session) == {}
-          print("MCX FUTCOM symbol, expiry, OI selection and 45-minute freshness checks passed.")
+          assert app.parse_mcx_market_watch_rows(
+    rows, now=during_session,
+    front_month_codes={"GOLD": "GOLDZ2026", "SILVER": "SILVERZ2026"},
+) == {}
+          print("MCX FUTCOM front-month matching, CRUDEOIL OI selection and 45-minute freshness checks passed.")
           PY
       - name: Diagnostic official NSE EOD bulk coverage probe
         if: always()
