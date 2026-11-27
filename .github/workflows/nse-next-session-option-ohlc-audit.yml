@@ -1,0 +1,49 @@
+name: NSE Next-Session Option OHLC Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/nse-option-premium-eod-ohlc-20261128
+    paths:
+      - nse_next_session_option_ohlc_audit.py
+      - atm_option_window_backtest.py
+      - nse_index_option_oi.json
+      - nse_index_close_archive.json
+      - .github/workflows/nse-next-session-option-ohlc-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install research dependency
+        run: python -m pip install --disable-pip-version-check requests
+
+      - name: Fetch official next-session option OHLC
+        run: |
+          python nse_next_session_option_ohlc_audit.py \
+            --oi-archive nse_index_option_oi.json \
+            --close-archive nse_index_close_archive.json \
+            --delay-seconds 2
+
+      - name: Upload research-only audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: nse-next-session-option-ohlc-audit
+          path: |
+            nse_next_session_option_ohlc_rows.csv
+            nse_next_session_option_ohlc_summary.json
+          if-no-files-found: error
+          retention-days: 30
