@@ -65,7 +65,7 @@ class ATMOptionWindowBacktestTests(unittest.TestCase):
         ]
         result = score_window(previous, current, "NIFTY", 24500, 10)
         self.assertFalse(result["available"])
-        self.assertEqual(result["reason"], "insufficient_symmetric_strike_coverage")
+        self.assertEqual(result["reason"], "incomplete_contract_pair")
 
     def test_missing_leg_does_not_shift_or_expand_the_listed_strike_window(self):
         previous = make_record("2026-11-16", "2026-11-24")
