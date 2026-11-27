@@ -17,6 +17,7 @@ DEFAULT_NSE_CLOSE = Path("nse_index_close_archive.json")
 DEFAULT_OUT = Path("atm_option_window_backtest_report.json")
 SYMBOL_INDEX_NAMES = {"NIFTY": ("Nifty 50",), "BANKNIFTY": ("Nifty Bank",)}
 WINDOWS = (5, 10)
+EXPECTED_STRIKE_STEP = {"NIFTY": 50.0, "BANKNIFTY": 100.0}
 
 def _date(value):
     text = str(value or "").strip()
@@ -82,6 +83,13 @@ def score_window(previous_record, signal_record, symbol, spot_close, steps):
     atm_index = current_strikes.index(atm)
     selected = current_strikes[max(0, atm_index-steps):atm_index+steps+1]
     required = 2*steps+1
+    expected_step = EXPECTED_STRIKE_STEP.get(symbol)
+    if expected_step is None:
+        return {"available": False, "reason": "unknown_official_strike_step", "expiry": expiry}
+    if any(abs((right-left)-expected_step) > 1e-6 for left, right in zip(selected, selected[1:])):
+        return {"available": False, "reason": "non_contiguous_strike_ladder",
+                "atm_strike": atm, "selected_strikes": selected,
+                "expected_strike_step": expected_step, "expiry": expiry}
     if len(selected) != required:
         return {"available": False, "reason": "insufficient_symmetric_strike_coverage",
                 "atm_strike": atm, "available_strikes": len(selected), "required_strikes": required,
