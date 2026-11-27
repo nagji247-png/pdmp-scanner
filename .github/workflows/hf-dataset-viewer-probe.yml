@@ -83,3 +83,76 @@ jobs:
           path: hf_dataset_viewer_probe.json
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Inspect latest separate option Parquet files
+        shell: bash
+        run: |
+          python -m pip install --quiet pyarrow
+          python - <<'PY'
+          import json, os, urllib.request, time
+          import pyarrow.parquet as pq
+
+          files = {
+              "NIFTY": "2026-08-04",
+              "BANKNIFTY": "2026-07-28",
+              "SENSEX": "2026-07-30",
+          }
+          report_path = "hf_dataset_viewer_probe.json"
+          with open(report_path, encoding="utf-8") as f:
+              report = json.load(f)
+          report["latest_option_file_inspection"] = []
+          for symbol, session in files.items():
+              rel = f"options/{symbol}/{session}.parquet"
+              url = f"https://huggingface.co/datasets/thetrademarkk/india-index-options-1m/resolve/main/{rel}"
+              path = f"/tmp/{symbol}_{session}.parquet"
+              last_error = None
+              for attempt in range(3):
+                  try:
+                      req = urllib.request.Request(url, headers={"User-Agent": "TRINETRA-research-probe/1.0"})
+                      with urllib.request.urlopen(req, timeout=90) as response, open(path, "wb") as out:
+                          out.write(response.read())
+                      last_error = None
+                      break
+                  except Exception as exc:
+                      last_error = repr(exc)
+                      time.sleep(attempt + 1)
+              item = {"symbol": symbol, "session_file": session, "path": rel, "url": url}
+              if last_error:
+                  item["download_error"] = last_error
+                  report["latest_option_file_inspection"].append(item)
+                  continue
+              try:
+                  pf = pq.ParquetFile(path)
+                  table = pf.read()
+                  item["rows"] = table.num_rows
+                  item["columns"] = table.column_names
+                  item["schema"] = str(table.schema)
+                  for col in ("timestamp", "trading_day", "symbol", "strike", "option_type", "expiry", "open_interest"):
+                      if col in table.column_names:
+                          vals = table.column(col).to_pylist()
+                          nonnull = [v for v in vals if v is not None]
+                          if col == "timestamp" and nonnull:
+                              item["timestamp_min"] = str(min(nonnull))
+                              item["timestamp_max"] = str(max(nonnull))
+                          elif col == "trading_day" and nonnull:
+                              item["trading_day_min"] = str(min(nonnull))
+                              item["trading_day_max"] = str(max(nonnull))
+                          elif col in ("symbol", "option_type", "expiry") and nonnull:
+                              unique = sorted({str(v) for v in nonnull})
+                              item[col + "_unique_count"] = len(unique)
+                              item[col + "_unique_sample"] = unique[:20]
+                          elif col == "strike" and nonnull:
+                              item["strike_min"] = min(nonnull)
+                              item["strike_max"] = max(nonnull)
+                          elif col == "open_interest" and nonnull:
+                              item["open_interest_nonnull_rows"] = len(nonnull)
+                  item["sample_rows"] = table.slice(0, 3).to_pylist()
+              except Exception as exc:
+                  item["parquet_read_error"] = repr(exc)
+              report["latest_option_file_inspection"].append(item)
+          with open(report_path, "w", encoding="utf-8") as f:
+              json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+          print(json.dumps(report["latest_option_file_inspection"], ensure_ascii=False, indent=2, default=str))
+          if any("download_error" in x or "parquet_read_error" in x for x in report["latest_option_file_inspection"]):
+              raise SystemExit("One or more option Parquet inspections failed; see artifact.")
+          PY
