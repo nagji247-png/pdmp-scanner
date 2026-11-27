@@ -75,15 +75,6 @@ jobs:
           if not split_rows:
               raise SystemExit("No Dataset Viewer config/split metadata returned; row probe not possible.")
           PY
-      - name: Upload probe report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: hf-dataset-viewer-probe
-          path: hf_dataset_viewer_probe.json
-          if-no-files-found: warn
-          retention-days: 14
-
       - name: Inspect latest separate option Parquet files
         shell: bash
         run: |
@@ -156,3 +147,11 @@ jobs:
           if any("download_error" in x or "parquet_read_error" in x for x in report["latest_option_file_inspection"]):
               raise SystemExit("One or more option Parquet inspections failed; see artifact.")
           PY
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hf-dataset-viewer-probe
+          path: hf_dataset_viewer_probe.json
+          if-no-files-found: warn
+          retention-days: 14
