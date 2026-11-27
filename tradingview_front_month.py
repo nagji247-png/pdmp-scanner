@@ -101,7 +101,8 @@ def select_front_month_quote(quotes: list[dict], symbol: str,
         if not isinstance(quote, dict) or not quote.get("expiry"):
             continue
         row_symbol = str(quote.get("symbol") or "").strip().upper()
-        if row_symbol and row_symbol != symbol:
+        # Require an explicit full-size MCX symbol; never infer it from expiry alone.
+        if row_symbol != symbol:
             continue
         try:
             expiry = date.fromisoformat(str(quote["expiry"]))
