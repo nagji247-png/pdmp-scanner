@@ -100,7 +100,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install yfinance feedparser requests pytrends
+      - run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Validate Python syntax and market-data tests
         run: |
           node --check signal-performance.js

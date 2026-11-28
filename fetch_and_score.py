@@ -1,4 +1,5 @@
 import json, csv, os, re, time, math, datetime as dt, html
+from tradingview_front_month import fetch_front_month_code, select_front_month_quote
 from urllib.parse import quote_plus
 from component_scoring import (
     DEFAULT_COMPONENT_WEIGHTS, build_component, combine_components, finite_number,
@@ -2434,8 +2435,8 @@ def mcx_bhavcopy_contract_close(rows, symbol, expiry, trade_date):
     return None
 
 
-def parse_mcx_market_watch_rows(rows, now=None):
-    """Keep only timestamped MCX FUTCOM rows and select the highest-OI contract per commodity."""
+def parse_mcx_market_watch_rows(rows, now=None, front_month_codes=None):
+    """Keep fresh MCX FUTCOM rows; match GOLD/SILVER to TradingView Front Month and CRUDEOIL by OI."""
     if not isinstance(rows, list):
         return {}
     ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
@@ -2489,6 +2490,7 @@ def parse_mcx_market_watch_rows(rows, now=None):
         pct = _num(row.get("PercentChange"))
         source_time = parsed_stamp.strftime("%Y-%m-%d %H:%M IST")
         quote = {
+            "symbol": symbol,
             "price": round(raw_price, 2),
             "previous_close": round(previous, 2) if previous and previous > 0 else None,
             "change_pct": round(pct, 2) if pct is not None else None,
@@ -2503,8 +2505,22 @@ def parse_mcx_market_watch_rows(rows, now=None):
             candidates[symbol].append(quote)
 
     selected = {}
+    front_month_codes = front_month_codes or {}
     for symbol, quotes in candidates.items():
-        if quotes:
+        if not quotes:
+            continue
+        if symbol in ("GOLD", "SILVER"):
+            code = front_month_codes.get(symbol)
+            match = select_front_month_quote(quotes, symbol, code)
+            if match is None:
+                print(
+                    f"MCX {symbol} withheld: TradingView Front Month code "
+                    f"missing or no unique matching fresh FUTCOM expiry (code={code!r}); "
+                    "no OI fallback used."
+                )
+                continue
+            selected[symbol] = match
+        else:
             quotes.sort(key=lambda item: (-item["open_interest"], item["expiry"]))
             selected[symbol] = quotes[0]
     return selected
@@ -2514,7 +2530,15 @@ def refresh_mcx_market_watch_quotes():
     """Refresh GOLD, SILVER and CRUDEOIL from the exchange's own FUTCOM Market Watch."""
     try:
         rows = fetch_mcx_market_watch_rows()
-        quotes = parse_mcx_market_watch_rows(rows)
+        # Fetch TradingView's explicit Front Month label once per commodity per run.
+        # If blocked/unavailable, do not silently substitute the highest-OI contract.
+        front_month_codes = {
+            symbol: fetch_front_month_code(symbol, MCX_HTTP.get)
+            for symbol in ("GOLD", "SILVER")
+        }
+        for symbol, code in front_month_codes.items():
+            print(f"TradingView {symbol} continuous Front Month: {code or 'UNAVAILABLE'}")
+        quotes = parse_mcx_market_watch_rows(rows, front_month_codes=front_month_codes)
         files = {
             "GOLD": (GOLD_MCX_FILE, "mcx_price_per_10g", "previous_mcx_price_per_10g"),
             "SILVER": (MCX_SILVER_FILE, "mcx_price_per_kg", "previous_mcx_price_per_kg"),

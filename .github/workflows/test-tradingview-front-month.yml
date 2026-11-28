@@ -9,6 +9,12 @@ on:
       - "fetch_and_score.py"
       - "tests/test_tradingview_front_month.py"
       - ".github/workflows/test-tradingview-front-month.yml"
+  pull_request:
+    paths:
+      - "tradingview_front_month.py"
+      - "fetch_and_score.py"
+      - "tests/test_tradingview_front_month.py"
+      - ".github/workflows/test-tradingview-front-month.yml"
   workflow_dispatch:
 
 permissions:
@@ -34,8 +40,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: pip install yfinance feedparser requests pytrends curl_cffi
       - name: Diagnostic MCX Market Watch and TradingView front-month match
+        # A manual live-source mismatch must fail the run, not leave a green check.
         if: github.event_name == 'workflow_dispatch'
-        continue-on-error: true
         run: |
           python - <<'PY'
           import datetime as dt
