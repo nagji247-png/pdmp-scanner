@@ -1602,8 +1602,10 @@ function card(name, d, participantOI, observedAt) {
     ? (hasPrice ? goldPrice + " /10g" : "—")
     : name === "BITCOIN" || name === "NASDAQ" || name === "DJI"
       ? (hasPrice ? "$" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) : "—")
-      : (hasPrice ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) +
-        (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—");
+      : name === "USDINR" && !hasPrice && d.reference_price != null && Number.isFinite(Number(d.reference_price)) && Number(d.reference_price) > 0
+        ? "₹" + Number(d.reference_price).toFixed(4)
+        : (hasPrice ? "₹" + Number(d.price).toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2}) +
+          (name === "SILVER" ? " /kg" : name === "CRUDEOIL" ? " /BBL" : "") : "—");
   const compactDateTime = [priceDate, priceTime].filter(Boolean);
   const gstNote = name === "GOLD"
     ? '<div style="margin-top:4px;font-size:10px;line-height:1.35;color:#d8c28b">MCX भाव + 3% GST Estimate</div>'
