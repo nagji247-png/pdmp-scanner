@@ -1520,6 +1520,13 @@ function card(name, d, participantOI, observedAt) {
   let [cls, label] = classify(shownScore);
   const color = cls === "bull" ? "#2ecc71" : cls === "bear" ? "#e74c3c" : "#f1c40f";
   const hasChange = d.change_pct != null && Number.isFinite(Number(d.change_pct));
+  // When USDINR falls back to a dated Frankfurter reference, show its own
+  // day-over-day reference move in the compact card without changing live/score data.
+  const hasReferenceChange = name === "USDINR" && !hasChange
+    && (d.price == null || !Number.isFinite(Number(d.price)))
+    && d.reference_change_pct != null && Number.isFinite(Number(d.reference_change_pct));
+  const compactChangeValue = hasReferenceChange ? Number(d.reference_change_pct) : Number(d.change_pct);
+  const hasCompactChange = hasChange || hasReferenceChange;
   const sign = hasChange && Number(d.change_pct) > 0 ? "+" : "";
   const sScore = (shownScore > 0 ? "+" : "") + shownScore;
 
@@ -1595,9 +1602,9 @@ function card(name, d, participantOI, observedAt) {
     .replace(/NSE India[^,]*/gi, "NSE")
     .replace(/Google Finance direct[^,]*/gi, "Google Finance")
     .replace(/Yahoo Finance/gi, "Yahoo");
-  const compactChange = hasChange
-    ? (Number(d.change_pct) > 0 ? "+" : Number(d.change_pct) < 0 ? "−" : "") + Math.abs(Number(d.change_pct)).toFixed(2) + "%"
-    : "बदलाव डेटा नहीं";
+  const compactChange = hasCompactChange
+    ? (compactChangeValue > 0 ? "+" : compactChangeValue < 0 ? "−" : "") + Math.abs(compactChangeValue).toFixed(2) + "%"
+    : name === "USDINR" ? "—" : "बदलाव डेटा नहीं";
   const compactPrice = name === "GOLD"
     ? (hasPrice ? goldPrice + " /10g" : "—")
     : name === "BITCOIN" || name === "NASDAQ" || name === "DJI"
@@ -1640,7 +1647,7 @@ function card(name, d, participantOI, observedAt) {
     </div>
     <div class="compact-sentiment-row">
       <div class="lbl" style="color:${color}">${label}</div>
-      <div class="compact-change ${!hasChange || Number(d.change_pct) === 0 ? "zero" : Number(d.change_pct) > 0 ? "pos" : "neg"}">${compactChange}</div>
+      <div class="compact-change ${!hasCompactChange || compactChangeValue === 0 ? "zero" : compactChangeValue > 0 ? "pos" : "neg"}">${compactChange}</div>
     </div>
     ${compactSource ? '<div class="compact-source">' + esc(compactSource) + '</div>' : ''}
     <div class="compact-timestamp">${compactDateTime.map(esc).join(" · ")}</div>
