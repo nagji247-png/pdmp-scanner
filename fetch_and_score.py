@@ -3936,12 +3936,49 @@ def fetch_usdinr_reference(previous=None):
             age_days = (today - rate_date).days
             if not math.isfinite(rate) or rate <= 0 or age_days < 0 or age_days > 4:
                 raise ValueError("Frankfurter daily reference rate is invalid or too old")
-            print(f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} source=Frankfurter daily reference (not live)")
+            # Compare this dated daily reference with the immediately preceding
+            # published observation. Never use calendar-day gaps or cached live quotes.
+            reference_change_pct = None
+            reference_change_date = None
+            try:
+                history_from = (rate_date - dt.timedelta(days=10)).isoformat()
+                history_url = (
+                    "https://api.frankfurter.dev/v2/rates"
+                    f"?from={history_from}&to={rate_date.isoformat()}&base=USD&quotes=INR"
+                )
+                history_response = requests.get(history_url, headers=headers, timeout=12)
+                history_response.raise_for_status()
+                history_rows = history_response.json()
+                valid_rows = [
+                    row for row in history_rows if isinstance(row, dict)
+                    and str(row.get("base", "")).upper() == "USD"
+                    and str(row.get("quote", "")).upper() == "INR"
+                    and _num(row.get("rate")) is not None and float(row["rate"]) > 0
+                    and row.get("date")
+                ]
+                prior_rows = sorted(
+                    (row for row in valid_rows if dt.date.fromisoformat(str(row["date"])) < rate_date),
+                    key=lambda row: str(row["date"])
+                )
+                if prior_rows:
+                    prior_row = prior_rows[-1]
+                    prior_rate = float(prior_row["rate"])
+                    reference_change_pct = round((rate / prior_rate - 1) * 100, 2)
+                    reference_change_date = str(prior_row["date"])
+            except Exception as history_exc:
+                print(f"USDINR reference change unavailable: {str(history_exc)[:160]}")
+            print(
+                f"USDINR_REFERENCE: rate={rate:.4f} date={rate_date.isoformat()} "
+                f"change_pct={reference_change_pct} previous_date={reference_change_date} "
+                "source=Frankfurter daily reference (not live)"
+            )
             return {
                 "reference_price": round(rate, 4),
                 "reference_date": rate_date.isoformat(),
                 "reference_source": "Frankfurter · दैनिक संदर्भ दर (लाइव नहीं)",
                 "reference_stale": False,
+                "reference_change_pct": reference_change_pct,
+                "reference_change_date": reference_change_date,
             }
         except Exception as exc:
             errors.append(str(exc)[:120])
@@ -3959,6 +3996,8 @@ def fetch_usdinr_reference(previous=None):
                     "reference_date": rate_date.isoformat(),
                     "reference_source": "Frankfurter · सुरक्षित पिछली दैनिक संदर्भ दर (लाइव नहीं)",
                     "reference_stale": True,
+                    "reference_change_pct": _num(previous.get("reference_change_pct")),
+                    "reference_change_date": previous.get("reference_change_date"),
                 }
         except (TypeError, ValueError):
             pass
